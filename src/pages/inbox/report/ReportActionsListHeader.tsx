@@ -1,8 +1,12 @@
-import React from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import ListBoundaryLoader from './ListBoundaryLoader';
 
 type ReportActionsListHeaderProps = {

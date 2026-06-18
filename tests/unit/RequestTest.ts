@@ -1,6 +1,7 @@
 import * as Request from '@src/libs/Request';
 import type {Middleware} from '@src/libs/Request';
 import type * as OnyxTypes from '@src/types/onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

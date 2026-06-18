@@ -1,9 +1,12 @@
-import render from 'dom-serializer';
+import CONST from '@src/CONST';
+
 import type {ChildNode} from 'domhandler';
+
+import render from 'dom-serializer';
 import {DataNode, Element} from 'domhandler';
 import {Str} from 'expensify-common';
 import {parseDocument} from 'htmlparser2';
-import CONST from '@src/CONST';
+
 import type GetCurrentSelection from './types';
 
 const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user']);

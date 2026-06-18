@@ -1,5 +1,6 @@
-import {randWord} from '@ngneat/falso';
 import type {PolicyCategories} from '@src/types/onyx';
+
+import {randWord} from '@ngneat/falso';
 
 export default function createRandomPolicyCategories(numberOfCategories = 0): PolicyCategories {
     const categories: PolicyCategories = {};

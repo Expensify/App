@@ -1,8 +1,12 @@
-import React, {useCallback} from 'react';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {openExternalLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback} from 'react';
 
 const VIDEO_ASPECT_RATIO = 1560 / 1280;
 

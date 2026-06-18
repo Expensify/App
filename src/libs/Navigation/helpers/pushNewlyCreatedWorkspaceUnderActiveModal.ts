@@ -1,7 +1,9 @@
-import {CommonActions} from '@react-navigation/native';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import type SCREENS from '@src/SCREENS';
+
+import {CommonActions} from '@react-navigation/native';
 
 type WorkspaceTargetScreen = typeof SCREENS.WORKSPACE.PROFILE | typeof SCREENS.WORKSPACE.INITIAL;
 

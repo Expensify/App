@@ -1,8 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import PromotedActionsBar from '@components/PromotedActionsBar';
 import type {PromotedAction, PromotedActionsBarProps} from '@components/PromotedActionsBar';
+
 import variables from '@src/styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

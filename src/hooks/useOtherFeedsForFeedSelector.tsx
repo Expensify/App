@@ -1,13 +1,18 @@
-import {Str} from 'expensify-common';
-import React from 'react';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import type {ListItem} from '@components/SelectionList/types';
+
 import {getCardFeedIcon, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+
 import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeedsForActivePolicies from './useCardFeedsForActivePolicies';
 import {useCompanyCardFeedIcons} from './useCompanyCardIcons';

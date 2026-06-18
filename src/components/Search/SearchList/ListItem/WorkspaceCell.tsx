@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getPolicyName, getWorkspaceIcon} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCellProps = {
     policyID?: string;

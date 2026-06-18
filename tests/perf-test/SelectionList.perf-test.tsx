@@ -1,15 +1,18 @@
-import {fireEvent} from '@testing-library/react-native';
-import type {RenderResult} from '@testing-library/react-native';
-import React, {useState} from 'react';
-import type {ComponentType} from 'react';
-import type ReactNative from 'react-native';
-import {measureRenders} from 'reassure';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
+
 import variables from '@styles/variables';
+
+import type {RenderResult} from '@testing-library/react-native';
+import type {ComponentType} from 'react';
+import type ReactNative from 'react-native';
+
+import {fireEvent} from '@testing-library/react-native';
+import React, {useState} from 'react';
+import {measureRenders} from 'reassure';
 
 type SelectionListWrapperProps = {
     /** Whether this is a multi-select list */

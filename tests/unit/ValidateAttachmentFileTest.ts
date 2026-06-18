@@ -1,5 +1,7 @@
 import validateAttachmentFile from '@libs/validateAttachmentFile';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import CONST from '../../src/CONST';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
 

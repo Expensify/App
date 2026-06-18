@@ -1,8 +1,11 @@
-import {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import useOnyx from './useOnyx';
 
 type SnapshotMap = Record<string, SearchResults>;

@@ -1,12 +1,15 @@
-import React from 'react';
-import {Linking} from 'react-native';
 import DateIcon from '@components/DateIcon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import WidgetContainer from '@components/WidgetContainer';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {Linking} from 'react-native';
 
 const announcements = CONST.HOME.ANNOUNCEMENTS.toSorted((a, b) => {
     if (a.publishedDate > b.publishedDate) {

@@ -1,9 +1,6 @@
-/**
- * Configuration types for multifactor authentication UI and scenarios.
- */
-import type {EmptyObject, ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {CancelConfirmModalProps} from '@components/MultifactorAuthentication/components/Modals/createCancelConfirmModal';
+
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {
     AllMultifactorAuthenticationBaseParameters,
@@ -12,9 +9,16 @@ import type {
     MultifactorAuthenticationScenarioCallback,
     RegistrationKeyInfo,
 } from '@libs/MultifactorAuthentication/shared/types';
+
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+/**
+ * Configuration types for multifactor authentication UI and scenarios.
+ */
+import type {EmptyObject, ValueOf} from 'type-fest';
+
 import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MultifactorAuthenticationScenarioPayload} from './index';
 
 /**

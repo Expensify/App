@@ -1,17 +1,21 @@
-import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {getFileValidationErrorText, hasHeicOrHeifExtension, resizeImageIfNeeded, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import type {FileValidationError} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
+
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 

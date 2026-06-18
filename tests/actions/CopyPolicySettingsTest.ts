@@ -1,5 +1,3 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {buildCopyPolicySettingsData} from '@src/libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
@@ -8,6 +6,11 @@ import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type CopyPolicySettings from '@src/types/onyx/CopyPolicySettings';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 
 const SOURCE_POLICY_ID = 'SOURCE000000000A';

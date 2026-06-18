@@ -1,15 +1,20 @@
-import type * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import AttachmentPickerWithMenuItems from '@pages/inbox/report/ReportActionCompose/AttachmentPickerWithMenuItems';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+import type {View} from 'react-native';
+
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 

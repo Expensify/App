@@ -1,6 +1,8 @@
-import {useCallback, useState, useSyncExternalStore} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
+
+import {useCallback, useState, useSyncExternalStore} from 'react';
 import {AccessibilityInfo} from 'react-native';
+
 import isScreenReaderEnabled from './isScreenReaderEnabled';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 

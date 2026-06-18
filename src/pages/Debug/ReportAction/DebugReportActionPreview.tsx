@@ -1,11 +1,17 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ScrollView from '@components/ScrollView';
+
 import useOnyx from '@hooks/useOnyx';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type DebugReportActionPreviewProps = {
     /** The report action to be previewed. */

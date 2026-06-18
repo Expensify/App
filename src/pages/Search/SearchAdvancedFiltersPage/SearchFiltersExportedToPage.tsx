@@ -1,28 +1,35 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import type {SearchMultipleSelectionPickerItem} from '@components/Search/SearchMultipleSelectionPicker';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getSearchValueForConnection} from '@libs/AccountingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegrationNamesForPolicies} from '@libs/PolicyUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import {getExportTemplates, updateAdvancedFilters} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 /** Maps standard export template IDs to the display label used in search query/filter */
 const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {

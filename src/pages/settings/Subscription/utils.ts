@@ -1,6 +1,7 @@
-import {addMonths, format, startOfMonth} from 'date-fns';
 import CONST from '@src/CONST';
 import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
+
+import {addMonths, format, startOfMonth} from 'date-fns';
 
 type PrivatePromoDiscountInfo = {
     isSecretPromoCode: boolean;

@@ -1,5 +1,6 @@
-import {act, renderHook} from '@testing-library/react-native';
 import usePaginatedData from '@hooks/usePaginatedData';
+
+import {act, renderHook} from '@testing-library/react-native';
 
 const buildData = (size: number) => Array.from({length: size}, (_, index) => index);
 

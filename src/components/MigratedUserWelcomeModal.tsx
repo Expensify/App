@@ -1,11 +1,10 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
 import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
@@ -13,10 +12,17 @@ import convertToLTR from '@libs/convertToLTR';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {FeatureListItem} from './FeatureList';
+
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import LottieAnimations from './LottieAnimations';

@@ -1,12 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {TNode} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {TNode} from 'react-native-render-html';
+
+import React from 'react';
+import {View} from 'react-native';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 function BulletItemRenderer({tnode}: {tnode: TNode}) {
     const styles = useThemeStyles();

@@ -1,9 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {isActionableWhisperRequiringWritePermission, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function getOrCreateReportVisibilityRecord(result: VisibleReportActionsDerivedValue, reportID: string, clonedReportIDs: Set<string>): Record<string, boolean> {
     if (!result[reportID]) {

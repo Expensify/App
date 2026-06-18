@@ -1,5 +1,7 @@
 import type {FlashListRef} from '@shopify/flash-list';
+
 import React, {createContext, useContext} from 'react';
+
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';

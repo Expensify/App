@@ -1,20 +1,26 @@
-import type * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, screen} from '@testing-library/react-native';
-import React, {useMemo} from 'react';
-import Onyx from 'react-native-onyx';
-import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+
 import {setHasRadio} from '@libs/NetworkState';
 import {createOptionList} from '@libs/OptionsListUtils';
+
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import {fireEvent, screen} from '@testing-library/react-native';
+import React, {useMemo} from 'react';
+import Onyx from 'react-native-onyx';
+import {measureRenders} from 'reassure';
+
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';

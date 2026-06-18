@@ -1,11 +1,17 @@
+import TextWithTooltip from '@components/TextWithTooltip';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import TextWithTooltip from '@components/TextWithTooltip';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import SelectableListItem from './SelectableListItem';
+
 import type {BaseSelectListItemProps, ListItem} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 /**
  * A text-only row with a title and optional subtitle, built on BaseListItem. Serves as the

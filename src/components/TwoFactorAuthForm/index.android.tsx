@@ -1,7 +1,10 @@
-import React from 'react';
 import CONST from '@src/CONST';
-import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
+
+import React from 'react';
+
 import type {TwoFactorAuthFormProps} from './types';
+
+import BaseTwoFactorAuthForm from './BaseTwoFactorAuthForm';
 
 function TwoFactorAuthForm(props: TwoFactorAuthFormProps) {
     return (

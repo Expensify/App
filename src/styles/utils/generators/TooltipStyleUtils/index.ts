@@ -1,14 +1,18 @@
-import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
-import type {SharedValue} from 'react-native-reanimated';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import type StyleUtilGenerator from '@styles/utils/generators/types';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
+
+import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
+
+import {StyleSheet} from 'react-native';
+
 import computeHorizontalShift, {GUTTER_WIDTH} from './computeHorizontalShift';
 import isOverlappingAtTop from './isOverlappingAtTop';
 import tooltipPlatformStyle from './tooltipPlatformStyles';

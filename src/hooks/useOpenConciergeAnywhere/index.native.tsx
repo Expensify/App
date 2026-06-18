@@ -1,8 +1,11 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 
 /**
  * Returns a callback that navigates to the Concierge chat on native (opens the side panel on web instead),

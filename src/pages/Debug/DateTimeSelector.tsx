@@ -1,12 +1,16 @@
-import {useRoute} from '@react-navigation/native';
-import type {ForwardedRef} from 'react';
-import React, {useEffect} from 'react';
-import type {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
 
 type DateTimeSelectorProps = {
     /** Form error text. e.g when no datetime is selected */
@@ -31,7 +35,13 @@ type DateTimeSelectorProps = {
 
 function DateTimeSelector(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {errorText = '', name, value, onInputChange, ref}: DateTimeSelectorProps,
+    {
+        errorText = '',
+        name,
+        value,
+        onInputChange,
+        ref,
+    }: DateTimeSelectorProps,
 ) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 

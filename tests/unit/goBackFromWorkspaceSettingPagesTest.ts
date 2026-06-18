@@ -1,9 +1,12 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import {StackActions} from '@react-navigation/native';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import {StackActions} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,

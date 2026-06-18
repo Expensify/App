@@ -1,7 +1,9 @@
+import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
+
+import CONST from '@src/CONST';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
-import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
-import CONST from '@src/CONST';
 
 /**
  * Manages the ManualNavigateToInboxTab span lifecycle for the inbox sidebar.

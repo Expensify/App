@@ -1,9 +1,13 @@
+import TooltipSense from '@components/Tooltip/TooltipSense';
+
+import {areAllModalsHidden} from '@userActions/Modal';
+
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
-import TooltipSense from '@components/Tooltip/TooltipSense';
-import {areAllModalsHidden} from '@userActions/Modal';
-import ScreenFreezeContext from './ScreenFreezeContext';
+
 import type ScreenFreezeWrapperProps from './types';
+
+import ScreenFreezeContext from './ScreenFreezeContext';
 
 function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
     const [frozen, setFrozen] = useState(false);

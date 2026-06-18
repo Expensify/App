@@ -1,11 +1,15 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import useDragoverDismiss from '@hooks/useDragoverDismiss';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {generateReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import FABButtons from './FABPopoverContent/FABButtons';
 import FABPopoverMenu from './FABPopoverContent/FABPopoverMenu';
 import CreateReportMenuItem from './FABPopoverContent/menuItems/CreateReportMenuItem';

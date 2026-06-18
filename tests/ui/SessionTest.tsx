@@ -1,16 +1,20 @@
-import {act, cleanup, render} from '@testing-library/react-native';
-import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
-import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as AppActions from '@libs/actions/App';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
+
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+
+import {act, cleanup, render} from '@testing-library/react-native';
+import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {createRandomReport} from '../utils/collections/reports';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';

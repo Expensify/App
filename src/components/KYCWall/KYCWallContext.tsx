@@ -1,5 +1,7 @@
 import type {ReactNode, RefObject} from 'react';
+
 import React, {createContext, useRef} from 'react';
+
 import type {KYCWallRef} from './types';
 
 type KYCWallContextType = RefObject<KYCWallRef | null>;

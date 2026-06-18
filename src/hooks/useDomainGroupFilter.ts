@@ -1,9 +1,14 @@
-import {groupsSelector} from '@selectors/Domain';
-import type {DomainSecurityGroupWithID} from '@selectors/Domain';
-import {useEffect, useState} from 'react';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
+
 import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {DomainSecurityGroupWithID} from '@selectors/Domain';
+
+import {groupsSelector} from '@selectors/Domain';
+import {useEffect, useState} from 'react';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 

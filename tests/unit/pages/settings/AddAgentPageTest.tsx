@@ -1,13 +1,17 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
 import {setInitialPresetID, setNavigationToken} from '@pages/settings/Agents/pendingAgentAvatarStore';
+
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {render} from '@testing-library/react-native';
+import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
     createAgent: jest.fn(() => ({optimisticAccountID: -123456, avatarURI: undefined})),

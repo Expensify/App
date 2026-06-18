@@ -1,26 +1,31 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
-import {useIsFocused} from '@react-navigation/native';
-import lodashDebounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
-import {DeviceEventEmitter, StyleSheet} from 'react-native';
 import type {ComposerProps, ComposerRef} from '@components/Composer/types';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari, isSafari} from '@libs/Browser';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import Parser from '@libs/Parser';
+
 import CONST from '@src/CONST';
+
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import lodashDebounce from 'lodash/debounce';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter, StyleSheet} from 'react-native';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];

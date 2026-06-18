@@ -1,7 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {WalletAdditionalDetailsForm} from '@src/types/form';
 import type {PersonalInfoStepProps} from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function getSubstepValues<T extends keyof WalletAdditionalDetailsForm>(
     inputKeys: Record<string, T>,

@@ -1,5 +1,7 @@
-import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import dedent from '@libs/StringUtils/dedent';
+
+import type {components as OctokitComponents} from '@octokit/openapi-types/types';
+
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
 

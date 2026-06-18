@@ -1,15 +1,21 @@
-import React from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+
 import Navigation from '@navigation/Navigation';
+
 import {acceptWalletTerms, clearPersonalBankAccount} from '@userActions/BankAccounts';
 import {resetWalletAdditionalDetailsDraft, updateCurrentStep} from '@userActions/Wallet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import FeesStep from './substeps/FeesStep';
 import TermsStep from './substeps/TermsStep';
 

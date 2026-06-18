@@ -1,10 +1,6 @@
-// eslint-disable-next-line no-restricted-imports
-import type {CSSProperties} from 'react';
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import {PDFPreviewer} from 'react-fast-pdf';
-import {View} from 'react-native';
 import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -12,12 +8,24 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import variables from '@styles/variables';
+
 import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import PDFPasswordForm from './PDFPasswordForm';
+
+// eslint-disable-next-line no-restricted-imports
+import type {CSSProperties} from 'react';
+
+import React, {memo, useCallback, useEffect, useState} from 'react';
+import {PDFPreviewer} from 'react-fast-pdf';
+import {View} from 'react-native';
+
 import type {PDFViewProps} from './types';
+
+import PDFPasswordForm from './PDFPasswordForm';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;

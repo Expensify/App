@@ -1,4 +1,5 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
+
 import AccountManagerLinkRenderer from './AccountManagerLinkRenderer';
 import AnchorRenderer from './AnchorRenderer';
 import BulletItemRenderer from './BulletItemRenderer';

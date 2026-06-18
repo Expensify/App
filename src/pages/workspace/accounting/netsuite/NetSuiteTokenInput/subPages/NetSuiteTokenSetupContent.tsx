@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Parser from '@libs/Parser';
+
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();

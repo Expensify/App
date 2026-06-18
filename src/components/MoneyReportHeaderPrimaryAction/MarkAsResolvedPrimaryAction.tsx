@@ -1,9 +1,14 @@
-import React from 'react';
 import Button from '@components/Button';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+
 import {markRejectViolationAsResolved} from '@userActions/IOU/RejectMoneyRequest';
+
+import React from 'react';
+
 import type {SimpleActionProps} from './types';
+
 import useTransactionThreadData from './useTransactionThreadData';
 
 function MarkAsResolvedPrimaryAction({reportID, chatReportID}: SimpleActionProps) {

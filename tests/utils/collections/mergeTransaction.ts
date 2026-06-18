@@ -1,7 +1,9 @@
-import {randAmount, randBoolean, randPastDate, randWord} from '@ngneat/falso';
-import {format} from 'date-fns';
 import CONST from '@src/CONST';
 import type {MergeTransaction} from '@src/types/onyx';
+
+import {randAmount, randBoolean, randPastDate, randWord} from '@ngneat/falso';
+import {format} from 'date-fns';
+
 import createRandomTransaction from './transaction';
 
 export default function createRandomMergeTransaction(index: number): MergeTransaction {

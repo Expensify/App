@@ -1,7 +1,8 @@
+import type CONST from '@src/CONST';
+
 import type {SourceLoadEventPayload} from 'expo-video';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 
 type VideoPlayerProps = {
     /**

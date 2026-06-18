@@ -1,6 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -10,20 +7,30 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTimeOfChronosTimerRunningFromVisibleActions} from '@libs/ChronosUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, canWriteInReport} from '@libs/ReportUtils';
+
 import {addComment} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
 type ChronosTimerHeaderButtonProps = {
     report: OnyxTypes.Report;

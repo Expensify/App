@@ -1,6 +1,8 @@
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
+
 import type {SetTestReceipt} from './types';
 
 const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead, onFileError) => {

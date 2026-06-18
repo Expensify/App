@@ -1,6 +1,7 @@
-import todosReportCountsSelector, {flaggedExpensesReviewSelector, todosSingleReportIDsSelector} from '@selectors/Todos';
 import CONST from '@src/CONST';
 import type {FlaggedExpensesDerivedValue, TodosDerivedValue} from '@src/types/onyx';
+
+import todosReportCountsSelector, {flaggedExpensesReviewSelector, todosSingleReportIDsSelector} from '@selectors/Todos';
 
 describe('todosReportCountsSelector', () => {
     it('returns undefined when todos is undefined', () => {

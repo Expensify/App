@@ -1,11 +1,3 @@
-import type {ImageContentFit} from 'expo-image';
-import type {SourceLoadEventPayload} from 'expo-video';
-import React, {useEffect, useRef, useState} from 'react';
-import {Image, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import type {MergeExclusive} from 'type-fest';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,24 +7,40 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import Accessibility from '@libs/Accessibility';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import variables from '@styles/variables';
+
 import {setNameValuePair} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ImageContentFit} from 'expo-image';
+import type {SourceLoadEventPayload} from 'expo-video';
+// eslint-disable-next-line no-restricted-imports
+import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {MergeExclusive} from 'type-fest';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {Image, View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+
+import type ImageSVGProps from './ImageSVG/types';
+import type DotLottieAnimation from './LottieAnimations/types';
+
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import ImageSVG from './ImageSVG';
-import type ImageSVGProps from './ImageSVG/types';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
-import type DotLottieAnimation from './LottieAnimations/types';
 import Modal from './Modal';
 import OfflineIndicator from './OfflineIndicator';
 import RenderHTML from './RenderHTML';

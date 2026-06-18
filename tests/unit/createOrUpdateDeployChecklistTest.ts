@@ -1,13 +1,15 @@
-import * as core from '@actions/core';
-import * as fns from 'date-fns';
-import {vol} from 'memfs';
-import path from 'path';
 import CONST from '@github/libs/CONST';
 import * as DeployChecklistUtils from '@github/libs/DeployChecklistUtils';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
+
 import run from '@scripts/createOrUpdateDeployChecklist';
+
+import * as core from '@actions/core';
+import * as fns from 'date-fns';
+import {vol} from 'memfs';
+import path from 'path';
 
 /**
  * @jest-environment node

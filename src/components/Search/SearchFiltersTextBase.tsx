@@ -1,17 +1,23 @@
-import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import TextFilterBase from './FilterComponents/TextFilterBase';
+
+import React from 'react';
+
 import type {SearchTextFilterKeys} from './types';
+
+import TextFilterBase from './FilterComponents/TextFilterBase';
 
 // Text-based filter keys that accept string input - these are keys from SearchTextFilterKeys that have string values
 type SearchFiltersTextBaseProps = {

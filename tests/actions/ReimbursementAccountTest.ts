@@ -1,11 +1,14 @@
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import resetNonUSDBankAccount from '@src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount';
 import resetUSDBankAccount from '@src/libs/actions/ReimbursementAccount/resetUSDBankAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ACHAccount} from '@src/types/onyx/Policy';
+
+import Onyx from 'react-native-onyx';
+
 import type {MockFetch} from '../utils/TestHelper';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

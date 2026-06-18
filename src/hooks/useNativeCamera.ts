@@ -1,21 +1,27 @@
+import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
+
+import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import getPlatform from '@libs/getPlatform';
+import type Platform from '@libs/getPlatform/types';
+import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {Camera, Point} from 'react-native-vision-camera';
+
 import {useFocusEffect} from '@react-navigation/core';
 import {useCallback, useRef, useState} from 'react';
 import {AppState} from 'react-native';
 import {Gesture} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {Camera, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import {scheduleOnRN} from 'react-native-worklets';
-import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
-import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
-import getPlatform from '@libs/getPlatform';
-import type Platform from '@libs/getPlatform/types';
-import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 

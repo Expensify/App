@@ -1,8 +1,10 @@
-import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import Log from '@libs/Log';
 import getStateForDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
 import type {Route} from '@src/ROUTES';
+
+import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 
 jest.mock('@react-navigation/native', () => ({
     getStateFromPath: jest.fn(),

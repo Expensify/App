@@ -1,8 +1,11 @@
-import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
+
 import useOnyx from './useOnyx';
 
 function usePayAndDowngrade(continueAction: () => void) {

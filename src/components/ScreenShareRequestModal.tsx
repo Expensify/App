@@ -1,8 +1,12 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {clearScreenShareRequest, joinScreenShare} from '@userActions/User';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import ConfirmModal from './ConfirmModal';
 
 /**

@@ -1,19 +1,25 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {SeverityLevel} from '@sentry/react-native';
-import * as Sentry from '@sentry/react-native';
-import {useEffect, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
+
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+
 import {isTransactionStillPending3DSReview} from '@libs/actions/MultifactorAuthentication';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionPending3DSReview} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {SeverityLevel} from '@sentry/react-native';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
+import {useEffect, useMemo} from 'react';
+
 import Navigation, {isMFAFlowScreen} from './Navigation';
 
 function addBreadcrumb(message: string, data?: Record<string, string | number | boolean | undefined>, level: SeverityLevel = 'info'): void {

@@ -1,7 +1,9 @@
-import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
 import type {DomainScreenName, WorkspaceScreenName} from '@libs/Navigation/types';
+
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
+
+import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
 
 type RootStackNavigatorActionType =
     | {

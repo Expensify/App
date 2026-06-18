@@ -1,14 +1,19 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useContext, useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlatform from '@libs/getPlatform';
 import Parser from '@libs/Parser';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React, {useContext, useMemo} from 'react';
+import {View} from 'react-native';
+
 import FormContext from './Form/FormContext';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';

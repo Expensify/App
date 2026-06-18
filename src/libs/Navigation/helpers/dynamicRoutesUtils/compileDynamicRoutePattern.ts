@@ -1,4 +1,5 @@
 import StringUtils from '@libs/StringUtils';
+
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 /**

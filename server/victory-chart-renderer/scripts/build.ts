@@ -1,3 +1,5 @@
+import CLI from '@scripts/utils/CLI';
+
 /*
  * Cross-compiles the victory-chart-renderer CLI into a standalone binary.
  *
@@ -13,7 +15,6 @@ import assertBuildSuccess from '@server/libs/assertBuildSuccess';
 import parseCompileTarget from '@server/libs/parseCompileTarget';
 import createRnStubPlugin from '@server/plugins/rnStubPlugin';
 import {join, resolve} from 'node:path';
-import CLI from '@scripts/utils/CLI';
 
 const packageRoot = resolve(import.meta.dir, '..');
 const stubRoot = resolve(packageRoot, '../stubs');

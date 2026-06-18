@@ -1,5 +1,6 @@
-import {useEffect} from 'react';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+
+import {useEffect} from 'react';
 
 /**
  * Signals that the app is ready to be opened.

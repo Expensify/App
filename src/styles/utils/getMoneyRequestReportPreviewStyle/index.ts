@@ -1,8 +1,10 @@
 import type {MoneyRequestReportPreviewStyleType} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
+
 // eslint-disable-next-line no-restricted-imports
 import sizing from '@styles/utils/sizing';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
+
 import CONST from '@src/CONST';
 
 const componentsSpacing = {

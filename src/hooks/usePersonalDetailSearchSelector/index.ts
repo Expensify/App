@@ -1,5 +1,6 @@
-import usePersonalDetailSearchSelectorBase from './base';
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
+
+import usePersonalDetailSearchSelectorBase from './base';
 
 /**
  * Hook that combines search functionality with selection logic for option lists.

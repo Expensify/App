@@ -1,11 +1,13 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import Onyx from 'react-native-onyx';
 import {applySavedColumnMappings, getImportFinalModalOnyxData} from '@libs/actions/ImportSpreadsheet';
 import {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import Onyx from 'react-native-onyx';
 
 describe('ImportTransactions', () => {
     beforeEach(() => {

@@ -1,5 +1,7 @@
-import fs from 'fs';
 import type {TupleToUnion} from 'type-fest';
+
+import fs from 'fs';
+
 import CLI from './utils/CLI';
 
 /**

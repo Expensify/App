@@ -1,9 +1,12 @@
-import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
+
 import useFilterFeedData from '@src/components/Search/hooks/useFilterFeedData';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {act, renderHook} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize');

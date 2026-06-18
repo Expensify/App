@@ -1,6 +1,9 @@
-import {Howl} from 'howler';
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
+
+import type {ValueOf} from 'type-fest';
+
+import {Howl} from 'howler';
+
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 
 const config = {prefix: '/sounds/'};

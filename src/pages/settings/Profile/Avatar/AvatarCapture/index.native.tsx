@@ -1,6 +1,8 @@
+import variables from '@styles/variables';
+
 import React, {useImperativeHandle, useRef} from 'react';
 import ViewShot from 'react-native-view-shot';
-import variables from '@styles/variables';
+
 import type {AvatarCaptureProps} from './types';
 
 /**

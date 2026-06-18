@@ -1,6 +1,7 @@
 import React from 'react';
 import SkeletonViewContentLoader from 'react-content-loader/native';
 import {StyleSheet} from 'react-native';
+
 import type SkeletonViewContentLoaderProps from './types';
 
 function ContentLoader({style, ...props}: SkeletonViewContentLoaderProps) {

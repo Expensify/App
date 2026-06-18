@@ -1,17 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isInvalidMerchantValue, isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TextBaseProps<TFormID extends OnyxFormKey> = {
     fieldID: string;

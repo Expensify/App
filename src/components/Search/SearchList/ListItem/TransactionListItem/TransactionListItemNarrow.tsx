@@ -1,5 +1,3 @@
-import React, {useRef} from 'react';
-import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -8,12 +6,19 @@ import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/U
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+
+import React, {useRef} from 'react';
+
 import type {TransactionListItemNarrowProps} from './types';
 
 function TransactionListItemNarrow<TItem extends ListItem>({

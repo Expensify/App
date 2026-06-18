@@ -1,16 +1,22 @@
-import {useEffect, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isSearchDataLoaded, isTransactionSearchType} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useEffect, useRef, useState} from 'react';
+
 import type {OptimisticTrackingState, TrackingMutableState} from './useStableOptimisticSortedData';
+
 import {OPTIMISTIC_TRACKING_TIMEOUT_MS, resolveWatchKey} from './useStableOptimisticSortedData';
 
 type UseOptimisticSearchTrackingParams = {

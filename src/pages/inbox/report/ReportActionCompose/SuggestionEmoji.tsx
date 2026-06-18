@@ -1,15 +1,21 @@
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {Emoji} from '@assets/emojis/types';
+
 import EmojiSuggestions from '@components/EmojiSuggestions';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getEmojiCodeForInsertion, isPositionInsideCodeBlock, suggestEmojis} from '@libs/EmojiUtils';
 import {trimLeadingSpace} from '@libs/SuggestionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+
 import type {SuggestionProps} from './Suggestions';
 
 type SuggestionsValue = {

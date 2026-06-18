@@ -1,12 +1,16 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import PerDiemFields from '@components/MoneyRequestConfirmationList/sections/PerDiemFields';
 import {perDiemSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
+
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type PerDiemSectionProps = {
     /** Active policy (used to resolve the per-diem custom unit) */

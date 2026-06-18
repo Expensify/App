@@ -1,10 +1,14 @@
-import {Image} from 'react-native';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
-import getFile from './getFile';
+
+import {Image} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+
 import type {SetTestReceipt} from './types';
+
+import getFile from './getFile';
 
 const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead, onFileError) => {
     const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.${assetExtension}`;

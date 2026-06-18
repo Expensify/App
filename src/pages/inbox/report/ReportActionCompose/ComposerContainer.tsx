@@ -1,10 +1,16 @@
-import React from 'react';
-import type {PropsWithChildren} from 'react';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+
 import {useComposerState} from './ComposerContext';
 
 function ComposerContainer({children}: PropsWithChildren) {

@@ -1,10 +1,15 @@
-import type {ViewStyle} from 'react-native';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
+
 import {isMobile} from '@libs/Browser';
+
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
+
+import type {ViewStyle} from 'react-native';
+
 import type StyleUtilGenerator from './types';
 
 function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {

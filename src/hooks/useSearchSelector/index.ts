@@ -1,5 +1,6 @@
-import useSearchSelectorBase from './base';
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
+
+import useSearchSelectorBase from './base';
 
 /**
  * Hook that combines search functionality with selection logic for option lists.

@@ -1,4 +1,5 @@
 import type {CurveType} from 'victory-native';
+
 import parseAttribute from './parseAttribute';
 
 /**

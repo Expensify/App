@@ -1,9 +1,12 @@
-import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+
 import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
+
+import React from 'react';
 
 function AddPaymentCard() {
     const {translate} = useLocalize();

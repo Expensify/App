@@ -1,9 +1,11 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {isFetchingWaypointsFromServer} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type ShouldShowDistanceMapParams = {
     transaction: OnyxEntry<Transaction>;

@@ -1,6 +1,8 @@
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 import type {NativeMethods} from 'react-native';
 import type {AnimatedRef} from 'react-native-reanimated';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 import type AccessibilityRoleForm from './types';
 
 /**

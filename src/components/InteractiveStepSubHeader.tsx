@@ -1,13 +1,18 @@
-import type {ForwardedRef} from 'react';
-import React, {useImperativeHandle, useState} from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ForwardedRef} from 'react';
+import type {ViewStyle} from 'react-native';
+
+import React, {useImperativeHandle, useState} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';

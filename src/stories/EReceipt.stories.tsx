@@ -1,11 +1,14 @@
-/* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
-import type {OnyxMergeCollectionInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {EReceiptProps} from '@components/EReceipt';
 import EReceipt from '@components/EReceipt';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+/* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {OnyxMergeCollectionInput} from 'react-native-onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
 
 type EReceiptStory = StoryFn<typeof EReceipt>;
 

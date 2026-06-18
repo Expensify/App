@@ -1,22 +1,28 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDateFilterKeys} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import DateFilterBase from './FilterComponents/DateFilterBase';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback} from 'react';
+
 import type {SearchDateFilterKeys, SearchFilterKey} from './types';
+
+import DateFilterBase from './FilterComponents/DateFilterBase';
 
 type SearchDatePresetFilterBasePageProps = {
     /** Key used for the date filter */

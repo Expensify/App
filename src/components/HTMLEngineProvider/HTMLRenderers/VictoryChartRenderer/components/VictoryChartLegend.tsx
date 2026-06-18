@@ -1,11 +1,14 @@
-import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
-import type {Color, SkFont} from '@shopify/react-native-skia';
-import React, {Fragment} from 'react';
 import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useTheme from '@hooks/useTheme';
+
+import type {Color, SkFont} from '@shopify/react-native-skia';
+
+import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
+import React, {Fragment} from 'react';
 
 type VictoryChartLegendProps = LegendItem & {
     chartWidth?: number;

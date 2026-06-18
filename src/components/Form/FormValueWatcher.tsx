@@ -1,5 +1,7 @@
-import {useEffect, useRef} from 'react';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+
+import {useEffect, useRef} from 'react';
+
 import type {FormOnyxValues} from './types';
 
 type FormValueWatcherProps<TFormID extends OnyxFormKey> = {

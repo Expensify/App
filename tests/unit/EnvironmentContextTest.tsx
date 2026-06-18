@@ -1,7 +1,9 @@
+import EnvironmentProvider, {EnvironmentActionsContext} from '@components/EnvironmentContextProvider';
+
+import CONST from '@src/CONST';
+
 import {render, waitFor} from '@testing-library/react-native';
 import React from 'react';
-import EnvironmentProvider, {EnvironmentActionsContext} from '@components/EnvironmentContextProvider';
-import CONST from '@src/CONST';
 
 // Mock getEnvironment and getEnvironmentURL
 const mockGetEnvironment: jest.MockedFunction<() => Promise<string>> = jest.fn();

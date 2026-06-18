@@ -1,16 +1,20 @@
-import React, {useRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
 import type {SearchDateFilterKeys} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useRef} from 'react';
 
 type DateFilterContentProps = {
     filterKey: SearchDateFilterKeys;

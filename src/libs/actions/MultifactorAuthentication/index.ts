@@ -1,8 +1,5 @@
-// These functions use makeRequestWithSideEffects because challenge data must be returned immediately
-// for security and timing requirements (see detailed explanation below)
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
+
 import {makeRequestWithSideEffects} from '@libs/API';
 import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -10,9 +7,16 @@ import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import {isAuthenticationChallenge, isRegistrationChallenge, parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+// These functions use makeRequestWithSideEffects because challenge data must be returned immediately
+// for security and timing requirements (see detailed explanation below)
+import Onyx from 'react-native-onyx';
 
 /**
  * These subscriptions keep ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS tidy as values within it are no longer needed

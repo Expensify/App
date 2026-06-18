@@ -1,6 +1,8 @@
-import React from 'react';
 import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 function SearchFiltersWithdrawalIDPage() {
     return (

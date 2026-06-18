@@ -1,8 +1,11 @@
-import type {RouteProp} from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
+
+import type {RouteProp} from '@react-navigation/native';
+
+import {fireEvent, render, screen} from '@testing-library/react-native';
+import React from 'react';
+
 import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubtitle';
 import NAVIGATORS from '../../src/NAVIGATORS';
 import SCREENS from '../../src/SCREENS';

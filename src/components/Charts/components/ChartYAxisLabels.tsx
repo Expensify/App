@@ -1,10 +1,12 @@
-import {Paragraph} from '@shopify/react-native-skia';
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import React from 'react';
-import type {ChartBounds, Scale} from 'victory-native';
 import {useChartParagraphs} from '@components/Charts/hooks';
 import {getFontLineMetrics} from '@components/Charts/utils';
 import VictoryTheme, {GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {ChartBounds, Scale} from 'victory-native';
+
+import {Paragraph} from '@shopify/react-native-skia';
+import React from 'react';
 
 type ChartYAxisLabelsProps = {
     /** Tick values on the Y axis. */

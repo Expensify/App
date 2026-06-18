@@ -1,9 +1,12 @@
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {getValidGroupBy} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
+
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 

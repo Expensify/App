@@ -1,6 +1,7 @@
+import Accessibility from '@libs/Accessibility';
+
 import {act, renderHook} from '@testing-library/react-native';
 import {AccessibilityInfo} from 'react-native';
-import Accessibility from '@libs/Accessibility';
 
 describe('useReducedMotion', () => {
     let mockIsReduceMotionEnabled: jest.Mock;

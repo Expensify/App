@@ -1,9 +1,12 @@
-import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import useTodos from '@hooks/useTodos';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, TodosDerivedValue, Transaction} from '@src/types/onyx';
+
+import {act, renderHook} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail

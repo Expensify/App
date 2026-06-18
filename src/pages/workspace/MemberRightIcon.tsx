@@ -1,10 +1,14 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Badge from '@components/Badge';
 import {useListItemFocus} from '@components/SelectionList/ListItemFocusContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
 
 type MemberRightIconProps = {
     owner?: string;

@@ -1,15 +1,20 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
+
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import type {EnterAnimation} from './useModalCardStyleInterpolator';
+
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
-import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;

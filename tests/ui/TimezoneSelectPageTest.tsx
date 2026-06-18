@@ -1,9 +1,12 @@
+import SelectionList from '@components/SelectionList';
+
+import TimezoneSelectPage from '@pages/settings/Profile/TimezoneSelectPage';
+
+import TIMEZONES from '@src/TIMEZONES';
+
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
-import SelectionList from '@components/SelectionList';
-import TimezoneSelectPage from '@pages/settings/Profile/TimezoneSelectPage';
-import TIMEZONES from '@src/TIMEZONES';
 
 const selectableTimezones = TIMEZONES.filter((tz) => !tz.startsWith('Etc/GMT'));
 // A timezone near the end of the alphabetical list, so its natural position is far down.

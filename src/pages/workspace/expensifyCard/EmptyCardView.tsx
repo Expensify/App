@@ -1,9 +1,8 @@
-import React from 'react';
-import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -11,6 +10,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type EmptyCardViewProps = {
     /** Whether the bank account is verified */

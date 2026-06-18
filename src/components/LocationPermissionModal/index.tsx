@@ -1,16 +1,22 @@
+import ConfirmModal from '@components/ConfirmModal';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import getPlatform from '@libs/getPlatform';
+import Visibility from '@libs/Visibility';
+
+import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+
+import CONST from '@src/CONST';
+
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import ConfirmModal from '@components/ConfirmModal';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
-import Visibility from '@libs/Visibility';
-import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import CONST from '@src/CONST';
+
 import type LocationPermissionModalProps from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {

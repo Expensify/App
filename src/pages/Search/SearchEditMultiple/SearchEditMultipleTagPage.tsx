@@ -1,19 +1,24 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TagPicker from '@components/TagPicker';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchBulkEditPolicyID from '@hooks/useSearchBulkEditPolicyID';
+
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+
 import {getCommonDependentTag} from './SearchEditMultipleUtils';
 
 function SearchEditMultipleTagPage() {

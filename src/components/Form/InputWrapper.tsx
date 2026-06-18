@@ -1,15 +1,20 @@
-import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
-import React, {useContext} from 'react';
-import type {SubmitBehavior} from 'react-native';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import type RoomNameInputProps from '@components/RoomNameInput/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import FormContext from './FormContext';
+
+import type {ComponentPropsWithoutRef, ComponentType, ForwardedRef} from 'react';
+import type {SubmitBehavior} from 'react-native';
+
+import React, {useContext} from 'react';
+
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
+
+import FormContext from './FormContext';
 
 type TextInputBasedComponents = Set<ComponentType<BaseTextInputProps> | ComponentType<RoomNameInputProps>>;
 

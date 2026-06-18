@@ -1,7 +1,10 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+
 import useHover from '@hooks/useHover';
+
 import CONST from '@src/CONST';
+
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 jest.mock('@hooks/useHover', () => jest.fn());
 

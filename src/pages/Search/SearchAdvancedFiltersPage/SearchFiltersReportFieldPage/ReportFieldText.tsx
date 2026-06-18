@@ -1,11 +1,14 @@
-import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import TextFilterBase from '@components/Search/FilterComponents/TextFilterBase';
+
 import {updateAdvancedFilters} from '@libs/actions/Search';
+
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyReportField} from '@src/types/onyx';
+
+import React from 'react';
 
 type ReportFieldListProps = {
     field: PolicyReportField;

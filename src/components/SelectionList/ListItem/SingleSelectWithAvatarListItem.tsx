@@ -1,11 +1,17 @@
+import Avatar from '@components/Avatar';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import Avatar from '@components/Avatar';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import SingleSelectListItem from './SingleSelectListItem';
+
 import type {ListItem, SingleSelectListItemProps} from './types';
+
+import SingleSelectListItem from './SingleSelectListItem';
 
 /**
  * A SingleSelectListItem that prepends an avatar when icons are provided. Used in pickers

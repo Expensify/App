@@ -1,15 +1,20 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFiltersChatsSelector from '@components/Search/SearchFiltersChatsSelector';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {updateAdvancedFilters} from '@userActions/Search';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function SearchFiltersInPage() {
     const styles = useThemeStyles();

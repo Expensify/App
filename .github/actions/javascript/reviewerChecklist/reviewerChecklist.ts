@@ -1,9 +1,10 @@
-import * as core from '@actions/core';
-import * as github from '@actions/github';
-import https from 'https';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 import isTeamMember from '@github/libs/isTeamMember';
+
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import https from 'https';
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
 const reviewerChecklistContains = '# Reviewer Checklist';

@@ -1,10 +1,14 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+
 import {adjustRemainingSplitShares} from '@libs/actions/IOU/Split';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 type SplitBillControllerProps = {
     transaction: OnyxEntry<Transaction>;

@@ -1,21 +1,27 @@
-import {emailSelector} from '@selectors/Session';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {emailSelector} from '@selectors/Session';
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ListItem} from './SelectionList/types';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from './SelectionList/types';
 
 type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
     value: ValueOf<typeof CONST.POLICY.ROLE>;

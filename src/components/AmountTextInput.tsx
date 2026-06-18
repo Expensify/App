@@ -1,11 +1,16 @@
+import useLocalize from '@hooks/useLocalize';
+
+import CONST from '@src/CONST';
+
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import CONST from '@src/CONST';
+
 import type {TextSelection} from './Composer/types';
-import TextInput from './TextInput';
 import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
+
+import TextInput from './TextInput';
 
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */

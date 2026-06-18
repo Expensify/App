@@ -1,6 +1,8 @@
-import type {NavigationState} from '@react-navigation/native';
 import {getContextualReportData} from '@components/Search/SearchRouter/SearchRouterUtils';
+
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 // Helper to create minimal navigation state for testing
 // The function only uses index, routes, and nested state properties

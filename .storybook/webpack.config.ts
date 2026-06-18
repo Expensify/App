@@ -1,3 +1,5 @@
+import type {Configuration, RuleSetRule} from 'webpack';
+
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -6,7 +8,7 @@ import {createRequire} from 'module';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import webpack from 'webpack';
-import type {Configuration, RuleSetRule} from 'webpack';
+
 // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions

@@ -1,12 +1,18 @@
+import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+import {FullScreenActionsContext, FullScreenStateContext} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+
+import useDebouncedState from '@hooks/useDebouncedState';
+
+import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import {useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
-import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContextProvider';
-import {FullScreenActionsContext, FullScreenStateContext} from '@components/VideoPlayerContexts/FullScreenContextProvider';
-import useDebouncedState from '@hooks/useDebouncedState';
-import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type WindowDimensions from './types';
 
 const initialViewportHeight = window.visualViewport?.height ?? window.innerHeight;

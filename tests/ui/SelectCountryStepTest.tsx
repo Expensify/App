@@ -1,13 +1,19 @@
-import type * as ReactNavigation from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
-import React from 'react';
 import SelectionList from '@components/SelectionList';
+
 import useOnyx from '@hooks/useOnyx';
+
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+
 import SelectCountryStep from '@pages/workspace/companyCards/addNew/SelectCountryStep';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import {act, render} from '@testing-library/react-native';
+import React from 'react';
 
 const mockUseState = React.useState;
 const mockAllCountries = CONST.ALL_COUNTRIES;

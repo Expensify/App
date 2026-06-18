@@ -1,14 +1,19 @@
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
+
+import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
+
+import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type Domain from '@src/types/onyx/Domain';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
-import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type Domain from '@src/types/onyx/Domain';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const DOMAIN_ACCOUNT_ID = 99999;

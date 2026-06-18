@@ -1,7 +1,9 @@
-import Onyx from 'react-native-onyx';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import Onyx from 'react-native-onyx';
+
 import {KEYS_TO_PRESERVE} from './App';
 
 function clearOnyxStateBeforeImport(): Promise<void> {

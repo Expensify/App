@@ -1,11 +1,14 @@
-import throttle from 'lodash/throttle';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import throttle from 'lodash/throttle';
+
 import {close} from './Modal';
 
 /**

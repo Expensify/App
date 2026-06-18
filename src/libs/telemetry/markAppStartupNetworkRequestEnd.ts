@@ -1,5 +1,7 @@
 import APP_STARTUP_NETWORK_REQUEST from '@libs/AppStartupNetworkRequest';
+
 import CONST from '@src/CONST';
+
 import {endSpanWithAttributes} from './activeSpans';
 
 /** End the span for the app startup network request. */

@@ -1,21 +1,28 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import Navigation from '@navigation/Navigation';
+
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;

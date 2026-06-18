@@ -1,4 +1,5 @@
 import {useEffect, useRef} from 'react';
+
 import CONST from './CONST';
 import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';

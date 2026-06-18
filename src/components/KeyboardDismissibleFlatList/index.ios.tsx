@@ -1,8 +1,11 @@
-import {useEffect} from 'react';
-import {useAnimatedProps, useComposedEventHandler} from 'react-native-reanimated';
 import type {AnimatedFlatListWithCellRendererProps} from '@components/AnimatedFlatListWithCellRenderer';
 import AnimatedFlatListWithCellRenderer from '@components/AnimatedFlatListWithCellRenderer';
+
 import CONST from '@src/CONST';
+
+import {useEffect} from 'react';
+import {useAnimatedProps, useComposedEventHandler} from 'react-native-reanimated';
+
 import {useKeyboardDismissibleFlatListActions, useKeyboardDismissibleFlatListState} from './KeyboardDismissibleFlatListContext';
 
 function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ref, ...restProps}: AnimatedFlatListWithCellRendererProps<T>) {

@@ -1,13 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import GroupChildrenContent from './GroupChildrenContent';
+
+import React from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import type {GroupChildrenContentProps} from './types';
+
+import GroupChildrenContent from './GroupChildrenContent';
 
 type GroupChildrenContainerProps = GroupChildrenContentProps & {
     isLastItem?: boolean;

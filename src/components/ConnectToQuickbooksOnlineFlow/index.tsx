@@ -1,8 +1,12 @@
-import {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
+
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
+
 import * as Link from '@userActions/Link';
 import * as PolicyAction from '@userActions/Policy/Policy';
+
+import {useEffect} from 'react';
+
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
 function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {

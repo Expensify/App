@@ -1,16 +1,22 @@
-import {cardByIdSelector} from '@selectors/Card';
-import React from 'react';
-import {View} from 'react-native';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getActionableCardFraudAlertMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import {resolveFraudAlert} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import {cardByIdSelector} from '@selectors/Card';
+import React from 'react';
+import {View} from 'react-native';
 
 type FraudAlertContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>;

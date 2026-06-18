@@ -1,10 +1,15 @@
+import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
+
+import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import getQuickbooksDesktopSetupEntryRoute from '@pages/workspace/accounting/qbd/utils';
+
+import ROUTES from '@src/ROUTES';
+
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
-import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
-import Navigation from '@libs/Navigation/Navigation';
-import getQuickbooksDesktopSetupEntryRoute from '@pages/workspace/accounting/qbd/utils';
-import ROUTES from '@src/ROUTES';
 
 jest.mock('@hooks/useHasReusablePoliciesConnectedTo');
 jest.mock('@libs/Navigation/Navigation', () => ({

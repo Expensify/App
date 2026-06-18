@@ -1,6 +1,8 @@
-import React, {useEffect, useRef} from 'react';
 import FlatList from '@components/FlatList/FlatList';
 import useFlatListScrollKey from '@components/FlatList/hooks/useFlatListScrollKey';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {BaseFlatListWithScrollKeyProps} from './types';
 
 /**

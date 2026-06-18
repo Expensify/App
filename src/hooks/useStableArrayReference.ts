@@ -1,5 +1,6 @@
-import {useState} from 'react';
 import arraysEqual from '@src/utils/arraysEqual';
+
+import {useState} from 'react';
 
 /**
  * Preserves the previous array reference when its contents are equal.

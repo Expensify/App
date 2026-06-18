@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import HttpUtils from '@src/libs/HttpUtils';
 import LoadTest from '@src/libs/Middleware/LoadTest';
 import {setLoadTestParameters} from '@src/libs/Network/LoadTestState';
@@ -7,6 +6,9 @@ import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';

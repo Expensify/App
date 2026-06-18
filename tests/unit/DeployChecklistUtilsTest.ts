@@ -1,13 +1,15 @@
+import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
+import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
+import GithubUtils from '@github/libs/GithubUtils';
+
+import type {Writable} from 'type-fest';
+
 /**
  * @jest-environment node
  */
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
-import type {Writable} from 'type-fest';
-import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
-import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
-import GithubUtils from '@github/libs/GithubUtils';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();

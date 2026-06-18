@@ -1,13 +1,18 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React, {useContext, useEffect, useRef, useState} from 'react';
+
 import {closeSearch, openSearch} from './toggleSearch';
 
 // Module-level pending query used to seed the SearchRouter input on open.

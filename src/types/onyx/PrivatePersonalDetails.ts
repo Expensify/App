@@ -1,4 +1,5 @@
 import type {Country} from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** User address data */

@@ -12,6 +12,7 @@
 import {transformSync} from '@babel/core';
 import fs from 'fs';
 import path from 'path';
+
 import CLI from './utils/CLI';
 import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';

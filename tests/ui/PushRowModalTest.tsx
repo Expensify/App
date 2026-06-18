@@ -1,10 +1,14 @@
-import type * as ReactNavigation from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
-import React from 'react';
 import SelectionList from '@components/SelectionList';
+
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+
 import PushRowModal from '@src/components/PushRowWithModal/PushRowModal';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import {act, render} from '@testing-library/react-native';
+import React from 'react';
 
 const mockUseState = React.useState;
 

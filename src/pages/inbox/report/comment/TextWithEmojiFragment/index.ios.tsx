@@ -1,9 +1,13 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import convertToLTR from '@libs/convertToLTR';
 import {containsCustomEmoji, containsOnlyCustomEmoji, splitTextWithEmojis} from '@libs/EmojiUtils';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type TextWithEmojiFragmentProps from './types';
 
 function TextWithEmojiFragment({message = '', style, alignCustomEmoji = false}: TextWithEmojiFragmentProps) {

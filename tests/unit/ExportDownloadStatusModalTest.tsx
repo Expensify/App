@@ -1,11 +1,16 @@
+import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
+
+import fileDownload from '@libs/fileDownload';
+import Navigation from '@libs/Navigation/Navigation';
+
+import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
-import fileDownload from '@libs/fileDownload';
-import Navigation from '@libs/Navigation/Navigation';
-import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/fileDownload');

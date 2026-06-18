@@ -1,7 +1,9 @@
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 describe('useArchivedReportsIDSet', () => {
     beforeAll(() => {

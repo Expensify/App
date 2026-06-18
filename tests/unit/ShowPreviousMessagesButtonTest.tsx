@@ -1,11 +1,16 @@
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
+
+import ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
-import ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLazyAsset', () => ({

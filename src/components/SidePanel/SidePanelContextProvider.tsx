@@ -1,22 +1,27 @@
-import type {PropsWithChildren, RefObject} from 'react';
-import React, {createContext, useEffect, useRef, useState} from 'react';
-// Import Animated directly from 'react-native' as animations are used with navigation.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import SidePanelActions from '@libs/actions/SidePanel';
 import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {SidePanel} from '@src/types/onyx';
+
+import type {PropsWithChildren, RefObject} from 'react';
+
+import React, {createContext, useEffect, useRef, useState} from 'react';
+// Import Animated directly from 'react-native' as animations are used with navigation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 
 type SidePanelStateContextProps = {
     isSidePanelTransitionEnded: boolean;

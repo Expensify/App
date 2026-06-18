@@ -1,7 +1,9 @@
+import DisplayNames from '@components/DisplayNames';
+
+import Parser from '@libs/Parser';
+
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
-import DisplayNames from '@components/DisplayNames';
-import Parser from '@libs/Parser';
 
 jest.mock('@libs/Parser', () => ({
     __esModule: true,

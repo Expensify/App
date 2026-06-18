@@ -1,10 +1,14 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
+
 import {clearDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect} from 'react';
 
 /**
  * Component that does not render anything but isolates the NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL

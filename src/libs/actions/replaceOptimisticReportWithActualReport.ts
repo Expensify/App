@@ -1,14 +1,18 @@
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+// eslint-disable-next-line no-restricted-imports
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import Onyx from 'react-native-onyx';
+
 import {openReport, saveReportDraftComment} from './Report';
 
 /**

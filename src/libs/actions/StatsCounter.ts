@@ -4,6 +4,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import getPlatform from '@libs/getPlatform';
+
 import pkg from '../../../package.json';
 
 const StatsCounter = (eventName: string, value = 1) => {

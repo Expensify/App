@@ -1,6 +1,8 @@
+import type {SvgProps} from 'react-native-svg';
+
 import React, {useId} from 'react';
 import {Circle, Svg} from 'react-native-svg';
-import type {SvgProps} from 'react-native-svg';
+
 import MapMarkerShadowFilter from './MapMarkerShadowFilter';
 
 function MapWaypoint({width = 40, height = 40}: SvgProps) {

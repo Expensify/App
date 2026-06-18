@@ -1,5 +1,6 @@
-import {renderHook} from '@testing-library/react-native';
 import useStableArrayReference from '@hooks/useStableArrayReference';
+
+import {renderHook} from '@testing-library/react-native';
 
 describe('useStableArrayReference', () => {
     it('returns the input array on the first render', () => {

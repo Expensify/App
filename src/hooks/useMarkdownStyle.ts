@@ -1,7 +1,10 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
-import {useMemo} from 'react';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+
+import {useMemo} from 'react';
+
 import useTheme from './useTheme';
 
 const defaultEmptyArray: Array<keyof MarkdownStyle> = [];

@@ -1,6 +1,8 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
 
 type TextWithMiddleEllipsisProps = {
     /** The text to display */

@@ -1,8 +1,3 @@
-/**
- * Tests for the Log module, including verification that logs correctly
- * include user context when sent to the server.
- */
-import MockedOnyx from 'react-native-onyx';
 import HttpUtils from '@src/libs/HttpUtils';
 import Log from '@src/libs/Log';
 import * as Network from '@src/libs/Network';
@@ -10,7 +5,15 @@ import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+/**
+ * Tests for the Log module, including verification that logs correctly
+ * include user context when sent to the server.
+ */
+import MockedOnyx from 'react-native-onyx';
+
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

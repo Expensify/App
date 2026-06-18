@@ -1,15 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp} from 'react-native';
-import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
 import Avatar from '@components/Avatar';
+
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp} from 'react-native';
+import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type AvatarWithDelegateAvatarProps = {

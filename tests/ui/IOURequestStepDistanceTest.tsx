@@ -1,3 +1,17 @@
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+
+import IOURequestStepDistance from '@pages/iou/request/step/IOURequestStepDistance';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {Report, Transaction} from '@src/types/onyx';
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -6,17 +20,9 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import IOURequestStepDistance from '@pages/iou/request/step/IOURequestStepDistance';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import type {Report, Transaction} from '@src/types/onyx';
+
 import type * as IOU from '../../src/libs/actions/IOU';
+
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

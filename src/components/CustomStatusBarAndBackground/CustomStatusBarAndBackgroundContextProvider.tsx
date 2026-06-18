@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+
 import {CustomStatusBarAndBackgroundProvider} from './CustomStatusBarAndBackgroundContext';
 
 function CustomStatusBarAndBackgroundContextProvider({children}: React.PropsWithChildren) {

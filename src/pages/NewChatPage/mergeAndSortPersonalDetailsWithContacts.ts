@@ -1,7 +1,8 @@
-import lodashUniqBy from 'lodash/uniqBy';
 import {orderPersonalDetailsOptions} from '@libs/OptionsListUtils';
 import type {SearchOptionData} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+
+import lodashUniqBy from 'lodash/uniqBy';
 
 /**
  * Merges Onyx personal details with imported contacts, removes entries without login,

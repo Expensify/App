@@ -1,6 +1,7 @@
-import {renderHook} from '@testing-library/react-native';
 import useChartLabelFormats from '@components/Charts/hooks/useChartLabelFormats';
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+
+import {renderHook} from '@testing-library/react-native';
 
 let mockNumberFormat = (n: number) => n.toLocaleString('en-US');
 

@@ -1,10 +1,12 @@
-import {act, render} from '@testing-library/react-native';
-import React, {useEffect, useMemo, useState} from 'react';
 import {SearchSelectionActionsContext, SearchSelectionContext} from '@components/Search/SearchContext';
 import {useSyncSelectedReports} from '@components/Search/SearchContextProvider';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import CONST from '@src/CONST';
+
+import {act, render} from '@testing-library/react-native';
+import React, {useEffect, useMemo, useState} from 'react';
 
 type HookData = TransactionListItemType[] | TransactionReportGroupListItemType[];
 

@@ -1,9 +1,12 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import openAndSubmittedReportsByPolicyIDConfig from '@libs/actions/OnyxDerived/configs/openAndSubmittedReportsByPolicyID';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Session} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {createMockReport} from '../../utils/ReportTestUtils';
 
 const CURRENT_USER_ACCOUNT_ID = 1;

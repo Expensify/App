@@ -1,6 +1,8 @@
-import React from 'react';
 import SearchFiltersCurrencyBase from '@components/Search/SearchFiltersCurrencyBase';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 function SearchFiltersPurchaseCurrencyPage() {
     return (

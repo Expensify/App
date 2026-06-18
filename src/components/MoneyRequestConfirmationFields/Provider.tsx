@@ -1,7 +1,10 @@
-import React from 'react';
-import type {ReactNode} from 'react';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 import ConfirmationFieldsContext from './context';
 
 type ProviderProps = {

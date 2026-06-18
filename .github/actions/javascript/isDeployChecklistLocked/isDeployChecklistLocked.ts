@@ -1,6 +1,7 @@
-import * as core from '@actions/core';
 import CONST from '@github/libs/CONST';
 import {getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
+
+import * as core from '@actions/core';
 
 const run = function (): Promise<void> {
     return getDeployChecklist()

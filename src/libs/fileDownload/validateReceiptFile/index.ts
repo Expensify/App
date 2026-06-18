@@ -1,4 +1,5 @@
 import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
+
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 /**

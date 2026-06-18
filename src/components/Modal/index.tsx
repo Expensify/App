@@ -1,13 +1,18 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
 import StatusBar from '@libs/StatusBar';
+
 import CONST from '@src/CONST';
-import BaseModal from './BaseModal';
-import {withInternalPopstate} from './internalPopstateGuard';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+
 import type BaseModalProps from './types';
 import type {WindowState} from './types';
+
+import BaseModal from './BaseModal';
+import {withInternalPopstate} from './internalPopstateGuard';
 
 type WebModalAnimation = Pick<BaseModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'>;
 

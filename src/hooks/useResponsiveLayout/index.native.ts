@@ -1,11 +1,17 @@
-import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
-import {useContext, useMemo} from 'react';
 import ModalContext from '@components/Modal/ModalContext';
+
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
+import {useContext, useMemo} from 'react';
+
 import type ResponsiveLayoutResult from './types';
 
 /**

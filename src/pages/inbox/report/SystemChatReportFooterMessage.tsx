@@ -1,19 +1,24 @@
-import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {shouldShowPolicy} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useMemo} from 'react';
 
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();

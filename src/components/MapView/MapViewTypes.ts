@@ -1,6 +1,7 @@
+import type {Unit} from '@src/types/onyx/Policy';
+
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {Unit} from '@src/types/onyx/Policy';
 
 type Coordinate = [number, number];
 

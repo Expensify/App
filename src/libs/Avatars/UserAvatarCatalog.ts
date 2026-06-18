@@ -1,13 +1,18 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {SvgProps} from 'react-native-svg';
 import * as SeasonF1 from '@components/Icon/CustomAvatars/SeasonF1';
 import * as DefaultAvatars from '@components/Icon/DefaultAvatars';
 import * as LetterDefaultAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
+
 import CONST from '@src/CONST';
-import {createAvatarCatalog} from './AvatarCatalog';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {SvgProps} from 'react-native-svg';
+
 import type {AvatarEntry} from './AvatarCatalog';
 import type {DefaultAvatarIDs, LetterAvatarIDs, SeasonF1AvatarIDs, UserAvatarID} from './UserAvatarCatalog.types';
+
+import {createAvatarCatalog} from './AvatarCatalog';
 
 const CDN_DEFAULT_AVATARS = `${CONST.CLOUDFRONT_URL}/images/avatars`;
 const CDN_SEASON_F1 = `${CONST.CLOUDFRONT_URL}/images/avatars/custom-avatars/season-f1`;

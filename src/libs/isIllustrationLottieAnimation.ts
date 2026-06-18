@@ -1,4 +1,5 @@
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+
 import type IconAsset from '@src/types/utils/IconAsset';
 
 function isIllustrationLottieAnimation(illustration: DotLottieAnimation | IconAsset | undefined): illustration is DotLottieAnimation {

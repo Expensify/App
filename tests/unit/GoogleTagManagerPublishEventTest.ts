@@ -1,4 +1,5 @@
 import type GoogleTagManagerModule from '@libs/GoogleTagManager/types';
+
 import CONST from '@src/CONST';
 
 // The fbq branching under test only exists in the web implementation (index.ts); the native variant

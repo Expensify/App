@@ -1,14 +1,16 @@
+import dedent from '@libs/StringUtils/dedent';
+
+import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
+import Git from '@scripts/utils/Git';
+import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
+import Translator from '@scripts/utils/Translator/Translator';
+
 /**
  * @jest-environment node
  */
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import dedent from '@libs/StringUtils/dedent';
-import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
-import Git from '@scripts/utils/Git';
-import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
-import Translator from '@scripts/utils/Translator/Translator';
 
 let processExitSpy: jest.SpyInstance;
 let consoleErrorSpy: jest.SpyInstance;

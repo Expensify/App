@@ -1,6 +1,8 @@
-import {renderHook} from '@testing-library/react-native';
 import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@libs/DistanceRequestUtils', () => ({
     __esModule: true,

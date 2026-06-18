@@ -1,7 +1,9 @@
-import type {NavigationState} from '@react-navigation/native';
 import getStateToResetAfterLogout from '@libs/Navigation/helpers/getStateToResetAfterLogout';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 /** Build a minimal root NavigationState from a list of `{name, params?}` routes. */
 const buildRootState = (routes: Array<{name: string; params?: Record<string, unknown>}>): NavigationState => ({

@@ -1,7 +1,9 @@
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+
 import {
     areAllTransactionsExpenseCompatible,
     hasCustomUnitMerchantInSelection,

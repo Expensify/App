@@ -1,13 +1,17 @@
-import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionListContextProvider, {useOptionsList} from '@components/OptionListContextProvider';
+
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import {act, renderHook} from '@testing-library/react-native';
+import React from 'react';
 
 jest.mock('@libs/OptionsListUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

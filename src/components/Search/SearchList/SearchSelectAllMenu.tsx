@@ -1,16 +1,20 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 
 type SearchSelectAllMenuProps = {
     isSelectAllChecked: boolean | undefined;

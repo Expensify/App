@@ -1,10 +1,14 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setIsSentryDebugEnabled, setIsSentrySendEnabled, setSentryDebugHighlightedSpanOps} from '@libs/actions/SentryDebug';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import Switch from './Switch';
 import TestToolRow from './TestToolRow';
 import Text from './Text';

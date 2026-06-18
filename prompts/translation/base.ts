@@ -1,4 +1,5 @@
 import dedent from '@libs/StringUtils/dedent';
+
 import {LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 

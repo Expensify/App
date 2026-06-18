@@ -1,12 +1,15 @@
-import {useNavigationState} from '@react-navigation/native';
-import {useEffect} from 'react';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
+
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
+
+import {useNavigationState} from '@react-navigation/native';
+import {useEffect} from 'react';
 
 function toggleSidePanelWithHistory(isVisible: boolean) {
     Navigation.isNavigationReady().then(() => {

@@ -1,7 +1,10 @@
-import {renderHook} from '@testing-library/react-native';
 import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+
+import {renderHook} from '@testing-library/react-native';
+
 import createRandomPolicy from '../../utils/collections/policies';
 
 const mockUseActiveAdminPolicies = jest.fn<Policy[], []>(() => []);

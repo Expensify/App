@@ -1,11 +1,7 @@
-import {isActingAsDelegateSelector} from '@selectors/Account';
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import {emailSelector} from '@selectors/Session';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,14 +9,25 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, hasAnyPaidPolicy} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {emailSelector} from '@selectors/Session';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
+
 import TOOLTIPS from './TOOLTIPS';
 
 type ProductTrainingContextType = {

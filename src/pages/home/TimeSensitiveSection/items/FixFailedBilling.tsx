@@ -1,9 +1,13 @@
-import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
+
 import colors from '@styles/theme/colors';
+
+import React from 'react';
 
 function FixFailedBilling() {
     const {translate} = useLocalize();

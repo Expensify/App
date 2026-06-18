@@ -1,13 +1,18 @@
-import React, {useState} from 'react';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitiallyFocusedKey from '@hooks/useInitiallyFocusedKey';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+
 import ROUTES from '@src/ROUTES';
+
+import React, {useState} from 'react';
+
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 type SearchMultipleSelectionPickerItem<T> = {

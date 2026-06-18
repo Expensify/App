@@ -1,9 +1,11 @@
-import type {ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type colors from '@styles/theme/colors';
 import type variables from '@styles/variables';
+
 import type CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);

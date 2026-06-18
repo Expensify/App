@@ -1,15 +1,20 @@
-import React, {useEffect, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setHasDeniedContactImportPrompt} from '@libs/actions/ContactPermissions';
 import {getContactPermission, requestContactPermission} from '@libs/ContactPermission';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
+
 import type ContactPermissionModalProps from './types';
 
 function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {

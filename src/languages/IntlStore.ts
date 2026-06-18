@@ -1,17 +1,20 @@
-import {setDefaultOptions} from 'date-fns';
-import type {Locale as DateUtilsLocale} from 'date-fns';
-import Onyx from 'react-native-onyx';
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
 import {LOCALES} from '@src/CONST/LOCALES';
 import type {Locale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type DynamicModule from '@src/types/utils/DynamicModule';
+
+import type {Locale as DateUtilsLocale} from 'date-fns';
+
+import {setDefaultOptions} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import type de from './de';
 import type en from './en';
 import type es from './es';
-import flattenObject from './flattenObject';
 import type fr from './fr';
 import type it from './it';
 import type ja from './ja';
@@ -20,6 +23,8 @@ import type pl from './pl';
 import type ptBR from './pt-BR';
 import type {FlatTranslationsObject, TranslationPaths} from './types';
 import type zhHans from './zh-hans';
+
+import flattenObject from './flattenObject';
 
 // This function was added here to avoid circular dependencies
 function setAreTranslationsLoading(areTranslationsLoading: boolean) {

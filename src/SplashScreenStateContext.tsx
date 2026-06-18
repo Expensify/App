@@ -1,9 +1,12 @@
-import React, {useContext, useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
+
+import React, {useContext, useEffect, useState} from 'react';
+
+import type ChildrenProps from './types/utils/ChildrenProps';
+
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
-import type ChildrenProps from './types/utils/ChildrenProps';
 
 type SplashScreenState = ValueOf<typeof CONST.BOOT_SPLASH_STATE>;
 

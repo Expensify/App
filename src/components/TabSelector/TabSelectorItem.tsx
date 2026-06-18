@@ -1,16 +1,21 @@
-import React, {useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import Badge from '@components/Badge';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
+
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
+
+import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
+
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 import {useTabSelectorActions} from './TabSelectorContext';
-import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 

@@ -1,8 +1,12 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**

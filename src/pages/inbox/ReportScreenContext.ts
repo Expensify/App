@@ -1,7 +1,8 @@
 import type {RefObject, SyntheticEvent} from 'react';
-import {createContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {FlatList, GestureResponderEvent, Text, View} from 'react-native';
+
+import {createContext} from 'react';
 
 type ReactionListAnchor = View | Text | HTMLDivElement | null;
 

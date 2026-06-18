@@ -1,3 +1,22 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
+
+import {search} from '@libs/actions/Search';
+import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards} from '@libs/CardUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
+import {YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/const';
+import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
+import {useYourSpendData} from '@pages/home/YourSpendSection/useYourSpendData';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card, Policy, Report} from '@src/types/onyx';
+import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type SearchResults from '@src/types/onyx/SearchResults';
+
 /**
  * Contracts asserted:
  *   - approvalRowState state machine: HIDDEN / LOADING / READY / HIDDEN_EMPTY
@@ -8,21 +27,6 @@
  *   - search() is dispatched when focused and online; suppressed when offline
  */
 import {act, renderHook} from '@testing-library/react-native';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useNetwork from '@hooks/useNetwork';
-import {search} from '@libs/actions/Search';
-import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards} from '@libs/CardUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/const';
-import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from '@pages/home/YourSpendSection/queries';
-import {useYourSpendData} from '@pages/home/YourSpendSection/useYourSpendData';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy, Report} from '@src/types/onyx';
-import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import type SearchResults from '@src/types/onyx/SearchResults';
 
 // Constants
 

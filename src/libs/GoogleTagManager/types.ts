@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /**
  * An event that can be published to Google Tag Manager. New events must be configured in GTM before they can be used

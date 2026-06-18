@@ -1,9 +1,13 @@
 import * as ApiUtils from '@libs/ApiUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import * as Link from '@userActions/Link';
+
 import CONST from '@src/CONST';
-import {appendTimeToFileName, getFileName} from './FileUtils';
+
 import type {FileDownload} from './types';
+
+import {appendTimeToFileName, getFileName} from './FileUtils';
 
 const createDownloadLink = (href: string, fileName: string) => {
     // creating anchor tag to initiate download

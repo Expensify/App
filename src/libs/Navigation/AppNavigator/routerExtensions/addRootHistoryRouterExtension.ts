@@ -1,8 +1,13 @@
-import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
+
+import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
+
+import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtensionUtils';
+
 import {
     applyRevealPaddingOffset,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
@@ -12,7 +17,6 @@ import {
     isRemoveFullscreenUnderRHPAction,
     isReplaceFullscreenUnderRHPAction,
 } from './addRootHistoryRouterExtensionUtils';
-import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtensionUtils';
 import {enhanceStateWithHistory} from './utils';
 
 const CUSTOM_HISTORY_MARKERS: ReadonlySet<string> = new Set([CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR]);

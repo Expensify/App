@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {
     getConnectedHRProvider,
     getHRApprovalMode,
@@ -8,14 +9,17 @@ import {
     isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
 } from '@libs/HRUtils';
+
 import {getApprovalModeLabel, getHRCards, getHRCardState} from '@pages/workspace/hr/utils';
 import type {HRCardDescriptor} from '@pages/workspace/hr/utils';
+
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import createRandomPolicy from '../utils/collections/policies';
 
 jest.mock('@libs/PersonalDetailsUtils', () => ({

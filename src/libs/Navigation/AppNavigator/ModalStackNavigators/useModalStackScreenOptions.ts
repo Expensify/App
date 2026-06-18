@@ -1,16 +1,21 @@
-import type {ParamListBase} from '@react-navigation/native';
-import {CardStyleInterpolators} from '@react-navigation/stack';
-import type {StackCardStyleInterpolator} from '@react-navigation/stack';
-import {useCallback} from 'react';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import CONST from '@src/CONST';
+
+import type {ParamListBase} from '@react-navigation/native';
+import type {StackCardStyleInterpolator} from '@react-navigation/stack';
+
+import {CardStyleInterpolators} from '@react-navigation/stack';
+import {useCallback} from 'react';
 
 function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();

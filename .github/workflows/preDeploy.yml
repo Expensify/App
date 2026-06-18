@@ -14,8 +14,8 @@ jobs:
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
-  prettier:
-    uses: ./.github/workflows/prettier.yml
+  oxfmt:
+    uses: ./.github/workflows/oxfmt.yml
 
   test:
     uses: ./.github/workflows/test.yml

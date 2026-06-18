@@ -1,21 +1,18 @@
-import React, {useRef} from 'react';
-import {Alert, Platform, View} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
-import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
-import type {PhotoFile} from 'react-native-vision-camera';
-import {useCameraFormat} from 'react-native-vision-camera';
 import ActivityIndicator from '@components/ActivityIndicator';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
@@ -25,8 +22,18 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {PhotoFile} from 'react-native-vision-camera';
+
+import React, {useRef} from 'react';
+import {Alert, Platform, View} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
+import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
+import {useCameraFormat} from 'react-native-vision-camera';
+
 import type {CameraProps} from './types';
 
 const BLINK_DURATION_MS = 80;

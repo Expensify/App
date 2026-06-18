@@ -1,8 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import HttpUtils from './HttpUtils';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './Middleware/types';
+
+import HttpUtils from './HttpUtils';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 

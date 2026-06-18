@@ -1,4 +1,5 @@
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import {getMimeTypeFromUri} from './fileDownload/FileUtils';
 
 function getOdometerImageUri(image: FileObject | string | null | undefined): string {

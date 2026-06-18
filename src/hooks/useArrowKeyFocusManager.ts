@@ -1,5 +1,7 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
 import CONST from '@src/CONST';
+
+import {useCallback, useEffect, useMemo, useState} from 'react';
+
 import useKeyboardShortcut from './useKeyboardShortcut';
 import usePrevious from './usePrevious';
 

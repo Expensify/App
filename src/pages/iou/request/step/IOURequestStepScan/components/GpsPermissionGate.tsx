@@ -1,7 +1,10 @@
-import React from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
+
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+
+import React from 'react';
 
 type GpsPermissionGateProps = {
     /** Whether the GPS permission flow is active */

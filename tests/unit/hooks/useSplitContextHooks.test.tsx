@@ -1,7 +1,3 @@
-import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import type {SharedValue} from 'react-native-reanimated';
 import {
     AttachmentCarouselPagerActionsContext,
     AttachmentCarouselPagerStateContext,
@@ -20,6 +16,12 @@ import type {DragAndDropActionsContextType, DragAndDropStateContextType} from '@
 import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
 import {DEFAULT_STATE, MultifactorAuthenticationStateProvider} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationComposedContextProviders';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
+
+import type {PropsWithChildren} from 'react';
+import type {SharedValue} from 'react-native-reanimated';
+
+import {act, renderHook} from '@testing-library/react-native';
+import React from 'react';
 
 /**
  * Creates a mock SharedValue that satisfies the SharedValue<T> interface used in reanimated.

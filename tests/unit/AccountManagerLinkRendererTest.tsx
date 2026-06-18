@@ -1,10 +1,13 @@
+import AccountManagerLinkRenderer from '@components/HTMLEngineProvider/HTMLRenderers/AccountManagerLinkRenderer';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import AccountManagerLinkRenderer from '@components/HTMLEngineProvider/HTMLRenderers/AccountManagerLinkRenderer';
-import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),

@@ -1,6 +1,3 @@
-import {deepEqual} from 'fast-equals';
-import {useEffect, useRef, useState} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
@@ -11,12 +8,14 @@ import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWith
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 import updateAutocompleteSubstitutionsForSelection from '@components/Search/SearchRouter/updateAutocompleteSubstitutionsForSelection';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,11 +24,17 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
+
+import type {TextInputKeyPressEvent} from 'react-native';
+
+import {deepEqual} from 'fast-equals';
+import {useEffect, useRef, useState} from 'react';
 
 type UseSearchPageInputProps = {
     queryJSON: SearchQueryJSON;

@@ -1,6 +1,8 @@
-import {sessionEmailAndAccountIDSelector} from '@selectors/Session';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Session} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {sessionEmailAndAccountIDSelector} from '@selectors/Session';
 
 describe('sessionEmailAndAccountIDSelector', () => {
     it('returns email and accountID when both are present', () => {

@@ -1,4 +1,5 @@
 import dedent from '@libs/StringUtils/dedent';
+
 import Glossary from './Glossary';
 
 const spanishGlossary = new Glossary([

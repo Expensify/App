@@ -1,8 +1,13 @@
-import React, {useEffect, useRef} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {consumeNavigationToken, getInitialPresetID, getReturnRoute, setPendingAvatar} from '@pages/settings/Agents/pendingAgentAvatarStore';
+
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect, useRef} from 'react';
+
 import type {OnSaveParams} from './EditAgentAvatarPage';
+
 import {EditAgentAvatarContent} from './EditAgentAvatarPage';
 
 function AddAgentAvatarPage() {

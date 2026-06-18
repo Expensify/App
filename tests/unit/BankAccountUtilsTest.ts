@@ -12,6 +12,7 @@ import {
     PERSONAL_INFO_STEP,
 } from '@libs/BankAccountUtils';
 import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
+
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Account, BankAccountList, Session} from '@src/types/onyx';

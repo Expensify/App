@@ -1,8 +1,12 @@
-import {act, render, renderHook} from '@testing-library/react-native';
-import type {ReactElement, ReactNode} from 'react';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import type {ReactElement, ReactNode} from 'react';
+
+import {act, render, renderHook} from '@testing-library/react-native';
 
 type ShowConfirmModalOptions = {
     prompt?: ReactNode;

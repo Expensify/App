@@ -1,6 +1,9 @@
-import React from 'react';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+
+import React from 'react';
+
 import type {TopBarProps} from './TopBar';
+
 import TopBar from './TopBar';
 
 type TopBarWithLoadingBarProps = Omit<TopBarProps, 'shouldShowLoadingBar'>;

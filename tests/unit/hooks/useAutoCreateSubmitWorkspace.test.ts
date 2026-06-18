@@ -1,4 +1,3 @@
-import {renderHook} from '@testing-library/react-native';
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -6,11 +5,16 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+
 import * as navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
+
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
+
+import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@hooks/useOnyx', () => {
     return {__esModule: true, default: jest.fn(() => [undefined])};

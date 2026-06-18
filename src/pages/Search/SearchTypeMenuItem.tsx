@@ -1,7 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
-import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import {SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS, useSearchSidebarCollapse, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
@@ -9,13 +5,23 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import TooltipSense from '@components/Tooltip/TooltipSense';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type SearchTypeMenuItemProps = {
     /** Translated title */

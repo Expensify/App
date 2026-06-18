@@ -1,5 +1,6 @@
-import type RNFS from 'react-native-fs';
 import checkFileExists from '@libs/fileDownload/checkFileExists/index';
+
+import type RNFS from 'react-native-fs';
 
 const mockStat = jest.fn<Promise<RNFS.StatResult>, [string]>();
 

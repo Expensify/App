@@ -1,7 +1,9 @@
-import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
+
 import CONFIG from '@src/CONFIG';
 import SCREENS from '@src/SCREENS';
+
+import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 
 /**
  * Internal placeholder used only as a mount-time buffer inside this module.

@@ -1,10 +1,12 @@
+import dedent from '@libs/StringUtils/dedent';
+
+import Git from '@scripts/utils/Git';
+
 /**
  * @jest-environment node
  */
 import {execSync} from 'child_process';
 import fs from 'fs';
-import dedent from '@libs/StringUtils/dedent';
-import Git from '@scripts/utils/Git';
 
 // Mock execSync to control git diff output
 jest.mock('child_process');

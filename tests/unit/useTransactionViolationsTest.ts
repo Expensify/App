@@ -1,11 +1,15 @@
-import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+
 import type CONST_TYPE from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import {renderHook} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/TransactionUtils', () => {

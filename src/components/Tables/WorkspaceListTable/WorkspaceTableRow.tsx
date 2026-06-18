@@ -1,6 +1,3 @@
-import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -10,13 +7,22 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import {useIsFocused} from '@react-navigation/core';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {WorkspaceRowData} from '.';
 
 type WorkspaceRowProps = {

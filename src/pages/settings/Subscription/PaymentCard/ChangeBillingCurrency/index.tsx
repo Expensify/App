@@ -1,6 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import PaymentCardCurrencyHeader from '@components/AddPaymentCard/PaymentCardCurrencyHeader';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,19 +6,28 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDraftValues, clearErrors} from '@libs/actions/FormActions';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isValidSecurityCode} from '@libs/ValidationUtils';
+
 import * as PaymentMethods from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 
 type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 

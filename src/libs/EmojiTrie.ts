@@ -1,8 +1,10 @@
 import emojis, {importEmojiLocale, localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
+
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
+
 import StringUtils from './StringUtils';
 import {endSpan, startSpan} from './telemetry/activeSpans';
 import Trie from './Trie';

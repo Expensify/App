@@ -1,5 +1,6 @@
-import fetchFileDownload from './DownloadUtils';
 import type {FileDownload} from './types';
+
+import fetchFileDownload from './DownloadUtils';
 
 /**
  * The function downloads an attachment on web platforms.

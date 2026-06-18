@@ -1,7 +1,10 @@
-import {useColorScheme} from 'react-native';
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useColorScheme} from 'react-native';
+
 import useOnyx from './useOnyx';
 
 function useThemePreference(): ThemePreferenceWithoutSystem {

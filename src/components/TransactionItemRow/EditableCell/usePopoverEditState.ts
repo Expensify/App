@@ -1,8 +1,11 @@
-import {useEffect, useRef, useState} from 'react';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import CONST from '@src/CONST';
+
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
+
+import {useEffect, useRef, useState} from 'react';
 
 type PopoverPosition = {
     horizontal: number;

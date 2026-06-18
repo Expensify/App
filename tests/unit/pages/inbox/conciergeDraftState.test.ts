@@ -6,6 +6,7 @@ import {
     setCachedDraft,
     stripIncompleteMarkdown,
 } from '@pages/inbox/conciergeDraftState';
+
 import CONST from '@src/CONST';
 
 const REPORT_ID = '123';

@@ -1,7 +1,10 @@
-import {deepEqual, shallowEqual} from 'fast-equals';
 import type TakeFirst from '@src/types/utils/TupleOperations';
-import DEFAULT_OPTIONS from './const';
+
+import {deepEqual, shallowEqual} from 'fast-equals';
+
 import type {ClientOptions, IsomorphicFn, KeyComparator, Options} from './types';
+
+import DEFAULT_OPTIONS from './const';
 
 function getEqualityComparator<Fn extends IsomorphicFn, MaxArgs extends number, Key>(opts: Options<Fn, MaxArgs, Key>): KeyComparator<Key> {
     // Use the custom equality comparator if it is provided

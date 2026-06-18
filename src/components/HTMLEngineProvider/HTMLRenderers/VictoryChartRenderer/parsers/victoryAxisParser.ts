@@ -1,6 +1,3 @@
-import {Skia} from '@shopify/react-native-skia';
-import type {SkTypeface} from '@shopify/react-native-skia';
-import type {TNode} from 'react-native-render-html';
 import type {PartialProcessNodeResult, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import {
     parseAttributeAsNumber,
@@ -9,6 +6,11 @@ import {
     parseAttributeAsStringArray,
 } from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawAxisStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawAxisStyle';
+
+import type {SkTypeface} from '@shopify/react-native-skia';
+import type {TNode} from 'react-native-render-html';
+
+import {Skia} from '@shopify/react-native-skia';
 
 /**
  * Parse axis config from a `<victoryaxis>` node.

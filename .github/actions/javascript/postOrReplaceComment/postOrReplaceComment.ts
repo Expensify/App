@@ -1,8 +1,10 @@
-import * as core from '@actions/core';
-import {context} from '@actions/github';
-import type {TupleToUnion} from 'type-fest';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+
+import type {TupleToUnion} from 'type-fest';
+
+import * as core from '@actions/core';
+import {context} from '@actions/github';
 
 function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number): string {
     const inputs = ['ANDROID', 'IOS', 'WEB'] as const;

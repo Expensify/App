@@ -1,4 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
 import CONST from '@src/CONST';
 
 const REPORT_SECONDARY_ACTIONS = CONST.REPORT.SECONDARY_ACTIONS;

@@ -2,6 +2,7 @@
  * Centralized styles and layout constants for the chart components.
  */
 import colors from '@styles/theme/colors';
+
 import {CHART_FONT_FAMILY_NAMES} from './utils/chartFontConstants';
 
 /** Shade groups in the palette */

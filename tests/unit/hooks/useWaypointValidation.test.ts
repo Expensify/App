@@ -1,6 +1,8 @@
-import {renderHook} from '@testing-library/react-native';
 import useWaypointValidation, {isWaypointEmpty} from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
+
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+
+import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@libs/TransactionUtils', () => ({
     isWaypointNullIsland: (waypoint: Waypoint | undefined) => waypoint?.lat === 0 && waypoint?.lng === 0,

@@ -1,4 +1,5 @@
 import type Permissions from '@libs/Permissions';
+
 import type Beta from '@src/types/onyx/Beta';
 
 /**

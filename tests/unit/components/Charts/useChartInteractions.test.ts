@@ -1,6 +1,7 @@
+import {findClosestPoint, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
+
 import {renderHook} from '@testing-library/react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import {findClosestPoint, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
 
 /**
  * findClosestPoint — binary search for the nearest canvas-x index

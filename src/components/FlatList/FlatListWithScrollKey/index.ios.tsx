@@ -1,8 +1,12 @@
-import React, {useCallback, useRef} from 'react';
-import type {LayoutChangeEvent, FlatList as RNFlatList} from 'react-native';
 import mergeRefs from '@libs/mergeRefs';
-import BaseFlatListWithScrollKey from './BaseFlatListWithScrollKey';
+
+import type {LayoutChangeEvent, FlatList as RNFlatList} from 'react-native';
+
+import React, {useCallback, useRef} from 'react';
+
 import type {FlatListWithScrollKeyProps} from './types';
+
+import BaseFlatListWithScrollKey from './BaseFlatListWithScrollKey';
 
 /**
  * FlatList component that handles initial scroll key.

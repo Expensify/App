@@ -1,14 +1,20 @@
-import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchFilterCommonProps} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
 type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {

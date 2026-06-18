@@ -1,8 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import type * as AppImport from '@libs/actions/App';
+
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
+
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import createProxyForObject from '@src/utils/createProxyForObject';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 jest.mock('@libs/actions/OnyxUpdates');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');

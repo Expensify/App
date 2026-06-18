@@ -1,6 +1,8 @@
+import type {SvgProps} from 'react-native-svg';
+
 import React, {useId} from 'react';
 import {G, Path, Svg} from 'react-native-svg';
-import type {SvgProps} from 'react-native-svg';
+
 import MapMarkerShadowFilter from './MapMarkerShadowFilter';
 
 function MapCurrentLocation({width = 48, height = 48}: SvgProps) {

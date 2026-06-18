@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getSecondaryExportReportActions,
@@ -7,12 +6,16 @@ import {
     isChangeWorkspaceAction,
     isMergeActionForSelectedTransactions,
 } from '@libs/ReportSecondaryActionUtils';
+
 import CONST from '@src/CONST';
 import {getValidConnectedIntegration, isPreferredExporter} from '@src/libs/PolicyUtils';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import createRandomPolicy from '../utils/collections/policies';

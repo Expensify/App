@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ListItem, TableListItemProps} from './types';
+
 import BaseListItem from './BaseListItem';
 import SelectableListItem from './SelectableListItem';
-import type {ListItem, TableListItemProps} from './types';
 
 /**
  * A pressable row styled as a table entry with animated highlight, optional avatar, and

@@ -1,9 +1,11 @@
-import {useNavigation} from '@react-navigation/native';
-import type {ComponentType} from 'react';
-import React, {useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
+import type {ComponentType} from 'react';
+
+import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 
 type WithNavigationTransitionEndProps = {didScreenTransitionEnd: boolean};
 

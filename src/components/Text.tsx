@@ -1,15 +1,21 @@
-import type {ForwardedRef} from 'react';
-import React, {useContext, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Platform, Text as RNText, StyleSheet} from 'react-native';
-import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
+
 import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+
 import type {FontUtilsType} from '@styles/utils/FontUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ForwardedRef} from 'react';
+import type {TextProps as RNTextProps, TextStyle} from 'react-native';
+
+import React, {useContext, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Platform, Text as RNText, StyleSheet} from 'react-native';
+
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
 type TextProps = RNTextProps &

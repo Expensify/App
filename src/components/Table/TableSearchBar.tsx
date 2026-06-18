@@ -1,7 +1,11 @@
-import React, {useEffect} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect} from 'react';
+
 import {useTableContext} from './TableContext';
 
 /**

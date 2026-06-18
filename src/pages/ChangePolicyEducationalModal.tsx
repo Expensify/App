@@ -1,15 +1,20 @@
-import React, {useCallback} from 'react';
 import ChangeWorkspaceMenuSectionList from '@components/ChangeWorkspaceMenuSectionList';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {dismissChangePolicyModal} from '@libs/actions/Report';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback} from 'react';
 
 function ChangePolicyEducationalModal() {
     const {translate} = useLocalize();

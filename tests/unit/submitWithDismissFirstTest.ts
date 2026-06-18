@@ -1,4 +1,5 @@
 import type {submitWithDismissFirst as SubmitWithDismissFirstFn} from '@libs/Navigation/helpers/submitWithDismissFirst';
+
 import CONST from '@src/CONST';
 
 const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();

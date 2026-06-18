@@ -1,13 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import TestDriveModal from '@components/TestDrive/Modal';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const Stack = createPlatformStackNavigator<TestDriveModalNavigatorParamList>();
 

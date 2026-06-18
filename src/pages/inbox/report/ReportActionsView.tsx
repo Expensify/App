@@ -1,7 +1,5 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -12,13 +10,22 @@ import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsPagination from '@hooks/useReportActionsPagination';
 import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import type ReportScreenNavigationProps from '@pages/inbox/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
+
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
 

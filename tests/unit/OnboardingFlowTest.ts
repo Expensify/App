@@ -1,5 +1,6 @@
 import {getOnboardingInitialPath} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
+
 import CONST from '@src/CONST';
 
 describe('OnboardingFlow', () => {

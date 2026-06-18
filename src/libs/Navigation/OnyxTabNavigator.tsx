@@ -1,20 +1,26 @@
-import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import type {TabSelectorProps} from '@components/TabSelector/types';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Tab from '@userActions/Tab';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
+import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
+
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
 type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = ChildrenProps & {

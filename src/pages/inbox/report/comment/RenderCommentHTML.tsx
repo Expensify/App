@@ -1,6 +1,8 @@
-import React from 'react';
 import RenderHTML from '@components/RenderHTML';
+
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+
+import React from 'react';
 
 type RenderCommentHTMLProps = {
     source: OriginalMessageSource;

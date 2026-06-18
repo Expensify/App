@@ -1,6 +1,8 @@
+import Log from '@libs/Log';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import {getAnalytics, logEvent} from '@react-native-firebase/analytics';
-import Log from '@libs/Log';
+
 import type {GoogleTagManagerEvent} from './types';
 import type GoogleTagManagerModule from './types';
 

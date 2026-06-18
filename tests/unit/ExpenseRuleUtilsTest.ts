@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {extractRuleFromForm, formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
+
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

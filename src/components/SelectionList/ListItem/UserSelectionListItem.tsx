@@ -1,16 +1,22 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
-import SelectableListItem from './SelectableListItem';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, UserSelectionListItemProps} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 /**
  * A compact single-line row with avatar, display name, and handle side by side. Used for

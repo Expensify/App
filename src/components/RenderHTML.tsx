@@ -1,9 +1,13 @@
-import React, {useMemo} from 'react';
-import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
-import type {RenderersProps} from 'react-native-render-html';
 import useHasTextAncestor from '@hooks/useHasTextAncestor';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import Parser from '@libs/Parser';
+
+import type {RenderersProps} from 'react-native-render-html';
+
+import React, {useMemo} from 'react';
+import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
+
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import OLRenderer from './HTMLEngineProvider/HTMLRenderers/OLRenderer';
 import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';

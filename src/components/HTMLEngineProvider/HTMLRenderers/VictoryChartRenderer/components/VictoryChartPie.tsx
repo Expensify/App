@@ -1,7 +1,3 @@
-import React from 'react';
-import type {TNode} from 'react-native-render-html';
-import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-html';
-import {Pie} from 'victory-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import parseShiftedLineSegmentNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/shiftedLineSegmentParser';
 import parseVictoryLabelNode from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/parsers/victoryLabelParser';
@@ -10,7 +6,15 @@ import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderer
 import {parseAttributeAsNumber, parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useTheme from '@hooks/useTheme';
+
+import type {TNode} from 'react-native-render-html';
+
+import React from 'react';
+import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-html';
+import {Pie} from 'victory-native';
+
 import VictoryChartPieLabel from './VictoryChartPieLabel';
 
 type VictoryChartPieProps = {tnode: TNode};

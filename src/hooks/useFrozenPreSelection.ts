@@ -1,7 +1,9 @@
-import {useState} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import CONST from '@src/CONST';
+
+import {useState} from 'react';
 
 type UseFrozenPreSelectionOptions<TItem extends ListItem> = {
     /** Item identifiers to pin on first capture. Matched against `getKey(item)`, or `item.keyForList` if `getKey` is omitted. */

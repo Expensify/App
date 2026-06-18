@@ -1,11 +1,16 @@
-import React from 'react';
 import ExpensifyCardIcon from '@assets/images/expensify-card-icon.svg';
+
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
+
+import React from 'react';
 
 type AddShippingAddressProps = {
     card: Card;

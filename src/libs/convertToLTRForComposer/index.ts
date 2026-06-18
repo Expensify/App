@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import type ConvertToLTRForComposer from './types';
 
 function hasRTLCharacters(text: string): boolean {

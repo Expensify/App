@@ -1,7 +1,10 @@
+import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const REPORT_ID = '1';

@@ -1,13 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import Timers from '@libs/Timers';
+
 import type {LocaleContextProps} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type ParticipantLocalTimeProps = {
     /** Personal details of the participant */

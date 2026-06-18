@@ -1,10 +1,12 @@
+import SafeString from '@src/utils/SafeString';
+
+import type {NonEmptyObject, NonEmptyTuple, ValueOf, Writable} from 'type-fest';
+
 /**
  * This file contains a CLI utility class which can be used to declaratively implement a strongly-typed CLI.
  * You provide a CLIConfig defining your arguments, then the class will handle parsing argv, type validation, error handling, and help messages.
  */
 import * as readline from 'readline';
-import type {NonEmptyObject, NonEmptyTuple, ValueOf, Writable} from 'type-fest';
-import SafeString from '@src/utils/SafeString';
 
 /**
  * A base CLI arg has only a description, which we will use in the help/usage message (built-in to any CLI).

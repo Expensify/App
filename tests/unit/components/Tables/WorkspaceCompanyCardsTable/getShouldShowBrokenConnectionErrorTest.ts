@@ -1,4 +1,5 @@
 import getShouldShowBrokenConnectionError from '@components/Tables/WorkspaceCompanyCardsTable/getShouldShowBrokenConnectionError';
+
 import CONST from '@src/CONST';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedErrorState} from '@src/types/onyx/DerivedValues';

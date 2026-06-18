@@ -1,8 +1,12 @@
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import {useContext, useMemo} from 'react';
 import {StyleSheet} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
-import CONST from '@src/CONST';
+
 import useNetwork from './useNetwork';
 import useSafeAreaPaddings from './useSafeAreaPaddings';
 

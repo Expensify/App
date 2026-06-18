@@ -1,7 +1,8 @@
-import type {SkTypeface} from '@shopify/react-native-skia';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import {CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
+
+import type {SkTypeface} from '@shopify/react-native-skia';
 
 const CHART_SKIA_TYPEFACE_KEYS = Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[];
 

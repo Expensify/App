@@ -1,15 +1,21 @@
-import {useIsFocused} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
+
 import type {MenuItemProps} from './MenuItem';
+
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type State = keyof typeof COMMON_CONST.STATES;

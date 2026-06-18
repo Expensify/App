@@ -1,7 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import {useCurrencyListActions} from './useCurrencyList';

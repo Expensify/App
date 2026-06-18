@@ -1,12 +1,9 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ConnectPolicyToSageIntacctParams} from '@libs/API/parameters';
 import type UpdateSageIntacctAccountingMethodParams from '@libs/API/parameters/UpdateSageIntacctAccountingMethodParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -20,6 +17,12 @@ import type {
     SageIntacctMappingValue,
     SageIntacctOfflineStateKeys,
 } from '@src/types/onyx/Policy';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 

@@ -3,6 +3,7 @@ import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type {DomainMemberErrors, DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
 import {getLatestError} from './ErrorUtils';
 
 /**

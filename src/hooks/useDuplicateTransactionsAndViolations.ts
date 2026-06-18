@@ -1,8 +1,11 @@
-import {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import RulePageBase from './RulePageBase';
 
 function AddRulePage() {

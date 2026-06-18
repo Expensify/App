@@ -1,7 +1,10 @@
-import React from 'react';
 import CONST from '@src/CONST';
-import SelectionButton from './SelectionButton';
+
+import React from 'react';
+
 import type {CheckboxProps} from './SelectionButton';
+
+import SelectionButton from './SelectionButton';
 
 /**
  * A square checkbox that supports checked, unchecked, and indeterminate states.

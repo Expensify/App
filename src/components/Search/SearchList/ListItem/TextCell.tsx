@@ -1,6 +1,8 @@
-import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 type TextCellProps = {
     text?: string;

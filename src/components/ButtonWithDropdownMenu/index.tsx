@@ -1,10 +1,7 @@
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
+
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -13,10 +10,20 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import mergeRefs from '@libs/mergeRefs';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+
+import type {RefObject} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {ButtonWithDropdownMenuProps} from './types';
 
 const defaultAnchorAlignment = {

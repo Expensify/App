@@ -1,11 +1,14 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
 import {AttachmentContext} from '@components/AttachmentContext';
 import VideoRenderer from '@components/HTMLEngineProvider/HTMLRenderers/VideoRenderer';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import {fireEvent, render, screen} from '@testing-library/react-native';
+import React from 'react';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),

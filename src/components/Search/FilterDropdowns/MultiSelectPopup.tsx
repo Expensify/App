@@ -1,8 +1,11 @@
-import React, {useState} from 'react';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
+
 import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+
 import BasePopup from './BasePopup';
 
 type MultiSelectPopupProps<T> = {

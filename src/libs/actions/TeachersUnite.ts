@@ -1,5 +1,3 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -8,8 +6,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction} from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 type CreationData = {
     reportID: string;

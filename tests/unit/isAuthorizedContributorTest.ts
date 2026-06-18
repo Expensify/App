@@ -2,8 +2,10 @@
  * @jest-environment node
  */
 import {RequestError} from '@octokit/request-error';
-import {isAuthorizedContributor, isContributorPlusMember, isInternalExpensifyEngineer} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
+
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
+
+import {isAuthorizedContributor, isContributorPlusMember, isInternalExpensifyEngineer} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
 function createRequestError(status: number): RequestError {

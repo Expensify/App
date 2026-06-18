@@ -1,7 +1,9 @@
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import RNFS from 'react-native-fs';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import RNFS from 'react-native-fs';
+
 import type GetFile from './types';
 
 const getFile: GetFile = (source, path, assetExtension) => {

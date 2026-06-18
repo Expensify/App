@@ -1,10 +1,14 @@
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+
+import getKeyboardHeight from '@libs/getKeyboardHeight';
+
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {ReactElement, RefObject} from 'react';
+
 import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controller';
 import {scheduleOnRN} from 'react-native-worklets';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import getKeyboardHeight from '@libs/getKeyboardHeight';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type KeyboardStateContextValue = {
     /** Whether the keyboard is open */

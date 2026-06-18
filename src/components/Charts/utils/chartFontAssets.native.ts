@@ -1,5 +1,6 @@
-import type {DataModule} from '@shopify/react-native-skia';
 import type {ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
+
+import type {DataModule} from '@shopify/react-native-skia';
 
 const EXPENSIFY_MONO_REGULAR = require('@assets/fonts/native/ExpensifyMono-Regular.otf') as DataModule;
 const EXPENSIFY_MONO_BOLD = require('@assets/fonts/native/ExpensifyMono-Bold.otf') as DataModule;

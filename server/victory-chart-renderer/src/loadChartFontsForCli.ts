@@ -1,10 +1,12 @@
-import {Skia} from '@shopify/react-native-skia';
-import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
-import {dirname, isAbsolute, join} from 'node:path';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Charts/types/chartSkiaTypefaceTypes';
 import buildSkiaFontManager from '@components/Charts/utils/buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
+
+import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
+
+import {Skia} from '@shopify/react-native-skia';
+import {dirname, isAbsolute, join} from 'node:path';
 
 function resolveBundledAssetPath(source: DataModule | string): string {
     let assetPath: string | null = null;

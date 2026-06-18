@@ -1,7 +1,10 @@
-import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
-import React, {useLayoutEffect, useRef} from 'react';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
+
+import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
+
+import React, {useLayoutEffect, useRef} from 'react';
+
 import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationProp} from './types';
 
 // screenLayout is invoked as a render function (not JSX), so we need this wrapper to create a proper React component boundary for hooks.

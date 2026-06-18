@@ -1,4 +1,5 @@
 import ts from 'typescript';
+
 import TSCompilerUtils from '../../scripts/utils/TSCompilerUtils';
 import dedent from '../../src/libs/StringUtils/dedent';
 

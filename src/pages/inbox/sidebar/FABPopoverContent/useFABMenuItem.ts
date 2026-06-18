@@ -1,7 +1,10 @@
-import {useLayoutEffect} from 'react';
-import type {ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
+import type {ViewStyle} from 'react-native';
+
+import {useLayoutEffect} from 'react';
+
 import {useFABMenuContext} from './FABMenuContext';
 
 type FABMenuItemResult = {

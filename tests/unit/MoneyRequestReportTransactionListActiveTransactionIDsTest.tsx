@@ -1,9 +1,11 @@
+import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
+
+import SCREENS from '@src/SCREENS';
+
 import {findFocusedRoute} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
 import {useEffect, useMemo} from 'react';
-import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
-import {navigationRef} from '@libs/Navigation/Navigation';
-import SCREENS from '@src/SCREENS';
 
 // Mock the TransactionThreadNavigation module
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({

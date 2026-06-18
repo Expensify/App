@@ -1,11 +1,16 @@
+import ModalContext from '@components/Modal/ModalContext';
+
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import {useContext, useMemo} from 'react';
 import {Dimensions} from 'react-native';
-import ModalContext from '@components/Modal/ModalContext';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
+
 import type ResponsiveLayoutResult from './types';
 
 /**

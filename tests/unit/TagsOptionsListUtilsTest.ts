@@ -1,9 +1,12 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
 import {getEnabledTags, getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
 import {localeCompare, translateLocal} from '../utils/TestHelper';

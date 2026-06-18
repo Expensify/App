@@ -1,6 +1,7 @@
+import ConfirmContent from '@components/ConfirmContent';
+
 import {render} from '@testing-library/react-native';
 import React from 'react';
-import ConfirmContent from '@components/ConfirmContent';
 
 type ButtonProps = {
     success?: boolean;

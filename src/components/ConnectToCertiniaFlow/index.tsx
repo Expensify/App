@@ -1,17 +1,23 @@
-import React, {useEffect, useLayoutEffect, useState} from 'react';
 import PopoverMenu from '@components/PopoverMenu';
+
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
+
 import type {AnchorPosition} from '@styles/index';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 
 type ConnectToCertiniaFlowProps = {
     policyID: string;

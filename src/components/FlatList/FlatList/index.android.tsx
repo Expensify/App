@@ -1,9 +1,13 @@
+import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
-import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {CustomFlatListProps} from './types';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).

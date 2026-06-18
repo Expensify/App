@@ -1,12 +1,17 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {OpenPolicyAccountingPageParams, OpenPolicyHRPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as Policy from '@src/types/onyx/Policy';
-import {updateManyPolicyConnectionConfigs} from './connections';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {ConnectionNameExceptNetSuite} from './connections';
+
+import {updateManyPolicyConnectionConfigs} from './connections';
 
 function openPolicyAccountingPage(policyID: string) {
     const hasConnectionsDataBeenFetchedKey = `${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}` as const;

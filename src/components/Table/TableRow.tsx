@@ -1,7 +1,3 @@
-import React from 'react';
-import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
-import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
@@ -9,15 +5,26 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
 import {useTableContext} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {

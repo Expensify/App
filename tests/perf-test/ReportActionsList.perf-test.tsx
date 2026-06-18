@@ -1,20 +1,26 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {screen} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
-import Onyx from 'react-native-onyx';
-import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {setHasRadio} from '@libs/NetworkState';
+
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {ComponentType} from 'react';
+
+import {NavigationContainer} from '@react-navigation/native';
+import {screen} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+import {measureRenders} from 'reassure';
+
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as ReportTestUtils from '../utils/ReportTestUtils';

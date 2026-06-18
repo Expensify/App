@@ -1,12 +1,17 @@
-import React, {createContext, useContext, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import {dismissProductTraining} from '@libs/actions/Welcome';
+
 import useScanRouteParams from '@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams';
+
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+
+import React, {createContext, useContext, useState} from 'react';
 
 type MultiScanState = {
     isMultiScanEnabled: boolean;

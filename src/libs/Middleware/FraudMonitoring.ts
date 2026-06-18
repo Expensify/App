@@ -1,6 +1,8 @@
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import FraudProtection from '@libs/FraudProtection';
+
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
+
 import type Middleware from './types';
 
 type FraudSignal = {

@@ -1,12 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
+
 import type {AvatarSizeName} from '@styles/utils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Avatar from './Avatar';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';

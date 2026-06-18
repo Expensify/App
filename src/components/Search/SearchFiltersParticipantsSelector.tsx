@@ -1,24 +1,30 @@
-import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFrozenPreSelection from '@hooks/useFrozenPreSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFilteredRecentAttendees, getParticipantsOption} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Attendee} from '@src/types/onyx/IOU';
+
+import React, {useEffect, useState} from 'react';
+
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 // Builds an OptionData row for a name-only attendee — one without a real accountID in personalDetails.

@@ -1,6 +1,8 @@
-import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/routers';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
+
+import type {NavigationState, PartialState} from '@react-navigation/routers';
+
+import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 
 jest.mock('@react-navigation/native', () => ({
     findFocusedRoute: jest.fn(),

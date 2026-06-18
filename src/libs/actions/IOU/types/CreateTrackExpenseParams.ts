@@ -1,8 +1,11 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {CurrentUser} from '@userActions/Policy/Policy';
+
 import type {IOUAction} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
 import type BasePolicyParams from './BasePolicyParams';
 import type RequestMoneyParticipantParams from './RequestMoneyParticipantParams';
 import type {TrackExpenseTransactionParams} from './TrackExpenseTransactionParams';

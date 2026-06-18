@@ -1,10 +1,15 @@
-import React, {useImperativeHandle, useRef, useState} from 'react';
-import type {Ref} from 'react';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
 import getPlatform from '@libs/getPlatform';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {Ref} from 'react';
+
+import React, {useImperativeHandle, useRef, useState} from 'react';
+
 import ParticipantSearchResults from './ParticipantSearchResults';
 
 type MoneyRequestParticipantsSelectorProps = {

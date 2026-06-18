@@ -1,5 +1,6 @@
-import type {findFocusedRoute, NavigationState, PartialState} from '@react-navigation/native';
 import {screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
+
+import type {findFocusedRoute, NavigationState, PartialState} from '@react-navigation/native';
 
 /**
  * Works like React Navigation's {@link findFocusedRoute} but stops recursing when it reaches

@@ -1,11 +1,14 @@
+import VictoryTheme from '@components/Charts/VictoryTheme';
+import Text from '@components/Text';
+
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {SharedValue} from 'react-native-reanimated';
+
 import React, {useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
-import VictoryTheme from '@components/Charts/VictoryTheme';
-import Text from '@components/Text';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */

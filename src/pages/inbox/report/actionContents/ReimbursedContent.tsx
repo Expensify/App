@@ -1,9 +1,13 @@
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+
 import {getReimbursedMessage} from '@libs/ReportActionsUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
 
 type ReimbursedContentProps = {
     action: ReportAction;

@@ -1,7 +1,10 @@
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('usePreferredPolicy', () => {

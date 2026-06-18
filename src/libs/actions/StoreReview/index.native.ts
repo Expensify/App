@@ -1,5 +1,6 @@
-import {hasAction as hasStoreReviewAction, isAvailableAsync, requestReview as requestNativeReview} from 'expo-store-review';
 import Log from '@libs/Log';
+
+import {hasAction as hasStoreReviewAction, isAvailableAsync, requestReview as requestNativeReview} from 'expo-store-review';
 
 /**
  * Request the native in-app review prompt (iOS/Android)

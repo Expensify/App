@@ -1,9 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
 import WidgetContainer from '@components/WidgetContainer';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import GettingStartedRow from './GettingStartedRow';
 import useGettingStartedItems from './hooks/useGettingStartedItems';
 

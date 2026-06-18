@@ -1,5 +1,7 @@
-import {KeyboardController} from 'react-native-keyboard-controller';
 import setTextInputSelection from '@libs/focusComposerWithDelay/setTextInputSelection';
+
+import {KeyboardController} from 'react-native-keyboard-controller';
+
 import type RequestKeyboardForFocusedComposer from './types';
 
 /**

@@ -1,10 +1,13 @@
-import {renderHook} from '@testing-library/react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import {renderHook} from '@testing-library/react-native';
 
 jest.mock('@libs/Navigation/Navigation');
 

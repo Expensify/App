@@ -1,8 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
+
 import CONST from '@src/CONST';
 import type {Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import pkg from '../../../package.json';
 import {process as processMainQueue, push as pushToMainQueue} from './MainQueue';
 import {flush as flushSequentialQueue} from './SequentialQueue';

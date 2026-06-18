@@ -1,5 +1,6 @@
-import {renderHook} from '@testing-library/react-native';
 import useAutoNavigateForDeletedLinkedAction from '@pages/inbox/hooks/useAutoNavigateForDeletedLinkedAction';
+
+import {renderHook} from '@testing-library/react-native';
 
 describe('useAutoNavigateForDeletedLinkedAction', () => {
     let navigateToEndOfReport: jest.Mock;

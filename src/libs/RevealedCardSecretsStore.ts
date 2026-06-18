@@ -1,5 +1,6 @@
-import {useSyncExternalStore} from 'react';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
+
+import {useSyncExternalStore} from 'react';
 
 /**
  * In-memory stores for revealed card secrets.

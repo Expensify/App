@@ -1,6 +1,7 @@
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
 import type {ZoomRange} from '@components/MultiGestureCanvas/types';
+
+import type {StyleProp, ViewStyle} from 'react-native';
 
 type ImageViewProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */

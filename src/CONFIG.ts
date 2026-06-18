@@ -1,7 +1,9 @@
+import type {NativeConfig} from 'react-native-config';
+
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Platform} from 'react-native';
-import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
+
 import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
 import addTrailingForwardSlash from './libs/UrlUtils';

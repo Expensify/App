@@ -1,7 +1,10 @@
+import useContactImport from '@hooks/useContactImport';
+
 import {useMemo} from 'react';
 import {RESULTS} from 'react-native-permissions';
-import useContactImport from '@hooks/useContactImport';
+
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
+
 import useSearchSelectorBase from './base';
 
 /**

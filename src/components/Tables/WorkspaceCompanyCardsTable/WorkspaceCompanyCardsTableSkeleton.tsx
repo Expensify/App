@@ -1,6 +1,7 @@
+import SkeletonRect from '@components/SkeletonRect';
+
 import React from 'react';
 import {Circle} from 'react-native-svg';
-import SkeletonRect from '@components/SkeletonRect';
 
 export default function WorkspaceCompanyCardsTableSkeleton() {
     return (

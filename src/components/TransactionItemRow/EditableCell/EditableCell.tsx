@@ -1,10 +1,15 @@
-import React, {useDeferredValue, useEffect, useId} from 'react';
-import type {ReactNode, RefObject} from 'react';
-import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode, RefObject} from 'react';
+
+import React, {useDeferredValue, useEffect, useId} from 'react';
+import {View} from 'react-native';
+
 import {useEditingCellActions} from './EditingCellContext';
 
 type EditableCellProps = {

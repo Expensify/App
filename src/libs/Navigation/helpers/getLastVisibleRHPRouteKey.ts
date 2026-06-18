@@ -1,5 +1,7 @@
-import type {NavigationState} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationState} from '@react-navigation/native';
+
 import {isFullScreenName} from './isNavigatorName';
 
 function getLastVisibleRHPRouteKey(state: NavigationState | undefined) {

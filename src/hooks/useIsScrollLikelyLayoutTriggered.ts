@@ -1,4 +1,5 @@
 import {useCallback, useRef} from 'react';
+
 import useDebounce from './useDebounce';
 
 export default function useIsScrollLikelyLayoutTriggered() {

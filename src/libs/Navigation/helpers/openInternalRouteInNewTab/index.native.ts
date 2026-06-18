@@ -1,4 +1,5 @@
 import type {Route} from '@src/ROUTES';
+
 import type {ModifiedMouseEvent} from './types';
 
 const isModifiedMousePress: (event?: ModifiedMouseEvent) => boolean = () => false;

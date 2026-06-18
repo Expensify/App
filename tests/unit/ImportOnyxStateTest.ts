@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import {cleanAndTransformState, transformNumericKeysToArray} from '../../src/libs/ImportOnyxStateUtils';
 
 describe('transformNumericKeysToArray', () => {

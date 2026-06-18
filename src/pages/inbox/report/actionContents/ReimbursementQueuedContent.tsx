@@ -1,24 +1,31 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
-import {tierNameSelector} from '@selectors/UserWallet';
-import React, {useContext} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getIndicatedMissingPaymentMethod, isChatThread} from '@libs/ReportUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isUserValidatedSelector} from '@selectors/Account';
+import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
+import {tierNameSelector} from '@selectors/UserWallet';
+import React, {useContext} from 'react';
 
 type ReimbursementQueuedContentProps = {
     /** The reimbursement queued action */

@@ -1,5 +1,7 @@
-import {emailSelector} from '@selectors/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {emailSelector} from '@selectors/Session';
+
 import useOnyx from './useOnyx';
 
 function usePrimaryContactMethod(): string {

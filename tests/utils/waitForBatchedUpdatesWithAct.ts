@@ -1,4 +1,5 @@
 import {act} from '@testing-library/react-native';
+
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 /**

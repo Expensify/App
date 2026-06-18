@@ -1,6 +1,9 @@
-import type {SpanAttributes} from '@sentry/core';
-import {useEffect, useId} from 'react';
 import CONST from '@src/CONST';
+
+import type {SpanAttributes} from '@sentry/core';
+
+import {useEffect, useId} from 'react';
+
 import {endSpan, getSpan, startSpan} from './activeSpans';
 
 /**

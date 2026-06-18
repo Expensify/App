@@ -1,22 +1,29 @@
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
+
+import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+
+import {WRITE_COMMANDS} from '@libs/API/types';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
+
+import type {AuthScreensParamList} from '@navigation/types';
+
+import AttachmentModalScreen from '@pages/media/AttachmentModalScreen';
+import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import type {Report, ReportActions} from '@src/types/onyx';
+
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import ComposeProviders from '@components/ComposeProviders';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
-import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import {WRITE_COMMANDS} from '@libs/API/types';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import {waitForIdle} from '@libs/Network/SequentialQueue';
-import type {AuthScreensParamList} from '@navigation/types';
-import AttachmentModalScreen from '@pages/media/AttachmentModalScreen';
-import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import type {Report, ReportActions} from '@src/types/onyx';
+
 import {getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';

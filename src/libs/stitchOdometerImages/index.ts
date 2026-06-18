@@ -1,5 +1,7 @@
 import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import STITCHED_ODOMETER_FILENAME_PREFIX from './constants';
 import calculateStitchLayout from './stitchLayout';
 

@@ -1,21 +1,28 @@
-import type {ImageContentFit} from 'expo-image';
-import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
-import type {WebStyle} from 'react-native-web';
-import type {MergeExclusive} from 'type-fest';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
+
 import variables from '@styles/variables';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {ImageContentFit} from 'expo-image';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
+import type {WebStyle} from 'react-native-web';
+import type {MergeExclusive} from 'type-fest';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import BlockingViewSubtitle from './BlockingViewSubtitle';
 import SubtitleWithBelowLink from './SubtitleWithBelowLink';
 

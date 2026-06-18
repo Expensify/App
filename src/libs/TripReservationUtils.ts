@@ -1,4 +1,3 @@
-import type {ArrayValues} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Reservation, ReservationTimeDetails, ReservationType} from '@src/types/onyx/Transaction';
@@ -6,6 +5,9 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SafeString from '@src/utils/SafeString';
+
+import type {ArrayValues} from 'type-fest';
+
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
 type TripReservationIcons = Record<'Plane' | 'PlaneCircleSlash' | 'Bed' | 'BedCircleSlash' | 'CarWithKey' | 'CarCircleSlash' | 'Train' | 'TrainCircleSlash' | 'Luggage', IconAsset>;

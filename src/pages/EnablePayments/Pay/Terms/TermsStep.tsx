@@ -1,20 +1,27 @@
-import React, {useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import LongTermsForm from '@pages/EnablePayments/shared/TermsForms/LongTermsForm';
 import ShortTermsForm from '@pages/EnablePayments/shared/TermsForms/ShortTermsForm';
+
 import {acceptWalletTerms} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserWallet} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useState} from 'react';
 
 type TermsStepProps = {
     /** The user's wallet */

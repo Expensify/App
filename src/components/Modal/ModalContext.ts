@@ -1,5 +1,6 @@
-import {createContext} from 'react';
 import type ModalType from '@src/types/utils/ModalType';
+
+import {createContext} from 'react';
 
 type ModalContextType = {
     // The type of the currently displayed modal, or undefined if there is no currently displayed modal.

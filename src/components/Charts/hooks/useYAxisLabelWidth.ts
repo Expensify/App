@@ -1,5 +1,6 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import {getNiceLowerBound, getNiceUpperBound, measureTextWidth} from '@components/Charts/utils';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
 /**
  * Returns the pixel width of the widest y-axis label for the nice tick range.

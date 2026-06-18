@@ -1,4 +1,5 @@
 import type {SearchOptionData} from '@libs/OptionsListUtils';
+
 import mergeAndSortPersonalDetailsWithContacts from '@pages/NewChatPage/mergeAndSortPersonalDetailsWithContacts';
 
 describe('mergeAndSortPersonalDetailsWithContacts', () => {

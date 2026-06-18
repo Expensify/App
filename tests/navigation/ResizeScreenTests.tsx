@@ -1,18 +1,23 @@
-import type {ParamListBase} from '@react-navigation/native';
-import {NavigationContainer} from '@react-navigation/native';
-import {render, renderHook} from '@testing-library/react-native';
-import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+
+import type {ParamListBase} from '@react-navigation/native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import {render, renderHook} from '@testing-library/react-native';
+import React from 'react';
 
 const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
 

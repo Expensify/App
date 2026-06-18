@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseVictoryChartRenderer from './BaseVictoryChartRenderer';
+
 import type {VictoryChartRendererProps} from './types';
+
+import BaseVictoryChartRenderer from './BaseVictoryChartRenderer';
 
 function VictoryChartRenderer(props: VictoryChartRendererProps) {
     return <BaseVictoryChartRenderer {...props} />;

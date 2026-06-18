@@ -1,15 +1,20 @@
-import type {NavigationAction} from '@react-navigation/native';
-import {useNavigation} from '@react-navigation/native';
-import {useCallback, useEffect, useRef} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
+import type {NavigationAction} from '@react-navigation/native';
+
+import {useNavigation} from '@react-navigation/native';
+import {useCallback, useEffect, useRef} from 'react';
+
 import type UseDiscardChangesConfirmationOptions from './types';
 
 function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {

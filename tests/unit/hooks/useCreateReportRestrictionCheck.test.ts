@@ -1,6 +1,8 @@
-import {renderHook} from '@testing-library/react-native';
 import useCreateReportRestrictionCheck from '@pages/iou/request/step/IOURequestStepReport/hooks/useCreateReportRestrictionCheck';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {renderHook} from '@testing-library/react-native';
 
 const mockShouldRestrict = jest.fn<boolean, unknown[]>();
 

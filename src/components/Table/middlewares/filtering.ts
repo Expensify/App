@@ -1,5 +1,7 @@
-import {useState} from 'react';
 import type {TableData} from '@components/Table/types';
+
+import {useState} from 'react';
+
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**

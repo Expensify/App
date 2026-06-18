@@ -1,11 +1,15 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
 import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
+
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useCallback, useMemo} from 'react';
 
 const accessibilityRoles: string[] = Object.values(CONST.ROLE);
 

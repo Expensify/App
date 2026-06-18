@@ -1,9 +1,12 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+
+import {renderHook, waitFor} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 

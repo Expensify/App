@@ -1,6 +1,8 @@
 import useOnyx from '@hooks/useOnyx';
+
 import {getReportName} from '@libs/ReportNameUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useFilterReportValue(reportIDs: SearchFilter['value']): string {

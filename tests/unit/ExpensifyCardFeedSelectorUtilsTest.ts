@@ -1,8 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Domain, ExpensifyCardSettings, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {createRandomExpensifyCard} from '../utils/collections/card';
 
 const fundID = 5555;

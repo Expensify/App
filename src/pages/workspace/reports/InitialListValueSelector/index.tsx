@@ -1,12 +1,18 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useOnyx from '@hooks/useOnyx';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import InitialListValueSelectorModal from './InitialListValueSelectorModal';
 
 type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {

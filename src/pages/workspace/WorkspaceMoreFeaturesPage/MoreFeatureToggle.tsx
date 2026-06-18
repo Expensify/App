@@ -1,12 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import Hoverable from '@components/Hoverable';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type MoreFeatureToggleProps = {
     /** Icon rendered to the left of the title. */

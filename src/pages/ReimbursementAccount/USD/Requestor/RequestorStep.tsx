@@ -1,6 +1,8 @@
-import React from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
+
+import React from 'react';
+
 import PersonalInfo from './PersonalInfo/PersonalInfo';
 
 type RequestorStepProps = {

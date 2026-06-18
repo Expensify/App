@@ -1,7 +1,10 @@
-import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseSelectListItem from './BaseSelectListItem';
+
+import React from 'react';
+
 import type {ListItem, SingleSelectListItemProps} from './types';
+
+import BaseSelectListItem from './BaseSelectListItem';
 
 /**
  * A standard row with an optional (but default) radio button, used in single-choice picker lists

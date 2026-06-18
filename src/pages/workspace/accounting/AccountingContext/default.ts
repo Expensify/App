@@ -1,7 +1,9 @@
-import type {RefObject} from 'react';
-import type {View} from 'react-native';
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+
 import type {AccountingActionsContextType, AccountingStateContextType} from './types';
 
 const popoverAnchorRefsInitialValue = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.reduce(

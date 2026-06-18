@@ -1,6 +1,8 @@
-import Onyx from 'react-native-onyx';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
+
+import Onyx from 'react-native-onyx';
+
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';

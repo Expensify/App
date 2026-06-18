@@ -1,7 +1,11 @@
-import {useEffect} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import useBulkDuplicateReportAction from '@hooks/useBulkDuplicateReportAction';
+
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useEffect} from 'react';
+
 import type {SelectedReports} from './types';
 
 type BulkDuplicateReportHandlerProps = {

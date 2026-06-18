@@ -1,5 +1,6 @@
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type UseGenericEmptyStateIllustration from './types';
 
 const useGenericEmptyStateIllustration: UseGenericEmptyStateIllustration = () => {

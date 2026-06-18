@@ -1,8 +1,11 @@
-import {useEffect, useRef} from 'react';
 import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+
 import CONST from '@src/CONST';
+
+import {useEffect, useRef} from 'react';
 
 function MarkAllMessagesAsReadHandler() {
     const archivedReportsIDSet = useArchivedReportsIDSet();

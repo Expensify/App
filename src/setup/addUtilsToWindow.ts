@@ -1,9 +1,13 @@
-import Onyx from 'react-native-onyx';
-import type {CollectionKeyBase} from 'react-native-onyx/dist/types';
 import {isProduction as isProductionLib} from '@libs/Environment/Environment';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import {setSupportAuthToken} from '@userActions/Session';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {CollectionKeyBase} from 'react-native-onyx/dist/types';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * This is used to inject development/debugging utilities into the window object on web.

@@ -1,11 +1,14 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+
 /**
  * This file should only be used in context of optimistic report name updates.
  * We're using direct Onyx connection and this can lead to stale component's state if used in wrong context.
  */
 import type {OnyxUpdate} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+
 import {getTitleReportField, isChatReport} from './ReportUtils';
 
 let allReportNameValuePairs: Record<string, ReportNameValuePairs> = {};

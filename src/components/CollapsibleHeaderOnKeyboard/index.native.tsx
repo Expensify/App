@@ -1,12 +1,16 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
-import Reanimated, {Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useDebounce from '@hooks/useDebounce';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
+import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
+import Reanimated, {Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import type {CollapsibleHeaderOnKeyboardProps} from './types';
 
 const COLLAPSE_DURATION = 100;

@@ -1,7 +1,9 @@
-import {renderHook} from '@testing-library/react-native';
 import useDistanceRequestData from '@pages/iou/request/step/IOURequestStepDistance/hooks/useDistanceRequestData';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import {renderHook} from '@testing-library/react-native';
 
 const mockSetMoneyRequestAmount = jest.fn();
 const mockSetSplitShares = jest.fn();

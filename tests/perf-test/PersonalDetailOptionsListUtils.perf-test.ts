@@ -1,11 +1,15 @@
-import type * as NativeNavigation from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
-import {measureFunction} from 'reassure';
 import {createOptionList, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
+
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';

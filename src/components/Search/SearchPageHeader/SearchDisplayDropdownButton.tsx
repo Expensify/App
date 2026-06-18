@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
@@ -7,13 +5,19 @@ import DisplayPopup from '@components/Search/FilterDropdowns/DisplayPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type SearchDisplayDropdownButtonProps = {
     queryJSON: SearchQueryJSON;

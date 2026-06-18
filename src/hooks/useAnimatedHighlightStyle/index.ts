@@ -1,9 +1,11 @@
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useTheme from '@hooks/useTheme';
+
+import CONST from '@src/CONST';
+
 import React, {useState} from 'react';
 import {Easing, interpolate, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useTheme from '@hooks/useTheme';
-import CONST from '@src/CONST';
 
 type Props = {
     /** Border radius of the wrapper */

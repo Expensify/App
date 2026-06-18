@@ -1,9 +1,11 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
 import DateUtils from '@libs/DateUtils';
+
 import FreeTrialSection from '@pages/home/FreeTrialSection';
 import type {FreeTrialState} from '@pages/home/FreeTrialSection/useFreeTrial';
 import useFreeTrial from '@pages/home/FreeTrialSection/useFreeTrial';
+
+import {render} from '@testing-library/react-native';
+import React from 'react';
 
 jest.mock('@pages/home/FreeTrialSection/useFreeTrial');
 jest.mock('@libs/DateUtils', () => ({

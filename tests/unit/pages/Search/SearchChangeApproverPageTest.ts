@@ -1,6 +1,7 @@
 import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
 import {shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
+
 import type {Report} from '@src/types/onyx';
 
 const ADD_APPROVER_OPTION: {keyForList: ApproverType} = {keyForList: APPROVER_TYPE.ADD_APPROVER};

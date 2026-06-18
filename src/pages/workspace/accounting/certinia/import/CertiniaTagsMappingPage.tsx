@@ -1,5 +1,6 @@
-import React from 'react';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
+import React from 'react';
 
 // Scaffolding placeholder for Release 2 (PSA). The full Tags Mapping selection UI is implemented in a follow-up issue.
 function CertiniaTagsMappingPage() {

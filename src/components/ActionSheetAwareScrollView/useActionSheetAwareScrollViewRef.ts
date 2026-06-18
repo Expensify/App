@@ -1,7 +1,9 @@
-import {useCallback} from 'react';
 import type {Ref} from 'react';
 import type Reanimated from 'react-native-reanimated';
+
+import {useCallback} from 'react';
 import {useAnimatedRef} from 'react-native-reanimated';
+
 import type {ActionSheetAwareScrollViewHandle} from './types';
 
 function useActionSheetAwareScrollViewRef(ref: Ref<ActionSheetAwareScrollViewHandle> | undefined) {

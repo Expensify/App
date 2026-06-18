@@ -1,15 +1,19 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import {StackActions, TabActions} from '@react-navigation/native';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import * as PolicyUtils from '@libs/PolicyUtils';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Domain} from '@src/types/onyx';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import {StackActions, TabActions} from '@react-navigation/native';
+
 import createRandomPolicy from '../utils/collections/policies';
 
 jest.mock('@libs/Navigation/navigationRef');

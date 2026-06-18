@@ -1,9 +1,13 @@
-import {render, screen} from '@testing-library/react-native';
 import {ReservationView} from '@components/ReportActionItem/TripDetailsView';
+
 import StringUtils from '@libs/StringUtils';
 import {getTripReservationCode} from '@libs/TripReservationUtils';
+
 import HotelTripDetails from '@pages/Travel/HotelTripDetails';
+
 import CONST from '@src/CONST';
+
+import {render, screen} from '@testing-library/react-native';
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,

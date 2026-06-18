@@ -1,20 +1,25 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDraftValues} from '@libs/actions/FormActions';
+
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/FeedbackSurveyForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
+import type {Choice} from './RadioButtons';
+
 import FixedFooter from './FixedFooter';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import RadioButtons from './RadioButtons';
-import type {Choice} from './RadioButtons';
 import Text from './Text';
 import TextInput from './TextInput';
 

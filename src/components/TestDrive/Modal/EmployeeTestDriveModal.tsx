@@ -1,15 +1,13 @@
-import {useRoute} from '@react-navigation/native';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {format} from 'date-fns';
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
+
 import TextInput from '@components/TextInput';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -29,10 +27,18 @@ import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {format} from 'date-fns';
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo, useState} from 'react';
+
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function EmployeeTestDriveModal() {

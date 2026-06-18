@@ -1,10 +1,14 @@
-import React, {useCallback} from 'react';
 import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback} from 'react';
 
 function CardSectionDataEmpty() {
     const {translate} = useLocalize();

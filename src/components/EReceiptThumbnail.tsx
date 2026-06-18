@@ -1,15 +1,20 @@
-import React from 'react';
-import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import Text from './Text';

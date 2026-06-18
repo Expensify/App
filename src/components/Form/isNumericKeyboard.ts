@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import type {InputComponentBaseProps} from './types';
 
 type NumericKeyboardProps = Pick<InputComponentBaseProps, 'inputMode' | 'keyboardType'>;

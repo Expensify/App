@@ -1,14 +1,17 @@
+import useOnyx from '@hooks/useOnyx';
+
+import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
+import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
 import React, {createContext, useContext, useEffect} from 'react';
-import useOnyx from '@hooks/useOnyx';
-import {clearConciergeThinkingKickoff, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
-import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
-import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type AgentZeroStatusState = {
     /**

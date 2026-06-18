@@ -1,8 +1,12 @@
-import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
-import BaseModal from './BaseModal';
+
+import React from 'react';
+
 import type BaseModalProps from './types';
+
+import BaseModal from './BaseModal';
 
 function Modal({children, ...rest}: BaseModalProps) {
     const {isInNarrowPaneModal} = useResponsiveLayout();

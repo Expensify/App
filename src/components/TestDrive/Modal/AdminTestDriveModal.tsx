@@ -1,13 +1,18 @@
-import React from 'react';
 import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isAdminRoom} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function AdminTestDriveModal() {

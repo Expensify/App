@@ -1,7 +1,11 @@
-import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/routers';
 import {config, normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
+
 import type {Screen} from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/routers';
+
+import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
+
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';

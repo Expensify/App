@@ -1,12 +1,15 @@
-import * as Sentry from '@sentry/react-native';
-import isObject from 'lodash/isObject';
-import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
-import Pusher from 'pusher-js/with-encryption';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import TYPE from './EventType';
+
+import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
+
+import * as Sentry from '@sentry/react-native';
+import isObject from 'lodash/isObject';
+import Pusher from 'pusher-js/with-encryption';
+import Onyx from 'react-native-onyx';
+
 import type {
     Args,
     ChunkedDataEvents,
@@ -21,6 +24,8 @@ import type {
     States,
 } from './types';
 import type PusherModule from './types';
+
+import TYPE from './EventType';
 
 let shouldForceOffline = false;
 

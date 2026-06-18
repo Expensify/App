@@ -1,8 +1,11 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
+
 import IntlStore from '@src/languages/IntlStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 

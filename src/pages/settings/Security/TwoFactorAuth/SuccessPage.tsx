@@ -1,12 +1,17 @@
-import React from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
+
 import SuccessPageBase from './SuccessPageBase';
 
 function SuccessPage() {

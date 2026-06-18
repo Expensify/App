@@ -1,6 +1,8 @@
-import React from 'react';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 function SearchRootVerifyAccountPage() {
     return <VerifyAccountPageBase navigateBackTo={ROUTES.SEARCH_ROOT.getRoute({query: ''})} />;

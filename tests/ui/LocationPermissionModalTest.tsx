@@ -1,11 +1,14 @@
+import LocationPermissionModal from '@components/LocationPermissionModal';
+import AndroidLocationPermissionModal from '@components/LocationPermissionModal/index.android';
+
+import getPlatform from '@libs/getPlatform';
+
+import CONST from '@src/CONST';
+
 import {act, render, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import LocationPermissionModal from '@components/LocationPermissionModal';
-import AndroidLocationPermissionModal from '@components/LocationPermissionModal/index.android';
-import getPlatform from '@libs/getPlatform';
-import CONST from '@src/CONST';
 
 type MockConfirmModalProps = Record<string, unknown>;
 

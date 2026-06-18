@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /**
  * Get the string representation of a button's state.

@@ -7,7 +7,9 @@
  * merged list is missing one entry and the summed count is wrong.
  */
 import emojis from '@assets/emojis';
+
 import {mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis} from '@libs/EmojiUtils';
+
 import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
 
 describe('EmojiPickerMenu frequently used dedupe', () => {

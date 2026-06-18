@@ -1,14 +1,18 @@
+import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
+import type {SearchQueryJSON} from '@components/Search/types';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import KeyboardUtils from '@src/utils/keyboard';
+
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchPageInput.tsx
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
-import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
-import type {SearchQueryJSON} from '@components/Search/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import KeyboardUtils from '@src/utils/keyboard';
+
 import useSearchPageInput from './useSearchPageInput';
 
 type SearchPageInputNarrowProps = {

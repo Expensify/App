@@ -1,12 +1,16 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import {updateGustoFinalApprover} from '@libs/actions/connections/Gusto';
 import {isGustoConnected} from '@libs/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
 import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
+
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 type GustoFinalApproverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER>;
 

@@ -1,9 +1,13 @@
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 
 function ComposerBox({children}: PropsWithChildren) {

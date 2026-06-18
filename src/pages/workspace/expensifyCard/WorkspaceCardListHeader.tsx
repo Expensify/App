@@ -1,13 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import type {ExpensifyCardSettings} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCardListHeaderProps = {
     /** Card settings */

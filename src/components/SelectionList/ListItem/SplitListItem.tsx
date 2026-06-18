@@ -1,10 +1,9 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -12,14 +11,22 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
+
+import type {SplitListItemProps, SplitListItemType} from './types';
+
 import BaseListItem from './BaseListItem';
 import SplitAmountDisplay from './SplitListItem/SplitAmountDisplay';
 import SplitListItemInput from './SplitListItem/SplitListItemInput';
-import type {SplitListItemProps, SplitListItemType} from './types';
 
 /**
  * A rich row showing merchant, date, category/tags, and an editable amount or percentage input.

@@ -1,4 +1,5 @@
 import isDynamicRouteScreen from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteScreen';
+
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 

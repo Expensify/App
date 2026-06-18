@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
@@ -10,12 +9,14 @@ import {
     toggleTravelInvoicingContinuousReconciliation,
     updateTravelInvoiceSettlementFrequency,
 } from '@libs/actions/TravelInvoicing';
-// We need to import API because it is used in the tests
-
 import * as API from '@libs/API';
+// We need to import API because it is used in the tests
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 describe('TravelInvoicing', () => {
     let spyAPIWrite: jest.SpyInstance;

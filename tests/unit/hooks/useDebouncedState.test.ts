@@ -1,6 +1,8 @@
-import {act, renderHook} from '@testing-library/react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
+
 import CONST from '@src/CONST';
+
+import {act, renderHook} from '@testing-library/react-native';
 
 describe('useDebouncedState', () => {
     beforeEach(() => {

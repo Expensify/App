@@ -1,8 +1,12 @@
-import {useMemo} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import {useMemo} from 'react';
+
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
 

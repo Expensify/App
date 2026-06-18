@@ -1,10 +1,14 @@
+import useCardFeeds from '@hooks/useCardFeeds';
+
+import {getCardFeedWithDomainID} from '@libs/CardUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useCardFeeds from '@hooks/useCardFeeds';
-import {getCardFeedWithDomainID} from '@libs/CardUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const policyID = 'TEST_POLICY_123';

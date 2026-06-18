@@ -1,11 +1,14 @@
-import Onyx from 'react-native-onyx';
 import type {DestinationTreeSection} from '@libs/PerDiemRequestUtils';
 import {getDestinationListSections} from '@libs/PerDiemRequestUtils';
+
 import CONST from '@src/CONST';
 import {getCustomUnitID} from '@src/libs/PerDiemRequestUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
+
+import Onyx from 'react-native-onyx';
+
 import {getFakePolicy, getFakeReport} from '../utils/LHNTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 

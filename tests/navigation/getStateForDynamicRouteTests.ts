@@ -1,4 +1,5 @@
 import getStateForDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute';
+
 import type {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({

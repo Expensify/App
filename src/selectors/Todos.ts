@@ -1,7 +1,9 @@
-import {shallowEqual} from 'fast-equals';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {FlaggedExpensesDerivedValue, TodosDerivedValue} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {shallowEqual} from 'fast-equals';
 
 const EMPTY_TODOS_SINGLE_REPORT_IDS = Object.freeze({
     [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: undefined,

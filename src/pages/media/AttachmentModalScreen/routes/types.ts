@@ -1,5 +1,7 @@
 import type {AttachmentModalScreensParamList} from '@libs/Navigation/types';
+
 import type {AttachmentModalScreenBaseParams, AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
+
 import type Modify from '@src/types/utils/Modify';
 
 /**

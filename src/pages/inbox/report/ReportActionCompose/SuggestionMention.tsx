@@ -1,11 +1,7 @@
-import {Str} from 'expensify-common';
-import lodashMapValues from 'lodash/mapValues';
-import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -14,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
@@ -21,10 +18,20 @@ import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, isGroupCh
 import StringUtils from '@libs/StringUtils';
 import {getSortedPersonalDetails, trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
+
 import {searchInServer} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import lodashMapValues from 'lodash/mapValues';
+import lodashSortBy from 'lodash/sortBy';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+
 import type {SuggestionProps} from './Suggestions';
 
 type SuggestionValues = {

@@ -1,4 +1,5 @@
 import type {MemberForList} from '@libs/OptionsListUtils';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of share bank account */

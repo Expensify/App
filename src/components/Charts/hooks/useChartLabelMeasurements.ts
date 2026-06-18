@@ -1,7 +1,8 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {ChartDataPoint} from '@components/Charts/types';
 import {getFontLineMetrics, measureTextWidth} from '@components/Charts/utils';
 import {ELLIPSIS, MIN_TRUNCATED_CHARS} from '@components/Charts/VictoryTheme';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
 /**
  * Computes all text measurements needed for label layout and domain padding.

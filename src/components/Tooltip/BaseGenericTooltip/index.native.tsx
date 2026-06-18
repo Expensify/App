@@ -1,13 +1,18 @@
-import {Portal} from '@gorhom/portal';
-import React, {useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {View as RNView} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import CONST from '@src/CONST';
+
+import type {View as RNView} from 'react-native';
+
+import {Portal} from '@gorhom/portal';
+import React, {useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+
 import type {BaseGenericTooltipProps} from './types';
 
 // Props will change frequently.

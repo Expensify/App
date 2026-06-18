@@ -1,8 +1,13 @@
-import React, {useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
+
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useRef} from 'react';
+
 import type {MenuData} from './InitialSettingsPage';
 
 type SettingsMenuItemProps = {

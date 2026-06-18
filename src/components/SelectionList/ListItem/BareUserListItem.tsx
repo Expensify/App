@@ -1,9 +1,13 @@
-import React from 'react';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseListItem from './BaseListItem';
+
+import React from 'react';
+
 import type {ListItem, UserListItemProps} from './types';
+
+import BaseListItem from './BaseListItem';
 import UserListItemContent from './UserListItemContent';
 
 /**

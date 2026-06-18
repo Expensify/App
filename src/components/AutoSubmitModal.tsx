@@ -1,16 +1,21 @@
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import {dismissASAPSubmitExplanation} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
 import Text from './Text';

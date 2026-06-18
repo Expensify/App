@@ -1,11 +1,15 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import EditPromptPage from '@pages/settings/Agents/Fields/EditPromptPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import {render} from '@testing-library/react-native';
+import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
     updateAgentPrompt: jest.fn(),

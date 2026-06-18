@@ -1,8 +1,12 @@
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {isPolicyEligibleForSpendOverTime} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import SpendOverTimeSectionContent from './SpendOverTimeSectionContent';
 
 function SpendOverTimeSection() {

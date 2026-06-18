@@ -1,6 +1,5 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -8,6 +7,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 type SearchPageFooterProps = {
     count: number | undefined;

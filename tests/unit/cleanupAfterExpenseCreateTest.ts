@@ -1,7 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const mockRemoveDraftTransactionsByIDs = jest.fn();
 

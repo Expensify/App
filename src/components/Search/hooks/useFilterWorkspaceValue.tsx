@@ -1,8 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 function useFilterWorkspaceValue(policyIDs: SearchFilter['value']): string {
     const filterWorkspaceSelector = (policies: OnyxCollection<Policy>) => {

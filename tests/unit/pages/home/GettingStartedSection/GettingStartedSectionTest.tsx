@@ -1,11 +1,14 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import GettingStartedSection from '@src/pages/home/GettingStartedSection';
 import ROUTES from '@src/ROUTES';
+
+import {fireEvent, render, screen} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const TEST_POLICY_ID = 'ABC123';

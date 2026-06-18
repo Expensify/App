@@ -1,13 +1,18 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useRef} from 'react';
-import WebView from 'react-native-webview';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {buildTravelDotURL} from '@libs/actions/Link';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+
 import type SCREENS from '@src/SCREENS';
+
+import type {StackScreenProps} from '@react-navigation/stack';
+
+import React, {useRef} from 'react';
+import WebView from 'react-native-webview';
 
 type TravelDotLinkWebviewProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW>;
 

@@ -1,10 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import MigratedUserWelcomeModal from '@components/MigratedUserWelcomeModal';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {MigratedUserModalNavigatorParamList} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const Stack = createPlatformStackNavigator<MigratedUserModalNavigatorParamList>();
 

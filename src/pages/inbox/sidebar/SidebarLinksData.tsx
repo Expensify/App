@@ -1,15 +1,19 @@
-import {useIsFocused} from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import useInboxTabSpanLifecycle from '@hooks/useInboxTabSpanLifecycle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {EdgeInsets} from 'react-native-safe-area-context';
+
+import {useIsFocused} from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
+
 import SidebarLinks from './SidebarLinks';
 
 type SidebarLinksDataProps = {

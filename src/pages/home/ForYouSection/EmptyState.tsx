@@ -1,12 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const ILLUSTRATION_SIZE = 68;
 

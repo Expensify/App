@@ -1,15 +1,14 @@
-import React, {useEffect, useState} from 'react';
-import {Platform, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
 import {loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
 import {PressableWithoutFeedback} from '@components/Pressable';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -17,8 +16,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import variables from '@styles/variables';
+
 import Tab from '@userActions/Tab';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,6 +28,11 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useEffect, useState} from 'react';
+import {Platform, View} from 'react-native';
 
 type BaseFloatingCameraButtonProps = {
     icon: IconAsset;

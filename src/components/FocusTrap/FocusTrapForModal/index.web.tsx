@@ -1,9 +1,12 @@
-import {FocusTrap} from 'focus-trap-react';
-import React, {useRef} from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
+import {FocusTrap} from 'focus-trap-react';
+import React, {useRef} from 'react';
+
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
 function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {

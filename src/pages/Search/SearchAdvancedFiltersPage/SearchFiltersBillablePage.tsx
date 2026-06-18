@@ -1,6 +1,8 @@
-import React from 'react';
 import SearchBooleanFilterBasePage from '@components/Search/SearchBooleanFilterBasePage';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 function SearchFiltersBillablePage() {
     return (

@@ -1,13 +1,18 @@
-import React, {useRef} from 'react';
-import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
 import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import {usePopoverActions, usePopoverState} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+
 import TooltipRefManager from '@libs/TooltipRefManager';
+
 import CONST from '@src/CONST';
+
+import React, {useRef} from 'react';
+import {createPortal} from 'react-dom';
+
 import type PopoverProps from './types';
 
 const DISABLED_ANIMATION_DURATION = 1;

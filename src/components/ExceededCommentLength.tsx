@@ -1,7 +1,10 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import Text from './Text';
 
 type ExceededCommentLengthProps = {

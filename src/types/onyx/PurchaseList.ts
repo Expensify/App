@@ -1,4 +1,5 @@
 import type CONST from '@src/CONST';
+
 import type PrivateSubscription from './PrivateSubscription';
 
 /** Subscription type for a purchase */

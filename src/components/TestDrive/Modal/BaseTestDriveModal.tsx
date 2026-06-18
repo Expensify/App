@@ -1,13 +1,18 @@
-import React, {useEffect} from 'react';
 import TestDrive from '@assets/images/test-drive.svg';
+
 import type {FeatureTrainingModalProps} from '@components/FeatureTrainingModal';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setOnboardingTestDriveModalDismissed} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect} from 'react';
 
 type BaseTestDriveModalProps = Pick<
     FeatureTrainingModalProps,

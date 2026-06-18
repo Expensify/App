@@ -1,6 +1,9 @@
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/searchParser';
+
 import CONST from '@src/CONST';
+
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [

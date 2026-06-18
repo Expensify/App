@@ -1,5 +1,6 @@
-import {useMemo} from 'react';
 import type {ChartDataPoint} from '@components/Charts/types';
+
+import {useMemo} from 'react';
 
 /**
  * Anchor Y-axis at zero so the baseline is always visible.

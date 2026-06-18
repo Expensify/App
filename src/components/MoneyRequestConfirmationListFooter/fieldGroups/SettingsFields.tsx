@@ -1,9 +1,12 @@
-import React from 'react';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import ReportField from '@components/MoneyRequestConfirmationList/sections/ReportField';
 import ToggleFields from '@components/MoneyRequestConfirmationList/sections/ToggleFields';
 import type {ToggleHandlers} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+
 import type {Participant} from '@src/types/onyx/IOU';
+
+import React from 'react';
+
 import type {FieldVisibility} from './fieldVisibility';
 
 type SettingsFieldsProps = {
