@@ -9,12 +9,12 @@ import {clearFinancialForceErrorField, updateFinancialForceCompany} from '@libs/
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import {isCertiniaSRPConnection} from '@pages/workspace/accounting/certinia/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {isCertiniaSRPConnection} from './utils';
 
 type CompanyListItem = ListItem & {
     value: string;
