@@ -125,7 +125,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_CONFIRMATION: {
         path: 'workspace/confirmation',
-        entryScreens: ['*'],
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.SETTINGS.ROOT],
     },
     WORKSPACE_CONFIRMATION_CURRENCY: {
         path: 'currency',
@@ -133,7 +133,7 @@ const DYNAMIC_ROUTES = {
     },
     MIGRATED_USER_WELCOME: {
         path: 'migrated-user-welcome',
-        entryScreens: ['*'],
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
     },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
