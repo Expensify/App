@@ -36,7 +36,7 @@ async function loadTypefaceFromAsset(source: DataModule | string): Promise<SkTyp
 }
 
 function logChartFontLoadError(assetKey: string, error: unknown): void {
-    Log.error('Chart font asset failed to load', {
+    Log.hmmm('Chart font asset failed to load', {
         assetKey,
         error: error instanceof Error ? error.message : String(error),
     });
