@@ -187,7 +187,16 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 If your company uses **Proofpoint Hosted Email Security**, you may be unable to forward receipts to receipts@expensify.com. This is caused by an issue on Proofpoint's side. Contact Proofpoint for resolution. In the meantime, you can upload receipts in the Expensify app or on the web, or text a receipt photo to 47777 (US numbers only) after [adding your phone number as a contact method](https://new.expensify.com/settings/profile/contact-methods).
 
-## Can I add multiple receipts to one expense?
+## How many receipts can I send in a single email to receipts@expensify.com?
+
+There's no limit to the number of receipts you can attach to an email sent to receipts@expensify.com. However, these limits still apply:
+
+- Each individual receipt file must be 24 MB or smaller
+- The total email size cannot exceed 25 MB
+- Images must be at least 160 × 160 pixels
+- Supported file formats: JPG, PNG, GIF, PDF, TIFF, HTML, RTF, DOCX, and XML
+
+## Can I attach multiple receipts to one expense?
 
 Yes. Each expense has only one primary receipt, but you can attach additional receipt images directly on the expense for situations where multiple receipts are needed. [Learn how to attach additional receipts to an expense](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#how-to-add-additional-receipts-to-an-expense). 
 

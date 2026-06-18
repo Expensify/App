@@ -113,6 +113,13 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity, shouldSkipKYBDocs]);
 
     const onBackButtonPress = useCallback(() => {
+        // When the bank account is pending validation it has already been submitted, so stepping back through the
+        // setup pages doesn't make sense. Pop back to the entry point screen the user came from.
+        if (currentEntry?.pageName === PAGE_NAMES.VALIDATION && reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+            Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}));
+            return;
+        }
+
         let prevIndex = currentPageIndex - 1;
         if (shouldSkipVerifyIdentity(pages.at(prevIndex)?.pageName)) {
             prevIndex -= 1;
@@ -126,7 +133,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         }
         const prevPage = pages.at(prevIndex);
         Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
-    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity, shouldSkipKYBDocs]);
+    }, [backTo, currentEntry?.pageName, currentPageIndex, policyID, reimbursementAccount?.achData?.state, shouldSkipVerifyIdentity, shouldSkipKYBDocs]);
 
     return (
         <View style={[styles.flex1, styles.appBG]}>

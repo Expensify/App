@@ -107,8 +107,14 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                if (moneyRequestReport?.reportID) {
+                if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+
+                if (dismissedRejectUseExplanation) {
                     Navigation.navigate(ROUTES.REJECT_EXPENSE_REPORT.getRoute(moneyRequestReport.reportID));
+                } else {
+                    onRejectModalOpen(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_REPORT);
                 }
             },
         },

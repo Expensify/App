@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -12,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatMaskedCardName, getCardFeedWithDomainID} from '@libs/CardUtils';
+import {formatMaskedCardName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -22,19 +23,20 @@ import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/type
 import type {CardAssignmentData} from '@src/types/onyx/Card';
 import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkeleton';
 
-type WorkspaceCompanyCardTableRowData = CardAssignmentData & {
-    /** Whether the card is deleted */
-    isCardDeleted: boolean;
+type WorkspaceCompanyCardTableRowData = TableData &
+    CardAssignmentData & {
+        /** Whether the card is deleted */
+        isCardDeleted: boolean;
 
-    /** Whether the card is assigned */
-    isAssigned: boolean;
+        /** Whether the card is assigned */
+        isAssigned: boolean;
 
-    /** Assigned card */
-    assignedCard?: Card;
+        /** Assigned card */
+        assignedCard?: Card;
 
-    /** On dismiss error callback */
-    onDismissError?: () => void;
-};
+        /** On dismiss error callback */
+        onDismissError?: () => void;
+    };
 
 type WorkspaceCompanyCardTableRowProps = {
     /** The workspace company card table item */
@@ -42,6 +44,9 @@ type WorkspaceCompanyCardTableRowProps = {
 
     /** Policy ID */
     policyID: string;
+
+    /** Selected card feed */
+    feedName?: CompanyCardFeedWithDomainID;
 
     /** Card feed icon element */
     CardFeedIcon?: React.ReactNode;
@@ -69,6 +74,7 @@ type WorkspaceCompanyCardTableRowProps = {
 function WorkspaceCompanyCardTableRow({
     item,
     policyID,
+    feedName,
     CardFeedIcon,
     shouldUseNarrowTableLayout,
     rowIndex,
@@ -106,7 +112,7 @@ function WorkspaceCompanyCardTableRow({
         ? {width: variables.cardAvatarWidth, height: variables.cardAvatarHeight}
         : {width: variables.cardAvatarWidthSmall, height: variables.cardAvatarHeightSmall};
 
-    const canOpenCardDetails = !!assignedCard?.accountID && !!assignedCard?.fundID && assignedCard?.cardID !== undefined;
+    const canOpenCardDetails = !!assignedCard?.accountID && assignedCard?.cardID !== undefined && !!feedName;
     const canAssignCard = !isAssigned && canWriteCompanyCards && !isAssigningCardDisabled;
     const canPressRow = canOpenCardDetails || canAssignCard;
 
@@ -120,14 +126,12 @@ function WorkspaceCompanyCardTableRow({
             return;
         }
 
-        const {cardID, fundID} = assignedCard;
-        if (!canOpenCardDetails || cardID === undefined || !fundID) {
+        const {cardID} = assignedCard;
+        if (!canOpenCardDetails || cardID === undefined || !feedName) {
             return;
         }
 
-        const feedName = getCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, fundID);
-
-        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, cardID.toString()));
+        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID.toString()));
     };
 
     return (

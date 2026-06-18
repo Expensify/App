@@ -8,6 +8,7 @@ const lightContrastTheme = {
     icon: colors.productLight800,
     textSupporting: '#53645C',
     buttonSuccessText: colors.productLight900,
+    buttonDangerText: colors.productDark100,
     bordersBold: colors.productLight800,
     buttonIcon: colors.productLight900,
     mentionText: colors.blue700,

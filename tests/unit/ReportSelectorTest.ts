@@ -80,4 +80,20 @@ describe('policyChatRoomsSelector', () => {
         const result = policyChatRoomsSelector(policyID, archivedSet)(reports);
         expect(result).toEqual([policyAdmins]);
     });
+
+    it('excludes rooms the user has left (closed reports)', () => {
+        const leftRoom = {
+            reportID: '1',
+            policyID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+        } as Report;
+        const reports = {
+            [`${REPORT_KEY_PREFIX}1`]: leftRoom,
+            [`${REPORT_KEY_PREFIX}2`]: policyAdmins,
+        };
+        const result = policyChatRoomsSelector(policyID, emptyArchivedSet)(reports);
+        expect(result).toEqual([policyAdmins]);
+    });
 });

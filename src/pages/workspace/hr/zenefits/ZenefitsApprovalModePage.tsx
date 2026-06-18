@@ -21,7 +21,6 @@ function ZenefitsApprovalModePage({
 
     const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE>> = {
         testID: 'ZenefitsApprovalModePage',
-        beta: CONST.BETAS.ZENEFITS,
         isConnected: isZenefitsConnected,
         approvalModes: CONST.ZENEFITS.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? null,

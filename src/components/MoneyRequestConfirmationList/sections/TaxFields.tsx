@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
+import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -42,6 +43,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
+    const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -87,6 +89,20 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
     };
 
+    useEffect(() => {
+        if (!isNewManualExpenseFlowEnabled || (numberFormRef?.current && numberFormRef.current.getNumber() === taxAmountInput)) {
+            return;
+        }
+        numberFormRef.current?.updateNumber(taxAmountInput);
+    }, [isNewManualExpenseFlowEnabled, taxAmountInput]);
+
+    useEffect(() => {
+        if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
+            return;
+        }
+        clearFormErrors(['iou.error.invalidTaxAmount']);
+    }, [isNewManualExpenseFlowEnabled, formError, taxAmount, maxTaxAmount, clearFormErrors]);
+
     return (
         <>
             <MenuItemWithTopDescription
@@ -112,6 +128,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             {isNewManualExpenseFlowEnabled && canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
+                        numberFormRef={numberFormRef}
                         key={taxAmountInputKey}
                         displayAsTextInput
                         autoFocus={false}
