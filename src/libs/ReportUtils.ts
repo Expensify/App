@@ -154,7 +154,6 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
     isSubmitAndClose,
     shouldShowPolicy,
@@ -2819,23 +2818,10 @@ function isPayer(
     reportPolicy?: OnyxInputOrEntry<Policy>,
     onlyShowPayElsewhere = false,
 ) {
-    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
+    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
 
-    // If the report belongs to a workspace, verify the user is still a member
-    // When a user leaves a workspace, they may no longer have access to the policy data,
-    // or the policy.role/employeeList may be stale
-    // Skip this check for IOU reports (personal 1:1 expenses) since they can inherit a policyID
-    // from the chat report but the payer may not be a member of that workspace
-    if (!isIOUReport(iouReport) && iouReport?.policyID && iouReport.policyID !== CONST.POLICY.ID_FAKE) {
-        // No policy data means user likely left the workspace
-        if (!policy) {
-            return false;
-        }
-        // For paid group policies, verify membership via employeeList (only when loaded)
-        // employeeList may be lazily loaded/partial, so only check if it's present
-        if (isPaidGroupPolicy(iouReport) && !isEmptyObject(policy?.employeeList) && !isPolicyMemberWithoutPendingDelete(currentUserEmailParam, policy)) {
-            return false;
-        }
+    if (!policy && !isIOUReport(iouReport) && iouReport?.policyID && iouReport.policyID !== CONST.POLICY.ID_FAKE) {
+        return false;
     }
 
     const policyType = policy?.type;
@@ -4884,7 +4870,10 @@ function canEditMoneyRequest(
         return true;
     }
 
-    const moneyRequestReportID = reportAction?.reportID;
+    // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+    // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+    // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
+    const moneyRequestReportID = reportAction?.reportID ?? originalMessage?.IOUReportID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 
     if (!moneyRequestReportID) {
@@ -5101,7 +5090,10 @@ function canEditFieldOfMoneyRequest({
         return true;
     }
 
-    const iouReportID = reportAction?.reportID;
+    // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+    // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+    // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
+    const iouReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
     const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
@@ -5250,7 +5242,10 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
     // but that bypass should not allow the "Edit expense" action on finalized reports.
     if (isMoneyRequestAction(reportAction)) {
-        const moneyRequestReportID = reportAction?.reportID;
+        // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+        // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+        // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882. See https://github.com/Expensify/App/issues/93882.
+        const moneyRequestReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
         if (moneyRequestReportID) {
             const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
             if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {

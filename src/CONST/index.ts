@@ -3014,7 +3014,6 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         PARENT_TAG_MAPPING: 'parentTagMapping',
         SYNC_MILESTONES: 'syncMilestones',
-        REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
@@ -3025,6 +3024,11 @@ const CONST = {
     CERTINIA_EXPORT_STATUS: {
         COMPLETE: 'Complete',
         IN_PROGRESS: 'In Progress',
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
+    },
+
+    CERTINIA_REPORT_EXPORT_STATUS: {
         APPROVED: 'Approved',
         SUBMITTED: 'Submitted',
     },

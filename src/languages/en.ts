@@ -5067,6 +5067,8 @@ const translations = {
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Company',
             autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
             syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
             exportDescription: 'Configure how Expensify data exports to Certinia.',
@@ -5078,6 +5080,13 @@ const translations = {
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In Progress',
                     [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approved',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Submitted',
+                },
+            },
+            reportExportStatus: {
+                label: 'Expense report status',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Approved',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Submitted',
                 },
             },
             exportDate: {
@@ -5095,8 +5104,17 @@ const translations = {
             exportNonReimbursable: {
                 label: 'Export non-reimbursable expenses as',
             },
+            expenseReports: 'Expense Reports',
+            exportReimbursableExpenseReports: {
+                helperText: 'Expenses marked as reimbursable will be exported as Expense Reports made out to the employee.',
+            },
+            exportNonReimbursableExpenseReports: {
+                helperText: 'Expenses marked as non-reimbursable will be exported as Expense Reports made out to the employee.',
+            },
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',
+            noCompaniesFound: 'No companies found',
+            noCompaniesFoundDescription: 'Please sync the connection again after companies are added in Certinia.',
             prerequisites: {
                 title: 'Before you connect',
                 installBundle: 'For FFA Connections',
@@ -6281,6 +6299,7 @@ const translations = {
                 title: 'Select settings',
                 description: 'Select the settings to overwrite on your existing workspaces.',
                 accountingMismatch: ({part}: {part: string}) => `You can only copy ${part} if all workspaces use the same accounting system and company connection.`,
+                travelAddressMismatch: 'You can only copy travel if every selected workspace has a company address.',
             },
             confirmSettings: {
                 title: 'Let’s make sure everything looks right.',
