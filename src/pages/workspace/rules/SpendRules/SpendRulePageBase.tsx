@@ -513,6 +513,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                 testID={testID}
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
+                shouldEnableKeyboardAvoidingView={false}
             >
                 <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.spendRules.restrictCardSpendTitle' : titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>{isRulesRevampEnabled ? revampFormContent : legacyFormContent}</ScrollView>
