@@ -198,10 +198,9 @@ export default function WorkspaceMembersTable({
 
     const filterConfig: FilterConfig = {
         status: {
-            filterType: 'single-select',
-            default: WORKSPACE_MEMBER_FILTER_VALUES.ALL,
+            filterType: 'multi-select',
             options: [
-                {label: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
+                {label: translate('workspace.people.members'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
                 {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
                 {label: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
             ],
