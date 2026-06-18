@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';
 import {setNameValuePair} from '@userActions/User';
@@ -178,8 +178,6 @@ function useTrialPaymentReminder() {
         return () => clearTimeout(timer);
     }, [readinessState, firstDayFreeTrial]);
 
-    const remainingSecondsRef = useRef(0);
-
     const [countdownTime, setCountdownTime] = useState<CountdownTime>({hours: 0, minutes: 0, seconds: 0});
 
     const currentVariation = useMemo(() => computeCurrentVariation(firstDayFreeTrial, lastDayFreeTrial), [firstDayFreeTrial, lastDayFreeTrial]);
@@ -190,11 +188,8 @@ function useTrialPaymentReminder() {
             return;
         }
 
-        remainingSecondsRef.current = calculateRemainingTrialSeconds(lastDayFreeTrial);
-
         const updateCountdown = () => {
-            remainingSecondsRef.current -= 1;
-            const secs = remainingSecondsRef.current;
+            const secs = calculateRemainingTrialSeconds(lastDayFreeTrial);
             if (secs <= 0) {
                 setCountdownTime({hours: 0, minutes: 0, seconds: 0});
                 return;
