@@ -2778,7 +2778,7 @@ function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActio
 /**
  * Sets the last read time on a report
  */
-function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEntry<ReportActions>, reportAction: ReportAction, currentUserAccountID: number) {
+function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEntry<ReportActions>, reportAction: ReportAction, currentUserAccountID: number, isOffline: boolean) {
     if (!reportID) {
         Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
         return;
@@ -2800,7 +2800,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOfflineNetwork());
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline);
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
 
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
