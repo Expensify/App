@@ -11,10 +11,10 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
-import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -68,6 +68,7 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
+    canMemberWrite,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
@@ -76,6 +77,7 @@ import {
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
+    isSubmitPolicy,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -114,14 +116,16 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
-    ALL: 'all',
+    MEMBERS: 'members',
     ADMINS: 'admins',
+    CARD_ADMINS: 'cardAdmins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
+    EDITORS: 'editors',
 } as const;
 
 type WorkspaceMemberFilterValue = ValueOf<typeof WORKSPACE_MEMBER_FILTER_VALUES>;
-type WorkspaceMemberFilterOption = SingleSelectItem<WorkspaceMemberFilterValue>;
+type WorkspaceMemberFilterOption = MultiSelectItem<WorkspaceMemberFilterValue>;
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
@@ -138,7 +142,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<BaseTextInputRef>(null);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
-    const [selectedRoleFilter, setSelectedRoleFilter] = useState<WorkspaceMemberFilterOption | null>(null);
+    const [selectedRoleFilters, setSelectedRoleFilters] = useState<WorkspaceMemberFilterOption[]>([]);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
@@ -414,6 +418,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
+    const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
@@ -459,10 +464,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             let roleBadgeText = '';
             if (policy?.owner === details.login) {
                 roleBadgeText = translate('common.owner');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN) {
-                roleBadgeText = translate('common.admin');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
-                roleBadgeText = translate('common.auditor');
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN || policyEmployee.role === CONST.POLICY.ROLE.AUDITOR || policyEmployee.role === CONST.POLICY.ROLE.CARD_ADMIN) {
+                roleBadgeText = translate('workspace.common.roleName', policyEmployee.role);
             } else if (policyEmployee.role === CONST.POLICY.ROLE.EDITOR) {
                 roleBadgeText = translate('common.editor');
             }
@@ -562,46 +565,72 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, []);
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
     const roleFilterOptions: WorkspaceMemberFilterOption[] = [
-        {text: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
-        {text: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
+        {text: translate('workspace.people.members'), value: WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS},
         {text: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
     ];
 
+    if (!isSubmitPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.admins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+        });
+    }
+
     if (isControlPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.cardAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
+        });
+
         roleFilterOptions.push({
             text: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
     }
 
-    const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
+    if (isSubmitPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.editors'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.EDITORS,
+        });
+    }
+
+    const handleRoleFilterChange = (items: WorkspaceMemberFilterOption[]) => {
         setSelectedEmployees([]);
-
-        if (!item || item.value === WORKSPACE_MEMBER_FILTER_VALUES.ALL) {
-            setSelectedRoleFilter(null);
-            return;
-        }
-
-        setSelectedRoleFilter(item);
+        setSelectedRoleFilters(items);
     };
 
     const rolePreFilter = (member: MemberOption) => {
-        if (!selectedRoleFilter) {
+        if (selectedRoleFilters.length === 0) {
             return true;
         }
 
         const employee = policy?.employeeList?.[member.login];
+        const isAdmin = member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
+        const isApprover = isPolicyApprover(policy, member.login);
+        const isAuditor = employee?.role === CONST.POLICY.ROLE.AUDITOR;
+        const isCardAdmin = employee?.role === CONST.POLICY.ROLE.CARD_ADMIN;
+        const isEditor = employee?.role === CONST.POLICY.ROLE.EDITOR;
+        const isMember = !isAdmin && !isApprover && !isAuditor && !isCardAdmin && !isEditor;
 
-        switch (selectedRoleFilter.value) {
-            case WORKSPACE_MEMBER_FILTER_VALUES.ADMINS:
-                return member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
-            case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
-                return isPolicyApprover(policy, member.login);
-            case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
-                return employee?.role === CONST.POLICY.ROLE.AUDITOR;
-            default:
-                return true;
-        }
+        return selectedRoleFilters.some(({value}) => {
+            switch (value) {
+                case WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS:
+                    return isMember;
+                case WORKSPACE_MEMBER_FILTER_VALUES.ADMINS:
+                    return isAdmin;
+                case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
+                    return isApprover;
+                case WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS:
+                    return isCardAdmin;
+                case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
+                    return isAuditor;
+                case WORKSPACE_MEMBER_FILTER_VALUES.EDITORS:
+                    return isEditor;
+                default:
+                    return false;
+            }
+        });
     };
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, rolePreFilter);
 
@@ -656,7 +685,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
     const hasNoDisplayedMembers = displayedFilteredData.length === 0;
     const shouldShowRoleFilter = data.length > 0;
-    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && !!selectedRoleFilter && inputValue.length === 0 && hasNoDisplayedMembers;
+    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && selectedRoleFilters.length > 0 && inputValue.length === 0 && hasNoDisplayedMembers;
     const shouldShowEmptySearchMessage = !shouldShowRoleFilterEmptyState && hasNoDisplayedMembers;
     const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
 
@@ -666,23 +695,27 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowEmptySearchMessage, inputValue);
 
     const rolePopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <SingleSelectPopup
+        <MultiSelectPopup
             label={translate('common.role')}
             items={roleFilterOptions}
-            value={selectedRoleFilter ?? roleFilterOptions.at(0)}
+            value={selectedRoleFilters}
             closeOverlay={closeOverlay}
             onChange={handleRoleFilterChange}
-            defaultValue={roleFilterOptions.at(0)?.value}
-            itemHeight={variables.optionRowHeightCompact}
         />
     );
 
+    const selectedRoleFilterLabels = selectedRoleFilters
+        .map(({value}) => roleFilterOptions.find((option) => option.value === value)?.text)
+        .filter((text): text is string => !!text)
+        .join(', ');
+    const roleFilterDropdownLabel = `${translate('common.role')}: ${selectedRoleFilters.length > 0 ? selectedRoleFilterLabels : translate('common.all')}`;
+
     const roleFilterDropdown = shouldShowRoleFilter ? (
         <DropdownButton
-            label={selectedRoleFilter?.text ?? translate('workspace.people.allMembers')}
+            label={roleFilterDropdownLabel}
             value={null}
             PopoverComponent={rolePopoverComponent}
-            innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
+            innerStyles={[styles.gap2, styles.mw100]}
             wrapperStyle={shouldUseNarrowLayout ? styles.flexGrow0 : undefined}
             labelStyle={styles.fontSizeLabel}
             caretWrapperStyle={styles.gap2}
@@ -828,8 +861,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             icon: icons.UserEye,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
+        const cardAdminOption = {
+            text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
+            icon: icons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.CARD_ADMIN),
+        };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
+        const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
         const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -839,12 +879,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(memberOption);
         }
 
-        if (hasAtLeastOneNonAdminRole) {
+        if (hasAtLeastOneNonAdminRole && canAssignElevatedRoles) {
             options.push(adminOption);
         }
 
-        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer) {
+        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
             options.push(auditorOption);
+        }
+
+        if (hasAtLeastOneNonCardAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+            options.push(cardAdminOption);
         }
 
         return options;

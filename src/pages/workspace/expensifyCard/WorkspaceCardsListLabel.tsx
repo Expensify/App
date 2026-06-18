@@ -65,7 +65,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const defaultFundID = useDefaultFundID(policyID);
 
-    const settlementCurrency = useCurrencyForExpensifyCard({policyID});
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);

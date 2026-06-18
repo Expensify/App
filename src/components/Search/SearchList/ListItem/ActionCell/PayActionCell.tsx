@@ -1,4 +1,5 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
@@ -6,6 +7,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {getParticipantsInvoiceReport} from '@hooks/useParticipantsInvoiceReport';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -17,6 +19,7 @@ import {isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 
 type PayActionCellProps = {
     isLoading: boolean;
@@ -26,9 +29,10 @@ type PayActionCellProps = {
     amount?: number;
     extraSmall: boolean;
     shouldDisablePointerEvents?: boolean;
+    chatReport: OnyxEntry<Report>;
 };
 
-function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall, shouldDisablePointerEvents}: PayActionCellProps) {
+function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
@@ -37,7 +41,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const {
@@ -51,15 +56,14 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        activePolicyID,
         activePolicy,
         defaultWorkspaceName,
         nextStep,
         chatReportPolicy,
-        existingB2BInvoiceReport,
     } = useReportPaymentContext({
         reportID,
         chatReportPolicyID: chatReport?.policyID,
-        invoiceReceiverPolicyID,
     });
 
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
@@ -81,6 +85,14 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
         const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
 
         if (isInvoiceReport(iouReport)) {
+            const existingB2BInvoiceReport = getParticipantsInvoiceReport(
+                allReports,
+                reportNameValuePairs,
+                activePolicyID,
+                CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                invoiceReceiverPolicyID ?? chatReport?.policyID,
+            );
+
             payInvoice({
                 paymentMethodType: type,
                 chatReport,

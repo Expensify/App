@@ -35,7 +35,7 @@ function IOURequestStepCategoryCreate({
     report: reportReal,
     reportDraft,
     route: {
-        params: {transactionID, action, iouType, reportID, backTo},
+        params: {transactionID, action, iouType, reportID, reportActionID, backTo},
     },
     transaction,
 }: IOURequestStepCategoryCreateProps) {
@@ -163,7 +163,7 @@ function IOURequestStepCategoryCreate({
         >
             <StepScreenWrapper
                 headerTitle={translate('workspace.categories.addCategory')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, backTo, reportActionID))}
                 shouldShowWrapper
                 testID="IOURequestStepCategoryCreate"
             >
