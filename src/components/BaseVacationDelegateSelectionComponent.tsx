@@ -22,7 +22,7 @@ import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionList from './SelectionList/SelectionListWithSections';
 
 /** Returns the row subtitle as the national phone form for phone delegates, or `fallback`/login for emails. */
-function getDelegateRowSubtitle(login: string | undefined, fallback: string | undefined): string {
+function getDelegateAlternateText(login: string | undefined, fallback: string | undefined): string {
     const sanitizedLogin = Str.removeSMSDomain(login ?? '');
     if (sanitizedLogin) {
         const parsed = parsePhoneNumber(sanitizedLogin);
@@ -161,7 +161,7 @@ function BaseVacationDelegateSelectionComponent({
         data: (section.data ?? []).map((option) => ({
             ...option,
             text: option.text ?? '',
-            alternateText: getDelegateRowSubtitle(option.login, option.alternateText),
+            alternateText: getDelegateAlternateText(option.login, option.alternateText),
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
             isSelected: option.isSelected ?? undefined,

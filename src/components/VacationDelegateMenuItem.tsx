@@ -43,11 +43,6 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const hasVacationDelegate = !!vacationDelegate?.delegate;
     const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
 
-    // Render phone-number delegates as the raw E.164 string (e.g. "+9779806050938") for the title,
-    // and the *national* phone form (e.g. "980-6050938") for the description — matching the rows in
-    // BaseVacationDelegateSelectionComponent. Using `formatPhoneNumber` here would otherwise return
-    // the international-with-country-code form ("+977 980-6050938") whenever the user's IP country
-    // differs from the phone's country code, causing the description to disagree across screens.
     const delegateLogin = Str.removeSMSDomain(vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '');
     const delegateDisplayName = Str.removeSMSDomain(vacationDelegatePersonalDetails?.displayName ?? delegateLogin);
     const parsedDelegatePhone = parsePhoneNumber(delegateLogin);
