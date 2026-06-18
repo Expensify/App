@@ -58,7 +58,7 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
             }
             // Skip feeds already present in the active policy's available list to avoid duplicate rows across the two lists.
             const feedValueForActivePolicy = getCardFeedWithDomainID(feed.feed, Number(feed.fundID)) as CompanyCardFeedWithDomainID;
-            if (companyCardFeeds?.[feedValueForActivePolicy]) {
+            if (companyCardFeeds?.[feedValueForActivePolicy as CompanyCardFeedWithNumber]) {
                 continue;
             }
             const feedName = feed.feed;

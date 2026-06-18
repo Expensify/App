@@ -558,7 +558,7 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
             email: '+@company.com',
             domain_defaultSecurityGroupID: '0',
             [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: adminAccountID,
-        };
+        } as Domain;
     }
 
     it('enumerates a feed once when the user is an admin of a policy backed by the fund (no linkedPolicyIDs)', () => {

@@ -79,7 +79,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
         });
     });
 
-    it('partitions by preferredPolicy when no entry has linkedPolicyIDs', () => {
+    it('ignores preferredPolicy: visible feeds with no linkedPolicyIDs are never primary', () => {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
@@ -99,16 +99,18 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [{...domainWithAdmin(111, currentUserAccountID), ...domainWithAdmin(222, currentUserAccountID)}, {status: 'loaded'}];
+            }
             return [undefined, {}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
 
+        // preferredPolicy is no longer used for partitioning; feeds without linkedPolicyIDs are never primary.
         expect(result.current.allFeeds).toHaveLength(2);
-        expect(result.current.primaryFeeds).toHaveLength(1);
-        expect(result.current.primaryFeeds.at(0)?.fundID).toBe(111);
-        expect(result.current.otherFeeds).toHaveLength(1);
-        expect(result.current.otherFeeds.at(0)?.fundID).toBe(222);
+        expect(result.current.primaryFeeds).toHaveLength(0);
+        expect(result.current.otherFeeds).toHaveLength(2);
     });
 
     it('partitions by linkedPolicyIDs for feeds that define them (per feed, not global)', () => {
@@ -132,6 +134,9 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             }
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [{...domainWithAdmin(10, currentUserAccountID), ...domainWithAdmin(20, currentUserAccountID)}, {status: 'loaded'}];
             }
             return [undefined, {}];
         });
@@ -164,6 +169,9 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [domainWithAdmin(77, currentUserAccountID), {status: 'loaded'}];
+            }
             return [undefined, {}];
         });
 
@@ -195,6 +203,9 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(policyIdUpper), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
             }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [domainWithAdmin(88, currentUserAccountID), {status: 'loaded'}];
+            }
             return [undefined, {}];
         });
 
@@ -221,6 +232,9 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             }
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [{...adminPolicy(currentPolicyID), ...adminPolicy(otherPolicyID)}, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.COLLECTION.DOMAIN) {
+                return [domainWithAdmin(7, currentUserAccountID), {status: 'loaded'}];
             }
             return [undefined, {}];
         });
