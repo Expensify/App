@@ -2,6 +2,8 @@ import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
+import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
+import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
 import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
 
@@ -18,7 +20,7 @@ const LETTER_AVATAR_NAME_REGEX = /^letter-avatar-#[0-9A-F]{6}-#[0-9A-F]{6}-[A-Z]
  * Default Avatar - auto generated from accountID or email. A subset of User Avatars.
  * User Avatar - pre-designed avatar from UserAvatarCatalog.USER_AVATARS (defaults + Season F1).
  * Agent Avatar - bot avatar from AgentAvatarCatalog.AGENT_AVATARS, assigned to agent accounts.
- * Letter Avatar - first-letter avatar with color from UserAvatarCatalog.LETTER_AVATAR_COLOR_OPTIONS.
+ * Letter Avatar - first-letter avatar with color from letterAvatarPalette.LETTER_AVATAR_COLOR_OPTIONS.
  * Uploaded Avatar - user-uploaded image.
  *
  * Catalog-backed avatars (User + Agent) resolve to local SVGs at render time via AvatarLookup.findLocalAvatarForURL.
@@ -73,6 +75,18 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     }
     return accountIDHashBucket;
+}
+
+/**
+ * Returns the colors for a letter-avatar scheme key, falling back to the default scheme when the key is missing or unknown.
+ *
+ * @param avatarSchemeKey - A scheme key, e.g. "blue100"
+ */
+function getLetterAvatarScheme(avatarSchemeKey?: string): LetterAvatarColorStyle {
+    if (avatarSchemeKey && isLetterAvatarSchemeKey(avatarSchemeKey)) {
+        return LETTER_AVATAR_SCHEMES[avatarSchemeKey];
+    }
+    return DEFAULT_LETTER_AVATAR_SCHEME;
 }
 
 /**
@@ -298,6 +312,7 @@ export {
     getDefaultAvatar,
     getDefaultAvatarName,
     getDefaultAvatarURL,
+    getLetterAvatarScheme,
     getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,
