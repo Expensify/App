@@ -3,7 +3,7 @@ import {DefaultSuccessScreen} from '@components/MultifactorAuthentication/compon
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
-import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
+import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports
@@ -65,8 +65,8 @@ const PINUnblockedSuccessScreen = createScreenWithDefaults(
 );
 
 function ChangePINOutcomeSuccessScreen() {
-    const {payload} = useMultifactorAuthenticationState();
-    const wasPINBlocked = (payload as Payload | undefined)?.wasPINBlocked === true;
+    const {state} = useMultifactorAuthenticationInternal();
+    const wasPINBlocked = !!state.payload && 'wasPINBlocked' in state.payload && state.payload.wasPINBlocked === true;
     return wasPINBlocked ? <PINUnblockedSuccessScreen /> : <ChangePINSuccessScreen />;
 }
 
