@@ -37,6 +37,7 @@ import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, r
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
+import getPlatform from '@libs/getPlatform';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -385,6 +386,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     return {
                         ...iconProps,
                         interactive: false,
+                        // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
+                        // so VoiceOver focuses the whole row instead of the nested Connect button. Disabling it only on native iOS lets
+                        // VoiceOver focus/activate the button on its own. Other platforms (Android/TalkBack, web, iOS mWeb→WEB) keep grouping.
+                        shouldBeAccessible: getPlatform() !== CONST.PLATFORM.IOS,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
@@ -650,6 +655,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         />
                     ),
                     interactive: false,
+                    // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
+                    // so VoiceOver focuses the whole row instead of the nested Connect button. Disabling it only on native iOS lets
+                    // VoiceOver focus/activate the button on its own. Other platforms (Android/TalkBack, web, iOS mWeb→WEB) keep grouping.
+                    shouldBeAccessible: getPlatform() !== CONST.PLATFORM.IOS,
                     shouldShowRightComponent: true,
                     wrapperStyle: styles.sectionMenuItemTopDescription,
                 };
