@@ -167,4 +167,4 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
 }
 
 export default useSorting;
-export type {CompareItemsCallback, ActiveSorting, SortingMethods};
+export type {CompareItemsCallback, ActiveSorting, SortingMethods, SortOrder};
