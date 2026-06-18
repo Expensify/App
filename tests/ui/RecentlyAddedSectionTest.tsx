@@ -22,6 +22,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
+// The component calls useIsFocused to dismiss the hovered receipt preview on blur; the test harness doesn't
+// mount a NavigationContainer, so stub it to a focused state.
+jest.mock('@react-navigation/native', () => {
+    const actual = jest.requireActual('@react-navigation/native');
+    return {
+        ...actual,
+        useIsFocused: jest.fn(() => true),
+    };
+});
+
 jest.mock('@hooks/usePopoverPosition', () =>
     jest.fn(() => ({
         calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0})),

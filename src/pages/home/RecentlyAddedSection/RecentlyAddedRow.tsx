@@ -28,9 +28,12 @@ type RecentlyAddedRowProps = {
 
     /** Whether to render a separator line below the row */
     shouldShowSeparator: boolean;
+
+    /** Whether the hovered receipt preview may be shown. Becomes false once the screen blurs so the preview is dismissed after opening an expense. */
+    shouldShowReceiptPreview: boolean;
 };
 
-function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAddedRowProps) {
+function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -47,6 +50,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator}: RecentlyAdded
             transactionItem={expense.transaction}
             isSelected={false}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
+            shouldShowPreview={shouldShowReceiptPreview}
         />
     );
 

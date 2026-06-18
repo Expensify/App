@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -50,6 +51,9 @@ function RecentlyAddedSection() {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // The hovered receipt preview is a portal on document.body, so it isn't dismissed by navigation alone.
+    // Once the screen blurs (e.g. after opening an expense), we hide the preview instead of leaving it floating over the RHP.
+    const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Receipt']);
     const {calculatePopoverPosition} = usePopoverPosition();
     const {markReportIDAsExpense} = useWideRHPActions();
@@ -215,6 +219,7 @@ function RecentlyAddedSection() {
                             expense={expense}
                             onPress={() => openExpense(expense)}
                             shouldShowSeparator={index < transactions.length - 1}
+                            shouldShowReceiptPreview={isFocused}
                         />
                     ))}
                 </View>
