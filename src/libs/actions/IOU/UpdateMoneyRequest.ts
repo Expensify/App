@@ -240,6 +240,45 @@ function updateMoneyRequestDate({
     const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
     const shouldRecalculateRate = !!(newRateID && newRateID !== currentRateID && transaction && effectivePolicy);
 
+    if (shouldRecalculateRate) {
+        setLastSelectedDistanceRate(effectivePolicy, newRateID);
+        const transactionForTax =
+            transaction && effectivePolicy
+                ? getUpdatedTransaction({
+                      transaction,
+                      transactionChanges: {created: value},
+                      isFromExpenseReport: isExpenseReport(parentReport),
+                      policy: effectivePolicy,
+                  })
+                : transaction;
+        const distanceRateTaxUpdates =
+            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transactionForTax ? getDistanceRateTaxUpdates(effectivePolicy, transactionForTax, newRateID) : undefined;
+
+        updateMoneyRequestDistanceRate({
+            transaction: getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? transaction,
+            transactionThreadReport,
+            parentReport,
+            rateID: newRateID,
+            created: value,
+            policy: effectivePolicy,
+            policyTagList: policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+            delegateAccountID,
+            hash,
+            transactions,
+            transactionViolations,
+            isOffline,
+            updatedTaxAmount: distanceRateTaxUpdates?.taxAmount,
+            updatedTaxCode: distanceRateTaxUpdates?.taxCode,
+            updatedTaxValue: distanceRateTaxUpdates?.taxValue,
+        });
+        return;
+    }
+
     const transactionChanges: TransactionChanges = {
         created: value,
     };
@@ -270,47 +309,6 @@ function updateMoneyRequestDate({
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
-
-    if (shouldRecalculateRate) {
-        setLastSelectedDistanceRate(effectivePolicy, newRateID);
-        const transactionForTax =
-            transaction && effectivePolicy
-                ? getUpdatedTransaction({
-                      transaction,
-                      transactionChanges: {created: value},
-                      isFromExpenseReport: isExpenseReport(parentReport),
-                      policy: effectivePolicy,
-                  })
-                : transaction;
-        const distanceRateTaxUpdates =
-            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transactionForTax ? getDistanceRateTaxUpdates(effectivePolicy, transactionForTax, newRateID) : undefined;
-
-        const currentTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? transaction;
-        updateMoneyRequestDistanceRate({
-            transaction: currentTransaction,
-            transactionThreadReport,
-            parentReport,
-            rateID: newRateID,
-            created: value,
-            shouldSendCreatedToAPI: false,
-            shouldBuildOptimisticModifiedExpenseReportAction: false,
-            policy: effectivePolicy,
-            policyTagList: policyTags,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            parentReportNextStep,
-            delegateAccountID,
-            hash,
-            transactions,
-            transactionViolations,
-            isOffline,
-            updatedTaxAmount: distanceRateTaxUpdates?.taxAmount,
-            updatedTaxCode: distanceRateTaxUpdates?.taxCode,
-            updatedTaxValue: distanceRateTaxUpdates?.taxValue,
-        });
-    }
 }
 
 /** Updates the billable field of an expense */
