@@ -444,7 +444,7 @@ function PolicyDistanceRatesPage({
             <GenericEmptyStateComponent
                 {...genericIllustration}
                 title={translate('workspace.distanceRates.emptyRates.title')}
-                subtitleText={translate('workspace.distanceRates.emptyRates.subtitle')}
+                subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
                 buttons={
                     canWriteDistanceRates
@@ -513,9 +513,8 @@ function PolicyDistanceRatesPage({
                             selectionEnabled={canWriteDistanceRates}
                             selectedKeys={selectedDistanceRates}
                             onRowSelectionChange={setSelectedDistanceRates}
-                        >
-                            {emptyStateContent}
-                        </WorkspaceDistanceRatesTable>
+                            EmptyStateComponent={emptyStateContent}
+                        />
                     </>
                 )}
             </ScreenWrapper>

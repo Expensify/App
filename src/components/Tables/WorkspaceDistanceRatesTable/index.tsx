@@ -1,5 +1,4 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {PropsWithChildren} from 'react';
 import React, {useMemo} from 'react';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
@@ -15,12 +14,13 @@ import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
 type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
-type WorkspaceDistanceRatesTableProps = PropsWithChildren<{
+type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-}>;
+    EmptyStateComponent: React.ReactElement;
+};
 
 const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: 0,
@@ -29,7 +29,7 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange, children}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -137,7 +137,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            {isEmpty && children}
+            {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
                     {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
