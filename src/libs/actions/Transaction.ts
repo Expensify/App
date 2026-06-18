@@ -839,7 +839,7 @@ type ChangeTransactionsReportProps = {
     allTransactions: OnyxCollection<Transaction>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
-    allReports?: OnyxCollection<Report>;
+    allReports: OnyxCollection<Report>;
 };
 
 function changeTransactionsReport({
