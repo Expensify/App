@@ -1,8 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import type {AppActionsMock} from '@userActions/__mocks__/App';
-import * as AppImport from '@userActions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
 import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
@@ -11,6 +9,8 @@ import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/u
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import {isPaused as isSequentialQueuePaused, isRunning as isSequentialQueueRunning} from '@libs/Network/SequentialQueue';
+import type {AppActionsMock} from '@userActions/__mocks__/App';
+import * as AppImport from '@userActions/App';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
