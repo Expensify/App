@@ -11,6 +11,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {connectToRillet} from '@libs/actions/connections/Rillet';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -30,7 +31,7 @@ function RilletSetupPage({route}: RilletSetupPageProps) {
 
     const confirmCredentials = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM>) => {
-            // connectToRillet(policyID, values);
+            connectToRillet(policyID, values[INPUT_IDS.API_KEY]);
             Navigation.dismissModal();
         },
         [policyID],

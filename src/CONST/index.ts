@@ -4244,6 +4244,7 @@ const CONST = {
                 FINANCIAL_FORCE_SYNC_USERS: 'financialForceSyncUsers',
                 FINANCIAL_FORCE_SYNC_DIMENSIONS: 'financialForceSyncDimensions',
                 FINANCIAL_FORCE_SYNC_MARK_REIMBURSED: 'financialForceMarkAsReimbursed',
+                RILLET_SYNC_CONNECTION: 'rilletSyncConnection',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
