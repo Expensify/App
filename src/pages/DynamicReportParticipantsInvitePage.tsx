@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -22,7 +23,7 @@ import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import {getParticipantsAccountIDsForDisplay, isGroupChat, isMoneyRequestReport, isOpenExpenseReport} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +48,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         selector: reportAttributesSelector,
     });
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
+    const shouldShowInvitePage = isGroupChat(report) || (isMoneyRequestReport(report) && isOpenExpenseReport(report));
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
@@ -131,6 +133,10 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
     };
+
+    if (!shouldShowInvitePage) {
+        return <FullPageNotFoundView shouldShow />;
+    }
 
     const getHeaderMessageText = () => {
         if (sections.length > 0) {
