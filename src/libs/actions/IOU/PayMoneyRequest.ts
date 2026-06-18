@@ -864,7 +864,7 @@ function markReportPaymentReceived(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
-    const total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
+    const total = getReimbursableTotal(iouReport);
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: -total,
