@@ -57,8 +57,6 @@ New Expensify is the next generation of the Expensify experience—built for rea
 
 **Go back just once** takes you to Expensify Classic temporarily. The next time you visit Expensify, you'll be redirected back to New Expensify automatically. **Switch to Classic** permanently switches you to Expensify Classic until you choose to return to New Expensify.
 
-## Will Classic Expensify be removed?
-
 ## Will Expensify Classic be removed?
 
 Expensify continues to evolve and improve both experiences over time. Members will be notified about significant product changes in advance.
