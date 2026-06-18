@@ -2323,6 +2323,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         });
 
         it('calls UpdateMoneyRequestDate only for a Self DM track distance expense date change', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date-only update path.
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_self_dm';
             const transactionThreadReportID = 'thread_date_self_dm';
