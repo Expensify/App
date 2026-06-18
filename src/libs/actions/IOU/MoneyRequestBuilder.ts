@@ -1692,6 +1692,10 @@ function getUpdatedMoneyRequestReportData(
     if (!iouReport) {
         updatedMoneyRequestReport = null;
     } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+        // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+        // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+        const previousReimbursableTotal = getReimbursableTotal(iouReport);
+        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         updatedMoneyRequestReport = {
             ...iouReport,
             total: iouReport.total - diff,
@@ -1702,13 +1706,16 @@ function getUpdatedMoneyRequestReportData(
         if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
             updatedMoneyRequestReport.nonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
         }
-        // Mirror the diff on the freshly tracked reimbursable totals so we don't drift between optimistic and confirmed state.
-        if (transaction?.reimbursable && typeof updatedMoneyRequestReport.reimbursableTotal === 'number') {
-            updatedMoneyRequestReport.reimbursableTotal -= diff;
+        // Seed the freshly tracked reimbursable totals from the helpers above so the diff applies
+        // even when the local copy of the report hasn't yet received the new fields.
+        let nextReimbursableTotal = previousReimbursableTotal;
+        if (transaction?.reimbursable) {
+            nextReimbursableTotal -= diff;
         }
-        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.reimbursableTotal === 'number') {
-            updatedMoneyRequestReport.reimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
+        if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable) {
+            nextReimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
         }
+        updatedMoneyRequestReport.reimbursableTotal = nextReimbursableTotal;
         if (!isTransactionOnHold) {
             if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
                 updatedMoneyRequestReport.unheldTotal -= diff;
@@ -1719,12 +1726,14 @@ function getUpdatedMoneyRequestReportData(
             if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
-            if (transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldReimbursableTotal === 'number') {
-                updatedMoneyRequestReport.unheldReimbursableTotal -= diff;
+            let nextUnheldReimbursableTotal = previousUnheldReimbursableTotal;
+            if (transaction?.reimbursable) {
+                nextUnheldReimbursableTotal -= diff;
             }
-            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable && typeof updatedMoneyRequestReport.unheldReimbursableTotal === 'number') {
-                updatedMoneyRequestReport.unheldReimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
+            if (updatedTransaction && transaction?.reimbursable !== updatedTransaction?.reimbursable) {
+                nextUnheldReimbursableTotal += updatedTransaction.reimbursable ? updatedTransaction.amount : -updatedTransaction.amount;
             }
+            updatedMoneyRequestReport.unheldReimbursableTotal = nextUnheldReimbursableTotal;
         }
         if (transactionChanges && 'reimbursable' in transactionChanges) {
             updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy);
