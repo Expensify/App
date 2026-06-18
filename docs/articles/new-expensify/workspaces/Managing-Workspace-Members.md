@@ -33,20 +33,30 @@ To invite someone to your workspace:
 
 # Filter Workspace Members by Role
 
-You can filter the member list by role to quickly find specific groups of members.
+You can filter the member list by role to quickly find specific groups of members. You can select more than one role at a time.
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
-2. Click the role filter dropdown at the top of the member list.
-3. Select one of the available roles:
-   - **All members** – Shows all workspace members (default).
-   - **Admins** – Shows only members with the Admin role.
+2. Click the **Role: All** dropdown at the top of the member list.
+3. Select the checkbox next to one or more of the available roles:
+   - **Members** – Shows only members who don't hold any other role (not approvers, admins, auditors, or card admins).
    - **Approvers** – Shows only members who are designated approvers.
+   - **Workspace Admins** – Shows only members with the Admin role.
    - **Card Admins** – Shows only members with the Card Admin role (Control workspaces only).
    - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
+4. Click **Apply**.
 
-The member list updates immediately to show only members matching the selected role. You can also combine the role filter with the search bar to narrow results further.
+The member list updates to show only members matching the selected roles. The dropdown label updates to show your selection, prefixed with **Role:** (for example, **Role: Members, Approvers**). You can also combine the role filter with the search bar to narrow results further.
 
-If no members match the selected filter, an empty state is displayed with the message: "No members match this filter."
+By default, no role is selected and the dropdown reads **Role: All**, which shows every workspace member. To clear an active filter and show all members again, open the dropdown and click **Reset**.
+
+If no members match the selected roles, an empty state is displayed with the message: "No members match this filter."
+
+<!-- SCREENSHOT:
+Suggestion: Workspace Members page with the "Role: All" dropdown open, showing the multi-select role checkboxes and the Apply and Reset buttons.
+Location: After the role filter steps.
+Purpose: Show readers the multi-select role filter and where the Apply/Reset buttons are.
+-->
+
 
 ---
 
