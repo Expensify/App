@@ -53,7 +53,7 @@ const TEST_CASES = {
         name: 'has Merge HR setup needed',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
 } as const satisfies Record<string, IndicatorTestCase>;
 
@@ -166,12 +166,12 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             expect(status).toBe(testCase.status);
         });
 
-        it('returns policyIDWithErrors', async () => {
+        it('returns indicatorPolicyID', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
-            const expectedPolicyIDWithErrors = 'policyIDWithErrors' in testCase ? testCase.policyIDWithErrors : WORKSPACE.policyID;
-            expect(policyIDWithErrors).toBe(expectedPolicyIDWithErrors);
+            const {indicatorPolicyID} = result.current;
+            const expectedIndicatorPolicyID = 'indicatorPolicyID' in testCase ? testCase.indicatorPolicyID : WORKSPACE.policyID;
+            expect(indicatorPolicyID).toBe(expectedIndicatorPolicyID);
         });
     });
 
@@ -209,11 +209,11 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             expect(indicatorColor).toBe(defaultTheme.success);
         });
 
-        it('returns undefined policyIDWithErrors when no errors exist', async () => {
+        it('returns undefined indicatorPolicyID when no errors exist', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
-            expect(policyIDWithErrors).toBeUndefined();
+            const {indicatorPolicyID} = result.current;
+            expect(indicatorPolicyID).toBeUndefined();
         });
     });
 
@@ -296,9 +296,9 @@ describe('useWorkspacesTabIndicatorStatus', () => {
         it('returns the policyID of the policy with errors', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
+            const {indicatorPolicyID} = result.current;
 
-            expect(policyIDWithErrors).toBe(SECOND_WORKSPACE.policyID);
+            expect(indicatorPolicyID).toBe(SECOND_WORKSPACE.policyID);
         });
     });
 
@@ -312,11 +312,11 @@ describe('useWorkspacesTabIndicatorStatus', () => {
         it('handles missing data gracefully', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {status, indicatorColor, policyIDWithErrors} = result.current;
+            const {status, indicatorColor, indicatorPolicyID} = result.current;
 
             expect(status).toBeUndefined();
             expect(indicatorColor).toBe(defaultTheme.success);
-            expect(policyIDWithErrors).toBeUndefined();
+            expect(indicatorPolicyID).toBeUndefined();
         });
     });
 

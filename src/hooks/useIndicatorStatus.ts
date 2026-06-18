@@ -6,20 +6,20 @@ import useTheme from './useTheme';
 type IndicatorStatusResult = {
     indicatorColor: string;
     status: IndicatorStatus | undefined;
-    policyIDWithErrors: string | undefined;
+    indicatorPolicyID: string | undefined;
 };
 
 function useIndicatorStatus(): IndicatorStatusResult {
     const theme = useTheme();
 
-    const {accountStatus, infoStatus} = useAccountIndicatorChecks();
-    const {policyErrorStatus, domainStatus, policyIDWithErrors} = usePolicyIndicatorChecks();
+    const {accountStatus, infoStatus: accountInfoStatus} = useAccountIndicatorChecks();
+    const {policyErrorStatus, policyInfoStatus, domainStatus, indicatorPolicyID} = usePolicyIndicatorChecks();
 
     const errorStatus = accountStatus ?? policyErrorStatus ?? domainStatus;
-    const status = errorStatus ?? infoStatus;
+    const status = errorStatus ?? accountInfoStatus ?? policyInfoStatus;
     const indicatorColor = errorStatus ? theme.danger : theme.success;
 
-    return {indicatorColor, status, policyIDWithErrors};
+    return {indicatorColor, status, indicatorPolicyID};
 }
 
 export default useIndicatorStatus;

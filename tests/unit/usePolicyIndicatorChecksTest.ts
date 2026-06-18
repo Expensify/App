@@ -45,7 +45,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
-            expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
         it('returns HAS_CUSTOM_UNITS_ERROR when custom units have errors', async () => {
@@ -68,7 +68,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR);
-            expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
         it('returns HAS_EMPLOYEE_LIST_ERROR when employee list has errors', async () => {
@@ -96,7 +96,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR);
-            expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
         it('returns HAS_SYNC_ERRORS when sync has errors', async () => {
@@ -131,7 +131,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
-            expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
         it('returns HAS_QBO_EXPORT_ERROR when QBO export has errors', async () => {
@@ -161,7 +161,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR);
-            expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
         it('returns HAS_UBER_CREDENTIALS_ERROR when Uber credentials have errors', async () => {
@@ -186,7 +186,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR);
-            expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
         it('returns HAS_POLICY_ADMIN_CARD_FEED_ERRORS when admin has card feed errors', async () => {
@@ -252,7 +252,7 @@ describe('usePolicyIndicatorChecks', () => {
 
             expect(result.current.policyErrorStatus).toBeUndefined();
             expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED);
-            expect(result.current.policyIDWithErrors).toBeUndefined();
+            expect(result.current.indicatorPolicyID).toBeUndefined();
         });
 
         it('does not return HAS_MERGE_HR_SETUP_NEEDED for non-admin users', async () => {
@@ -335,7 +335,7 @@ describe('usePolicyIndicatorChecks', () => {
             expect(result.current.policyErrorStatus).toBeUndefined();
             expect(result.current.policyInfoStatus).toBeUndefined();
             expect(result.current.domainStatus).toBeUndefined();
-            expect(result.current.policyIDWithErrors).toBeUndefined();
+            expect(result.current.indicatorPolicyID).toBeUndefined();
         });
     });
 
@@ -352,7 +352,7 @@ describe('usePolicyIndicatorChecks', () => {
             expect(result.current.policyErrorStatus).toBeUndefined();
             expect(result.current.policyInfoStatus).toBeUndefined();
             expect(result.current.domainStatus).toBeUndefined();
-            expect(result.current.policyIDWithErrors).toBeUndefined();
+            expect(result.current.indicatorPolicyID).toBeUndefined();
         });
     });
 
@@ -476,7 +476,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
-            expect(result.current.policyIDWithErrors).toBe(SECOND_WORKSPACE.policyID);
+            expect(result.current.indicatorPolicyID).toBe(SECOND_WORKSPACE.policyID);
         });
     });
 });

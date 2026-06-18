@@ -21,7 +21,7 @@ type PolicyIndicatorChecksResult = {
     policyErrorStatus: IndicatorStatus | undefined;
     policyInfoStatus: IndicatorStatus | undefined;
     domainStatus: IndicatorStatus | undefined;
-    policyIDWithErrors: string | undefined;
+    indicatorPolicyID: string | undefined;
 };
 
 function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
@@ -55,17 +55,21 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS, Object.values(allDomainErrors ?? {}).some((domainErrors) => hasDomainErrors(domainErrors))],
     ];
 
-    const [policyErrorStatus] = policyErrorChecks.find(([, value]) => value) ?? [];
-    const [policyInfoStatus] = policyInfoChecks.find(([, value]) => value) ?? [];
-    const [domainStatus] = domainChecks.find(([, value]) => value) ?? [];
+    const activePolicyErrorCheck = policyErrorChecks.find(([, value]) => value);
+    const activePolicyInfoCheck = policyInfoChecks.find(([, value]) => value);
+    const activeDomainCheck = domainChecks.find(([, value]) => value);
 
-    const policyIDWithErrors = policyErrorChecks.find(([, value]) => value)?.[1]?.id;
+    const [policyErrorStatus] = activePolicyErrorCheck ?? [];
+    const [policyInfoStatus] = activePolicyInfoCheck ?? [];
+    const [domainStatus] = activeDomainCheck ?? [];
+
+    const indicatorPolicyID = activePolicyErrorCheck?.[1]?.id ?? activePolicyInfoCheck?.[1]?.id;
 
     return {
         policyErrorStatus,
         policyInfoStatus,
         domainStatus,
-        policyIDWithErrors,
+        indicatorPolicyID,
     };
 }
 
