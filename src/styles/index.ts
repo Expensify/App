@@ -623,7 +623,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         exportDownloadTitle: {
-            ...headlineFont,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeLarge,
