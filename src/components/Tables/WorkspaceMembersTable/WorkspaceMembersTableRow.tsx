@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
 import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -56,7 +57,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LIST_ROW}
             skeletonReasonAttributes={{context: 'WorkspaceMembersTableRow'}}
-            offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, dismissError: item.dismissError}}
+            offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, onClose: item.dismissError}}
             onPress={item.action}
         >
             {(hovered) => (
@@ -69,18 +70,18 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
-                            <Text
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                text={item.name}
                                 style={[styles.optionDisplayName, styles.pre]}
                                 numberOfLines={1}
-                            >
-                                {item.name}
-                            </Text>
-                            <Text
+                            />
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                text={item.email}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 numberOfLines={1}
-                            >
-                                {item.login}
-                            </Text>
+                            />
                         </View>
                     </View>
 

@@ -188,6 +188,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isEditor = item.role === CONST.POLICY.ROLE.EDITOR;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.EDITORS) && isEditor) {
+            return true;
+        }
+
         return false;
     };
 
