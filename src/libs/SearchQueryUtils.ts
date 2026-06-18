@@ -59,9 +59,13 @@ import {isValidDate} from './ValidationUtils';
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 type SearchRootParams = SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
 type NavigationRouteLike = {
+    /** Unique React Navigation route identifier. */
     key?: string;
+    /** Screen name as registered in the navigator. */
     name?: string;
+    /** Screen-specific params passed to the route. */
     params?: Record<string, unknown>;
+    /** Nested navigator state, if this route is itself a navigator. */
     state?: unknown;
 };
 
@@ -2322,6 +2326,10 @@ export {
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
+    getLastRouteByName,
+    getParamsState,
+    getRoutes,
+    isSearchRootParams,
 };
 
 export type {BuildUserReadableQueryStringParams};
