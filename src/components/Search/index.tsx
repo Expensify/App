@@ -89,6 +89,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import useOptimisticSearchTracking from './hooks/useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './hooks/useStableOptimisticSortedData';
 import SearchChartView from './SearchChartView';
@@ -873,6 +874,11 @@ function Search({
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, validGroupBy);
 
+    // Flat-expense branch (S5): the plain transaction list with no grouping. Routed through the new
+    // ExpenseFlatSearchView, which owns the snapshot data layer via useSearchSnapshot. All other
+    // branches (chat, task, report, grouped) keep rendering through the legacy SearchList until S6.
+    const isFlatExpenseView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !validGroupBy;
+
     const sortedData = useMemo(
         () =>
             getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, {policyCategories, fallbackPolicyID: policyForMovingExpensesID}).map(
@@ -1214,6 +1220,43 @@ function Search({
         );
     }
 
+    const searchTableHeader = !shouldShowTableHeader ? undefined : (
+        <View style={[!isTask && styles.pr9, styles.flex1]}>
+            <SearchTableHeader
+                canSelectMultiple={canSelectMultiple}
+                columns={columnsToShow}
+                type={type}
+                onSortPress={onSortPress}
+                sortOrder={sortOrder}
+                sortBy={sortBy}
+                shouldShowYear={shouldShowYearCreated}
+                shouldShowYearSubmitted={shouldShowYearSubmitted}
+                shouldShowYearApproved={shouldShowYearApproved}
+                shouldShowYearPosted={shouldShowYearPosted}
+                shouldShowYearExported={shouldShowYearExported}
+                shouldShowYearWithdrawn={shouldShowYearWithdrawn}
+                isAmountColumnWide={shouldShowAmountInWideColumn}
+                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                shouldShowSorting
+                groupBy={validGroupBy}
+                isExpenseReportView={isExpenseReportType}
+                isActionColumnWide={isTask || hasDeletedTransaction}
+            />
+        </View>
+    );
+
+    // Single-row skeleton while the deferred write's optimistic data hasn't appeared in sortedData
+    // yet; 5-row skeleton for paginated loading.
+    const listFooterComponent =
+        shouldShowLoadingMoreItems || showPendingExpensePlaceholder ? (
+            <SearchRowSkeleton
+                shouldAnimate
+                fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
+                reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
+                isLoadMore
+            />
+        ) : undefined;
+
     return (
         <SearchScopeProvider>
             <SearchWriteActionsProvider
@@ -1228,67 +1271,53 @@ function Search({
                 isSearchResultsEmpty={isSearchResultsEmpty}
             >
                 <Animated.View style={[styles.flex1, animatedStyle]}>
-                    <SearchList
-                        ref={searchListRef}
-                        data={stableSortedData}
-                        ListItem={ListItem}
-                        onSelectRow={onSelectRow}
-                        canSelectMultiple={canSelectMultiple}
-                        shouldPreventLongPressRow={isChat || isTask}
-                        SearchTableHeader={
-                            !shouldShowTableHeader ? undefined : (
-                                <View style={[!isTask && styles.pr9, styles.flex1]}>
-                                    <SearchTableHeader
-                                        canSelectMultiple={canSelectMultiple}
-                                        columns={columnsToShow}
-                                        type={type}
-                                        onSortPress={onSortPress}
-                                        sortOrder={sortOrder}
-                                        sortBy={sortBy}
-                                        shouldShowYear={shouldShowYearCreated}
-                                        shouldShowYearSubmitted={shouldShowYearSubmitted}
-                                        shouldShowYearApproved={shouldShowYearApproved}
-                                        shouldShowYearPosted={shouldShowYearPosted}
-                                        shouldShowYearExported={shouldShowYearExported}
-                                        shouldShowYearWithdrawn={shouldShowYearWithdrawn}
-                                        isAmountColumnWide={shouldShowAmountInWideColumn}
-                                        isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                        shouldShowSorting
-                                        groupBy={validGroupBy}
-                                        isExpenseReportView={isExpenseReportType}
-                                        isActionColumnWide={isTask || hasDeletedTransaction}
-                                    />
-                                </View>
-                            )
-                        }
-                        contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                        containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
-                        onScroll={onSearchListScroll}
-                        onEndReachedThreshold={0.75}
-                        onEndReached={fetchMoreResults}
-                        // Single-row skeleton while the deferred write's optimistic data hasn't
-                        // appeared in sortedData yet; 5-row skeleton for paginated loading.
-                        ListFooterComponent={
-                            shouldShowLoadingMoreItems || showPendingExpensePlaceholder ? (
-                                <SearchRowSkeleton
-                                    shouldAnimate
-                                    fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
-                                    reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
-                                    isLoadMore
-                                />
-                            ) : undefined
-                        }
-                        queryJSON={queryJSON}
-                        columns={columnsToShow}
-                        onLayout={onLayout}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-                        newTransactions={newTransactions}
-                        hasLoadedAllTransactions={hasLoadedAllTransactions}
-                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        isActionColumnWide={isTask || hasDeletedTransaction}
-                    />
+                    {isFlatExpenseView ? (
+                        <ExpenseFlatSearchView
+                            ref={searchListRef}
+                            onSelectRow={onSelectRow}
+                            canSelectMultiple={canSelectMultiple}
+                            SearchTableHeader={searchTableHeader}
+                            contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                            containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                            onScroll={onSearchListScroll}
+                            onEndReachedThreshold={0.75}
+                            onEndReached={fetchMoreResults}
+                            ListFooterComponent={listFooterComponent}
+                            queryJSON={queryJSON}
+                            onLayout={onLayout}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            newTransactions={newTransactions}
+                            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                            isActionColumnWide={isTask || hasDeletedTransaction}
+                        />
+                    ) : (
+                        <SearchList
+                            ref={searchListRef}
+                            data={stableSortedData}
+                            ListItem={ListItem}
+                            onSelectRow={onSelectRow}
+                            canSelectMultiple={canSelectMultiple}
+                            shouldPreventLongPressRow={isChat || isTask}
+                            SearchTableHeader={searchTableHeader}
+                            contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                            containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                            onScroll={onSearchListScroll}
+                            onEndReachedThreshold={0.75}
+                            onEndReached={fetchMoreResults}
+                            ListFooterComponent={listFooterComponent}
+                            queryJSON={queryJSON}
+                            columns={columnsToShow}
+                            onLayout={onLayout}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                            newTransactions={newTransactions}
+                            hasLoadedAllTransactions={hasLoadedAllTransactions}
+                            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                            isActionColumnWide={isTask || hasDeletedTransaction}
+                        />
+                    )}
                 </Animated.View>
             </SearchWriteActionsProvider>
         </SearchScopeProvider>
