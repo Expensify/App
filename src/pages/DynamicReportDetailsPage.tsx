@@ -725,7 +725,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         policy={policy}
                         participants={participants}
                         currentUserAccountID={currentUserPersonalDetails.accountID}
-                        cropRoute={ROUTES.AVATAR_CROP_REPORT_DETAILS.getRoute(report.reportID)}
                     />
                 </View>
             );
@@ -764,7 +763,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => clearAvatarErrors(report.reportID)}
                 style={[styles.w100, styles.mb3]}
-                cropRoute={ROUTES.AVATAR_CROP_REPORT_DETAILS.getRoute(report.reportID)}
             />
         );
     }, [

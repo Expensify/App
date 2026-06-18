@@ -362,17 +362,6 @@ const SCREENS = {
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
     AVATAR_CROP: {
         ROOT: 'AvatarCrop_Root',
-        PROFILE: 'AvatarCrop_Profile',
-        AGENT_ADD: 'AvatarCrop_AgentAdd',
-        AGENT_EDIT: 'AvatarCrop_AgentEdit',
-        WORKSPACE_OVERVIEW: 'AvatarCrop_WorkspaceOverview',
-        WORKSPACE_CONFIRMATION: 'AvatarCrop_WorkspaceConfirmation',
-        WORKSPACE_CONFIRMATION_OWNER_SELECTOR: 'AvatarCrop_WorkspaceConfirmationOwnerSelector',
-        WORKSPACE_DUPLICATE: 'AvatarCrop_WorkspaceDuplicate',
-        TRAVEL_WORKSPACE_CONFIRMATION: 'AvatarCrop_TravelWorkspaceConfirmation',
-        NEW_CHAT_CONFIRM: 'AvatarCrop_NewChatConfirm',
-        REPORT_DETAILS: 'AvatarCrop_ReportDetails',
-        MONEY_REQUEST_UPGRADE: 'AvatarCrop_MoneyRequestUpgrade',
     },
 
     MONEY_REQUEST: {

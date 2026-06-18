@@ -364,7 +364,6 @@ function IOURequestStepUpgrade({
                     onSubmit={onWorkspaceConfirmationSubmit}
                     onBackButtonPress={() => setShowConfirmationForm(false)}
                     addBottomSafeAreaPadding={false}
-                    cropRoute={ROUTES.AVATAR_CROP_MONEY_REQUEST_UPGRADE.getRoute(action, iouType, transactionID, reportID)}
                 />
             )}
             <ConfirmModal

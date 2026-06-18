@@ -1102,14 +1102,6 @@ const ROUTES = {
     },
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     AVATAR_CROP: 'avatar-crop',
-    AVATAR_CROP_REPORT_DETAILS: {
-        route: 'r/:reportID/details/crop',
-        getRoute: (reportID: string) => `r/${reportID}/details/crop` as const,
-    },
-    AVATAR_CROP_MONEY_REQUEST_UPGRADE: {
-        route: ':action/:iouType/upgrade/:transactionID/:reportID/crop',
-        getRoute: (action: string, iouType: string, transactionID: string, reportID: string) => `${action}/${iouType}/upgrade/${transactionID}/${reportID}/crop` as const,
-    },
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_AVATAR: 'settings/profile/avatar',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',

@@ -12,7 +12,6 @@ import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -73,9 +72,6 @@ type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPr
 
     /** The name associated with avatar */
     name?: string;
-
-    /** Explicit crop route, for openers whose contextual URL can't be derived from the active route */
-    cropRoute?: Route;
 };
 
 const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
@@ -105,7 +101,6 @@ function AvatarWithImagePicker({
     editIcon,
     name = '',
     sentryLabel,
-    cropRoute,
 }: AvatarWithImagePickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Eye', 'FallbackAvatar', 'Pencil', 'Trashcan', 'Upload']);
     const styles = useThemeStyles();
@@ -116,7 +111,7 @@ function AvatarWithImagePicker({
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
-    const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected, cropRoute});
+    const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({

@@ -2535,17 +2535,6 @@ type WorkspacesDomainModalNavigatorParamList = {
 
 type AvatarCropNavigatorParamList = {
     [SCREENS.AVATAR_CROP.ROOT]: undefined;
-    [SCREENS.AVATAR_CROP.PROFILE]: undefined;
-    [SCREENS.AVATAR_CROP.AGENT_ADD]: undefined;
-    [SCREENS.AVATAR_CROP.AGENT_EDIT]: {accountID: string};
-    [SCREENS.AVATAR_CROP.WORKSPACE_OVERVIEW]: {policyID: string};
-    [SCREENS.AVATAR_CROP.WORKSPACE_CONFIRMATION]: undefined;
-    [SCREENS.AVATAR_CROP.WORKSPACE_CONFIRMATION_OWNER_SELECTOR]: undefined;
-    [SCREENS.AVATAR_CROP.WORKSPACE_DUPLICATE]: {policyID: string};
-    [SCREENS.AVATAR_CROP.TRAVEL_WORKSPACE_CONFIRMATION]: undefined;
-    [SCREENS.AVATAR_CROP.NEW_CHAT_CONFIRM]: undefined;
-    [SCREENS.AVATAR_CROP.REPORT_DETAILS]: {reportID: string};
-    [SCREENS.AVATAR_CROP.MONEY_REQUEST_UPGRADE]: {action: string; iouType: string; transactionID: string; reportID: string};
 };
 
 type RightModalNavigatorParamList = {

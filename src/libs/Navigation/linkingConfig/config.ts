@@ -2085,50 +2085,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.AVATAR_CROP,
                             exact: true,
                         },
-                        [SCREENS.AVATAR_CROP.PROFILE]: {
-                            path: 'settings/profile/avatar/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.AGENT_ADD]: {
-                            path: 'settings/agents/new/avatar/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.AGENT_EDIT]: {
-                            path: 'settings/agents/:accountID/edit/avatar/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.WORKSPACE_OVERVIEW]: {
-                            path: 'workspaces/:policyID/overview/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.WORKSPACE_CONFIRMATION]: {
-                            path: 'workspace/confirmation/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.WORKSPACE_CONFIRMATION_OWNER_SELECTOR]: {
-                            path: 'workspace/confirmation/owner-selector/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.WORKSPACE_DUPLICATE]: {
-                            path: 'workspace/:policyID/duplicate/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.TRAVEL_WORKSPACE_CONFIRMATION]: {
-                            path: 'travel/upgrade/workspace/confirmation/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.NEW_CHAT_CONFIRM]: {
-                            path: 'new/chat/confirm/crop',
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.REPORT_DETAILS]: {
-                            path: ROUTES.AVATAR_CROP_REPORT_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.AVATAR_CROP.MONEY_REQUEST_UPGRADE]: {
-                            path: ROUTES.AVATAR_CROP_MONEY_REQUEST_UPGRADE.route,
-                            exact: true,
-                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {

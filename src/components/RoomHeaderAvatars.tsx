@@ -11,7 +11,6 @@ import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
@@ -25,10 +24,9 @@ type RoomHeaderAvatarsProps = {
     policy: OnyxEntry<Policy>;
     participants: number[];
     currentUserAccountID: number;
-    cropRoute?: Route;
 };
 
-function RoomHeaderAvatars({icons, report, policy, participants, currentUserAccountID, cropRoute}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, report, policy, participants, currentUserAccountID}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
@@ -77,7 +75,6 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
                     type={icon.type}
                     editorMaskImage={expensifyIcons.ImageCropSquareMask}
                     name={icon.name}
-                    cropRoute={cropRoute}
                 />
             );
         }
