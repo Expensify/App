@@ -77,10 +77,10 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const {
         isCompleted,
         shouldSplitTaskAccessibilityTargets,
-        shouldUseSplitTaskCheckboxAccessibility,
         taskAccessibilityLabel,
         taskCheckboxAccessibilityLabel,
         taskCheckboxAccessibilityHint,
+        titlePressableAccessibilityHint,
         updateTaskCheckboxStateForAccessibility,
     } = useTaskCheckboxAccessibility(isCompletedFromOnyx, taskTitlePlainText);
 
@@ -227,7 +227,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                             accessible
                                                             accessibilityRole={CONST.ROLE.BUTTON}
                                                             accessibilityLabel={taskAccessibilityLabel}
-                                                            accessibilityHint={shouldUseSplitTaskCheckboxAccessibility ? '' : undefined}
+                                                            accessibilityHint={titlePressableAccessibilityHint}
                                                             accessibilityState={{disabled: isDisableInteractive}}
                                                             disabled={isDisableInteractive}
                                                             onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}

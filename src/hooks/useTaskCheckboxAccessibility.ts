@@ -27,9 +27,11 @@ function useTaskCheckboxAccessibility(isCompletedFromOnyx: boolean, taskTitlePla
     useAccessibilityAnnouncement(taskCheckboxAnnouncement?.message ?? '', shouldAnnounceTaskCheckboxState, {announcementKey: taskCheckboxAnnouncement?.key});
 
     const taskAccessibilityLabel = taskTitlePlainText ? `${translate('task.task')}: ${taskTitlePlainText}` : translate('task.task');
-    const shouldUseSplitTaskCheckboxAccessibility = shouldSplitTaskAccessibilityTargets;
-    const taskCheckboxAccessibilityLabel = shouldUseSplitTaskCheckboxAccessibility ? translate('task.task') : taskAccessibilityLabel;
-    const taskCheckboxAccessibilityHint = shouldUseSplitTaskCheckboxAccessibility && taskTitlePlainText ? taskTitlePlainText : undefined;
+    const taskCheckboxAccessibilityLabel = shouldSplitTaskAccessibilityTargets ? translate('task.task') : taskAccessibilityLabel;
+    const taskCheckboxAccessibilityHint = shouldSplitTaskAccessibilityTargets && taskTitlePlainText ? taskTitlePlainText : undefined;
+    // NativeGenericPressable falls back to accessibilityLabel when hint is undefined. Use an empty string to avoid
+    // duplicating the full task title as a hint on the title pressable, since its label already includes the title.
+    const titlePressableAccessibilityHint = shouldSplitTaskAccessibilityTargets ? '' : undefined;
 
     const updateTaskCheckboxStateForAccessibility = (currentIsCompleted: boolean) => {
         if (!shouldSplitTaskAccessibilityTargets) {
@@ -47,10 +49,10 @@ function useTaskCheckboxAccessibility(isCompletedFromOnyx: boolean, taskTitlePla
     return {
         isCompleted,
         shouldSplitTaskAccessibilityTargets,
-        shouldUseSplitTaskCheckboxAccessibility,
         taskAccessibilityLabel,
         taskCheckboxAccessibilityLabel,
         taskCheckboxAccessibilityHint,
+        titlePressableAccessibilityHint,
         updateTaskCheckboxStateForAccessibility,
     };
 }

@@ -97,10 +97,10 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const {
         isCompleted: isTaskCompleted,
         shouldSplitTaskAccessibilityTargets,
-        shouldUseSplitTaskCheckboxAccessibility,
         taskAccessibilityLabel,
         taskCheckboxAccessibilityLabel,
         taskCheckboxAccessibilityHint,
+        titlePressableAccessibilityHint,
         updateTaskCheckboxStateForAccessibility,
     } = useTaskCheckboxAccessibility(isTaskCompletedFromOnyx, taskTitlePlainText);
 
@@ -198,7 +198,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             accessible
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={taskAccessibilityLabel}
-                            accessibilityHint={shouldUseSplitTaskCheckboxAccessibility ? '' : undefined}
+                            accessibilityHint={titlePressableAccessibilityHint}
                             onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}

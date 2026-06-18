@@ -30,6 +30,7 @@ function BaseAnchorForCommentsOnly({
     onPress,
     linkHasImage,
     wrapperStyle,
+    isChildOfTaskTitle = false,
     ...rest
 }: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
@@ -81,7 +82,7 @@ function BaseAnchorForCommentsOnly({
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            role={linkProps.onPress ? CONST.ROLE.LINK : undefined}
+            role={linkProps.onPress || !isChildOfTaskTitle ? CONST.ROLE.LINK : undefined}
             tabIndex={-1}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
@@ -101,7 +102,7 @@ function BaseAnchorForCommentsOnly({
                     }}
                     href={linkHref}
                     onPress={
-                        isScreenReaderActive && linkProps.onPress
+                        isChildOfTaskTitle && isScreenReaderActive && linkProps.onPress
                             ? (e) => {
                                   e?.stopPropagation();
                                   e?.preventDefault();
