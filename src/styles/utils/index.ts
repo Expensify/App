@@ -2112,15 +2112,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             styleObj[key] = null;
             return styleObj;
         }, {} as Nullable<K>) as K,
-    getFeatureTrainingCarouselDotStyle: (size: number, color: string, isActive: boolean): ViewStyle => ({
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        marginHorizontal: size,
-        backgroundColor: color,
-        opacity: isActive ? 1 : 0.3,
-    }),
-
     getScrollableFeatureTrainingModalStyles: (
         insets: EdgeInsets,
         isKeyboardOpen = false,
