@@ -272,11 +272,10 @@ function getTabStateWithFocusedTarget(existingTabState: NavigationState, focused
     }
 
     const updatedTabRoutes = completeTabState.routes.map((route) => {
-        const existingRoute = existingTabState.routes.find((r) => r.name === route.name);
         if (route.name === focusedTargetTab.name) {
-            return getTargetTabRoute(existingRoute, focusedTargetTab);
+            return getTargetTabRoute(undefined, focusedTargetTab);
         }
-        return existingRoute ?? route;
+        return existingTabState.routes.find((r) => r.name === route.name) ?? route;
     });
 
     // Mark the reconstructed state as stale so TabRouter.getRehydratedState()
