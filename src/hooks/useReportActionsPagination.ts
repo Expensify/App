@@ -6,7 +6,7 @@ import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreat
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Pages, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -20,7 +20,6 @@ type UseReportActionsPaginationResult = {
     hasNewerActions: boolean;
     sortedAllReportActions: ReportAction[] | undefined;
     oldestUnreadReportAction: ReportAction | undefined;
-    reportActionPages: OnyxEntry<Pages>;
     transactionThreadReportID: string | undefined;
     transactionThreadReport: OnyxEntry<Report>;
     parentReportActionForTransactionThread: ReportAction | undefined;
@@ -34,8 +33,6 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const {isOffline} = useNetwork();
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
-    const nonEmptyReportIDForPages = getNonEmptyStringOnyxID(reportID);
-    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyReportIDForPages}`);
 
     const {
         reportActions: unfilteredReportActions,
@@ -87,7 +84,6 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        reportActionPages,
         transactionThreadReportID: thread.transactionThreadReportID,
         transactionThreadReport: thread.transactionThreadReport,
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,

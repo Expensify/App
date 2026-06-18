@@ -30,7 +30,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {isAnyHRConnected} from '@libs/HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -290,6 +290,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.hr',
+                brickRoadIndicator: isMergeHRCompleteSetupNeeded(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
                 icon: expensifyIcons.Users,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.HR,

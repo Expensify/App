@@ -2,7 +2,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
@@ -16,6 +16,28 @@ type ReusablePolicyConnectionName =
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
+
+type OwnedPaidPoliciesCounts = {
+    /** Number of paid policies owned by the user */
+    total: number;
+
+    /** Number of owned paid policies that are not pending deletion */
+    active: number;
+};
+
+/**
+ * Creates a selector returning only the counts of owned paid policies, so subscribers don't re-render
+ * when anything else on the policy collection changes.
+ */
+const createOwnedPaidPoliciesCountsSelector =
+    (currentUserAccountID: number | undefined) =>
+    (policies: OnyxCollection<Policy>): OwnedPaidPoliciesCounts => {
+        const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
+        return {
+            total: ownedPaidPolicies.length,
+            active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
+        };
+    };
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
@@ -213,6 +235,8 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
+
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
@@ -246,6 +270,7 @@ export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
+    createOwnedPaidPoliciesCountsSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
@@ -260,6 +285,7 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
+    policyTypeSelector,
     areInvoicesEnabledSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,

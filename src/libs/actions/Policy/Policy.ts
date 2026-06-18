@@ -29,7 +29,6 @@ import type {
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
     EnablePolicyHRParams,
-    EnablePolicyInvoiceFieldsParams,
     EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
@@ -87,6 +86,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -2292,6 +2292,23 @@ function removeWorkspace(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
 }
 
+/**
+ * Dismisses the errors on a workspace based on its pending action
+ */
+function dismissWorkspaceError(policyID: string, pendingAction: PendingAction | undefined) {
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        clearDeleteWorkspaceError(policyID);
+        return;
+    }
+
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        removeWorkspace(policyID);
+        return;
+    }
+
+    clearErrors(policyID);
+}
+
 function setDuplicateWorkspaceData(data: Partial<DuplicateWorkspace>) {
     Onyx.merge(ONYXKEYS.DUPLICATE_WORKSPACE, {...data});
 }
@@ -3110,7 +3127,8 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
 
     // Publish a workspace created event if this is their first policy
     if (!options.hasActiveAdminPolicies) {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID, options.currentUserEmailParam);
+        const workspaceCreatedEvent = getWorkspaceCreatedAnalyticsEvent(optionsWithDefaults.engagementChoice, optionsWithDefaults.companySize, options.currentUserEmailParam);
+        GoogleTagManager.publishEvent(workspaceCreatedEvent, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID, options.currentUserEmailParam);
     }
 
     return params;
@@ -4902,19 +4920,16 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
     }
 }
 
-function enablePolicyFields(policyID: string, enabled: boolean, command: typeof WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS | typeof WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS) {
-    const enableFieldKey =
-        command === WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED;
-
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    [enableFieldKey]: enabled,
+                    areReportFieldsEnabled: enabled,
                     pendingFields: {
-                        [enableFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -4925,7 +4940,7 @@ function enablePolicyFields(policyID: string, enabled: boolean, command: typeof 
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
-                        [enableFieldKey]: null,
+                        areReportFieldsEnabled: null,
                     },
                 },
             },
@@ -4935,31 +4950,23 @@ function enablePolicyFields(policyID: string, enabled: boolean, command: typeof 
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    [enableFieldKey]: !enabled,
+                    areReportFieldsEnabled: !enabled,
                     pendingFields: {
-                        [enableFieldKey]: null,
+                        areReportFieldsEnabled: null,
                     },
                 },
             },
         ],
     };
 
-    const parameters: EnablePolicyReportFieldsParams | EnablePolicyInvoiceFieldsParams = {policyID, enabled};
+    const parameters: EnablePolicyReportFieldsParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(command, parameters, onyxData);
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean) {
-    enablePolicyFields(policyID, enabled, WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS);
-}
-
-function enablePolicyInvoiceFields(policyID: string, enabled: boolean) {
-    enablePolicyFields(policyID, enabled, WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS);
-}
-
-function enablePolicyTaxes(policyID: string, enabled: true, currentTaxRates: TaxRatesWithDefault | undefined): void;
-function enablePolicyTaxes(policyID: string, enabled: false): void;
-function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?: TaxRatesWithDefault) {
+function enablePolicyTaxes(policyID: string, enabled: true, currentTaxRates: TaxRatesWithDefault | undefined, policyData?: PolicyData): void;
+function enablePolicyTaxes(policyID: string, enabled: false, currentTaxRates?: undefined, policyData?: PolicyData): void;
+function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?: TaxRatesWithDefault, policyData?: PolicyData) {
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
     const taxRatesData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -5066,6 +5073,18 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, currentTaxRates?:
         successData,
         failureData,
     };
+
+    // Recompute transaction violations so toggling tax tracking immediately clears/adds the tax violation,
+    // instead of leaving a stale one until the report reloads. Include the optimistic default tax rates when
+    // they're being added, so the recompute matches the policy we just wrote and doesn't flag a transaction
+    // whose tax code is one of those new rates as out of policy.
+    if (policyData) {
+        const taxPolicyUpdate: Partial<Policy> = {tax: {trackingEnabled: enabled}};
+        if (shouldAddDefaultTaxRatesData) {
+            taxPolicyUpdate.taxRates = defaultTaxRates;
+        }
+        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, taxPolicyUpdate);
+    }
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
     if (shouldAddDefaultTaxRatesData) {
@@ -7508,6 +7527,7 @@ export {
     updateAddress,
     updateLastAccessedWorkspace,
     clearDeleteWorkspaceError,
+    dismissWorkspaceError,
     setWorkspaceDefaultSpendCategory,
     getDisplayNameForWorkspace,
     generateDefaultWorkspaceName,
@@ -7544,7 +7564,6 @@ export {
     enablePolicyHR,
     enablePolicyReceiptPartners,
     enablePolicyReportFields,
-    enablePolicyInvoiceFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
     enablePolicyTimeTracking,

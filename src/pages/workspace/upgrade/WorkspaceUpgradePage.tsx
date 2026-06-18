@@ -38,7 +38,6 @@ import {
     enablePolicyAutoReimbursementLimit,
     enablePolicyConnections,
     enablePolicyHR,
-    enablePolicyInvoiceFields,
     enablePolicyInvoicing,
     enablePolicyReportFields,
     enablePolicyRules,
@@ -81,6 +80,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
+    // upgradePlanType comes from the URL, so only honor the plans we explicitly support upgrading to.
+    const rawUpgradePlanType = route.params?.upgradePlanType;
+    const upgradePlanType = rawUpgradePlanType === CONST.POLICY.TYPE.TEAM || rawUpgradePlanType === CONST.POLICY.TYPE.CORPORATE ? rawUpgradePlanType : undefined;
     const [upgradingFromSubmit, setUpgradingFromSubmit] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -153,8 +155,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
-                return Navigation.goBack(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
                 return;
@@ -176,7 +176,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (canAccessSubmitWorkspaceFeatures) {
-            const targetType = (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
+            const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
             return;
         }
@@ -234,9 +234,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         enablePolicyReportFields(policyID, true);
                     }
                 }
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
-                enablePolicyInvoiceFields(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 enablePolicyRules(policy, true, false, policyDataRef.current);
@@ -378,6 +375,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
+                        upgradePlanType={upgradePlanType}
                     />
                 )}
             </ScrollView>
