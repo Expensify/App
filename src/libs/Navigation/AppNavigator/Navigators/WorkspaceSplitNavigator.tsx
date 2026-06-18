@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
+import getRevealScreenOptions from '@libs/Navigation/AppNavigator/getRevealScreenOptions';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -48,7 +48,7 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
     // is already suppressed (see WorkspaceNavigator). Suppress the sidebar's enter animation too,
     // otherwise WorkspaceInitialPage slides in over the blank split background after the RHP dismisses,
     // flashing white (#90985). Only affects the initial reveal; the sidebar doesn't re-animate afterwards.
-    const sidebarScreenOptions = route.params?.noEnterAnimation ? {...splitNavigatorScreenOptions.sidebarScreen, animation: Animations.NONE} : splitNavigatorScreenOptions.sidebarScreen;
+    const sidebarScreenOptions = getRevealScreenOptions(route.params, splitNavigatorScreenOptions.sidebarScreen);
 
     return (
         <FocusTrapForScreens>

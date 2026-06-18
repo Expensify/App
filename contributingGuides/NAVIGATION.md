@@ -1408,6 +1408,45 @@ const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, str
 > [!NOTE]
 > For dynamic routes, the screen underneath is determined by the base path (the path without the dynamic suffix).
 
+## Revealing a newly created screen from under the RHP
+
+When you create an entity from an RHP and want to land on its fullscreen page **without the previous screen flashing** during the RHP dismiss (e.g. the workspace creation flow, see [#90985](https://github.com/Expensify/App/issues/90985)), mount the destination *under* the RHP and dismiss the RHP to reveal it — instead of dismissing first and navigating afterwards.
+
+> [!NOTE]
+> This recipe targets **single-step RHP flows** — the RHP shows a single screen (e.g. the workspace confirmation page) and confirming dismisses the whole RHP in one step to reveal the destination. It is not designed for multi-step RHP flows.
+
+Call this from your action once the optimistic data is written:
+
+```ts
+// `disableRHPAnimation: true` removes the RHP slide-out so the destination is revealed instantly,
+// instead of a (content-already-gone) white card sliding off over a not-yet-painted screen.
+Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {disableRHPAnimation: true});
+```
+
+This dispatches `REPLACE_FULLSCREEN_UNDER_RHP` (mounts the destination beneath the RHP) and then `DISMISS_MODAL`. Two more things are needed on the destination side to make the reveal clean:
+
+**1. Keep a back-stack screen so swipe-back still works.** `handleReplaceFullscreenUnderRHP` seeds the target tab navigator with its list/sidebar screen beneath the new split (e.g. `[WORKSPACES_LIST, WORKSPACE_SPLIT_NAVIGATOR]`). Seed a **fresh** route (no reused key) so it mounts "born non-top" — reusing an already-focused screen's key makes react-native-screens detach/re-attach the top screen and flash it during the reveal.
+
+**2. Skip the destination's enter animation.** The handler flags the revealed leaf route with `noEnterAnimation`, and every navigator level that animates on the way in reads it via the shared helper:
+
+```ts
+import getRevealScreenOptions from '@libs/Navigation/AppNavigator/getRevealScreenOptions';
+import type {RevealableUnderRHPParams} from '@libs/Navigation/AppNavigator/getRevealScreenOptions';
+
+// In the navigator's param list, intersect the revealed screen's params with RevealableUnderRHPParams:
+//   [NAVIGATORS.X_SPLIT_NAVIGATOR]: NavigatorScreenParams<...> & RevealableUnderRHPParams;
+
+<Stack.Screen
+    name={NAVIGATORS.X_SPLIT_NAVIGATOR}
+    options={({route}) => getRevealScreenOptions(route.params, baseScreenOptions)}
+    component={...}
+/>
+```
+
+`getRevealScreenOptions` returns `baseScreenOptions` with `animation: 'none'` when `noEnterAnimation` is set, while preserving `gestureEnabled` so iOS swipe-back keeps working. Apply it on **every** navigator level that animates while being revealed (for the workspace flow that is both `WorkspaceNavigator`'s split screen and `WorkspaceSplitNavigator`'s sidebar screen).
+
+Optionally show a spinner on the button that triggers the flow to cover the brief reveal delay.
+
 ## Performance solutions
 
 Navigation-related performance improvements have been implemented in the following files:
