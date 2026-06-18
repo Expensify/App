@@ -3,8 +3,13 @@ import usePolicyIndicatorChecks from './usePolicyIndicatorChecks';
 import useTheme from './useTheme';
 
 type WorkspacesTabIndicatorStatusResult = {
+    /** The indicator dot color: danger for policy or domain errors, success for policy info or no issues. */
     indicatorColor: string;
+
+    /** The indicator status, prioritizing policy errors, then domain errors, then policy info statuses. */
     status: IndicatorStatus | undefined;
+
+    /** The policy ID associated with the active policy indicator. */
     indicatorPolicyID: string | undefined;
 };
 

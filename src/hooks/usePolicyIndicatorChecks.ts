@@ -18,9 +18,16 @@ import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type PolicyIndicatorChecksResult = {
+    /** The policy error indicator status. */
     policyErrorStatus: IndicatorStatus | undefined;
+
+    /** The policy info indicator status. */
     policyInfoStatus: IndicatorStatus | undefined;
+
+    /** The domain error indicator status. */
     domainStatus: IndicatorStatus | undefined;
+
+    /** The policy ID associated with the active policy error or info indicator. */
     indicatorPolicyID: string | undefined;
 };
 
