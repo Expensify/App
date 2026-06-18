@@ -1002,45 +1002,18 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Download Android binary from current workflow run (cherry-pick path)
-        if: ${{ fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-        continue-on-error: true
-        # v7
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
-        with:
-          name: androidBuild-artifact
-          path: ./
-
-      - name: Download Android binary from the staging GitHub Release (re-promotion path)
-        if: ${{ !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-        continue-on-error: true
+      - name: Upload to Sentry for size analysis
+        id: sentry-upload
+        uses: ./.github/actions/composite/uploadSentrySizeAnalysis
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.prep.outputs.TAG }}-staging
-        run: |
-          gh release download "$TAG" --repo "${{ github.repository }}" \
-            --pattern 'Expensify-release.aab' --output Expensify-release.aab
-          [ -s Expensify-release.aab ] || { echo "::error::Failed to obtain Expensify-release.aab from $TAG"; exit 1; }
-
-      - name: Upload Android build to Sentry for size analysis
-        id: sentry-upload
-        if: ${{ hashFiles('Expensify-release.aab') != '' }}
-        continue-on-error: true
-        timeout-minutes: 5
-        env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          OUTPUT=$(npx sentry-cli build upload Expensify-release.aab \
-            --org expensify --project app --build-configuration Release --log-level info 2>&1)
-          echo "$OUTPUT"
-          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
-          if [ -n "$SENTRY_URL" ]; then
-            echo "::notice::Android Sentry size analysis: $SENTRY_URL"
-            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
-          fi
+        with:
+          platform: Android
+          asset-name: Expensify-release.aab
+          artifact-name: androidBuild-artifact
+          staging-release-tag: ${{ needs.prep.outputs.TAG }}-staging
+          is-cherry-pick: ${{ needs.prep.outputs.IS_CHERRY_PICK }}
 
   iosUploadSentry:
     name: Upload iOS build to Sentry for size analysis
@@ -1057,45 +1030,18 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Download iOS binary from current workflow run (cherry-pick path)
-        if: ${{ fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-        continue-on-error: true
-        # v7
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
-        with:
-          name: iosBuild-artifact
-          path: ./
-
-      - name: Download iOS binary from the staging GitHub Release (re-promotion path)
-        if: ${{ !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-        continue-on-error: true
+      - name: Upload to Sentry for size analysis
+        id: sentry
+        uses: ./.github/actions/composite/uploadSentrySizeAnalysis
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.prep.outputs.TAG }}-staging
-        run: |
-          gh release download "$TAG" --repo "${{ github.repository }}" \
-            --pattern 'Expensify.ipa' --output Expensify.ipa
-          [ -s Expensify.ipa ] || { echo "::error::Failed to obtain Expensify.ipa from $TAG"; exit 1; }
-
-      - name: Upload iOS build to Sentry for size analysis
-        id: sentry-upload
-        if: ${{ hashFiles('Expensify.ipa') != '' }}
-        continue-on-error: true
-        timeout-minutes: 5
-        env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          OUTPUT=$(npx sentry-cli build upload Expensify.ipa \
-            --org expensify --project app --build-configuration Release --log-level info 2>&1)
-          echo "$OUTPUT"
-          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
-          if [ -n "$SENTRY_URL" ]; then
-            echo "::notice::iOS Sentry size analysis: $SENTRY_URL"
-            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
-          fi
+        with:
+          platform: iOS
+          asset-name: Expensify.ipa
+          artifact-name: iosBuild-artifact
+          staging-release-tag: ${{ needs.prep.outputs.TAG }}-staging
+          is-cherry-pick: ${{ needs.prep.outputs.IS_CHERRY_PICK }}
 
   # Why is this necessary for CP-to-prod? Consider this scenario:
   #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
