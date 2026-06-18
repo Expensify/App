@@ -197,7 +197,7 @@ function RecentlyAddedSection() {
                                 <Text style={styles.textMicroSupporting}>{translate('common.type')}</Text>
                             </View>
                             <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
-                                <Text style={[styles.textMicroSupporting, styles.textStrong]}>{translate('common.date')}</Text>
+                                <Text style={styles.textMicroSupporting}>{translate('common.date')}</Text>
                             </View>
                             <Text style={[styles.flex1, styles.textMicroSupporting]}>{translate('common.merchant')}</Text>
                             <Text style={styles.textMicroSupporting}>{translate('iou.amount')}</Text>
