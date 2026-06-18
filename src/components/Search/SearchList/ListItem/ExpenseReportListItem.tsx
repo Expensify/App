@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -199,8 +200,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // Scoped live violations for the report's snapshot transactions: before the report's transactions
     // hydrate into the live collection, rule/category changes still push violation updates that must
     // reflect on the badge (per-row selector, not the screen-level collection merge this slice removed).
-    const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
-    const liveViolationsSelector = transactionViolationsByIDsSelector(snapshotTransactionIDs);
+    // `snapshotTransactionIDs` is a fresh `.map()` array each render, so stabilize its reference (keyed
+    // on the IDs' contents) before the selector depends on it — otherwise the selector gets a new
+    // identity every render and re-subscribes endlessly under the store-based engine (the `dependencies`
+    // 3rd arg this used to rely on was removed from useOnyx).
+    const snapshotTransactionIDs = useStableArrayReference((reportItem.transactions ?? []).map((transaction) => transaction.transactionID));
+    const liveViolationsSelector = useMemo(() => transactionViolationsByIDsSelector(snapshotTransactionIDs), [snapshotTransactionIDs]);
     const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: liveViolationsSelector});
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
         reportID: reportItem.reportID,

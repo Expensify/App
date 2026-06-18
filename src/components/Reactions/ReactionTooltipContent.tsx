@@ -5,6 +5,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName} from '@libs/EmojiUtils';
 import {getDisplayNameOrYou} from '@libs/PersonalDetailsUtils';
@@ -45,14 +46,13 @@ function userNamesStringSelector(accountIDs: number[], currentUserAccountID: num
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    // `accountIDs` is a prop array with no stability guarantee, so key the memoized selector on its
-    // contents rather than the array reference — otherwise the selector identity changes each render
+    // `accountIDs` is a prop array with no stability guarantee, so stabilize its reference (keyed on
+    // contents) before the selector depends on it — otherwise the selector identity changes each render
     // and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
-    const accountIDsKey = accountIDs.join(',');
+    const stableAccountIDs = useStableArrayReference(accountIDs);
     const namesStringSelector = useCallback(
-        (personalDetails: OnyxEntry<PersonalDetailsList>) => userNamesStringSelector(accountIDs, currentUserAccountID, translate)(personalDetails),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [accountIDsKey, currentUserAccountID, translate],
+        (personalDetails: OnyxEntry<PersonalDetailsList>) => userNamesStringSelector(stableAccountIDs, currentUserAccountID, translate)(personalDetails),
+        [stableAccountIDs, currentUserAccountID, translate],
     );
     const [namesString] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: namesStringSelector,

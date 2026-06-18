@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {transactionsByReportIDSelector} from '@src/selectors/Transaction';
 import type {Report, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
+import useStableArrayReference from './useStableArrayReference';
 
 function useTransactionViolationOfWorkspace(policyID?: string) {
     const [allReports, reportsResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -25,20 +26,20 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
         }
     }
 
-    // `transactionIDSet` is rebuilt fresh on every render, so key the memoized selector on its
-    // contents (a stable, order-independent string) rather than the Set reference — otherwise the
-    // selector identity changes each render and defeats useOnyx's memoization, re-subscribing
-    // endlessly under the store-based engine.
-    const transactionIDsKey = Array.from(transactionIDSet).sort().join(',');
+    // `transactionIDSet` is rebuilt fresh on every render, so project it to a stable, order-independent
+    // ID array and have the selector depend on that — otherwise the selector identity changes each
+    // render and defeats useOnyx's memoization, re-subscribing endlessly under the store-based engine.
+    const transactionIDList = useStableArrayReference(Array.from(transactionIDSet).sort());
     const transactionViolationSelector = useCallback(
         (violations: OnyxCollection<TransactionViolations>) => {
             if (!violations) {
                 return {};
             }
 
+            const eligibleTransactionIDs = new Set(transactionIDList);
             const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
                 const transactionID = extractCollectionItemID(violationKey as `${OnyxCollectionKey}${string}`);
-                return transactionIDSet.has(transactionID);
+                return eligibleTransactionIDs.has(transactionID);
             });
 
             const filteredViolations = filteredViolationKeys.reduce(
@@ -51,8 +52,7 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
 
             return filteredViolations;
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [transactionIDsKey],
+        [transactionIDList],
     );
 
     const [transactionViolations, transactionViolationsResult] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {

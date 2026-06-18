@@ -3,6 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
+import useStableArrayReference from './useStableArrayReference';
 
 const transactionViolationsSelector = (violations: OnyxCollection<TransactionViolations>, eligibleTransactionIDs?: Set<string>) => {
     if (!eligibleTransactionIDs || eligibleTransactionIDs.size === 0) {
@@ -17,15 +18,13 @@ const transactionViolationsSelector = (violations: OnyxCollection<TransactionVio
 };
 
 function useTransactionViolation(eligibleTransactionIDs?: Set<string>) {
-    // Callers may pass a freshly-built Set each render, so key the memoized selector on its contents
-    // (a stable, order-independent string) rather than the Set reference — otherwise the selector
-    // identity changes each render and defeats useOnyx's memoization (re-subscribing endlessly under
-    // the store-based engine).
-    const eligibleTransactionIDsKey = eligibleTransactionIDs ? Array.from(eligibleTransactionIDs).sort().join(',') : '';
+    // Callers may pass a freshly-built Set each render, so project it to a stable, order-independent
+    // ID array and have the selector depend on that — otherwise the selector identity changes each
+    // render and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
+    const eligibleTransactionIDList = useStableArrayReference(eligibleTransactionIDs ? Array.from(eligibleTransactionIDs).sort() : []);
     const transactionViolationSelector = useCallback(
-        (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDs),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [eligibleTransactionIDsKey],
+        (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDList.length ? new Set(eligibleTransactionIDList) : undefined),
+        [eligibleTransactionIDList],
     );
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
