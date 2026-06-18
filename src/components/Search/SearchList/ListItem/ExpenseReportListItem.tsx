@@ -40,6 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
+import getExpenseReportRowAccessibilityLabel from './getExpenseReportRowAccessibilityLabel';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -401,6 +402,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
+            accessibilityLabel={getExpenseReportRowAccessibilityLabel(liveReportItem)}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
             isFocused={isFocused}

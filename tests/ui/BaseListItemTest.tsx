@@ -33,4 +33,34 @@ describe('BaseListItem', () => {
         fireEvent(screen.getByTestId(testID), 'mouseLeave', {stopPropagation: jest.fn()});
         expect(mouseLeaveMock).toHaveBeenCalled();
     });
+
+    it('should use the accessibilityLabel prop as the row name when provided', () => {
+        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        render(
+            <BaseListItem
+                item={{keyForList: '1', text: 'Item text'}}
+                keyForList="1"
+                accessibilityLabel="Custom row name"
+                onSelectRow={() => {}}
+                showTooltip={false}
+                isFocused={false}
+            />,
+        );
+        expect(screen.getByLabelText('Custom row name')).toBeTruthy();
+        expect(screen.queryByLabelText('Item text')).toBeNull();
+    });
+
+    it('should fall back to the item-derived label when accessibilityLabel is omitted', () => {
+        mockedUseHover.mockReturnValue({hovered: false, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+        render(
+            <BaseListItem
+                item={{keyForList: '1', text: 'Item text'}}
+                keyForList="1"
+                onSelectRow={() => {}}
+                showTooltip={false}
+                isFocused={false}
+            />,
+        );
+        expect(screen.getByLabelText('Item text')).toBeTruthy();
+    });
 });

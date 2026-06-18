@@ -20,7 +20,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
 
-type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role' | 'tabIndex'>;
+type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role' | 'tabIndex' | 'accessibilityLabel'>;
 
 type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 'tabIndex' | 'accessibilityState'> & {
     accessibleAndAccessibilityLabel: Pick<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'>;
@@ -31,6 +31,7 @@ function getAccessibilityProps<TItem extends ListItem>({
     role,
     tabIndex,
     accessible,
+    accessibilityLabel,
     item,
     isFocused,
     canSelectMultiple,
@@ -54,13 +55,11 @@ function getAccessibilityProps<TItem extends ListItem>({
         } satisfies CalculatedAccessibilityProps;
     }
 
-    const accessibilityLabel = getAccessibilityLabel(item);
-
     return {
         role: effectiveRole,
         tabIndex,
         accessibilityState,
-        accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel},
+        accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel: accessibilityLabel ?? getAccessibilityLabel(item)},
         ariaCurrent,
     } satisfies CalculatedAccessibilityProps;
 }
@@ -100,6 +99,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
     accessible,
+    accessibilityLabel,
     accessibilityRole = getButtonRole(true),
     forwardedFSClass,
     testID,
@@ -160,6 +160,7 @@ function BaseListItem<TItem extends ListItem>({
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getAccessibilityProps({
         role: accessibilityRole,
         accessible,
+        accessibilityLabel,
         tabIndex: item.tabIndex,
         item,
         isFocused,

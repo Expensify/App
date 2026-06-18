@@ -319,6 +319,8 @@ type ValidListItem =
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
     ForwardedFSClassProps & {
         item: TItem;
+        /** Overrides the row's screen-reader name. Defaults to the item's derived label when omitted. */
+        accessibilityLabel?: string;
         shouldPreventEnterKeySubmit?: boolean;
         shouldShowBlueBorderOnFocus?: boolean;
         keyForList: string;
