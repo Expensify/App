@@ -2534,7 +2534,7 @@ type WorkspacesDomainModalNavigatorParamList = {
 };
 
 type AvatarCropNavigatorParamList = {
-    [SCREENS.AVATAR_CROP.ROOT]: undefined;
+    [SCREENS.AVATAR_CROP.DYNAMIC_ROOT]: undefined;
 };
 
 type RightModalNavigatorParamList = {

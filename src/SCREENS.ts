@@ -361,7 +361,7 @@ const SCREENS = {
     SAML_SIGN_IN: 'SAMLSignIn',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
     AVATAR_CROP: {
-        ROOT: 'AvatarCrop_Root',
+        DYNAMIC_ROOT: 'Dynamic_AvatarCrop_Root',
     },
 
     MONEY_REQUEST: {

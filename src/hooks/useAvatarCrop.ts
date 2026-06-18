@@ -1,11 +1,12 @@
 import {useCallback, useEffect, useRef} from 'react';
-import {buildFileFromAvatarCropResult, clearAvatarCropDraft, clearAvatarCropResult, setAvatarCropDraft} from '@libs/actions/AvatarCrop';
+import {buildFileFromAvatarCropResult, clearAvatarCropResult, setAvatarCropDraft} from '@libs/actions/AvatarCrop';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import useOnyx from './useOnyx';
 
@@ -34,7 +35,10 @@ function useAvatarCrop({maskType, buttonLabelKey, onCropped}: UseAvatarCropParam
             const token = rand64();
             tokenRef.current = token;
             setAvatarCropDraft({token, image, maskType, buttonLabelKey}).then(() => {
-                Navigation.navigate(ROUTES.AVATAR_CROP);
+                // Append `/avatar-crop` to the current route so the crop screen's URL reflects its context
+                // (e.g. `settings/profile/avatar/avatar-crop`). Resolved via the dynamic-route machinery,
+                // which validates entryScreens and avoids the cross-stack path resolution that NOT_FOUNDs.
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AVATAR_CROP.path));
             });
         },
         [maskType, buttonLabelKey],
@@ -46,8 +50,10 @@ function useAvatarCrop({maskType, buttonLabelKey, onCropped}: UseAvatarCropParam
         }
         tokenRef.current = null;
         const image = buildFileFromAvatarCropResult(result);
+        // Only clear the result we consume here. The draft is owned by the crop screen (cleared on its
+        // unmount); clearing it here would null it while the crop screen is still mounted and re-trigger
+        // its missing-draft guard, popping the RHP underneath too.
         clearAvatarCropResult();
-        clearAvatarCropDraft();
         onCropped(image);
     }, [result, onCropped]);
 

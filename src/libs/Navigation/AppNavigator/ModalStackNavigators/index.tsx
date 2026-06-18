@@ -1295,7 +1295,7 @@ const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
 });
 
 const AvatarCropModalStackNavigator = createModalStackNavigator<AvatarCropNavigatorParamList>({
-    [SCREENS.AVATAR_CROP.ROOT]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
+    [SCREENS.AVATAR_CROP.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/AvatarCropPage').default,
 });
 
 const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallParamList>({

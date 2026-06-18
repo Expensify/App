@@ -2081,10 +2081,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.AVATAR_CROP]: {
                     screens: {
-                        [SCREENS.AVATAR_CROP.ROOT]: {
-                            path: ROUTES.AVATAR_CROP,
-                            exact: true,
-                        },
+                        [SCREENS.AVATAR_CROP.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AVATAR_CROP.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {

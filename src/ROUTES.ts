@@ -184,6 +184,10 @@ const DYNAMIC_ROUTES = {
         entryScreens: ['*'],
         getRoute: (accountID: number) => `avatar/${accountID}` as const,
     },
+    AVATAR_CROP: {
+        path: 'avatar-crop',
+        entryScreens: ['*'],
+    },
     NEW_REPORT_WORKSPACE_SELECTION: {
         path: 'new-report-workspace-selection',
         entryScreens: ['*'],
@@ -1101,7 +1105,6 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile', backTo),
     },
     SETTINGS_SHARE_CODE: 'settings/shareCode',
-    AVATAR_CROP: 'avatar-crop',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_AVATAR: 'settings/profile/avatar',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
