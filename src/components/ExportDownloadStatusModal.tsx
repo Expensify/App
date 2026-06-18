@@ -97,6 +97,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         onClose();
     };
 
+    const handleDownloadFile = () => {
+        downloadFile();
+        handleClose();
+    };
+
     const isNonDismissible = isPreparing;
 
     const renderContent = () => {
@@ -104,7 +109,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return (
                 <>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
-                        <Text style={[styles.textHeadlineH1, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
+                        <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
                         <ActivityIndicator
                             size="small"
                             reasonAttributes={{context: 'ExportDownloadStatusModal.preparing'}}
@@ -123,7 +128,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isConcierge) {
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
                     <Text style={styles.mb5}>{translate('exportDownload.conciergeBody')}</Text>
                     <Button
                         success
@@ -143,18 +148,13 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isReady) {
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
                     <Text style={styles.mb5}>{translate('exportDownload.readyBody')}</Text>
                     <Button
                         success
                         text={translate('exportDownload.downloadFile')}
-                        onPress={downloadFile}
+                        onPress={handleDownloadFile}
                         style={styles.w100}
-                    />
-                    <Button
-                        text={translate('exportDownload.close')}
-                        onPress={handleClose}
-                        style={[styles.w100, styles.mt3]}
                     />
                 </>
             );
@@ -163,7 +163,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isFailed) {
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
                     {!!failedBody && <Text style={styles.mb5}>{failedBody}</Text>}
                     <Button
                         text={translate('exportDownload.close')}
