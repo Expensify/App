@@ -6,10 +6,9 @@ import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {MenuItemProps} from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
@@ -34,14 +33,14 @@ type StateSelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** When true, navigates to the money request dynamic state selector route */
-    isMoneyRequestDynamicStateSelector?: boolean;
+    /** Called when the user opens the state picker, with the current state code and label */
+    onOpenStateSelector?: (stateCode?: State | '', label?: string) => void;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 
-function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, isMoneyRequestDynamicStateSelector = false, ref}: StateSelectorProps) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, onOpenStateSelector, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -91,10 +90,12 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             errorText={errorText}
             onPress={() => {
                 didOpenStateSelector.current = true;
-                if (isMoneyRequestDynamicStateSelector) {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STATE_SELECTOR.getRoute(stateCode, label)));
+
+                if (onOpenStateSelector) {
+                    onOpenStateSelector(stateCode, label);
                     return;
                 }
+
                 const activeRoute = Navigation.getActiveRoute();
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS_STATE.getRoute(stateCode, activeRoute, label));
             }}

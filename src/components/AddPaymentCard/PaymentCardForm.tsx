@@ -16,11 +16,13 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidLegalName, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -128,6 +130,10 @@ function PaymentCardForm({
     const {translate} = useLocalize();
     const route = useRoute();
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
+
+    const openMoneyRequestStateSelector = useCallback((stateCode?: string, selectorLabel?: string) => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STATE_SELECTOR.getRoute(stateCode, selectorLabel)));
+    }, []);
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
     const [expirationDate, setExpirationDate] = useState(data?.expirationDate);
@@ -346,7 +352,7 @@ function PaymentCardForm({
                 {!!showStateSelector && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            isMoneyRequestDynamicStateSelector={route.name === SCREENS.IOU_SEND.ADD_DEBIT_CARD}
+                            onOpenStateSelector={route.name === SCREENS.IOU_SEND.ADD_DEBIT_CARD ? openMoneyRequestStateSelector : undefined}
                             InputComponent={StateSelector}
                             inputID={INPUT_IDS.ADDRESS_STATE}
                         />

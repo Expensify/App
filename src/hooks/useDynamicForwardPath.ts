@@ -9,6 +9,8 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import useRootNavigationState from './useRootNavigationState';
 
+type DynamicForwardPath = Route | DynamicRouteSuffix;
+
 /**
  * Maps a dynamic route suffix + entry screen pair to a forward navigation route.
  *
@@ -23,7 +25,7 @@ import useRootNavigationState from './useRootNavigationState';
  * - entryScreen: The screen that the dynamic suffix is appended to (e.g. 'Settings_Wallet').
  * - forwardRoute: The destination route to navigate forward to from the dynamic route page.
  */
-const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
+const FORWARD_TO_MAPPINGS: Record<string, Record<string, DynamicForwardPath>> = {
     [DYNAMIC_ROUTES.VERIFY_ACCOUNT.path]: {
         [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS,
         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.path,
@@ -44,7 +46,7 @@ const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
  * @param dynamicRouteSuffix - The dynamic route suffix expected in the current URL.
  * @returns The forward route if a mapping exists for the current (suffix, entryScreen) pair, undefined otherwise.
  */
-function useDynamicForwardPath(dynamicRouteSuffix: DynamicRouteSuffix): Route | undefined {
+function useDynamicForwardPath(dynamicRouteSuffix: DynamicRouteSuffix): DynamicForwardPath | undefined {
     const path = useRootNavigationState((state) => {
         if (!state) {
             return undefined;

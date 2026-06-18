@@ -3,24 +3,28 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import VerifyAccountPageBase from './VerifyAccountPageBase';
 
 function DynamicVerifyAccountPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
-    let forwardPath = useDynamicForwardPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
+    const forwardPathFromHook = useDynamicForwardPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
 
-    if (forwardPath === DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.path) {
-        forwardPath = createDynamicRoute(DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.path, backPath);
+    let navigateForwardTo: Route = backPath;
+
+    if (forwardPathFromHook === DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.path) {
+        navigateForwardTo = createDynamicRoute(DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.path, backPath);
     } else if (backPath === ROUTES.SETTINGS_WALLET) {
-        forwardPath = ROUTES.SETTINGS_ENABLE_PAYMENTS;
-    } else if (!forwardPath) {
-        forwardPath = backPath;
+        navigateForwardTo = ROUTES.SETTINGS_ENABLE_PAYMENTS;
+    } else if (forwardPathFromHook) {
+        // Dynamic suffixes are resolved above; remaining mapped values are static routes.
+        navigateForwardTo = forwardPathFromHook as Route;
     }
 
     return (
         <VerifyAccountPageBase
             navigateBackTo={backPath}
-            navigateForwardTo={forwardPath}
+            navigateForwardTo={navigateForwardTo}
         />
     );
 }
