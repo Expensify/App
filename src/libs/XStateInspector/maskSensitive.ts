@@ -1,4 +1,5 @@
 import type {StatelyInspectionEvent} from '@statelyai/inspect';
+import CONST from '@src/CONST';
 
 const SENSITIVE_VALUE_MASK = '***';
 const CIRCULAR_MARKER = '[Circular]';
@@ -7,26 +8,12 @@ const MAX_DEPTH_MARKER = '[MaxDepth]';
 /** Depth cap of the inspector's default serializer, so oversized structures stay bounded. */
 const MAX_DEPTH = 10;
 
-/** Keys whose entire subtree is masked at any depth. Extend when machines start carrying a new kind of secret. */
-const SENSITIVE_KEYS = new Set([
-    'payload',
-    'body',
-    'pin',
-    'pan',
-    'cvv',
-    'expiration',
-    'expirationDate',
-    'password',
-    'token',
-    'otp',
-    'secret',
-    'validateCode',
-    'keyInfo',
-    'challenge',
-    'signedChallenge',
-    'registrationChallenge',
-    'authorizationChallenge',
-]);
+/**
+ * Keys whose entire subtree is masked at any depth - exactly the shared credential base
+ * ({@link CONST.SENSITIVE_AUTH_KEYS}) the log and parameter-error redactors use, so secrets are redacted
+ * identically wherever data leaves the app.
+ */
+const SENSITIVE_KEYS = new Set<string>(CONST.SENSITIVE_AUTH_KEYS);
 
 function hasToJSON(value: unknown): value is {toJSON: () => unknown} {
     return typeof value === 'object' && value !== null && 'toJSON' in value && typeof value.toJSON === 'function';

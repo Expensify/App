@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 /**
  * @throws {Error} If the "parameters" object has a null or undefined value for any of the given parameterNames
  *
@@ -11,7 +13,7 @@ export default function requireParameters(parameterNames: string[], parameters: 
             continue;
         }
 
-        const propertiesToRedact = new Set(['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode']);
+        const propertiesToRedact = new Set<string>(CONST.SENSITIVE_AUTH_KEYS);
         const parametersCopy = {...parameters};
         for (const key of Object.keys(parametersCopy)) {
             if (!propertiesToRedact.has(key.toString())) {
