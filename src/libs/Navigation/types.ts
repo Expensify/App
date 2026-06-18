@@ -2940,7 +2940,9 @@ type WorkspaceNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.DOMAINS_LIST]: undefined;
-    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
+    // `noEnterAnimation` is set when the split is pre-inserted under an RHP (workspace creation reveal),
+    // so WorkspaceNavigator can skip its enter animation and avoid flashing WORKSPACES_LIST (#90985).
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList> & {noEnterAnimation?: boolean};
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
 };
 

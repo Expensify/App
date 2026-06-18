@@ -1022,10 +1022,19 @@ function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
  *   Frame 2 - DISMISS_MODAL pops the RHP: [Tab, Tab', RHP] -> [Tab, Tab'].
  *             useLinking syncs browser history to the new top fullscreen route.
  */
-function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void}) {
+function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void; disableRHPAnimation?: boolean}) {
     if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
         return;
+    }
+
+    // When the caller opts in, disable the RHP slide-out so it dismisses instantly instead of sliding a
+    // (content-already-gone) white card off-screen over the not-yet-composited destination (#90985).
+    // Emitted now so the RHP's setOptions takes effect before the dismiss two frames later; restored
+    // after the dismiss so subsequent RHPs animate normally.
+    const shouldDisableRHPAnimation = !!options?.disableRHPAnimation && getIsNarrowLayout();
+    if (shouldDisableRHPAnimation) {
+        DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
     }
 
     requestAnimationFrame(() => {
@@ -1039,7 +1048,15 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         // wait for the hidden destination transition first so the RHP slides out
         // over the final page instead of briefly revealing the previous page.
         requestAnimationFrame(() => {
-            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
+            dismissModal({
+                afterTransition: () => {
+                    options?.afterTransition?.();
+                    if (shouldDisableRHPAnimation) {
+                        DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
+                    }
+                },
+                waitForTransition: getIsNarrowLayout(),
+            });
         });
     });
 }

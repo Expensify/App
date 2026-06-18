@@ -663,7 +663,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {disableRHPAnimation: true});
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }

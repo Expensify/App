@@ -410,10 +410,37 @@ function handleReplaceFullscreenUnderRHP(
             const existingFirstRoute = existingNestedRoutes?.at(0);
             const newFirstRoute = newNestedRoutes?.at(0);
             const defaultSidebarRouteName = r.name in SPLIT_TO_SIDEBAR ? SPLIT_TO_SIDEBAR[r.name as keyof typeof SPLIT_TO_SIDEBAR] : undefined;
-            const sidebarRoute: NavigationPartialRoute | undefined = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
+            // WORKSPACE_NAVIGATOR hosts the workspace and domain splits and its back-stack root is always
+            // WORKSPACES_LIST. Forcing it as the sidebar guarantees the revealed tab is
+            // [WORKSPACES_LIST, split], so iOS swipe-back keeps working even when the navigator was never
+            // mounted (e.g. a workspace created from Inbox) or only had a stale split underneath. This
+            // mirrors the seeding in prepareStateUnderWorkspaceOrDomainNavigator. The prepend below is a
+            // no-op when the incoming state already starts with WORKSPACES_LIST, so it stays idempotent.
+            let sidebarRoute: NavigationPartialRoute | undefined;
+            if (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+                // Always seed a FRESH WORKSPACES_LIST route (no reused key) so it mounts as a born-non-top
+                // background screen, exactly like the first-creation path. Reusing the existing route reuses
+                // its key, and when the user backed into the list it is the active/top native screen — the
+                // reveal then demotes that active list top->non-top, which makes react-native-screens
+                // detach/re-attach the split on top and flash WORKSPACES_LIST during the detach (#90985).
+                sidebarRoute = {name: SCREENS.WORKSPACES_LIST};
+            } else {
+                sidebarRoute = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
+            }
             if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
                 const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
                 mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
+            }
+            if (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR && mergedNestedState?.routes) {
+                // Flag the revealed split so WorkspaceNavigator skips its enter animation. Otherwise the
+                // split slides in over the seeded WORKSPACES_LIST when the RHP dismisses and the list
+                // flashes for the slide duration (#90985). gestureEnabled stays on for iOS swipe-back (#93003).
+                mergedNestedState = {
+                    ...mergedNestedState,
+                    routes: mergedNestedState.routes.map((nestedRoute) =>
+                        nestedRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...nestedRoute, params: {...nestedRoute.params, noEnterAnimation: true}} : nestedRoute,
+                    ),
+                };
             }
             // Strip any RN deep-link hint chain from `r.params`; otherwise RN would run a
             // follow-up NAVIGATE from it and override the `state` we splice below.

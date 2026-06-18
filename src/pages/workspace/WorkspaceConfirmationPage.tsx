@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
@@ -12,12 +12,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import pushNewlyCreatedWorkspaceUnderActiveModal from '@libs/Navigation/helpers/pushNewlyCreatedWorkspaceUnderActiveModal';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {LastPaymentMethodType} from '@src/types/onyx';
 
 function WorkspaceConfirmationPage() {
@@ -36,16 +34,25 @@ function WorkspaceConfirmationPage() {
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
+    // On a narrow layout the new workspace is mounted under this RHP and revealed when the modal
+    // dismisses (via revealRouteBeforeDismissingModal in createWorkspaceWithPolicyDraftAndNavigateToIt).
+    // The reveal waits for the screen to be ready, so we show a spinner on the Confirm button as
+    // immediate feedback. It normally clears when this page unmounts with the RHP; the timeout is a
+    // safety net in case the dismiss never happens.
+    const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
+    const creatingWorkspaceTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    useEffect(() => () => clearTimeout(creatingWorkspaceTimeoutRef.current), []);
+
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
         const isDifferentOwner = !!params.owner && params.owner !== (currentUserPersonalDetails.email ?? '');
         const shouldShowSuccessPage = isDifferentOwner && !params.makeMeAdmin;
         const workspaceRoute = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
         const routeToNavigate = shouldShowSuccessPage ? ROUTES.WORKSPACE_CONFIRMATION_SUCCESS : workspaceRoute;
-        if (!shouldShowSuccessPage) {
-            // Mount the new workspace under this RHP so the dismiss animation reveals it instead of flashing WORKSPACES_LIST.
-            const targetScreen = isSmallScreenWidth ? SCREENS.WORKSPACE.INITIAL : SCREENS.WORKSPACE.PROFILE;
-            pushNewlyCreatedWorkspaceUnderActiveModal(targetScreen, policyID);
+        if (!shouldShowSuccessPage && isSmallScreenWidth) {
+            setIsCreatingWorkspace(true);
+            clearTimeout(creatingWorkspaceTimeoutRef.current);
+            creatingWorkspaceTimeoutRef.current = setTimeout(() => setIsCreatingWorkspace(false), CONST.WORKSPACE_CREATE_SPINNER_FALLBACK_MS);
         }
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
@@ -84,6 +91,7 @@ function WorkspaceConfirmationPage() {
             <WorkspaceConfirmationForm
                 policyOwnerEmail={policyOwnerEmail}
                 onSubmit={onSubmit}
+                isLoading={isCreatingWorkspace}
             />
         </ScreenWrapper>
     );

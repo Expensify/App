@@ -39,7 +39,10 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamL
             />
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                options={splitNavigatorOptions}
+                // When the split is pre-inserted under an RHP (workspace creation reveal), skip its enter
+                // animation so it doesn't slide in over WORKSPACES_LIST and flash the list (#90985). Keep
+                // gestureEnabled so iOS swipe-back to the list still works (#93003).
+                options={({route: splitRoute}) => (splitRoute.params?.noEnterAnimation ? {animation: Animations.NONE, gestureEnabled: true} : splitNavigatorOptions)}
                 component={WorkspaceSplitNavigator}
             />
             <Stack.Screen
