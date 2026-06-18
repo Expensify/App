@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -60,7 +60,7 @@ function IOURequestStepVendor({
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the QBO CC vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
-    const vendors = useMemo(() => getMatchingVendors(policy), [policy]);
+    const vendors = getMatchingVendors(policy);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
 
     const trimmedSearch = searchValue.trim().toLowerCase();
