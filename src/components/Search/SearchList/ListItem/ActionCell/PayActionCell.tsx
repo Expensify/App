@@ -8,6 +8,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {getParticipantsInvoiceReport} from '@hooks/useParticipantsInvoiceReport';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -42,6 +43,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const {
@@ -55,15 +58,14 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        activePolicyID,
         activePolicy,
         defaultWorkspaceName,
         nextStep,
         chatReportPolicy,
-        existingB2BInvoiceReport,
     } = useReportPaymentContext({
         reportID,
         chatReportPolicyID: chatReport?.policyID,
-        invoiceReceiverPolicyID,
     });
 
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
@@ -85,6 +87,14 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
         const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
 
         if (isInvoiceReport(iouReport)) {
+            const existingB2BInvoiceReport = getParticipantsInvoiceReport(
+                allReports,
+                reportNameValuePairs,
+                activePolicyID,
+                CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                invoiceReceiverPolicyID ?? chatReport?.policyID,
+            );
+
             payInvoice({
                 paymentMethodType: type,
                 chatReport,
