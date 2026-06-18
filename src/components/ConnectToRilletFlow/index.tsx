@@ -1,0 +1,26 @@
+import {useEffect} from 'react';
+import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+
+type ConnectToRilletFlowProps = {
+    policyID: string;
+};
+
+function ConnectToRilletFlow({policyID}: ConnectToRilletFlowProps) {
+    const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
+
+    useEffect(() => {
+        if (hasReusablePoliciesConnectedToRillet) {
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
+            return;
+        }
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return null;
+}
+
+export default ConnectToRilletFlow;

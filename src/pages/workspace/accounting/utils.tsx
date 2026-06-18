@@ -4,6 +4,7 @@ import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
+import ConnectToRilletFlow from '@components/ConnectToRilletFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -371,7 +372,7 @@ function getAccountingIntegrationData(
                 title: translate('workspace.accounting.rillet'),
                 icon: expensifyIcons?.RilletSquare,
                 setupConnectionFlow: (
-                    <ConnectToSageIntacctFlow
+                    <ConnectToRilletFlow
                         policyID={policyID}
                         key={key}
                     />
