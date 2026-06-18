@@ -26,6 +26,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -678,6 +679,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         targetEmail,
     };
 
+    setDomainHighlightItems(domainAccountID, 'admins', String(accountID));
     API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
 }
 
@@ -876,6 +878,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     login: email,
+                    avatar: getDefaultAvatarURL({accountID: optimisticAccountID, accountEmail: email}),
                     isOptimisticPersonalDetail: true,
                 },
             },
@@ -979,6 +982,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
         domainAccountID,
     };
 
+    setDomainHighlightItems(domainAccountID, 'members', String(optimisticAccountID));
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }
 
@@ -2278,6 +2282,7 @@ function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: Do
         shouldSetAsDefaultGroup,
     };
 
+    setDomainHighlightItems(domainAccountID, 'groups', groupID);
     API.write(WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
@@ -2294,6 +2299,14 @@ function clearGroupCreateError(domainAccountID: number, groupID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
     });
+}
+
+function setDomainHighlightItems(domainAccountID: number, type: 'admins' | 'members' | 'groups', id: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {type, id});
+}
+
+function clearDomainHighlightItems(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {type: null, id: null});
 }
 
 export {
@@ -2345,4 +2358,5 @@ export {
     clearDomainGroupCreatePreferredPolicyID,
     createDomainSecurityGroup,
     clearGroupCreateError,
+    clearDomainHighlightItems,
 };

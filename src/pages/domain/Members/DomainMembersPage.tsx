@@ -1,5 +1,6 @@
+import {useIsFocused} from '@react-navigation/native';
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -15,6 +16,7 @@ import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useClearSelectedDomainMembersOnMoveComplete from '@hooks/useClearSelectedDomainMembersOnMoveComplete';
@@ -37,6 +39,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -54,6 +57,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Profile', 'LaptopWithMembers', 'LockClosed', 'BuildingCross', 'Encryption']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isFocused = useIsFocused();
+    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => setSelectedMembers([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedMembers);
@@ -80,6 +85,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: memberAccountIDsSelector,
     });
+    const [highlightItems] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`);
 
     const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
 
@@ -97,6 +103,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             translationKey: 'domain.members.membersFeatureList.enforce2FA',
         },
     ];
+
+    const highlightKey = highlightItems?.type === 'members' ? highlightItems.id : null;
 
     const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
         <SingleSelectPopup
@@ -354,6 +362,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 domainAccountID={domainAccountID}
                 accountIDs={memberIDs ?? []}
                 preFilter={groupPreFilter}
+                selectionListRef={selectionListRef}
                 headerTitle={translate('domain.members.title')}
                 getCustomListHeader={getCustomListHeader}
                 searchPlaceholder={translate('domain.members.findMember')}
@@ -367,6 +376,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 useSelectionModeHeader={selectionModeHeader}
                 getCustomRightElement={getGroupRightElement}
                 searchBarAccessory={groupFilterDropdown}
+                highlightKey={highlightKey}
+                isPageFocused={isFocused}
+                onResetPreFilter={() => handleGroupChange(groupOptions.at(0))}
                 emptyStateTitle={translate('domain.members.emptyMembers.title')}
                 emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
                 turnOnSelectionModeOnLongPress

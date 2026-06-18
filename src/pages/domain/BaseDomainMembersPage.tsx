@@ -1,14 +1,15 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import type {RefObject} from 'react';
 import {View} from 'react-native';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,8 +20,10 @@ import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
+import {clearDomainHighlightItems} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -97,6 +100,18 @@ type BaseDomainMembersPageProps = {
 
     /** Subtitle to show in the empty state when the list has no items */
     emptyStateSubtitle?: string;
+
+    /** Ref forwarded to the inner SelectionListWithModal for scroll-and-highlight operations */
+    selectionListRef?: RefObject<SelectionListHandle<MemberOption> | null>;
+
+    /** Item key pending scroll-and-highlight after an add flow */
+    highlightKey?: string | null;
+
+    /** Whether the parent screen is focused */
+    isPageFocused?: boolean;
+
+    /** Called when the highlighted item is hidden by the pre-filter (e.g. to reset a group filter) */
+    onResetPreFilter?: () => void;
 };
 
 function BaseDomainMembersPage({
@@ -121,12 +136,15 @@ function BaseDomainMembersPage({
     preFilter,
     emptyStateTitle,
     emptyStateSubtitle,
+    selectionListRef,
+    highlightKey,
+    isPageFocused,
+    onResetPreFilter,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -150,7 +168,7 @@ function BaseDomainMembersPage({
                 alternateText: formatPhoneNumber(login),
                 icons: [
                     {
-                        source: details?.avatar ?? icons.FallbackAvatar,
+                        source: details?.avatar ?? getDefaultAvatarURL({accountID, accountEmail: login}),
                         name: formatPhoneNumber(login),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -174,6 +192,29 @@ function BaseDomainMembersPage({
     const sortMembers = (options: MemberOption[]) => sortAlphabetically(options, 'text', localeCompare);
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, preFilter);
+
+    useEffect(() => {
+        if (!isPageFocused || !highlightKey) {
+            return;
+        }
+
+        if (!accountIDs.includes(Number(highlightKey))) {
+            return;
+        }
+
+        if (inputValue.trim() && !filteredData.some((item) => item.keyForList === highlightKey)) {
+            setInputValue('');
+            return;
+        }
+
+        if (!filteredData.some((item) => item.keyForList === highlightKey)) {
+            onResetPreFilter?.();
+            return;
+        }
+
+        selectionListRef?.current?.scrollAndHighlightItem?.([highlightKey]);
+        clearDomainHighlightItems(domainAccountID);
+    }, [highlightKey, isPageFocused, domainAccountID, accountIDs, inputValue, filteredData, setInputValue, selectionListRef, onResetPreFilter]);
 
     const isUserToggleEnabled = setSelectedMembers && filteredData.length > 0;
 
@@ -279,6 +320,7 @@ function BaseDomainMembersPage({
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <SelectionListWithModal
+                    ref={selectionListRef}
                     data={filteredData}
                     shouldShowRightCaret
                     style={{

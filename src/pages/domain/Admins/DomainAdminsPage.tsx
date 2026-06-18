@@ -1,8 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
@@ -17,6 +19,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
 import {clearAdminError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,10 +36,13 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['UserShield']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
+    const isFocused = useIsFocused();
+    const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
+    const [highlightItems] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`);
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
@@ -72,6 +78,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             leftHeaderText={translate('domain.admins.title')}
         />
     );
+
+    const highlightKey = highlightItems?.type === 'admins' ? highlightItems.id : null;
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -111,6 +119,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             getCustomRowProps={getCustomRowProps}
             onDismissError={(item) => clearAdminError(domainAccountID, item.accountID)}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
+            selectionListRef={selectionListRef}
+            highlightKey={highlightKey}
+            isPageFocused={isFocused}
         />
     );
 }

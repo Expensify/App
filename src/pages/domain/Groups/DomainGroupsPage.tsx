@@ -1,6 +1,7 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 import {defaultSecurityGroupIDSelector, domainNameSelector, groupsSelector, isSecurityGroupPendingDeleteSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -10,6 +11,7 @@ import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
@@ -27,7 +29,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {clearGroupCreateError, clearGroupDeleteError} from '@userActions/Domain';
+import {clearDomainHighlightItems, clearGroupCreateError, clearGroupDeleteError} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,8 +54,11 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const isFocused = useIsFocused();
+    const selectionListRef = useRef<SelectionListHandle<GroupOption>>(null);
 
     const [groups = getEmptyArray<DomainSecurityGroupWithID>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
+    const [highlightItems] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`);
     const [defaultGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
     const [pendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
@@ -127,6 +132,29 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
         );
     };
 
+    const highlightKey = highlightItems?.type === 'groups' ? highlightItems.id : null;
+    useEffect(() => {
+        if (!isFocused || !highlightKey) {
+            return;
+        }
+
+        if (!groups.some((group) => group.id === highlightKey)) {
+            return;
+        }
+
+        if (inputValue.trim() && !filteredData.some((item) => item.keyForList === highlightKey)) {
+            setInputValue('');
+            return;
+        }
+
+        if (!filteredData.some((item) => item.keyForList === highlightKey)) {
+            return;
+        }
+
+        selectionListRef.current?.scrollAndHighlightItem?.([highlightKey]);
+        clearDomainHighlightItems(domainAccountID);
+    }, [highlightKey, isFocused, groups, inputValue, filteredData, setInputValue, domainAccountID]);
+
     const createGroupHeaderButton = (
         <Button
             accessibilityLabel={translate('domain.groups.createNewGroupButton')}
@@ -160,6 +188,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
 
                 <SelectionList
+                    ref={selectionListRef}
                     data={filteredData}
                     ListItem={TableListItem}
                     onSelectRow={(item: GroupOption) => Navigation.navigate(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, item.groupID))}
