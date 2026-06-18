@@ -1,8 +1,8 @@
+import {isAdminSelector} from '@selectors/Domain';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
-import {isAdminSelector} from '@selectors/Domain';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
@@ -640,7 +640,7 @@ function getCardFeedsForDisplayPerPolicy(
  *
  * Whether a feed shows as an available feed or under "From other workspaces" is decided by the
  * caller using `linkedPolicyIDs` (active policy in `linkedPolicyIDs` → available, otherwise other).
- * There is intentionally no decisioning based on `preferredPolicy`.
+ * There is intentionally no decision based on `preferredPolicy`.
  *
  * Note: "Expensify Card" feeds are not included (handled by the Expensify card selector).
  */

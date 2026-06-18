@@ -33,9 +33,15 @@ function hasLoadedExpensifyCardSettings(settings: ExpensifyCardSettings | undefi
  *
  * Whether the feed shows as an available feed or under "From other workspaces" is decided
  * separately by `isFeedPrimaryForPolicy` using `linkedPolicyIDs`. There is intentionally no
- * decisioning based on `preferredPolicy` (oldDot-only) nor on whether a card has been issued.
+ * decision based on `preferredPolicy` (oldDot-only) nor on whether a card has been issued.
  */
-function isExpensifyCardFeedVisibleToAdmin(settings: ExpensifyCardSettings, policies: OnyxCollection<Policy>, fundID: number, domains: OnyxCollection<Domain>, currentUserAccountID: number): boolean {
+function isExpensifyCardFeedVisibleToAdmin(
+    settings: ExpensifyCardSettings,
+    policies: OnyxCollection<Policy>,
+    fundID: number,
+    domains: OnyxCollection<Domain>,
+    currentUserAccountID: number,
+): boolean {
     if (!hasLoadedExpensifyCardSettings(settings)) {
         return false;
     }
