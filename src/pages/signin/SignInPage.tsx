@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
@@ -11,6 +11,7 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -73,9 +74,6 @@ type GetRenderOptionsParams = {
     credentials: OnyxEntry<Credentials>;
     isAccountValidated?: boolean;
 };
-
-let hasPendingSAMLRedirectForCurrentSignIn = false;
-let previousSignInLogin: string | undefined;
 
 /**
  * @param hasLogin
@@ -175,6 +173,9 @@ function SignInPage({ref}: SignInPageProps) {
     /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
+    const [pendingSAMLRedirectLogin, setPendingSAMLRedirectLogin] = useState<string | undefined>();
+    const previousCredentialsLogin = usePrevious(credentials?.login);
+    const setPendingSAMLRedirectForLogin = useCallback((login: string) => setPendingSAMLRedirectLogin(login), []);
 
     const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
@@ -183,9 +184,6 @@ function SignInPage({ref}: SignInPageProps) {
 
     useEffect(() => {
         if (!credentials?.login) {
-            previousSignInLogin = credentials?.login;
-            hasPendingSAMLRedirectForCurrentSignIn = false;
-
             if (isUsingMagicCode) {
                 setIsUsingMagicCode(false);
             }
@@ -195,13 +193,9 @@ function SignInPage({ref}: SignInPageProps) {
             return;
         }
 
-        if (!previousSignInLogin || previousSignInLogin === credentials.login) {
-            previousSignInLogin = credentials.login;
+        if (!previousCredentialsLogin || previousCredentialsLogin === credentials.login) {
             return;
         }
-
-        previousSignInLogin = credentials.login;
-        hasPendingSAMLRedirectForCurrentSignIn = false;
 
         // If the login changes, reset the user's SAML login preferences
         if (isUsingMagicCode) {
@@ -210,18 +204,9 @@ function SignInPage({ref}: SignInPageProps) {
         if (hasInitiatedSAMLLogin) {
             setHasInitiatedSAMLLogin(false);
         }
-    }, [credentials?.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+    }, [credentials?.login, previousCredentialsLogin, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
 
-    useEffect(() => {
-        if (!account?.isLoading || account.loadingForm !== CONST.FORMS.LOGIN_FORM) {
-            return;
-        }
-
-        hasPendingSAMLRedirectForCurrentSignIn = true;
-    }, [account?.isLoading, account?.loadingForm]);
-
-    const didStoredLoginChange = !!credentials?.login && !!previousSignInLogin && previousSignInLogin !== credentials.login;
-    const hasPendingSAMLRedirect = !!credentials?.login && hasPendingSAMLRedirectForCurrentSignIn && !didStoredLoginChange;
+    const hasPendingSAMLRedirect = !!credentials?.login && pendingSAMLRedirectLogin === credentials.login;
 
     const {
         shouldShowLoginForm,
@@ -261,7 +246,7 @@ function SignInPage({ref}: SignInPageProps) {
             }
 
             setHasInitiatedSAMLLogin(true);
-            hasPendingSAMLRedirectForCurrentSignIn = false;
+            setPendingSAMLRedirectLogin(undefined);
             Navigation.navigate(ROUTES.SAML_SIGN_IN);
         });
 
@@ -372,6 +357,7 @@ function SignInPage({ref}: SignInPageProps) {
                         isVisible={shouldShowLoginForm}
                         submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
                         scrollPageToTop={scrollSignInPageToTop}
+                        onSignInAttempt={setPendingSAMLRedirectForLogin}
                     />
                     {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
                     {shouldShowValidateCodeForm && (

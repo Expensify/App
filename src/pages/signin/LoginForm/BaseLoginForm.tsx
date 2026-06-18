@@ -41,7 +41,7 @@ import type LoginFormProps from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
+function BaseLoginForm({submitBehavior = 'submit', isVisible, onSignInAttempt, ref}: BaseLoginFormProps) {
     const {login} = useLoginState();
     const {setLogin} = useLoginActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -150,9 +150,12 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
+        const normalizedLogin = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim;
+        onSignInAttempt?.(normalizedLogin);
+
         // Check if this login has an account associated with it or not
-        beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, account?.isLoading, closeAccount?.success, isOffline, validate, countryCode]);
+        beginSignIn(normalizedLogin);
+    }, [login, account?.isLoading, closeAccount?.success, isOffline, validate, countryCode, onSignInAttempt]);
 
     useEffect(() => {
         // Call clearAccountMessages on the login page (home route).
