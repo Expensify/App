@@ -10,10 +10,7 @@ import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 import SingleSelect from './SingleSelect';
 
-type TypeSelectorProps = SearchFilterCommonProps & {
-    value: string | undefined;
-    onChange: (item: string) => void;
-};
+type TypeSelectorProps = SearchFilterCommonProps<string | undefined>;
 
 /**
  * Extracts only the fields needed by getTypeOptions (canSendInvoice check).

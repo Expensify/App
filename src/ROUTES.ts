@@ -17,7 +17,7 @@ import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {CompanyCardFeedWithDomainID} from './types/onyx';
-import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
+import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
 type WorkspaceCompanyCardsAssignCardParams = {
@@ -637,6 +637,10 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: {
         path: 'rules/category',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY: {
+        path: 'rules/currency',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: {
@@ -2464,8 +2468,10 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string) =>
-            getUrlWithBackToParam(policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const), backTo),
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, upgradePlanType?: string) => {
+            const baseRoute = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
+            return getUrlWithBackToParam(upgradePlanType ? (`${baseRoute}?upgradePlanType=${upgradePlanType}` as const) : baseRoute, backTo);
+        },
     },
     WORKSPACE_DOWNGRADE: {
         route: 'workspaces/:policyID?/downgrade/',
@@ -2712,6 +2718,10 @@ const ROUTES = {
     WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
         route: 'workspaces/:policyID/reports/listValues/:reportFieldID?',
         getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR: {
+        route: 'workspaces/:policyID/reports/typeSelector/:currentType?',
+        getRoute: (policyID: string, currentType?: PolicyReportFieldType) => `workspaces/${policyID}/reports/typeSelector/${currentType ? encodeURIComponent(currentType) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
         route: 'workspaces/:policyID/reports/addValue/:reportFieldID?',
@@ -3167,6 +3177,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/merchants` as const,
     },
+    RULES_SPEND_CURRENCIES: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/currencies',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/currencies` as const,
+    },
     RULES_SPEND_MERCHANT_EDIT: {
         route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants/:merchantIndex',
         getRoute: (policyID: string, ruleID: string, merchantIndex: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID}/merchants/${merchantIndex}` as const,
@@ -3285,7 +3299,7 @@ const ROUTES = {
     ONBOARDING_ROOT: {
         route: 'onboarding',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
+        getRoute: () => 'onboarding' as const,
     },
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
@@ -3305,12 +3319,12 @@ const ROUTES = {
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
+        getRoute: () => 'onboarding/accounting' as const,
     },
     ONBOARDING_INTERESTED_FEATURES: {
         route: 'onboarding/interested-features',
 
-        getRoute: (userReportedIntegration?: string, backTo?: string) => getUrlWithBackToParam(`onboarding/interested-features?userReportedIntegration=${userReportedIntegration}`, backTo),
+        getRoute: () => 'onboarding/interested-features' as const,
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
@@ -3325,12 +3339,12 @@ const ROUTES = {
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email`, backTo),
+        getRoute: () => 'onboarding/work-email' as const,
     },
     ONBOARDING_WORK_EMAIL_VALIDATION: {
         route: 'onboarding/work-email-validation',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
+        getRoute: () => 'onboarding/work-email-validation' as const,
     },
     WORKSPACE_CURRENCY_SELECTION: {
         route: 'workspace/confirmation/currency',
@@ -3343,7 +3357,6 @@ const ROUTES = {
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
     },
-    EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {
         route: 'onboarding/test-drive',
         getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,

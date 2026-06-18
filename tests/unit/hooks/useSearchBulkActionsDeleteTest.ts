@@ -124,6 +124,11 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     default: () => undefined,
 }));
 
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
+}));
+
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({}),
 }));
@@ -133,11 +138,6 @@ jest.mock('@hooks/useCurrencyList', () => ({
         getCurrencyDecimals: jest.fn(() => 2),
         convertToDisplayString: jest.fn((amount: number) => `$${amount}`),
     }),
-}));
-
-jest.mock('@hooks/useAllPolicyExpenseChatReportActions', () => ({
-    __esModule: true,
-    default: () => undefined,
 }));
 
 jest.mock('@hooks/useUndeleteTransactions', () => ({
@@ -154,6 +154,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => mockShouldShowDeleteOption,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
+    getValidGroupBy: jest.fn(),
+    getColumnsToShow: jest.fn(() => []),
+    getSearchColumnTranslationKey: jest.fn(),
 }));
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
