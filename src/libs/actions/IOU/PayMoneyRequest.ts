@@ -7,11 +7,12 @@ import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestP
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getAllReportActions, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
@@ -884,7 +885,16 @@ function markReportPaymentReceived(
         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         iouReportID: iouReport.reportID,
         isSettlingUp: true,
+        isSubmitterMarkedPaymentReceived: true,
     });
+
+    // buildOptimisticIOUReportAction formats the action's `message` as "paid ... elsewhere", so override it with
+    // the "received payment" copy here. Keeping the action's message in sync fixes the optimistic chat/report
+    // preview, which derives lastMessageText/lastMessageHtml from this action.
+    // translateLocal is used because this runs outside a React component where the useLocalize hook is unavailable.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, optimisticIOUReportAction.originalMessage);
+    optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
 
     const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, true) : null;
