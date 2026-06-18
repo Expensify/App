@@ -328,6 +328,47 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
 }
 
 /**
+ * Computes the commuter exclusion breakdown (in display units) for a distance request.
+ *
+ * Prefers values already stored on the transaction (set optimistically or by the backend),
+ * otherwise previews the exclusion from the policy's commuter exclusion configuration.
+ *
+ * @param transaction - The distance transaction being confirmed/edited
+ * @param policy - The policy the expense belongs to
+ * @param quantityInUnit - The full route distance expressed in display units (mi/km)
+ * @returns The commuter exclusion and reimbursable distance, or null when no exclusion applies
+ */
+function getCommuterExclusionBreakdown(
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    quantityInUnit: number,
+): {commuterExclusion: number; reimbursableDistance: number} | null {
+    const customUnit = transaction?.comment?.customUnit;
+    let commuterExclusion = customUnit?.commuterExclusion;
+    let reimbursableDistance = customUnit?.reimbursableDistance;
+
+    if ((commuterExclusion === undefined || commuterExclusion === null) && policy?.commuterExclusions) {
+        const exclusionConfig = policy.commuterExclusions;
+        if (exclusionConfig.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && quantityInUnit > 0) {
+            const fixedDistance = exclusionConfig.fixedDistance ?? 0;
+            if (fixedDistance > 0) {
+                commuterExclusion = Math.min(fixedDistance, quantityInUnit);
+                reimbursableDistance = Math.max(0, quantityInUnit - commuterExclusion);
+            }
+        }
+    }
+
+    if (!commuterExclusion || commuterExclusion <= 0) {
+        return null;
+    }
+
+    return {
+        commuterExclusion,
+        reimbursableDistance: reimbursableDistance ?? Math.max(0, quantityInUnit - commuterExclusion),
+    };
+}
+
+/**
  * Converts the distance from kilometers or miles to meters.
  *
  * @param distance - The distance to be converted.
@@ -519,6 +560,17 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
     return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
+/**
+ * Returns the translated distance unit label based on the distance value (for singular/plural).
+ */
+function getDistanceUnitLabel(distance: number, unit: string, translate: LocaleContextProps['translate']): string {
+    const isSingular = distance === 1;
+    if (unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES) {
+        return translate(isSingular ? 'common.mile' : 'common.miles');
+    }
+    return translate(isSingular ? 'common.kilometer' : 'common.kilometers');
+}
+
 /** @private This is only for internal use for getRate function */
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
@@ -663,6 +715,7 @@ export default {
     getDefaultMileageRate,
     getDistanceMerchant,
     getDistanceRequestAmount,
+    getCommuterExclusionBreakdown,
     getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
@@ -672,6 +725,7 @@ export default {
     convertToDistanceInMeters,
     getTaxableAmount,
     getDistanceUnit,
+    getDistanceUnitLabel,
     getUpdatedDistanceUnit,
     getRate,
     getRateByCustomUnitRateID,
