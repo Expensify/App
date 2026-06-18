@@ -1,5 +1,5 @@
 import {delegateEmailSelector} from '@selectors/Account';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,7 +13,6 @@ import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuS
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,9 +21,9 @@ import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTaskCheckboxAccessibility from '@hooks/useTaskCheckboxAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Accessibility from '@libs/Accessibility';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask, getTaskAssigneeAccountID, reopenTask} from '@libs/actions/Task';
 import ControlSelection from '@libs/ControlSelection';
@@ -36,7 +35,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
-import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -66,8 +64,6 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
-    const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
     const {originalReportID, anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true} = useShowContextMenuState();
     const {checkIfContextMenuActive, onShowContextMenu} = useShowContextMenuActions();
     const originalMessage = getOriginalMessage(action);
@@ -97,21 +93,16 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 
-    // Local state provides immediate feedback for VoiceOver after toggling the checkbox,
-    // since Onyx updates asynchronously and the screen reader would announce the stale state.
-    const [prevIsTaskCompletedFromOnyx, setPrevIsTaskCompletedFromOnyx] = useState(isTaskCompletedFromOnyx);
-    const [localIsTaskCompleted, setLocalIsTaskCompleted] = useState(isTaskCompletedFromOnyx);
-    const [taskCheckboxAnnouncement, setTaskCheckboxAnnouncement] = useState<{message: string; key: number}>();
-
-    if (prevIsTaskCompletedFromOnyx !== isTaskCompletedFromOnyx) {
-        setPrevIsTaskCompletedFromOnyx(isTaskCompletedFromOnyx);
-        setLocalIsTaskCompleted(isTaskCompletedFromOnyx);
-    }
-
-    const isTaskCompleted = shouldBreakGrouping && isScreenReaderActive ? localIsTaskCompleted : isTaskCompletedFromOnyx;
-    const shouldAnnounceTaskCheckboxState = shouldBreakGrouping && isScreenReaderActive && !!taskCheckboxAnnouncement;
-
-    useAccessibilityAnnouncement(taskCheckboxAnnouncement?.message ?? '', shouldAnnounceTaskCheckboxState, {announcementKey: taskCheckboxAnnouncement?.key});
+    const taskTitlePlainText = Parser.htmlToText(taskTitle);
+    const {
+        isCompleted: isTaskCompleted,
+        shouldSplitTaskAccessibilityTargets,
+        shouldUseSplitTaskCheckboxAccessibility,
+        taskAccessibilityLabel,
+        taskCheckboxAccessibilityLabel,
+        taskCheckboxAccessibilityHint,
+        updateTaskCheckboxStateForAccessibility,
+    } = useTaskCheckboxAccessibility(isTaskCompletedFromOnyx, taskTitlePlainText);
 
     const parentReportAction = useParentReportAction(taskContextReport);
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskContextReport, parentReportAction) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -128,11 +119,6 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
 
     const shouldShowGreenDotIndicator = isOpenTaskReport(taskContextReport, action) && isReportManager(taskContextReport);
-    const taskTitlePlainText = Parser.htmlToText(taskTitle);
-    const taskAccessibilityLabel = taskTitlePlainText ? `${translate('task.task')}: ${taskTitlePlainText}` : translate('task.task');
-    const shouldUseSplitTaskCheckboxAccessibility = shouldBreakGrouping && isScreenReaderActive;
-    const taskCheckboxAccessibilityLabel = shouldUseSplitTaskCheckboxAccessibility ? translate('task.task') : taskAccessibilityLabel;
-    const taskCheckboxAccessibilityHint = shouldUseSplitTaskCheckboxAccessibility && taskTitlePlainText ? taskTitlePlainText : undefined;
     if (isDeletedParentAction) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }
@@ -169,7 +155,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
-                accessible={shouldBreakGrouping && isScreenReaderActive ? false : undefined}
+                accessible={shouldSplitTaskAccessibilityTargets ? false : undefined}
                 onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: taskReportID}))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
@@ -195,14 +181,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             disabled={!isTaskActionable}
                             shouldSelectOnPressEnter
                             onPress={callFunctionIfActionIsAllowed(() => {
-                                if (shouldBreakGrouping && isScreenReaderActive) {
-                                    const willBeCompleted = !isTaskCompleted;
-                                    setLocalIsTaskCompleted(willBeCompleted);
-                                    setTaskCheckboxAnnouncement((currentAnnouncement) => ({
-                                        message: willBeCompleted ? translate('task.messages.completed') : translate('task.messages.reopened'),
-                                        key: (currentAnnouncement?.key ?? 0) + 1,
-                                    }));
-                                }
+                                updateTaskCheckboxStateForAccessibility(isTaskCompleted);
                                 if (isTaskCompleted) {
                                     reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
                                 } else {
@@ -214,7 +193,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
-                    {shouldBreakGrouping && isScreenReaderActive ? (
+                    {shouldSplitTaskAccessibilityTargets ? (
                         <PressableWithoutFeedback
                             accessible
                             accessibilityRole={CONST.ROLE.BUTTON}
