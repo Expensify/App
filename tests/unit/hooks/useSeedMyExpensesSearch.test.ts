@@ -1,37 +1,38 @@
 import {renderHook} from '@testing-library/react-native';
-import useLocalize from '@hooks/useLocalize';
+import type {OnyxKey, UseOnyxResult} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import useSeedMyExpensesSearch from '@hooks/useSeedMyExpensesSearch';
 import * as Search from '@libs/actions/Search';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: jest.fn(() => [undefined])}));
-jest.mock('@hooks/useLocalize');
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@libs/actions/Search', () => ({seedMyExpensesSearch: jest.fn()}));
 
 const ACCOUNT_ID = 12345;
-const USER_EMAIL = 'user@test.com';
 
-const mockTranslate = jest.fn((key: string) => key);
+function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
+    return [value, {status: 'loaded'}];
+}
 
-function setupMocks({isDualRole = false, hasSeeded = false, accountID = ACCOUNT_ID, email = USER_EMAIL} = {}) {
-    const mockUseOnyx = useOnyx as jest.Mock;
-    mockUseOnyx.mockImplementation((key: string) => {
+function setupMocks({isDualRole = false, hasSeeded = false, accountID = ACCOUNT_ID} = {}) {
+    const mockUseOnyx = jest.mocked(useOnyx);
+    mockUseOnyx.mockImplementation((key: OnyxKey) => {
         if (key === ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH) {
-            return [hasSeeded];
+            return createOnyxResult(hasSeeded);
         }
         if (key === ONYXKEYS.SAVED_SEARCHES) {
-            return [undefined];
+            return createOnyxResult(undefined);
         }
         if (key === ONYXKEYS.SESSION) {
-            return [accountID === ACCOUNT_ID ? accountID : -1];
+            return createOnyxResult(accountID === ACCOUNT_ID ? accountID : CONST.DEFAULT_NUMBER_ID);
         }
         if (key === ONYXKEYS.COLLECTION.POLICY) {
-            return [isDualRole];
+            return createOnyxResult(isDualRole);
         }
-        return [undefined];
+        return createOnyxResult(undefined);
     });
-    (useLocalize as jest.Mock).mockReturnValue({translate: mockTranslate});
 }
 
 beforeEach(() => {
@@ -57,21 +58,20 @@ describe('useSeedMyExpensesSearch', () => {
         expect(Search.seedMyExpensesSearch).not.toHaveBeenCalled();
     });
 
-    it('does not seed when accountID is -1 (not yet loaded)', () => {
-        const mockUseOnyx = useOnyx as jest.Mock;
-        mockUseOnyx.mockImplementation((key: string) => {
+    it('does not seed when accountID is the default (not yet loaded)', () => {
+        const mockUseOnyx = jest.mocked(useOnyx);
+        mockUseOnyx.mockImplementation((key: OnyxKey) => {
             if (key === ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH) {
-                return [false];
+                return createOnyxResult(false);
             }
             if (key === ONYXKEYS.SESSION) {
-                return [-1];
+                return createOnyxResult(CONST.DEFAULT_NUMBER_ID);
             }
             if (key === ONYXKEYS.COLLECTION.POLICY) {
-                return [true];
+                return createOnyxResult(true);
             }
-            return [undefined];
+            return createOnyxResult(undefined);
         });
-        (useLocalize as jest.Mock).mockReturnValue({translate: mockTranslate});
         renderHook(() => useSeedMyExpensesSearch());
         expect(Search.seedMyExpensesSearch).not.toHaveBeenCalled();
     });

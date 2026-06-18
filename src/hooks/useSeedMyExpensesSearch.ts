@@ -1,10 +1,10 @@
 import {useEffect, useRef} from 'react';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import {seedMyExpensesSearch} from '@libs/actions/Search';
 import {isDualRoleUser} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector, emailSelector} from '@src/selectors/Session';
+import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 
 function useSeedMyExpensesSearch() {
     const {translate} = useLocalize();
