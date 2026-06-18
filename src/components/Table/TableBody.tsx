@@ -54,6 +54,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isListLoaded, setIsListLoaded] = React.useState(false);
+    const [stickyHeaderDataReady, setStickyHeaderDataReady] = React.useState<DataType[] | null>(null);
     const {
         processedData: filteredAndSortedData,
         activeSearchString,
@@ -104,6 +105,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     const listData = shouldRenderStickyHeader ? [tableHeaderItem, ...filteredAndSortedData] : filteredAndSortedData;
     const getDataIndex = (index: number) => (shouldRenderStickyHeader ? index - 1 : index);
     const isTableHeaderItem = (index: number) => shouldRenderStickyHeader && index === 0;
+    const canRenderStickyHeader = shouldRenderStickyHeader && isListLoaded && stickyHeaderDataReady === filteredAndSortedData;
 
     const renderListItem = (info: ListRenderItemInfo<DataType>) => {
         if (isTableHeaderItem(info.index)) {
@@ -133,6 +135,15 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         onLoad?.(info);
     };
 
+    React.useEffect(() => {
+        if (!shouldRenderStickyHeader || !isListLoaded) {
+            return undefined;
+        }
+
+        const frame = requestAnimationFrame(() => setStickyHeaderDataReady(filteredAndSortedData));
+        return () => cancelAnimationFrame(frame);
+    }, [filteredAndSortedData, isListLoaded, shouldRenderStickyHeader]);
+
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
             <Text
@@ -158,7 +169,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 ListHeaderComponent={headerComponent ?? ListHeaderComponent}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
                 onLoad={handleLoad}
-                stickyHeaderIndices={shouldRenderStickyHeader && isListLoaded ? [0] : stickyHeaderIndices}
+                stickyHeaderIndices={canRenderStickyHeader ? [0] : stickyHeaderIndices}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
                 renderItem={renderListItem}
