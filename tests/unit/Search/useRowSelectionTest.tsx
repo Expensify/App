@@ -17,6 +17,7 @@ const baseSelectionContext = {
 const noopSelectionActions: SearchSelectionActionsValue = {
     setCurrentSelectedTransactionReportID: () => {},
     setSelectedTransactions: () => {},
+    applySelection: () => {},
     setSelectedReports: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},

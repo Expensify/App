@@ -249,6 +249,8 @@ export default {
     eReceiptWordmarkWidth: 86,
     eReceiptBGHeight: 540,
     eReceiptBGHWidth: 335,
+    // The hovered DistanceEReceipt card is `eReceiptBGHWidth` (335) wide plus the 20px margin on each side (styles.m5).
+    eReceiptHoverCardWidth: 375,
     eReceiptBodyHeight: 500,
     eReceiptBodyWidth: 295,
     eReceiptTextContainerWidth: 263,
