@@ -8,7 +8,7 @@ internalScope: Audience is members who have been granted Copilot access. Covers 
 
 # Act as a Copilot
 
-If another member grants you Copilot access, you can access their Expensify account and perform actions on their behalf without needing their login credentials. Copilot access provides delegated account access while keeping each member's login credentials private.
+If another member grants you Copilot access, you can access their Expensify account and perform actions on their behalf without needing their login credentials. Copilot access provides delegated account access while keeping login credentials private.
 
 If you want to grant another member access to your Expensify account, [learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access). 
 
@@ -34,20 +34,16 @@ Some actions may be restricted if you've been granted Limited Access.
 
 ## How to switch to a Copilot account
 
-1. Select **Account**.
-2. Select your profile avatar.
-3. Choose the account you want to access from the Copilot account list.
-
-A dual-avatar indicator appears in the bottom-left corner while you're acting as a Copilot.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+2. In the **Copilot: Delegated Access** section, choose the account you want to access.
+3. Select **Switch**.
 
 ## How to remove yourself as a Copilot
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile).
-2. Select **Account** > **Copilot**.
-3. Under **You can access these accounts**, locate the account.
-4. Select the three dots **(⋮)**.
-5. Select **Remove my copilot access**.
-6. Select **Remove access**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+2. In the **Copilot: Delegated Access** section, choose the account you want to remove yourself from. 
+3. Select **Remove my copilot access**.
+4. Select **Remove access**.
 
 Once removed, you can no longer access that account unless the account owner grants access again.
 
@@ -62,10 +58,10 @@ The receipt is automatically routed to the account owner's account.
 
 When acting as a Copilot:
 
-* You'll see the expenses, reports, chats, and settings that belong to the account you're supporting, based on the permissions you've been granted.
-* Actions you perform are labeled as being completed on behalf of the account owner.
-* Some actions may be unavailable if you've been granted Limited Access.
-* You can return to your own account at any time by switching accounts again.
+ - You'll see the expenses, reports, chats, and settings that belong to the account you're supporting, based on the permissions you've been granted.
+ - Actions you perform are labeled as being completed on behalf of the account owner.
+ - Some actions may be unavailable if you've been granted Limited Access.
+ - You can return to your own account at any time by switching accounts again.
 
 **Important:** If you're acting as a Copilot, both you and the account owner count as active members when you perform billable activity in the account.
     
