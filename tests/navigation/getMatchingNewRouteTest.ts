@@ -174,6 +174,18 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/a/123/avatar?backTo=/home')).toBe('/avatar/123?backTo=/home');
     });
 
+    it('redirects legacy new contact method path to dynamic route', () => {
+        expect(getMatchingNewRoute('/settings/profile/contact-methods/new')).toBe('/settings/profile/contact-methods/new-contact-method');
+    });
+
+    it('preserves query params when redirecting legacy new contact method path', () => {
+        expect(getMatchingNewRoute('/settings/profile/contact-methods/new?backTo=/home')).toBe('/settings/profile/contact-methods/new-contact-method?backTo=/home');
+    });
+
+    it('does not redirect legacy new contact method confirm magic code path', () => {
+        expect(getMatchingNewRoute('/settings/profile/contact-methods/new/confirm-magic-code')).toBe(undefined);
+    });
+
     it('does not redirect paths that look similar but do not match migrated patterns', () => {
         expect(getMatchingNewRoute('/r/123/settings/visibility')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/overview/plan')).toBe(undefined);
