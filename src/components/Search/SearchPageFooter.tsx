@@ -79,7 +79,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
             innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
             text={convertToDisplayString(total, currency)}
             textStyles={valueTextStyle}
-            textHoverStyles={StyleUtils.getColorStyle(theme.linkHover)}
+            textHoverStyles={styles.textSupporting}
             isDisabled={isOffline || isTotalLoading}
             small
             shouldShowRightIcon
