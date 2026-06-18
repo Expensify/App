@@ -21,47 +21,26 @@ function traceTransformer() {
     };
 }
 
-/**
- * Setting targets to node 20 to reduce JS bundle size
- * It is also recommended by babel:
- * https://babeljs.io/docs/options#no-targets
- */
-const defaultPresetsForWebpack = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPluginsForWebpack = [
-    ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
-    // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
-    ['react-native-web'],
-
-    '@babel/transform-runtime',
-    '@babel/plugin-proposal-class-properties',
-    ['@babel/plugin-transform-object-rest-spread', {useBuiltIns: true, loose: true}],
-
-    // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
-    // source code transformation as we do not use class property assignment.
-    '@babel/plugin-transform-class-properties',
-    '@babel/plugin-proposal-export-namespace-from',
-    // Keep it last
-    'react-native-worklets/plugin',
-    '@babel/plugin-transform-export-namespace-from',
-];
-
-defaultPluginsForWebpack.push([
-    '@fullstory/babel-plugin-annotate-react',
-    {
-        native: true,
-    },
-]);
-
-if (process.env.DEBUG_BABEL_TRACE) {
-    defaultPluginsForWebpack.push(traceTransformer);
-}
-
 // This config is no longer read by webpack. The webpack build uses inline loader
 // options in config/webpack/webpack.common.ts (babel-loader with configFile:false).
 // Kept here for tooling compatibility (e.g. babel-jest, IDE plugins).
+// The presets/plugins that previously lived here (@babel/preset-react, @babel/preset-env,
+// @babel/preset-flow, @babel/preset-typescript, babel-plugin-react-native-web, and several
+// class-property/export-namespace transforms) have been removed from devDependencies because
+// OXC now handles those transforms natively in the webpack build.
 const webpack = {
-    presets: defaultPresetsForWebpack,
-    plugins: defaultPluginsForWebpack,
+    presets: [],
+    plugins: [
+        ['babel-plugin-react-compiler', ReactCompilerConfig],
+        'react-native-worklets/plugin',
+        '@babel/plugin-transform-export-namespace-from',
+        [
+            '@fullstory/babel-plugin-annotate-react',
+            {
+                native: true,
+            },
+        ],
+    ],
 };
 
 const metro = {
