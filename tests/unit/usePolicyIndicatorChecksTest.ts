@@ -215,6 +215,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
     });
 
@@ -252,7 +253,7 @@ describe('usePolicyIndicatorChecks', () => {
 
             expect(result.current.policyErrorStatus).toBeUndefined();
             expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED);
-            expect(result.current.indicatorPolicyID).toBeUndefined();
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
 
         it('does not return HAS_MERGE_HR_SETUP_NEEDED for non-admin users', async () => {
@@ -282,6 +283,7 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.policyInfoStatus).toBeUndefined();
+            expect(result.current.indicatorPolicyID).toBeUndefined();
         });
     });
 
@@ -388,6 +390,7 @@ describe('usePolicyIndicatorChecks', () => {
 
             // HAS_POLICY_ERRORS is checked first
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
     });
 
@@ -436,6 +439,7 @@ describe('usePolicyIndicatorChecks', () => {
 
             expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
             expect(result.current.policyInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED);
+            expect(result.current.indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
     });
 
@@ -471,7 +475,7 @@ describe('usePolicyIndicatorChecks', () => {
             });
         });
 
-        it('returns the policyID of the policy with errors', async () => {
+        it('returns policyID of the policy with errors', async () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 

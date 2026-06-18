@@ -53,7 +53,6 @@ const TEST_CASES = {
         name: 'has Merge HR setup needed',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED,
-        indicatorPolicyID: undefined,
     },
 } as const satisfies Record<string, IndicatorTestCase>;
 
@@ -170,8 +169,7 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
             const {indicatorPolicyID} = result.current;
-            const expectedIndicatorPolicyID = 'indicatorPolicyID' in testCase ? testCase.indicatorPolicyID : WORKSPACE.policyID;
-            expect(indicatorPolicyID).toBe(expectedIndicatorPolicyID);
+            expect(indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
     });
 
