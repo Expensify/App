@@ -384,7 +384,7 @@ function getAccountingIntegrationData(
                 onAdvancedPagePress: () => null,
                 subscribedAdvancedSettings: [],
                 workspaceUpgradeNavigationDetails: {
-                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.rillet.alias,
                     backToAfterWorkspaceUpgradeRoute: 's77rt',
                 },
                 pendingFields: policy?.connections?.rillet?.config?.pendingFields,
