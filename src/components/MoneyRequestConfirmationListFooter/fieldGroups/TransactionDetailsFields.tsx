@@ -1,7 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
-import DistanceWithCommuterExclusion from '@components/MoneyRequestConfirmationList/DistanceWithCommuterExclusion';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 import DescriptionField from '@components/MoneyRequestConfirmationList/sections/DescriptionField';
 import DistanceField from '@components/MoneyRequestConfirmationList/sections/DistanceField';
@@ -9,9 +8,7 @@ import MerchantField from '@components/MoneyRequestConfirmationList/sections/Mer
 import RateField from '@components/MoneyRequestConfirmationList/sections/RateField';
 import TimeFields from '@components/MoneyRequestConfirmationList/sections/TimeFields';
 import type {AmountDisplay, DistanceData, ErrorState, RequiredFlags} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
-import useOnyx from '@hooks/useOnyx';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FieldVisibility} from './fieldVisibility';
 
@@ -81,7 +78,6 @@ function TransactionDetailsFields({
         isOdometerDistanceRequest,
         isGPSDistanceRequest,
     } = useConfirmationFields();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
     return (
@@ -143,25 +139,23 @@ function TransactionDetailsFields({
             />
 
             {fieldVisibility.distance && (
-                <>
-                    <DistanceField
-                        hasRoute={distanceData.hasRoute}
-                        distance={distanceData.distance}
-                        unit={distanceData.unit}
-                        rate={distanceData.rate}
-                        isManualDistanceRequest={isManualDistanceRequest}
-                        isOdometerDistanceRequest={isOdometerDistanceRequest}
-                        isGPSDistanceRequest={isGPSDistanceRequest}
-                        isReadOnly={isReadOnly}
-                        didConfirm={didConfirm}
-                        transactionID={transactionID}
-                        action={action}
-                        iouType={iouType}
-                        reportID={reportID}
-                        reportActionID={reportActionID}
-                    />
-                    <DistanceWithCommuterExclusion transaction={transaction} />
-                </>
+                <DistanceField
+                    hasRoute={distanceData.hasRoute}
+                    distance={distanceData.distance}
+                    unit={distanceData.unit}
+                    rate={distanceData.rate}
+                    isManualDistanceRequest={isManualDistanceRequest}
+                    isOdometerDistanceRequest={isOdometerDistanceRequest}
+                    isGPSDistanceRequest={isGPSDistanceRequest}
+                    isReadOnly={isReadOnly}
+                    didConfirm={didConfirm}
+                    transactionID={transactionID}
+                    action={action}
+                    iouType={iouType}
+                    reportID={reportID}
+                    reportActionID={reportActionID}
+                    commuterExclusionData={distanceData.commuterExclusionData}
+                />
             )}
 
             {!isCompactMode && fieldVisibility.rate && (

@@ -346,6 +346,7 @@ const translations = {
         miles: 'miles',
         kilometer: 'kilometer',
         kilometers: 'kilometers',
+        commuter: 'commuter',
         recent: 'Recent',
         all: 'All',
         am: 'AM',
@@ -8019,16 +8020,7 @@ const translations = {
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
         commuterExclusions: {
             changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
-                } else {
-                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
-                }
-                return `set fixed distance exclusion to ${distance} ${unitLabel} per claim`;
-            },
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `set fixed distance exclusion to ${formattedDistance} per claim`,
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
                 `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
             disabled: 'disabled exclude commutes for distance rates',
@@ -8883,13 +8875,14 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
-            manualOdometerNotAllowedWithExclusion: 'This workspace excludes part of your distance from reimbursement, so manual and odometer entry are disabled. Use the map to enter your route.',
+            manualOdometerNotAllowedWithExclusion:
+                'This workspace excludes part of your distance from reimbursement, so manual and odometer entry are disabled. Use the map to enter your route.',
         },
         commuterExclusion: {
-            originalDistance: 'Original distance',
-            commutingDistance: 'Removed commute distance',
-            reimbursableDistance: 'Reimbursable distance',
-            systemMessage: ({distance, unit}: {distance: string; unit: string}) => `${distance} ${unit} was removed for the daily commute.`,
+            original: 'Original',
+            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Removed ${formattedDistance}`,
+            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
+                `Removed ${formattedDistance} based on <a href="${workspaceDistanceSettingsLink}">workspace distance settings</a>.`,
         },
         odometer: {
             startReading: 'Start reading',

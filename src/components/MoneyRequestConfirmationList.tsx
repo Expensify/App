@@ -273,6 +273,32 @@ function MoneyRequestConfirmationList({
     const shouldShowRateAutoUpdatedTooltip =
         isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
 
+    // Compute commuter exclusion data for the distance breakdown
+    const commuterExclusionData = useMemo(() => {
+        const customUnit = transaction?.comment?.customUnit;
+        const distanceUnitValue = customUnit?.distanceUnit ?? unit;
+        if (!distanceUnitValue) {
+            return null;
+        }
+
+        // Use quantity from customUnit if available; otherwise convert route distance from meters to display unit
+        let quantity = customUnit?.quantity ?? 0;
+        if (quantity <= 0 && distance > 0) {
+            quantity = DistanceRequestUtils.convertDistanceUnit(distance, distanceUnitValue);
+        }
+
+        const breakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, quantity);
+        if (!breakdown) {
+            return null;
+        }
+
+        return {
+            commuterExclusion: breakdown.commuterExclusion,
+            reimbursableDistance: breakdown.reimbursableDistance,
+            distanceUnit: distanceUnitValue,
+        };
+    }, [transaction, policy, distance, unit]);
+
     const shouldShowCategories = isTrackExpense
         ? !policy || shouldSelectPolicy || !!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -531,7 +557,7 @@ function MoneyRequestConfirmationList({
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
                 distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
-                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency, shouldShowRateAutoUpdatedTooltip}}
+                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency, shouldShowRateAutoUpdatedTooltip, commuterExclusionData}}
                 amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
                 requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
                 visibilityFlags={{

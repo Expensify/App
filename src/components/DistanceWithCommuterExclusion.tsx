@@ -1,0 +1,30 @@
+import React from 'react';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import CONST from '@src/CONST';
+import type {Unit} from '@src/types/onyx/Policy';
+import Text from './Text';
+
+type DistanceWithCommuterExclusionProps = {
+    /** The commuter exclusion distance that was removed */
+    commuterExclusion: number;
+
+    /** The unit of distance (mi/km) */
+    distanceUnit: Unit;
+};
+
+function DistanceWithCommuterExclusion({commuterExclusion, distanceUnit}: DistanceWithCommuterExclusionProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const unitLabel = DistanceRequestUtils.getDistanceUnitLabel(commuterExclusion, distanceUnit, translate);
+    const commuterLabel = translate('common.commuter');
+    const formattedDistance = `${commuterExclusion.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${commuterLabel} ${unitLabel}`;
+
+    return <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate('distance.commuterExclusion.removedCommuterDistance', {formattedDistance})}</Text>;
+}
+
+DistanceWithCommuterExclusion.displayName = 'DistanceWithCommuterExclusion';
+
+export default DistanceWithCommuterExclusion;

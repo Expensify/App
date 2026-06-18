@@ -1,13 +1,13 @@
 import {policyTypeSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import DistanceWithCommuterExclusion from '@components/MoneyRequestConfirmationList/DistanceWithCommuterExclusion';
+import DistanceWithCommuterExclusion from '@components/DistanceWithCommuterExclusion';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
@@ -545,6 +545,39 @@ function MoneyRequestView({
         isOffline,
     );
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
+
+    // Extract primitive values from customUnit to avoid React Compiler mutable reference issues
+    const customUnitCommuterExclusion = transaction?.comment?.customUnit?.commuterExclusion;
+    const customUnitReimbursableDistance = transaction?.comment?.customUnit?.reimbursableDistance;
+    const customUnitDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+
+    // Compute commuter exclusion display data for the distance field
+    const commuterExclusionDisplayData = useMemo(() => {
+        const commuterExclusion = customUnitCommuterExclusion;
+        const reimbursableDistance = customUnitReimbursableDistance;
+        const distanceUnitValue = customUnitDistanceUnit ?? unit;
+
+        if (!commuterExclusion || commuterExclusion <= 0 || !reimbursableDistance || !distanceUnitValue) {
+            return null;
+        }
+
+        const formatDistanceValue = (value: number, unitValue: string) => `${value.toFixed(2)} ${unitValue}`;
+        const originalDistance = reimbursableDistance + commuterExclusion;
+        const originalDistanceFormatted = formatDistanceValue(originalDistance, distanceUnitValue);
+        const reimbursableFormatted = formatDistanceValue(reimbursableDistance, distanceUnitValue);
+
+        return {
+            description: `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`,
+            title: reimbursableFormatted,
+            furtherDetailsComponent: (
+                <DistanceWithCommuterExclusion
+                    commuterExclusion={commuterExclusion}
+                    distanceUnit={distanceUnitValue}
+                />
+            ),
+        };
+    }, [customUnitCommuterExclusion, customUnitReimbursableDistance, customUnitDistanceUnit, unit, translate]);
+
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
     if (isTransactionScanning) {
@@ -839,8 +872,9 @@ function MoneyRequestView({
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <MenuItemWithTopDescription
-                    description={translate('common.distance')}
-                    title={distanceToDisplay}
+                    description={commuterExclusionDisplayData?.description ?? translate('common.distance')}
+                    title={commuterExclusionDisplayData?.title ?? distanceToDisplay}
+                    furtherDetailsComponent={commuterExclusionDisplayData?.furtherDetailsComponent}
                     numberOfLinesTitle={2}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
@@ -944,7 +978,6 @@ function MoneyRequestView({
                     copyable={!!distanceRateCopyValue}
                 />
             </OfflineWithFeedback>
-            <DistanceWithCommuterExclusion transaction={transaction} />
         </>
     );
 
