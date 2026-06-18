@@ -5,6 +5,7 @@ import Pencil from '@assets/images/pencil.svg';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,6 +58,7 @@ type EditableCellProps = {
 function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef, editIconPosition = 'right'}: EditableCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const [isEditIconFocused, setIsEditIconFocused] = useState(false);
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
@@ -132,7 +134,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                         >
                             <PressableWithFeedback
                                 accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel="Edit cell"
+                                accessibilityLabel={translate('common.edit')}
                                 sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
                                 onPress={onStartEditing}
                                 onFocus={handleEditIconFocus}
