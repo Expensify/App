@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -48,6 +48,13 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
     const card = cardsList?.[cardID];
 
+    // Keep a ref to the latest card so the confirmation callback recomputes spend from current data,
+    // not the stale card captured when the form was submitted (the card can refresh while the modal is open).
+    const cardRef = useRef(card);
+    useEffect(() => {
+        cardRef.current = card;
+    }, [card]);
+
     const getPromptTextKey = useMemo((): ConfirmationWarningTranslationPaths => {
         switch (card?.nameValuePairs?.limitType) {
             case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
@@ -62,8 +69,9 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
     }, [card?.nameValuePairs?.limitType]);
 
     const getNewAvailableSpend = (newLimit: number) => {
-        const currentLimit = card?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
-        const currentSpend = currentLimit - (card?.availableSpend ?? 0);
+        const latestCard = cardRef.current;
+        const currentLimit = latestCard?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+        const currentSpend = currentLimit - (latestCard?.availableSpend ?? 0);
 
         return newLimit - currentSpend;
     };
@@ -73,6 +81,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
     }, [backPath]);
 
     const updateCardLimit = (newLimit: number) => {
+        const latestCard = cardRef.current;
         const newAvailableSpend = getNewAvailableSpend(newLimit);
 
         updateExpensifyCardLimit(
@@ -80,9 +89,9 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
             Number(cardID),
             newLimit,
             newAvailableSpend,
-            card?.nameValuePairs?.unapprovedExpenseLimit,
-            card?.availableSpend,
-            card?.nameValuePairs?.isVirtual,
+            latestCard?.nameValuePairs?.unapprovedExpenseLimit,
+            latestCard?.availableSpend,
+            latestCard?.nameValuePairs?.isVirtual,
         );
 
         goBack();
