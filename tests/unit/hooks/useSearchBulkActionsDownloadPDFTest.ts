@@ -447,6 +447,57 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(result.current.expensifyCardStatementPDFParams).toBeUndefined();
     });
 
+    it('should not let a stale failed request close the modal for a newer export', async () => {
+        const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        mockCurrentSearchResults = makeCurrentSearchResults({
+            [firstGroupKey]: makeSettlementGroup({entryID: 123}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, accountNumber: '5678', debitPosted: '2026-05-30'}),
+        });
+
+        // The first export rejects only after we have started a second export for a different settlement.
+        let rejectFirstRequest: (error: Error) => void = () => {};
+        jest.mocked(getExpensifyCardStatementPDF)
+            .mockReturnValueOnce(
+                new Promise((_resolve, reject) => {
+                    rejectFirstRequest = reject;
+                }),
+            )
+            .mockReturnValueOnce(Promise.resolve({statementKey: 'statement-key-456'}));
+
+        mockSelectedTransactions = {firstTxn: makeSelectedTransaction({groupKey: firstGroupKey, reportID: undefined})};
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        await waitFor(() => {
+            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // Start the first export, then switch the selection and start the second.
+        await act(async () => {
+            await getExportAsPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+        mockSelectedTransactions = {secondTxn: makeSelectedTransaction({groupKey: secondGroupKey, reportID: undefined})};
+        // Re-render so the hook picks up the new selection, then start the second export.
+        act(() => {
+            result.current.handleExpensifyCardStatementPDFModalHide();
+        });
+        await waitFor(() => {
+            expect(getExportAsPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+        await act(async () => {
+            await getExportAsPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // The now-stale first request fails. It must not close the second export's modal or show an error.
+        await act(async () => {
+            rejectFirstRequest(new Error('request failed'));
+            await Promise.resolve();
+        });
+
+        expect(result.current.isDownloadErrorModalVisible).toBe(false);
+        expect(result.current.isExpensifyCardStatementPDFModalVisible).toBe(true);
+        expect(result.current.expensifyCardStatementPDFParams?.entryIDs).toEqual([456]);
+    });
+
     it('should open the multi-feed alert instead of requesting a statement PDF', async () => {
         const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;

@@ -537,6 +537,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const expensifyCardStatementSelectionRef = useRef(expensifyCardStatementSelection);
     expensifyCardStatementSelectionRef.current = expensifyCardStatementSelection;
 
+    // Identifies the most recent statement export. A request's failure handler only acts while it is still
+    // the latest, so an older export that the user has since replaced cannot close the newer one's modal.
+    const expensifyCardStatementRequestIDRef = useRef(0);
+
     const exportExpensifyCardStatementPDF = useCallback(() => {
         if (isOffline) {
             setIsOfflineModalVisible(true);
@@ -560,8 +564,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const statementParams = getExpensifyCardStatementParamsFromFeed(feed);
         const {entryIDs} = statementParams;
+        const requestID = ++expensifyCardStatementRequestIDRef.current;
 
+        // Only surface the failure while this is still the latest export. If the user started another one in
+        // the meantime, this older request must not close the newer modal.
         const showStatementError = () => {
+            if (requestID !== expensifyCardStatementRequestIDRef.current) {
+                return;
+            }
             setIsExpensifyCardStatementPDFModalVisible(false);
             setExpensifyCardStatementPDFParams(undefined);
             setIsDownloadErrorModalVisible(true);
