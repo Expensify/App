@@ -964,10 +964,6 @@ const SCREENS = {
         DYNAMIC_SELECTION: 'Dynamic_Currency_Selection',
     },
 
-    EXPLANATION_MODAL: {
-        ROOT: 'Explanation_Modal_Root',
-    },
-
     MIGRATED_USER_WELCOME_MODAL: {
         DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
     },
