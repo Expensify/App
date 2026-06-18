@@ -298,7 +298,7 @@ function handleActionButtonPress({
                 const policyToUpgrade = policy ?? snapshotPolicy;
                 if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id && item.reportID) {
                     const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
-                    const backTo = Navigation.getActiveRoute() || ROUTES.SEARCH_ROOT;
+                    const backTo = Navigation.getActiveRoute() || ROUTES.SEARCH_ROOT.route;
 
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, item.reportID));
                     return;
