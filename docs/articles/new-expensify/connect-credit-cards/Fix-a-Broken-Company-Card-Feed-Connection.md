@@ -9,10 +9,12 @@ internalScope: Audience is Workspace Admins. Covers fixing broken company card c
 
 When a company card connection breaks, transactions stop importing. Workspace Admins can reconnect the card feed so expenses resume importing. 
 
+The broken connection indicator and reconnect flow apply to direct feeds (bank connections set up directly or through Plaid). Commercial card feeds and feeds imported from a spreadsheet don't show a broken connection error, because there's no bank login to reconnect — those feeds only show an error when the feed itself has a problem.
+
 ---
 ## How to know if your company card connection is broken
 
-Workspace Admins see indicators in Expensify when a company card feed is broken: 
+Workspace Admins see indicators in Expensify when a direct company card feed is broken: 
 
 - A notification appears in the **Time Sensitive** section on **Home**.
 - Concierge sends a message to the #admins room
@@ -93,4 +95,8 @@ After fixing the feed, you can update an assigned company card manually from the
 ## What should I do if the connection still fails after retrying?
 
 Double-check your bank credentials by logging into your bank, and complete any required steps in your bank portal. If the issue continues, contact Concierge with the cardholder email and last four digits of the card.
+
+## Why don't I see a broken connection error on my commercial or spreadsheet feed?
+
+The broken connection error only appears on direct feeds (bank connections set up directly or through Plaid), because those are the only feeds you can reconnect by logging into a bank. Commercial card feeds and feeds imported from a spreadsheet don't use a bank login, so they only show an error when the feed itself has a problem.
 
