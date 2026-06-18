@@ -95,7 +95,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  * ```tsx
  * const filterConfig: FilterConfig = {
  *   status: {
- *     filterType: 'single-select',
+ *     filterType: 'singleSelect',
  *     options: [
  *       { label: 'All', value: 'all' },
  *       { label: 'Active', value: 'active' },

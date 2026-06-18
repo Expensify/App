@@ -265,13 +265,13 @@ function WorkspaceCompanyCardsTable({
 
     const filterConfig: FilterConfig = {
         status: {
-            filterType: 'single-select',
+            default: 'all',
+            filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
             options: [
                 {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},
                 {label: translate('workspace.moreFeatures.companyCards.assignedCards'), value: 'assigned'},
                 {label: translate('workspace.moreFeatures.companyCards.unassignedCards'), value: 'unassigned'},
             ],
-            default: 'all',
         },
     };
 
@@ -314,7 +314,6 @@ function WorkspaceCompanyCardsTable({
                 isLoading={isLoading}
                 policyID={policyID}
                 feedName={feedName}
-                showTableControls={showTableControls}
                 canWriteCompanyCards={canWriteCompanyCards}
                 CardFeedIcon={cardFeedIcon}
             />

@@ -7,6 +7,7 @@ import Table from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Text from '@components/Text';
 import type Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -483,7 +484,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
-                    filterType: 'single-select',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
                         {label: 'Fruit', value: 'fruit'},
@@ -719,7 +720,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
-                    filterType: 'single-select',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [{label: 'All', value: 'all'}],
                     default: 'all',
                 },
@@ -777,7 +778,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
-                    filterType: 'single-select',
+                    filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
                         {label: 'Fruit', value: 'fruit'},

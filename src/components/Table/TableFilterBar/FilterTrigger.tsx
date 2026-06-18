@@ -78,7 +78,7 @@ function FilterPopoverComponent({closeOverlay}: PopoverComponentProps) {
         value: option.value,
     }));
 
-    if (config.filterType === 'multi-select') {
+    if (config.filterType === CONST.TABLES.FILTER_TYPE.MULTI_SELECT) {
         const selectedValues = Array.isArray(activeFilters[filterKey]) ? activeFilters[filterKey] : [];
         const value = items.filter((item) => selectedValues.includes(item.value));
 
