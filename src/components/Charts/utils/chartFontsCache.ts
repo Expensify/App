@@ -6,7 +6,9 @@ import type {ChartDefaultTypeface, ChartSkiaTypefaceKey} from '@components/Chart
 import Log from '@libs/Log';
 import buildSkiaFontManager from './buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';
+import {CHART_FONT_MGR_FROM_TYPEFACES} from './chartFontConstants';
 import loadChartTypefacesFromAssets from './loadChartTypefacesFromAssets';
+import logChartFontLoadError from './logChartFontLoadError';
 
 const EMPTY_CHART_FONTS: ChartFontsValue = {
     typefaces: Object.fromEntries((Object.keys(CHART_SKIA_TYPEFACE_ASSETS) as ChartSkiaTypefaceKey[]).map((key) => [key, null])) as ChartDefaultTypeface,
@@ -50,15 +52,9 @@ async function loadTypefaceFromAsset(source: DataModule | string): Promise<SkTyp
     return Skia.Typeface.MakeFreeTypeFaceFromData(data);
 }
 
-function logChartFontLoadError(assetKey: string, error: unknown): void {
-    Log.hmmm('Chart font asset failed to load', {
-        assetKey,
-        error: error instanceof Error ? error.message : String(error),
-    });
-}
-
 function hasAnyLoadedTypeface(typefaces: ChartDefaultTypeface): boolean {
-    return Object.values(typefaces).some((typeface) => typeface !== null);
+    const fontMgrKeys = Object.values(CHART_FONT_MGR_FROM_TYPEFACES).flat();
+    return fontMgrKeys.some((key) => typefaces[key] !== null);
 }
 
 async function loadChartSkiaTypefaces(): Promise<ChartDefaultTypeface> {
@@ -129,7 +125,6 @@ function loadChartFontsOnce(): Promise<ChartFontsValue> {
     return loadPromise;
 }
 
-/* istanbul ignore next */
 function resetChartFontsCacheForTests(): void {
     cachedChartFonts = null;
     loadPromise = null;

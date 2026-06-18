@@ -12,6 +12,7 @@ function typedFromEntries<TKey extends string, TValue>(entries: Iterable<readonl
 }
 
 function typedKeys<TKey extends string, TValue>(record: Record<TKey, TValue>): TKey[] {
+    // The record's keys are exactly TKey by construction; Object.keys widens them to string.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return Object.keys(record) as TKey[];
 }

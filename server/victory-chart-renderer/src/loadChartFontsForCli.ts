@@ -5,7 +5,7 @@ import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import buildSkiaFontManager from '@components/Charts/utils/buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from '@components/Charts/utils/chartFontAssets';
 import loadChartTypefacesFromAssets from '@components/Charts/utils/loadChartTypefacesFromAssets';
-import Log from '@libs/Log';
+import logChartFontLoadError from '@components/Charts/utils/logChartFontLoadError';
 
 function resolveBundledAssetPath(source: DataModule | string): string {
     let assetPath: string | null = null;
@@ -33,13 +33,6 @@ async function loadTypefaceFromAsset(source: DataModule | string): Promise<SkTyp
     const path = resolveBundledAssetPath(source);
     const bytes = await Bun.file(path).bytes();
     return Skia.Typeface.MakeFreeTypeFaceFromData(Skia.Data.fromBytes(bytes));
-}
-
-function logChartFontLoadError(assetKey: string, error: unknown): void {
-    Log.hmmm('Chart font asset failed to load', {
-        assetKey,
-        error: error instanceof Error ? error.message : String(error),
-    });
 }
 
 async function loadChartFontsForCli(): Promise<ChartFontsValue> {
