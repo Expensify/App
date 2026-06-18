@@ -514,9 +514,7 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
-    // Map distance receipts (auto-generated map image) show both hover actions — "Add additional receipt" and "Expand" — just like
-    // regular receipts, so we don't exclude isMapDistanceRequest here. "Add additional receipt" attaches a second receipt without
-    // replacing the map, so it remains a valid action.
+    // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !mergeTransactionID;
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
