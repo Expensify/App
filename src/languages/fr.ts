@@ -511,6 +511,7 @@ const translations: TranslationDeepObject<typeof en> = {
         currentOfTotal: ({current, total}: {current: number; total: number}) => `${current} sur ${total}`,
         editor: 'Éditeur',
         restrictions: 'Restrictions',
+        off: 'Désactivé',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -7129,7 +7130,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             },
             controlPolicyRoles: {
                 title: 'Contrôler les rôles de politique',
-                description: 'Utilisez des rôles spécialisés comme Auditeur et Administrateur de cartes pour donner aux membres accès uniquement à ce dont ils ont besoin.',
+                description: 'Accordez aux membres un accès spécifique en attribuant des rôles comme Auditeur ou Administrateur de carte.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
@@ -7366,10 +7367,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 chooseCards: 'Choisir des cartes',
                 saveRule: 'Enregistrer la règle',
                 allow: 'Autoriser',
-                spendRuleSectionTitle: 'Règle de dépense',
-                restrictionType: 'Type de restriction',
-                restrictionTypeHelpAllow: 'Les frais sont approuvés s’ils correspondent à n’importe quel commerçant ou catégorie et ne dépassent pas un montant maximal.',
-                restrictionTypeHelpBlock: 'Les frais sont refusés s’ils correspondent à un commerçant ou à une catégorie, ou s’ils dépassent un montant maximal.',
+                spendRuleSectionTitle: 'Règles de dépense',
                 addMerchant: 'Ajouter un commerçant',
                 merchantContains: 'Le commerçant contient',
                 merchantExactlyMatches: 'Le commerçant correspond exactement',
@@ -7380,11 +7378,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 matchType: 'Type de correspondance',
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
-                spendCategory: 'Catégorie de dépense',
                 maxAmount: 'Montant maximal',
                 maxAmountHelp: 'Toute transaction supérieure à ce montant sera refusée, indépendamment des restrictions liées au commerçant et à la catégorie de dépense.',
-                currencyMismatchTitle: 'Incompatibilité de devise',
-                currencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui sont réglées dans la même devise.',
+                maxAmountCurrencyMismatchTitle: 'Incohérence de devise',
+                maxAmountCurrencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui sont réglées dans la même devise.',
                 reviewSelectedCards: 'Examiner les cartes sélectionnées',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} de plus` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Appliquez au moins une règle de dépense à une carte',
@@ -7447,6 +7444,26 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
+                restrictMerchants: 'Restreindre les marchands',
+                merchantTypes: 'Types de marchands',
+                allowedMerchants: 'Commerçants autorisés',
+                allowedMerchantTypes: 'Types de marchands autorisés',
+                blockedMerchants: 'Commerçants bloqués',
+                blockedMerchantTypes: 'Types de marchands bloqués',
+                currencies: 'Devises',
+                permittedCurrencies: 'Devises autorisées',
+                allCurrencies: 'Toutes les devises',
+                permittedCurrenciesSubtitle: 'Choisissez d’autoriser toutes les devises ou seulement certaines devises',
+                settlementCurrencyPermittedSubtitle: 'La devise de règlement de la carte est toujours autorisée',
+                currenciesCurrencyMismatchTitle: 'Incohérence de devise',
+                currenciesCurrencyMismatchPrompt: 'Pour définir des devises préférées, sélectionnez les cartes qui sont réglées dans la même devise.',
+                restrictMerchantsOffSubtitle: 'Les frais sont approuvés pour les devises autorisées qui n’excèdent pas un montant maximal',
+                restrictMerchantsAllowSubtitle:
+                    'Les frais sont approuvés pour les devises autorisées qui ne dépassent pas un montant maximal, et lorsque le commerçant ou le type de commerçant correspond.',
+                restrictMerchantsBlockSubtitle:
+                    'Les dépenses sont approuvées pour les devises autorisées qui ne dépassent pas un montant maximal, ou lorsque le commerçant ou le type de commerçant correspond.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Autorisé ${shownCount > 1 ? 'devises' : 'devise'} : ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
             },
             agentRules: {
                 title: 'Règles d’agent',
@@ -9588,6 +9605,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             theresAProblemWithYourWallet: 'Il y a un problème avec votre portefeuille',
             theresAProblemWithYourWalletTerms: 'Il y a un problème avec les conditions de votre portefeuille',
             aBankAccountIsLocked: 'Un compte bancaire est verrouillé',
+            completeHrSetup: 'Terminer la configuration RH',
         },
     },
     emptySearchView: {
