@@ -7521,7 +7521,6 @@ export {
     deleteWorkspace,
     updateAddress,
     updateLastAccessedWorkspace,
-    clearDeleteWorkspaceError,
     dismissWorkspaceError,
     setWorkspaceDefaultSpendCategory,
     getDisplayNameForWorkspace,
