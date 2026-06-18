@@ -794,7 +794,6 @@ jobs:
   checkDeploymentSuccess:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
-      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
       IS_RELEASE_READY: ${{ steps.checkReleaseReady.outputs.IS_RELEASE_READY }}
       VCR_RESULT: ${{ needs.victoryChartRendererBuild.result }}
