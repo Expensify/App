@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -96,11 +96,17 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline, hasFreshData]);
 
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    const shouldWaitForWalletData = isUserWalletEmpty || !!userWallet?.isLoading || (!hasFreshData && !isOffline);
+
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const userWalletCurrentStep = userWallet?.currentStep ? userWallet.currentStep : CONST.WALLET.STEP.ADDITIONAL_DETAILS;
-    const enablePaymentsStep = !hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}, hasActivatedWallet) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWalletCurrentStep;
 
-    const canonicalPage = useMemo(() => pages.find((p) => p.serverSteps.includes(enablePaymentsStep))?.pageName, [enablePaymentsStep]);
+    let canonicalPage: EnablePaymentsPageType | undefined;
+    if (!shouldWaitForWalletData) {
+        const enablePaymentsStep = !hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}, hasActivatedWallet) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWalletCurrentStep;
+        canonicalPage = pages.find((p) => p.serverSteps.includes(enablePaymentsStep))?.pageName;
+    }
 
     useEffect(() => {
         if (userWallet?.isLoading || (!hasFreshData && !isOffline)) {
@@ -115,8 +121,7 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: canonicalPage}), {forceReplace: true});
     }, [canonicalPage, hasFreshData, isOffline, urlPage, userWallet?.isLoading]);
 
-    const isUserWalletEmpty = isEmptyObject(userWallet);
-    if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
+    if (shouldWaitForWalletData) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'EnablePaymentsPage',
             isUserWalletEmpty,
