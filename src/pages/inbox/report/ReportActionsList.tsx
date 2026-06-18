@@ -480,7 +480,7 @@ function ReportActionsList({
 
     // When opening a linked message, wait for the first load before rendering the list: the batch of actions that
     // arrives right after the initial load shifts the list and breaks the anchor to the linked action.
-    if (initialScrollKey && !isOffline && !reportLoadingState?.hasOnceLoadedReportActions) {
+    if (initialScrollKey && !isOffline && !reportLoadingState?.hasOnceLoadedReportActions && reportLoadingState?.isLoadingInitialReportActions) {
         return <ReportActionsSkeletonView />;
     }
 
