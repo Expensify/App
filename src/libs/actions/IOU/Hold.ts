@@ -23,6 +23,7 @@ import {
     generateReportID,
     getDisplayedReportID,
     getOptimisticDataForAncestors,
+    getReimbursableTotal,
     getReportOrDraftReport,
     getUnheldReimbursableTotal,
     isExpenseReport,
@@ -728,8 +729,10 @@ function getReportFromHoldRequestsOnyxData({
 
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
-    const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
-    const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
+    const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
+    const holdNonReimbursable = (iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0);
+    const holdAmount = (holdReimbursable + holdNonReimbursable) * coefficient;
+    const holdNonReimbursableAmount = holdNonReimbursable * coefficient;
 
     // Pass held transactions for formula computation (e.g., {report:startdate})
     const reportTransactions: Record<string, OnyxTypes.Transaction> = {};
