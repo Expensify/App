@@ -1,12 +1,12 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
-import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import TableSkeleton from '@components/Table/TableSkeleton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -302,33 +302,6 @@ function WorkspaceCompanyCardsTable({
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
-
-    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-
-    // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
-    // When switching back to wide layout, we want to restore the previous sorting.
-    useEffect(() => {
-        if (shouldUseNarrowTableLayout) {
-            if (isNarrowLayoutRef.current) {
-                return;
-            }
-
-            isNarrowLayoutRef.current = true;
-            const activeSorting = tableRef.current?.getActiveSorting();
-
-            setActiveSortingInWideLayout(activeSorting);
-            tableRef.current?.updateSorting({columnKey: 'member', order: 'asc'});
-            return;
-        }
-
-        if (!activeSortingInWideLayout || !isNarrowLayoutRef.current) {
-            return;
-        }
-
-        isNarrowLayoutRef.current = false;
-        tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
