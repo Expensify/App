@@ -874,9 +874,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                                 shouldShowApproverColumn={shouldShowApproverColumn}
                                 onRowSelectionChange={(selectedRowKeys) => setSelectedTagKeys(selectedRowKeys)}
-                            >
-                                {emptyStateContent}
-                            </WorkspaceTagsTable>
+                                EmptyStateComponent={emptyStateContent}
+                            />
                         </>
                     )}
                 </ScreenWrapper>

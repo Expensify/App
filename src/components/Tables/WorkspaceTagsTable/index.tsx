@@ -1,5 +1,4 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {PropsWithChildren} from 'react';
 import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table from '@components/Table';
@@ -14,7 +13,7 @@ import type {WorkspaceTagTableRowData} from './WorkspaceTagsTableRow';
 
 type WorkspaceTagTableColumnKey = 'name' | 'glCode' | 'approver' | 'tagCount' | 'enabled' | 'required' | 'actions';
 
-type WorkspaceTagsTableProps = PropsWithChildren<{
+type WorkspaceTagsTableProps = {
     tags: WorkspaceTagTableRowData[];
     selectionEnabled: boolean;
     selectedKeys: string[];
@@ -23,7 +22,8 @@ type WorkspaceTagsTableProps = PropsWithChildren<{
     hasDependentTags: boolean;
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
-}>;
+    EmptyStateComponent: React.ReactElement;
+};
 
 export default function WorkspaceTagsTable({
     tags,
@@ -34,7 +34,7 @@ export default function WorkspaceTagsTable({
     hasDependentTags,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
-    children,
+    EmptyStateComponent,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -182,7 +182,7 @@ export default function WorkspaceTagsTable({
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && children}
+            {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
                     {tags.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.tags.findTag')} />}
