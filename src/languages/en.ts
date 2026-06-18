@@ -6383,7 +6383,7 @@ const translations = {
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
-            members: 'Members',
+            allMembers: 'All members',
             admins: 'Workspace Admins',
             cardAdmins: 'Card Admins',
             approvers: 'Approvers',
@@ -9839,7 +9839,7 @@ const translations = {
                 title: 'No members in this group',
                 subtitle: 'Add a member or try changing the filter above.',
             },
-            allMembers: 'Members',
+            allMembers: 'All members',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
             forceCloseAccount: () => ({
