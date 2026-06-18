@@ -195,16 +195,11 @@ function getRecalculatedDistanceRateIDForExpenseDate({
         return undefined;
     }
 
-    const reportID = parentReport?.reportID ?? transactionThreadReport?.reportID ?? transaction.reportID;
-    const newRateID = DistanceRequestUtils.getCustomUnitRateID({
-        reportID,
-        isPolicyExpenseChat: !isTrackExpense,
-        isTrackDistanceExpense: isTrackExpense,
-        policy: effectivePolicy,
-        expenseDate,
-    });
+    const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
+    const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate);
+    const newRateID = bestRate?.customUnitRateID;
 
-    if (newRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+    if (!newRateID || newRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
         return undefined;
     }
 
