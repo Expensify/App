@@ -2322,7 +2322,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             writeSpy.mockRestore();
         });
 
-        it('calls UpdateMoneyRequestDistanceRate with created when a Self DM track distance expense date change selects a different rate', async () => {
+        it('calls UpdateMoneyRequestDate only for a Self DM track distance expense date change', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_self_dm';
             const transactionThreadReportID = 'thread_date_self_dm';
@@ -2433,133 +2433,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
             });
 
-            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
-            expect(writeSpy).toHaveBeenCalledWith(
-                WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
-                expect.objectContaining({
-                    transactionID,
-                    customUnitRateID: rate2026,
-                    created: '2026-06-15',
-                }),
-                expect.anything(),
-            );
-            expect(writeSpy).toHaveBeenCalledTimes(1);
-
-            writeSpy.mockRestore();
-        });
-
-        it('does not call UpdateMoneyRequestDistanceRate when policyForTrackExpense is missing for a Self DM track distance expense', async () => {
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-            const transactionID = 'distance_date_self_dm_no_policy';
-            const transactionThreadReportID = 'thread_date_self_dm_no_policy';
-            const selfDMReportID = 'self_dm_date_rate_no_policy';
-            const policyID = 'policy_date_self_dm_no_policy';
-            const rate2025 = 'rate_2025';
-            const rate2026 = 'rate_2026';
-
-            const selfDMReport: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                reportID: selfDMReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const trackIouAction = buildOptimisticIOUReportAction({
-                type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                amount: 5000,
-                currency: CONST.CURRENCY.USD,
-                comment: '',
-                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
-                transactionID,
-                isPersonalTrackingExpense: true,
-            });
-            const transactionThread: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: transactionThreadReportID,
-                parentReportID: selfDMReportID,
-                parentReportActionID: trackIouAction.reportActionID,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const transaction: Transaction = {
-                ...createRandomTransaction(3),
-                transactionID,
-                reportID: selfDMReportID,
-                amount: 5000,
-                currency: CONST.CURRENCY.USD,
-                created: '2025-06-15',
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                        quantity: 10,
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                        customUnitRateID: rate2025,
-                    },
-                },
-            };
-            const policy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                id: policyID,
-                type: CONST.POLICY.TYPE.CORPORATE,
-                customUnits: {
-                    unitId: {
-                        attributes: {unit: 'mi'},
-                        customUnitID: 'unitId',
-                        defaultCategory: 'Car',
-                        enabled: true,
-                        name: 'Distance',
-                        rates: {
-                            [rate2025]: {
-                                currency: 'USD',
-                                customUnitRateID: rate2025,
-                                enabled: true,
-                                name: '2025 mileage',
-                                rate: 65.5,
-                                startDate: '2025-01-01',
-                                endDate: '2025-12-31',
-                            },
-                            [rate2026]: {
-                                currency: 'USD',
-                                customUnitRateID: rate2026,
-                                enabled: true,
-                                name: '2026 mileage',
-                                rate: 70,
-                                startDate: '2026-01-01',
-                                endDate: '2026-12-31',
-                            },
-                        },
-                    },
-                },
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, selfDMReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThread);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
-                [trackIouAction.reportActionID]: trackIouAction,
-            });
-            await waitForBatchedUpdates();
-
-            updateMoneyRequestDate({
-                transactionID,
-                transactionThreadReport: transactionThread,
-                parentReport: selfDMReport,
-                transactions: {},
-                transactionViolations: {},
-                value: '2026-06-15',
-                policy,
-                policyTags: {},
-                policyCategories: {},
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-                isOffline: false,
-                delegateAccountID: undefined,
-            });
-
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2026-06-15'}), expect.anything());
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, expect.anything(), expect.anything());
+            expect(writeSpy).toHaveBeenCalledTimes(1);
 
             writeSpy.mockRestore();
         });

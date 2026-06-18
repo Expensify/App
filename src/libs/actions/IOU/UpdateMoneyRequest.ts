@@ -147,37 +147,24 @@ function getSearchSnapshotUpdates({
 
 function getRecalculatedDistanceRateIDForExpenseDate({
     transaction,
-    transactionThreadReport,
     parentReport,
     policy,
-    policyForTrackExpense,
     expenseDate,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
     expenseDate: string;
 }): string | undefined {
     if (!transaction || !isDistanceRequestTransactionUtils(transaction)) {
         return undefined;
     }
 
-    const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
-    const isWorkspaceDistanceExpense = isExpenseReport(parentReport);
-
-    if (!isTrackExpense && !isWorkspaceDistanceExpense) {
+    if (!isExpenseReport(parentReport)) {
         return undefined;
     }
 
-    if (isTrackExpense && !policyForTrackExpense) {
-        return undefined;
-    }
-
-    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
-
-    if (!effectivePolicy || (!isTrackExpense && !isGroupPolicy(effectivePolicy))) {
+    if (!policy || !isGroupPolicy(policy)) {
         return undefined;
     }
 
@@ -186,7 +173,7 @@ function getRecalculatedDistanceRateIDForExpenseDate({
         return undefined;
     }
 
-    const currentMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy: effectivePolicy});
+    const currentMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy});
     if (!currentMileageRate) {
         return undefined;
     }
@@ -195,7 +182,7 @@ function getRecalculatedDistanceRateIDForExpenseDate({
         return undefined;
     }
 
-    const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
+    const mileageRates = DistanceRequestUtils.getMileageRates(policy);
     const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate);
     const newRateID = bestRate?.customUnitRateID;
 
@@ -231,10 +218,8 @@ function updateMoneyRequestDate({
     const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
     const newRateID = getRecalculatedDistanceRateIDForExpenseDate({
         transaction,
-        transactionThreadReport,
         parentReport,
         policy,
-        policyForTrackExpense,
         expenseDate: value,
     });
     const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
