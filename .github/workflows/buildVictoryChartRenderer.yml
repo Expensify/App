@@ -72,7 +72,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Announce victory-chart-renderer build failure in deployer Slack
-        if: failure() || cancelled()
+        if: failure()
         # v3
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
