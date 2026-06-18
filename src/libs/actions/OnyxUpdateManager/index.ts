@@ -174,7 +174,7 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
         // Add the new update to the deferred updates
         enqueueDeferredOnyxUpdates(onyxUpdatesFromServer, {shouldPauseSequentialQueue: false});
 
-        // If there are deferred updates already, we don't need to fetch the missing updates again.
+        // If a fetch is already in progress, we don't need to start another one.
         if (areDeferredUpdatesQueued || isFetchingForPendingUpdates) {
             return false;
         }
