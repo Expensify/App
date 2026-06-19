@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {addPendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
@@ -48,21 +49,12 @@ Onyx.connectWithoutView({
     },
 });
 
-const allTransactions: Record<string, Transaction> = {};
+let allTransactions: OnyxCollection<Transaction>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
     callback: (transactions) => {
-        if (!transactions) {
-            return;
-        }
-        for (const [key, value] of Object.entries(transactions)) {
-            if (!value) {
-                delete allTransactions[key];
-            } else {
-                allTransactions[key] = value;
-            }
-        }
+        allTransactions = transactions;
     },
 });
 
@@ -115,7 +107,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         const iouAction = iouReportID ? getIOUActionForReportID(iouReportID, transactionID) : undefined;
         let threadReportID = providedTransactionThreadReportID ?? iouAction?.childReportID;
         if (!threadReportID) {
-            const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const optimisticThread = createTransactionThreadReport({
                 introSelected,
                 currentUserLogin: currentUserEmail,
@@ -169,8 +161,9 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
             // case navigate straight to the transaction thread instead; the report still shows underneath
             // via the Wide RHP machinery, matching the Spend-context path above.
             const hasMultipleReportTransactions =
-                Object.values(allTransactions).filter((transaction) => transaction.reportID === iouReportID && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                    .length > 1;
+                Object.values(allTransactions ?? {}).filter(
+                    (transaction) => transaction?.reportID === iouReportID && transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                ).length > 1;
 
             if (iouReportID && hasMultipleReportTransactions) {
                 Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
