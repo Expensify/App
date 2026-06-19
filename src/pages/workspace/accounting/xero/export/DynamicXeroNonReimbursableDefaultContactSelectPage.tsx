@@ -4,13 +4,14 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroSuppliers, settingsPendingAction} from '@libs/PolicyUtils';
+import {getXeroSuppliers, hasVendorFeature, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -20,11 +21,16 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
     const currentContactID = xeroConfig?.defaultContact;
+    // Match the parent page's gate so direct deep-links (or stale-open tabs after the beta is
+    // revoked) cannot reach the supplier updater. The parent page hides the row when the feature
+    // is off, but the route remains addressable on its own.
+    const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
     const suppliers = useMemo(() => getXeroSuppliers(policy), [policy]);
     const data: SelectorType[] = useMemo(
@@ -44,6 +50,12 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
 
     const selectSupplier = useCallback(
         ({value}: SelectorType) => {
+            // Defence-in-depth: if the screen render race-ended with isFeatureAvailable still
+            // truthy and the user managed to tap, refuse to persist the update.
+            if (!isFeatureAvailable) {
+                goBack();
+                return;
+            }
             if (value !== currentContactID && policyID) {
                 updateManyPolicyConnectionConfigs(
                     policyID,
@@ -54,7 +66,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             }
             goBack();
         },
-        [currentContactID, policyID, goBack],
+        [currentContactID, policyID, isFeatureAvailable, goBack],
     );
 
     const listEmptyContent = useMemo(
@@ -76,6 +88,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={!isFeatureAvailable}
             displayName="DynamicXeroNonReimbursableDefaultContactSelectPage"
             title="workspace.xero.defaultSupplier"
             data={data}
