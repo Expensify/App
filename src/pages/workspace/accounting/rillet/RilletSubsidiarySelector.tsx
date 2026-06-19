@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletSubsidiary} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -21,7 +21,7 @@ function RilletSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const subsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
     const rilletConfig = policy?.connections?.rillet?.config;
-    const currentSubsidiaryID = rilletConfig?.subsidiaryID;
+    const currentSubsidiaryID = rilletConfig?.subsidiaryID ?? CONST.DEFAULT_NUMBER_ID.toString();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -40,7 +40,7 @@ function RilletSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             return;
         }
 
-        // updateRilletSubsidiary();
+        updateRilletSubsidiary(policyID, value, currentSubsidiaryID);
         Navigation.goBack();
     };
 
