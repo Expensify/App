@@ -220,6 +220,7 @@ function AccountDetailsPage() {
                         buttonText={translate('common.next')}
                         enabledWhenOffline={false}
                         containerStyles={styles.mt3}
+                        shouldShowLoadingImmediatelyOnPress={false}
                         isLoading={getValidateCodeForAccountMerge?.isLoading}
                     />
                 </FormProvider>

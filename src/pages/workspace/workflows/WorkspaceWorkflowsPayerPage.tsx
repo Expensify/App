@@ -303,6 +303,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                             footerContent={
                                 <FormAlertWithSubmitButton
                                     isLoading={isLoading}
+                                    shouldShowLoadingImmediatelyOnPress={false}
                                     message={translate('walletPage.shareBankAccountNoAdminsSelected')}
                                     isAlertVisible={isAlertVisible}
                                     shouldRenderFooterAboveSubmit

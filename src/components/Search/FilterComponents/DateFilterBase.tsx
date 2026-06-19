@@ -257,6 +257,7 @@ function DateFilterBase({
                         buttonText={translate('common.save')}
                         containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                         onSubmit={save}
+                        shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                     />
                 </>
