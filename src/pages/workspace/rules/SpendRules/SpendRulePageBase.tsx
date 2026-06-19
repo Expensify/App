@@ -397,6 +397,14 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         icon: isRulesRevampEnabled ? icons.CoinsButton : undefined,
     });
 
+    const currenciesMenuItem = renderEditableMenuItem({
+        description: translate('workspace.rules.spendRules.permittedCurrencies'),
+        title: currenciesMenuTitle,
+        onPress: chooseCurrencies,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR,
+        icon: isRulesRevampEnabled ? icons.MoneyCircle : undefined,
+    });
+
     const revampFormContent = (
         <>
             <View style={[styles.ph5, styles.pv3, styles.gap6]}>
@@ -406,14 +414,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             {cardsMenuItem}
             <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
             <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
-            <MenuItemWithTopDescription
-                description={translate('workspace.rules.spendRules.permittedCurrencies')}
-                interactive={false}
-                title={selectedCurrency ?? ''}
-                titleStyle={styles.flex1}
-                {...getMenuItemIconProps(icons.MoneyCircle)}
-                sentryLabel={spendRuleSectionSentryLabel}
-            />
+            {currenciesMenuItem}
             {maxAmountMenuItem}
             <View style={[styles.ph5, styles.pv3]}>
                 <SpendRuleRestrictionTypeToggleRevamp
@@ -450,24 +451,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                 onPress={chooseCards}
             />
             <Text style={[styles.textStrong, styles.ph5, styles.mt5, styles.pv2]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
-            <MenuItemWithTopDescription
-                titleStyle={styles.flex1}
-                title={currenciesMenuTitle}
-                description={translate('workspace.rules.spendRules.permittedCurrencies')}
-                interactive={canWriteSpendRules}
-                shouldShowRightIcon={canWriteSpendRules}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
-                onPress={chooseCurrencies}
-            />
-            <MenuItemWithTopDescription
-                titleStyle={styles.flex1}
-                title={maxAmountMenuTitle}
-                description={translate('workspace.rules.spendRules.maxAmount')}
-                interactive={canWriteSpendRules}
-                shouldShowRightIcon={canWriteSpendRules}
-                sentryLabel={merchantRuleSectionSentryLabel}
-                onPress={chooseMaxAmount}
-            />
+            {currenciesMenuItem}
+            {maxAmountMenuItem}
 
             <View style={[styles.ph5, styles.pv3]}>
                 <SpendRuleRestrictionTypeToggle
