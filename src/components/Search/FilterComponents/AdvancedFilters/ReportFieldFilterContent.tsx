@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import ReportFieldBase from '@components/Search/FilterComponents/ReportField';
@@ -22,6 +22,8 @@ function ReportFieldFilterContent({values, selectedField, largeButton, style, on
     const styles = useThemeStyles();
     const reportFieldRef = useRef<ReportFieldHandle>(null);
 
+    const [error, setError] = useState<string>();
+
     return (
         <>
             <ReportFieldBase
@@ -30,6 +32,7 @@ function ReportFieldFilterContent({values, selectedField, largeButton, style, on
                 hasFeed={!!values?.feed}
                 selectedField={selectedField}
                 onFieldSelected={onFieldSelected}
+                onError={setError}
                 style={style}
             />
             {!!selectedField && (
@@ -40,6 +43,10 @@ function ReportFieldFilterContent({values, selectedField, largeButton, style, on
                     text={translate('common.apply')}
                     pressOnEnter
                     onPress={() => {
+                        if (error) {
+                            return;
+                        }
+
                         const value = reportFieldRef.current?.applySelectedFieldAndGoBack();
                         if (!value) {
                             return;

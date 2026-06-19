@@ -24,8 +24,10 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
     const reportFieldRef = useRef<ReportFieldHandle>(null);
 
+    const [error, setError] = useState<string>();
+
     const applyChanges = () => {
-        if (!reportFieldRef.current) {
+        if (!reportFieldRef.current || error) {
             return;
         }
 
@@ -51,6 +53,7 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
                 hasFeed={!!values.feed}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
+                onError={setError}
             />
         </BasePopup>
     );
