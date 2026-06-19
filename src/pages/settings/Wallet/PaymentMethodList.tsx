@@ -237,7 +237,7 @@ function PaymentMethodList({
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
         onActionPress: () => {
-            if (status.actionKey === 'walletPage.bankAccountStatus.unlock') {
+            if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
                 return;
             }

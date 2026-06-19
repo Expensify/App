@@ -16,6 +16,7 @@ type BankAccountConnectionStatus = {
     tone: 'default' | 'success' | 'danger';
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
+    requiresUnlockHandler?: boolean;
     tooltipKey?: TranslationPaths;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
@@ -60,6 +61,7 @@ function getBankAccountConnectionStatus(state: string | undefined): BankAccountC
                 labelKey: 'common.locked',
                 messageKey: 'walletPage.bankAccountStatus.accountRequiresAttention',
                 actionKey: 'walletPage.bankAccountStatus.unlock',
+                requiresUnlockHandler: true,
                 tone: 'danger',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
