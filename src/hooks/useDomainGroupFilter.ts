@@ -1,27 +1,32 @@
 import {groupsSelector} from '@selectors/Domain';
 import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 import {useEffect, useState} from 'react';
-import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
+const ALL_MEMBERS_VALUE = 'all';
+
 type UseDomainGroupFilterResult = {
-    /** Pre-filter function for useSearchResults that filters members by the selected groups. */
+    /** Pre-filter function for useSearchResults that filters members by the selected group. */
     groupPreFilter: (item: MemberOption) => boolean;
 
-    /** All group dropdown options. */
-    groupOptions: Array<MultiSelectItem<string>>;
+    /** All group dropdown options including the "All Members" entry. */
+    groupOptions: Array<SingleSelectItem<string>>;
 
-    /** The currently selected groups. */
-    selectedGroups: Array<MultiSelectItem<string>>;
+    /** The currently selected group, or null when "All Members" is active. */
+    selectedGroup: SingleSelectItem<string> | null;
 
-    /** Handler for when the user changes the group selection. */
-    handleGroupChange: (items: Array<MultiSelectItem<string>>) => void;
+    /** Handler for when the user picks a different group in the dropdown. */
+    handleGroupChange: (item: SingleSelectItem<string> | undefined) => void;
 
     /** Display label for the dropdown button. */
     dropdownLabel: string;
+
+    /** Translated "All Members" label (useful as the default value for SingleSelectPopup). */
+    allMembersLabel: string;
 
     /** The raw security groups from Onyx, needed for per-row group name display. */
     groups: DomainSecurityGroupWithID[] | undefined;
@@ -32,49 +37,55 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
 
     const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
 
-    const [selectedGroups, setSelectedGroups] = useState<Array<MultiSelectItem<string>>>([]);
+    const [selectedGroup, setSelectedGroup] = useState<SingleSelectItem<string> | null>(null);
 
-    const groupOptions: Array<MultiSelectItem<string>> = (groups ?? []).map((group) => ({text: group.details.name ?? '', value: group.id}));
+    const allMembersLabel = translate('domain.members.allMembers');
 
-    // If any selected groups disappear from Onyx (e.g. during rollback/refresh), remove them
-    // from state so they cannot silently reactivate if the same group ID reappears later.
+    const groupOptions: Array<SingleSelectItem<string>> = [
+        {text: allMembersLabel, value: ALL_MEMBERS_VALUE},
+        ...(groups ?? []).map((group) => ({text: group.details.name ?? '', value: group.id})),
+    ];
+
+    const matchedGroup = selectedGroup && selectedGroup.value !== ALL_MEMBERS_VALUE ? groups?.find((g) => g.id === selectedGroup.value) : undefined;
+
+    // If the selected group disappears from Onyx (e.g. during rollback/refresh), clear the
+    // selection from state so it cannot silently reactivate if the same group ID reappears later.
     useEffect(() => {
-        if (selectedGroups.length === 0) {
+        if (!selectedGroup || selectedGroup.value === ALL_MEMBERS_VALUE || matchedGroup) {
             return;
         }
-        const valid = selectedGroups.filter((selectedGroup) => groups?.some((group) => group.id === selectedGroup.value));
-        if (valid.length !== selectedGroups.length) {
-            setSelectedGroups(valid);
-        }
-    }, [groups, selectedGroups]);
+        setSelectedGroup(null);
+    }, [matchedGroup, selectedGroup]);
 
-    let selectedGroupMemberIDs: Set<number> | null = null;
-    if (selectedGroups.length > 0) {
-        selectedGroupMemberIDs = new Set<number>();
-        for (const selectedGroup of selectedGroups) {
-            const securityGroup = groups?.find((group) => group.id === selectedGroup.value);
-            if (!securityGroup) {
-                continue;
-            }
-            for (const memberKey of Object.keys(securityGroup.details.shared)) {
-                const memberID = Number(memberKey);
-                if (!Number.isNaN(memberID)) {
-                    selectedGroupMemberIDs.add(memberID);
-                }
-            }
-        }
-    }
+    const effectiveSelection = matchedGroup ? selectedGroup : null;
+
+    const selectedGroupMemberIDs = matchedGroup
+        ? new Set(
+              Object.keys(matchedGroup.details.shared)
+                  .map(Number)
+                  .filter((id) => !Number.isNaN(id)),
+          )
+        : null;
 
     const groupPreFilter = (item: MemberOption) => !selectedGroupMemberIDs || selectedGroupMemberIDs.has(item.accountID);
 
-    const dropdownLabel = `${translate('common.group')}: ${selectedGroups.length > 0 ? selectedGroups.map((g) => g.text).join(', ') : translate('common.all')}`;
+    const handleGroupChange = (item: SingleSelectItem<string> | undefined) => {
+        if (!item || item.value === ALL_MEMBERS_VALUE) {
+            setSelectedGroup(null);
+        } else {
+            setSelectedGroup(item);
+        }
+    };
+
+    const dropdownLabel = effectiveSelection?.text ?? allMembersLabel;
 
     return {
         groupPreFilter,
         groupOptions,
-        selectedGroups,
-        handleGroupChange: setSelectedGroups,
+        selectedGroup: effectiveSelection,
+        handleGroupChange,
         dropdownLabel,
+        allMembersLabel,
         groups,
     };
 }
