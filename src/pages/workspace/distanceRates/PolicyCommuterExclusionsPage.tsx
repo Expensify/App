@@ -182,17 +182,17 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED,
         },
         {
+            text: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeTitle'),
+            alternateText: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeHelp'),
+            keyForList: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+            isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+        },
+        {
             text: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceTitle'),
             alternateText: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceHelp'),
             keyForList: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
             isSelected: isFixedDistanceSelected,
             footerContent: isFixedDistanceSelected ? fixedDistanceFooter : null,
-        },
-        {
-            text: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeTitle'),
-            alternateText: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeHelp'),
-            keyForList: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
-            isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
         },
     ];
 
