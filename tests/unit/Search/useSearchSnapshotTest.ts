@@ -92,8 +92,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isSearchDataLoaded: (...args: unknown[]) => mockIsSearchDataLoaded(...args),
 }));
 
-// Phase 1/2 are composed in; mock them so this suite exercises the hook's WIRING (correct inputs in,
-// phase outputs returned). The phases' own logic is covered by their own hooks + getSections tests.
+// The optimistic-tracking hooks are mocked so this suite exercises the hook's WIRING (correct inputs in,
+// their outputs forwarded). Their own logic is covered by their dedicated hook tests + getSections tests.
 const mockUseOptimisticSearchTracking = jest.fn();
 const mockUseStableOptimisticSortedData = jest.fn();
 jest.mock('@components/Search/hooks/useOptimisticSearchTracking', () => ({
@@ -135,7 +135,7 @@ function makeSearchResults(overrides: Partial<SearchResults['search']> = {}): Se
     } as unknown as SearchResults;
 }
 
-// Default optimistic Phase 1 return: no pending write, snapshot data passed through unchanged.
+// Default optimistic-tracking return: no pending write, snapshot data passed through unchanged.
 function trackingReturn(searchDataWithOptimisticTransaction: unknown, optimisticWatchKey?: string, shouldDeferHeavySearchWork = false) {
     return {
         searchDataWithOptimisticTransaction,
@@ -189,7 +189,7 @@ describe('useSearchSnapshot', () => {
         expect(mockGetSortedSections).toHaveBeenCalled();
         expect(result.current.chartData).toHaveLength(1);
         expect(result.current.chartData.at(0)?.keyForList).toBe('1');
-        // data is the Phase-2 passthrough of the (highlight-stamped) chartData in this mock setup.
+        // data is the stabilized passthrough of the (highlight-stamped) chartData in this mock setup.
         expect(result.current.data).toBe(result.current.chartData);
         expect(result.current.columns).toEqual(['merchant']);
         expect(result.current.isLoading).toBe(false);
@@ -300,7 +300,7 @@ describe('useSearchSnapshot', () => {
         expect(result.current.hasLoadedAllTransactions).toBe(true);
     });
 
-    it('feeds the optimistic-augmented data and watch key into getSections (Phase 1 wiring)', () => {
+    it('feeds the optimistic-augmented data and watch key into getSections', () => {
         const augmented = {
             transactions: {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}999`]: {transactionID: '999'},
@@ -327,7 +327,7 @@ describe('useSearchSnapshot', () => {
         );
     });
 
-    it('returns the Phase 2 stabilized data, not the raw sorted data (Phase 2 wiring)', () => {
+    it('returns the stabilized data, not the raw sorted data', () => {
         const searchResults = makeSearchResults();
         mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
         mockGetSortedSections.mockReturnValue([{keyForList: 'sorted'}]);

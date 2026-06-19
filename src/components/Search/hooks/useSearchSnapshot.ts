@@ -27,29 +27,20 @@ type OptimisticTrackingReturn = ReturnType<typeof useOptimisticSearchTracking>;
 type OptimisticTrackingParams = Parameters<typeof useOptimisticSearchTracking>[0];
 
 /**
- * Public contract of the Search data layer (Slice S4, callstack-internal/expensify-issues#2546).
+ * Return shape of the Search data layer hook.
  *
- * S4 is a HYDRATED FACADE, not the PRD's identities-only layer: `data` is the fully sorted+joined row
- * items that `SearchList` and the legacy rows still read pre-joined display fields off. Returning
- * identities-only is deferred to S5/S6 (#2547/#2548), where the rows source their own display from
- * narrow Onyx subscriptions and the shell stops reading joined fields off the item. Until then the
- * hook owns the whole projection (sort/group/paginate + the two-phase optimistic resilience) so the
- * screen does it exactly once.
- *
- * `searchResults`, `newSearchResultKeys`, `transactions`, and `reportActions` are transitional inputs.
- * The snapshot subscription moves inside the hook in S6 (when `<Search>` becomes the router) and the
- * highlight keys move in with the S5 highlight primitive. The full TRANSACTION/REPORT_ACTIONS
- * collections are threaded from the parent (which already subscribes to them for the highlight hook)
- * rather than re-subscribed here, so the screen opens each full-collection subscription only once.
+ * `data` holds the fully sorted and joined row items that `SearchList` reads its display fields off.
+ * The hook owns the whole projection (sort, group, paginate, and the optimistic-row resilience) so the
+ * screen computes it exactly once.
  */
 type SearchSnapshotResult = {
-    /** Sorted + optimistic-stabilized row items for the current query (hydrated for now). */
+    /** Sorted and optimistic-stabilized row items for the current query. */
     data: SearchListItem[];
     /** Sorted row items BEFORE optimistic stabilization. The chart view consumes this, not `data`. */
     chartData: SearchListItem[];
     /** Group-enriched sections before sort. Consumed for selection counts and bulk-action wiring. */
     filteredData: SearchData;
-    /** Length of the stage-1 sections (used as `prevReportsLength` when firing the next search). */
+    /** Length of the base (pre-sort) sections (used as `prevReportsLength` when firing the next search). */
     filteredDataLength: number;
     /** Total result count reported by `getSections` (drives the pagination guard). */
     allDataLength: number;
@@ -72,12 +63,13 @@ type SearchSnapshotResult = {
 
 type UseSearchSnapshotParams = {
     queryJSON: Readonly<SearchQueryJSON>;
-    /** The current search snapshot. Passed in from the ancestor until the hook owns the subscription (S6). */
+    /** The current search snapshot, owned by the ancestor and passed in. */
     searchResults: SearchResults | undefined;
-    /** Keys flagged for the post-create highlight animation. Passed in until the highlight primitive lands (S5). */
+    /** Keys flagged for the post-create highlight animation. */
     newSearchResultKeys: Set<string> | null | undefined;
-    /** Full TRANSACTION + REPORT_ACTIONS collections for the optimistic Phase 1. Passed in from the parent
-     *  (which already subscribes for the highlight hook) so we don't open duplicate full-collection reads. */
+    /** Full TRANSACTION + REPORT_ACTIONS collections used by the optimistic-row tracking. Threaded in from
+     *  the parent (which already subscribes to them for the highlight hook) so we don't open duplicate
+     *  full-collection reads. */
     transactions: OptimisticTrackingParams['transactions'];
     reportActions: OptimisticTrackingParams['reportActions'];
 };
@@ -92,11 +84,10 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
 /**
  * Single data layer for the Search screen.
  *
- * Owns the live inputs `getSections` needs for sort/group correctness (S3 judged these load-bearing),
- * runs the deferral-gated sort/group/paginate projection, stamps the post-create highlight, enriches
- * grouped views with their per-group sub-snapshots, and absorbs the two-phase optimistic-row
- * resilience. Returns the hydrated rows plus the list-level meta and the transitional carriers
- * `<Search>` still needs while it owns the view/interaction layer.
+ * Owns the live inputs `getSections` needs for sort/group correctness, runs the deferral-gated
+ * sort/group/paginate projection, stamps the post-create highlight, enriches grouped views with their
+ * per-group sub-snapshots, and absorbs the optimistic-row resilience. Returns the sorted rows plus the
+ * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
  */
 function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
@@ -126,8 +117,8 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
-    // Phase 1 (snapshot augmentation): inject an optimistically-created transaction the server has not
-    // indexed yet so its row mounts immediately. Composed here; the standalone hook is deleted in S6.
+    // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
+    // immediately.
     const {
         showPendingExpensePlaceholder,
         shouldDeferHeavySearchWork,
@@ -291,8 +282,8 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         });
     })();
 
-    // Phase 2 (cached re-injection): keep the optimistic row visible across a snapshot-replacement gap
-    // for up to OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.
+    // Keep the optimistic row visible across a snapshot-replacement gap for up to
+    // OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
     const columns = ((): SearchColumnType[] => {
