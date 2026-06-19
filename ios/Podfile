@@ -107,6 +107,10 @@ target 'NewExpensify' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+
+        if ['RNReanimated', 'RNWorklets'].include?(target.name)
+          config.build_settings['OTHER_LIBTOOLFLAGS'] = '$(inherited) -no_warning_for_no_symbols'
+        end
       end
 
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
