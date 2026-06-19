@@ -209,7 +209,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                                         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => isMoneyRequestAction(reportAction),
                                     );
                                     expect(createIOUAction).toBeTruthy();
-                                    expect(createIOUAction && getOriginalMessage(createIOUAction)?.IOUReportID).toBe(iouReport?.reportID);
+                                    expect(createIOUAction?.reportID).toBe(iouReport?.reportID);
 
                                     resolve();
                                 },

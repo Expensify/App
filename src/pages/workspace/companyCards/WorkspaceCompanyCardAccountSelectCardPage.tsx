@@ -49,6 +49,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
+    const defaultAccount = translate('workspace.accounting.defaultAccount');
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
@@ -73,7 +74,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
         if (!exportMenuItem?.exportType) {
             return;
         }
-        const isDefaultSelected = value === defaultCard || value === defaultVendor;
+        const isDefaultSelected = value === defaultCard || value === defaultVendor || value === defaultAccount;
         const exportValue = isDefaultSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
         setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
 

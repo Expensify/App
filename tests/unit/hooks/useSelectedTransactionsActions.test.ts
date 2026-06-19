@@ -361,8 +361,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actorAccountID: 1,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -441,8 +441,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actorAccountID: 1,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -554,8 +554,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -602,8 +602,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -651,8 +651,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: 'child123',
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -705,8 +705,8 @@ describe('useSelectedTransactionsActions', () => {
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: 'child123',
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -758,8 +758,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
@@ -806,8 +806,8 @@ describe('useSelectedTransactionsActions', () => {
                 ...createRandomReportAction(1),
                 reportActionID: 'action1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: 'iou123',
                 originalMessage: {
-                    IOUReportID: 'iou123',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     transactionID,
                 },
