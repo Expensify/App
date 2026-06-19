@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
-import Tooltip from '@components/Tooltip';
+import Badge from './Badge';
+import Tooltip from './Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type ConnectionStatusBadgeProps = {
