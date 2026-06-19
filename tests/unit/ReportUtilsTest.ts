@@ -5,12 +5,10 @@ import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import * as HoldUtils from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -206,7 +204,6 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
@@ -10217,9 +10214,9 @@ describe('ReportUtils', () => {
             return Object.fromEntries(Object.entries(createRandomPolicyCategories(numberOfCategories)).map(([name, category]) => [name, {...category, enabled: true}]));
         }
 
-        function buildPolicyData(report: Report, transaction: Transaction, policy: Policy, categories: PolicyCategories, tags: PolicyTagLists = {}): PolicyData {
+        function buildPolicyData(report: Report, transaction: Transaction, testPolicy: Policy, categories: PolicyCategories, tags: PolicyTagLists = {}): PolicyData {
             return {
-                policy,
+                policy: testPolicy,
                 categories,
                 tags,
                 reports: [report],
