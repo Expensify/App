@@ -149,6 +149,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             onPress={onLinkPress}
             {...bind}
             linkHasImage={linkHasImage}
+            isChildOfTaskTitle={isChildOfTaskTitle}
         >
             <TNodeChildrenRenderer
                 tnode={tnode}
