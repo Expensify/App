@@ -35,7 +35,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {deleteExpensifyCardRule} from '@libs/actions/Card';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
+import {enableExpensifyCard, openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {deletePolicyCodingRule, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import {dismissProductTraining} from '@libs/actions/Welcome';
@@ -432,6 +432,10 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
 
+    const handleGetExpensifyCardPress = useCallback(() => {
+        enableExpensifyCard(policyID, true, true);
+    }, [policyID]);
+
     const emptyStateContainerStyle = [styles.alignItemsCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth), styles.w100];
 
     const cardRulesEmptyStateContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -464,7 +468,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                 <Button
                                     success
                                     text={translate('workspace.rules.spendRules.cardRulesUpsell.cta')}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID))}
+                                    onPress={handleGetExpensifyCardPress}
                                     style={styles.mt5}
                                 />
                             </View>
@@ -473,7 +477,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 </ScrollView>
             </View>
         ),
-        [cardRulesEmptyStateContentContainerStyle, illustrations.ExpensifyCardCoins, policyID, styles, translate, emptyStateContainerStyle],
+        [cardRulesEmptyStateContentContainerStyle, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, styles, translate, emptyStateContainerStyle],
     );
 
     const renderExpenseDefaultsContent = () => (
