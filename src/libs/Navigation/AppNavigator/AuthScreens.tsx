@@ -308,7 +308,7 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={TestDriveModalNavigator}
                         />
                         <RootStack.Screen

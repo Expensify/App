@@ -4,12 +4,14 @@ import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -36,6 +38,7 @@ import type SCREENS from '@src/SCREENS';
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function EmployeeTestDriveModal() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportID = generateReportID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -128,27 +131,32 @@ function EmployeeTestDriveModal() {
     };
 
     return (
-        <BaseTestDriveModal
-            description={translate('testDrive.modal.employee.description')}
-            onConfirm={navigate}
-            onHelp={skipTestDrive}
-            shouldCloseOnConfirm={false}
-            shouldRenderHTMLDescription
-            avoidKeyboard
-            shouldShowConfirmationLoader={isLoading}
-            canConfirmWhileOffline={false}
-            shouldCallOnHelpWhenModalHidden
+        <KeyboardAvoidingView
+            style={[styles.w100, styles.h100]}
+            behavior="padding"
+            shouldOffsetBottomSafeAreaPadding
+            enabled
         >
-            <TextInput
-                placeholder={translate('testDrive.modal.employee.email')}
-                accessibilityLabel={translate('testDrive.modal.employee.email')}
-                value={bossEmail}
-                onChangeText={onBossEmailChange}
-                autoCapitalize="none"
-                errorText={formError}
-                inputMode={CONST.INPUT_MODE.EMAIL}
-            />
-        </BaseTestDriveModal>
+            <BaseTestDriveModal
+                description={translate('testDrive.modal.employee.description')}
+                onConfirm={navigate}
+                onHelp={skipTestDrive}
+                shouldCloseOnConfirm={false}
+                shouldRenderHTMLDescription
+                shouldShowConfirmationLoader={isLoading}
+                canConfirmWhileOffline={false}
+            >
+                <TextInput
+                    placeholder={translate('testDrive.modal.employee.email')}
+                    accessibilityLabel={translate('testDrive.modal.employee.email')}
+                    value={bossEmail}
+                    onChangeText={onBossEmailChange}
+                    autoCapitalize="none"
+                    errorText={formError}
+                    inputMode={CONST.INPUT_MODE.EMAIL}
+                />
+            </BaseTestDriveModal>
+        </KeyboardAvoidingView>
     );
 }
 

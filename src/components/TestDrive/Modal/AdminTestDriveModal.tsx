@@ -52,7 +52,6 @@ function AdminTestDriveModal() {
             description={translate('testDrive.modal.description')}
             onConfirm={navigate}
             onHelp={skipTestDrive}
-            shouldCallOnHelpWhenModalHidden
         />
     );
 }

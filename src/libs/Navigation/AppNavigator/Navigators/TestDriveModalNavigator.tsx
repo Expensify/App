@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import TestDriveModal from '@components/TestDrive/Modal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -13,18 +12,22 @@ const Stack = createPlatformStackNavigator<TestDriveModalNavigatorParamList>();
 
 function TestDriveModalNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     return (
         <NoDropZone>
-            <View>
-                <Stack.Navigator
-                    screenOptions={{headerShown: false, animation: Animations.SLIDE_FROM_RIGHT, web: {transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC}}}
-                >
-                    <Stack.Screen
-                        name={SCREENS.TEST_DRIVE_MODAL.ROOT}
-                        component={TestDriveModal}
-                    />
-                </Stack.Navigator>
-            </View>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    animation: Animations.SLIDE_FROM_RIGHT,
+                    web: {cardStyle: {backgroundColor: 'transparent'}, transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC},
+                    native: {contentStyle: {backgroundColor: 'transparent'}},
+                }}
+            >
+                <Stack.Screen
+                    name={SCREENS.TEST_DRIVE_MODAL.ROOT}
+                    component={TestDriveModal}
+                />
+            </Stack.Navigator>
         </NoDropZone>
     );
 }
