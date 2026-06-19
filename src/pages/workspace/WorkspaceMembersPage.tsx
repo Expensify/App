@@ -122,6 +122,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
     CARD_ADMINS: 'cardAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
+    PAYMENTS_ADMINS: 'paymentsAdmins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
     EDITORS: 'editors',
@@ -476,7 +477,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 policyEmployee.role === CONST.POLICY.ROLE.ADMIN ||
                 policyEmployee.role === CONST.POLICY.ROLE.AUDITOR ||
                 policyEmployee.role === CONST.POLICY.ROLE.CARD_ADMIN ||
-                policyEmployee.role === CONST.POLICY.ROLE.PEOPLE_ADMIN
+                policyEmployee.role === CONST.POLICY.ROLE.PEOPLE_ADMIN ||
+                policyEmployee.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN
             ) {
                 roleBadgeText = translate('workspace.common.roleName', policyEmployee.role);
             } else if (policyEmployee.role === CONST.POLICY.ROLE.EDITOR) {
@@ -607,6 +609,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
 
         roleFilterOptions.push({
+            text: translate('workspace.people.paymentsAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS,
+        });
+
+        roleFilterOptions.push({
             text: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
@@ -646,6 +653,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return employee?.role === CONST.POLICY.ROLE.CARD_ADMIN;
             case WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS:
                 return employee?.role === CONST.POLICY.ROLE.PEOPLE_ADMIN;
+            case WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS:
+                return employee?.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
             case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
                 return employee?.role === CONST.POLICY.ROLE.AUDITOR;
             case WORKSPACE_MEMBER_FILTER_VALUES.EDITORS:
@@ -893,10 +902,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             icon: icons.MakeAdmin,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.PEOPLE_ADMIN),
         };
+        const paymentsAdminOption = {
+            text: translate('workspace.people.makePaymentsAdmin', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_PAYMENTS_ADMIN,
+            icon: icons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.PAYMENTS_ADMIN),
+        };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
         const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonPeopleAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PEOPLE_ADMIN);
+        const hasAtLeastOneNonPaymentsAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PAYMENTS_ADMIN);
         const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
         const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -926,6 +942,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (hasAtLeastOneNonPeopleAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
             options.push(peopleAdminOption);
+        }
+
+        if (hasAtLeastOneNonPaymentsAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+            options.push(paymentsAdminOption);
         }
 
         return options;

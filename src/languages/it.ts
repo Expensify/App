@@ -6306,6 +6306,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 one: 'Rendi amministratore persone',
                 other: 'Rendi amministratori persone',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Rendi amministratore pagamenti',
+                other: 'Rendi amministratori pagamenti',
+            }),
             selectAll: 'Seleziona tutto',
             error: {
                 genericAdd: "Si è verificato un problema nell'aggiungere questo membro dello spazio di lavoro",
@@ -6339,6 +6343,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             makeCardAdmin: () => ({one: 'Rendi amministratore carta', other: 'Rendi amministratori carta'}),
             cardAdmins: 'Amministratori carta',
             peopleAdmins: 'Amministratori persone',
+            paymentsAdmins: 'Amministratori pagamenti',
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',

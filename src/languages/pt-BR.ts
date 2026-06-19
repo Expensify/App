@@ -6280,6 +6280,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 one: 'Tornar administrador de pessoas',
                 other: 'Tornar administradores de pessoas',
             }),
+            makePaymentsAdmin: () => ({
+                one: 'Tornar administrador de pagamentos',
+                other: 'Tornar administradores de pagamentos',
+            }),
             selectAll: 'Selecionar tudo',
             error: {
                 genericAdd: 'Ocorreu um problema ao adicionar este membro do workspace',
@@ -6313,6 +6317,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             makeCardAdmin: () => ({one: 'Tornar admin do cartão', other: 'Tornar administradores do cartão'}),
             cardAdmins: 'Administradores de cartões',
             peopleAdmins: 'Administradores de pessoas',
+            paymentsAdmins: 'Administradores de pagamentos',
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',

@@ -104,12 +104,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 continue;
             }
             const isOwner = policy?.owner === details?.login;
-            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
+            const canBePayer = isOwner || policyEmployee.role === CONST.POLICY.ROLE.ADMIN || policyEmployee.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || !canBePayer;
             if (shouldSkipMember) {
                 continue;
             }
-            const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
+            const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('workspace.common.roleName', policyEmployee.role)} />;
             const isAuthorizedPayer = selectedPayer === details?.login;
             const formattedMember = {
                 keyForList: String(adminAccountID),
@@ -255,17 +255,19 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
     const totalNumberOfEmployeesEitherOwnerOrAdmin = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
         const isOwner = policy?.owner === email;
-        const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
-        return !isDeletedPolicyEmployee(policyEmployee) && (isOwner || isAdmin);
+        const canBePayer = isOwner || policyEmployee.role === CONST.POLICY.ROLE.ADMIN || policyEmployee.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        return !isDeletedPolicyEmployee(policyEmployee) && canBePayer;
     });
 
     const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowBlockingPage}
