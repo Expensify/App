@@ -210,7 +210,7 @@ function ProfileAvatar() {
                 {!!errorData.validationError && (
                     <DotIndicatorMessage
                         style={styles.mv5}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-type-assertion
                         messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
                         type="error"
                     />
