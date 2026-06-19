@@ -16,6 +16,7 @@ import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import Text from '@components/Text';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
@@ -82,7 +83,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -433,39 +435,46 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const emptyStateContainerStyle = [styles.alignItemsCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth), styles.w100];
 
+    const cardRulesEmptyStateContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb4,
+    });
+
     const cardRulesEmptyState = useMemo(
         () => (
-            <View style={[styles.flex1, styles.mnh0, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius]}>
+            <View style={[styles.flex1, styles.mnh0]}>
                 <ScrollView
                     style={[styles.flex1, styles.mnh0]}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                    addBottomSafeAreaPadding
+                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, cardRulesEmptyStateContentContainerStyle]}
                 >
-                    <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv8, styles.ph5]}>
-                        <View style={emptyStateContainerStyle}>
-                            <ImageSVG
-                                src={illustrations.ExpensifyCardCoins}
-                                contentFit="contain"
-                                width="100%"
-                                height={variables.cardRulesEmptyStateIllustrationHeight}
-                                style={styles.cardRulesEmptyStateIllustration}
-                            />
-                            <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
-                            <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>
-                                {translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
-                            </Text>
-                            <Button
-                                success
-                                text={translate('workspace.rules.spendRules.cardRulesUpsell.cta')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID))}
-                                style={styles.mt5}
-                            />
+                    <View style={[styles.flexGrow1, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius, styles.overflowHidden]}>
+                        <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv8, styles.ph5]}>
+                            <View style={emptyStateContainerStyle}>
+                                <ImageSVG
+                                    src={illustrations.ExpensifyCardCoins}
+                                    contentFit="contain"
+                                    width="100%"
+                                    height={variables.cardRulesEmptyStateIllustrationHeight}
+                                    style={styles.cardRulesEmptyStateIllustration}
+                                />
+                                <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
+                                <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>
+                                    {translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
+                                </Text>
+                                <Button
+                                    success
+                                    text={translate('workspace.rules.spendRules.cardRulesUpsell.cta')}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID))}
+                                    style={styles.mt5}
+                                />
+                            </View>
                         </View>
                     </View>
                 </ScrollView>
             </View>
         ),
-        [illustrations.ExpensifyCardCoins, policyID, styles, translate, emptyStateContainerStyle],
+        [cardRulesEmptyStateContentContainerStyle, illustrations.ExpensifyCardCoins, policyID, styles, translate, emptyStateContainerStyle],
     );
 
     const renderExpenseDefaultsContent = () => (
