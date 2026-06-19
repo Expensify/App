@@ -14,6 +14,7 @@ import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -150,7 +151,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         } else {
             backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
-        Navigation.goBack(backToRoute);
+        // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
+        // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
+        Navigation.goBack(backToRoute, {compareParams: false});
     }, [isInitialCreationFlow, approvalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const toggleApprover = useCallback(
@@ -162,14 +165,18 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 setRemovingApproverEmail(visibleSelectedApproverEmail);
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
                 if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-                    Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+                    // Don't compare params — see goBack above.
+                    Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover), {compareParams: false});
                     return;
                 }
                 goBack();
                 return;
             }
 
-            const newSelectedEmail = approver?.login ?? '';
+            // Canonicalize phone logins (e164@expensify.sms) so the approver email stored as submitsTo
+            // matches the canonical key the invite writes into employeeList. Without this, a phone approver
+            // invited offline stops resolving once online and the workflow disappears. No-op for emails.
+            const newSelectedEmail = addSMSDomainIfPhoneNumber(approver?.login ?? '');
             const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
             const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
             const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};

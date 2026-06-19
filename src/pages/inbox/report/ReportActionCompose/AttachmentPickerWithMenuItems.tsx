@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -32,8 +31,8 @@ import {
     canCreateTaskInReport,
     getPayeeName,
     hasViolations as hasViolationsReportUtils,
-    isPaidGroupPolicy,
     isPolicyExpenseChat,
+    isReportInGroupPolicy,
     isReportOwner,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
@@ -176,9 +175,9 @@ function AttachmentPickerWithMenuItems({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const {accountID} = currentUserPersonalDetails;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
 
     const selectOption = useCallback(
@@ -321,7 +320,7 @@ function AttachmentPickerWithMenuItems({
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
+        if (!isPolicyExpenseChat(report) || !isReportInGroupPolicy(report) || !isReportOwner(report)) {
             return [];
         }
 

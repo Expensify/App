@@ -205,13 +205,71 @@ function updateMergeHRFinalApprover(policyID: string, finalApprover: string | nu
     );
 }
 
+/** Updates which groups to import employees from. */
+function updateMergeHRGroups(policyID: string, groups: string[], currentGroups?: string[] | null) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            groups,
+                            pendingFields: {groups: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {groups: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            pendingFields: {groups: null},
+                            errorFields: {groups: null},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                        config: {
+                            groups: currentGroups ?? null,
+                            pendingFields: {groups: null},
+                            errorFields: {groups: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    write(WRITE_COMMANDS.UPDATE_MERGE_GROUPS, {policyID, groups}, {optimisticData, successData, failureData});
+}
+
 function setMergeHRInitialSyncModalShown(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
 }
 
 type HRProviderName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
-type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover';
+type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups';
 
 function clearHRConnectionErrorField(policyID: string | undefined, provider: HRProviderName | undefined, fieldName: HRConnectionErrorFieldName) {
     if (!policyID || !provider) {
@@ -228,6 +286,7 @@ function clearHRConnectionErrorField(policyID: string | undefined, provider: HRP
     });
 }
 
-export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, clearHRConnectionErrorField, setMergeHRInitialSyncModalShown};
+export {syncMergeHR, updateMergeHRApprovalMode, updateMergeHRFinalApprover, updateMergeHRGroups, clearHRConnectionErrorField, setMergeHRInitialSyncModalShown};
+export type {HRConnectionErrorFieldName};
 
 export default getMergeHRSetupLink;

@@ -1,4 +1,4 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -76,6 +76,7 @@ type CreateTaskAndNavigateParams = {
     ancestors?: ReportUtils.Ancestor[];
     currentUserDisplayName: string | undefined;
     currentUserAvatar: AvatarSource | undefined;
+    taskCreatorAndAssigneeDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 /**
@@ -120,6 +121,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         isCreatedUsingMarkdown = false,
         quickAction = {},
         ancestors = [],
+        taskCreatorAndAssigneeDetails,
     } = params;
     const parentReportID = parentReport?.reportID;
     if (!parentReportID) {
@@ -202,13 +204,6 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction as OnyxTypes.ReportAction},
         },
     ];
-
-    // We need the personal details of the task creator and assignee so that the "From" and "Assignee" columns wil be rendered in "Reports > Task" while offline.
-    const personalDetailsList = PersonalDetailsUtils.createPersonalDetailsLookupByAccountID(
-        PersonalDetailsUtils.getPersonalDetailsByIDs({
-            accountIDs: [currentUserAccountID, assigneeAccountID],
-        }),
-    );
 
     // FOR TASK REPORT
     const successData: Array<
@@ -298,7 +293,8 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] = {
         [optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction as OnyxTypes.ReportAction,
     };
-    snapshotDataToStore[ONYXKEYS.PERSONAL_DETAILS_LIST] = personalDetailsList;
+    // We need the personal details of the task creator and assignee so that the "From" and "Assignee" columns wil be rendered in "Reports > Task" while offline.
+    snapshotDataToStore[ONYXKEYS.PERSONAL_DETAILS_LIST] = taskCreatorAndAssigneeDetails;
 
     // We push the optimistic task data into chat and task snapshot hashes so it appears immediately in "Reports > Chats" and "Reports > Task" while offline.
     for (const type of searchDataTypes) {
@@ -1120,14 +1116,12 @@ function getAssignee(assigneeAccountID: number | undefined, personalDetails: Ony
  * Get the share destination data
  * */
 function getShareDestination(
-    reportID: string,
-    reports: OnyxCollection<OnyxTypes.Report>,
+    report: OnyxEntry<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    policy: OnyxEntry<OnyxTypes.Policy>,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
-    const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
     const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
@@ -1148,7 +1142,7 @@ function getShareDestination(
         const login = personalDetails?.[participantAccountID]?.login ?? '';
         subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
-        subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policy) ?? '';
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, FallbackAvatar),

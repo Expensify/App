@@ -143,6 +143,14 @@ function isCategoryDescriptionRequired(policyCategories: PolicyCategories | unde
     return !!policyCategories[category]?.areCommentsRequired;
 }
 
+function getCategoryGLCode(policyCategories: PolicyCategories | undefined, category: string | undefined): string {
+    if (!policyCategories || !category) {
+        return '';
+    }
+    const glCode = policyCategories[category]?.['GL Code'];
+    return glCode != null ? String(glCode).replaceAll('"', '') : '';
+}
+
 function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
@@ -173,6 +181,12 @@ function processCategoryNameSegments(categoryName: string): string[] {
         if (part.trim() !== '') {
             result.push(part);
         }
+    }
+
+    // If all segments were empty but the original name is not empty,
+    // treat the whole name as a single segment (e.g., ":" or "::").
+    if (result.length === 0 && categoryName.trim() !== '') {
+        return [categoryName.trim()];
     }
 
     // If the original name ends with a colon (allowing trailing spaces), append a colon to the last segment.
@@ -213,6 +227,7 @@ export {
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
+    getCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
     processCategoryNameSegments,

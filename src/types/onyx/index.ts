@@ -39,6 +39,7 @@ import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
+import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
@@ -47,6 +48,7 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     CardFeedErrorsDerivedValue,
+    FlaggedExpensesDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OpenAndSubmittedReportsByPolicyIDDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -111,7 +113,7 @@ import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
-import type {AddNewPersonalCard, PersonalCardFeed} from './PersonalCard';
+import type {AddNewPersonalCard} from './PersonalCard';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
@@ -141,7 +143,7 @@ import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportLastVisitTimes from './ReportLastVisitTimes';
-import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
+import type {GroupedTransactions, ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection} from './ReportLayout';
 import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
@@ -160,6 +162,7 @@ import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
 import type SearchResults from './SearchResults';
+import type SearchSidebar from './SearchSidebar';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
@@ -208,7 +211,6 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
-    PersonalCardFeed,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -225,6 +227,7 @@ export type {
     Download,
     ExportDownload,
     DuplicateWorkspace,
+    CopyPolicySettingsNVP,
     CopyPolicySettings,
     WorkspaceCardsList,
     ExpenseRule,
@@ -310,6 +313,8 @@ export type {
     ReportPaginationState,
     ReportViolationName,
     ReportLayoutGroupBy,
+    ReportLayoutOption,
+    ReportLayoutSelection,
     GroupedTransactions,
     AnyRequest,
     Request,
@@ -368,6 +373,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     SearchContext,
+    SearchSidebar,
     ImportedSpreadsheet,
     BankAccountShareDetails,
     ImportedSpreadsheetMemberData,
@@ -397,6 +403,7 @@ export type {
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,
+    FlaggedExpensesDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

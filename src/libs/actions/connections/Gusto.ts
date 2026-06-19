@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
@@ -8,7 +8,6 @@ import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
 function getGustoSetupLink(policyID: string) {
     const params: ConnectPolicyToGustoParams = {policyID};
@@ -19,41 +18,17 @@ function getGustoSetupLink(policyID: string) {
     return commandURL + new URLSearchParams(params).toString();
 }
 
-function getGustoSyncProgressOptimisticData(policyID: string): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS> {
-    return {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
-        value: {
-            stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE,
-            connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
-            timestamp: new Date().toISOString(),
-        },
-    };
-}
-
-function getGustoSyncProgressFailureData(
-    policyID: string,
-    currentConnectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>,
-): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS> {
-    return {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
-        value: currentConnectionSyncProgress ?? null,
-    };
-}
-
 function updateGustoApprovalMode(
     policyID: string | undefined,
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>,
     currentApprovalMode?: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null,
-    currentConnectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>,
 ) {
     if (!policyID) {
         return;
     }
 
     const previousApprovalMode = currentApprovalMode ?? null;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -69,7 +44,6 @@ function updateGustoApprovalMode(
                 },
             },
         },
-        getGustoSyncProgressOptimisticData(policyID),
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -87,7 +61,7 @@ function updateGustoApprovalMode(
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -103,24 +77,18 @@ function updateGustoApprovalMode(
                 },
             },
         },
-        getGustoSyncProgressFailureData(policyID, currentConnectionSyncProgress),
     ];
 
     write(WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE, {policyID, approvalMode}, {optimisticData, successData, failureData});
 }
 
-function updateGustoFinalApprover(
-    policyID: string | undefined,
-    finalApprover: string | null,
-    currentFinalApprover?: string | null,
-    currentConnectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>,
-) {
+function updateGustoFinalApprover(policyID: string | undefined, finalApprover: string | null, currentFinalApprover?: string | null) {
     if (!policyID) {
         return;
     }
 
     const previousFinalApprover = currentFinalApprover ?? null;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -136,7 +104,6 @@ function updateGustoFinalApprover(
                 },
             },
         },
-        getGustoSyncProgressOptimisticData(policyID),
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -154,7 +121,7 @@ function updateGustoFinalApprover(
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -170,7 +137,6 @@ function updateGustoFinalApprover(
                 },
             },
         },
-        getGustoSyncProgressFailureData(policyID, currentConnectionSyncProgress),
     ];
 
     write(WRITE_COMMANDS.UPDATE_GUSTO_FINAL_APPROVER, {policyID, finalApprover}, {optimisticData, successData, failureData});

@@ -696,7 +696,7 @@ function updateSettlementFrequency(
     ];
 
     const parameters = {
-        workspaceAccountID,
+        policyAccountID: workspaceAccountID,
         settlementFrequency,
     };
 
@@ -738,7 +738,7 @@ function toggleCashbackToBill(workspaceAccountID: number, programKey: CardProgra
     ];
 
     const parameters = {
-        workspaceAccountID,
+        policyAccountID: workspaceAccountID,
         shouldApplyCashbackToBill,
     };
 
@@ -1575,12 +1575,12 @@ type ContinuousReconciliationUpdate = OnyxUpdate<
 function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
     const parameters = shouldUseContinuousReconciliation
         ? {
-              workspaceAccountID,
+              policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
               expensifyCardContinuousReconciliationConnection: connectionName,
           }
         : {
-              workspaceAccountID,
+              policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
           };
 
