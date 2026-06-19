@@ -1026,12 +1026,14 @@ const emojis: PickerEmojis = [
         code: '👍',
         hexcode: '1F44D',
         types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
+        aliases: ['thumbs_up'],
     },
     {
         name: '-1',
         code: '👎',
         hexcode: '1F44E',
         types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+        aliases: ['thumbs_down'],
     },
     {
         name: 'hand_with_index_finger_and_thumb_crossed',

@@ -1,4 +1,5 @@
 import React from 'react';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -6,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,9 +32,10 @@ function ChatListItem<TItem extends ListItem>({
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
-
+    const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isSelected} = useRowSelection(item.keyForList);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -46,7 +49,7 @@ function ChatListItem<TItem extends ListItem>({
         styles.overflowHidden,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
-        item.isSelected && styles.activeComponentBG,
+        isSelected && styles.activeComponentBG,
         styles.mh0,
         item.cursorStyle,
     ];
@@ -73,13 +76,14 @@ function ChatListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            hoverStyle={item.isSelected && styles.activeComponentBG}
+            hoverStyle={isSelected && styles.activeComponentBG}
             forwardedFSClass={fsClass}
         >
             <ReportActionItem
                 action={reportActionItem}
                 report={reportStable}
                 transactionThreadReport={transactionThreadReport}
+                chatReport={chatReportStable}
                 onPress={handlePress}
                 parentReportAction={undefined}
                 displayAsGroup={false}

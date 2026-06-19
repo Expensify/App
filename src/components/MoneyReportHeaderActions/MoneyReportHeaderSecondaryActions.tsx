@@ -65,6 +65,7 @@ import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IO
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type MoneyReportHeaderSecondaryActionsProps = {
@@ -85,6 +86,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
@@ -105,7 +107,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {},
     );
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
@@ -199,7 +200,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                conciergeReportID,
                 onPaid: () => {
                     startAnimation();
                 },
@@ -324,6 +324,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         ? getSecondaryReportActions({
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
+              submitterLogin,
               report: moneyRequestReport,
               chatReport,
               reportTransactions: nonPendingDeleteTransactions,

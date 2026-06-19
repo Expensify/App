@@ -14,6 +14,7 @@ import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUt
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -61,7 +62,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
 
     const navigateGlobalCreate = (transactionIDs: string[]) => {
         startScanProcessSpan(isMultiScanEnabled);
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
+        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)) {
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
@@ -74,6 +75,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                 const setParticipantsPromises = transactionIDs.map((tid) => setMoneyRequestParticipants(tid, transaction.participants));
                 Promise.all(setParticipantsPromises).then(() => {
                     if (isTrackExpense) {
+                        endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
                     } else {
                         navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, transaction.reportID);
@@ -86,10 +88,12 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                 setTransactionReport(tid, {reportID: transactionReportID}, true);
                 return setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
             });
-            Promise.all(setParticipantsPromises).then(() =>
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID)),
-            );
+            Promise.all(setParticipantsPromises).then(() => {
+                endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
+            });
         } else {
+            endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
             navigateToParticipantPage(iouType, transactionID, reportID);
         }
     };

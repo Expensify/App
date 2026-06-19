@@ -341,6 +341,8 @@ function updateMultipleMoneyRequests({
         let optimisticViolationsData: ReturnType<typeof ViolationsUtils.getViolationsOnyxData> | undefined;
         let currentTransactionViolations: OnyxTypes.TransactionViolation[] | undefined;
         if (transactionPolicy && !isUnreportedExpense) {
+            // TODO: https://github.com/Expensify/App/issues/66512
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             currentTransactionViolations = getAllTransactionViolations()[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             let optimisticViolations =
                 transactionChanges.amount !== undefined || transactionChanges.created || transactionChanges.currency

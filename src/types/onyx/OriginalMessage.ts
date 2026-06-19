@@ -7,7 +7,7 @@ import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
-import type {Reservation} from './Transaction';
+import type {Reservation, TransactionCommentVendor} from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 
 /** Types of join workspace resolutions */
@@ -36,7 +36,11 @@ type OriginalMessageIOU = {
     /** The ID of the `IOU` transaction */
     IOUTransactionID?: string;
 
-    /** ID of the `IOU` report */
+    /**
+     * ID of the IOU/expense report the action belongs to. Temporary fallback for resolving the report when the
+     * backend omits `reportID` on hydrated IOU actions. Remove once the backend reliably sends `reportID`.
+     * See https://github.com/Expensify/App/issues/93882.
+     */
     IOUReportID?: string;
 
     /** ID of the expense report */
@@ -74,28 +78,19 @@ type OriginalMessageIOU = {
 
     /** The bank account id */
     bankAccountID?: number;
-} & (
-    | {
-          /** How much was transaction */
-          amount: number;
 
-          /** Currency of the transaction money */
-          currency: string;
+    /** True when the submitter marked the report as payment received outside Expensify */
+    isSubmitterMarkedPaymentReceived?: boolean;
 
-          /** Only exists when we are sending money */
-          IOUDetails?: IOUDetails;
-      }
-    | {
-          /** How much was transaction */
-          amount?: number;
+    /** How much was transaction */
+    amount?: number;
 
-          /** Currency of the transaction money */
-          currency?: string;
+    /** Currency of the transaction money */
+    currency?: string;
 
-          /** Only exists when we are sending money */
-          IOUDetails: IOUDetails;
-      }
-);
+    /** Only exists when we are sending money */
+    IOUDetails?: IOUDetails;
+};
 
 /** Names of moderation decisions */
 type DecisionName = ValueOf<
@@ -524,6 +519,15 @@ type OriginalMessagePolicyChangeLog = {
     /** New default reimbursable value */
     newDefaultReimbursable?: string;
 
+    /** MCC group name whose default spend category changed (e.g. "Airlines") */
+    mccGroupName?: string;
+
+    /** Previous category name for the MCC group */
+    oldCategory?: string;
+
+    /** New category name for the MCC group */
+    newCategory?: string;
+
     /** Old default report title formula */
     oldDefaultTitle?: string;
 
@@ -573,11 +577,41 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom unit name */
     rateName?: string;
 
-    /** Tax percentage of the new tax rate linked to distance rate */
+    /** Rate amount in cents for the custom unit rate */
+    rate?: number;
+
+    /** Unit of the custom unit (e.g. "mi", "km") */
+    unit?: string;
+
+    /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
+    startDate?: string;
+
+    /** End date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
+    endDate?: string;
+
+    /** New start date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
+    newStartDate?: string;
+
+    /** New end date of the custom unit rate (yyyy-MM-dd), used in UPDATE actions */
+    newEndDate?: string;
+
+    /** Previous start date of the custom unit rate (yyyy-MM-dd) */
+    oldStartDate?: string;
+
+    /** Previous end date of the custom unit rate (yyyy-MM-dd) */
+    oldEndDate?: string;
+
+    /** Tax percentage of the new tax rate linked to distance rate or category */
     newTaxPercentage?: string;
 
-    /** Tax percentage of the old tax rate linked to distance rate */
+    /** Tax percentage of the old tax rate linked to distance rate or category */
     oldTaxPercentage?: string;
+
+    /** Name of the new tax rate (without percentage) for category default tax rate */
+    newTaxName?: string;
+
+    /** Name of the old tax rate (without percentage) for category default tax rate */
+    oldTaxName?: string;
 
     /** Added/Updated tag name */
     tagName?: string;
@@ -919,6 +953,12 @@ type OriginalMessageModifiedExpense = {
     /** Old expense reimbursable */
     oldReimbursable?: string;
 
+    /** Edited accounting-system vendor on the transaction's comment NVP. `null` means the vendor was cleared. */
+    vendor?: TransactionCommentVendor | null;
+
+    /** Previous accounting-system vendor on the transaction's comment NVP. `null` means there was no prior vendor. */
+    oldVendor?: TransactionCommentVendor | null;
+
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 
@@ -950,6 +990,15 @@ type OriginalMessageModifiedExpense = {
     personalRulesModifiedFields?: PersonalRulesModifiedFields;
 
     /** The Concierge reasoning for the action */
+    reasoning?: string;
+};
+
+/** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
+type OriginalMessageConciergeAutoMatchVendor = {
+    /** Display name of the matched vendor */
+    vendorName?: string;
+
+    /** LLM-consumable explanation of why this vendor was matched — surfaced behind the "Explain" link */
     reasoning?: string;
 };
 
@@ -1591,6 +1640,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: OriginalMessageMarkedReimbursed;
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;
@@ -1680,11 +1730,9 @@ export type {
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
-    OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
-    OriginalMessageSpendRuleChangeLog,
 };

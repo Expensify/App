@@ -18,7 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
@@ -123,7 +123,7 @@ function BookTravelButton({
             return;
         }
 
-        if (isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
             shouldResumeBookingRef.current = true;
             Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
             return;
@@ -157,7 +157,7 @@ function BookTravelButton({
             return;
         }
 
-        const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
+        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {

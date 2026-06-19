@@ -4,7 +4,7 @@ import {Line} from 'victory-native';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import parseCurveType from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseCurveType';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
 
 type VictoryChartLineProps = {tnode: TNode};
@@ -18,7 +18,7 @@ function VictoryChartLine({tnode}: VictoryChartLineProps) {
             points={points[yKey]}
             color={nodeStyles.stroke ?? VictoryTheme.colors.default}
             strokeWidth={nodeStyles.strokeWidth !== undefined ? Number(nodeStyles.strokeWidth) : undefined}
-            curveType={parseAttribute(tnode.attributes.interpolation)}
+            curveType={parseCurveType(tnode.attributes.interpolation)}
         />
     );
 }

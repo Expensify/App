@@ -10,6 +10,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {startNavigateToReportsSpans} from '@libs/telemetry/navigateToReportsSpans';
 import navigationRef from '@navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -44,6 +45,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
                 forceTransaction: true,
             });
+            startNavigateToReportsSpans();
 
             const lastSearchRoute = getLastRoute(navigationRef.getRootState(), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
 

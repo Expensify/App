@@ -50,4 +50,3 @@ function useDraftMessageVideoAttributeCache({
 
 export default useDraftMessageVideoAttributeCache;
 export {draftMessageVideoAttributeCache};
-export type {DraftMessageVideoAttributeCache};

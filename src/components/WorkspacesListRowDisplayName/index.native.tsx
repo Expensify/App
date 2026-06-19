@@ -11,7 +11,7 @@ function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowD
     return (
         <Text
             numberOfLines={1}
-            style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
+            style={[isDeleted ? styles.offlineFeedbackDeleted : {}]}
         >
             {processedOwnerName.length !== 0
                 ? getProcessedText(processedOwnerName, [styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}, styles.emojisWithTextFontFamily])

@@ -5,6 +5,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -20,6 +21,7 @@ type TravelInvoicingPayableAccountSelectPageProps = {
     connectionName: ConnectionName;
     emptyStateTitle: TranslationPaths;
     emptyStateSubtitle: TranslationPaths;
+    accessVariants?: AccessVariant[];
     pendingAction?: OnyxCommon.PendingAction | null;
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
     onSelect: (row: SelectorType<string>) => void;
@@ -35,6 +37,7 @@ function TravelInvoicingPayableAccountSelectPage({
     connectionName,
     emptyStateTitle,
     emptyStateSubtitle,
+    accessVariants = [CONST.POLICY.ACCESS_VARIANTS.ADMIN],
     pendingAction,
     errors,
     onSelect,
@@ -59,7 +62,7 @@ function TravelInvoicingPayableAccountSelectPage({
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={accessVariants}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={displayName}
             title={title}
