@@ -7,7 +7,6 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
 jest.mock('@hooks/useLocalize', () =>
