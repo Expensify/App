@@ -1,6 +1,7 @@
 import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -42,6 +43,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {getStableReportSelector} from '@src/selectors/Report';
+import type {Report} from '@src/types/onyx';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -83,7 +86,8 @@ function TransactionPreviewContent({
     const {amount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const stableParentReportSelector = useCallback((reportEntry: OnyxEntry<Report>) => getStableReportSelector(reportEntry), []);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: stableParentReportSelector});
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);

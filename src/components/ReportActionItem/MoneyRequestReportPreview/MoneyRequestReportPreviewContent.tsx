@@ -33,7 +33,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
+import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getDisplayNameForParticipant,
@@ -64,6 +64,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {reportNameSelector} from '@src/selectors/Attributes';
 import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
@@ -77,8 +78,6 @@ const ITEM_LAYOUT_TYPE = {
     PREVIEW: 'preview',
     SHOW_MORE: 'showMore',
 };
-
-const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) => c?.reports;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -220,9 +219,11 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: reportAttributesSelector,
+    const selectReportName = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReportID), [iouReportID]);
+    const [derivedReportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: selectReportName,
     });
+    const reportName = derivedReportName ?? iouReport?.reportName ?? '';
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
@@ -669,7 +670,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getReportName(iouReport, reportAttributes) || action.childReportName}
+                                                            {reportName || action.childReportName}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
