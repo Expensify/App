@@ -96,6 +96,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             <Table.Header
                 showOnEmpty={!!emptyStateContent}
                 isSelectAllDisabled={isEmpty && !!emptyStateContent}
+                isSortingDisabled={isEmpty && !!emptyStateContent}
             />
             {isEmpty ? emptyStateContent : <Table.Body />}
         </Table>

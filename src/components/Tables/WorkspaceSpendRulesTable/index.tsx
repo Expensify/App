@@ -98,6 +98,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             <Table.Header
                 showOnEmpty={!!emptyStateContent}
                 isSelectAllDisabled={isEmpty && !!emptyStateContent}
+                isSortingDisabled={isEmpty && !!emptyStateContent}
             />
             {isEmpty ? <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View> : <Table.Body />}
         </Table>
