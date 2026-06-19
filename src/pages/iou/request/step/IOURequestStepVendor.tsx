@@ -75,19 +75,19 @@ function IOURequestStepVendor({
         }));
 
     // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
-    const data: VendorListItem[] =
-        !currentVendorID || trimmedSearch
-            ? vendorRows
-            : [
-                  {
-                      value: '',
-                      text: translate('common.none'),
-                      keyForList: 'clear-vendor',
-                      isSelected: false,
-                      searchText: '',
-                  },
-                  ...vendorRows,
-              ];
+    const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
+    const data: VendorListItem[] = shouldShowNoneRow
+        ? [
+              {
+                  value: '',
+                  text: translate('common.none'),
+                  keyForList: 'clear-vendor',
+                  isSelected: false,
+                  searchText: '',
+              },
+              ...vendorRows,
+          ]
+        : vendorRows;
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
@@ -142,7 +142,7 @@ function IOURequestStepVendor({
                     onChangeText: setSearchValue,
                     headerMessage,
                 }}
-                initiallyFocusedItemKey={data.find((item) => item.isSelected)?.keyForList}
+                initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
                 ListItem={SingleSelectListItem}
                 shouldShowLoadingPlaceholder={!policy}
                 listEmptyContent={listEmptyContent}
