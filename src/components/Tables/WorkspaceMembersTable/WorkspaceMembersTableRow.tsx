@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
@@ -40,7 +39,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
-    const roleLabel = item.role !== CONST.POLICY.ROLE.USER ? translate('workspace.common.roleName', item.role) : '';
+    const roleLabel = translate('workspace.common.roleName', item.role);
     const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
@@ -98,10 +97,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                     )}
 
                     <View style={[!shouldUseNarrowTableLayout && styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Badge
-                            text={roleLabel}
-                            badgeStyles={styles.ml0}
-                        />
+                        <Text numberOfLines={1}>{roleLabel}</Text>
                     </View>
 
                     <Icon

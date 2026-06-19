@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -46,12 +47,12 @@ type WorkspaceMembersTableProps = {
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
-    ALL: 'all',
     ADMINS: 'admins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
+    MEMBERS: 'members',
 } as const;
 
 export default function WorkspaceMembersTable({
@@ -156,15 +157,12 @@ export default function WorkspaceMembersTable({
     };
 
     const isTableItemInSearch: IsItemInSearchCallback<WorkspaceMemberRowData> = (item, searchValue) => {
-        return [item.name, item.email, item.login].some((field) => field.toLowerCase().includes(searchValue.toLowerCase()));
+        const results = tokenizedSearch([item], searchValue, (option) => [option.name, option.email, option.login]);
+        return results.length > 0;
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceMemberRowData> = (item, filterValues) => {
         if (!filterValues || filterValues.length === 0) {
-            return true;
-        }
-
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ALL)) {
             return true;
         }
 
@@ -193,6 +191,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isMember = item.role === CONST.POLICY.ROLE.USER;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS) && isMember) {
+            return true;
+        }
+
         return false;
     };
 
@@ -200,7 +203,6 @@ export default function WorkspaceMembersTable({
         status: {
             filterType: 'multi-select',
             options: [
-                {label: translate('workspace.people.members'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
                 {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
                 {label: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
             ],
@@ -225,6 +227,11 @@ export default function WorkspaceMembersTable({
             value: WORKSPACE_MEMBER_FILTER_VALUES.EDITORS,
         });
     }
+
+    filterConfig.status.options.push({
+        label: translate('workspace.people.members'),
+        value: WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS,
+    });
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceMemberRowData>) => {
         return (

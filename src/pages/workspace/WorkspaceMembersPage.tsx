@@ -410,13 +410,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         const invitedMemberIndex = tableMembers.findIndex((member) => invitedEmails.includes(member.login));
-        tableRef.current?.scrollToIndex({index: invitedMemberIndex});
 
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => clearInviteDraft(policyID),
-        });
+        if (invitedMemberIndex === -1) {
+            tableRef.current?.scrollToIndex({index: invitedMemberIndex});
 
-        return () => handle.cancel();
+            const handle = TransitionTracker.runAfterTransitions({
+                callback: () => clearInviteDraft(policyID),
+            });
+
+            return () => handle.cancel();
+        }
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
 
     useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
