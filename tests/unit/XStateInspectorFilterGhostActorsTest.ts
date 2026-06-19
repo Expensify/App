@@ -94,6 +94,29 @@ describe('filterGhostActorRegistrations', () => {
         expect(childEvents.at(0)?.type).toBe('@xstate.actor');
     });
 
+    it('flushes a held-back sender registration when that actor emits an event before its own first snapshot', () => {
+        // A real actor's registration is always flushed by its own `xstate.init` (an `@xstate.actor`
+        // event whose `actorRef` is the actor itself) before it can act as a sender, so a full
+        // real-actor run never isolates the `sourceRef` path. We therefore drive the observer
+        // contract directly, with two unstarted actors supplying only genuine, fully typed `actorRef`s.
+        const {received, target} = createRecordingTarget();
+        const inspect = filterGhostActorRegistrations(target);
+
+        const sender = createActor(machine);
+        const receiver = createActor(machine);
+
+        const senderRegistration: InspectionEvent = {type: '@xstate.actor', rootId: sender.sessionId, actorRef: sender};
+        inspect.next?.(senderRegistration);
+        expect(received).toEqual([]);
+
+        const eventFromSender: InspectionEvent = {type: '@xstate.event', rootId: receiver.sessionId, actorRef: receiver, sourceRef: sender, event: {type: 'GO'}};
+        inspect.next?.(eventFromSender);
+
+        expect(received.at(0)).toBe(senderRegistration);
+        expect(received.at(1)).toBe(eventFromSender);
+        expect(received).toHaveLength(2);
+    });
+
     it('forwards error and complete to the target observer', () => {
         const errors: unknown[] = [];
         let completed = false;

@@ -1,4 +1,5 @@
 import {CIRCULAR_MARKER, maskInspectionEvent, MAX_DEPTH_MARKER, SENSITIVE_VALUE_MASK} from '@libs/XStateInspector/maskSensitive';
+import CONST from '@src/CONST';
 
 describe('maskInspectionEvent', () => {
     it('recurses through plain containers like payload and body, masking only the sensitive leaves while keeping the shape', () => {
@@ -95,7 +96,7 @@ describe('maskInspectionEvent', () => {
         });
     });
 
-    it('masks the scenario response body wholesale while keeping the response status fields visible', () => {
+    it('masks each card secret inside the scenario response body while keeping the response status fields visible', () => {
         const masked = maskInspectionEvent({
             snapshot: {
                 context: {
@@ -184,13 +185,13 @@ describe('maskInspectionEvent', () => {
 
     it('drops functions and symbols from objects and nulls them inside arrays, keeping the result postMessage-safe', () => {
         const masked = maskInspectionEvent({
-            snapshot: {context: {action: () => 'secret', kept: 1}},
-            list: [() => 'secret', 'kept'],
+            snapshot: {context: {action: () => 'secret', tag: Symbol('secret'), kept: 1}},
+            list: [() => 'secret', Symbol('secret'), 'kept'],
         });
 
         expect(masked).toStrictEqual({
             snapshot: {context: {kept: 1}},
-            list: [null, 'kept'],
+            list: [null, null, 'kept'],
         });
     });
 
@@ -226,5 +227,22 @@ describe('maskInspectionEvent', () => {
         const masked = maskInspectionEvent({snapshot: {status: 'active', output: undefined, error: undefined, input: undefined}});
 
         expect(masked).toStrictEqual({snapshot: {status: 'active'}});
+    });
+
+    it.each(CONST.SENSITIVE_AUTH_KEYS)('masks the value under the sensitive key "%s", so the shared key set cannot drift away from the serializer', (key) => {
+        expect(maskInspectionEvent({snapshot: {context: {[key]: 'sensitive-value'}}})).toEqual({snapshot: {context: {[key]: SENSITIVE_VALUE_MASK}}});
+    });
+
+    it('masks a value under a sensitive key even when it hides behind toJSON, so a secret cannot leak through serialization', () => {
+        const masked = maskInspectionEvent({
+            snapshot: {context: {token: {toJSON: () => 'plaintext-secret'}, note: {toJSON: () => 'visible'}}},
+        });
+
+        expect(masked).toEqual({snapshot: {context: {token: SENSITIVE_VALUE_MASK, note: 'visible'}}});
+    });
+
+    it('passes a non-object top-level value through unchanged, so odd inputs never throw', () => {
+        expect(maskInspectionEvent(null)).toBeNull();
+        expect(maskInspectionEvent(42)).toBe(42);
     });
 });
