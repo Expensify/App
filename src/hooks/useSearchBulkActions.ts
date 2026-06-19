@@ -560,7 +560,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionsKeys);
 
     const beginExportWithTemplate = useCallback(
-        (templateName: string, templateType: string, policyID: string | undefined) => {
+        (templateName: string, templateType: string, policyID: string | undefined, exportName: string) => {
             const emptyReports =
                 selectedReports?.filter((selectedReport) => {
                     if (!selectedReport) {
@@ -592,6 +592,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         reportIDList: [],
                         transactionIDList: [],
                         policyID,
+                        exportName,
                     },
                     true,
                 );
@@ -605,6 +606,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
                         transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
                         policyID,
+                        exportName,
                     },
                     true,
                 );
@@ -670,6 +672,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
+            const exportName = translate(isBasicExport ? 'export.basicExport' : 'export.currentView');
+
             if (areAllMatchingItemsSelected) {
                 if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                     return;
@@ -683,6 +687,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     transactionIDList: selectedTransactionsKeys,
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
+                    exportName,
                 });
                 setActiveExportID(exportID);
                 return;
@@ -701,6 +706,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
+                    exportName,
                 },
                 () => {
                     didFail = true;
@@ -1492,7 +1498,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                         description: template.description,
                         onSelected: () => {
-                            beginExportWithTemplate(template.templateName, template.type, template.policyID);
+                            beginExportWithTemplate(template.templateName, template.type, template.policyID, template.name);
                         },
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,

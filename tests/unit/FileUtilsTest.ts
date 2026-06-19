@@ -6,6 +6,7 @@ import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
     appendTimeToFileName,
     canvasFallback,
+    getExportFileName,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
     splitExtensionFromFileName,
@@ -95,6 +96,20 @@ describe('FileUtils', () => {
                     expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
                 });
             });
+        });
+    });
+
+    describe('getExportFileName', () => {
+        it('builds the Expensify_<name>_<id> filename and sanitizes the export name', () => {
+            expect(getExportFileName('Current view', '123abc')).toEqual('Expensify_Current_view_123abc.csv');
+        });
+
+        it('replaces every illegal character in the export name with an underscore', () => {
+            expect(getExportFileName('All Data - expense level', 'abc')).toEqual('Expensify_All_Data_-_expense_level_abc.csv');
+        });
+
+        it('honors a custom extension', () => {
+            expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('Expensify_Current_view_abc.xlsx');
         });
     });
 

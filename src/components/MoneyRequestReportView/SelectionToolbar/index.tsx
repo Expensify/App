@@ -81,7 +81,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
 
-    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[]) => {
+    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
             setOfflineModalVisible(true);
             return;
@@ -98,6 +98,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             reportIDList: [report.reportID],
             transactionIDList,
             policyID: policy?.id,
+            exportName,
         });
 
         showConfirmModal({
@@ -153,7 +154,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         onExportFailed: () => setIsDownloadErrorModalVisible(true),
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
-        beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+        beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
         onDeleteSelected,
     });
 

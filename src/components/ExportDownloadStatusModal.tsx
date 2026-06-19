@@ -70,7 +70,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         const isCSV = fileName.endsWith('.csv');
         const secureType = isCSV ? 'csvexport' : 'pdfreport';
         const url = `${baseURL}secure?secureType=${secureType}&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(fileName)}&email=${encodeURIComponent(currentUserLogin)}`;
-        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari());
+        // The backend already names the file `Expensify_<exportName>_<uniqueID>`, so skip the timestamp suffix.
+        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari(), undefined, undefined, undefined, false, false);
     };
 
     useEffect(() => {

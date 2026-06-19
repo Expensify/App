@@ -26,6 +26,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -1200,7 +1201,7 @@ function rejectMoneyRequestsOnSearch(
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV(
-    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams,
+    {query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
 ) {
@@ -1247,10 +1248,21 @@ function exportSearchItemsToCSV(
         }
     }
 
-    return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    return fileDownload(
+        translate,
+        getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}),
+        getExportFileName(exportName, rand64()),
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        onDownloadFailed,
+        false,
+        false,
+    );
 }
 
-function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels}: ExportSearchItemsToCSVParams): string {
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, isBasicExport, exportColumnLabels, exportName}: ExportSearchItemsToCSVParams): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -1276,6 +1288,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         transactionIDList,
         isBasicExport,
         exportColumnLabels,
+        exportName,
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
@@ -1285,7 +1298,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
 }
 
 function queueExportSearchWithTemplate(
-    {templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams,
+    {templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID, exportName}: ExportSearchWithTemplateParams,
     shouldTrackExportProgress = false,
 ): string {
     const exportID = rand64();
@@ -1317,6 +1330,7 @@ function queueExportSearchWithTemplate(
         reportIDList,
         transactionIDList,
         policyID,
+        exportName,
         ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
 
