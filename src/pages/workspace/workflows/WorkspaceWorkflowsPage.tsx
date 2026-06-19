@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
-import Badge from '@components/Badge';
+import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
@@ -19,7 +19,6 @@ import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import Tooltip from '@components/Tooltip';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -361,23 +360,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const bankConnectionStatus = getBankAccountConnectionStatus(state);
         const bankConnectionBrickRoadIndicator =
             bankConnectionStatus?.brickRoadIndicator ?? (state === CONST.BANK_ACCOUNT.STATE.VERIFYING ? undefined : hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
-        const bankConnectionStatusBadge = bankConnectionStatus ? (
-            <Badge
+        const bankConnectionStatusAddon = bankConnectionStatus ? (
+            <ConnectionStatusBadge
                 text={translate(bankConnectionStatus.labelKey)}
-                success={bankConnectionStatus.tone === 'success'}
-                error={bankConnectionStatus.tone === 'danger'}
-                isCondensed
-                badgeStyles={[styles.ml0]}
+                tone={bankConnectionStatus.tone}
+                tooltipText={bankConnectionStatus.tooltipKey ? translate(bankConnectionStatus.tooltipKey) : undefined}
             />
         ) : undefined;
-        const bankConnectionStatusAddon =
-            bankConnectionStatus?.tooltipKey && bankConnectionStatusBadge ? (
-                <Tooltip text={translate(bankConnectionStatus.tooltipKey)}>
-                    <View>{bankConnectionStatusBadge}</View>
-                </Tooltip>
-            ) : (
-                bankConnectionStatusBadge
-            );
         const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
         const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
 

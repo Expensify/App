@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,7 +14,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -198,22 +198,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     // Card state pills (below title, next to description)
     const descriptionAddon = useMemo(() => {
         if (item.connectionStatus) {
-            const badge = (
-                <Badge
+            return (
+                <ConnectionStatusBadge
                     text={item.connectionStatus.statusText}
-                    success={item.connectionStatus.statusTone === 'success'}
-                    error={item.connectionStatus.statusTone === 'danger'}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
+                    tone={item.connectionStatus.statusTone}
+                    tooltipText={item.connectionStatus.tooltipText}
                 />
-            );
-
-            return item.connectionStatus.tooltipText ? (
-                <Tooltip text={item.connectionStatus.tooltipText}>
-                    <View>{badge}</View>
-                </Tooltip>
-            ) : (
-                badge
             );
         }
         if (isNeedingAction && shouldShowDefaultBadge) {
