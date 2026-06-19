@@ -69,7 +69,7 @@ function UpgradeIntroView({
     onUpgrade,
     buttonDisabled,
     loading,
-    unlockBadgeText
+    unlockBadgeText,
 }: UpgradeIntroViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
