@@ -54,6 +54,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
     getConnectedIntegration,
+    getCountOfEnabledTagsOfList,
     getCurrentConnectionName,
     getTagApproverRule,
     getTagLists,
@@ -366,7 +367,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }, []);
         }
 
-        return Object.values(policyTagLists?.at(0)?.tags ?? {}).reduce<WorkspaceTagTableRowData[]>((acc, tag) => {
+        const firstTagList = policyTagLists.at(0);
+        const enabledTagsCount = getCountOfEnabledTagsOfList(firstTagList?.tags);
+        const isLastEnabledTagLocked = !!firstTagList?.required && enabledTagsCount === 1;
+
+        return Object.values(firstTagList?.tags ?? {}).reduce<WorkspaceTagTableRowData[]>((acc, tag) => {
             const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (!isOffline && isDisabled) {
@@ -377,6 +382,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
             const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
+            const isLastEnabledTagAndEnabled = isLastEnabledTagLocked && tag.enabled;
 
             acc.push({
                 keyForList: tag.name,
@@ -390,7 +396,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 disabled: isDisabled,
                 errors: tag.errors ?? undefined,
                 pendingAction: tag.pendingAction,
-                isLocked: !canWriteTags || isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag]),
+                isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
                 showRequiredSwitch: false,
                 action: () => navigateToTagSettings(tag.name),

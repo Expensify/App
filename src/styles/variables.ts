@@ -278,7 +278,6 @@ export default {
     photoUploadPopoverWidth: 335,
     featureTrainingModalWidth: 500,
     onboardingModalWidth: 640,
-    aiFeaturesPromoModalWidth: 440,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     wideConfirmModalWidth: 400,
@@ -346,6 +345,7 @@ export default {
     searchTypeColumnWidth: 52,
     workspaceRoomsMembersColumnWidth: 80,
     workspaceRoomsActionsColumnWidth: 40,
+    domainGroupsTableMembersColumnWidth: 180,
 
     gbrTooltipShiftHorizontal: -14,
     gbrTooltipShiftVertical: -16,
