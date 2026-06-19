@@ -29,8 +29,8 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const dynamicRouteKeys = Object.keys(DYNAMIC_ROUTES) as DynamicRouteKey[];
 
     for (const suffixMatch of allSuffixMatches) {
-        const {pattern, actualSuffix, pathParams} = suffixMatch;
-        const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(normalizedPathAfterRedirection, actualSuffix, pattern);
+        const {pattern, actualSuffix, pathParams, pathUsedForMatching} = suffixMatch;
+        const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(pathUsedForMatching, actualSuffix, pattern);
 
         // Find the DYNAMIC_ROUTES config key whose path matches the extracted pattern.
         const dynamicRoute = dynamicRouteKeys.find((key) => DYNAMIC_ROUTES[key].path === pattern) ?? '';

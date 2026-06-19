@@ -235,9 +235,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (route.path) {
         const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
         for (const suffixMatch of allSuffixMatches) {
-            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
-            // suffix and the registered pattern so query params can be resolved correctly.
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(suffixMatch.pathUsedForMatching, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 continue;
