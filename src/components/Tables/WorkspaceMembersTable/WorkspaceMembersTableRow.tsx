@@ -41,6 +41,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
     const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
+    const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${item.email} • ${roleLabel}`;
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
         styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
@@ -77,7 +78,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                             />
                             <TextWithTooltip
                                 shouldShowTooltip
-                                text={item.email}
+                                text={memberSubtitle}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 numberOfLines={1}
                             />
@@ -96,9 +97,11 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                         </View>
                     )}
 
-                    <View style={[!shouldUseNarrowTableLayout && styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Text numberOfLines={1}>{roleLabel}</Text>
-                    </View>
+                    {!shouldUseNarrowTableLayout && (
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Text numberOfLines={1}>{roleLabel}</Text>
+                        </View>
+                    )}
 
                     <Icon
                         src={icons.ArrowRight}
