@@ -1017,6 +1017,11 @@ const translations = {
                 subtitle: 'Account',
                 cta: 'Validate',
             },
+            addHomeAddress: {
+                title: 'Add a home address',
+                subtitle: 'Your admin enabled commuter exclusions for distance expenses. Add a home address so we can apply them to your claims.',
+                cta: 'Add address',
+            },
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
@@ -3519,6 +3524,8 @@ const translations = {
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         address: 'Address',
+        homeAddress: 'Home address',
+        commuterExclusionsNote: ({workspaceName}: {workspaceName: string}) => `${workspaceName} uses this address for commuter exclusions.`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
@@ -6894,13 +6901,22 @@ const translations = {
                 title: 'Exclude commutes',
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
+                summaryHomeAndOffice: 'Use home and office locations',
                 optionDisabledTitle: 'Do not exclude commutes',
                 optionDisabledHelp: 'No commute exclusion is applied.',
                 optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
                 optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
+                optionHomeAndOfficeTitle: 'Calculate by home and office',
+                optionHomeAndOfficeHelp: 'Subtract each member’s commute between their home and the workspace address from every distance claim.',
                 distanceLabel: 'Distance',
+                workspaceAddressRequired: {
+                    title: 'Oops, not so fast...',
+                    prompt: 'This workspace doesn’t have an address yet. Add one so commuter exclusions can use it.',
+                    cta: 'Add address',
+                },
                 errors: {
                     distanceMustBePositive: 'Distance must be greater than 0.',
+                    invalidAddress: 'Please enter a valid address',
                 },
             },
             distance: 'Distance',

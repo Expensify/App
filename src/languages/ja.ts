@@ -954,6 +954,11 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
+            addHomeAddress: {
+                title: '自宅住所を追加',
+                subtitle: '管理者が距離経費の通勤控除を有効にしました。請求に適用できるよう自宅住所を追加してください。',
+                cta: '住所を追加',
+            },
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -3396,6 +3401,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
         address: '住所',
+        homeAddress: '自宅住所',
+        commuterExclusionsNote: ({workspaceName}: {workspaceName: string}) => `${workspaceName} は通勤控除のためにこの住所を使用します。`,
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
@@ -6666,7 +6673,18 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
-                errors: {distanceMustBePositive: '距離は0より大きい値でなければなりません。'},
+                summaryHomeAndOffice: '自宅とオフィスの位置を使用',
+                optionHomeAndOfficeTitle: '自宅とオフィスで計算',
+                optionHomeAndOfficeHelp: '各メンバーの自宅とワークスペースの住所間の通勤距離を、各距離請求から差し引きます。',
+                workspaceAddressRequired: {
+                    title: 'おっと、ちょっと待って...',
+                    prompt: 'このワークスペースにはまだ住所がありません。通勤控除が使用できるように追加してください。',
+                    cta: '住所を追加',
+                },
+                errors: {
+                    distanceMustBePositive: '距離は0より大きい値でなければなりません。',
+                    invalidAddress: '有効な住所を入力してください',
+                },
             },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',

@@ -7,6 +7,7 @@ import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AddressPage from '@pages/AddressPage';
 import type {FormOnyxValues} from '@src/components/Form/types';
+import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +35,17 @@ function PersonalAddressPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY);
+    // Find the first workspace using the homeAndOffice commuter-exclusion method so we can surface
+    // a contextual note to the member explaining where this address is consumed. Multiple workspaces
+    // may rely on it; we name the first one for brevity since the policy is identical for all.
+    const [commuterHomeAndOfficePolicyName] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) =>
+            Object.values(policies ?? {}).find(
+                (policy) =>
+                    policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
+                    policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            )?.name,
+    });
     const isLoading = isLoadingOnyxValue(defaultCountryStatus);
     const address = useMemo(() => normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address, [privatePersonalDetails]);
     const reasonAttributes: SkeletonSpanReasonAttributes = {
@@ -50,7 +62,10 @@ function PersonalAddressPage() {
             address={address}
             isLoadingApp={isLoadingApp}
             updateAddress={(values) => updateAddress(values, privatePersonalDetails?.addresses ?? [])}
-            title={translate('privatePersonalDetails.address')}
+            title={translate('privatePersonalDetails.homeAddress')}
+            helperText={
+                commuterHomeAndOfficePolicyName ? translate('privatePersonalDetails.commuterExclusionsNote', {workspaceName: commuterHomeAndOfficePolicyName}) : undefined
+            }
         />
     );
 }

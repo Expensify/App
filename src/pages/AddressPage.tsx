@@ -6,6 +6,7 @@ import AddressForm from '@components/AddressForm';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,10 +29,22 @@ type AddressPageProps = {
     /** Title of address page */
     title: string;
 
+    /**
+     * Optional muted helper text shown directly under the header. Used to surface contextual
+     * notes about the address (e.g. which workspace consumes it for commuter exclusions).
+     */
+    helperText?: string;
+
+    /**
+     * When true, the underlying AddressForm also requires the zip/postal code. Used by callers
+     * that need a complete address (e.g. workspace addresses backing homeAndOffice exclusions).
+     */
+    shouldRequireZip?: boolean;
+
     defaultCountry?: Country;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, helperText, shouldRequireZip}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -108,18 +121,22 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         />
                     </View>
                 ) : (
-                    <AddressForm
-                        formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                        onSubmit={updateAddress}
-                        submitButtonText={translate('common.save')}
-                        city={city}
-                        country={currentCountry}
-                        onAddressChanged={handleAddressChange}
-                        state={state}
-                        street1={street1}
-                        street2={street2}
-                        zip={zipcode}
-                    />
+                    <>
+                        {!!helperText && <Text style={[styles.textLabelSupporting, styles.ph5, styles.pb3]}>{helperText}</Text>}
+                        <AddressForm
+                            formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                            onSubmit={updateAddress}
+                            submitButtonText={translate('common.save')}
+                            city={city}
+                            country={currentCountry}
+                            onAddressChanged={handleAddressChange}
+                            state={state}
+                            street1={street1}
+                            street2={street2}
+                            zip={zipcode}
+                            shouldRequireZip={shouldRequireZip}
+                        />
+                    </>
                 )}
             </DelegateNoAccessWrapper>
         </ScreenWrapper>
