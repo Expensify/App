@@ -14,7 +14,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 |----------|--------|-------|
 | Performance | `PERF-*` | Render optimization, memo patterns, useEffect hygiene, data selection |
 | Consistency | `CONSISTENCY-*` | Platform checks, magic values, unused props, ESLint discipline, localization, file naming, JSDoc |
-| Clean React Patterns | `CLEAN-REACT-*` | Composition, component ownership, state structure, prop typing, function components |
+| Clean React Patterns | `CLEAN-REACT-PATTERNS-*` | Composition, component ownership, state structure, prop typing, function components |
 | UI | `UI-*` | Loading indicators, scrollable pages, styling conventions |
 
 ## Quick Reference
@@ -56,10 +56,10 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CLEAN-REACT-PATTERNS-3](rules/clean-react-3-context-free-contracts.md) — Context-free component contracts
 - [CLEAN-REACT-PATTERNS-4](rules/clean-react-4-no-side-effect-spaghetti.md) — No side-effect spaghetti
 - [CLEAN-REACT-PATTERNS-5](rules/clean-react-5-narrow-state.md) — Keep state narrow
-- [CLEAN-REACT-6](rules/clean-react-6-no-componentprops.md) — Import the exported prop type instead of ComponentProps
-- [CLEAN-REACT-7](rules/clean-react-7-no-inline-prop-types.md) — Do not inline prop types on exported components
-- [CLEAN-REACT-8](rules/clean-react-8-no-class-components.md) — Use function components, not class components
-- [CLEAN-REACT-9](rules/clean-react-9-no-proptypes.md) — Use TypeScript types, not propTypes or defaultProps
+- [CLEAN-REACT-PATTERNS-6](rules/clean-react-6-no-componentprops.md) — Import the exported prop type instead of ComponentProps
+- [CLEAN-REACT-PATTERNS-7](rules/clean-react-7-no-inline-prop-types.md) — Do not inline prop types on exported components
+- [CLEAN-REACT-PATTERNS-8](rules/clean-react-8-no-class-components.md) — Use function components, not class components
+- [CLEAN-REACT-PATTERNS-9](rules/clean-react-9-no-proptypes.md) — Use TypeScript types, not propTypes or defaultProps
 
 ### UI
 - [UI-1](rules/ui-1-correct-loading-indicator.md) — Use the correct loading indicator based on navigation context
