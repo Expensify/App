@@ -291,10 +291,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.hr',
-                brickRoadIndicator: isMergeHRCompleteSetupNeeded(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
+                brickRoadIndicator:
+                    (hasHRError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined) ?? (isMergeHRCompleteSetupNeeded(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined),
                 icon: expensifyIcons.Users,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
-                brickRoadIndicator: hasHRError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.HR,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
