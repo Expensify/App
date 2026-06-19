@@ -160,8 +160,10 @@ function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: O
 
             Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
-            // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
-            setMissingOnyxUpdatesQueryPromise(finalReconnectAppAfterActivatingReliableUpdates());
+            // A full reconnectApp does not apply the triggering update here; it comes back in the reconnect response.
+            // We still drain the deferred queue afterwards so an update enqueued while the reconnect is in flight is applied
+            // in order instead of being cleared by finalizeUpdatesAndResumeQueue.
+            setMissingOnyxUpdatesQueryPromise(finalReconnectAppAfterActivatingReliableUpdates().then(() => validateAndApplyDeferredUpdates(clientLastUpdateID)));
 
             return true;
         }

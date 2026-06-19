@@ -462,6 +462,32 @@ describe('OnyxUpdateManager', () => {
         });
     });
 
+    it('should apply an update that arrives mid-reconnect instead of dropping it when the queue is finalized', async () => {
+        // First-ever reliable update: the client has never applied one, so the gap-handler takes the full-reconnect branch.
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 0);
+
+        const reconnectSpy = jest.spyOn(App, 'finalReconnectAppAfterActivatingReliableUpdates').mockImplementation(async () => {
+            // The reconnect response advances the client to update 2.
+            await OnyxUpdates.apply(update2);
+            await waitForBatchedUpdates();
+
+            // A concurrent Pusher update lands while the reconnect promise is still in flight (after the client advanced to 2, before finalize).
+            OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+        });
+
+        OnyxUpdateManager.handleMissingOnyxUpdates(update2);
+
+        return OnyxUpdateManager.queryPromise.then(() => {
+            // The mid-reconnect update must be applied in order, not cleared away by finalizeUpdatesAndResumeQueue (client reaches 3).
+            expect(lastUpdateIDAppliedToClient).toBe(3);
+
+            // It is contiguous with the reconnect response, so it must not trigger a redundant GetMissingOnyxMessages.
+            expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
+
+            reconnectSpy.mockRestore();
+        });
+    });
+
     it('should apply deferred updates after fetching pending updates', () => {
         App.mockValues.missingOnyxUpdatesToBeApplied = [update2, update3];
 
