@@ -19,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 import type {WorkspaceRowData} from '.';
 import LeaveWorkspaceFlow from './LeaveWorkspaceFlow';
@@ -36,9 +35,6 @@ type WorkspaceRowThreeDotsMenuProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
-
-    /** IDs of the policies eligible as copy-settings targets */
-    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
 /**
@@ -46,7 +42,7 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceRowThreeDotsMenuProps) {
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -109,11 +105,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
             text: translate('workspace.common.duplicateWorkspace'),
             onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
         });
-        const isSourceCorporate = item.type === CONST.POLICY.TYPE.CORPORATE;
-        const candidates = isSourceCorporate ? copySettingsEligibleTargets.corporateOnly : copySettingsEligibleTargets.adminNonPersonal;
-        const hasEligibleCopyTarget = candidates.length > 1 || (candidates.length === 1 && candidates.at(0) !== item.policyID);
-
-        if (hasEligibleCopyTarget && isBetaEnabled(CONST.BETAS.BULK_EDIT_WORKSPACES)) {
+        if (item.isEligibleToCopy && isBetaEnabled(CONST.BETAS.BULK_EDIT_WORKSPACES)) {
             menuItems.push({
                 icon: icons.Copy,
                 text: translate('workspace.copyPolicySettings.title'),

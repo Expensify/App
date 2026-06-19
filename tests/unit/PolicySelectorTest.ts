@@ -168,47 +168,26 @@ describe('createCopySettingsEligibleTargetsSelector', () => {
             ...overrides,
         }) as Policy;
 
-    it('includes non-personal admin policies in adminNonPersonal', () => {
-        const policies = {[`${P}p1`]: makePolicy({employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}})};
-        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toContain('p1');
-    });
-
-    it('includes corporate admin policies in both adminNonPersonal and corporateOnly', () => {
+    it('includes non-personal admin policies regardless of plan', () => {
         const policies = {
-            [`${P}p1`]: makePolicy({
-                type: CONST.POLICY.TYPE.CORPORATE,
-                employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}},
-            }),
+            [`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.TEAM, employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}}),
+            [`${P}p2`]: makePolicy({id: 'p2', type: CONST.POLICY.TYPE.CORPORATE, employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}}),
         };
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toContain('p1');
-        expect(result.corporateOnly).toContain('p1');
-    });
-
-    it('does not include corporate policies in corporateOnly when type is TEAM', () => {
-        const policies = {
-            [`${P}p1`]: makePolicy({
-                type: CONST.POLICY.TYPE.TEAM,
-                employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}},
-            }),
-        };
-        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toContain('p1');
-        expect(result.corporateOnly).not.toContain('p1');
+        expect(result).toContain('p1');
+        expect(result).toContain('p2');
     });
 
     it('excludes personal policies', () => {
         const policies = {[`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.PERSONAL})};
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toHaveLength(0);
-        expect(result.corporateOnly).toHaveLength(0);
+        expect(result).toHaveLength(0);
     });
 
     it('excludes non-admin policies', () => {
         const policies = {[`${P}p1`]: makePolicy({role: CONST.POLICY.ROLE.USER})};
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toHaveLength(0);
+        expect(result).toHaveLength(0);
     });
 
     it('excludes pending-delete policies', () => {
@@ -219,11 +198,11 @@ describe('createCopySettingsEligibleTargetsSelector', () => {
             }),
         };
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
-        expect(result.adminNonPersonal).toHaveLength(0);
+        expect(result).toHaveLength(0);
     });
 
-    it('returns empty arrays when policies is undefined', () => {
+    it('returns an empty array when policies is undefined', () => {
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(undefined);
-        expect(result).toEqual({adminNonPersonal: [], corporateOnly: []});
+        expect(result).toEqual([]);
     });
 });

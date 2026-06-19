@@ -44,15 +44,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
-import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import {createCopySettingsEligibleTargetsSelector} from '@src/selectors/Policy';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
-
-const EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS: CopySettingsEligibleTargets = {adminNonPersonal: [], corporateOnly: []};
 
 function WorkspacesListPage() {
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>>(null);
@@ -74,9 +71,13 @@ function WorkspacesListPage() {
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
 
-    // Light projection of the policy collection passed down to the row menus, which compute their copy-settings
-    // eligibility from it. Kept at the page level so it is evaluated once per policy write instead of once per row.
+    // IDs of every workspace eligible as a copy-settings target. Derived once per policy write (not per
+    // row) so each row can cheaply decide whether to offer "Copy settings".
     const [copySettingsEligibleTargets] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCopySettingsEligibleTargetsSelector(session?.email)}, [session?.email]);
+
+    // A workspace can copy its settings when there is at least one other eligible target.
+    const isWorkspaceEligibleToCopy = (policyID: string) =>
+        !!copySettingsEligibleTargets && (copySettingsEligibleTargets.length > 1 || (copySettingsEligibleTargets.length === 1 && copySettingsEligibleTargets.at(0) !== policyID));
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
 
@@ -172,6 +173,7 @@ function WorkspacesListPage() {
                     role: CONST.POLICY.ROLE.USER,
                     isDeleted: false,
                     isJoinRequestPending: true,
+                    isEligibleToCopy: false,
                     isDefault: activePolicyID === policyID,
                     shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
                     ownerAccountID: policyOwnerAccountID,
@@ -199,6 +201,7 @@ function WorkspacesListPage() {
                     role: policy.role,
                     ownerAccountID: policyOwnerAccountID,
                     isJoinRequestPending: false,
+                    isEligibleToCopy: isWorkspaceEligibleToCopy(policy.id),
                     shouldAnimateInHighlight: duplicateWorkspace?.policyID === policy.id,
                     isDefault: activePolicyID === policy.id,
                     isDeleted: isPendingDeletePolicy(policy),
@@ -280,7 +283,6 @@ function WorkspacesListPage() {
                     workspaces={workspaceRows}
                     onDeleteWorkspace={setPolicyIDToDelete}
                     pendingDeletePolicyID={policyIDToDelete}
-                    copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
                 />
             )}
             {!!policyIDToDelete && (
