@@ -313,7 +313,7 @@ function getHRCards({policy, connectionSyncProgress, isBetaEnabled, getLocalDate
         for (const [slug, providerEntry] of Object.entries(MERGE_HR_PROVIDERS) as Array<[MergeHRProviderSlug, (typeof MERGE_HR_PROVIDERS)[MergeHRProviderSlug]]>) {
             const state = getHRCardState({policy, connectionName: mergeConnectionName, connectionSyncProgress, getLocalDateFromDatetime, mergeSlug: slug});
             const mergeConfig = state.isConnected ? policy?.connections?.merge_hris?.config : undefined;
-            const needsSetup = state.isConnected && isMergeHRCompleteSetupNeeded(policy);
+            const needsSetup = state.isConnected && !state.needsReconnect && isMergeHRCompleteSetupNeeded(policy);
             const groupsRoute = ROUTES.WORKSPACE_HR_MERGE_GROUPS.getRoute(policyID);
 
             const configRows: HRConfigRow[] = state.isConnected

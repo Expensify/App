@@ -2049,6 +2049,7 @@ function getAccountingConnectionNames(): AccountingConnectionName[] {
 function isAccountingConnectionName(connectionName?: ConnectionName): connectionName is AccountingConnectionName {
     return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
 }
+
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
 }
