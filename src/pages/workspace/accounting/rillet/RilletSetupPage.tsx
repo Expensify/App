@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -29,29 +29,24 @@ function RilletSetupPage({route}: RilletSetupPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const policyID: string = route.params.policyID;
 
-    const confirmCredentials = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM>) => {
-            connectToRillet(policyID, values[INPUT_IDS.API_KEY]);
-            Navigation.dismissModal();
-        },
-        [policyID],
-    );
+    const confirmCredentials = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM>) => {
+        connectToRillet(policyID, values[INPUT_IDS.API_KEY]);
+        Navigation.dismissModal();
+    };
 
     const formItems = Object.values(INPUT_IDS);
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM> = {};
 
-            for (const formItem of formItems) {
-                if (values[formItem]) {
-                    continue;
-                }
-                addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
+        for (const formItem of formItems) {
+            if (values[formItem]) {
+                continue;
             }
-            return errors;
-        },
-        [formItems, translate],
-    );
+            addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
+        }
+        return errors;
+    };
+
     return (
         <ScreenWrapper
             testID="RilletSetupPage"

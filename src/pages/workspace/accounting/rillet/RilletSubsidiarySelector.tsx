@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionScreen from '@components/SelectionScreen';
@@ -44,27 +44,21 @@ function RilletSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
         Navigation.goBack();
     };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.rillet.noSubsidiariesFound')}
-                subtitle={translate('workspace.rillet.noSubsidiariesFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.rillet.noSubsidiariesFound')}
+            subtitle={translate('workspace.rillet.noSubsidiariesFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.rillet.subsidiarySelectDescription')}</Text>
-            </View>
-        ),
-        [styles.pb2, styles.ph5, styles.textNormal, translate],
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.rillet.subsidiarySelectDescription')}</Text>
+        </View>
     );
 
     return (
