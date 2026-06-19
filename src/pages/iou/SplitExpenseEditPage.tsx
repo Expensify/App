@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -5,9 +6,12 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchStateContext} from '@components/Search/SearchContext';
+import Switch from '@components/Switch';
+import Text from '@components/Text';
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -18,7 +22,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
-import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/Split';
+import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, setDraftSplitTransaction, updateSplitExpenseField} from '@libs/actions/IOU/Split';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
@@ -29,13 +33,24 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getTagLists} from '@libs/PolicyUtils';
+import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+import {
+    getBillable,
+    getDistanceInMeters,
+    getRateID,
+    getReimbursable,
+    getTag,
+    getTagForDisplay,
+    getTaxName,
+    isDistanceRequest,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -142,6 +157,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
+
+    const isTaxEnabled = isTaxTrackingEnabled(true, currentPolicy, isDistance);
+    const shouldShowTax = isTaxEnabled && !isDistance;
+    const taxRateTitle = getTaxName(currentPolicy, splitExpenseDraftTransaction);
+    const taxAmountTitle = convertToDisplayString(Math.abs(splitExpenseDraftTransactionDetails.taxAmount ?? 0), currency);
+
+    const shouldShowBillable = !(currentPolicy?.disabledFields?.defaultBillable ?? true);
+    const shouldShowReimbursable = currentPolicy?.disabledFields?.reimbursable !== true;
+
     const isCustomUnitOutOfPolicy = !rates[currentRateID] || (isDistance && !rate);
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
@@ -151,6 +175,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         }
 
         return '';
+    };
+
+    const toggleReimbursable = (value: boolean) => {
+        setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitExpenseDraftTransaction, {reimbursable: value}, currentPolicy);
+    };
+
+    const toggleBillable = (value: boolean) => {
+        setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitExpenseDraftTransaction, {billable: value}, currentPolicy);
     };
 
     const distanceRequestFields = isDistance ? (
@@ -337,6 +369,74 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                         />
+                        {shouldShowTax && (
+                            <>
+                                <MenuItemWithTopDescription
+                                    key={translate('common.tax')}
+                                    description={currentPolicy?.taxRates?.name ?? translate('common.tax')}
+                                    title={taxRateTitle}
+                                    numberOfLinesTitle={2}
+                                    onPress={() => {
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                reportID,
+                                                Navigation.getActiveRoute(),
+                                            ),
+                                        );
+                                    }}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                    shouldShowRightIcon
+                                />
+                                <MenuItemWithTopDescription
+                                    key={translate('iou.taxAmount')}
+                                    description={translate('iou.taxAmount')}
+                                    title={taxAmountTitle}
+                                    numberOfLinesTitle={2}
+                                    onPress={() => {
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                reportID,
+                                                Navigation.getActiveRoute(),
+                                            ),
+                                        );
+                                    }}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                    shouldShowRightIcon
+                                />
+                            </>
+                        )}
+                        {shouldShowReimbursable && (
+                            <OfflineWithFeedback
+                                contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                            >
+                                <Text>{Str.UCFirst(translate('iou.reimbursable'))}</Text>
+                                <Switch
+                                    accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                                    isOn={getReimbursable(splitExpenseDraftTransaction)}
+                                    onToggle={toggleReimbursable}
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        {shouldShowBillable && (
+                            <OfflineWithFeedback
+                                contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                            >
+                                <Text>{translate('common.billable')}</Text>
+                                <Switch
+                                    accessibilityLabel={translate('common.billable')}
+                                    isOn={getBillable(splitExpenseDraftTransaction)}
+                                    onToggle={toggleBillable}
+                                />
+                            </OfflineWithFeedback>
+                        )}
                         <MenuItemWithTopDescription
                             key={translate('common.report')}
                             description={translate('common.report')}
