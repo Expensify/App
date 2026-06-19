@@ -331,7 +331,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         let allTransactionsCreated = true;
         let lastOptimisticTransactionID: string | undefined;
 
-        for (const item of transactions) {
+        for (const [index, item] of transactions.entries()) {
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
             const isTestReceipt = receipt?.isTestReceipt ?? false;
@@ -437,6 +437,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
                 optimisticTransactionID: lastOptimisticTransactionID,
+                // Action owns post-create navigation + growl; only the final transaction should trigger it.
+                isLastTransactionOfBatch: index === transactions.length - 1,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -594,7 +596,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         let lastOptimisticTransactionID: string | undefined;
-        for (const item of transactions) {
+        for (const [index, item] of transactions.entries()) {
             lastOptimisticTransactionID = rand64();
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
@@ -650,6 +652,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
+                // Action owns post-create navigation + growl; only the final transaction should trigger it.
+                isLastTransactionOfBatch: index === transactions.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
                 introSelected,
