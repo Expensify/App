@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
-import type {LayoutChangeEvent, FlatList as RNFlatList, ViewabilityConfig, ViewToken} from 'react-native';
+import {FlatList, Platform, View} from 'react-native';
+import type {LayoutChangeEvent, FlatList as RNFlatList, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
@@ -23,6 +23,13 @@ import type {BaseFeatureTrainingModalProps, FeatureTrainingModalCarouselProps, F
 const CAROUSEL_VIEWABILITY_CONFIG: ViewabilityConfig = {itemVisiblePercentThreshold: 95};
 const CAROUSEL_DOT_SIZE = 6;
 const PAGINATION_DOTS_BOTTOM_OFFSET = 5;
+
+// react-native-web translates `pagingEnabled` to CSS scroll-snap, but `scroll-snap-align` only
+// lands on the ScrollView's direct children — our per-page View (inside `renderItem`) isn't a
+// direct child, so the FlatList ends up with a single snap point and fast flings skip pages.
+// Applying `scrollSnapAlign: 'start'` on each page wrapper turns every page into a snap point.
+// Native ignores this CSS-only key, so we still gate it on Platform.OS === 'web' for clarity.
+const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? ({scrollSnapAlign: 'start'} as ViewStyle) : {};
 
 type FeatureTrainingModalCarouselBodyProps = Pick<
     BaseFeatureTrainingModalProps,
@@ -220,13 +227,21 @@ function FeatureTrainingModalCarouselBody({
                             keyExtractor={(_page, index) => `FeatureTrainingModalIllustration-${index}`}
                             horizontal
                             pagingEnabled
+                            // Defense-in-depth on native: `pagingEnabled` is honored by the
+                            // platform, but these props arrest momentum precisely at each page
+                            // so fast flings never coast over a middle page. On web they're
+                            // no-ops; `WEB_CAROUSEL_PAGE_SNAP_STYLE` below does the equivalent
+                            // work via CSS scroll-snap.
+                            disableIntervalMomentum
+                            snapToInterval={carouselViewportWidth}
+                            decelerationRate="fast"
                             showsHorizontalScrollIndicator={false}
                             keyboardShouldPersistTaps="handled"
                             viewabilityConfig={CAROUSEL_VIEWABILITY_CONFIG}
                             onViewableItemsChanged={onViewableItemsChanged}
                             getItemLayout={(_data, index) => ({length: carouselViewportWidth, offset: index * carouselViewportWidth, index})}
                             renderItem={({item: page, index}) => (
-                                <View style={{width: carouselViewportWidth}}>
+                                <View style={[{width: carouselViewportWidth}, WEB_CAROUSEL_PAGE_SNAP_STYLE]}>
                                     <FeatureTrainingModalIllustration
                                         illustrationAspectRatio={illustrationAspectRatio}
                                         illustrationInnerContainerStyle={illustrationInnerContainerStyle}
