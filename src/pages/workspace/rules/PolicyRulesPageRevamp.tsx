@@ -83,8 +83,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -438,7 +437,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const cardRulesEmptyStateContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb4,
+        style: styles.pb3,
     });
 
     const cardRulesEmptyState = useMemo(
