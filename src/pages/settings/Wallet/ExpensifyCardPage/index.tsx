@@ -453,13 +453,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 }
                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
                                             }}
-                                            limitType={card?.nameValuePairs?.limitType}
-                                            cardHintText={getCardHintText(
-                                                card?.nameValuePairs?.validFrom,
-                                                card?.nameValuePairs?.validThru,
-                                                personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                                translate,
-                                            )}
                                         />
                                     ) : (
                                         <>
