@@ -6,6 +6,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -77,7 +78,8 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         shouldInitialize: didScreenTransitionEnd,
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const currency = useCurrencyForExpensifyCard({policyID});
+    const defaultFundID = useDefaultFundID(policyID);
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
