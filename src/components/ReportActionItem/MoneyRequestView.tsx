@@ -1,3 +1,4 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -47,7 +48,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {updateMoneyRequestBillable, updateMoneyRequestReimbursable, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {updateMoneyRequestBillable, updateMoneyRequestCategory, updateMoneyRequestReimbursable, updateMoneyRequestTag, updateMoneyRequestTaxRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
@@ -63,12 +64,15 @@ import {
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
+    getQBOVendorByID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasVendorFeature,
     isAttendeeTrackingEnabled,
+    isGroupPolicyByType,
+    isMultiLevelTags,
     isPolicyAccessible,
     isTaxTrackingEnabled,
-    resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -83,7 +87,6 @@ import {
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
-    isPaidGroupPolicy,
     isReportApproved,
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
@@ -328,6 +331,8 @@ function MoneyRequestView({
         updatedTransaction?.taxAmount !== undefined
             ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), actualCurrency)
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
+    // Skip a zero converted tax (e.g. tax exempt) so we don't render a redundant "Converted 0.00".
+    const formattedConvertedTaxAmount = transaction?.convertedTaxAmount ? convertToDisplayString(Math.abs(transaction.convertedTaxAmount), moneyRequestReport?.currency) : '';
 
     const taxRatesDescription = taxRates?.name;
 
@@ -335,8 +340,7 @@ function MoneyRequestView({
     const {taxCode, taxValue} = baseTransaction ?? {};
 
     const taxRateTitle = getTaxName(policy, baseTransaction, isExpenseUnreported);
-    const resolvedTaxCode = taxCode ? resolveCurrentTaxCode(policy, taxCode) : undefined;
-    const selectedPolicyTaxValue = resolvedTaxCode ? policy?.taxRates?.taxes?.[resolvedTaxCode]?.value : undefined;
+    const selectedPolicyTaxValue = taxCode ? policy?.taxRates?.taxes?.[taxCode]?.value : undefined;
     const hasTaxValueChanged = taxCode && taxValue !== undefined ? selectedPolicyTaxValue !== taxValue : false;
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
@@ -423,7 +427,10 @@ function MoneyRequestView({
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const isPolicyExpenseChat = isReportInGroupPolicy(moneyRequestReport);
+    const [moneyRequestReportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(moneyRequestReportPolicyType);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
@@ -438,6 +445,11 @@ function MoneyRequestView({
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && hasEnabledTags(policyTagLists)));
+    // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead
+    // of navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully
+    // emptied, so also cover "no enabled tags remain". Scoped to single-level tag lists.
+    const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
+    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag && !isMultiLevelTags(policyTagList);
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
@@ -457,6 +469,10 @@ function MoneyRequestView({
             policy,
         });
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
+
+    const transactionVendor = transaction?.comment?.vendor;
+    const transactionVendorName = getQBOVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
+    const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
@@ -485,7 +501,7 @@ function MoneyRequestView({
     const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;
 
-    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isPaidGroupPolicy(transactionThreadReport));
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], isTransactionScanning || !isReportInGroupPolicy(transactionThreadReport));
     const hasViolations = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
         getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0;
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
@@ -623,6 +639,12 @@ function MoneyRequestView({
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.nonReimbursable'))}`;
     }
 
+    // Show the converted tax here since the redundant report-level Tax total is hidden for a single-expense report.
+    let taxAmountDescription = translate('iou.taxAmount');
+    if (shouldShowConvertedAmount && formattedConvertedTaxAmount) {
+        taxAmountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${formattedConvertedTaxAmount}`;
+    }
+
     if (isFromMergeTransaction && !rateName) {
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
         // We need to extract the rate from the merchant string
@@ -724,6 +746,73 @@ function MoneyRequestView({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
                 parentReportNextStep,
+                delegateAccountID,
+            });
+        });
+    };
+
+    const showCategoryDisabledAlert = () => {
+        const transactionID = transaction?.transactionID;
+        if (!transactionID) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('iou.categoryDisabledAlert.title'),
+            prompt: translate('iou.categoryDisabledAlert.prompt'),
+            confirmText: translate('iou.categoryDisabledAlert.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM || !canEdit) {
+                return;
+            }
+
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                category: '',
+                policy,
+                policyTagList,
+                policyCategories,
+                policyRecentlyUsedCategories: undefined,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+                delegateAccountID,
+            });
+        });
+    };
+
+    const showTagDisabledAlert = () => {
+        const transactionID = transaction?.transactionID;
+        if (!transactionID) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('iou.tagDisabledAlert.title'),
+            prompt: translate('iou.tagDisabledAlert.prompt'),
+            confirmText: translate('iou.tagDisabledAlert.confirmText'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM || !canEdit) {
+                return;
+            }
+
+            updateMoneyRequestTag({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                tag: '',
+                policy,
+                policyTagList,
+                policyRecentlyUsedTags: undefined,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+                isOffline,
                 delegateAccountID,
             });
         });
@@ -913,6 +1002,10 @@ function MoneyRequestView({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+                            return;
+                        }
+                        if (shouldShowTagDisabledAlert) {
+                            showTagDisabledAlert();
                             return;
                         }
                         Navigation.navigate(
@@ -1114,6 +1207,11 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() => {
+                                if (shouldShowCategoryDisabledAlert) {
+                                    showCategoryDisabledAlert();
+                                    return;
+                                }
+
                                 if (shouldNavigateToUpgradePath && transactionThreadReport) {
                                     Navigation.navigate(
                                         ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
@@ -1159,6 +1257,26 @@ function MoneyRequestView({
                             errorText={getErrorForField('category')}
                             copyValue={categoryCopyValue}
                             copyable={!!categoryCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowVendor && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
+                        <MenuItemWithTopDescription
+                            description={translate('common.vendor')}
+                            title={transactionVendorName}
+                            numberOfLinesTitle={2}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (!transactionThreadReport?.reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_VENDOR.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID));
+                            }}
+                            brickRoadIndicator={getErrorForField('vendor') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('vendor')}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -1212,7 +1330,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
                         <MenuItemWithTopDescription
                             title={taxAmountTitle}
-                            description={translate('iou.taxAmount')}
+                            description={taxAmountDescription}
                             numberOfLinesTitle={2}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}

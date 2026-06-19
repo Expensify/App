@@ -175,6 +175,33 @@ describe('OnboardingEmployees Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should hide the back button for a public-domain VSB user who skipped the work email step', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                isMergeAccountStepSkipped: true,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+        });
+
+        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.EMPLOYEES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByLabelText(TestHelper.translateLocal('common.back'))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should hide 1-4, 5-10, and legacy 1-10 options when the signupQualifier is smb', async () => {
         await TestHelper.signInWithTestUser();
 

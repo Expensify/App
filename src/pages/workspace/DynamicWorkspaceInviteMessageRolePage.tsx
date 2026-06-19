@@ -8,7 +8,7 @@ import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -23,7 +23,10 @@ type DynamicWorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoading
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE>;
 
 function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspaceInviteMessageRolePageProps) {
-    const [role = CONST.POLICY.ROLE.USER, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
+    const [roleFromOnyx, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
+    // Submit workspaces only allow inviting editors. Keep this default aligned with WorkspaceInviteMessageComponent so the
+    // role row pre-selects Editor before the user picks anything.
+    const role = roleFromOnyx ?? (isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.USER);
     const isOnyxLoading = isLoadingOnyxValue(roleResult);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path);
     useRedirectSubmitWorkspaceFeatureUpgrade({

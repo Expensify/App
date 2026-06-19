@@ -40,14 +40,13 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {isSelfDM} from '@libs/ReportUtils';
+import {isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
@@ -70,6 +69,9 @@ function SubmitDetailsPage({
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const routeReportID = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const draftReportID = unknownUserDetails ? unknownUserDetails.reportID : routeReportID;
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
@@ -177,7 +179,7 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
     });
 
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
@@ -192,7 +194,7 @@ function SubmitDetailsPage({
     }, [defaultBillable]);
 
     useEffect(() => {
-        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 
@@ -261,6 +263,7 @@ function SubmitDetailsPage({
                 draftTransactionIDs,
                 isSelfTourViewed,
                 optimisticTransactionID,
+                currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -417,7 +420,7 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, true));
+                        performUpload(participant, true);
                     }}
                     onDeny={(wasUserInitiated) => {
                         setStartLocationPermissionFlow(false);
@@ -429,7 +432,7 @@ function SubmitDetailsPage({
                             setIsConfirming(false);
                             return;
                         }
-                        navigateAfterInteraction(() => performUpload(participant, false));
+                        performUpload(participant, false);
                     }}
                     onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />

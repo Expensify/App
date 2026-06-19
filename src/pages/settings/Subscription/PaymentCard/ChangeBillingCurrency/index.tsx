@@ -1,26 +1,49 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import PaymentCardChangeCurrencyForm from '@components/AddPaymentCard/PaymentCardChangeCurrencyForm';
-import type {FormOnyxValues} from '@components/Form/types';
+import PaymentCardCurrencyHeader from '@components/AddPaymentCard/PaymentCardCurrencyHeader';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
+import {clearDraftValues, clearErrors} from '@libs/actions/FormActions';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {getFieldRequiredErrors, isValidSecurityCode} from '@libs/ValidationUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
+
+type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
+
+const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
 
 function ChangeBillingCurrency() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT);
     const [formData] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+
+    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
+    const initialCurrency = defaultCard?.accountData?.currency;
+    const currency = (formDraft?.[INPUT_IDS.CURRENCY] ?? initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD) as Currency;
+
+    // Keep the latest card currency available to the unmount cleanup below without re-running it on every change.
+    const initialCurrencyRef = useRef(initialCurrency);
+    useEffect(() => {
+        initialCurrencyRef.current = initialCurrency;
+    }, [initialCurrency]);
+
     const formDataComplete = formData?.isLoading === false && !formData.errors;
     const prevIsLoading = usePrevious(formData?.isLoading);
     const prevFormDataComplete = usePrevious(formDataComplete);
@@ -32,23 +55,71 @@ function ChangeBillingCurrency() {
         Navigation.goBack();
     }, [formDataComplete, prevFormDataComplete, prevIsLoading]);
 
-    const changeBillingCurrency = useCallback((currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>, values?: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
-        if (!values?.securityCode) {
-            Navigation.goBack();
-            return;
-        }
-        PaymentMethods.updateBillingCurrency(currency ?? CONST.PAYMENT_CARD_CURRENCY.USD, values.securityCode);
+    useEffect(() => {
+        // Clear any stale submission error (e.g. an incorrect security code from a previous attempt) so reopening the page starts clean,
+        // and drop the currency draft when leaving the flow.
+        clearErrors(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
+            // The currency selector mirrors the picked currency into ADD_PAYMENT_CARD_FORM; reset it on exit so reopening
+            // the flow doesn't show a stale selection that no longer matches the card's actual currency.
+            PaymentMethods.setPaymentMethodCurrency((initialCurrencyRef.current ?? CONST.PAYMENT_CARD_CURRENCY.USD) as Currency);
+        };
     }, []);
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
+        if (values.securityCode && !isValidSecurityCode(values.securityCode)) {
+            errors.securityCode = translate('addPaymentCardPage.error.securityCode');
+        }
+        return errors;
+    };
+
+    const onSubmit = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
+            if (!values?.securityCode) {
+                Navigation.goBack();
+                return;
+            }
+            PaymentMethods.updateBillingCurrency(currency, values.securityCode);
+        },
+        [currency],
+    );
 
     return (
         <ScreenWrapper testID="ChangeBillingCurrency">
             <HeaderWithBackButton title={translate('billingCurrency.changeBillingCurrency')} />
             <View style={styles.containerWithSpaceBetween}>
-                <PaymentCardChangeCurrencyForm
-                    isSecurityCodeRequired
-                    changeBillingCurrency={changeBillingCurrency}
-                    initialCurrency={defaultCard?.accountData?.currency}
-                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM}
+                    validate={validate}
+                    onSubmit={onSubmit}
+                    submitButtonText={translate('common.save')}
+                    scrollContextEnabled
+                    style={[styles.mh5, styles.flexGrow1]}
+                    shouldHideFixErrorsAlert
+                >
+                    <PaymentCardCurrencyHeader />
+                    <View style={[styles.mt5, styles.mhn5]}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={currency}
+                            descriptionTextStyle={styles.textNormal}
+                            description={translate('common.currency')}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path))}
+                        />
+                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.SECURITY_CODE}
+                        label={translate('addDebitCardPage.cvv')}
+                        aria-label={translate('addDebitCardPage.cvv')}
+                        role={CONST.ROLE.PRESENTATION}
+                        containerStyles={[styles.mt5]}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
+                        autoComplete="cc-csc"
+                    />
+                </FormProvider>
             </View>
         </ScreenWrapper>
     );

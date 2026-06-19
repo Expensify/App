@@ -15,7 +15,6 @@ import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {
-    getCurrentTaxID,
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
     getQBOVendorByID,
@@ -30,21 +29,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Beta,
-    Card,
-    CardList,
-    Policy,
-    PolicyCategories,
-    PolicyTagLists,
-    PolicyTags,
-    Report,
-    ReportAction,
-    TaxRates,
-    Transaction,
-    TransactionViolation,
-    ViolationName,
-} from '@src/types/onyx';
+import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -95,13 +80,6 @@ function hasEnabledTags(tags?: PolicyTags): boolean {
     return !!tags && Object.values(tags).some((tag) => !!tag.enabled);
 }
 
-function resolveCurrentTaxCodeFromTaxRates(policyTaxRates: TaxRates, taxCode: string): string | undefined {
-    if (policyTaxRates[taxCode]) {
-        return taxCode;
-    }
-    return Object.keys(policyTaxRates).find((taxIDKey) => policyTaxRates[taxIDKey].previousTaxCode === taxCode);
-}
-
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
  */
@@ -120,15 +98,16 @@ function getTagViolationsForSingleLevelTags(
     const hasEnabledTagsInList = hasEnabledTags(policyTags);
     let newTransactionViolations = [...transactionViolations];
 
-    // Add 'tagOutOfPolicy' violation if tag is not in policy and there are enabled tags
-    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy && hasEnabledTagsInList) {
+    // Add 'tagOutOfPolicy' if the tag is not in policy. Not gated on enabled tags remaining, so deleting the
+    // last tag still flags a transaction that holds the deleted tag. Mirrors 'categoryOutOfPolicy'.
+    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
-    // Remove 'tagOutOfPolicy' violation if tag is empty, in policy, or there are no enabled tags
-    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy || !hasEnabledTagsInList)) {
+    // Remove 'tagOutOfPolicy' violation if tag is empty or in policy
+    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
     }
 
@@ -352,8 +331,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const currentTaxCode = resolveCurrentTaxCodeFromTaxRates(policyTaxRates, taxCode) ?? taxCode;
-            const matchingTaxRate = policyTaxRates[currentTaxCode];
+            const matchingTaxRate = policyTaxRates[taxCode];
             if (!matchingTaxRate) {
                 return false;
             }
@@ -439,8 +417,9 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
         }
 
-        // Calculate client-side category violations
-        const policyRequiresCategories = !!policy.requiresCategory;
+        // Calculate client-side category violations. Also run when the transaction has a category (not just
+        // when the policy requires one) so disabling that category flags it optimistically. Mirrors tags below.
+        const policyRequiresCategories = (!!policy.requiresCategory || !!updatedTransaction.category) && !isSelfDM;
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
@@ -469,6 +448,10 @@ const ViolationsUtils = {
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
+        } else if (transactionViolations.some((violation) => violation.name === 'missingCategory')) {
+            // Categories aren't required and none is set, so a leftover 'missingCategory' is stale (e.g. after the
+            // workspace disables categories). Remove it so the optimistic state matches the backend.
+            newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
         }
 
         // Calculate client-side tag violations
@@ -537,7 +520,7 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const isTaxInPolicy = !!updatedTransaction.taxCode && !!getCurrentTaxID(policy, updatedTransaction.taxCode);
+        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -754,7 +737,10 @@ const ViolationsUtils = {
         }
 
         const hasTransactionTaxData = !!updatedTransaction.taxCode || !!updatedTransaction.taxValue || !!updatedTransaction.taxAmount;
-        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !isTaxInPolicy : hasTransactionTaxData);
+
+        // When tax tracking is enabled, only a non-empty tax code that isn't a current policy rate is out of policy.
+        // A transaction with no tax code (e.g. its tax was deleted) must not be flagged.
+        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !!updatedTransaction.taxCode && !isTaxInPolicy : hasTransactionTaxData);
 
         if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});

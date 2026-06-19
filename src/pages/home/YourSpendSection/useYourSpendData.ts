@@ -2,21 +2,25 @@ import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
-import {getDisplayableExpensifyCards} from '@libs/CardUtils';
+import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches, getSuggestedSearchesVisibility, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Card, Policy, Report} from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import YOUR_SPEND_ROW_STATE from './const';
+import {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE} from './const';
 import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
 
 type YourSpendRowState = ValueOf<typeof YOUR_SPEND_ROW_STATE>;
+type YourSpendCardKind = ValueOf<typeof YOUR_SPEND_CARD_KIND>;
 
 type GetYourSpendRowStateParams = {
     isApplicable: boolean;
@@ -30,11 +34,23 @@ type YourSpendCardRow = {
     query: string;
     total: number | undefined;
     currency: string | undefined;
-    // Fraction (0–1) of the card's unapproved expense limit that has been spent.
-    // `undefined` when the card has no limit configured, in which case the consumer
-    // should not render the remaining-limit indicator.
+
+    // Fraction (0–1) of the card's unapproved expense limit. `undefined` when no
+    // limit is configured or for third-party rows; suppresses the limit indicator.
     spentFraction: number | undefined;
+
+    kind: YourSpendCardKind;
+    bank: CardFeedWithNumber;
+
+    // Set for employer-feed third-party cards; `undefined` for personal Plaid cards.
+    fundID: string | undefined;
+
+    // `isPersonalCard` semantics (no `fundID`, `fundID === '0'`, or CSV bank). Personal
+    // cards render the bare bank artwork; employer-feed cards key the icon by `feed|domainID`.
+    isPersonal: boolean;
 };
+
+type TaggedCard = {card: Card; kind: YourSpendCardKind};
 
 type YourSpendApplicability = {
     isApprovalApplicable: boolean;
@@ -114,7 +130,7 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
 }
 
 function useYourSpendData(): UseYourSpendDataReturn {
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, email} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
@@ -142,24 +158,37 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
 
-    // Memo anchor. The compiler does not auto-cache this call, so without the
-    // `useMemo` every downstream value derived from `displayableCards` would
-    // get a new identity each render and defeat the compiler's downstream caches.
-    const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
+    // Destructure here so downstream memos depend only on the sub-records, not on
+    // the parent value that's rebuilt on every CARD_FEED_ERRORS tick.
+    const {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection} = useCardFeedErrors();
 
-    // Stable signature of the displayable card IDs. Used as a dependency for the
-    // search-firing effect so it re-runs when cards finish loading after first
-    // focus, without re-firing on unrelated cardList updates.
+    // Memo anchor: the compiler does not auto-cache these calls, so downstream
+    // memos would invalidate every render without it.
+    const expensifyCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
+    const thirdPartyCards = useMemo(
+        () => getDisplayableThirdPartyCards(cardList, {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection}),
+        [cardList, cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection],
+    );
+
+    // Ordering invariant: Expensify Card rows first, then third-party rows.
+    const displayableCards = useMemo<TaggedCard[]>(
+        () => [
+            ...expensifyCards.map((card): TaggedCard => ({card, kind: YOUR_SPEND_CARD_KIND.EXPENSIFY})),
+            ...thirdPartyCards.map((card): TaggedCard => ({card, kind: YOUR_SPEND_CARD_KIND.THIRD_PARTY})),
+        ],
+        [expensifyCards, thirdPartyCards],
+    );
+
+    // Stable signature for the search-firing effect — re-fires on card-set changes
+    // but not on unrelated `cardList` mutations.
     const displayableCardIDsKey = displayableCards
-        .map((card) => card.cardID)
+        .map(({card}) => card.cardID)
         .sort((a, b) => a - b)
         .join(',');
 
-    // Precompute the query string and parsed JSON per card. Another memo anchor:
-    // downstream caches key off this object's identity.
     const cardQueryByCardID = useMemo(
         () =>
-            displayableCards.reduce<Record<number, {query: string; queryJSON: ReturnType<typeof buildSearchQueryJSON>}>>((acc, card) => {
+            displayableCards.reduce<Record<number, {query: string; queryJSON: ReturnType<typeof buildSearchQueryJSON>}>>((acc, {card}) => {
                 const query = buildRecentCardTransactionsQuery(accountID, card.cardID);
                 acc[card.cardID] = {query, queryJSON: buildSearchQueryJSON(query)};
                 return acc;
@@ -167,9 +196,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [displayableCards, accountID],
     );
 
-    // Narrow the snapshot subscription to our displayable cards and project to just
-    // {count, total, currency}, so `useOnyx`'s deep-equal on selector output is
-    // O(1) per card and unrelated snapshot mutations don't re-render us.
     const cardSnapshotKeys = useMemo(
         () =>
             Object.values(cardQueryByCardID)
@@ -185,6 +211,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
         currency: string | undefined;
     };
 
+    // Project snapshots down to {count, total, currency} so unrelated snapshot
+    // mutations don't re-render us (useOnyx deep-equals selector output).
     const cardSnapshotsSelector = (snapshots: OnyxCollection<SearchResults> | undefined): Record<string, CardSnapshotSummary | undefined> | undefined => {
         if (!snapshots || cardSnapshotKeys.length === 0) {
             return undefined;
@@ -198,14 +226,12 @@ function useYourSpendData(): UseYourSpendDataReturn {
     };
     const [cardSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {selector: cardSnapshotsSelector});
 
-    // Per-card equivalent of the approval/payment cache below; see that comment
-    // for the full mechanic. Cached by cardID so each row keeps its last READY
-    // totals when the shared snapshot is wiped by the Search screen.
+    // Per-card READY totals cache; see the approval/payment cache below for the mechanic.
     const [cachedCardTotals, setCachedCardTotals] = useState<Record<number, YourSpendRowTotals>>({});
 
     const cardCacheUpdates: Record<number, YourSpendRowTotals> = {};
     let hasCardCacheUpdates = false;
-    for (const card of displayableCards) {
+    for (const {card} of displayableCards) {
         const entry = cardQueryByCardID[card.cardID];
         const hash = entry?.queryJSON?.hash;
         const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
@@ -223,11 +249,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
         setCachedCardTotals((prev) => ({...prev, ...cardCacheUpdates}));
     }
 
-    // `useMemo` to keep a stable identity for the consumer list; the compiler
-    // does not extract this reduce on its own.
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
-            displayableCards.reduce<YourSpendCardRow[]>((acc, card) => {
+            displayableCards.reduce<YourSpendCardRow[]>((acc, {card, kind}) => {
                 const entry = cardQueryByCardID[card.cardID];
                 if (!entry) {
                     return acc;
@@ -236,9 +260,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
                 const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
 
-                // Snapshot loaded but its count was wiped by the Search screen — fall back
-                // to cached READY totals. "Snapshot never loaded" and "count === 0" both
-                // leave the row hidden.
+                // Snapshot loaded but count wiped by the Search screen — fall back to cached READY totals.
                 const countIsMissing = snapshot !== undefined && (snapshot.count === undefined || snapshot.count === null);
                 const cached = cachedCardTotals[card.cardID];
                 const shouldUseCached = countIsMissing && cached !== undefined;
@@ -250,15 +272,30 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 const total = snapshot?.count ? snapshot.total : cached?.total;
                 const currency = snapshot?.count ? snapshot.currency : cached?.currency;
 
-                const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
-                const spentFraction = unapprovedExpenseLimit ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : undefined;
+                // Fallback for third-party cards with empty `lastFourPAN` and digits in `cardName`
+                // (e.g. "CREDIT CARD...1234"; no-space names fall through to ""). Ternary so
+                // empty-string `lastFourPAN` also falls through.
+                const lastFour = card.lastFourPAN ? card.lastFourPAN : lastFourNumbersFromCardName(card.cardName);
+                if (!lastFour) {
+                    return acc;
+                }
+
+                let spentFraction: number | undefined;
+                if (kind === YOUR_SPEND_CARD_KIND.EXPENSIFY) {
+                    const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
+                    spentFraction = unapprovedExpenseLimit ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : undefined;
+                }
                 acc.push({
                     cardID: card.cardID,
-                    lastFour: card.lastFourPAN ?? '',
+                    lastFour,
                     query: entry.query,
                     total,
                     currency,
                     spentFraction,
+                    kind,
+                    bank: card.bank,
+                    fundID: card.fundID,
+                    isPersonal: isPersonalCard(card),
                 });
                 return acc;
             }, []),
@@ -325,15 +362,26 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
+    // The `cardFeedsByPolicy` and `defaultExpensifyCard` params are not passed
+    // because they have no effect on the `TODO_SEARCH_KEYS` (and we are only interested in `TODO_SEARCH_KEYS`)
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(email, {}, policies, undefined).visibility;
+    const suggestedSearches = getSuggestedSearches(accountID);
+
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${paidGroupPolicyIDs.join(',')}|${outstandingReportsSignature ?? ''}`;
+    const applicabilityKey = [
+        isApprovalApplicable ? 1 : 0,
+        isPaymentApplicable ? 1 : 0,
+        paidGroupPolicyIDs.join(','),
+        outstandingReportsSignature ?? '',
+        [...TODO_SEARCH_KEYS].map((k) => (suggestedSearchesVisibility[k] ? 1 : 0)).join(''),
+    ].join('|');
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
             return;
         }
-        for (const card of displayableCards) {
+        for (const {card} of displayableCards) {
             const cardQueryJSON = cardQueryByCardID[card.cardID]?.queryJSON;
             if (!cardQueryJSON) {
                 continue;
@@ -370,6 +418,25 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 shouldUpdateLastSearchParams: false,
             });
         }
+        for (const searchKey of TODO_SEARCH_KEYS) {
+            const isVisible = suggestedSearchesVisibility[searchKey];
+            if (!isVisible) {
+                continue;
+            }
+            const queryJSON = suggestedSearches[searchKey].searchQueryJSON;
+            if (!queryJSON) {
+                continue;
+            }
+            search({
+                queryJSON,
+                searchKey,
+                offset: 0,
+                isOffline,
+                isLoading: false,
+                shouldCalculateTotals: false,
+                shouldUpdateLastSearchParams: false,
+            });
+        }
     });
 
     useEffect(() => {
@@ -377,7 +444,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
             return;
         }
         fireSearches();
-    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey]);
+    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey, accountID]);
 
     return {
         approvalRowState,
@@ -390,5 +457,5 @@ function useYourSpendData(): UseYourSpendDataReturn {
     };
 }
 
-export {YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
-export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardRow, YourSpendRowState, YourSpendRowTotals};
+export {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
+export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardKind, YourSpendCardRow, YourSpendRowState, YourSpendRowTotals};

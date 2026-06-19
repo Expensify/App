@@ -51,7 +51,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 onPress={() => {
                     setOnboardingErrorMessage(null);
                     if (isVsb) {
-                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                        Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
                         return;
                     }
                     Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());

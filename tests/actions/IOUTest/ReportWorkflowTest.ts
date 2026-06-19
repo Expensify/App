@@ -30,7 +30,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, ReportNextStepDeprecated} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1381,6 +1381,100 @@ describe('actions/IOU/ReportWorkflow', () => {
             const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             expect((optimisticReportUpdate?.value as Report | undefined)?.managerID).toBe(adminAccountID);
         });
+
+        it('uses the rule approver in the optimistic next step when the existing report manager is stale', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+            const submitterAccountID = 100;
+            const defaultApproverAccountID = 101;
+            const ruleApproverAccountID = 102;
+            const submitterEmail = 'submitter@example.com';
+            const defaultApproverEmail = 'default-approver@example.com';
+            const ruleApproverEmail = 'rule-approver@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [defaultApproverAccountID]: {accountID: defaultApproverAccountID, login: defaultApproverEmail},
+                [ruleApproverAccountID]: {accountID: ruleApproverAccountID, login: ruleApproverEmail},
+            });
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: defaultApproverEmail,
+                owner: defaultApproverEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: defaultApproverEmail,
+                    },
+                },
+                rules: {
+                    approvalRules: [
+                        {
+                            id: 'travel-rule',
+                            applyWhen: [
+                                {
+                                    field: CONST.POLICY.FIELDS.CATEGORY,
+                                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                    value: 'Travel',
+                                },
+                            ],
+                            approver: ruleApproverEmail,
+                        },
+                    ],
+                },
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: defaultApproverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: expenseReport.reportID,
+                category: 'Travel',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: submitterAccountID,
+                currentUserEmailParam: submitterEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+
+            const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            expect(parameters.managerAccountID).toBe(ruleApproverAccountID);
+
+            const optimisticReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect((optimisticReportUpdate?.value as Report | undefined)?.managerID).toBe(ruleApproverAccountID);
+            expect((optimisticReportUpdate?.value as Report | undefined)?.nextStep?.actorAccountID).toBe(ruleApproverAccountID);
+
+            const optimisticDeprecatedNextStepUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            const optimisticDeprecatedNextStep = optimisticDeprecatedNextStepUpdate?.value as ReportNextStepDeprecated | undefined;
+            expect(optimisticDeprecatedNextStep?.message?.find((message) => message.type === 'strong')?.text).toBe(ruleApproverEmail);
+        });
+
         it('keeps the workspace chat outstanding when an admin submits after approver changes', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting optimistic parent chat data after submit from workspace chat.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
@@ -3174,7 +3268,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, MOCK_REPORT_ACTIONS);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, MOCK_REPORT_ACTIONS);
             expect(result.reportAction).toMatchObject(validReportAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
@@ -3227,12 +3321,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 childReportID: iouReportID,
                 message: [{type: 'TEXT', text: 'Report preview'}],
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
@@ -3290,12 +3385,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 childReportID: iouReportID,
                 message: [{type: 'TEXT', text: 'Report preview'}],
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
@@ -3354,12 +3450,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 childReportID: iouReportID,
                 message: [{type: 'TEXT', text: 'Report preview'}],
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
         });
@@ -3422,12 +3519,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 childReportID: iouReportID,
                 message: [{type: 'TEXT', text: 'Report preview'}],
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
@@ -3489,12 +3587,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 childReportID: iouReportID,
                 message: [{type: 'TEXT', text: 'Report preview'}],
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
@@ -3578,13 +3677,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 message: [{type: 'TEXT', text: 'Newer report preview'}],
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [newerReportPreview.reportActionID]: newerReportPreview,
                 [olderReportPreview.reportActionID]: olderReportPreview,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toMatchObject(olderReportPreview);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
@@ -3638,12 +3738,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 childReportID: iouReportID,
                 message: [{type: 'TEXT', text: 'Report preview'}],
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
@@ -3673,12 +3774,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 message: [{type: 'TEXT', text: 'IOU preview'}],
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
@@ -3706,12 +3808,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 message: [{type: 'TEXT', text: 'IOU preview'}],
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });
@@ -3739,12 +3842,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 message: [{type: 'TEXT', text: 'IOU preview'}],
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            const mockChatReportActions = {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getIOUReportActionWithBadge(fakeChatReport, undefined, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toBeUndefined();
             expect(result.actionBadge).toBeUndefined();
         });

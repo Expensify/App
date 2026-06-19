@@ -5,7 +5,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import cardScarf from '@assets/images/card-scarf.svg';
 import Badge from '@components/Badge';
-import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -21,9 +20,9 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -39,7 +38,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {canMemberWrite} from '@libs/PolicyUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -74,7 +73,6 @@ function getLimitHintTranslationKey(limitType?: string): LimitHintTranslationKey
 }
 
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
-    const {isProduction} = useEnvironment();
     const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
     const {policyID, cardID, backTo} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_DETAILS.path);
@@ -83,9 +81,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const defaultFundID = useDefaultFundID(policyID);
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
-    const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FreezeCard', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
@@ -107,7 +104,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const workspaceCard = workspaceCards?.[cardID];
     const card = workspaceCard ?? cardFromCardList;
-    const currency = useCurrencyForExpensifyCard({policyID});
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
     const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);
@@ -116,7 +113,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
     const remainingLimitHintTranslationKey = getLimitHintTranslationKey(card?.nameValuePairs?.limitType);
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
-    const isAdmin = isPolicyAdmin(policy, session?.email);
+    const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const canEditSpendRules = canWriteExpensifyCard && !!policy?.areRulesEnabled;
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
     const isCardOpen = card?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
@@ -128,7 +126,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     useEffect(() => {
-        if (!isAdmin) {
+        if (!canWriteExpensifyCard) {
             return;
         }
         if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
@@ -142,46 +140,56 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         }
 
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [defaultFundID, fundCardSettings?.hasOnceLoaded, fundCardSettings?.isLoading, isAdmin, policyID]);
+    }, [canWriteExpensifyCard, defaultFundID, fundCardSettings?.hasOnceLoaded, fundCardSettings?.isLoading, policyID]);
 
-    const deactivateCard = async () => {
-        const {action} = await showConfirmModal({
+    const deactivateCard = () => {
+        showConfirmModal({
             title: translate('workspace.card.deactivateCardModal.deactivateCard'),
             shouldSetModalVisibility: false,
             prompt: translate('workspace.card.deactivateCardModal.deactivateConfirmation'),
             confirmText: translate('workspace.card.deactivateCardModal.deactivate'),
             cancelText: translate('common.cancel'),
             danger: true,
-        });
-        if (action === ModalActions.CONFIRM) {
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
             Navigation.goBack(undefined, {
                 afterTransition: () => deactivateCardAction(defaultFundID, card),
             });
-        }
+        });
     };
 
     const handleFreezePress = () => {
-        setIsFreezeModalVisible(true);
-    };
-
-    const handleConfirmFreeze = () => {
-        if (!card) {
-            return;
-        }
-        freezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-        setIsFreezeModalVisible(false);
+        showConfirmModal({
+            title: `${translate('cardPage.freezeCard')}?`,
+            shouldSetModalVisibility: false,
+            prompt: translate('cardPage.freezeDescription'),
+            confirmText: translate('cardPage.freezeCard'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !card) {
+                return;
+            }
+            freezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+        });
     };
 
     const handleUnfreezePress = () => {
-        setIsUnfreezeModalVisible(true);
-    };
-
-    const handleConfirmUnfreeze = () => {
-        if (!card) {
-            return;
-        }
-        unfreezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-        setIsUnfreezeModalVisible(false);
+        showConfirmModal({
+            title: `${translate('cardPage.unfreezeCard')}?`,
+            shouldSetModalVisibility: false,
+            prompt: translate('cardPage.unfreezeDescription'),
+            confirmText: translate('cardPage.unfreezeCard'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !card) {
+                return;
+            }
+            unfreezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+        });
     };
 
     const spendRule = getSpendRuleByCardID(expensifyCardSettings, cardID);
@@ -214,7 +222,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         [spendRulesSummary],
     );
 
-    const canManageCardFreeze = isAdmin && !!card;
+    const canManageCardFreeze = canWriteExpensifyCard && !!card;
     const scarfOverlayStyle = useMemo(
         () => ({
             top: 0,
@@ -257,6 +265,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -269,7 +278,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                 <ScrollView addBottomSafeAreaPadding>
                     {canManageCardFreeze && isCardFrozen(card) ? (
                         <FrozenCardHeader
-                            isWorkspaceAdmin={isAdmin}
+                            isWorkspaceAdmin={canWriteExpensifyCard}
                             frozenByAccountID={card?.nameValuePairs?.frozen?.byAccountID}
                             frozenDate={card?.nameValuePairs?.frozen?.date}
                             style={styles.mt8}
@@ -334,8 +343,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         <MenuItemWithTopDescription
                             description={translate('workspace.card.issueNewCard.cardName')}
                             title={card?.nameValuePairs?.cardTitle}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteExpensifyCard}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path))}
+                            interactive={canWriteExpensifyCard}
                         />
                     </OfflineWithFeedback>
                     <MenuItemWithTopDescription
@@ -344,7 +354,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
-                    {!isProduction && spendRulesSummary.length > 0 && (
+                    {spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             interactive={false}
                             description={translate('cardPage.spendRules')}
@@ -366,8 +376,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         <MenuItemWithTopDescription
                             description={translate('workspace.card.issueNewCard.limitType')}
                             title={translationForLimitType ? translate(translationForLimitType) : ''}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteExpensifyCard}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path))}
+                            interactive={canWriteExpensifyCard}
                             hintText={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, translate)}
                         />
                     </OfflineWithFeedback>
@@ -375,20 +386,21 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         <MenuItemWithTopDescription
                             description={translate('workspace.expensifyCard.cardLimit')}
                             title={formattedLimit}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={canWriteExpensifyCard}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path))}
+                            interactive={canWriteExpensifyCard}
                         />
                     </OfflineWithFeedback>
 
                     <View style={styles.mt6}>
-                        {!isProduction && isAdmin && (
+                        {canEditSpendRules && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}
                                 onPress={navigateToSpendRules}
                             />
                         )}
-                        {!isDeactivated && (
+                        {canWriteExpensifyCard && !isDeactivated && (
                             <MenuItem
                                 icon={expensifyIcons.Trashcan}
                                 title={translate('workspace.expensifyCard.deactivate')}
@@ -405,29 +417,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
                         onClose={() => setIsOfflineModalVisible(false)}
-                    />
-                    <ConfirmModal
-                        title={`${translate('cardPage.freezeCard')}?`}
-                        isVisible={isFreezeModalVisible}
-                        onConfirm={handleConfirmFreeze}
-                        onCancel={() => setIsFreezeModalVisible(false)}
-                        onBackdropPress={() => setIsFreezeModalVisible(false)}
-                        shouldSetModalVisibility={false}
-                        prompt={translate('cardPage.freezeDescription')}
-                        confirmText={translate('cardPage.freezeCard')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={`${translate('cardPage.unfreezeCard')}?`}
-                        isVisible={isUnfreezeModalVisible}
-                        onConfirm={handleConfirmUnfreeze}
-                        onCancel={() => setIsUnfreezeModalVisible(false)}
-                        onBackdropPress={() => setIsUnfreezeModalVisible(false)}
-                        shouldSetModalVisibility={false}
-                        prompt={translate('cardPage.unfreezeDescription')}
-                        confirmText={translate('cardPage.unfreezeCard')}
-                        cancelText={translate('common.cancel')}
                     />
                 </ScrollView>
             </ScreenWrapper>

@@ -13,6 +13,8 @@ function useUndeleteTransactions() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     return (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
@@ -26,6 +28,8 @@ function useUndeleteTransactions() {
             policy,
             allTransactions,
             policyTagList,
+            allTransactionViolation: transactionViolations,
+            allReports,
         });
     };
 }
