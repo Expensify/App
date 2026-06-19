@@ -6336,7 +6336,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 `Wenn du ${memberName} aus diesem Workspace entfernst, ersetzen wir sie/ihn als technischen Kontakt durch ${workspaceOwner}, den/die Workspace-Inhaber:in.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} hat einen ausstehenden Bericht in Bearbeitung, zu dem eine Aktion erforderlich ist. Bitte bitten Sie diese Person, die erforderliche Aktion abzuschließen, bevor Sie sie aus dem Workspace entfernen.`,
-            members: 'Mitglieder',
+            allMembers: 'Alle Mitglieder',
             admins: 'Workspace-Administratoren',
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
@@ -9664,6 +9664,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             theresAProblemWithYourWallet: 'Es gibt ein Problem mit deinem Wallet',
             theresAProblemWithYourWalletTerms: 'Es gibt ein Problem mit deinen Wallet-Bedingungen',
             aBankAccountIsLocked: 'Ein Bankkonto ist gesperrt',
+            completeHrSetup: 'HR-Einrichtung abschließen',
         },
     },
     emptySearchView: {
@@ -9980,21 +9981,5 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         negativeButton: 'Nicht wirklich',
     },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Neu bei Concierge AI',
-        confirmText: 'Los geht’s!',
-        spendAnalysis: {
-            title: 'Interaktive Ausgabenanalyse',
-            description: `<muted-text>Concierge zeigt monatliche Ausgabenanalysen an und ermöglicht es Ihnen, die Details hinter jeder Zahl genauer zu betrachten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Mehr erfahren</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Lernen Sie Ihre neue Spesenassistenz kennen',
-            description: `<muted-text>Chatten Sie mit Concierge, um Ausgaben direkt in der App oder per E-Mail oder SMS zu erstellen und zu aktualisieren. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Mehr erfahren</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Erstellen Sie Ihre eigenen Agenten',
-            description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
-        },
-    },
 };
 export default translations;
