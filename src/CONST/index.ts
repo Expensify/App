@@ -3014,7 +3014,6 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         PARENT_TAG_MAPPING: 'parentTagMapping',
         SYNC_MILESTONES: 'syncMilestones',
-        REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
@@ -3025,6 +3024,11 @@ const CONST = {
     CERTINIA_EXPORT_STATUS: {
         COMPLETE: 'Complete',
         IN_PROGRESS: 'In Progress',
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
+    },
+
+    CERTINIA_REPORT_EXPORT_STATUS: {
         APPROVED: 'Approved',
         SUBMITTED: 'Submitted',
     },
@@ -4789,6 +4793,11 @@ const CONST = {
         },
     },
     SPEND_RULES: {
+        BADGE_VARIANTS: {
+            SUCCESS: 'success',
+            ERROR: 'error',
+            NEUTRAL: 'neutral',
+        },
         CATEGORIES: {
             AIRLINES: 'airlines',
             ALCOHOL_AND_BARS: 'alcoholAndBars',
@@ -4820,6 +4829,7 @@ const CONST = {
                 MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
                 CATEGORIES: 'categories',
                 MAX_AMOUNT: 'maxAmount',
+                CURRENCIES: 'currencies',
             },
         },
         ACTION: {
@@ -7641,6 +7651,7 @@ const CONST = {
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
+        HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
     },
 
     DEBUG: {
@@ -8524,6 +8535,7 @@ const CONST = {
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
                 MERCHANT_RULE_DELETE: 'WorkspaceRules-MerchantRuleDelete',
                 CATEGORY_SELECTOR: 'WorkspaceRules-CategorySelector',
+                CURRENCY_SELECTOR: 'WorkspaceRules-CurrencySelector',
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
@@ -8774,6 +8786,9 @@ const CONST = {
             BACKDROP: 'MfaOverlay-Backdrop',
         },
         DOMAIN: {
+            ADMINS: {
+                ROW: 'DomainAdmins-Row',
+            },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
             },
