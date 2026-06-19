@@ -1,7 +1,15 @@
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_CONTENT_MIN_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    SIN_45,
+} from '@components/Charts/VictoryTheme';
 import variables from '@styles/variables';
 
 /** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
@@ -456,43 +464,68 @@ function getNiceLowerBound(rawMin: number, tickCount: number, rawMax = 0): numbe
     return Math.floor(rawMin / niceStep) * niceStep;
 }
 
-/**
- * Predicts Y-axis tick values that victory-native will generate from the data extremes.
- * Flat series use victory-native's ±1 expansion; varied series use nice step intervals.
- */
-function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: number): number[] {
+/** Predicts Y-axis tick values that victory-native will generate from the data extremes. */
+function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: number, padTop = 0, padBottom = 0, chartHeight = CHART_CONTENT_MIN_HEIGHT): number[] {
     if (tickCount <= 0) {
         return [];
     }
     if (tickCount === 1) {
         return [rawDataMax];
     }
-    if (rawDataMin === rawDataMax) {
-        return Array.from({length: tickCount}, (_, index) => rawDataMin + 1 - (index * 2) / (tickCount - 1));
+
+    const effectiveMin = rawDataMin > 0 ? 0 : rawDataMin;
+    if (effectiveMin === rawDataMax) {
+        // Flat domain (zero or all-negative): Victory expands by ±1 symmetrically.
+        return Array.from({length: tickCount}, (_, index) => effectiveMin + 1 - (index * 2) / (tickCount - 1));
     }
 
-    const range = rawDataMax - rawDataMin;
-    if (range <= 0) {
-        return [rawDataMax];
-    }
+    const range = rawDataMax - effectiveMin;
+    const paddedMax = rawDataMax + range * (padTop / chartHeight);
+    const paddedMin = effectiveMin - range * (padBottom / chartHeight);
 
-    const niceMax = getNiceUpperBound(rawDataMax, tickCount, rawDataMin);
-    const niceMin = getNiceLowerBound(rawDataMin, tickCount, rawDataMax);
-    const niceStep = getNiceStep(range, tickCount);
+    // Inline D3 nice()+ticks() — the same algorithm Victory uses internally.
+    const d3TickStep = (start: number, stop: number, count: number): number => {
+        const step0 = Math.abs(stop - start) / Math.max(0, count);
+        const power = Math.floor(Math.log(step0) / Math.LN10);
+        const magnitude = 10 ** power;
+        const error = step0 / magnitude;
+        let factor = 1;
+        if (error >= Math.sqrt(50)) {
+            factor = 10;
+        } else if (error >= Math.sqrt(10)) {
+            factor = 5;
+        } else if (error >= Math.sqrt(2)) {
+            factor = 2;
+        }
+        return magnitude * factor;
+    };
 
-    const ticks: number[] = [];
-    for (let tick = niceMin; tick <= niceMax + Number.EPSILON; tick += niceStep) {
-        ticks.push(tick);
-    }
-    if (ticks.at(-1) !== niceMax) {
-        ticks.push(niceMax);
-    }
-    return ticks;
+    // nice() rounds domain bounds outward to the nearest multiple of the nice step (count=10).
+    const niceStep = d3TickStep(paddedMin, paddedMax, 10);
+    const niceMin = Math.floor(paddedMin / niceStep) * niceStep;
+    const niceMax = Math.ceil(paddedMax / niceStep) * niceStep;
+
+    // ticks() picks a step for the tick grid and aligns to multiples of that step.
+    const tickStep = d3TickStep(niceMin, niceMax, tickCount);
+    const tickStart = Math.ceil(niceMin / tickStep) * tickStep;
+    const tickEnd = Math.floor(niceMax / tickStep) * tickStep;
+    const stepCount = Math.round((tickEnd - tickStart) / tickStep);
+    return Array.from({length: stepCount + 1}, (_, i) => tickStart + i * tickStep);
 }
 
 /** Returns the pixel width needed for Y-axis labels given the data extremes. */
-function getYAxisLabelWidth(rawDataMax: number, rawDataMin: number, tickCount: number, formatValue: (value: number) => string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
-    return Math.max(0, ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount).map((tick) => measureTextWidth(formatValue(tick), fontMgr, fontSize)));
+function getYAxisLabelWidth(
+    rawDataMax: number,
+    rawDataMin: number,
+    tickCount: number,
+    formatValue: (value: number) => string,
+    fontMgr: SkTypefaceFontProvider,
+    fontSize: number,
+    padTop = 0,
+    padBottom = 0,
+    chartHeight = CHART_CONTENT_MIN_HEIGHT,
+): number {
+    return Math.max(0, ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, padTop, padBottom, chartHeight).map((tick) => measureTextWidth(formatValue(tick), fontMgr, fontSize)));
 }
 
 export {

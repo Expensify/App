@@ -86,14 +86,17 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         unitPosition: yAxisUnitPosition,
     });
 
-    const hasNegativeValues = data.some((point) => point.total < 0);
+    const allTotals = data.map((p) => p.total);
     const yAxisLabelWidth = useYAxisLabelWidth(
-        Math.max(...data.map((p) => p.total), ...(hasNegativeValues ? [] : [0])),
-        Math.min(...data.map((p) => p.total), ...(hasNegativeValues ? [] : [0])),
+        allTotals.length ? Math.max(...allTotals) : 0,
+        allTotals.length ? Math.min(...allTotals) : 0,
         VictoryTheme.axis.tickCount,
         formatValue,
         fontMgr,
         variables.iconSizeExtraSmall,
+        BASE_DOMAIN_PADDING.top,
+        BASE_DOMAIN_PADDING.bottom,
+        CHART_CONTENT_MIN_HEIGHT,
     );
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;

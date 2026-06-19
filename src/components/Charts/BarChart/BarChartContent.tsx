@@ -227,14 +227,17 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const hasNegativeValues = data.some((point) => point.total < 0);
+    const allTotals = data.map((p) => p.total);
     const yAxisLabelWidth = useYAxisLabelWidth(
-        Math.max(...data.map((p) => p.total), ...(hasNegativeValues ? [] : [0])),
-        Math.min(...data.map((p) => p.total), ...(hasNegativeValues ? [] : [0])),
+        allTotals.length ? Math.max(...allTotals) : 0,
+        allTotals.length ? Math.min(...allTotals) : 0,
         VictoryTheme.axis.tickCount,
         formatValue,
         fontMgr,
         variables.iconSizeExtraSmall,
+        BASE_DOMAIN_PADDING.top,
+        BASE_DOMAIN_PADDING.bottom,
+        CHART_CONTENT_MIN_HEIGHT,
     );
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 

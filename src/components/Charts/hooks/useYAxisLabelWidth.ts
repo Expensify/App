@@ -11,12 +11,15 @@ function useYAxisLabelWidth(
     formatValue: (value: number) => string,
     fontMgr: SkTypefaceFontProvider | null,
     fontSize: number,
+    padTop = 0,
+    padBottom = 0,
+    chartHeight?: number,
 ): number {
     if (!fontMgr) {
         return 0;
     }
 
-    return getYAxisLabelWidth(rawDataMax, rawDataMin, tickCount, formatValue, fontMgr, fontSize);
+    return getYAxisLabelWidth(rawDataMax, rawDataMin, tickCount, formatValue, fontMgr, fontSize, padTop, padBottom, chartHeight);
 }
 
 export default useYAxisLabelWidth;
