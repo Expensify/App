@@ -196,6 +196,15 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
         return;
     }
 
+    // No iouReportID to subscribe to (and no thread ID was passed): the reportActions key would be
+    // `reportActions_undefined` and the callback below early-returns on `!iouReportID` forever, so the
+    // subscription can never resolve and would only fire via the 8s timeout. Resolve immediately with
+    // the same fallback the timeout would produce (a growl without "View" when no thread is resolvable).
+    if (!iouReportID) {
+        showGrowl(buildThreadFromOnyx());
+        return;
+    }
+
     // Slow path: wait for Search to render → flushDeferredWrite('search') → API.write applies
     // optimistic data → iouAction lands → we show the growl.
     const SAFETY_TIMEOUT_MS = 8000;
