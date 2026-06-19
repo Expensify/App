@@ -256,6 +256,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
+        const rilletSubsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = certiniaConfig?.credentials?.companyID;
@@ -347,6 +348,27 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           pendingAction: settingsPendingAction([CONST.CERTINIA_CONFIG.COMPANY_ID], certiniaConfig?.pendingFields),
                           brickRoadIndicator: areSettingsInErrorFields([CONST.CERTINIA_CONFIG.COMPANY_ID], certiniaConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress: canWriteAccounting ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR.getRoute(policyID)) : undefined,
+                      };
+            case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                return !policy?.connections?.rillet?.config?.subsidiaryID
+                    ? {}
+                    : {
+                          description: translate('workspace.rillet.subsidiary'),
+                          iconRight: icons.ArrowRight,
+                          title: rilletSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.rillet?.config?.subsidiaryID)?.tradeName ?? '',
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting && rilletSubsidiaryList && rilletSubsidiaryList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
+                          pendingAction: policy.connections.rillet.config.pendingFields?.subsidiaryID,
+                          brickRoadIndicator: policy.connections.rillet.config.pendingFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress:
+                              policyID && canWriteAccounting && rilletSubsidiaryList && rilletSubsidiaryList.length > 1
+                                  ? () => {
+                                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_SUBSIDIARY_SELECTOR.getRoute(policyID));
+                                    }
+                                  : undefined,
                       };
 
             default:
