@@ -534,6 +534,81 @@ describe('getReportPreviewAction', () => {
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
+
+        it('should return VIEW instead of APPROVE when submitter is the manager on a Submit workspace', async () => {
+            const report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0, CONST.POLICY.TYPE.SUBMIT);
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+                amount: 100,
+                merchant: 'Test Merchant',
+                created: '2025-01-01',
+            } as unknown as Transaction;
+
+            expect(
+                getReportPreviewAction({
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    report,
+                    policy,
+                    transactions: [transaction],
+                    bankAccountList: {},
+                    reportMetadata: undefined,
+                }),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return APPROVE when a different user is the manager on a Submit workspace', async () => {
+            const approverAccountID = CURRENT_USER_ACCOUNT_ID + 1;
+            const report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: approverAccountID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0, CONST.POLICY.TYPE.SUBMIT);
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+                amount: 100,
+                merchant: 'Test Merchant',
+                created: '2025-01-01',
+            } as unknown as Transaction;
+
+            expect(
+                getReportPreviewAction({
+                    isReportArchived: false,
+                    currentUserAccountID: approverAccountID,
+                    currentUserLogin: 'approver@mail.com',
+                    report,
+                    policy,
+                    transactions: [transaction],
+                    bankAccountList: {},
+                    reportMetadata: undefined,
+                }),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+        });
     });
 
     it("canApprove should return true for the current report manager regardless of whether they're in the current approval workflow", async () => {
