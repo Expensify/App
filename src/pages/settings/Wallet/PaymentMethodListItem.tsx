@@ -144,6 +144,65 @@ function isAccountNeedingAction(account: PaymentMethodItem) {
     return isAccountInSetupState(account) || !!account.isMissingPersonalInfo;
 }
 
+function ConnectionStatusMessage({connectionStatus}: {connectionStatus?: ConnectionStatusDetails}) {
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    if (!connectionStatus?.message && !connectionStatus?.actionText) {
+        return null;
+    }
+
+    const statusMessageRowPadding = {paddingLeft: 32, paddingRight: 32};
+    const shouldShowActionButton = !!connectionStatus.actionText && !!connectionStatus.onActionPress;
+    const isDangerStatus = connectionStatus.statusTone === 'danger';
+    const messageContent = (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+            {isDangerStatus && (
+                <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
+                    <Icon
+                        src={icons.DotIndicator}
+                        fill={theme.danger}
+                    />
+                </View>
+            )}
+            <InlineTextWithOptionalLink
+                message={connectionStatus.message ?? ''}
+                linkText={connectionStatus.linkText}
+                onLinkPress={connectionStatus.onLinkPress}
+                textStyle={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, isDangerStatus ? {color: 'rgb(134, 32, 32)'} : undefined, styles.flex1]}
+            />
+        </View>
+    );
+
+    const actionButton = shouldShowActionButton ? (
+        <Button
+            small
+            danger
+            style={styles.alignSelfStart}
+            text={connectionStatus.actionText}
+            onPress={connectionStatus.isActionDisabled ? () => {} : () => connectionStatus.onActionPress?.(undefined)}
+        />
+    ) : null;
+
+    if (shouldUseNarrowLayout) {
+        return (
+            <View style={[statusMessageRowPadding]}>
+                {messageContent}
+                {!!actionButton && <View style={styles.mt3}>{actionButton}</View>}
+            </View>
+        );
+    }
+
+    return (
+        <View style={[statusMessageRowPadding, styles.flexRow, styles.alignItemsCenter]}>
+            {messageContent}
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{actionButton}</View>
+        </View>
+    );
+}
+
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'FreezeCard', 'QuestionMark']);
     const theme = useTheme();
@@ -238,60 +297,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         return undefined;
     }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
-    const renderStatusMessage = () => {
-        if (!item.connectionStatus?.message && !item.connectionStatus?.actionText) {
-            return null;
-        }
-
-        const statusMessageRowPadding = {paddingLeft: 32, paddingRight: 32};
-        const shouldShowActionButton = !!item.connectionStatus?.actionText && !!item.connectionStatus?.onActionPress;
-        const isDangerStatus = item.connectionStatus?.statusTone === 'danger';
-        const messageContent = (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                {isDangerStatus && (
-                    <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
-                        <Icon
-                            src={icons.DotIndicator}
-                            fill={theme.danger}
-                        />
-                    </View>
-                )}
-                <InlineTextWithOptionalLink
-                    message={item.connectionStatus?.message ?? ''}
-                    linkText={item.connectionStatus?.linkText}
-                    onLinkPress={item.connectionStatus?.onLinkPress}
-                    textStyle={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, isDangerStatus ? {color: 'rgb(134, 32, 32)'} : undefined, styles.flex1]}
-                />
-            </View>
-        );
-
-        const actionButton = shouldShowActionButton ? (
-            <Button
-                small
-                danger
-                style={styles.alignSelfStart}
-                text={item.connectionStatus?.actionText}
-                onPress={item.connectionStatus?.isActionDisabled ? () => {} : () => item.connectionStatus?.onActionPress?.(undefined)}
-            />
-        ) : null;
-
-        if (shouldUseNarrowLayout) {
-            return (
-                <View style={[statusMessageRowPadding]}>
-                    {messageContent}
-                    {!!actionButton && <View style={styles.mt3}>{actionButton}</View>}
-                </View>
-            );
-        }
-
-        return (
-            <View style={[statusMessageRowPadding, styles.flexRow, styles.alignItemsCenter]}>
-                {messageContent}
-                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{actionButton}</View>
-            </View>
-        );
-    };
-
     return (
         <OfflineWithFeedback
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
@@ -342,7 +347,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 brickRoadIndicator={item.connectionStatus?.message ? undefined : item.brickRoadIndicator}
                 success={item.isMethodActive}
             />
-            {renderStatusMessage()}
+            <ConnectionStatusMessage connectionStatus={item.connectionStatus} />
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
                     <PressableWithFeedback
