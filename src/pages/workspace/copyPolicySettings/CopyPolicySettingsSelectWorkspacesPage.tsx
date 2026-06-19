@@ -48,19 +48,11 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[] | null>(null);
     const resolvedSelectedTargetIDs = selectedTargetIDs ?? copyPolicySettings?.targetPolicyIDs ?? [];
 
-    const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
-    const isSourceCorporate = sourcePolicy?.type === CONST.POLICY.TYPE.CORPORATE;
-
     const eligiblePolicies: EligiblePolicyItem[] = !policies
         ? []
         : Object.values(policies)
               .filter((policy): policy is Policy => {
                   if (!policy || policy.id === sourcePolicyID || policy.type === CONST.POLICY.TYPE.PERSONAL || isPendingDeletePolicy(policy) || !isPolicyAdmin(policy, currentUserEmail)) {
-                      return false;
-                  }
-                  // Release 1: when copying from a Corporate workspace, only allow Corporate targets.
-                  // Issue 7 (R2) lifts this restriction by inserting an upgrade step.
-                  if (isSourceCorporate && policy.type !== CONST.POLICY.TYPE.CORPORATE) {
                       return false;
                   }
                   return true;

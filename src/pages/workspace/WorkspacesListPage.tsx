@@ -176,22 +176,20 @@ function WorkspacesListPage() {
         );
     };
 
+    // Every admin-accessible, non-personal workspace is an eligible copy target regardless of plan;
+    // copying Control-only settings onto a Collect target is handled by the in-flow upgrade step.
     const copySettingsEligibleTargets = useMemo(() => {
         const adminNonPersonal: string[] = [];
-        const corporateOnly: string[] = [];
         if (!policies) {
-            return {adminNonPersonal, corporateOnly};
+            return adminNonPersonal;
         }
         for (const policy of Object.values(policies)) {
             if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, session?.email) || isPendingDeletePolicy(policy)) {
                 continue;
             }
             adminNonPersonal.push(policy.id);
-            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
-                corporateOnly.push(policy.id);
-            }
         }
-        return {adminNonPersonal, corporateOnly};
+        return adminNonPersonal;
     }, [policies, session?.email]);
 
     /**
@@ -253,8 +251,7 @@ function WorkspacesListPage() {
                 text: translate('workspace.common.duplicateWorkspace'),
                 onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
             });
-            const isSourceCorporate = item.type === CONST.POLICY.TYPE.CORPORATE;
-            const candidates = isSourceCorporate ? copySettingsEligibleTargets.corporateOnly : copySettingsEligibleTargets.adminNonPersonal;
+            const candidates = copySettingsEligibleTargets;
             const hasEligibleCopyTarget = candidates.length > 1 || (candidates.length === 1 && candidates.at(0) !== item.policyID);
 
             if (hasEligibleCopyTarget && isBetaEnabled(CONST.BETAS.BULK_EDIT_WORKSPACES)) {
