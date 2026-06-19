@@ -1,6 +1,6 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
-import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -8,8 +8,8 @@ import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
+import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -382,7 +382,6 @@ function SearchList({
     const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
     const route = useRoute();
-    const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
 
@@ -527,18 +526,7 @@ function SearchList({
         [data, listData, shouldSplitGroups, isEditingCell, wasRecentlyEditingCell],
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            const offset = getScrollOffset(route);
-            requestAnimationFrame(() => {
-                if (!offset || !listRef.current) {
-                    return;
-                }
-
-                listRef.current.scrollToOffset({offset, animated: false});
-            });
-        }, [getScrollOffset, route]),
-    );
+    useScrollRestoration(listRef);
 
     useImperativeHandle(ref, () => ({scrollToIndex: scrollToDataIndex}), [scrollToDataIndex]);
 
