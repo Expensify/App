@@ -3106,15 +3106,21 @@ describe('PolicyUtils', () => {
                 } as unknown as Connections,
             }) as Policy;
 
+        // Sentinel for "Xero connected but Integration-Server has not yet synced suppliers"
+        // (i.e. `data.contacts` is undefined on the connection). Distinct from the populated
+        // default so callers can opt into the unsynced state without colliding with the
+        // default-parameter mechanic, which would otherwise replace an explicit `undefined`
+        // with the default contacts list.
+        const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
         const buildXeroPolicy = (
-            contacts: Record<string, {id: string; name: string; email: string}> | undefined = {'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'}},
+            contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'}},
         ): Policy =>
             ({
                 ...createRandomPolicy(0),
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                         config: {},
-                        data: contacts === undefined ? {} : {contacts},
+                        data: contacts === XERO_CONTACTS_UNSYNCED ? {} : {contacts},
                     },
                 } as unknown as Connections,
             }) as Policy;
@@ -3140,7 +3146,7 @@ describe('PolicyUtils', () => {
                 // The matcher itself short-circuits when contacts is undefined (see
                 // ViolationsUtils' inactiveVendor guardrail); hasVendorFeature stays true so the
                 // App still surfaces the UI surfaces (picker, default-supplier row).
-                expect(hasVendorFeature(buildXeroPolicy(undefined), true)).toBe(true);
+                expect(hasVendorFeature(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), true)).toBe(true);
             });
 
             it('returns false when beta is disabled, even with Credit Card export configured', () => {
@@ -3253,7 +3259,7 @@ describe('PolicyUtils', () => {
                 // Integration-Server has not yet completed a supplier sync for this workspace.
                 // The matcher must treat the contact list as unknown rather than failing — this
                 // is the same guardrail that prevents inactiveVendor from firing falsely.
-                expect(getMatchingVendors(buildXeroPolicy(undefined))).toEqual([]);
+                expect(getMatchingVendors(buildXeroPolicy(XERO_CONTACTS_UNSYNCED))).toEqual([]);
             });
 
             it('returns an empty array when no supported connection exists', () => {

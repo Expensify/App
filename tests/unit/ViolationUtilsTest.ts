@@ -2246,8 +2246,13 @@ describe('getViolationsOnyxData', () => {
         });
 
         describe('Xero (R4)', () => {
+            // Sentinel for "Xero connected, contacts not yet synced". Explicit symbol avoids the
+            // default-parameter trap where `undefined` would fall back to the populated default.
+            const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
             const policyWithXeroVendorFeature = (
-                contacts: Record<string, {id: string; name: string; email: string}> | undefined = {'xc-active': {id: 'xc-active', name: 'Acme Xero', email: 'acme@example.com'}},
+                contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {
+                    'xc-active': {id: 'xc-active', name: 'Acme Xero', email: 'acme@example.com'},
+                },
             ) =>
                 ({
                     requiresTag: false,
@@ -2255,7 +2260,7 @@ describe('getViolationsOnyxData', () => {
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                             config: {},
-                            data: contacts === undefined ? {} : {contacts},
+                            data: contacts === XERO_CONTACTS_UNSYNCED ? {} : {contacts},
                         },
                     },
                 }) as unknown as Policy;
@@ -2295,7 +2300,7 @@ describe('getViolationsOnyxData', () => {
                 // know the supplier list, so we must not flag the existing transaction vendor as
                 // missing. Otherwise every matched transaction would falsely flag inactive between
                 // the beta flip and the first supplier sync.
-                policy = policyWithXeroVendorFeature(undefined);
+                policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xc-anything', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     updatedTransaction: transaction,
@@ -2313,7 +2318,7 @@ describe('getViolationsOnyxData', () => {
                 // Mirror of the prior test from the inverse angle: when contacts are unknown and a
                 // server-fired inactiveVendor violation is already on the transaction, the App
                 // must preserve it rather than wiping it during the sync gap.
-                policy = policyWithXeroVendorFeature(undefined);
+                policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xc-active', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     updatedTransaction: transaction,
