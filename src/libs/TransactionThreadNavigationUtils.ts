@@ -83,4 +83,4 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
 }
 
 export {getReportIDToOpenForExpense};
-export type {TransactionThreadNavigationDescriptor, ResolveReportContext};
+export type {TransactionThreadNavigationDescriptor};
