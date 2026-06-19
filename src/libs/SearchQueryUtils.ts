@@ -1600,27 +1600,6 @@ function getDisplayQueryFiltersForKey(
     }));
 }
 
-/**
- * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
- * This format of query is the one which we want to display to users.
- * We try to replace every numeric id value with a display version of this value,
- * So: user IDs get turned into emails, report ids into report names etc.
- */
-type BuildUserReadableQueryStringParams = {
-    queryJSON: SearchQueryJSON;
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
-    reports: OnyxCollection<OnyxTypes.Report>;
-    taxRates: Record<string, string[]>;
-    cardList: OnyxTypes.CardList | undefined;
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
-    policies: OnyxCollection<OnyxTypes.Policy>;
-    currentUserAccountID: number;
-    autoCompleteWithSpace: boolean;
-    translate: LocalizedTranslate;
-    feedKeysWithCards?: FeedKeysWithAssignedCards;
-    reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
-};
-
 function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
     const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
     const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
@@ -1676,6 +1655,27 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
 
     return `${userFriendlyKey}:${formattedValues.join(',')}`;
 }
+
+/**
+ * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
+ * This format of query is the one which we want to display to users.
+ * We try to replace every numeric id value with a display version of this value,
+ * So: user IDs get turned into emails, report ids into report names etc.
+ */
+type BuildUserReadableQueryStringParams = {
+    queryJSON: SearchQueryJSON;
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    autoCompleteWithSpace: boolean;
+    translate: LocalizedTranslate;
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
+    reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
+};
 
 function buildUserReadableQueryString({
     queryJSON,
