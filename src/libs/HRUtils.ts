@@ -167,7 +167,7 @@ function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
     return null;
 }
 
-/** Checks if any HR connection on the policy is in an error state. Callers are responsible for ensuring the current user is a policy admin. */
+/** Checks if any HR connection on the policy is in an error state. */
 function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, isAdmin: boolean): boolean {
     if (!isAdmin) {
         return false;
