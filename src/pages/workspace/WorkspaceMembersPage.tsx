@@ -12,6 +12,7 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import MembersFilterButton from '@components/Search/FilterDropdowns/MembersFilterButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SearchBar from '@components/SearchBar';
@@ -93,7 +94,6 @@ import type {PersonalDetails, PolicyEmployee, PolicyEmployeeList} from '@src/typ
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MemberRightIcon from './MemberRightIcon';
-import WorkspaceMembersRoleFilterButton from './members/WorkspaceMembersRoleFilterButton';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -1033,10 +1033,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 <View style={styles.flexColumn}>
                     <View style={[styles.mh5, styles.gap3, styles.mb5, styles.flexRow, styles.alignItemsCenter]}>
                         {shouldShowRoleFilter && (
-                            <WorkspaceMembersRoleFilterButton
+                            <MembersFilterButton
                                 label={roleFilterDropdownLabel}
                                 PopoverComponent={rolePopoverComponent}
                                 shouldShowSearchBar={shouldShowSearchBar}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.ROLE_FILTER_BUTTON}
                             />
                         )}
                         {shouldShowSearchBar && (

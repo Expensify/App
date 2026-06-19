@@ -11,8 +11,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import MembersFilterButton from '@components/Search/FilterDropdowns/MembersFilterButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -106,20 +106,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             onChange={handleGroupChange}
         />
     );
-
-    const groupFilterDropdown =
-        groupOptions.length > 0 ? (
-            <DropdownButton
-                label={dropdownLabel}
-                value={null}
-                PopoverComponent={groupPopoverComponent}
-                innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
-                wrapperStyle={shouldUseNarrowLayout && styles.w100}
-                labelStyle={styles.fontSizeLabel}
-                caretWrapperStyle={styles.gap2}
-                medium
-            />
-        ) : null;
 
     const getGroupRightElement = (accountID: number) => {
         if (!groups) {
@@ -362,7 +348,16 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 useSelectionModeHeader={selectionModeHeader}
                 getCustomRightElement={getGroupRightElement}
-                searchBarAccessory={groupFilterDropdown}
+                searchBarAccessory={(shouldShowSearchBar) =>
+                    groupOptions.length > 0 ? (
+                        <MembersFilterButton
+                            label={dropdownLabel}
+                            PopoverComponent={groupPopoverComponent}
+                            shouldShowSearchBar={shouldShowSearchBar}
+                            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.GROUP_FILTER_BUTTON}
+                        />
+                    ) : null
+                }
                 emptyStateTitle={translate('domain.members.emptyMembers.title')}
                 emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
                 turnOnSelectionModeOnLongPress

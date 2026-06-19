@@ -86,8 +86,8 @@ type BaseDomainMembersPageProps = {
     /** Weather long press should enable selection mode on mobile */
     turnOnSelectionModeOnLongPress?: boolean;
 
-    /** Optional accessory element to display next to the search bar (e.g., filter dropdown) */
-    searchBarAccessory?: React.ReactNode;
+    /** Optional accessory element to display next to the search bar (e.g., filter dropdown). When a function, receives shouldShowSearchBar for layout. */
+    searchBarAccessory?: React.ReactNode | ((shouldShowSearchBar: boolean) => React.ReactNode);
 
     /** Optional filter applied unconditionally before text search (e.g. group filter). */
     preFilter?: (item: MemberOption) => boolean;
@@ -215,40 +215,29 @@ function BaseDomainMembersPage({
     const shouldShowEmptySearchMessage = !!shouldShowSearchBar && inputValue.length !== 0 && filteredData.length === 0;
     // Show empty pre filter state only if we have data, filtered data is empty, but the search have not been used.
     const shouldShowEmptyPreFilterState = filteredData.length === 0 && data.length !== 0 && !!emptyStateTitle && inputValue.length === 0;
-    const listHeaderContent =
-        searchBarAccessory || shouldShowSearchBar ? (
-            <View style={styles.flexColumn}>
-                <View style={[styles.mh5, styles.gap3, styles.mb5, shouldDisplayButtonsInSeparateLine ? styles.flexColumn : styles.flexRow]}>
-                    {!!searchBarAccessory && (
-                        <View
-                            style={[
-                                shouldDisplayButtonsInSeparateLine && styles.w100,
-                                shouldShowSearchBar && !shouldDisplayButtonsInSeparateLine && styles.h13,
-                                shouldShowSearchBar && !shouldDisplayButtonsInSeparateLine && styles.justifyContentCenter,
-                            ]}
-                        >
-                            {searchBarAccessory}
-                        </View>
-                    )}
-                    {shouldShowSearchBar && (
-                        <View style={[shouldDisplayButtonsInSeparateLine ? styles.w100 : styles.flex1]}>
-                            <SearchBar
-                                inputValue={inputValue}
-                                onChangeText={setInputValue}
-                                label={searchPlaceholder}
-                                shouldShowEmptyState={false}
-                                style={[styles.flex1, styles.mh0, styles.mb0]}
-                            />
-                        </View>
-                    )}
-                </View>
-                {shouldShowEmptySearchMessage && (
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', inputValue)}</Text>
-                    </View>
+    const searchBarAccessoryContent = typeof searchBarAccessory === 'function' ? searchBarAccessory(shouldShowSearchBar) : searchBarAccessory;
+    const shouldShowFilterRow = !!searchBarAccessoryContent || shouldShowSearchBar;
+    const listHeaderContent = shouldShowFilterRow ? (
+        <View style={styles.flexColumn}>
+            <View style={[styles.mh5, styles.gap3, styles.mb5, styles.flexRow, styles.alignItemsCenter]}>
+                {!!searchBarAccessoryContent && searchBarAccessoryContent}
+                {shouldShowSearchBar && (
+                    <SearchBar
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        label={searchPlaceholder}
+                        shouldShowEmptyState={false}
+                        style={[styles.flex1, styles.mh0, styles.mb0, styles.mnw0]}
+                    />
                 )}
             </View>
-        ) : null;
+            {shouldShowEmptySearchMessage && (
+                <View style={[styles.ph5, styles.pb5]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', inputValue)}</Text>
+                </View>
+            )}
+        </View>
+    ) : null;
 
     const listFooterContent = shouldShowEmptyPreFilterState ? (
         <GenericEmptyStateComponent
