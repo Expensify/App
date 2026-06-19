@@ -1,5 +1,6 @@
 import type {NavigationAction, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
+import {isActingAsDelegateSelector} from '@selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -27,6 +28,12 @@ let isTryNewDotLoaded = false;
 
 let onboarding: OnyxEntry<Onboarding>;
 let isOnboardingLoaded = false;
+
+// A copilot (delegate) session must never re-prompt the host user's one-time AI promo —
+// `clearOnyxForDelegateTransition` wipes most NVPs when switching accounts (NVP_DISMISSED_PRODUCT_TRAINING
+// is not in `KEYS_TO_PRESERVE_DELEGATE_ACCESS`), so without this gate the modal would re-show
+// for every copilot switch. Mirrors `ProductTrainingContext`'s `isActingAsDelegate` short-circuit.
+let isActingAsDelegate = false;
 
 let hasRedirectedToAIFeaturesPromoModal = false;
 let isWaitingForProtectedRoutes = false;
@@ -78,6 +85,7 @@ function isEligibleToShowAIFeaturesPromoModal(): boolean {
     return (
         !!session?.authToken &&
         !isLoadingApp &&
+        !isActingAsDelegate &&
         !hasRedirectedToAIFeaturesPromoModal &&
         isDismissedProductTrainingLoaded &&
         isTryNewDotLoaded &&
@@ -169,6 +177,14 @@ Onyx.connectWithoutView({
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, dismissedProductTraining)) {
             observedActiveMigrationModalThisSession = true;
         }
+        navigateToAIFeaturesPromoModalIfReady();
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        isActingAsDelegate = isActingAsDelegateSelector(value);
         navigateToAIFeaturesPromoModalIfReady();
     },
 });
