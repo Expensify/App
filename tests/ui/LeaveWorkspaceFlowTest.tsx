@@ -3,7 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import LeaveWorkspaceAction from '@components/Tables/WorkspaceListTable/LeaveWorkspaceAction';
+import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -38,14 +38,14 @@ const USER_ACCOUNT_ID = 1;
 const renderAction = (onDismiss = jest.fn()) =>
     render(
         <LocaleContextProvider>
-            <LeaveWorkspaceAction
+            <LeaveWorkspaceFlow
                 policyID={POLICY_ID}
                 onDismiss={onDismiss}
             />
         </LocaleContextProvider>,
     );
 
-describe('LeaveWorkspaceAction', () => {
+describe('LeaveWorkspaceFlow', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });

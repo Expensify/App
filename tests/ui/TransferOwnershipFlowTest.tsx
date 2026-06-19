@@ -2,7 +2,7 @@ import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import TransferOwnershipAction from '@components/Tables/WorkspaceListTable/TransferOwnershipAction';
+import TransferOwnershipFlow from '@components/Tables/WorkspaceListTable/TransferOwnershipFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,14 +38,14 @@ const USER_ACCOUNT_ID = 42;
 const renderAction = (onDismiss = jest.fn()) =>
     render(
         <LocaleContextProvider>
-            <TransferOwnershipAction
+            <TransferOwnershipFlow
                 policyID={POLICY_ID}
                 onDismiss={onDismiss}
             />
         </LocaleContextProvider>,
     );
 
-describe('TransferOwnershipAction', () => {
+describe('TransferOwnershipFlow', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });

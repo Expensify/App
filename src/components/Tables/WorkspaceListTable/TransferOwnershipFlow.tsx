@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type TransferOwnershipActionProps = {
+type TransferOwnershipFlowProps = {
     /** ID of the workspace whose ownership is being transferred */
     policyID: string;
 
@@ -22,7 +22,7 @@ type TransferOwnershipActionProps = {
  * The full policy entry needed by requestWorkspaceOwnerChange is subscribed to only for the moment
  * the flow starts, so the workspaces list rows don't re-render on every policy change.
  */
-function TransferOwnershipFlow({policyID, onDismiss}: TransferOwnershipActionProps) {
+function TransferOwnershipFlow({policyID, onDismiss}: TransferOwnershipFlowProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 

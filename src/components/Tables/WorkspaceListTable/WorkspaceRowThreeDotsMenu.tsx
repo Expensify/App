@@ -22,8 +22,8 @@ import {canDowngradeSelector} from '@src/selectors/Account';
 import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 import type {WorkspaceRowData} from '.';
-import LeaveWorkspaceFlow from './LeaveWorkspaceAction';
-import TransferOwnershipFlow from './TransferOwnershipAction';
+import LeaveWorkspaceFlow from './LeaveWorkspaceFlow';
+import TransferOwnershipFlow from './TransferOwnershipFlow';
 
 type ActiveAction = ValueOf<typeof CONST.POLICY.THREE_DOT_MENU_ACTION>;
 

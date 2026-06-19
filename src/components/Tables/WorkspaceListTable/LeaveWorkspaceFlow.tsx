@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type LeaveWorkspaceActionProps = {
+type LeaveWorkspaceFlowProps = {
     /** ID of the workspace being left */
     policyID: string;
 
@@ -28,7 +28,7 @@ const ownerDisplayNameSelector = (ownerAccountID: number) => (personalDetailsLis
  * The full policy entry needed to build the confirmation prompt is subscribed to only for the
  * lifetime of the flow, so the workspaces list rows don't re-render on every policy change.
  */
-function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceActionProps) {
+function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
