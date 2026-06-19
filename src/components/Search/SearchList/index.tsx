@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import AnimatedExitRow from '@components/Search/primitives/AnimatedExitRow';
 import HorizontalTableScroll from '@components/Search/primitives/HorizontalTableScroll';
+import SelectionTopBar from '@components/Search/primitives/SelectionTopBar';
 import useRowLongPressMenu from '@components/Search/primitives/useRowLongPressMenu';
 import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -51,7 +52,6 @@ import type {
     TransactionYearGroupListItemType,
 } from './ListItem/types';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
-import SearchSelectAllMenu from './SearchSelectAllMenu';
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem | typeof ExpenseReportListItem;
@@ -591,26 +591,18 @@ function SearchList({
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View
-                    style={[
-                        styles.searchListHeaderContainerStyle,
-                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
-                        isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
-                    ]}
-                >
-                    {canSelectMultiple && (
-                        <SearchSelectAllMenu
-                            isSelectAllChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
-                            selectedItemsLength={selectedItemsLength}
-                            totalItems={totalItems}
-                            shouldShowTextButton={selectAllButtonVisible}
-                            onAllCheckboxPress={toggleAll}
-                        />
-                    )}
-
-                    {SearchTableHeader}
-                </View>
+                <SelectionTopBar
+                    isLargeScreenWidth={isLargeScreenWidth}
+                    shouldSplitGroups={shouldSplitGroups}
+                    canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    selectedItemsLength={selectedItemsLength}
+                    totalItems={totalItems}
+                    hasLoadedAllTransactions={hasLoadedAllTransactions}
+                    selectAllButtonVisible={selectAllButtonVisible}
+                    onAllCheckboxPress={toggleAll}
+                    SearchTableHeader={SearchTableHeader}
+                />
             )}
             <BaseSearchList
                 data={listData}
