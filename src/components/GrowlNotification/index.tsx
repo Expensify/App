@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import {useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {setIsReady} from '@libs/Growl';
 import type {GrowlAction, GrowlRef} from '@libs/Growl';
 import GrowlNotificationContent from './GrowlNotificationContent';
@@ -53,4 +53,4 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     );
 }
 
-export default React.memo(GrowlNotification);
+export default GrowlNotification;
