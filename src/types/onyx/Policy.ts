@@ -2551,6 +2551,5 @@ export type {
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
-    XeroContact,
     AgentRule,
 };

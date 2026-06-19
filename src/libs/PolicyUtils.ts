@@ -2636,7 +2636,6 @@ export {
     getXeroSuppliers,
     getMatchingVendorName,
     isXeroVendorMatchingActive,
-    isQBOVendorMatchingActive,
     hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
