@@ -27,6 +27,9 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 type TableHeaderProps = ViewProps & {
     /** Whether to render the header even when data is empty (useful for empty state UIs that still need column headers) */
     showOnEmpty?: boolean;
+
+    /** Whether the select-all checkbox should be disabled (e.g. when showing a custom empty state with no selectable rows) */
+    isSelectAllDisabled?: boolean;
 };
 
 /**
@@ -52,7 +55,7 @@ type TableHeaderProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, showOnEmpty, ...props}: TableHeaderProps) {
+function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, showOnEmpty, isSelectAllDisabled = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,6 +120,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
+                            disabled={isSelectAllDisabled}
                             style={styles.pl1}
                         />
                     )}
@@ -139,6 +143,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
+                            disabled={isSelectAllDisabled}
                         />
                     )}
 

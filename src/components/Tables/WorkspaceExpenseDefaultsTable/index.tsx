@@ -93,7 +93,10 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             title={translate('workspace.rules.tabs.expenseDefaults')}
         >
             {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />}
-            <Table.Header showOnEmpty={!!emptyStateContent} />
+            <Table.Header
+                showOnEmpty={!!emptyStateContent}
+                isSelectAllDisabled={isEmpty && !!emptyStateContent}
+            />
             {isEmpty ? emptyStateContent : <Table.Body />}
         </Table>
     );

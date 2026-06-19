@@ -95,7 +95,10 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
             {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
-            <Table.Header showOnEmpty={!!emptyStateContent} />
+            <Table.Header
+                showOnEmpty={!!emptyStateContent}
+                isSelectAllDisabled={isEmpty && !!emptyStateContent}
+            />
             {isEmpty ? <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View> : <Table.Body />}
         </Table>
     );
