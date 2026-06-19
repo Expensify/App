@@ -493,6 +493,15 @@ const CONST = {
             READY: 'ready',
             FAILED: 'failed',
         },
+        TYPE: {
+            CSV: 'csv',
+            PDF: 'pdf',
+        },
+    },
+
+    SECURE_DOWNLOAD_TYPE: {
+        CSV_EXPORT: 'csvexport',
+        PDF_REPORT: 'pdfreport',
     },
 
     EXPORT_LABELS: {

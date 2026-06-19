@@ -9861,6 +9861,9 @@ ${amount} para ${merchant} - ${date}`,
         downloadFile: 'Descargar archivo',
         failedTitle: 'Exportación fallida',
         csvFailedBody: 'No se pudo completar la exportación. Inténtalo de nuevo más tarde.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Cerrar',
     },
     openAppFailureModal: {

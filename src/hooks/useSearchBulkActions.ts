@@ -12,7 +12,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import {clearExportDownload} from '@libs/actions/Export';
+import {clearExportDownload, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -1742,8 +1742,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         options.push(exportButtonOption);
 
-        if (isExpenseReportSearch && selectedReportIDs.length === 1) {
-            const reportIDForPDF = selectedReportIDs.at(0);
+        if (isExpenseReportSearch && selectedReportIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadAsPDF'),
@@ -1754,14 +1753,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    if (!reportIDForPDF) {
+                    if (selectedReportIDs.length === 1) {
+                        const reportIDForPDF = selectedReportIDs.at(0);
+                        if (!reportIDForPDF) {
+                            return;
+                        }
+                        await exportReportToPDF({reportID: reportIDForPDF});
+                        setPdfReportID(reportIDForPDF);
+                        setIsPdfModalVisible(true);
                         return;
                     }
-                    // Using await prevent the double-download on the second PDF export
-                    // by clearing Onyx filename before modal is visible
-                    await exportReportToPDF({reportID: reportIDForPDF});
-                    setPdfReportID(reportIDForPDF);
-                    setIsPdfModalVisible(true);
+                    const exportID = exportReportsToPDF(selectedReportIDs);
+                    setActiveExportID(exportID);
                 },
             });
         }
@@ -2127,6 +2130,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        activeExportID,
+        handleExportModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -2136,8 +2141,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allTransactions: allTransactionsForDuplicate,
         allReports,
         searchData: currentSearchResults?.data,
-        activeExportID,
-        handleExportModalClose,
     };
 }
 
