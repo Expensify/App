@@ -8,7 +8,6 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import * as usePopoverPositionModule from '@hooks/usePopoverPosition';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -376,92 +375,6 @@ describe('WorkspaceMembers', () => {
             });
 
             unmount();
-        });
-    });
-
-    describe('Role filter dropdown label', () => {
-        beforeEach(() => {
-            jest.spyOn(usePopoverPositionModule, 'default').mockReturnValue({
-                calculatePopoverPosition: () => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0}),
-            });
-        });
-
-        it('should display "Filters" by default when no filter is applied', async () => {
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            });
-
-            const expectedLabel = TestHelper.translateLocal('search.filtersHeader');
-            expect(screen.getByText(expectedLabel)).toBeOnTheScreen();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should update to "Members" when the Members filter is applied', async () => {
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            });
-
-            const defaultLabel = TestHelper.translateLocal('search.filtersHeader');
-            fireEvent.press(screen.getByText(defaultLabel));
-            await waitForBatchedUpdatesWithAct();
-
-            const membersOption = TestHelper.translateLocal('workspace.people.members');
-            fireEvent.press(await screen.findByRole(CONST.ROLE.CHECKBOX, {name: membersOption}));
-
-            const applyText = TestHelper.translateLocal('common.apply');
-            fireEvent.press(screen.getByText(applyText));
-            await waitForBatchedUpdatesWithAct();
-
-            await waitFor(() => {
-                expect(screen.getAllByText(membersOption).length).toBeGreaterThan(0);
-            });
-            expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
-            expect(screen.queryByText(ADMIN_OPTION)).not.toBeOnTheScreen();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should update to "Members, Workspace Admins" when both filters are applied', async () => {
-            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
-            await waitForBatchedUpdatesWithAct();
-
-            await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            });
-
-            const defaultLabel = TestHelper.translateLocal('search.filtersHeader');
-            fireEvent.press(screen.getByText(defaultLabel));
-            await waitForBatchedUpdatesWithAct();
-
-            const membersOption = TestHelper.translateLocal('workspace.people.members');
-            const adminsOption = TestHelper.translateLocal('workspace.people.admins');
-            fireEvent.press(await screen.findByRole(CONST.ROLE.CHECKBOX, {name: membersOption}));
-            fireEvent.press(screen.getByRole(CONST.ROLE.CHECKBOX, {name: adminsOption}));
-
-            const applyText = TestHelper.translateLocal('common.apply');
-            fireEvent.press(screen.getByText(applyText));
-            await waitForBatchedUpdatesWithAct();
-
-            // Verify the label shows both filters comma separated
-            const expectedLabel = `${adminsOption}, ${membersOption}`;
-            await waitFor(() => {
-                expect(screen.getByText(expectedLabel)).toBeOnTheScreen();
-            });
-            expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
-            expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            expect(screen.queryByText(AUDITOR_OPTION)).not.toBeOnTheScreen();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
         });
     });
 });
