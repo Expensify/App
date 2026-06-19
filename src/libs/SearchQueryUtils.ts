@@ -2305,6 +2305,7 @@ function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>, targ
     }
 
     const defaultQueryJSON = getDefaultSearchQueryJSON();
+
     // Sort only affects totals when a limit is set. Without a limit, reset sort so equivalent footer
     // total queries can reuse the existing ungrouped snapshot instead of making another request.
     const shouldPreserveSort = queryJSON.limit !== undefined;
