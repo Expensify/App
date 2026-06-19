@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
+import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
+import type {SearchTextFilterKeys} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
-import type {SearchTextFilterKeys} from '@components/Search/types';
 import BasePopup from './BasePopup';
 import type {PopoverComponentProps} from './FilterPopupButton';
 
