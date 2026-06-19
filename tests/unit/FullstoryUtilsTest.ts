@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention -- Test assertions use FullStory's external snake_case keys. */
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep} from '@src/libs/Fullstory/utils';
 import createRandomPolicy from '../utils/collections/policies';
 
@@ -64,9 +65,9 @@ describe('FullstoryUtils', () => {
     });
 
     it('builds page viewed event metadata', () => {
-        expect(buildPageViewedEvent('OnboardingWorkspace', '/onboarding/workspace')).toEqual({
-            screen_name: 'OnboardingWorkspace',
-            entry_point: '/onboarding/workspace',
+        expect(buildPageViewedEvent('OnboardingWorkspaces', ROUTES.ONBOARDING_WORKSPACES.route)).toEqual({
+            screen_name: 'OnboardingWorkspaces',
+            entry_point: ROUTES.ONBOARDING_WORKSPACES.route,
             onb_step: 'registration',
         });
     });

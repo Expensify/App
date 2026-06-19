@@ -122,10 +122,8 @@ function getOnboardingStep(onboardingPath: string | undefined, hasCompletedOnboa
         ROUTES.ONBOARDING_PURPOSE.route,
         ROUTES.ONBOARDING_EMPLOYEES.route,
         ROUTES.ONBOARDING_INTERESTED_FEATURES.route,
-        ROUTES.ONBOARDING_WORKSPACE.route,
-        ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.route,
-        ROUTES.ONBOARDING_WORKSPACE_CURRENCY.route,
-        ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
+        ROUTES.WORKSPACE_CONFIRMATION.route,
+        ROUTES.WORKSPACE_CURRENCY_SELECTION.route,
     ];
 
     if (onboardingRoutes.some((route) => onboardingPath.includes(route))) {
