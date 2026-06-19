@@ -1,21 +1,17 @@
-import {useRoute} from '@react-navigation/native';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
-import MenuItem from '@components/MenuItem';
-import Modal from '@components/Modal';
 import AnimatedExitRow from '@components/Search/primitives/AnimatedExitRow';
 import HorizontalTableScroll from '@components/Search/primitives/HorizontalTableScroll';
+import useRowLongPressMenu from '@components/Search/primitives/useRowLongPressMenu';
 import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -23,11 +19,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import navigationRef from '@libs/Navigation/navigationRef';
 import {splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -205,7 +199,6 @@ function SearchList({
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {toggle, toggleAll} = useSearchRowSelectionActions();
     const {selectedTransactions} = useSearchSelectionContext();
 
@@ -265,7 +258,6 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, flattenedItems, emptyReports]);
 
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
@@ -275,9 +267,6 @@ function SearchList({
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
-
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
@@ -374,10 +363,6 @@ function SearchList({
 
     const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
-    const route = useRoute();
-
-    const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
-
     const newTransactionIDByItemKey = (() => {
         if (newTransactions.length === 0) {
             return CONST.EMPTY_MAP;
@@ -394,45 +379,7 @@ function SearchList({
         return mappedTransactionIDs;
     })();
 
-    const handleLongPressRowInMobileSelectionMode = (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
-        const currentRoute = navigationRef.current?.getCurrentRoute();
-        if (currentRoute && route.key !== currentRoute.key) {
-            return;
-        }
-
-        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
-
-        toggle(item, itemTransactions);
-    };
-
-    const handleLongPressRow = useCallback(
-        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
-            const currentRoute = navigationRef.current?.getCurrentRoute();
-            if (currentRoute && route.key !== currentRoute.key) {
-                return;
-            }
-
-            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
-            }
-
-            setLongPressedItem(item);
-            setLongPressedItemTransactions(itemTransactions);
-            setIsModalVisible(true);
-        },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth],
-    );
-
-    const turnOnSelectionMode = useCallback(() => {
-        turnOnMobileSelectionMode();
-        setIsModalVisible(false);
-
-        if (longPressedItem) {
-            toggle(longPressedItem, longPressedItemTransactions);
-        }
-    }, [longPressedItem, toggle, longPressedItemTransactions]);
+    const {onLongPressRow, modal} = useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled});
 
     // In mobile selection mode a row tap toggles selection. This must live here (not in <Search>) because
     // <Search> renders SearchWriteActionsProvider as its child, so the `toggle` it reads is the default no-op;
@@ -526,7 +473,7 @@ function SearchList({
                         onToggle={() => onToggleGroup(originalKey)}
                         onSelectRow={handleSelectRow}
                         onCheckboxPress={toggle}
-                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onLongPressRow={onLongPressRow}
                         onFocus={onFocus}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
@@ -556,7 +503,7 @@ function SearchList({
                         canSelectMultiple={canSelectMultiple}
                         onSelectRow={handleSelectRow}
                         onCheckboxPress={toggle}
-                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onLongPressRow={onLongPressRow}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onUndelete={handleUndelete}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
@@ -583,7 +530,7 @@ function SearchList({
                         showTooltip
                         isFocused={isItemFocused}
                         onSelectRow={handleSelectRow}
-                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onLongPressRow={onLongPressRow}
                         onSelectionButtonPress={toggle}
                         canSelectMultiple={canSelectMultiple}
                         item={item}
@@ -615,9 +562,7 @@ function SearchList({
             hasItemsBeingRemoved,
             ListItem,
             handleSelectRow,
-            handleLongPressRow,
-            handleLongPressRowInMobileSelectionMode,
-            isMobileSelectionModeEnabled,
+            onLongPressRow,
             toggle,
             canSelectMultiple,
             columns,
@@ -693,19 +638,7 @@ function SearchList({
                 disabledIndexes={shouldSplitGroups ? childrenContainerIndices : undefined}
                 overrideItemLayout={shouldSplitGroups ? overrideItemLayout : undefined}
             />
-            <Modal
-                isVisible={isModalVisible}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                onClose={() => setIsModalVisible(false)}
-                shouldPreventScrollOnFocus
-            >
-                <MenuItem
-                    title={translate('common.select')}
-                    icon={expensifyIcons.CheckSquare}
-                    onPress={turnOnSelectionMode}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
-                />
-            </Modal>
+            {modal}
         </View>
     );
 
