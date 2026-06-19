@@ -91,6 +91,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             }
 
             const isResettingToDefault = nextCurrency === effectiveDefaultCurrency;
+
             // Fetch converted footer totals in a currency-scoped snapshot so the live search snapshot stays in its original currency.
             const flatQueryJSON = !isResettingToDefault ? buildFlatQueryWithoutGroupBy(currentSearchQueryJSON, nextCurrency) : undefined;
 
