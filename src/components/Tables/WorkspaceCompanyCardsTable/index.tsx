@@ -7,7 +7,6 @@ import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import TableSkeleton from '@components/Table/TableSkeleton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
@@ -31,7 +30,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
-import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkeleton';
 
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
 
@@ -347,20 +345,6 @@ function WorkspaceCompanyCardsTable({
             />
         </View>
     ) : undefined;
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceCompanyCardsTable',
-        isLoading,
-        isLoadingCards,
-    };
-
-    const LoadingComponent = (
-        <TableSkeleton
-            rowCount={5}
-            reasonAttributes={reasonAttributes}
-            renderSkeletonItem={WorkspaceCompanyCardsTableSkeleton}
-        />
-    );
 
     const ListHeader = (
         <>
