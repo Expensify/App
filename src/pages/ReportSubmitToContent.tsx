@@ -255,9 +255,6 @@ function ReportSubmitToContent({
         const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList);
 
         if (onSubmitWithManagerEmail) {
-            if (canSubmitRef && !canSubmitRef.current) {
-                return;
-            }
             onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
             if (currentSearchQueryJSON && !isOffline) {
                 search({

@@ -10,7 +10,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import Text from '@components/Text';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getPolicyByCustomUnitID, getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
@@ -75,7 +75,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -123,15 +122,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
 
-    const hasSelectedTransactionsOnSubmitPolicy = selectedTransactions.some((transaction) => {
-        const transactionPolicy =
-            getPolicyByCustomUnitID(transaction, policies) ??
-            (moneyRequestReport?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] : undefined) ??
-            policy;
-        return isSubmitPolicy(transactionPolicy);
-    });
-
-    const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = hasSelectedTransactionsOnSubmitPolicy && selectedTransactions.length > 1;
+    const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 1;
 
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
 
@@ -207,7 +198,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
 
         const doSubmit = () => {
-            if (hasSelectedTransactionsOnSubmitPolicy || isSubmitPolicy(policy)) {
+            if (isSubmitPolicy(policy)) {
                 openReportSubmitToPopover({
                     onSubmitSuccess: () => {
                         if (skipAnimation) {
@@ -273,7 +264,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 confirmPendingRTERAndProceed(() => {
-                    if (hasSelectedTransactionsOnSubmitPolicy || isSubmitPolicy(policy)) {
+                    if (isSubmitPolicy(policy)) {
                         openReportSubmitToPopover();
                         return;
                     }

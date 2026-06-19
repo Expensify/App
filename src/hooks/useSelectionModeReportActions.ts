@@ -23,7 +23,7 @@ import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getPolicyByCustomUnitID, isSubmitPolicy, sortPoliciesByName} from '@libs/PolicyUtils';
+import {isSubmitPolicy, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
@@ -153,11 +153,7 @@ function useSelectionModeReportActions({
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
 
-    const hasSelectedTransactionsOnSubmitPolicy = selectedTransactions.some((transaction) => {
-        const transactionPolicy = getPolicyByCustomUnitID(transaction, policies) ?? (report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined) ?? policy;
-        return isSubmitPolicy(transactionPolicy);
-    });
-
+    const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;
     const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = hasSelectedTransactionsOnSubmitPolicy && selectedTransactions.length > 1;
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
@@ -311,7 +307,7 @@ function useSelectionModeReportActions({
             return;
         }
         const doSubmit = () => {
-            if (hasSelectedTransactionsOnSubmitPolicy || isSubmitPolicy(policy)) {
+            if (isSubmitPolicy(policy)) {
                 openReportSubmitToPopover({
                     onSubmitSuccess: () => {
                         clearSelectedTransactions(true);
