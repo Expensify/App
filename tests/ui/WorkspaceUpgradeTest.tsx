@@ -162,6 +162,58 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdates();
     });
 
+    it('should render the Collect plan title and Team pricing when upgradePlanType is team', async () => {
+        const policy: Policy = LHNTestUtils.getFakePolicy();
+
+        // Given that a policy is initialized in Onyx
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // When the upgrade page is opened with upgradePlanType set to the Collect (Team) plan
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, upgradePlanType: CONST.POLICY.TYPE.TEAM});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Collect title is shown
+        expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.collect.title'))).toBeTruthy();
+
+        // And the Team (Collect) annual price is shown
+        const teamPrice = convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.TEAM][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            CONST.PAYMENT_CARD_CURRENCY.USD,
+        );
+        expect(await screen.findByText(teamPrice, {exact: false})).toBeTruthy();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should render the Control plan title and Corporate pricing when upgradePlanType is corporate', async () => {
+        const policy: Policy = LHNTestUtils.getFakePolicy();
+
+        // Given that a policy is initialized in Onyx
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // When the upgrade page is opened with upgradePlanType set to the Control (Corporate) plan
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, upgradePlanType: CONST.POLICY.TYPE.CORPORATE});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Control title is shown
+        expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.title'))).toBeTruthy();
+
+        // And the Corporate (Control) annual price is shown
+        const corporatePrice = convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            CONST.PAYMENT_CARD_CURRENCY.USD,
+        );
+        expect(await screen.findByText(corporatePrice, {exact: false})).toBeTruthy();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it("should show the upgrade corporate plan price is in the user's local currency", async () => {
         // Team policy which the user can upgrade to corporate
         const policy = LHNTestUtils.getFakePolicy();

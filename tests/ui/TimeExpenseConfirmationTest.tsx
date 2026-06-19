@@ -63,11 +63,15 @@ jest.mock('@components/ProductTrainingContext', () => ({
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
-    getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Step_Confirmation',
-        params: {},
-    })),
-    getState: jest.fn(() => ({})),
+    __esModule: true,
+    default: {
+        getCurrentRoute: jest.fn(() => ({
+            name: 'Money_Request_Step_Confirmation',
+            params: {},
+        })),
+        getState: jest.fn(() => ({})),
+        getRootState: jest.fn(() => ({routes: []})),
+    },
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
