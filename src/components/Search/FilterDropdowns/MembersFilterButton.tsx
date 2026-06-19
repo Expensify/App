@@ -2,25 +2,25 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
-import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {PopoverComponentProps} from './FilterPopupButton';
+import FilterPopupButton from './FilterPopupButton';
 
-type WorkspaceMembersRoleFilterButtonProps = {
+type MembersFilterButtonProps = WithSentryLabel & {
     /** The label to display on the filter button */
     label: string;
 
     /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => React.ReactNode;
 
-    /** Whether search bar is shown next to role filter button. */
+    /** Whether a search bar is shown next to the filter button */
     shouldShowSearchBar: boolean;
 };
 
-function WorkspaceMembersRoleFilterButton({label, PopoverComponent, shouldShowSearchBar}: WorkspaceMembersRoleFilterButtonProps) {
+function MembersFilterButton({label, PopoverComponent, shouldShowSearchBar, sentryLabel}: MembersFilterButtonProps) {
     const styles = useThemeStyles();
 
     return (
@@ -34,7 +34,7 @@ function WorkspaceMembersRoleFilterButton({label, PopoverComponent, shouldShowSe
                         medium
                         innerStyles={[isExpanded && styles.buttonHoveredBG, styles.gap2, styles.mw100, styles.flexShrink1, styles.mnw0]}
                         onPress={onPress}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.ROLE_FILTER_BUTTON}
+                        sentryLabel={sentryLabel}
                     >
                         <CaretWrapper
                             style={[styles.flexShrink1, styles.mnw0, styles.mw100, styles.gap2]}
@@ -58,5 +58,5 @@ function WorkspaceMembersRoleFilterButton({label, PopoverComponent, shouldShowSe
     );
 }
 
-export default WorkspaceMembersRoleFilterButton;
-export type {WorkspaceMembersRoleFilterButtonProps};
+export default MembersFilterButton;
+export type {MembersFilterButtonProps};
