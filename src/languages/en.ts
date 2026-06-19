@@ -6392,6 +6392,7 @@ const translations = {
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',
+            members: 'Members',
             emptyRoleFilter: {
                 title: 'No members match this filter',
                 subtitle: 'Invite a member or change the filter above.',
