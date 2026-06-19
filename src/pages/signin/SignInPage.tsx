@@ -356,16 +356,27 @@ function SignInPageWrapper({ref}: SignInPageProps) {
 }
 
 // WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
+// The sign-in page always uses the dark theme, but respects the user's contrast preference (nvp_preferredTheme) which is preserved on sign-out.
 function WithTheme(Component: React.ComponentType<SignInPageProps>) {
-    return ({ref}: SignInPageProps) => (
-        <ThemeProvider theme={CONST.THEME.DARK}>
-            <ThemeStylesProvider>
-                <HTMLEngineProvider>
-                    <Component ref={ref} />
-                </HTMLEngineProvider>
-            </ThemeStylesProvider>
-        </ThemeProvider>
-    );
+    function ThemedComponent({ref}: SignInPageProps) {
+        const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+        const [highContrastIntent] = useOnyx(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT);
+        const contrastThemes: string[] = [CONST.THEME.DARK_CONTRAST, CONST.THEME.LIGHT_CONTRAST, CONST.THEME.SYSTEM_CONTRAST];
+        const isHighContrast = highContrastIntent ?? contrastThemes.includes(preferredTheme ?? '');
+        const signInTheme = isHighContrast ? CONST.THEME.DARK_CONTRAST : CONST.THEME.DARK;
+
+        return (
+            <ThemeProvider theme={signInTheme}>
+                <ThemeStylesProvider>
+                    <HTMLEngineProvider>
+                        <Component ref={ref} />
+                    </HTMLEngineProvider>
+                </ThemeStylesProvider>
+            </ThemeProvider>
+        );
+    }
+    ThemedComponent.displayName = `WithTheme(${Component.displayName ?? Component.name ?? 'Component'})`;
+    return ThemedComponent;
 }
 
 const SignInPageThemed = WithTheme(SignInPage);

@@ -25,7 +25,7 @@ type SwitchProps = {
     showLockIcon?: boolean;
 
     /** Callback to fire when the switch is toggled in disabled state */
-    disabledAction?: () => void;
+    disabledAction?: () => void | Promise<void>;
 };
 
 const OFFSET_X = {

@@ -3,7 +3,6 @@ import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -14,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, hasAnyPaidPolicy} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -31,16 +30,6 @@ type ProductTrainingContextType = {
 };
 
 type ProductTrainingContextConfig = {
-    /**
-     * Callback to be called when the tooltip is dismissed
-     */
-    onDismiss?: () => void;
-
-    /**
-     * Callback to be called when the tooltip is confirmed
-     */
-    onConfirm?: () => void;
-
     /**
      * Callback to be called when the tooltip is shown
      */
@@ -125,7 +114,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
             return false;
         }
-        return getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies).length > 0;
+        return hasAnyPaidPolicy(allPolicies);
     }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
 
     const shouldTooltipBeVisible = useCallback(
@@ -149,14 +138,18 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
+            // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
+            // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
+            if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && modal?.isPopover) {
+                return false;
+            }
+
             // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
             if (
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED &&
                 isModalVisible
             ) {
                 return false;
@@ -177,6 +170,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             hasBeenAddedToNudgeMigration,
             isOnboardingCompleted,
             isModalVisible,
+            modal?.isPopover,
             shouldUseNarrowLayout,
             isUserPolicyEmployee,
             isUserPolicyAdmin,
@@ -278,17 +272,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                 onLayout={config.onShown}
             >
-                <View
-                    style={[
-                        styles.alignItemsCenter,
-                        styles.flexRow,
-                        tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
-                        styles.textAlignCenter,
-                        styles.gap3,
-                        styles.pv2,
-                        styles.ph2,
-                    ]}
-                >
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.textAlignCenter, styles.gap3, styles.pv2, styles.ph2]}>
                     <Icon
                         src={expensifyIcons.Lightbulb}
                         fill={theme.tooltipHighlightText}
@@ -297,53 +281,32 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
                         <RenderHTML html={translate(tooltip.content)} />
                     </View>
-                    {!tooltip?.shouldRenderActionButtons && (
-                        <PressableWithoutFeedback
-                            sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
-                            shouldUseAutoHitSlop
-                            accessibilityLabel={translate('common.noThanks')}
-                            role={CONST.ROLE.BUTTON}
-                            onPress={() => hideTooltip(true)}
-                        >
-                            <Icon
-                                src={expensifyIcons.Close}
-                                fill={theme.icon}
-                                width={variables.iconSizeSemiSmall}
-                                height={variables.iconSizeSemiSmall}
-                            />
-                        </PressableWithoutFeedback>
-                    )}
+                    <PressableWithoutFeedback
+                        sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
+                        shouldUseAutoHitSlop
+                        accessibilityLabel={translate('common.noThanks')}
+                        role={CONST.ROLE.BUTTON}
+                        onPress={() => hideTooltip(true)}
+                    >
+                        <Icon
+                            src={expensifyIcons.Close}
+                            fill={theme.icon}
+                            width={variables.iconSizeSemiSmall}
+                            height={variables.iconSizeSemiSmall}
+                        />
+                    </PressableWithoutFeedback>
                 </View>
-                {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
-                        <Button
-                            success
-                            text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
-                            style={[styles.flex1]}
-                            onPress={config.onConfirm}
-                        />
-                        <Button
-                            text={translate('common.noThanks')}
-                            style={[styles.flex1]}
-                            onPress={config.onDismiss}
-                        />
-                    </View>
-                )}
             </View>
         );
     }, [
         tooltipName,
         styles.alignItemsCenter,
         styles.flexRow,
-        styles.justifyContentStart,
         styles.justifyContentCenter,
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.flex1,
-        styles.justifyContentBetween,
         styles.ph2,
-        styles.gap2,
         styles.renderHTML,
         styles.dFlex,
         styles.flexShrink1,
@@ -351,8 +314,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         theme.icon,
         translate,
         config.onShown,
-        config.onConfirm,
-        config.onDismiss,
         hideTooltip,
         expensifyIcons.Close,
         expensifyIcons.Lightbulb,

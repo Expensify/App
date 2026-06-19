@@ -1,0 +1,12 @@
+# @desc   From the Inbox tab, open the FAB -> Create expense -> switch to Scan tab. Triggers the ManualCameraInit Sentry span (Scan tab mount -> camera session ready). Assumes the user is signed in and camera permission is granted.
+# @pre    text="Inbox"
+# @pre    role="button" label="Open actions menu"
+# @post   text="Take a photo"
+# @tag    iou
+# @tag    scan
+# @tag    perf
+# @tag    sentry-ManualCameraInit
+find "Inbox" "click"
+press "role=\"button\" label=\"Open actions menu\""
+press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""
+press "label=\"Scan\""

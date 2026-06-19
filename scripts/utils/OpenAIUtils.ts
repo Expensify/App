@@ -100,7 +100,6 @@ class OpenAIUtils {
         // 1. Create a thread
         const thread = await retryWithBackoff(
             () =>
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 this.client.beta.threads.create({
                     messages: [{role: OpenAIUtils.USER, content: userMessage}],
                 }),
@@ -110,7 +109,6 @@ class OpenAIUtils {
         // 2. Create a run on the thread
         let run = await retryWithBackoff(
             () =>
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 this.client.beta.threads.runs.create(thread.id, {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     assistant_id: assistantID,
@@ -122,7 +120,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             run = await this.client.beta.threads.runs.retrieve(run.id, {thread_id: thread.id});
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
@@ -132,7 +130,6 @@ class OpenAIUtils {
                 continue;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             for await (const message of this.client.beta.threads.messages.list(thread.id)) {
                 if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;

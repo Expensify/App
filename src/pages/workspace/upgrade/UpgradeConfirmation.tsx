@@ -11,6 +11,8 @@ import ROUTES from '@src/ROUTES';
 
 type Props = {
     policyName: string;
+    /** Friendly name of the plan the workspace was upgraded to (e.g. Collect or Control) */
+    planName?: string;
     afterUpgradeAcknowledged: () => void;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
@@ -20,7 +22,7 @@ type Props = {
     isDistanceRateUpgrade?: boolean;
 };
 
-function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
+function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -36,7 +38,7 @@ function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting,
     }, [updateSubscriptionLink]);
 
     const description = useMemo(() => {
-        if (isCategorizing ?? isReporting) {
+        if (isCategorizing || isReporting) {
             return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>;
         }
 
@@ -50,13 +52,13 @@ function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting,
 
         return (
             <View style={[styles.renderHTML, styles.w100]}>
-                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, subscriptionLink)} />
+                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
             </View>
         );
-    }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, planName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
 
     const heading = useMemo(() => {
-        if (isCategorizing ?? isReporting) {
+        if (isCategorizing || isReporting) {
             return translate('workspace.upgrade.completed.createdWorkspace');
         }
         return translate('workspace.upgrade.completed.headline');

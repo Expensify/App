@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getParsedComment} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
@@ -17,7 +17,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import type {MockFetch} from '../../utils/TestHelper';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -40,7 +40,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -88,6 +87,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         let transaction: OnyxEntry<Transaction>;
         let policy: OnyxEntry<Policy>;
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_EMAIL = 'test@email.com';
         const MANAGER_ACCOUNT_ID = 2;
         const ADMIN_ACCOUNT_ID = 3;
 
@@ -149,7 +149,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, [CONST.BETAS.ALL]);
+            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL]);
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
@@ -165,7 +165,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, [CONST.BETAS.ALL]);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL]);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -185,7 +185,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('should the createdIOUReportActionID parameter not be undefined when rejecting an expense to an open report', async () => {
             // Mock API.write for this test
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const openingReport = {
@@ -221,7 +221,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, [CONST.BETAS.ALL]);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL]);
             await waitForBatchedUpdates();
 
             // Then: createdIOUReportActionID shouldn't be undefined
@@ -233,6 +233,70 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 expect.anything(),
             );
             writeSpy.mockRestore();
+        });
+
+        it('should reuse the same rejected report when rejecting multiple expenses from the same report', async () => {
+            const secondTransaction = {
+                ...createRandomTransaction(2),
+                reportID: iouReport?.reportID,
+                amount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Second Test Merchant',
+                transactionID: '2',
+            };
+
+            const expenseReport = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE, total: amount * 2};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await waitForBatchedUpdates();
+
+            const sharedRejectedToReportID = '9999';
+            let existingRejectedReport: OnyxEntry<Report>;
+            const setExistingRejectedReport = (nextRejectedReport: OnyxEntry<Report>) => {
+                existingRejectedReport = nextRejectedReport;
+            };
+
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], {
+                sharedRejectedToReportID,
+                existingRejectedReport,
+                setExistingRejectedReport,
+            });
+
+            rejectMoneyRequest(secondTransaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, [CONST.BETAS.ALL], {
+                sharedRejectedToReportID,
+                existingRejectedReport,
+                setExistingRejectedReport,
+            });
+            await waitForBatchedUpdates();
+
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    allReports = reports;
+                },
+            });
+            const rejectedReports = Object.values(allReports ?? {}).filter(
+                (reportCandidate) =>
+                    reportCandidate?.reportID !== expenseReport.reportID &&
+                    reportCandidate?.chatReportID === chatReport?.reportID &&
+                    reportCandidate?.type === CONST.REPORT.TYPE.EXPENSE &&
+                    reportCandidate?.ownerAccountID === TEST_USER_ACCOUNT_ID,
+            );
+
+            expect(rejectedReports).toHaveLength(1);
+            expect(rejectedReports.at(0)?.reportID).toBe(sharedRejectedToReportID);
+
+            const firstRejectedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            const secondRejectedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`);
+
+            expect(firstRejectedTransaction?.reportID).toBe(sharedRejectedToReportID);
+            expect(secondRejectedTransaction?.reportID).toBe(sharedRejectedToReportID);
         });
     });
 
@@ -285,7 +349,26 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 expect.objectContaining({
                     reportID: expenseReport.reportID,
                     targetAccountID: SUBMITTER_ACCOUNT_ID,
-                    comment,
+                    comment: getParsedComment(comment),
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
+        });
+
+        it('queues getParsedComment output for REJECT_EXPENSE_REPORT when reject reason contains markdown', async () => {
+            const markdownComment = 'Rejected because **important**';
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, markdownComment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.REJECT_EXPENSE_REPORT,
+                expect.objectContaining({
+                    comment: getParsedComment(markdownComment),
                 }),
                 expect.anything(),
             );
@@ -358,12 +441,12 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             jest.clearAllMocks();
         });
 
-        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation', async () => {
-            // When: Mark violation as resolved
+        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation when online', async () => {
+            // When: Mark violation as resolved while online
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -375,6 +458,86 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     }),
                 ]),
             );
+        });
+
+        it('should remove AUTO_REPORTED_REJECTED_EXPENSE violation when offline', async () => {
+            // When: Mark violation as resolved while offline
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+            markRejectViolationAsResolved(transaction.transactionID, true, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: Verify violation is removed
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
+            expect(violations).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    }),
+                ]),
+            );
+        });
+
+        it('should call API.write with MARK_TRANSACTION_VIOLATION_AS_RESOLVED command', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // When: Mark violation as resolved
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: API.write should be called with the correct command and transactionID
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_TRANSACTION_VIOLATION_AS_RESOLVED,
+                expect.objectContaining({
+                    transactionID: transaction.transactionID,
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
+        });
+
+        it('should call notifyNewAction after resolving the violation', async () => {
+            const {notifyNewAction} = require('@src/libs/actions/Report');
+
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // When: Mark violation as resolved while online
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: notifyNewAction should be called
+            expect(notifyNewAction).toHaveBeenCalled();
+        });
+
+        it('should not make API call or notify when reportID is undefined', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            const {notifyNewAction} = require('@src/libs/actions/Report');
+
+            if (!transaction?.transactionID) {
+                throw new Error('Required transaction data is missing');
+            }
+
+            // When: Mark violation as resolved without reportID
+            markRejectViolationAsResolved(transaction.transactionID, false, undefined);
+            await waitForBatchedUpdates();
+
+            // Then: API.write should not be called
+            expect(writeSpy).not.toHaveBeenCalled();
+
+            // Then: notifyNewAction should not be called
+            expect(notifyNewAction).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
         });
     });
 });

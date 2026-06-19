@@ -15,7 +15,6 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps>(Wra
         const currentUserPersonalDetails = useCurrentUserPersonalDetails();
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 currentUserPersonalDetails={currentUserPersonalDetails}
             />

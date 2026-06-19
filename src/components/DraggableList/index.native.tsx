@@ -12,7 +12,6 @@ function DraggableList<T>({ref, onSelectRow, focusedIndex, isItemDragDisabled, i
             containerStyle={styles.flex1}
             contentContainerStyle={styles.flexGrow1}
             ListFooterComponentStyle={styles.flex1}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...viewProps}
         />
     );

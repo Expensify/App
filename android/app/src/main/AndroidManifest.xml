@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
@@ -31,7 +32,8 @@
             android:exported="false" />
 
         <service
-            android:name=".customairshipextender.GpsTripService"
+            android:name=".GpsTripService"
+            android:foregroundServiceType="location"
             android:stopWithTask="false"
             android:exported="false" />
 
@@ -167,10 +169,11 @@
         <activity
                 android:name="com.plaid.internal.link.LinkActivity"
                 android:launchMode="singleTask"
+                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
                 tools:replace="android:launchMode"/>
 
         <meta-data
-            android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
+            android:name="com.urbanairship.plugin.extender"
             android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
 
         <meta-data

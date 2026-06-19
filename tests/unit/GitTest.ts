@@ -87,7 +87,7 @@ describe('Git', () => {
                 files: [],
                 hasChanges: false,
             });
-            expect(mockExecSync).toHaveBeenCalledWith('git diff -U0 main', {
+            expect(mockExecSync).toHaveBeenCalledWith('git diff -U0 -M main', {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
@@ -264,7 +264,7 @@ describe('Git', () => {
 
             const result = Git.diff('main', undefined, 'src/languages/en.ts');
 
-            expect(mockExecSync).toHaveBeenCalledWith('git diff -U0 main -- "src/languages/en.ts"', {
+            expect(mockExecSync).toHaveBeenCalledWith('git diff -U0 -M main -- "src/languages/en.ts"', {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });

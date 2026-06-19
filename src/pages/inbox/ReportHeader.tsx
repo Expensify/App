@@ -16,7 +16,7 @@ import {getReportOfflinePendingActionAndErrors, isInvoiceReport, isMoneyRequestR
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {reportByIDsSelector} from '@src/selectors/Attributes';
+import reportByIDsSelector from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
 import HeaderView from './HeaderView';
 
@@ -46,28 +46,28 @@ function ReportHeader() {
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const pendingAction = reportPendingAction ?? report?.pendingFields?.reimbursed;
 
-    const onBackButtonPress = (prioritizeBackTo = false) => {
+    const onBackButtonPress = (prioritizeBackTo = false, options?: {afterTransition?: () => void}) => {
         if (isInSidePanel) {
-            closeSidePanel();
+            closeSidePanel({afterTransition: options?.afterTransition});
             return;
         }
         if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
-            Navigation.goBack();
+            Navigation.goBack(undefined, options);
             return;
         }
         if (prioritizeBackTo && backTo) {
-            Navigation.goBack(backTo as Route);
+            Navigation.goBack(backTo as Route, options);
             return;
         }
         if (isInNarrowPaneModal) {
-            Navigation.goBack();
+            Navigation.goBack(undefined, options);
             return;
         }
         if (backTo) {
-            Navigation.goBack(backTo as Route);
+            Navigation.goBack(backTo as Route, options);
             return;
         }
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
     };
 
     if (isTransactionThreadView) {

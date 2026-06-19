@@ -21,7 +21,7 @@ const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]'] as const;
  * Currently, this always returns false because we want to deliberately decide what is being forwarded.
  * There is no redaction / filtering of sensitive data implemented yet. When you implement any log forwarding logic, make sure that you do not leak any sensitive data.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
     return FORWARDED_LOG_PREFIXES.some((prefix) => log.message?.includes(prefix));
 }

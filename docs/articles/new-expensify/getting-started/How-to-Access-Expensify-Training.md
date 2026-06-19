@@ -1,7 +1,7 @@
 ---
 title: How to Access Expensify Training
 description: Register for live Expensify training webinars, explore the New Expensify interactive tour, and access helpful resources to get started.
-keywords: Expensify training, live webinar, user training, admin training, interactive tour, Storylane, New Expensify navigation, Concierge AI, getting started
+keywords: [Expensify training, webinar, live webinar, register for webinar, user training, admin training, interactive tour, Storylane, New Expensify navigation, Concierge AI, getting started]
 internalScope: Audience is members and Workspace Admins seeking training. Covers live webinar registration, interactive navigation tour, and general new member resources. Does not cover account setup steps or common actions directly.
 ---
 
@@ -80,7 +80,7 @@ You’ll learn how to:
 
 Prefer to explore on your own?
 
-The navigation tour provides a guided overview of New Expensify and explains where to find core sections such as Inbox, Reports, and Settings.
+The navigation tour provides a guided overview of New Expensify and explains where to find core sections such as Inbox, Spend, and Settings.
 
 Use this tour if you want a high-level introduction to:
 
@@ -111,10 +111,10 @@ Learn how Concierge supports you in Expensify.
 Step-by-step instructions for creating and submitting expenses.
 👉 [Create an Expense](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense)
 
-**Get started with the Reports page**
+**Get started with the Spend page**
 
 Understand how reports are organized and managed.
-👉 [Getting Started with the Reports Page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Reports-Page)
+👉 [Getting Started with the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Reports-Page)
 
 **How to avoid common scams**
 

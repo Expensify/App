@@ -1,17 +1,20 @@
+import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from './SelectionList/types';
 
 type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
@@ -32,21 +35,29 @@ type WorkspaceMemberRoleListProps = {
 function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}}: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const workspaceRoles: ListItemType[] = [
         {
             value: CONST.POLICY.ROLE.ADMIN,
-            text: translate('common.admin'),
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN),
             alternateText: translate('workspace.common.adminAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.ADMIN,
             keyForList: CONST.POLICY.ROLE.ADMIN,
         },
         {
             value: CONST.POLICY.ROLE.AUDITOR,
-            text: translate('common.auditor'),
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.AUDITOR),
             alternateText: translate('workspace.common.auditorAlternateText'),
             isSelected: role === CONST.POLICY.ROLE.AUDITOR,
             keyForList: CONST.POLICY.ROLE.AUDITOR,
+        },
+        {
+            value: CONST.POLICY.ROLE.CARD_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.CARD_ADMIN),
+            alternateText: translate('workspace.common.cardAdminAlternateText'),
+            isSelected: role === CONST.POLICY.ROLE.CARD_ADMIN,
+            keyForList: CONST.POLICY.ROLE.CARD_ADMIN,
         },
         {
             value: CONST.POLICY.ROLE.USER,
@@ -58,7 +69,21 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     ];
 
     const isPolicyControl = isControlPolicy(policy);
-    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => isPolicyControl || item.value !== CONST.POLICY.ROLE.AUDITOR);
+    // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
+    // invite/manage members but must not be able to escalate anyone to admin.
+    const canAssignElevatedRoles = isPolicyAdmin(policy, currentUserEmail);
+    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
+        if (item.value === CONST.POLICY.ROLE.AUDITOR && (!isPolicyControl || !canAssignElevatedRoles)) {
+            return false;
+        }
+        if (item.value === CONST.POLICY.ROLE.CARD_ADMIN && (!isPolicyControl || !canAssignElevatedRoles)) {
+            return false;
+        }
+        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignElevatedRoles) {
+            return false;
+        }
+        return true;
+    });
 
     return (
         <>
@@ -70,7 +95,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <SelectionList
                         data={availableRoleItems}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={onSelectRole}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}

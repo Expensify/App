@@ -23,7 +23,6 @@ export default function <TProps>(WrappedComponent: ComponentType<TProps>): React
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 didScreenTransitionEnd={didScreenTransitionEnd}
             />

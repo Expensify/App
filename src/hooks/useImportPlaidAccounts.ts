@@ -13,13 +13,11 @@ export default function useImportPlaidAccounts(policyID?: string) {
     const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.cardToAssign?.plaidConnectedFeedName;
     const plaidAccounts = addNewCard?.data?.plaidAccounts ?? assignCard?.cardToAssign?.plaidAccounts;
     const country = addNewCard?.data?.selectedCountry;
-    const statementPeriodEnd = addNewCard?.data?.statementPeriodEnd;
-    const statementPeriodEndDay = addNewCard?.data?.statementPeriodEndDay;
 
     return useCallback(() => {
         if (!policyID || !plaidToken || !plaidFeed || !plaidFeedName || !country || !plaidAccounts?.length) {
             return;
         }
-        importPlaidAccounts(plaidToken, plaidFeed, plaidFeedName, country, getDomainNameForPolicy(policyID), JSON.stringify(plaidAccounts), statementPeriodEnd, statementPeriodEndDay, '');
-    }, [statementPeriodEnd, statementPeriodEndDay, country, plaidAccounts, plaidFeed, plaidFeedName, plaidToken, policyID]);
+        importPlaidAccounts(plaidToken, plaidFeed, plaidFeedName, country, getDomainNameForPolicy(policyID), JSON.stringify(plaidAccounts), '');
+    }, [country, plaidAccounts, plaidFeed, plaidFeedName, plaidToken, policyID]);
 }

@@ -161,8 +161,8 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
+        fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${FIRST_TAG}`));
+        fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${SECOND_TAG}`));
 
         const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
 

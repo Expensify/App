@@ -86,4 +86,3 @@ function getContextualSearchQuery(item: SearchQueryItem, policies: OnyxCollectio
 }
 
 export {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery};
-export type {ContextualReportData};

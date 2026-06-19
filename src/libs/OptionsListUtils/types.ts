@@ -133,15 +133,6 @@ type PayeePersonalDetails = {
     isInteractive: boolean;
 };
 
-type SectionBase = {
-    title: string | undefined;
-    shouldShow: boolean;
-};
-
-type Section = SectionBase & {
-    data: Option[];
-};
-
 type GetValidOptionsSharedConfig = {
     includeP2P?: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -202,6 +193,7 @@ type IsValidReportsConfig = Pick<
     | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
+    currentUserLogin: string;
 };
 
 type GetOptionsConfig = {
@@ -211,8 +203,7 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
-    excludeHiddenThreads?: boolean;
-    canShowManagerMcTest?: boolean;
+    excludeHidden?: boolean;
     searchString?: string;
     searchInputValue?: string;
     maxElements?: number;
@@ -222,8 +213,8 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    // TODO: Remove the optional operator once all call sites pass sortedActions (https://github.com/Expensify/App/issues/66381)
     sortedActions?: Record<string, ReportAction[]>;
+    isTrackIntentUser?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -306,11 +297,15 @@ type OrderReportOptionsConfig = {
 
 type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
+type OptionsResult = {
+    options: Options;
+    hasMore?: boolean;
+};
+
 export type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
     GetUserToInviteConfig,
-    GetValidOptionsSharedConfig,
     GetValidReportsConfig,
     MemberForList,
     Option,
@@ -325,9 +320,8 @@ export type {
     ReportAndPersonalDetailOptions,
     SearchOption,
     SearchOptionData,
-    Section,
-    SectionBase,
     SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
+    OptionsResult,
 };

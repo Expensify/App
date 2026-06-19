@@ -1,10 +1,9 @@
 require('dotenv').config();
 
+const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
+
 const ReactCompilerConfig = {
-    target: '19',
-    environment: {
-        enableTreatRefLikeIdentifiersAsRefs: true,
-    },
+    ...BaseReactCompilerConfig,
     sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
 
@@ -131,6 +130,9 @@ const metro = {
         production: {
             plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
         },
+        test: {
+            plugins: ['@babel/plugin-transform-dynamic-import'],
+        },
     },
 };
 
@@ -161,18 +163,22 @@ if (process.env.CAPTURE_METRICS === 'true') {
 }
 
 module.exports = (api) => {
-    console.debug('babel.config.js');
-    console.debug('  - api.version:', api.version);
-    console.debug('  - api.env:', api.env());
-    console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
-    console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    if (!process.env.KNIP) {
+        console.debug('babel.config.js');
+        console.debug('  - api.version:', api.version);
+        console.debug('  - api.env:', api.env());
+        console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
+        console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    }
 
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
-    console.debug('  - running in: ', runningIn);
+    if (!process.env.KNIP) {
+        console.debug('  - running in: ', runningIn);
+    }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

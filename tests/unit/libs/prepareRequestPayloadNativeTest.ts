@@ -2,7 +2,6 @@ import type PrepareRequestPayload from '@libs/prepareRequestPayload/types';
 
 const mockCheckFileExists = jest.fn<Promise<boolean>, [string | undefined]>();
 jest.mock('@libs/fileDownload/checkFileExists', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: mockCheckFileExists,
 }));
@@ -12,21 +11,19 @@ jest.mock('@libs/fileDownload/FileUtils', () => ({
 }));
 
 jest.mock('@libs/validateFormDataParameter', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 
 const mockLogAlert = jest.fn();
 jest.mock('@libs/Log', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {alert: mockLogAlert},
 }));
 
 // Bypass the global jest/setup.ts mock to test the real native implementation.
 // Dependencies above are still resolved through their respective mocks.
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+
 const {default: prepareRequestPayload}: {default: PrepareRequestPayload} = jest.requireActual('@libs/prepareRequestPayload/index.native.ts');
 
 describe('prepareRequestPayload (native)', () => {

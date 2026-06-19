@@ -8,7 +8,7 @@ import {
     isThreadReportDeleted,
 } from '@libs/TransactionNavigationUtils';
 import CONST from '@src/CONST';
-import type {Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     isDeletedAction: jest.fn(),
@@ -18,12 +18,12 @@ const mockedIsDeletedAction = jest.mocked(isDeletedAction);
 const DUPLICATES_REVIEW_URL = '/r/duplicates/review/123';
 const ENCODED_DUPLICATES_REVIEW_URL = `/r/${encodeURIComponent('/duplicates/review/123')}`;
 
-function createReportMetadata(overrides: Partial<ReportMetadata> = {}): ReportMetadata {
+function createReportMetadata(overrides: Partial<ReportLoadingState> = {}): ReportLoadingState {
     return {
         hasOnceLoadedReportActions: false,
         isLoadingInitialReportActions: true,
         ...overrides,
-    } as ReportMetadata;
+    } as ReportLoadingState;
 }
 
 describe('TransactionNavigationUtils', () => {
@@ -143,7 +143,7 @@ describe('TransactionNavigationUtils', () => {
                 parentReportID: '123',
                 parentReportActionID: '456',
                 parentReportAction: undefined,
-                parentReportMetadata: createReportMetadata({hasOnceLoadedReportActions: true}),
+                parentReportLoadingState: createReportMetadata({hasOnceLoadedReportActions: true}),
             });
 
             expect(result.isParentActionMissingAfterLoad).toBe(true);
@@ -164,7 +164,7 @@ describe('TransactionNavigationUtils', () => {
                 parentReportID: '123',
                 parentReportActionID: '456',
                 parentReportAction: {reportActionID: '456'} as ReportAction,
-                parentReportMetadata: createReportMetadata({hasOnceLoadedReportActions: true}),
+                parentReportLoadingState: createReportMetadata({hasOnceLoadedReportActions: true}),
             });
 
             expect(result.isParentActionDeleted).toBe(false);
@@ -177,7 +177,7 @@ describe('TransactionNavigationUtils', () => {
                 parentReportID: '123',
                 parentReportActionID: '456',
                 parentReportAction: undefined,
-                parentReportMetadata: createReportMetadata(),
+                parentReportLoadingState: createReportMetadata(),
                 isOffline: true,
             });
 

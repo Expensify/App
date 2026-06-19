@@ -55,7 +55,7 @@ jest.mock('@hooks/useEnvironment', () => ({
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
-        isBetaEnabled: (beta: string) => beta === 'selectionModeReportActions',
+        isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
@@ -104,15 +104,6 @@ jest.mock('@hooks/usePaymentOptions', () => ({
     default: jest.fn(() => []),
 }));
 
-jest.mock('@hooks/useNonReimbursablePaymentModal', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
-        showNonReimbursablePaymentErrorModal: jest.fn(),
-        shouldBlockDirectPayment: jest.fn(() => false),
-        nonReimbursablePaymentErrorDecisionModal: null,
-    })),
-}));
-
 jest.mock('@hooks/useLazyAsset', () => ({
     __esModule: true,
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -147,13 +138,17 @@ jest.mock('@components/KYCWall/KYCWallContext', () => ({
 
 jest.mock('@components/Search/SearchContext', () => ({
     __esModule: true,
-    useSearchStateContext: jest.fn(() => ({
+    useSearchQueryContext: jest.fn(() => ({
         currentSearchQueryJSON: null,
         currentSearchKey: '',
+    })),
+    useSearchResultsContext: jest.fn(() => ({
         currentSearchResults: null,
+    })),
+    useSearchSelectionContext: jest.fn(() => ({
         selectedTransactionIDs: [],
     })),
-    useSearchActionsContext: jest.fn(() => ({
+    useSearchSelectionActions: jest.fn(() => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
         setSelectedTransactions: jest.fn(),
     })),
@@ -177,7 +172,7 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        hasHeldExpenses: jest.fn(() => false),
+        hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasOnlyHeldExpenses: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
         hasViolations: jest.fn(() => false),
@@ -190,14 +185,20 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     __esModule: true,
     submitReport: jest.fn(),
     approveMoneyRequest: jest.fn(),
-    payMoneyRequest: jest.fn(),
-    payInvoice: jest.fn(),
     canApproveIOU: jest.fn(() => false),
     canIOUBePaid: jest.fn(() => false),
+}));
+
+jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
+    __esModule: true,
+    payMoneyRequest: jest.fn(),
+    payInvoice: jest.fn(),
+    completePaymentOnboarding: jest.fn(),
+    savePreferredPaymentMethod: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Link', () => ({
@@ -235,6 +236,8 @@ jest.mock('@libs/PaymentUtils', () => ({
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     hasAnyPendingRTERViolation: jest.fn(() => false),
+    hasOnlyPendingCardTransactions: jest.fn(() => false),
+    showPendingCardTransactionsBlockModal: jest.fn(),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
@@ -245,19 +248,19 @@ jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const ReportUtils = require('@libs/ReportUtils') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const LockedProvider = require('@components/LockedAccountModalProvider') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const IOUActions = require('@libs/actions/IOU') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
+const IOUActions = require('@libs/actions/IOU/ReportWorkflow') as Record<string, jest.Mock>;
+const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as Record<string, jest.Mock>;
+
 const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
 
 function resetMocksToDefaults() {
-    ReportUtils.hasHeldExpenses.mockReturnValue(false);
+    ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(false);
     ReportUtils.hasOnlyHeldExpenses.mockReturnValue(false);
     ReportUtils.isReportOwner.mockReturnValue(false);
     ReportUtils.getNextApproverAccountID.mockReturnValue(0);
@@ -641,7 +644,7 @@ describe('useSelectionModeReportActions', () => {
                 result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
             });
 
-            expect(IOUActions.payMoneyRequest).not.toHaveBeenCalled();
+            expect(PayMoneyRequestActions.payMoneyRequest).not.toHaveBeenCalled();
         });
 
         it('shows delegate modal when delegate restricted during payment', () => {
@@ -658,7 +661,7 @@ describe('useSelectionModeReportActions', () => {
         });
 
         it('opens hold menu when there are held expenses during payment', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
             act(() => {
@@ -676,7 +679,7 @@ describe('useSelectionModeReportActions', () => {
                 result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
             });
 
-            expect(IOUActions.payMoneyRequest).toHaveBeenCalled();
+            expect(PayMoneyRequestActions.payMoneyRequest).toHaveBeenCalled();
             expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
 
@@ -690,14 +693,14 @@ describe('useSelectionModeReportActions', () => {
                 result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
             });
 
-            expect(IOUActions.payInvoice).toHaveBeenCalled();
+            expect(PayMoneyRequestActions.payInvoice).toHaveBeenCalled();
             expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
     });
 
     describe('confirmApproval branches', () => {
         it('opens hold menu when there are held expenses during approval', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
             act(() => {
@@ -721,7 +724,7 @@ describe('useSelectionModeReportActions', () => {
 
     describe('handleHoldMenuClose', () => {
         it('resets hold menu state', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
 
@@ -754,7 +757,7 @@ describe('useSelectionModeReportActions', () => {
                 result.current.selectionModeKYCSuccess(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
             });
 
-            expect(IOUActions.payMoneyRequest).toHaveBeenCalled();
+            expect(PayMoneyRequestActions.payMoneyRequest).toHaveBeenCalled();
         });
     });
 

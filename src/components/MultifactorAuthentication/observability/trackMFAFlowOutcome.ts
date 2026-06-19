@@ -1,11 +1,11 @@
 import * as Sentry from '@sentry/react-native';
 import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
-import type {ErrorState} from '@components/MultifactorAuthentication/Context/types';
 import Log from '@libs/Log';
+import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 
-type FailureClassification = 'routine' | 'anomalous' | 'unclassified';
+type FailureClassification = 'routine' | 'alternative_outcome' | 'anomalous' | 'unclassified';
 
 function classifyFailure(reason: MultifactorAuthenticationReason | undefined): FailureClassification {
     if (!reason) {
@@ -13,6 +13,9 @@ function classifyFailure(reason: MultifactorAuthenticationReason | undefined): F
     }
     if (CONST.MULTIFACTOR_AUTHENTICATION.ROUTINE_FAILURES.has(reason)) {
         return 'routine';
+    }
+    if (CONST.MULTIFACTOR_AUTHENTICATION.ALTERNATIVE_OUTCOMES.has(reason)) {
+        return 'alternative_outcome';
     }
     if (CONST.MULTIFACTOR_AUTHENTICATION.ANOMALOUS_FAILURES.has(reason)) {
         return 'anomalous';
@@ -30,7 +33,7 @@ type MFAFlowOutcomeContext = {
     isSuccessful: boolean;
     scenario: string | undefined;
     scenarioResponse: MultifactorAuthenticationScenarioResponse | undefined;
-    error: ErrorState | undefined;
+    error: MFAError | undefined;
     authenticationMethod: AuthTypeName | undefined;
     isRegistrationComplete: boolean;
     isAuthorizationComplete: boolean;
@@ -52,7 +55,7 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
         }
 
         const eventMessage = context.isSuccessful ? 'MFA Flow Success' : `MFA Flow Error: ${context.error?.reason ?? ''}`;
-        const level = context.isSuccessful || failureClassification === 'routine' ? 'info' : 'error';
+        const level = context.isSuccessful || failureClassification === 'routine' || failureClassification === 'alternative_outcome' ? 'info' : 'error';
 
         const extra = {
             isSuccessful: context.isSuccessful,

@@ -1,10 +1,10 @@
 ---
 title: Track Taxes
 description: Set up and manage tax rates in your Expensify workspace for non-USD currencies.
-keywords: [New Expensify, tax rates, VAT, GST, QST, PST, expense tax codes, foreign currency taxes, workspace settings]
+keywords: [New Expensify, tax rates, VAT, GST, QST, PST, expense tax codes, foreign currency taxes, workspace settings, SmartScan tax, scanned tax, receipt tax]
 ---
 
-Workspaces on **Collect** and **Control** plans can add tax rates to track VAT, GST, or other regional taxes. Tax rates are applied by default based on currency, but can also be manually selected per expense.
+Workspaces on **Collect** and **Control** plans can add tax rates to track VAT, GST, or other regional taxes. Tax rates are applied by default based on currency, but can also be manually selected per expense. When you SmartScan a receipt, Expensify also reads the tax amount printed on the receipt and applies it automatically where possible. You can always review and edit the tax on the expense.
 
 **Note:** If your workspace uses a direct accounting integration (like QuickBooks, Xero, or NetSuite), you must manage tax rates within that system, not in Expensify.
 
@@ -17,7 +17,7 @@ To enable tax tracking in a workspace:
 1. In the **navigation tabs** on the left (web) or bottom (mobile), click Workspaces.
 2. Click your **workspace name**.
 3. Click **More Features**.
-4. Under the **Spend** section, toggle on **Taxes**.
+4. Under the **Reports** section, toggle on **Taxes**.
 
 Once enabled, a new **Taxes** section will appear in the left-hand menu.
 
@@ -80,7 +80,7 @@ Expenses sometimes have more than one tax applied to them (for example, in Canad
 
 To handle multiple tax rates, you can create a new tax rate that combines both into a single rate. For example, if you have a GST of 5% and PST of 7%, you can add them together and create a new tax rate of 12%.
 
-You can generate a CSV from the Reports page containing all the expense information, including the split-out taxes, by going to the Reports tab, clicking **Export To**, and selecting **Tax Report**. 
+You can generate a CSV from the Reports page containing all the expense information, including the split-out taxes, by going to the **Spend > Reports**, selecting the report. licking **Export To**, and selecting **Tax Report**. 
 
 ## How do I handle the taxes for a receipt that includes more than one tax rate?
 
@@ -89,13 +89,24 @@ If your receipt includes more than one tax rate, there are two ways you can hand
 - Many tax authorities do not require reporting tax amounts by rate; therefore, you can apply the highest rate on the receipt and then modify the tax amount on the receipt if necessary. Please check with your tax advisor to determine if this approach suits you.
 - Alternatively, you can apply each specific tax rate by splitting the expense by the applicable costs for each rate. To do this, open the expense and click **Split Expense**. Then, apply the correct tax rate to each.
 
+## What happens if an expense with tax is moved to a workspace where tax tracking is disabled?
+
+If an expense that includes tax data is moved or merged into a workspace that does not have tax tracking enabled, the tax fields (**Tax** and **Tax amount**) will still appear on the expense with a "Tax no longer valid" violation.
+
+To resolve this, tap the **Tax** or **Tax amount** field on the expense. An alert will appear explaining that tax tracking is disabled on the workspace. You can then choose to:
+
+- **Delete tax** — Removes the tax rate and tax amount from the expense.
+- **Cancel** — Keeps the tax data on the expense.
+
+Alternatively, you can enable tax tracking on the workspace to edit the tax details directly.
+
 ## What if my workspace has multiple tax rates?
 
 You'll have the option to change the tax rate from within the expense as needed.
 
 ## What should I do if the tax amount on my expense is missing or incorrect?
 
-In Expensify, tax is *inclusive*, meaning it's already part of the total amount shown. If the tax amount doesn't show up on your receipt or is different from the calculated amount, you can manually type in the correct amount.
+In Expensify, tax is *inclusive*, meaning it's already part of the total amount shown. When you SmartScan a receipt, Expensify attempts to read the tax amount directly from the receipt and apply it automatically. If the receipt doesn't show a tax amount, or the amount that was applied is different from what's on your receipt, you can manually type in the correct amount.
 
 To determine the inclusive tax from a total price that already includes tax, you can use the following formula:
 

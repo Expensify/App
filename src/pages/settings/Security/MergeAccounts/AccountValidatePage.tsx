@@ -1,6 +1,6 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {
     clearGetValidateCodeForAccountMerge,
@@ -121,13 +122,16 @@ function AccountValidatePage() {
     });
 
     useFocusEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const task = InteractionManager.runAfterInteractions(() => {
-            if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
-                return;
-            }
+        const task = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    return;
+                }
 
-            Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY));
+                Navigation.navigate(
+                    ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                );
+            },
         });
 
         return () => task.cancel();

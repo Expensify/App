@@ -5,6 +5,10 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SpendCategorySelectorListItemProps} from './types';
 
+/**
+ * A menu-item row showing a category name under a spend group label. Used in workspace
+ * categories settings to map categories to spend groups.
+ */
 function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: SpendCategorySelectorListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {groupID, categoryID: category} = item;

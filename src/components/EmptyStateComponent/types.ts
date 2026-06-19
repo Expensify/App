@@ -12,9 +12,11 @@ type EmptyStateButton = {
     icon?: IconAsset;
     isDisabled?: boolean;
     style?: StyleProp<ViewStyle>;
+    innerStyles?: StyleProp<ViewStyle>;
+    hoverStyles?: StyleProp<ViewStyle>;
     dropDownOptions?: Array<
         DropdownOption<
-            ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense'; readonly ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense'}>
+            ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense'; readonly ADD_EXISTING_EXPENSE: 'addExistingExpense'}>
         >
     >;
 };
@@ -24,6 +26,7 @@ type EmptyStateComponentProps = {
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;
+    subtitleStyles?: StyleProp<TextStyle>;
     children?: React.ReactNode;
     buttons?: EmptyStateButton[];
     containerStyles?: StyleProp<ViewStyle>;

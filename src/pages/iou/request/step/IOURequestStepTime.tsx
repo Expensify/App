@@ -18,7 +18,7 @@ import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,7 +44,7 @@ type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
 
 function IOURequestStepTime({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
         name,
     },
     transaction,
@@ -67,7 +67,7 @@ function IOURequestStepTime({
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy) || (isEditPage && isEmptyObject(transaction?.comment?.customUnit));
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
@@ -88,7 +88,7 @@ function IOURequestStepTime({
             // We want to navigate to destination step only when the first step was the workspace selector.
             // If there is only one policy with per diem enabled, we want to navigate back to the start step because there is no separate destination step in that flow.
             if (hasMoreThanOnePolicyWithPerDiemEnabled) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID, backToReport));
                 return;
             }
 
@@ -122,7 +122,7 @@ function IOURequestStepTime({
         if (isEditPage) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID, backToReport));
         }
     };
 
@@ -174,7 +174,6 @@ function IOURequestStepTime({
                     label={translate('iou.startDate')}
                     defaultValue={currentStartDate}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
                 <View style={[styles.mt2, styles.mhn5]}>
                     <InputWrapper
@@ -190,7 +189,6 @@ function IOURequestStepTime({
                     label={translate('iou.endDate')}
                     defaultValue={currentEndDate}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
                 <View style={[styles.mt2, styles.mhn5]}>
                     <InputWrapper
@@ -205,9 +203,8 @@ function IOURequestStepTime({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTimeWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTime);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTimeWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeWithFullTransactionOrNotFound);
 
 export default IOURequestStepTimeWithWritableReportOrNotFound;

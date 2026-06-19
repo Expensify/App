@@ -60,5 +60,5 @@ type ExpenseRule = {
     errors?: OnyxCommon.Errors;
 };
 
-export type {PersonalRuleTaxRate, PolicyRuleTaxRate};
+export type {PolicyRuleTaxRate};
 export default ExpenseRule;

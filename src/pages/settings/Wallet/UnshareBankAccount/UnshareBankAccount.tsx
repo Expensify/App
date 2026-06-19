@@ -7,7 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -168,7 +168,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                         />
                     }
                     onSelectRow={() => {}}
-                    ListItem={UserListItem}
+                    ListItem={BareUserListItem}
                 />
             </>
             <ConfirmModal

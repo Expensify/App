@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {addSplitExpenseField, evenlyDistributeSplitExpenseAmounts, removeSplitExpenseField, updateSplitExpenseAmountField} from '@libs/actions/IOU/Split';
+import {addSplitExpenseField, evenlyDistributeSplitExpenseAmounts, removeSplitExpenseField, updateSplitExpenseAmountField} from '@libs/actions/IOU/SplitExpenseItems';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';

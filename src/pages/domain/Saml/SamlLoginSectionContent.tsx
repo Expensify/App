@@ -76,7 +76,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                         <Switch
                             accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
                             isOn={isSamlEnabled}
-                            disabled={domainSettings?.twoFactorAuthRequired}
+                            disabled={!!domainSettings?.twoFactorAuthRequired}
                             onToggle={() => setSamlEnabled({enabled: !isSamlEnabled, accountID, domainName})}
                         />
                     </View>

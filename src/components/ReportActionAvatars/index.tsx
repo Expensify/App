@@ -59,6 +59,9 @@ type ReportActionAvatarsProps = {
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CardFeed;
 
+    /** Size of the subscript card feed icon */
+    subscriptCardFeedIconSize?: {width: number; height: number};
+
     /** Whether we want to be redirected to profile on avatars click */
     useProfileNavigationWrapper?: boolean;
 
@@ -73,6 +76,9 @@ type ReportActionAvatarsProps = {
 
     /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
     chatReportID?: string;
+
+    /** Whether to show the real actor instead of Concierge for automatic actions (e.g. in search results) */
+    shouldUseRealActor?: boolean;
 };
 
 /**
@@ -98,6 +104,7 @@ function ReportActionAvatars({
     subscriptAvatarBorderColor,
     noRightMarginOnSubscriptContainer = false,
     subscriptCardFeed,
+    subscriptCardFeedIconSize,
     secondaryAvatarContainerStyle,
     useMidSubscriptSizeForMultipleAvatars = false,
     isInReportAction = false,
@@ -106,6 +113,7 @@ function ReportActionAvatars({
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
     chatReportID,
+    shouldUseRealActor = false,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -141,6 +149,7 @@ function ReportActionAvatars({
         invitedEmailsToAccountIDs,
         shouldUseCustomFallbackAvatar,
         chatReportID,
+        shouldUseRealActor,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
@@ -165,6 +174,7 @@ function ReportActionAvatars({
                 noRightMarginOnContainer={noRightMarginOnSubscriptContainer}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 subscriptCardFeed={subscriptCardFeed}
+                subscriptCardFeedIconSize={subscriptCardFeedIconSize}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
                 reportID={reportID}
@@ -175,7 +185,6 @@ function ReportActionAvatars({
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         return (
             <ReportActionAvatar.Multiple.Horizontal
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...(isHorizontalStackingAnObject ? horizontalStacking : {})}
                 size={size}
                 icons={icons}

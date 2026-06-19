@@ -29,12 +29,12 @@ Copilots can access another user’s Expensify account to:
 To grant someone access to your account:
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
-2. In the **Copilot: Delegated Access** section, click **Add Copilot**.
+2. In the **Copilot: Delegated Access** section, click **Add a copilot**.
 3. Search for the user by **name** or **email**.
 4. Choose the access level:
    - **Full Access** – Grants complete access to all areas and actions.
    - **Limited Access** – Excludes approvals, payments, rejections, and holds.
-5. Click **Add Copilot**.
+5. Click **Add a copilot**.
 
 💡 **Note:** You can invite someone who doesn’t have an Expensify account. They’ll receive an invite to create one.
 

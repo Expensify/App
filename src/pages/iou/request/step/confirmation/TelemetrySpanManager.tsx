@@ -18,7 +18,7 @@ function TelemetrySpanManager({iouType}: TelemetrySpanManagerProps) {
         endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
 
         // Grab parent ref before ending it — children need it for parent_span_id linking
-        const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+        const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION) ?? getSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION);
 
         startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY, {
             name: CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY,
@@ -34,6 +34,7 @@ function TelemetrySpanManager({iouType}: TelemetrySpanManagerProps) {
 
         // End parent AFTER children are created — Sentry preserves parent_span_id regardless
         endSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+        endSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION);
 
         return () => {
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);

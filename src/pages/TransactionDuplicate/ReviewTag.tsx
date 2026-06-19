@@ -75,6 +75,7 @@ function ReviewTag() {
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setTag}
+                selectedValue={reviewDuplicates?.tag}
             />
         </ScreenWrapper>
     );

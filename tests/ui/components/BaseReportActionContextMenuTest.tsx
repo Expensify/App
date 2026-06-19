@@ -47,6 +47,7 @@ jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: () => ({encryptedAuthToken: 'token'}),
+    usePersonalDetails: () => ({}),
 }));
 
 jest.mock('@hooks/useArrowKeyFocusManager', () => () => [-1, jest.fn()] as const);
@@ -83,7 +84,6 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: []}));
 jest.mock('@hooks/useReportIsArchived', () => () => false);
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true, isSmallScreenWidth: false}));
-jest.mock('@hooks/useRestoreInputFocus', () => () => {});
 jest.mock(
     '@hooks/useStyleUtils',
     () => () =>
@@ -128,6 +128,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: (...args: unknown[]) => mockNavigate(...args) as void,
     setParams: (...args: unknown[]) => mockSetParams(...args) as void,
     getActiveRoute: () => mockGetActiveRoute(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigationRef: {
         isReady: () => mockIsReady(),
         getCurrentRoute: () => mockGetCurrentRoute(),
@@ -135,6 +137,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 const currentUserAccountID = 1;
+const currentUserLogin = 'user@test.com';
 const originalReportID = '100';
 const reportActionID = '200';
 const childReportID = '300';
@@ -184,9 +187,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'parentIOUAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
@@ -211,9 +214,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'iouAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
@@ -392,6 +395,6 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         });
 
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
+        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserLogin, currentUserAccountID, undefined);
     });
 });

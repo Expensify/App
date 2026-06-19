@@ -19,7 +19,6 @@ function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...pro
 
     return (
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
             shouldShowBasicTitle

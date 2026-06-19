@@ -65,7 +65,8 @@ function getTravelLimit(cardSettings: ExpensifyCardSettingsBase | undefined): nu
  */
 function hasOutstandingTravelBalance(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
     const currentBalance = cardSettings?.currentBalance ?? 0;
-    return currentBalance > 0;
+    const pendingSettlementAmount = cardSettings?.pendingSettlementAmount ?? 0;
+    return currentBalance > 0 || pendingSettlementAmount > 0;
 }
 
 /**
@@ -165,11 +166,10 @@ function getTravelInvoicingCard(cardList: OnyxEntry<CardList>) {
 
 /**
  * Checks if user is eligible to see Travel CVV in Wallet.
- * Requires: TRAVEL_INVOICING beta AND having a travel card.
+ * Requires having a travel card.
  */
-function isTravelCVVEligible(isTravelInvoicingBetaEnabled: boolean, cardList: OnyxEntry<CardList>): boolean {
-    const hasTravelCard = !!getTravelInvoicingCard(cardList);
-    return isTravelInvoicingBetaEnabled && hasTravelCard;
+function isTravelCVVEligible(cardList: OnyxEntry<CardList>): boolean {
+    return !!getTravelInvoicingCard(cardList);
 }
 
 export {
@@ -185,5 +185,3 @@ export {
     getTravelInvoicingCard,
     isTravelCVVEligible,
 };
-
-export type {TravelSettlementAccountInfo};

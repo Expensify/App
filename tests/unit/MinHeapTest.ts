@@ -1,4 +1,4 @@
-import {MinHeap} from '../../src/libs/MinHeap';
+import MinHeap from '../../src/libs/MinHeap';
 
 describe('MinHeap', () => {
     let heap: MinHeap<number>;

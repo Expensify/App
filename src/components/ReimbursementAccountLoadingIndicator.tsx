@@ -21,7 +21,7 @@ function ReimbursementAccountLoadingIndicator({onBackButtonPress}: Reimbursement
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}
+            style={[StyleSheet.absoluteFill, styles.reimbursementAccountFullScreenLoading]}
             testID="ReimbursementAccountLoadingIndicator"
         >
             <HeaderWithBackButton

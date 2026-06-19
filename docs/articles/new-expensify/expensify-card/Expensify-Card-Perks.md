@@ -14,6 +14,8 @@ From cash-back rewards to discounts on popular services, the Expensify Card offe
 ## Cashback
 Get 1% cash back with every swipe — no minimums necessary — and 2% back if you spend $250k+/month across cards. This applies to US purchases only.
 
+By default, cash back is applied toward your Expensify bill. Workspace Admins can change this in **Workspaces > [Workspace Name] > Expensify Card > Settings** by toggling **Apply cash back to my Expensify bill** off to send cash back to the settlement account instead.
+
 ## Discounts on Monthly Expensify Bill
 Get the Expensify Visa® Commercial Card and use it for at least half of your organization's monthly expenses to save 50% on your monthly Expensify bill.
 

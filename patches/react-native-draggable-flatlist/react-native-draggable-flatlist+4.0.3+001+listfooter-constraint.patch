@@ -34,13 +34,13 @@ index 2f59c7a..a324da2 100644
    const onListContentSizeChange = (w: number, h: number) => {
      scrollViewSize.value = props.horizontal ? w : h;
      props.onContentSizeChange?.(w, h);
-@@ -357,6 +366,16 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
+@@ -357,6 +366,21 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
      props.onViewableItemsChanged?.(info);
    });
  
 +  // Wrap the provided ListFooterComponent to add an onLayout
 +  const wrappedListFooterComponent = ListFooterComponent ?
-+    <Animated.View 
++    <Animated.View
 +      style={props.ListFooterComponentStyle}
 +      onLayout={onFooterLayout}
 +      >
@@ -48,10 +48,15 @@ index 2f59c7a..a324da2 100644
 +    </Animated.View>
 +  : undefined
 +
++  // Reset footer size when footer is removed so stale values don't affect drag constraints
++  if (!ListFooterComponent) {
++    footerSize.value = 0;
++  }
++
    return (
      <DraggableFlatListProvider
        activeKey={activeKey}
-@@ -388,6 +407,7 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
+@@ -388,6 +411,7 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
              scrollEventThrottle={16}
              simultaneousHandlers={props.simultaneousHandlers}
              removeClippedSubviews={false}

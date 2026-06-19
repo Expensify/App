@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -8,11 +9,10 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyAuditor, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
@@ -26,7 +26,7 @@ function WorkspaceRestrictedActionPage({
         params: {policyID},
     },
 }: WorkspaceRestrictedActionPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {accountID, email} = useCurrentUserPersonalDetails();
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const [isLoadingSubscriptionData] = useOnyx(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
@@ -58,7 +58,6 @@ function WorkspaceRestrictedActionPage({
             return;
         }
         openSubscriptionPage(gracePeriodsRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
@@ -66,10 +65,10 @@ function WorkspaceRestrictedActionPage({
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
+        if (!shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, accountID)) {
             Navigation.goBack();
         }
-    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed]);
+    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, accountID]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.
@@ -84,17 +83,17 @@ function WorkspaceRestrictedActionPage({
     }
 
     // Workspace Owner
-    if (isPolicyOwner(policy, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)) {
+    if (isPolicyOwner(policy, accountID)) {
         return <WorkspaceOwnerRestrictedAction />;
     }
 
     // Workspace Admin
-    if (isPolicyAdmin(policy, session?.email)) {
+    if (isPolicyAdmin(policy, email)) {
         return <WorkspaceAdminRestrictedAction policyID={policyID} />;
     }
 
-    // Workspace User
-    if (isPolicyUser(policy, session?.email)) {
+    // Workspace User or Auditor
+    if (isPolicyUser(policy, email) || isPolicyAuditor(policy, email)) {
         return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 

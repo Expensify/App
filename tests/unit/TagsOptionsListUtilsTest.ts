@@ -843,6 +843,76 @@ describe('TagsOptionsListUtils', () => {
                 {isTagRequired: false, shouldShow: true},
             ]);
         });
+
+        it('should fall back to policy.requiresTag when tag list required is undefined', () => {
+            const policyWithRequiresTag = {...mockPolicy, requiresTag: true};
+            // Intentionally omitting 'required' to simulate backend sync stripping the field
+            const policyTagsWithoutRequired = {
+                tagList1: {
+                    name: 'Department',
+                    tags: {
+                        tag1: {name: 'Engineering', enabled: true},
+                        tag2: {name: 'Sales', enabled: true},
+                    },
+                    orderWeight: 0,
+                },
+            } as unknown as PolicyTagLists;
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: policyWithRequiresTag,
+                policyTags: policyTagsWithoutRequired,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([{isTagRequired: true, shouldShow: true}]);
+        });
+
+        it('should not mark tags as required when policy.requiresTag is false and tag list required is undefined', () => {
+            const policyWithoutRequiresTag = {...mockPolicy, requiresTag: false};
+            // Intentionally omitting 'required' to simulate backend sync stripping the field
+            const policyTagsWithoutRequired = {
+                tagList1: {
+                    name: 'Department',
+                    tags: {
+                        tag1: {name: 'Engineering', enabled: true},
+                    },
+                    orderWeight: 0,
+                },
+            } as unknown as PolicyTagLists;
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: policyWithoutRequiresTag,
+                policyTags: policyTagsWithoutRequired,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([{isTagRequired: false, shouldShow: true}]);
+        });
+
+        it('should mark tags as required when policy.requiresTag is true even if tag list required is false', () => {
+            const policyWithRequiresTag = {...mockPolicy, requiresTag: true};
+            const policyTagsExplicitFalse: PolicyTagLists = {
+                tagList1: {
+                    name: 'Department',
+                    required: false,
+                    tags: {
+                        tag1: {name: 'Engineering', enabled: true},
+                    },
+                    orderWeight: 0,
+                },
+            };
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: policyWithRequiresTag,
+                policyTags: policyTagsExplicitFalse,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([{isTagRequired: true, shouldShow: true}]);
+        });
     });
 
     describe('getEnabledTags', () => {

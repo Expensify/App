@@ -27,7 +27,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         }
 
         scrollPositionRef.current = {offset: 0};
-        flatListRef.current?.scrollToOffset({animated: false, offset: 0});
+        flatListRef.current.scrollToIndex({animated: false, index: 0});
     };
 
     /**

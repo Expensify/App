@@ -60,6 +60,9 @@ type AttachmentPickerProps = {
 
     /** A callback that will be called when the picker is opened. */
     onOpenPicker?: () => void;
+
+    /** When true, skip the Camera/Gallery/Document modal and open the document picker directly (native only). */
+    shouldSkipAttachmentTypeModal?: boolean;
 };
 
 export default AttachmentPickerProps;

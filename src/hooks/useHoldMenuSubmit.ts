@@ -2,15 +2,15 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useNonReimbursablePaymentModal from './useNonReimbursablePaymentModal';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
@@ -25,16 +25,16 @@ type UseHoldMenuSubmitParams = {
     methodID?: number;
     onClose: () => void;
     onConfirm?: (full: boolean) => void;
-    transactions?: OnyxTypes.Transaction[];
 };
 
-function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm, transactions}: UseHoldMenuSubmitParams) {
+function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
+    const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -48,19 +48,12 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
 
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-            return;
-        }
-
-        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            onClose();
-            showNonReimbursablePaymentErrorModal();
             return;
         }
 
@@ -81,6 +74,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 full,
                 onApproved: animationCallback,
+                expenseReportPolicy: policy,
                 delegateEmail,
             });
         } else if (chatReport && paymentType) {
@@ -91,9 +85,11 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 introSelected,
                 iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 currentUserAccountID: currentUserDetails.accountID,
+                currentUserLogin: currentUserDetails.login ?? '',
                 full,
                 activePolicy,
                 policy,
+                chatReportPolicy,
                 betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,

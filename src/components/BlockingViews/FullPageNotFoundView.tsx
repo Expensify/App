@@ -63,7 +63,6 @@ type FullPageNotFoundViewProps = {
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageNotFoundView({
     testID,
     children = null,

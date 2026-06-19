@@ -1,0 +1,21 @@
+import React from 'react';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+type MoneyRequestCreateVerifyAccountPageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE_VERIFY_ACCOUNT>;
+
+function MoneyRequestCreateVerifyAccountPage({route}: MoneyRequestCreateVerifyAccountPageProps) {
+    const createRoute = ROUTES.MONEY_REQUEST_CREATE.getRoute(route.params.action, route.params.iouType, route.params.transactionID, route.params.reportID);
+
+    return (
+        <VerifyAccountPageBase
+            navigateBackTo={createRoute}
+            navigateForwardTo={createRoute}
+        />
+    );
+}
+
+export default MoneyRequestCreateVerifyAccountPage;

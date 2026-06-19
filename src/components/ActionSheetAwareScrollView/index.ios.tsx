@@ -18,7 +18,6 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
 
     return (
         <Reanimated.ScrollView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={onRef}
             style={[style, animatedStyle]}
@@ -28,15 +27,12 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
     );
 }
 
-export default ActionSheetAwareScrollView;
-
 /**
  * This function should be used as renderScrollComponent prop for FlatList
  * @param props - props that will be passed to the ScrollView from FlatList
  * @returns - ActionSheetAwareScrollView
  */
 const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props) => {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
 };
 

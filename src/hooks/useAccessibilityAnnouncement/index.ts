@@ -73,13 +73,13 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
 
         prevShouldAnnounceRef.current = true;
 
-        const container = getWrapper();
-
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
-
         const timer = setTimeout(() => {
+            const container = getWrapper();
+
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
             const node = document.createElement('div');
             node.setAttribute('role', 'alert');
             node.textContent = message;

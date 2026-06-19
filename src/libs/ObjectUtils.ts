@@ -28,5 +28,8 @@ function filterObject<TObject extends Record<string, unknown>>(obj: TObject, pre
         }, {} as TObject);
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {shallowCompare, filterObject};
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export {shallowCompare, filterObject, isRecord};

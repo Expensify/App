@@ -11,7 +11,7 @@ Expensify Travel analytics give travelers, approvers, and admins real-time visib
 
 ## Where to find Expensify Travel
 
-Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
 If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 

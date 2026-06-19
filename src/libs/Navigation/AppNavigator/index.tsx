@@ -2,7 +2,7 @@ import React, {lazy, Suspense} from 'react';
 import type {ComponentProps} from 'react';
 import lazyRetry from '@src/utils/lazyRetry';
 
-const AppNavigator = lazy(() => lazyRetry(() => import(/* webpackChunkName: "appNavigator.prefetch" */ './AppNavigator')));
+const AppNavigator = lazy(() => lazyRetry(() => import(/* webpackChunkName: "appNavigator.prefetch" */ './AppNavigator'), 'appNavigator'));
 
 function AppNavigatorLoader({authenticated}: ComponentProps<typeof AppNavigator>) {
     return (

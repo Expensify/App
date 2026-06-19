@@ -314,7 +314,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             const {data: newChecklist} = await GithubUtils.octokit.issues.create({
                 ...defaultPayload,
                 title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
-                labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY],
+                labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY, CONST.LABELS.DAILY],
                 assignees: [CONST.APPLAUSE_BOT as string].concat(checklistAssignees),
             });
             console.log(`Successfully created new deploy checklist! 🎉 ${newChecklist.html_url}`);

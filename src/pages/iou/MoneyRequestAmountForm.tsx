@@ -12,8 +12,9 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+import {isTaxAmountInvalid} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
@@ -75,8 +76,6 @@ const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>
 
     return false;
 };
-const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, decimals: number) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), decimals);
 
 /**
  * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
@@ -103,7 +102,7 @@ function MoneyRequestAmountForm({
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
@@ -178,7 +177,7 @@ function MoneyRequestAmountForm({
                 return;
             }
 
-            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, getCurrencyDecimals(currency))) {
+            if (isTaxAmountForm && isTaxAmountInvalid(currentAmount, taxAmount, getCurrencyDecimals(currency))) {
                 setFormError(translate('iou.error.invalidTaxAmount', formattedTaxAmount));
                 return;
             }
@@ -311,4 +310,4 @@ function MoneyRequestAmountForm({
 }
 
 export default MoneyRequestAmountForm;
-export type {CurrentMoney, MoneyRequestAmountFormProps};
+export type {CurrentMoney};
