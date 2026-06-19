@@ -57,22 +57,19 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         [translate],
     );
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
-                // Set the title of the report in the store and then call EditTask API
-                // to update the title of the report on the server
-                editTask(report, {title: values.title}, delegateEmail);
-            }
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+        if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
+            // Set the title of the report in the store and then call EditTask API
+            // to update the title of the report on the server
+            editTask(report, {title: values.title}, delegateEmail);
+        }
 
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
-        },
-        [report, delegateEmail],
-    );
+        Navigation.goBack(backPath);
+    };
 
     if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
+            Navigation.goBack(backPath);
         });
     }
 

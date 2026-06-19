@@ -188,12 +188,12 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                     submitFlexEnabled={!showNoPolicyError}
                 >
                     {showNoPolicyError && (
-                        <View style={[styles.flex1, styles.justifyContentEnd]}>
+                        <View style={[styles.flex1, styles.justifyContentEnd, styles.ph5]}>
                             <FormHelpMessage
                                 style={styles.mt3}
                                 isError
                                 shouldRenderMessageAsHTML
-                                message={translate('signerInfoStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
+                                message={translate('countryStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
                             />
                         </View>
                     )}

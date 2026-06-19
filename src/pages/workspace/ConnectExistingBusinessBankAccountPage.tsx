@@ -9,6 +9,8 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {appendParam} from '@libs/Url';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
@@ -19,6 +21,7 @@ import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
@@ -44,7 +47,10 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             prepareNewBankAccountSetup(policyCurrency);
         }
 
-        navigateToBankAccountRoute(hasFullyWorkingConnectedAccount ? {} : {policyID, backTo});
+        setReimbursementAccountLoading(true);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(appendParam(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(hasFullyWorkingConnectedAccount ? {} : {policyID, backTo}), 'stepToOpen', REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW));
+        });
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {

@@ -151,9 +151,10 @@ describe('DebugTabView', () => {
                         [ONYXKEYS.SESSION]: {
                             email: 'foo@bar.com',
                         },
-                        [ONYXKEYS.LOGIN_LIST]: {
+                        [ONYXKEYS.LOGINS]: {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
-                            'foo@bar.com': {
+                            '1_john.doe@mail.com': {
+                                partnerID: 1,
                                 partnerUserID: 'john.doe@mail.com',
                                 validatedDate: undefined,
                             },
@@ -167,12 +168,13 @@ describe('DebugTabView', () => {
             });
             describe('Has RBR', () => {
                 it('renders DebugTabView', async () => {
-                    await Onyx.set(ONYXKEYS.LOGIN_LIST, {
+                    await Onyx.set(ONYXKEYS.LOGINS, {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'foo@bar.com': {
-                            partnerUserID: 'john.doe@mail.com',
+                        '1_foo@bar.com': {
+                            partnerID: 1,
+                            partnerUserID: 'foo@bar.com',
                             errorFields: {
-                                partnerName: {
+                                addedLogin: {
                                     message: 'Partner name is missing!',
                                 },
                             },
@@ -191,12 +193,13 @@ describe('DebugTabView', () => {
         beforeEach(() => {
             (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: false});
             Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
-            Onyx.set(ONYXKEYS.LOGIN_LIST, {
+            Onyx.set(ONYXKEYS.LOGINS, {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                'foo@bar.com': {
-                    partnerUserID: 'john.doe@mail.com',
+                '1_foo@bar.com': {
+                    partnerID: 1,
+                    partnerUserID: 'foo@bar.com',
                     errorFields: {
-                        partnerName: {
+                        addedLogin: {
                             message: 'Partner name is missing!',
                         },
                     },
@@ -213,7 +216,7 @@ describe('DebugTabView', () => {
             expect(container.props.pointerEvents).toBe('box-none');
             expect((container.props.style as Array<Record<string, unknown>>).at(0)).toEqual(
                 expect.objectContaining({
-                    bottom: 0,
+                    top: 0,
                     left: variables.navigationTabBarSize,
                     width: variables.sideBarWithLHBWidth - variables.cropBorderWidth,
                 }),

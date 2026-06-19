@@ -8,7 +8,7 @@ type ActionButtonsProps = {
     containerStyle: React.ComponentProps<typeof View>['style'];
     resetSentryLabel?: string;
     applySentryLabel?: string;
-    onReset: () => void;
+    onReset?: () => void;
     onApply: () => void;
 };
 
@@ -18,13 +18,15 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onRe
 
     return (
         <View style={containerStyle}>
-            <Button
-                medium
-                style={[styles.flex1]}
-                text={translate('common.reset')}
-                onPress={onReset}
-                sentryLabel={resetSentryLabel}
-            />
+            {!!onReset && (
+                <Button
+                    medium
+                    style={[styles.flex1]}
+                    text={translate('common.reset')}
+                    onPress={onReset}
+                    sentryLabel={resetSentryLabel}
+                />
+            )}
             <Button
                 success
                 medium

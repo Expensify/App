@@ -52,7 +52,6 @@ function splitState(value: SearchStateContextValue): {
             currentSelectedTransactionReportID: value.currentSelectedTransactionReportID,
             shouldTurnOffSelectionMode: value.shouldTurnOffSelectionMode,
             hasSelectedTransactions: value.hasSelectedTransactions,
-            shouldShowSelectAllMatchingItems: value.shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected: value.areAllMatchingItemsSelected,
         },
     };
@@ -72,11 +71,11 @@ function splitActions(value: SearchActionsContextValue): {
         },
         selection: {
             setSelectedTransactions: value.setSelectedTransactions,
+            applySelection: value.applySelection,
             setSelectedReports: value.setSelectedReports,
             setCurrentSelectedTransactionReportID: value.setCurrentSelectedTransactionReportID,
             clearSelectedTransactions: value.clearSelectedTransactions,
             removeTransaction: value.removeTransaction,
-            setShouldShowSelectAllMatchingItems: value.setShouldShowSelectAllMatchingItems,
             selectAllMatchingItems: value.selectAllMatchingItems,
         },
     };

@@ -95,6 +95,7 @@ For additional control:
 - **Invite Employees & Set Approvals** – Imports employees and sets workflow
 - **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
 - **Enable Newly Imported Categories** – Activates newly synced Expense Categories
+- **Sync Travel Invoicing Settlements** – If Expensify Travel's Travel invoicing feature is enabled, turn on this toggle to continuously reconcile travel invoicing settlements through NetSuite. When enabled, select a **Reconciliation account** to match your travel invoicing settlement account.
 - **Approval Levels** – Set approval levels for:
   - Expense Reports
   - Vendor Bills

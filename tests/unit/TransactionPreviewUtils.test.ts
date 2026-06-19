@@ -12,7 +12,6 @@ import {
 } from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
@@ -231,11 +230,16 @@ describe('TransactionPreviewUtils', () => {
         it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
             const functionArgs = {
                 ...basicProps,
-                iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                iouReport: {
+                    ...basicProps.iouReport,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+                policy: createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 shouldShowRBR: true,
                 originalTransaction: undefined,
             };
-            jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
 
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
@@ -589,12 +593,17 @@ describe('TransactionPreviewUtils', () => {
         const reviewRequired = {translationPath: 'violations.reviewRequired'};
         const longMessage = 'x'.repeat(CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW + 1);
 
-        const receiptRequiredViolation = {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$25.00'}};
+        const receiptRequiredViolation = {
+            name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+            data: {amount: 2500, currency: CONST.CURRENCY.USD},
+        };
         const itemizedReceiptRequiredViolation = {
             name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
             type: CONST.VIOLATION_TYPES.VIOLATION,
             showInReview: true,
-            data: {formattedLimit: '$75.00'},
+            data: {amount: 7500, currency: CONST.CURRENCY.USD},
         };
 
         const mockViolations = (count: number) =>

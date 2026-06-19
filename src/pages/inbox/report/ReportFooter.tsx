@@ -75,7 +75,7 @@ function ReportFooter() {
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
-    const shouldShowEnableNotificationsBanner = useShouldShowEnableNotificationsBanner(reportIDFromRoute);
+    const shouldShowEnableNotificationsBanner = useShouldShowEnableNotificationsBanner(report);
 
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!isLoadingInitialReportActions;
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
@@ -93,14 +93,21 @@ function ReportFooter() {
 
     // Happy path — user can compose
     if (!shouldHideComposer) {
+        const composer = (
+            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                <ReportActionCompose reportID={reportIDFromRoute} />
+            </SwipeableView>
+        );
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                {shouldShowEnableNotificationsBanner && <EnableNotificationsBanner />}
-                <View style={shouldShowEnableNotificationsBanner ? composerOverlapStyle : undefined}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        <ReportActionCompose reportID={reportIDFromRoute} />
-                    </SwipeableView>
-                </View>
+                {shouldShowEnableNotificationsBanner ? (
+                    <>
+                        <EnableNotificationsBanner />
+                        <View style={[composerOverlapStyle, isComposerFullSize && styles.flex1]}>{composer}</View>
+                    </>
+                ) : (
+                    composer
+                )}
             </View>
         );
     }

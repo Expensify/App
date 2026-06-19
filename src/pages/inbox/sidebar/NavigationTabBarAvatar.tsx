@@ -40,11 +40,12 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
      * Renders the appropriate avatar component based on user state (delegate, emoji status, or default profile)
      * with the correct active (ring) state for selection and hover effects.
      */
-    const renderAvatar = (active: boolean) => {
+    const renderAvatar = (active: boolean, isHovered: boolean) => {
         if (delegateEmail) {
             return (
                 <AvatarWithDelegateAvatar
                     delegateEmail={delegateEmail}
+                    isHovered={isHovered}
                     isSelected={active}
                     containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
                 />
@@ -83,7 +84,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
         >
             {({hovered}) => (
                 <>
-                    {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered))}
+                    {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered), hovered)}
                     <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
                         {translate('initialSettingsPage.account')}
                     </Text>

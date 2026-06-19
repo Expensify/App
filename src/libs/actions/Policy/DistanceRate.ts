@@ -8,6 +8,7 @@ import type {
     OpenPolicyDistanceRatesPageParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
+    UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -319,6 +320,18 @@ function updatePolicyDistanceRateName(policyID: string, customUnit: CustomUnit, 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_NAME, params, {optimisticData, successData, failureData});
 }
 
+function updatePolicyDistanceRate(policyID: string, customUnit: CustomUnit, rateToUpdate: Rate, fieldName: keyof Pick<Rate, 'startDate' | 'endDate'>) {
+    const {optimisticData, successData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(policyID, customUnit, [rateToUpdate], fieldName);
+
+    const params: UpdatePolicyDistanceRateParams = {
+        policyID,
+        customUnitID: customUnit.customUnitID,
+        customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray([rateToUpdate])),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
+}
+
 function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
@@ -517,6 +530,7 @@ export {
     clearPolicyDistanceRateErrorFields,
     updatePolicyDistanceRateValue,
     updatePolicyDistanceRateName,
+    updatePolicyDistanceRate,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
     updateDistanceTaxClaimableValue,
