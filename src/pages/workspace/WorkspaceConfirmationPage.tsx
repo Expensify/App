@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
@@ -33,14 +33,11 @@ function WorkspaceConfirmationPage() {
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
-    // On a narrow layout the new workspace is mounted under this RHP and revealed when the modal
-    // dismisses (via revealRouteBeforeDismissingModal in createWorkspaceWithPolicyDraftAndNavigateToIt).
-    // The reveal waits for the screen to be ready, so we show a spinner on the Confirm button as
-    // immediate feedback. It normally clears when this page unmounts with the RHP; the timeout is a
-    // safety net in case the dismiss never happens.
+    // On a narrow layout the new workspace is mounted under this RHP and revealed when the modal dismisses
+    // (via revealRouteBeforeDismissingModal in createWorkspaceWithPolicyDraftAndNavigateToIt). The reveal waits
+    // for the new screen to lay out before sliding the RHP out, so we show a spinner on the Confirm button as
+    // immediate feedback. It clears when this page unmounts together with the RHP.
     const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
-    const creatingWorkspaceTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-    useEffect(() => () => clearTimeout(creatingWorkspaceTimeoutRef.current), []);
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         // policyID is always supplied by WorkspaceConfirmationForm (stable per form instance).
@@ -51,8 +48,6 @@ function WorkspaceConfirmationPage() {
         const routeToNavigate = shouldShowSuccessPage ? ROUTES.WORKSPACE_CONFIRMATION_SUCCESS : workspaceRoute;
         if (!shouldShowSuccessPage && isSmallScreenWidth) {
             setIsCreatingWorkspace(true);
-            clearTimeout(creatingWorkspaceTimeoutRef.current);
-            creatingWorkspaceTimeoutRef.current = setTimeout(() => setIsCreatingWorkspace(false), CONST.WORKSPACE_CREATE_SPINNER_FALLBACK_MS);
         }
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,

@@ -50,6 +50,9 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
     // flashing white (#90985). The noEnterAnimation flag stays on this route's params for its lifetime,
     // which is safe: swipe-back pops the flagged route and re-entering a workspace mints a fresh route
     // without the flag, so the sidebar animates normally afterwards.
+    // The RHP dismiss is held until the revealed content has painted; that readiness is reported by
+    // WorkspaceInitialPage itself (the visible content) rather than here (this container lays out at full
+    // height before the lazy page mounts, which would release the dismiss too early and flash the list).
     const sidebarScreenOptions = getRevealScreenOptions(route.params, splitNavigatorScreenOptions.sidebarScreen);
 
     return (

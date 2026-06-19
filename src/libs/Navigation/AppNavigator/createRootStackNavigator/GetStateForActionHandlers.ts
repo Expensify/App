@@ -418,13 +418,18 @@ function handleReplaceFullscreenUnderRHP(
             // no-op when the incoming state already starts with WORKSPACES_LIST, so it stays idempotent.
             let sidebarRoute: NavigationPartialRoute | undefined;
             if (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
-                // Always seed a FRESH WORKSPACES_LIST route (no reused key) so it mounts as a born-non-top
-                // background screen, exactly like the first-creation path. Reusing the existing route reuses
-                // its key, and when the user backed into the list it is the active/top native screen — the
-                // reveal then demotes that active list top->non-top, which makes react-native-screens
-                // detach/re-attach the split on top and flash WORKSPACES_LIST during the detach (#90985).
-                // Carry over the existing list's params (e.g. backTo) so the back target survives; only the
-                // key is dropped, which is what keeps the route born-non-top.
+                // Always seed a FRESH WORKSPACES_LIST route (no reused key) so it mounts "born non-top" in the
+                // new state, exactly like the first-creation path. The revealed tab is then [WORKSPACES_LIST, split]
+                // (split on top from the start), which keeps iOS swipe-back working (#93003).
+                // Why not reuse the existing list's key: when the user backed into the list it is the mounted,
+                // visible top native screen. Reusing its key keeps it as the active top and the reveal then demotes
+                // it top->non-top while pushing the split; react-native-screens shows the list for a frame during
+                // that reorder and it flashes (#90985). A keyless born-non-top route is never the active top, so
+                // there is no reorder to flash. The white flash a fresh list used to cause (the not-yet-painted
+                // screen showing through on dismiss) is handled separately by gating the RHP dismiss on the
+                // revealed content's paint — see WorkspaceInitialPage's notifyRevealUnderRHPReady.
+                // Carry over the existing list's params (e.g. backTo) so the back target survives; only the key
+                // is dropped.
                 const existingListParams = existingFirstRoute?.name === SCREENS.WORKSPACES_LIST ? existingFirstRoute.params : undefined;
                 sidebarRoute = {name: SCREENS.WORKSPACES_LIST, ...(existingListParams ? {params: existingListParams} : {})};
             } else {
@@ -454,8 +459,17 @@ function handleReplaceFullscreenUnderRHP(
             // Strip any RN deep-link hint chain from `r.params`; otherwise RN would run a
             // follow-up NAVIGATE from it and override the `state` we splice below.
             const sanitizedRoute = withSanitizedDeepLinkParams(r, focusedTargetTab.params as Record<string, unknown> | undefined);
+            // Give the revealed WORKSPACE_NAVIGATOR a FRESH key so react-native-screens REMOUNTS the navigator
+            // with [WORKSPACES_LIST, split] (list born-non-top, split born-top), matching the clean
+            // first-creation path. Keeping the existing key makes RN do an incremental update of the
+            // already-mounted navigator — detaching the visible list and adding the split into its stack —
+            // which flashes (white, or the old list during the top->non-top reorder) as the RHP reveals it
+            // (#90985). Overriding the key (rather than dropping it) forces the remount while keeping the
+            // route's key a string.
+            const shouldRemountNavigator = r.name === NAVIGATORS.WORKSPACE_NAVIGATOR && mergedNestedState !== undefined;
             return {
                 ...sanitizedRoute,
+                ...(shouldRemountNavigator ? {key: `${r.name}-${Date.now()}-reveal`} : {}),
                 ...(mergedNestedState !== undefined ? {state: mergedNestedState as typeof r.state} : {}),
             };
         });

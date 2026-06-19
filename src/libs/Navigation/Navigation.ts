@@ -48,6 +48,7 @@ import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import TransitionTracker from './TransitionTracker';
+import type {TransitionHandle} from './TransitionTracker';
 import type {
     NavigationPartialRoute,
     NavigationRef,
@@ -1011,6 +1012,11 @@ function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
     navigateBackToLastSuperWideRHPScreen(options);
 }
 
+// Handle for the synthetic transition opened by revealRouteBeforeDismissingModal so the RHP slide-out waits
+// until the revealed (enter-animation-suppressed) destination has laid out. Closed by notifyRevealUnderRHPReady().
+// Module-level like the other reveal/pre-insert state in this file; only mutated from the JS thread.
+let pendingRevealReadinessHandle: TransitionHandle | null = null;
+
 /**
  * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
  * Used after expense submission (and similar flows) so the target screen (e.g. Search inside TabNavigator)
@@ -1023,22 +1029,28 @@ function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
  *   Frame 2 - DISMISS_MODAL pops the RHP: [Tab, Tab', RHP] -> [Tab, Tab'].
  *             useLinking syncs browser history to the new top fullscreen route.
  */
-function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void; disableRHPAnimation?: boolean}) {
+function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void; waitForRevealReadiness?: boolean}) {
     if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
         return;
     }
 
-    // When the caller opts in on a small-width layout, disable the RHP slide-out so it dismisses instantly
-    // instead of sliding a (content-already-gone) white card over the not-yet-composited destination (#90985).
-    // Gated on getIsSmallScreenWidth() (not getIsNarrowLayout(), which is always true on native) so a wide
-    // tablet keeps its slide-out, matching the Confirm spinner that is also shown only on small widths.
-    // Emitted now so the RHP's setOptions takes effect before the dismiss two frames later; restored once the
-    // dismiss transition settles. These DISABLE/RESTORE_RHP_ANIMATION events are shared with the pre-insert
-    // flow (preInsertFullscreenUnderRHP); the two flows never overlap, so the unscoped events can't cross-talk.
-    const shouldDisableRHPAnimation = !!options?.disableRHPAnimation && getIsSmallScreenWidth();
-    if (shouldDisableRHPAnimation) {
-        DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
+    // When the destination suppresses its own enter animation (e.g. the workspace split is mounted under the
+    // RHP with `animation: 'none'` so it never flashes WORKSPACES_LIST, see #90985), it fires no navigation
+    // transition for `waitForTransition` below to wait on. The RHP would then slide out before the destination
+    // has painted, revealing a white/stale frame at the leading edge of the slide. To keep the RHP slide-out
+    // AND avoid that flash, bridge the gap with a synthetic transition: open it now (before the dismiss is
+    // queued two frames later) and close it once the destination reports its first layout via
+    // notifyRevealUnderRHPReady(). dismissModal's waitForTransition then defers the slide-out until the
+    // destination is laid out. The transition auto-expires after MAX_TRANSITION_DURATION_MS, so a missing
+    // readiness signal can never wedge the dismiss. Gated on getIsSmallScreenWidth() because that is exactly
+    // when the destination carries `noEnterAnimation` (the page targets WORKSPACE_INITIAL only on small width).
+    const shouldWaitForRevealReadiness = !!options?.waitForRevealReadiness && getIsSmallScreenWidth();
+    if (shouldWaitForRevealReadiness) {
+        if (pendingRevealReadinessHandle) {
+            TransitionTracker.endTransition(pendingRevealReadinessHandle);
+        }
+        pendingRevealReadinessHandle = TransitionTracker.startTransition();
     }
 
     requestAnimationFrame(() => {
@@ -1052,17 +1064,23 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         // wait for the hidden destination transition first so the RHP slides out
         // over the final page instead of briefly revealing the previous page.
         requestAnimationFrame(() => {
-            dismissModal({
-                afterTransition: () => {
-                    options?.afterTransition?.();
-                    if (shouldDisableRHPAnimation) {
-                        DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
-                    }
-                },
-                waitForTransition: getIsNarrowLayout(),
-            });
+            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
         });
     });
+}
+
+/**
+ * Reports that a destination revealed under the RHP (with its enter animation suppressed) has laid out, so the
+ * pending RHP slide-out can run over a painted screen. Called once per reveal from the destination's first
+ * onLayout (see WorkspaceSplitNavigator). No-op when no reveal is pending or the synthetic transition already
+ * expired via its safety timeout.
+ */
+function notifyRevealUnderRHPReady() {
+    if (!pendingRevealReadinessHandle) {
+        return;
+    }
+    TransitionTracker.endTransition(pendingRevealReadinessHandle);
+    pendingRevealReadinessHandle = null;
 }
 
 // Module-level state tracking the pre-inserted fullscreen route. This follows the same
@@ -1275,6 +1293,7 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     revealRouteBeforeDismissingModal,
+    notifyRevealUnderRHPReady,
     preInsertFullscreenUnderRHP,
     getIsFullscreenPreInsertedUnderRHP,
     getPreInsertedFullscreenRouteName,

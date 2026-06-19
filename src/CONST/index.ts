@@ -304,12 +304,6 @@ const CONST = {
     PENDING_TRANSACTION_DELETION_DELAY: 4000,
     PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
-    // Safety timeout for the Confirm button spinner shown while a newly created workspace is mounted
-    // under the RHP on narrow before the modal dismisses. The spinner normally clears when the RHP
-    // (and this page) unmounts; this only fires if that reveal never happens. Kept longer than the
-    // navigation transition trackers (1000ms) so clearing the spinner can never race the dismiss.
-    WORKSPACE_CREATE_SPINNER_FALLBACK_MS: 2500,
-
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
     // Chosen to be long enough for the RHP entrance animation to complete (~250ms) and avoid jank
     // from concurrent navigation state mutations, but short enough to finish well before most users

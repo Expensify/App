@@ -663,7 +663,10 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {disableRHPAnimation: true});
+            // Keep the RHP slide-out, but wait for the revealed workspace split (whose enter animation is
+            // suppressed to avoid flashing WORKSPACES_LIST) to lay out before sliding, so it never reveals a
+            // white/stale frame (#90985).
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {waitForRevealReadiness: true});
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }
