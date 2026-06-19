@@ -21,8 +21,8 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CompanyCardBalanceParams,
     ChangeFieldParams,
+    CompanyCardBalanceParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     DelegateRoleParams,
