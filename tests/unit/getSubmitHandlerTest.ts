@@ -254,6 +254,21 @@ describe('getSubmitHandler', () => {
         ).toBe(SUBMIT_HANDLER.SEARCH_DISMISS);
     });
 
+    it('returns DISMISS_TO_REPORT when canDismissFromSearch but Search is not topmost and destination is loaded', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    navigatesToDestinationReport: true,
+                    isSearchTopmostFullScreen: false,
+                    destinationReportID: 'report-1',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_TO_REPORT);
+    });
+
     it('returns DISMISS_MODAL (via fast path) for navigatesToDestinationReport when not isFromGlobalCreate but destination is loaded', () => {
         expect(
             getSubmitHandler(

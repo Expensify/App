@@ -622,6 +622,14 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeH1,
         },
 
+        exportDownloadTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
         textWhite: {
             color: theme.textLight,
         },
@@ -2784,6 +2792,11 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 2,
             opacity: 1,
             backgroundColor: 'transparent',
+        },
+
+        confirmModalPromptScrollable: {
+            maxHeight: 300,
+            paddingRight: 8,
         },
 
         modalBackdrop: {
