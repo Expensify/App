@@ -36,20 +36,26 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const hasFullyWorkingConnectedAccount = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
-    const fullyWorkingConnectedAccountBankAccountID = policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isChangingBankAccount = route.params?.source === CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT;
+    const connectedAccountBankAccountID = policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        if (hasFullyWorkingConnectedAccount) {
+        if (isChangingBankAccount) {
             prepareNewBankAccountSetup(policyCurrency);
         }
 
         setReimbursementAccountLoading(true);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(appendParam(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(hasFullyWorkingConnectedAccount ? {} : {policyID, backTo}), 'stepToOpen', REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW));
+            Navigation.navigate(
+                appendParam(
+                    ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(isChangingBankAccount ? {policyID: undefined} : {policyID, backTo}),
+                    'stepToOpen',
+                    REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
+                ),
+            );
         });
     };
 
@@ -110,7 +116,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                     filterCurrency={policyCurrency}
                     excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
-                    excludeBankAccountID={fullyWorkingConnectedAccountBankAccountID}
+                    excludeBankAccountID={isChangingBankAccount ? connectedAccountBankAccountID : undefined}
                     shouldHideDefaultBadge
                 />
             </ScrollView>

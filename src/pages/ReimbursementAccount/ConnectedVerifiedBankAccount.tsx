@@ -19,6 +19,7 @@ import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {navigateToBankAccountRoute, prepareNewBankAccountSetup, requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -74,7 +75,7 @@ function ConnectedVerifiedBankAccount({
         }
 
         if (hasOtherEligibleAccountsToConnect) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, undefined, CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT));
             return;
         }
 
