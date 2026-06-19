@@ -2,6 +2,7 @@ import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
@@ -10,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isNumeric} from '@libs/ValidationUtils';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import DatePickerModal from './DatePickerModal';
@@ -53,8 +55,6 @@ function DatePicker({
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
-    // Whether the initial autoFocus has already opened the picker, so later focuses don't reopen it.
-    const hasAutoOpenedRef = useRef(false);
 
     const {inputCallbackRef: autoFocusCallbackRef, cancelAutoFocus} = useAutoFocusInput();
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
@@ -116,24 +116,16 @@ function DatePicker({
         setIsModalVisible(false);
     }, []);
 
-    const openDatePickerOnPress = useCallback(() => {
-        if (!shouldDeferShowUntilPositioned) {
-            return;
-        }
-        showDatePickerModal();
-    }, [shouldDeferShowUntilPositioned, showDatePickerModal]);
-
-    const handleInputFocus = useCallback(() => {
-        if (!shouldDeferShowUntilPositioned) {
+    const handleInputKeyPress = useCallback(
+        (event: TextInputKeyPressEvent) => {
+            if (!isNumeric(event.nativeEvent.key)) {
+                return;
+            }
+            event.preventDefault();
             showDatePickerModal();
-            return;
-        }
-        if (!autoFocus || hasAutoOpenedRef.current) {
-            return;
-        }
-        hasAutoOpenedRef.current = true;
-        showDatePickerModal();
-    }, [shouldDeferShowUntilPositioned, autoFocus, showDatePickerModal]);
+        },
+        [showDatePickerModal],
+    );
 
     const handleDateSelected = (newDate: string) => {
         onTouched?.();
@@ -191,14 +183,16 @@ function DatePicker({
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ROLE.COMBOBOX}
+                    accessibilityState={{expanded: isModalVisible}}
                     value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    onPress={openDatePickerOnPress}
-                    onFocus={handleInputFocus}
+                    onPress={() => showDatePickerModal()}
+                    onSubmitEditing={() => showDatePickerModal()}
+                    onKeyPress={handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}

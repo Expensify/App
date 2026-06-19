@@ -176,4 +176,24 @@ describe('OnboardingPersonalTrackGoal Page', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should restore a previously entered "Something else" value from Onyx', async () => {
+        await TestHelper.signInWithTestUser();
+
+        const customGoal = 'My custom tracking goal';
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL, customGoal);
+        });
+
+        const {unmount} = renderOnboardingPersonalTrackGoalPage(SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByDisplayValue(customGoal)).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });
