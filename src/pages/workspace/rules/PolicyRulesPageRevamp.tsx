@@ -437,13 +437,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const cardRulesEmptyState = useMemo(
         () => (
             <ScrollView
+                style={[styles.flex1, styles.mnh0]}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
                 addBottomSafeAreaPadding
             >
                 <GenericEmptyStateComponent
                     headerMedia={illustrations.ExpensifyCardCoins}
                     headerStyles={styles.emptyStateCardIllustrationContainer}
-                    headerContentStyles={styles.cardRulesEmptyStateIllustration}
+                    headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
                     title={translate('workspace.rules.spendRules.cardRulesUpsell.title')}
                     subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
                     subtitleStyles={[styles.textLabel, styles.textSupporting]}
@@ -459,7 +460,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 />
             </ScrollView>
         ),
-        [StyleUtils, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, styles, translate],
+        [StyleUtils, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, shouldUseNarrowLayout, styles, translate],
     );
 
     const renderExpenseDefaultsContent = () => (

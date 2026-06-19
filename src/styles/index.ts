@@ -5509,9 +5509,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         cardRulesEmptyStateIllustration: {
-            width: '100%',
-            maxWidth: variables.cardRulesEmptyStateIllustrationWidth,
-            aspectRatio: variables.cardRulesEmptyStateIllustrationWidth / variables.cardRulesEmptyStateIllustrationHeight,
+            width: variables.cardRulesEmptyStateIllustrationWidth,
+            height: variables.cardRulesEmptyStateIllustrationHeight,
         },
 
         emptyStateSamlIllustration: {
@@ -5525,8 +5524,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         expensifyCardEmptyIllustration: {
-            width: 280,
-            height: 172,
+            width: variables.expensifyCardEmptyIllustrationWidth,
+            height: variables.expensifyCardEmptyIllustrationHeight,
         },
 
         errorStateCardIllustration: {

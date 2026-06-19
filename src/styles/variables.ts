@@ -313,6 +313,8 @@ export default {
     cardRulesEmptyStateIllustrationWidth: 372,
     cardRulesEmptyStateIllustrationHeight: 196,
     cardRulesEmptyStateMaxWidth: 496,
+    expensifyCardEmptyIllustrationWidth: 280,
+    expensifyCardEmptyIllustrationHeight: 172,
     rulesNewMenuItemMinHeight: 84,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
