@@ -1,8 +1,9 @@
 import type {TextInput} from 'react-native';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import ComposerFocusManager from './ComposerFocusManager';
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 
-function focusAfterModalClose(textInput: TextInput | null) {
+function focusAfterModalClose(textInput: TextInput | BaseTextInputRef | null) {
     if (!textInput) {
         return;
     }

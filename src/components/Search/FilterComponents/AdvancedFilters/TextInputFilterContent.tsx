@@ -38,7 +38,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <TextInput
-                ref={autoFocus ? (inputCallbackRef as (ref: BaseTextInputRef | null) => void) : undefined}
+                ref={autoFocus ? inputCallbackRef : undefined}
                 placeholder={label}
                 value={value}
                 errorText={error}
