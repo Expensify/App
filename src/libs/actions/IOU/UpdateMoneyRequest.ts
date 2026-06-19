@@ -52,7 +52,6 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
-import {setLastSelectedDistanceRate} from './MoneyRequest';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
@@ -182,11 +181,19 @@ function getRecalculatedDistanceRateIDForExpenseDate({
         return undefined;
     }
 
-    const mileageRates = DistanceRequestUtils.getMileageRates(policy);
-    const bestRate = DistanceRequestUtils.getBestEligibleRate(mileageRates, expenseDate);
-    const newRateID = bestRate?.customUnitRateID;
+    const newRateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID: parentReport.reportID,
+        isPolicyExpenseChat: true,
+        policy,
+        expenseDate,
+    });
 
-    if (!newRateID || newRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+    if (newRateID === currentRateID || newRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+        return undefined;
+    }
+
+    const newMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: newRateID, policy});
+    if (!newMileageRate || !DistanceRequestUtils.isRateEligibleForDate(newMileageRate, expenseDate)) {
         return undefined;
     }
 
@@ -226,21 +233,11 @@ function updateMoneyRequestDate({
     const shouldRecalculateRate = !!(newRateID && newRateID !== currentRateID && transaction && effectivePolicy);
 
     if (shouldRecalculateRate) {
-        setLastSelectedDistanceRate(effectivePolicy, newRateID);
-        const transactionForTax =
-            transaction && effectivePolicy
-                ? getUpdatedTransaction({
-                      transaction,
-                      transactionChanges: {created: value},
-                      isFromExpenseReport: isExpenseReport(parentReport),
-                      policy: effectivePolicy,
-                  })
-                : transaction;
         const distanceRateTaxUpdates =
-            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transactionForTax ? getDistanceRateTaxUpdates(effectivePolicy, transactionForTax, newRateID) : undefined;
+            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transaction ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID) : undefined;
 
         updateMoneyRequestDistanceRate({
-            transaction: getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? transaction,
+            transaction,
             transactionThreadReport,
             parentReport,
             rateID: newRateID,
@@ -1136,7 +1133,6 @@ function updateMoneyRequestDistanceRate({
     parentReport,
     rateID,
     created,
-    shouldSendCreatedToAPI = true,
     policy,
     policyTagList,
     policyCategories,
@@ -1159,7 +1155,6 @@ function updateMoneyRequestDistanceRate({
     parentReport: OnyxEntry<OnyxTypes.Report>;
     rateID: string;
     created?: string;
-    shouldSendCreatedToAPI?: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -1237,7 +1232,7 @@ function updateMoneyRequestDistanceRate({
     const {params, onyxData} = data;
     // `taxAmount`, `taxCode`, and optionally `created` only need to be updated in the optimistic data, so we need to remove them from the params
     const {taxAmount, taxCode, created: createdParam, ...paramsWithoutTaxUpdated} = params;
-    const paramsForAPI = shouldSendCreatedToAPI && createdParam ? {...paramsWithoutTaxUpdated, created: createdParam} : paramsWithoutTaxUpdated;
+    const paramsForAPI = createdParam ? {...paramsWithoutTaxUpdated, created: createdParam} : paramsWithoutTaxUpdated;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsForAPI, onyxData);
 }
 
