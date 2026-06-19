@@ -2348,7 +2348,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
-                    expect(result).toEqual('set the supplier to "xc-deleted"');
+                    expect(result).toEqual('set the supplier to "xcDeleted"');
                 });
             });
         });
