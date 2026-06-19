@@ -78,6 +78,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policy?.id);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policy?.id);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policy?.id);
+    const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policy?.id);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
@@ -395,7 +396,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         integration,
                         policyID,
                         translate,
-                        {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD, certinia: hasReusablePoliciesConnectedToCertinia},
+                        {
+                            sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                            qbd: hasReusablePoliciesConnectedToQBD,
+                            certinia: hasReusablePoliciesConnectedToCertinia,
+                            rillet: hasReusablePoliciesConnectedToRillet,
+                        },
                         undefined,
                         undefined,
                         undefined,
@@ -472,7 +478,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             connectedIntegration,
             policyID,
             translate,
-            {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD, certinia: hasReusablePoliciesConnectedToCertinia},
+            {
+                sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                qbd: hasReusablePoliciesConnectedToQBD,
+                certinia: hasReusablePoliciesConnectedToCertinia,
+                rillet: hasReusablePoliciesConnectedToRillet,
+            },
             policy,
             undefined,
             undefined,
@@ -623,6 +634,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         datetimeToRelative,
         hasReusablePoliciesConnectedToSageIntacct,
         hasReusablePoliciesConnectedToCertinia,
+        hasReusablePoliciesConnectedToRillet,
         hasReusablePoliciesConnectedToQBD,
         canWriteAccounting,
         showReadOnlyModal,
@@ -641,7 +653,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     integration,
                     policyID,
                     translate,
-                    {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD, certinia: hasReusablePoliciesConnectedToCertinia},
+                    {
+                        sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                        qbd: hasReusablePoliciesConnectedToQBD,
+                        certinia: hasReusablePoliciesConnectedToCertinia,
+                        rillet: hasReusablePoliciesConnectedToRillet,
+                    },
                     undefined,
                     undefined,
                     undefined,
@@ -706,6 +723,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         translate,
         hasReusablePoliciesConnectedToSageIntacct,
         hasReusablePoliciesConnectedToCertinia,
+        hasReusablePoliciesConnectedToRillet,
         hasReusablePoliciesConnectedToQBD,
         styles.justifyContentCenter,
         styles.buttonOpacityDisabled,
