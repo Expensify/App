@@ -284,8 +284,8 @@ describe('ReportUtils', () => {
         const reportAction = {
             ...createRandomReportAction(1),
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportID: '1',
             originalMessage: {
-                IOUReportID: '1',
                 IOUTransactionID: '1',
                 amount: 100,
                 participantAccountID: 1,
