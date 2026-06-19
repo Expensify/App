@@ -1652,6 +1652,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
+        submitReportTo: {
+            subtitle: 'Kies een werkruimtelid of voer het e-mailadres in van degene die deze inzending moet ontvangen.',
+            emailLabel: 'E-mailadres',
+            workspaceMembers: 'Werkruimteleden',
+            sendExpense: 'Stuur je uitgave naar iedereen',
+            sendExpenseSubtitle: 'Nodig iedereen uit voor Expensify met hun e-mailadres of telefoonnummer.',
+        },
         changeApprover: {
             title: 'Goedkeurder wijzigen',
             header: (workflowSettingLink: string) =>
