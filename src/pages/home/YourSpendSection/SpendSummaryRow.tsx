@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
-import YOUR_SPEND_ROW_STATE from './const';
+import {YOUR_SPEND_ROW_STATE} from './const';
 import type {useYourSpendData} from './useYourSpendData';
 
 // Skeleton geometry mirrors `ForYouSection/ForYouSkeleton.tsx` so the home page

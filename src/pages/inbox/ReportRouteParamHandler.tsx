@@ -1,5 +1,5 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import usePermissions from '@hooks/usePermissions';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +22,7 @@ function ReportRouteParamHandler() {
     const route = useRoute<ReportScreenRoute>();
     const navigation = useNavigation();
     const {isBetaEnabled} = usePermissions();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     useFocusEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -39,7 +39,7 @@ function ReportRouteParamHandler() {
             !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
             undefined,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
         )?.reportID;
 
         // It's possible that reports aren't fully loaded yet

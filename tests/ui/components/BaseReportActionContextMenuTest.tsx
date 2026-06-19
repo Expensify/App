@@ -84,7 +84,6 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: []}));
 jest.mock('@hooks/useReportIsArchived', () => () => false);
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true, isSmallScreenWidth: false}));
-jest.mock('@hooks/useRestoreInputFocus', () => () => {});
 jest.mock(
     '@hooks/useStyleUtils',
     () => () =>
@@ -188,9 +187,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'parentIOUAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
@@ -215,9 +214,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'iouAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
@@ -396,6 +395,6 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         });
 
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserLogin, currentUserAccountID);
+        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserLogin, currentUserAccountID, undefined);
     });
 });

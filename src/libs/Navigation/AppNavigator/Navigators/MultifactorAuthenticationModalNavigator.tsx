@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
+import RHP_WEB_TRANSITION_SPEC from '@navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@navigation/AppNavigator/useModalCardStyleInterpolator';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -181,6 +182,7 @@ function MultifactorAuthenticationModalNavigator() {
                                          * on wide layout, so the slide range is stable regardless of layout timing.
                                          */
                                         cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
+                                        transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
                                     },
                                 }}
                             >

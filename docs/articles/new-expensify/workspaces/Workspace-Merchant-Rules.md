@@ -148,3 +148,7 @@ Common reasons include:
 - Another rule matched first.
 - A field was manually set during expense creation.
 - The rule was created after the expense and wasn't applied retroactively, unless you select "apply to existing expenses" when creating the rule.
+
+## How do I clear a Category, Tag, or Tax value from a Workspace Merchant Rule?
+
+When you add or edit a rule and open the **Category**, **Tag**, or **Tax** field, select **None** to clear the previously selected value. Then select **Save rule**.

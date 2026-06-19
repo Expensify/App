@@ -1,7 +1,7 @@
 ---
 title: Two-Factor Authentication
 description: Learn how to set up two-factor authentication in Expensify Classic and what to do if you're locked out of your account.
-keywords: [Expensify Classic, two-factor authentication, 2FA, login security, authenticator app, recovery codes, locked out, lost phone, account recovery, Domain Admin reset, backup codes]
+keywords: [Expensify Classic, two-factor authentication, 2FA, login security, authenticator app, recovery codes, locked out, lost phone, account recovery, Domain Admin reset, backup codes, MFA, multi-factor, multi-factor authentication, verification code, security code, two factor, two-factor, security key]
 ---
 
 Setting up two-factor authentication (2FA) in Expensify Classic adds an extra layer of protection to your account. This guide explains how to enable 2FA and what to expect if you're ever locked out.
