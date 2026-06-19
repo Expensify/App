@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,20 +40,27 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
-function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
+function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const styles = useThemeStyles();
 
-    // When this split is revealed under an RHP (workspace creation), the outer split's enter animation
-    // is already suppressed (see WorkspaceNavigator). Suppress the sidebar's enter animation too,
-    // otherwise WorkspaceInitialPage slides in over the blank split background after the RHP dismisses,
-    // flashing white (#90985). The noEnterAnimation flag stays on this route's params for its lifetime,
-    // which is safe: swipe-back pops the flagged route and re-entering a workspace mints a fresh route
-    // without the flag, so the sidebar animates normally afterwards.
-    // The RHP dismiss is held until the revealed content has painted; that readiness is reported by
-    // WorkspaceInitialPage itself (the visible content) rather than here (this container lays out at full
-    // height before the lazy page mounts, which would release the dismiss too early and flash the list).
+    // When this split is revealed under an RHP (workspace creation), its enter animation is suppressed via
+    // `noEnterAnimation` (read here and in WorkspaceNavigator through getRevealScreenOptions) so it doesn't
+    // slide in over WORKSPACES_LIST and flash it (#90985). The RHP dismiss is held until the revealed content
+    // has painted, reported by WorkspaceInitialPage (the visible content) rather than here (this container
+    // lays out at full height before the lazy page mounts, which would release the dismiss too early).
     const sidebarScreenOptions = getRevealScreenOptions(route.params, splitNavigatorScreenOptions.sidebarScreen);
+
+    // `animation: 'none'` (from noEnterAnimation) is symmetric in react-native-screens — it also disables the
+    // POP animation. Once the reveal has placed this split, clear the flag so going back to WORKSPACES_LIST
+    // slides normally. Clearing it now is safe: the screen is already mounted at its final position, so changing
+    // the animation option does not re-trigger a transition — it only affects the next pop.
+    useEffect(() => {
+        if (!route.params?.noEnterAnimation) {
+            return;
+        }
+        navigation.setParams({noEnterAnimation: undefined});
+    }, [navigation, route.params?.noEnterAnimation]);
 
     return (
         <FocusTrapForScreens>
