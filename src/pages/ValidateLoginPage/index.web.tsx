@@ -44,13 +44,16 @@ function ValidateLoginPage({
     // A magic-link sign-in that needs 2FA completes on the sign-in page: it reuses the stored
     // `credentials.validateCode`, and SignInPage renders the authenticator-code stage once
     // `requiresTwoFactorAuth` + that code are present. Send the user there to enter their code instead
-    // of the informational "2FA required" modal, which is a dead end. Gated on a post-attempt state so a
-    // stale cached code can't redirect prematurely. `exitTo` deep links route here too; the effect keeps
-    // the deferred `exitTo` navigation pending so the user reaches their destination after 2FA completes.
+    // of the informational "2FA required" modal, which is a dead end. Require the cached credentials to
+    // match THIS link — `signInWithValidateCode` only caches the code on a successful 2FA-required
+    // response, so a stale code left over from an earlier attempt can't redirect a later failed/expired
+    // link. `exitTo` deep links route here too; the effect keeps the deferred `exitTo` navigation
+    // pending so the user reaches their destination after 2FA completes.
     const canCompleteTwoFactorOnSignIn =
         is2FARequired &&
         !isSignedIn &&
-        !!credentials?.validateCode &&
+        credentials?.validateCode === validateCode &&
+        credentials?.accountID === Number(accountID) &&
         (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED);
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
@@ -122,18 +125,20 @@ function ValidateLoginPage({
             });
         }
 
-        // Register the deferred `exitTo` destination navigation. `handleExitToNavigation` waits for the
-        // authToken, so for a 2FA account it fires only after the user enters their code on the sign-in
-        // page above (the token lands and resolves the shared sign-in promise) — landing them on their
-        // destination instead of Home. For a non-2FA account it's the normal post-sign-in handoff.
-        if (exitTo) {
+        // Register the deferred `exitTo` destination navigation while still unauthenticated.
+        // `handleExitToNavigation` waits for the authToken, so for a 2FA account it fires only after the
+        // user enters their code on the sign-in page above (the token lands and resolves the shared
+        // sign-in promise) — landing them on their destination instead of Home. For a non-2FA account
+        // it's the normal post-sign-in handoff. The `!isSignedIn` guard registers it once and never
+        // re-fires after sign-in, so the effect re-running can't queue a duplicate navigation.
+        if (exitTo && !isSignedIn) {
             handleExitToNavigation(exitTo);
         }
 
         return () => {
             ignore = true;
         };
-    }, [canCompleteTwoFactorOnSignIn, exitTo]);
+    }, [canCompleteTwoFactorOnSignIn, exitTo, isSignedIn]);
 
     // waitForProtectedRoutes()/authToken can hang (lazy AuthScreens chunk fails, token
     // never lands). We can't recover the consumed code here, but surface a stuck sign-in to

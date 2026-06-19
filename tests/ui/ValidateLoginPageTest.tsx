@@ -270,6 +270,30 @@ describe('ValidateLoginPage', () => {
         expect(handleExitToNavigation).toHaveBeenCalledWith('concierge');
     });
 
+    it('Should NOT redirect to the sign-in page when the cached validate code is for a different link (stale code on a failed attempt)', async () => {
+        // A 2FA account can keep an old `credentials.validateCode` from an earlier attempt. A later /v/
+        // link that fails leaves that stale code in Onyx (failureData doesn't touch it) while
+        // `requiresTwoFactorAuth` lingers — so the redirect must NOT fire for a code that isn't this
+        // link's, otherwise the user lands on the 2FA stage for the stale code instead of the failed UI.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.FAILED,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '111111', // stale code cached by an earlier attempt
+            });
+        });
+
+        // The link the user just opened carries a different code.
+        renderPage({accountID: '1', validateCode: '222222'});
+        await waitForBatchedUpdatesWithAct();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigationReset).not.toHaveBeenCalled();
+    });
+
     it('Should not reset to the sign-in page when the page unmounts before navigation is ready (stale-callback guard)', async () => {
         // PERF-15 cleanup: if the effect tears down (deps change / unmount) before isNavigationReady()
         // resolves, the pending callback must bail instead of resetting the stack out from under the
