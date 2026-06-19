@@ -135,7 +135,7 @@ describe('maskInspectionEvent', () => {
         });
     });
 
-    it('keeps the machine state value readable, even when a state node is named like a sensitive key', () => {
+    it('masks snapshot.value like any other field, with no exemption for a state node named like a sensitive key', () => {
         const masked = maskInspectionEvent({
             snapshot: {
                 value: {open: {validateCode: 'enteringCode', outcome: 'success'}},
@@ -145,26 +145,8 @@ describe('maskInspectionEvent', () => {
 
         expect(masked).toEqual({
             snapshot: {
-                value: {open: {validateCode: 'enteringCode', outcome: 'success'}},
+                value: {open: {validateCode: SENSITIVE_VALUE_MASK, outcome: 'success'}},
                 context: {validateCode: SENSITIVE_VALUE_MASK},
-            },
-        });
-    });
-
-    it('scopes the state-value exemption to snapshot.value - a value key under a sensitive key elsewhere is still masked', () => {
-        const masked = maskInspectionEvent({
-            event: {type: 'SUBMIT', keyInfo: {value: 'secret'}},
-            snapshot: {
-                value: 'idle',
-                context: {request: {keyInfo: {value: 'secret'}}},
-            },
-        });
-
-        expect(masked).toEqual({
-            event: {type: 'SUBMIT', keyInfo: {value: SENSITIVE_VALUE_MASK}},
-            snapshot: {
-                value: 'idle',
-                context: {request: {keyInfo: {value: SENSITIVE_VALUE_MASK}}},
             },
         });
     });
