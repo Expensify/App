@@ -36,7 +36,12 @@ function AvatarCropPage() {
     );
 
     if (isLoadingDraft || !draft?.imageUri || !isActiveCropToken(draft.token)) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AvatarCropPage'}} />;
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton
+                reasonAttributes={{context: 'AvatarCropPage'}}
+            />
+        );
     }
 
     const onSave = (image: File | CustomRNImageManipulatorResult) => {
