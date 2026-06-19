@@ -4,6 +4,7 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,6 +41,7 @@ type AccountSwitcherProps = {
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown']);
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
@@ -269,6 +271,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                 text={translate('delegate.switch')}
                                 onPress={onPressSwitcher}
                                 sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
+                                shouldShowRightIcon
+                                iconRight={icons.CaretUpDown}
                             />
                         </View>
                     </TooltipToRender>
