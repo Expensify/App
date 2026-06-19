@@ -119,6 +119,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
               shiftHorizontal: variables.accountSwitcherTooltipShiftHorizontal,
               wrapperStyle: styles.productTrainingTooltipWrapper,
               onTooltipPress: onPressSwitcher,
+              // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
+              // Without this the educational tooltip is suppressed (it relies on the screen being focused), so keep it shown until dismissed.
+              shouldHideOnNavigate: false,
           }
         : {
               text: translate('delegate.copilotAccess'),
