@@ -141,6 +141,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                                         <CopyableTextField
                                             value={domain.validateCode}
                                             isLoading={domain.isValidateCodeLoading}
+                                            style={styles.copyableTextFieldMinHeight}
                                         />
                                     )}
                                 </View>
