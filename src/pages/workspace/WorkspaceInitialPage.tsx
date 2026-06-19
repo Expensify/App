@@ -44,6 +44,7 @@ import {
     hasPolicyRulesError,
     isGroupPolicy,
     isPendingDeletePolicy,
+    isPolicyAdmin,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -159,7 +160,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
-    const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress(connectionSyncProgress, policy), isPolicyAdmin(policy));
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =

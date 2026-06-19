@@ -47,7 +47,7 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import {isAnyHRConnected, shouldShowHRConnectionError} from './HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -523,7 +523,7 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
 }
 
 /**
- * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
+ * Get the brick road indicator status for a policy. Returns ERROR if there are policy member, custom unit, field, sync, or HR connection errors. Returns INFO if Merge HR setup is incomplete.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnectionInProgress: boolean): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
     if (
@@ -532,9 +532,12 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
         shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
-        shouldShowHRConnectionError(policy, isConnectionInProgress)
+        shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy))
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+    if (isMergeHRCompleteSetupNeeded(policy)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
     return undefined;
 }

@@ -60,6 +60,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
                 shouldShowHRConnectionError(
                     cleanPolicy,
                     isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
+                    isPolicyAdmin(cleanPolicy),
                 ),
             ),
         ],

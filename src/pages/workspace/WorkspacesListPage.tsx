@@ -31,7 +31,6 @@ import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {clearDuplicateWorkspace, dismissWorkspaceError, leaveWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
-import {isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -357,10 +356,6 @@ function WorkspacesListPage() {
 
                 if (shouldShowEmployeeListError(policy)) {
                     return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                }
-
-                if (isMergeHRCompleteSetupNeeded(policy)) {
-                    return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                 }
 
                 return getPolicyBrickRoadIndicatorStatus(
