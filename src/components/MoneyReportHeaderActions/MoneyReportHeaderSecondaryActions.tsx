@@ -2,8 +2,7 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext, useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
@@ -46,6 +45,7 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
@@ -157,8 +157,13 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
                 onConfirm: () => startAnimation(),
             };
             if (getPlatform() === CONST.PLATFORM.IOS) {
-                // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
-                InteractionManager.runAfterInteractions(() => openHoldMenu(holdMenuParams));
+                // TransitionTracker.runAfterTransitions delays modal until current interaction completes, preventing visual glitches on iOS
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        openHoldMenu(holdMenuParams);
+                    },
+                    waitForUpcomingTransition: true,
+                });
             } else {
                 openHoldMenu(holdMenuParams);
             }
