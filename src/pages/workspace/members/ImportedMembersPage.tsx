@@ -13,7 +13,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +35,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
+    const isControlPolicy = isControlPolicyUtil(policy);
 
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
@@ -92,6 +93,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
+
         const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
         const hasControlPolicyOnlyRole =
             membersRolesColumn !== -1 &&
@@ -99,9 +101,25 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 const memberRole = containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '');
                 return controlPolicyOnlyRoles.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === memberRole);
             });
+        const controlPolicyColumns = [
+            CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO,
+            CONST.CSV_IMPORT_COLUMNS.APPROVE_TO,
+            CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE,
+            CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD,
+            CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1,
+            CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2,
+        ];
+        const hasControlPolicyColumns = controlPolicyColumns.some((column) => columns.includes(column));
+        const isRequiredControlPolicy = hasControlPolicyColumns || hasControlPolicyOnlyRole;
 
-        if (hasControlPolicyOnlyRole && !isControlPolicy(policy)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias, Navigation.getActiveRoute()));
+        if (isRequiredControlPolicy && !isControlPolicy) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(
+                    route.params.policyID,
+                    hasControlPolicyOnlyRole ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias : CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                    Navigation.getActiveRoute(),
+                ),
+            );
             return;
         }
 
