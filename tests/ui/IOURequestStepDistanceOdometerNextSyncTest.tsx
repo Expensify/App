@@ -157,18 +157,19 @@ function createOdometerDraftTransaction(): Transaction {
     };
 }
 
-// The DISTANCE_CREATE route types `action`/`backTo` as `never` (unused for navigation but read at runtime here),
-// so the params object can't be built without one assertion.
 function createDistanceCreateRoute(): PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route'] {
+    // The DISTANCE_CREATE route types `action`/`backTo` as `never` (unused for navigation but read at runtime here), so the params object can't be built without one assertion.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see comment above
+    const params = {
+        action: CONST.IOU.ACTION.CREATE,
+        iouType: CONST.IOU.TYPE.SUBMIT,
+        reportID: REPORT_ID,
+        transactionID: TRANSACTION_ID,
+    } as unknown as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE];
     return {
         key: 'Money_Request_Distance_Create-test',
         name: SCREENS.MONEY_REQUEST.DISTANCE_CREATE,
-        params: {
-            action: CONST.IOU.ACTION.CREATE,
-            iouType: CONST.IOU.TYPE.SUBMIT,
-            reportID: REPORT_ID,
-            transactionID: TRANSACTION_ID,
-        } as unknown as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE],
+        params,
     };
 }
 
