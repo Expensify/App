@@ -80,7 +80,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
     const [transactions] = useTransactionsByID(transactionIDs);
-    const [selectedTransactionsByID] = useTransactionsByID(selectedTransactionIDs);
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -203,7 +202,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         });
     };
 
-    const hasPerDiemTransactions = selectedTransactionsByID.length > 0 && selectedTransactionsByID.some(isPerDiemRequest);
+    const hasPerDiemTransactions = transactions.length > 0 && transactions.some(isPerDiemRequest);
 
     let usersWorkspaces: WorkspaceListItem[] = [];
     if (policies && !isEmptyObject(policies)) {
