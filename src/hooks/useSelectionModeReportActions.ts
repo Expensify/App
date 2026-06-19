@@ -1,5 +1,5 @@
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -11,6 +11,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
@@ -22,7 +23,7 @@ import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {sortPoliciesByName} from '@libs/PolicyUtils';
+import {isSubmitPolicy, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
@@ -38,11 +39,13 @@ import {
     isIOUReport as isIOUReportUtil,
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
@@ -50,6 +53,7 @@ import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useEnvironment from './useEnvironment';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -84,6 +88,7 @@ function useSelectionModeReportActions({
     transactions,
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {accountID: currentUserAccountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
@@ -114,15 +119,18 @@ function useSelectionModeReportActions({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const {isOffline} = useNetwork();
+    const {isProduction} = useEnvironment();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -143,6 +151,11 @@ function useSelectionModeReportActions({
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
     };
 
+    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
+
+    const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;
+    const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = hasSelectedTransactionsOnSubmitPolicy && selectedTransactions.length > 1;
+
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     const nextApproverAccountID = getNextApproverAccountID(report);
@@ -156,7 +169,8 @@ function useSelectionModeReportActions({
         currentUserEmail ?? '',
         transactions,
     );
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- this is a valid use case, we want to check if any of the conditions are true
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
 
     const canAllowSettlement = hasUpdatedTotal(report, policy);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
@@ -238,6 +252,7 @@ function useSelectionModeReportActions({
         return getSecondaryReportActions({
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
+            submitterLogin,
             report,
             chatReport,
             reportTransactions: transactions,
@@ -251,6 +266,7 @@ function useSelectionModeReportActions({
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
+            isProduction,
         });
     })();
 
@@ -291,6 +307,15 @@ function useSelectionModeReportActions({
             return;
         }
         const doSubmit = () => {
+            if (isSubmitPolicy(policy)) {
+                openReportSubmitToPopover({
+                    onSubmitSuccess: () => {
+                        clearSelectedTransactions(true);
+                        turnOffMobileSelectionMode();
+                    },
+                });
+                return;
+            }
             submitReport({
                 expenseReport: report,
                 policy,
@@ -404,7 +429,6 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                conciergeReportID,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -507,7 +531,7 @@ function useSelectionModeReportActions({
         let idx = 0;
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions[idx++] = {
-                text: translate('common.submit'),
+                text: shouldShowMarkAsDone({policy, report, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: handleSubmitReport,
@@ -566,6 +590,7 @@ function useSelectionModeReportActions({
         hasPayAction,
         hasPayInSelectionMode,
         hasSubmitAction,
+        hasSelectedTransactionsOnSubmitPolicy,
         hasApproveAction,
         totalAmount,
         canAllowSettlement,

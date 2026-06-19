@@ -1,4 +1,5 @@
 // Issue - https://github.com/Expensify/App/issues/26719
+import {findFocusedRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
@@ -9,7 +10,7 @@ import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
-import DateUtils from '@libs/DateUtils';
+import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
@@ -92,6 +93,17 @@ Onyx.connectWithoutView({
     },
 });
 
+// The server's cutoff for a full reconnect (see subscribeToFullReconnect). We read it only when
+// building reconnectApp's data, never in a component, so connectWithoutView is correct here. Do not
+// copy this into a component: use useOnyx there so the UI updates when the value changes.
+let serverReconnectCutoff = '';
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
+    callback: (value) => {
+        serverReconnectCutoff = value ?? '';
+    },
+});
+
 // allReports is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
 // so retrieving it using Onyx.connectWithoutView is correct.
 // If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
@@ -134,6 +146,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.SESSION,
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
@@ -241,6 +254,13 @@ function saveCurrentPathBeforeBackground() {
 
         const currentState = navigationRef.getRootState();
         if (!currentState) {
+            return;
+        }
+
+        // Honor the same exclusion list as parseAndLogRoute in NavigationRoot, so screens that
+        // shouldn't be restored on relaunch (transient/RAM-dependent routes) aren't persisted here either.
+        const focusedRoute = findFocusedRoute(currentState);
+        if (focusedRoute && CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute.name)) {
             return;
         }
 
@@ -371,10 +391,11 @@ function getOnyxDataForOpenOrReconnect(
     }
 
     if (isOpenApp || isFullReconnect) {
+        // Record this reconnect so subscribeToFullReconnect stops asking for another one.
         result.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-            value: DateUtils.getDBTime(),
+            value: getLastFullReconnectTimeToRecord(serverReconnectCutoff),
         });
     }
 
@@ -510,6 +531,16 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
                 endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
             });
     });
+}
+
+/**
+ * Starts a full reconnect, recording the reconnect time before sending the request. The server
+ * response re-delivers the cutoff. Recording first means the stored time is already at or above the
+ * cutoff by the time the response lands, so subscribeToFullReconnect does not fire a second reconnect.
+ */
+function triggerFullReconnect(cutoff: string) {
+    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff));
+    reconnectApp();
 }
 
 /**
@@ -951,6 +982,7 @@ export {
     openApp,
     setAppLoading,
     reconnectApp,
+    triggerFullReconnect,
     confirmReadyToOpenApp,
     handleRestrictedEvent,
     getMissingOnyxUpdates,

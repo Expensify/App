@@ -59,7 +59,6 @@ describe('onboardingSelectors', () => {
             expect(hasSeenTourSelector(onboarding)).toBe(false);
         });
     });
-
     describe('isTrackIntentUserSelector', () => {
         it('Should return true for PERSONAL_SPEND choice', () => {
             const introSelected = {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND} as OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>;

@@ -4,11 +4,11 @@ inputs:
     PR_NUMBER:
         description: Pull request number
         required: true
-    PR_AUTHOR:
-        description: Pull request author login
+    ACTOR:
+        description: Login of the user to authorize (PR author, comment author, etc.)
         required: true
-    AUTHOR_ASSOCIATION:
-        description: "Author's association with the repository (MEMBER, OWNER, CONTRIBUTOR, etc.)"
+    ACTOR_ASSOCIATION:
+        description: "Actor's association with the repository (MEMBER, OWNER, CONTRIBUTOR, etc.)"
         required: true
     GITHUB_TOKEN:
         description: Auth token for repository API calls
@@ -20,6 +20,8 @@ inputs:
 outputs:
     IS_AUTHORIZED:
         description: "'true' if the contributor is authorized, 'false' otherwise"
+    IS_INTERNAL:
+        description: "'true' if the actor is an internal Expensify engineer (engineering org team member), 'false' otherwise"
 runs:
     using: 'node24'
     main: './index.js'

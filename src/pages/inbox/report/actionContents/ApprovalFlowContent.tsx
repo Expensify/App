@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
+import {getForwardedReportActionMessage, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
@@ -42,16 +42,6 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
 
-        if (
-            shouldShowMarkAsDone({
-                isTrackIntentUser,
-                policy,
-                report: originalReport,
-            })
-        ) {
-            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
-        }
-
         if (wasSubmittedViaHarvesting) {
             return (
                 <ReportActionItemMessageWithExplain
@@ -72,12 +62,6 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
             return <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
         }
 
-        return <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
-    }
-
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
-        const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
-
         if (
             shouldShowMarkAsDone({
                 isTrackIntentUser,
@@ -85,8 +69,14 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
                 report: originalReport,
             })
         ) {
-            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
+            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
         }
+
+        return <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
+        const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
 
         if (wasAutoApproved) {
             return (
@@ -103,6 +93,16 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
             return <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;
         }
 
+        if (
+            shouldShowMarkAsDone({
+                isTrackIntentUser,
+                policy,
+                report: originalReport,
+            })
+        ) {
+            return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
+        }
+
         return <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
     }
 
@@ -117,7 +117,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
             );
         }
 
-        return <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
+        return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
     }
 
     return null;

@@ -15,7 +15,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type Shortcut = {
     displayName: string;
-    descriptionKey: 'search' | 'newChat' | 'openShortcutDialog' | 'escape' | 'copy';
+    descriptionKey: 'search' | 'newChat' | 'openShortcutDialog' | 'escape' | 'copy' | 'markAllMessagesAsRead' | 'openDebug' | 'expenseReportSearch' | 'goToWorkspace';
 };
 
 function DynamicKeyboardShortcutsPage() {

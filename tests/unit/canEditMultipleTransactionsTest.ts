@@ -53,7 +53,6 @@ const buildTestData = (options?: {disableSecondAction?: boolean}) => {
         role: CONST.POLICY.ROLE.ADMIN,
     };
     const reportAction1OriginalMessage: OriginalMessageIOU = {
-        IOUReportID: report1.reportID,
         IOUTransactionID: transaction1.transactionID,
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount: transaction1.amount,
@@ -63,10 +62,10 @@ const buildTestData = (options?: {disableSecondAction?: boolean}) => {
         ...createRandomReportAction(1),
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
+        reportID: report1.reportID,
         originalMessage: reportAction1OriginalMessage,
     };
     const reportAction2OriginalMessage: OriginalMessageIOU = {
-        IOUReportID: report2.reportID,
         IOUTransactionID: transaction2.transactionID,
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount: transaction2.amount,
@@ -76,6 +75,7 @@ const buildTestData = (options?: {disableSecondAction?: boolean}) => {
         ...createRandomReportAction(2),
         actionName: options?.disableSecondAction ? CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT : CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
+        reportID: report2.reportID,
         originalMessage: reportAction2OriginalMessage,
     };
 

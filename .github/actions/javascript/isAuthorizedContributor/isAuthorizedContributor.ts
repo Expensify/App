@@ -1,18 +1,21 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import {RequestError} from '@octokit/request-error';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+import isTeamMember from '@github/libs/isTeamMember';
 
-const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR']);
+const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR', 'COLLABORATOR']);
 const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
+
+// Internal Expensify engineers belong to this team. We can't rely on author_association, which only reports MEMBER for publicly visible org members.
+const ENGINEERING_TEAM_SLUG = 'engineering';
 
 const ISSUE_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
 
 type IsAuthorizedContributorParams = {
     prNumber: number;
-    prAuthor: string;
-    authorAssociation: string;
+    actor: string;
+    actorAssociation: string;
     repoOwner: string;
     repoName: string;
     githubToken: string;
@@ -49,28 +52,20 @@ function logVerificationError(repoFullName: string, number: number, error: unkno
 
 async function isContributorPlusMember(username: string, orgToken: string): Promise<boolean> {
     GithubUtils.initOctokitWithToken(orgToken);
-
-    try {
-        await GithubUtils.octokit.teams.getMembershipForUserInOrg({
-            org: CONST.GITHUB_OWNER,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            team_slug: CONTRIBUTOR_PLUS_TEAM_SLUG,
-            username,
-        });
-        console.log(`${username} is a Contributor+ member. Authorized.`);
-        return true;
-    } catch (error: unknown) {
-        if (error instanceof RequestError && error.status === 404) {
-            console.log(`${username} is not a Contributor+ member.`);
-            return false;
-        }
-        const message = error instanceof Error ? error.message : String(error);
-        core.warning(`Could not verify Contributor+ membership for ${username}. Assuming they are not a Contributor+: ${message}`);
-        return false;
-    }
+    const isMember = await isTeamMember(GithubUtils.octokit, CONST.GITHUB_OWNER, CONTRIBUTOR_PLUS_TEAM_SLUG, username);
+    console.log(isMember ? `${username} is a Contributor+ member. Authorized.` : `${username} is not a Contributor+ member.`);
+    return isMember;
 }
 
-async function isAuthorizedViaLinkedIssues(prBody: string, prAuthor: string): Promise<boolean> {
+/**
+ * Returns whether a user is an internal Expensify engineer (member of the engineering org team).
+ */
+async function isInternalExpensifyEngineer(username: string, orgToken: string): Promise<boolean> {
+    GithubUtils.initOctokitWithToken(orgToken);
+    return isTeamMember(GithubUtils.octokit, CONST.GITHUB_OWNER, ENGINEERING_TEAM_SLUG, username);
+}
+
+async function isAuthorizedViaLinkedIssues(prBody: string, actor: string): Promise<boolean> {
     for (const match of prBody.matchAll(ISSUE_URL_PATTERN)) {
         const link = parseExpensifyLink(match);
         if (!link) {
@@ -87,12 +82,12 @@ async function isAuthorizedViaLinkedIssues(prBody: string, prAuthor: string): Pr
                 issue_number: number,
             });
 
-            if (issue.assignees?.some((assignee) => assignee.login?.toLowerCase() === prAuthor.toLowerCase())) {
-                console.log(`${prAuthor} is assigned to ${repoFullName}#${number}. Authorized.`);
+            if (issue.assignees?.some((assignee) => assignee.login?.toLowerCase() === actor.toLowerCase())) {
+                console.log(`${actor} is assigned to ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
 
-            console.log(`${prAuthor} is NOT assigned to ${repoFullName}#${number}.`);
+            console.log(`${actor} is NOT assigned to ${repoFullName}#${number}.`);
         } catch (error: unknown) {
             logVerificationError(repoFullName, number, error);
         }
@@ -104,17 +99,17 @@ async function isAuthorizedViaLinkedIssues(prBody: string, prAuthor: string): Pr
 /**
  * Returns whether a PR author is authorized to contribute per Expensify external contributor rules.
  */
-async function isAuthorizedContributor({prNumber, prAuthor, authorAssociation, repoOwner, repoName, githubToken, orgToken}: IsAuthorizedContributorParams): Promise<boolean> {
-    if (AUTHORIZED_ASSOCIATIONS.has(authorAssociation)) {
-        console.log(`${prAuthor} is ${authorAssociation}. Authorized.`);
+async function isAuthorizedContributor({prNumber, actor, actorAssociation, repoOwner, repoName, githubToken, orgToken}: IsAuthorizedContributorParams): Promise<boolean> {
+    if (AUTHORIZED_ASSOCIATIONS.has(actorAssociation)) {
+        console.log(`${actor} is ${actorAssociation}. Authorized.`);
         return true;
     }
 
-    if (await isContributorPlusMember(prAuthor, orgToken)) {
+    if (await isContributorPlusMember(actor, orgToken)) {
         return true;
     }
 
-    console.log(`${prAuthor} has association "${authorAssociation}". Checking linked issues...`);
+    console.log(`${actor} has association "${actorAssociation}". Checking linked issues...`);
 
     GithubUtils.initOctokitWithToken(githubToken);
 
@@ -126,10 +121,10 @@ async function isAuthorizedContributor({prNumber, prAuthor, authorAssociation, r
     });
 
     const prBody = pr.body ?? '';
-    const isAuthorized = await isAuthorizedViaLinkedIssues(prBody, prAuthor);
+    const isAuthorized = await isAuthorizedViaLinkedIssues(prBody, actor);
 
     if (!isAuthorized) {
-        console.log(`No valid authorization found for ${prAuthor}.`);
+        console.log(`No valid authorization found for ${actor}.`);
     }
 
     return isAuthorized;
@@ -137,8 +132,8 @@ async function isAuthorizedContributor({prNumber, prAuthor, authorAssociation, r
 
 async function run(): Promise<void> {
     const prNumber = Number.parseInt(core.getInput('PR_NUMBER', {required: true}), 10);
-    const prAuthor = core.getInput('PR_AUTHOR', {required: true});
-    const authorAssociation = core.getInput('AUTHOR_ASSOCIATION', {required: true});
+    const actor = core.getInput('ACTOR', {required: true});
+    const actorAssociation = core.getInput('ACTOR_ASSOCIATION', {required: true});
     const githubToken = core.getInput('GITHUB_TOKEN', {required: true});
     const orgToken = core.getInput('OS_BOTIFY_TOKEN', {required: true});
 
@@ -146,8 +141,8 @@ async function run(): Promise<void> {
 
     const isAuthorized = await isAuthorizedContributor({
         prNumber,
-        prAuthor,
-        authorAssociation,
+        actor,
+        actorAssociation,
         repoOwner: owner,
         repoName: repo,
         githubToken,
@@ -155,6 +150,9 @@ async function run(): Promise<void> {
     });
 
     core.setOutput('IS_AUTHORIZED', isAuthorized);
+
+    const isInternal = await isInternalExpensifyEngineer(actor, orgToken);
+    core.setOutput('IS_INTERNAL', isInternal);
 }
 
 if (require.main === module) {
@@ -164,5 +162,5 @@ if (require.main === module) {
     });
 }
 
-export {isAuthorizedContributor, isContributorPlusMember};
+export {isAuthorizedContributor, isContributorPlusMember, isInternalExpensifyEngineer};
 export default run;

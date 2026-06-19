@@ -93,6 +93,10 @@ These settings control how Expensify exports reports and transactions to QuickBo
 * **Export Expensify Card transactions as**: Typically set to **Credit card**.
 * Expensify Card transactions automatically export to an "Expensify Card Liability Account" created with the integration.
 
+**Travel Expenses:**
+
+* **Export travel invoicing expenses as**: This option appears only when [Travel Invoicing](https://help.expensify.com/travel/hubs/travel-invoicing/) is enabled. Click it, then select the **Travel payable account** where travel expenses will post in QuickBooks Desktop.
+
 ---
 
 # Step 4: Configure Advanced Settings
@@ -160,5 +164,13 @@ Yes. The QuickBooks Desktop integration is available on the **Control** plan.
 
 * **Tags**: Applied at the individual expense level, allowing different expenses on the same report to have different values
 * **Report fields**: Applied at the report level, meaning all expenses on a report share the same value
+
+## Can I export to an employee record instead of a vendor record?
+
+You can export to an employee record when exporting reports as **Journal Entries** or **Checks**. 
+
+By default, we'll look for a vendor record with an email address matching the report submitter. If we don't find one, we'll look for an employee record. Employees must have a **Main Email** in QuickBooks Desktop that matches the email associated with their Expensify account. 
+
+If there is no vendor or employee record and **Auto-create entities** is enabled, we'll create a new vendor record for the submitter.
 
 

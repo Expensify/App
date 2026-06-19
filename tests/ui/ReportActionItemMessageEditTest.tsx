@@ -70,7 +70,6 @@ const defaultProps: ReportActionItemMessageEditProps = {
     action: defaultReportAction,
     reportID: defaultReport.reportID,
     originalReportID: defaultReport.reportID,
-    index: 0,
 };
 
 function ReportActionEditMessageContextProviderForReport({children}: PropsWithChildren) {

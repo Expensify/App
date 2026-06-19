@@ -84,7 +84,7 @@ The account owner may have assigned you Limited Access, which restricts certain 
 The account owner chooses your Copilot access level when granting access.
 
  - **Full Access** allows you to perform all available actions in the account.
- - **Limited Access** allows you to manage expenses and reports but restricts approval and payment-related actions, including approvals, payments, rejections, holds, retractions, and reopens.
+ - **Limited Access** allows you to manage expenses and reports but restricts approval and payment-related actions, including approvals, payments, rejections, and holds.
 
 If you need additional permissions, contact the account owner and ask them to update your Copilot access level.
 

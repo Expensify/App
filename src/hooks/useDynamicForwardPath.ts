@@ -1,4 +1,4 @@
-import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
+import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
@@ -58,8 +58,8 @@ function useDynamicForwardPath(dynamicRouteSuffix: DynamicRouteSuffix): Route | 
     }
 
     const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
-    const match = findMatchingDynamicSuffix(pathWithoutLeadingSlash);
-    if (!match || match.pattern !== dynamicRouteSuffix) {
+    const match = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash).find((m) => m.pattern === dynamicRouteSuffix);
+    if (!match) {
         return undefined;
     }
 

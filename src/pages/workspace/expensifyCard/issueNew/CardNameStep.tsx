@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
+import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -32,15 +33,18 @@ type CardNameStepProps = {
 };
 
 function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const isInLandscapeMode = useIsInLandscapeMode();
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
+    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
 
     const userName = getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
     const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
@@ -78,12 +82,14 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
                 return;
             }
-            setIssueNewCardStepAndData({
-                step: isVirtualCard ? CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
-                policyID,
-            });
+            if (isVirtualCard || areSpendRulesAvailable) {
+                setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.SPEND_RULES, policyID});
+                return;
+            }
+
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, policyID});
         });
-    }, [isEditing, isVirtualCard, policyID]);
+    }, [isEditing, areSpendRulesAvailable, isVirtualCard, policyID]);
 
     return (
         <InteractiveStepWrapper

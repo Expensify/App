@@ -3,13 +3,13 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimaryAction';
+import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import useExportAgainModal from '@hooks/useExportAgainModal';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +40,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
-    const {transactionThreadReportID} = useTransactionThreadReport(reportID);
+    const {transactionThreadReportID} = useMoneyReportTransactionThread();
 
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
 

@@ -26,6 +26,7 @@ function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
         report: moneyRequestReport,
         policy,
     });
+
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover =
         isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);

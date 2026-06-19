@@ -175,6 +175,9 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Weather Onfido setup is complete */
     isOnfidoSetupComplete?: boolean;
 
+    /** Confirmation that the user accepted the ACH terms. The form input key is `acceptTermsAndConditions`; the achData field uses the shorter `acceptTerms`. */
+    acceptTerms?: boolean;
+
     /** Last 4 digits of the account number */
     mask?: string;
 
@@ -220,6 +223,41 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Currency of the bank account */
     currency?: string;
+
+    /** Statuses of additional checks hinting at missing documents user still needs to upload */
+    verifications?: {
+        /** points towards one of external providers */
+        externalApiResponses?: {
+            /** provider name */
+            companyTaxID?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            lexisNexisInstantIDResult?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            requestorIdentityID?: {
+                /** status of check */
+                status: string;
+                /** result with validation errors */
+                apiResult?: {
+                    /** contains validation qualifiers that provide additional details about the identity verification result */
+                    qualifiers: {
+                        /** array of individual validation checks that were flagged during identity verification */
+                        qualifier: Array<{
+                            /** Unique code of the error */
+                            key: string;
+                            /** Message of the error */
+                            message: string;
+                        }>;
+                    };
+                };
+            };
+        };
+    };
 };
 
 /** The step in an reimbursement account's ach data */

@@ -33,9 +33,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.path);
     const accountName = useMemo(() => {
         const qbdReimbursableAccounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
-        // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name || qbdReimbursableAccounts.at(0)?.name;
+        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name;
     }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qbdConfig?.shouldAutoCreateVendor);

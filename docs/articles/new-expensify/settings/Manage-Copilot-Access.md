@@ -41,7 +41,7 @@ A Copilot cannot:
 3. Search for the member by name or email address.
 4. Choose an access level:
    * **Full Access** — Grants access to all available actions.
-   * **Limited Access** — Allows a Copilot to manage expenses and reports, but prevents approval and payment-related actions, including approvals, payments, rejections, holds, retractions, and reopens.
+   * **Limited Access** — Allows a Copilot to manage expenses and reports, but prevents approval and payment-related actions, including approvals, payments, rejections, and holds.
 5. Click **Add a copilot**.
 
 ## How to change a Copilot's access level

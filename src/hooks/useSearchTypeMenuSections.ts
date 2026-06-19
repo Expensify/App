@@ -36,6 +36,7 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
+        areWorkflowsEnabled: policy.areWorkflowsEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({

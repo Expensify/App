@@ -89,6 +89,7 @@ function IOURequestStepUpgrade({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     // Build transactions map from selectedTransactions (search results) instead of Onyx TRANSACTION collection
     // This ensures that transactions selected from search are properly included in the map passed to changeTransactionsReport
@@ -151,6 +152,8 @@ function IOURequestStepUpgrade({
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 allTransactions,
                 policyTagList,
+                allTransactionViolation: transactionViolations,
+                allReports,
             });
 
             clearSelectedTransactions();
@@ -185,15 +188,20 @@ function IOURequestStepUpgrade({
 
                 Navigation.goBack(backToRoute, {compareParams: false});
 
-                // For track expense, we want to create the expense inside self dm (which is not expenseReportID).
-                if (!isTrack) {
+                // For track or split-expense, the existing transaction must stay anchored to its current
+                // (self-DM) report — the new workspace only owns the freshly-created rate, not the expense
+                // itself. Only the submit flow needs to relocate the optimistic transaction.
+                const shouldKeepOriginalReport = isTrack || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
+                if (!shouldKeepOriginalReport) {
                     setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                     // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                     setCustomUnitRateID(transactionID, '-1', undefined, undefined);
                     Navigation.setParams({reportID: expenseReportID});
                 }
 
-                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, isTrack ? reportID : expenseReportID, iouType, action));
+                navigateWithMicrotask(
+                    ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, shouldKeepOriginalReport ? reportID : expenseReportID, iouType, action),
+                );
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
@@ -242,6 +250,8 @@ function IOURequestStepUpgrade({
         isTrack,
         allPolicyTags,
         createReportForCurrentUser,
+        transactionViolations,
+        allReports,
     ]);
 
     const participant = transaction?.participants?.[0];

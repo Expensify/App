@@ -1,44 +1,43 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {applyPendingConciergeAction, discardPendingConciergeAction} from '@libs/actions/Report/SuggestedFollowup';
+import {clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
+import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction, hidePendingFollowupList} from '@libs/actions/Report/SuggestedFollowup';
+import AgentZeroOptimisticStore, {MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
+import {ACCELERATED_REMAINING_MS, DEFAULT_STREAM_DURATION_MS, easeOut, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import {useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
-/** Default trickle duration. Targets ~19 chars/sec start (~7/sec end after ease-out) across a typical multi-paragraph response — visibly streaming without dragging the user past the moment they want to read. */
-const DEFAULT_STREAM_DURATION_MS = 15_000;
-/** Trickle tick cadence. 80ms targets ~1 char per tick at char-level granularity — fast enough that the reveal feels continuous, slow enough that the synthetic-bubble re-render budget stays comfortable on RNW (~12 dispatches/sec). */
-const TICK_INTERVAL_MS = 80;
-/** Hard cap on a running trickle and staleness gate on revisit. Past this many ms after `displayAfter`, the canonical reportComment is expected to be in REPORT_ACTIONS already, so we discard the optimistic rather than resume a doomed reveal. */
-const TRICKLE_HARD_CAP_MS = 60_000;
-/** Once the real reportComment lands in REPORT_ACTIONS, finish the remaining reveal within this window. */
-const ACCELERATED_REMAINING_MS = 1_500;
-/** Minimum char-level anchors before we opt into the trickle reveal. Replies under this fall back to the binary reveal at `displayAfter`. */
-const MIN_TRICKLE_TOKEN_COUNT = 100;
-
-function easeOut(t: number): number {
-    const clamped = Math.max(0, Math.min(1, t));
-    return 1 - (1 - clamped) ** 2;
-}
+/** Hard cap on a pending followup-list skeleton. If the server never appends a real followup-list within this window, drop the marker so the UI stops showing a perpetual skeleton. */
+const PENDING_FOLLOWUP_LIST_HARD_CAP_MS = MAX_AGE_MS;
 
 /**
  * Long Concierge replies trickle into `ConciergeDraftContext`; short ones keep
  * the binary reveal at `displayAfter`. `REPORT_ACTIONS` is written at completion.
  */
 function usePendingConciergeResponse(reportID: string | undefined) {
+    const {isOffline} = useNetwork();
     const [pendingResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`);
+    const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
     const reportActionID = pendingResponse?.reportAction?.reportActionID;
     const fullHtml = pendingResponse?.reportAction ? getReportActionHtml(pendingResponse.reportAction) : '';
     // React Compiler auto-memoizes the selector closure and the tokenize result;
     // explicit useCallback/useMemo would just shadow the compiler's analysis.
     const persistedActionSelector = (actions: OnyxEntry<ReportActions>): ReportAction | undefined => (reportActionID && actions ? actions[reportActionID] : undefined);
     const [persistedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: persistedActionSelector});
+    const pendingFollowupActionID = pendingFollowupList?.reportActionID;
+    const pendingFollowupActionSelector = (actions: OnyxEntry<ReportActions>): ReportAction | undefined =>
+        pendingFollowupActionID && actions ? actions[pendingFollowupActionID] : undefined;
+    const [pendingFollowupAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: pendingFollowupActionSelector});
     const {dispatchLocalDraftEvent} = useConciergeDraftActions();
 
     const tokens = tokenizeForReveal(fullHtml);
@@ -64,6 +63,59 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         }
         accelerateRef.current(Date.now());
     }, [persistedAction]);
+
+    const lastOnlineTransitionAtRef = useRef<number>(0);
+    const wasOfflineRef = useRef<boolean>(isOffline);
+    useEffect(() => {
+        if (wasOfflineRef.current && !isOffline) {
+            lastOnlineTransitionAtRef.current = Date.now();
+        }
+        wasOfflineRef.current = isOffline;
+    }, [isOffline]);
+
+    // Hide the followup-list skeleton when the user is offline.
+    useEffect(() => {
+        if (!reportID || !pendingFollowupList || !!pendingFollowupList.hidden === isOffline) {
+            return;
+        }
+        hidePendingFollowupList(reportID, isOffline || null);
+    }, [reportID, isOffline, pendingFollowupList]);
+
+    // Clear the pending followup-list skeleton flag as soon as the server reply
+    // (with <followup-list>) overwrites the optimistic action.
+    // A TTL fallback guards against the case where no followup-list ever arrives
+    // so the skeleton won't get stuck.
+    useEffect(() => {
+        if (!reportID || !pendingFollowupList) {
+            return;
+        }
+        const html = pendingFollowupAction ? getReportActionHtml(pendingFollowupAction) : '';
+        const hardClearIndicator = () => {
+            // Follow-up lists are a Concierge feature, so this clears Concierge's indicator slot.
+            // Skip clearing when a newer Concierge request has kicked off.
+            const optimisticEntry = AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE);
+            const hasNewerRequest = !!optimisticEntry && optimisticEntry.startedAt > pendingFollowupList.createdAt;
+            if (!hasNewerRequest) {
+                clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
+            }
+            clearPendingFollowupList(reportID);
+        };
+        if (parseFollowupsFromHtml(html)?.length) {
+            hardClearIndicator();
+            return;
+        }
+        if (isOffline) {
+            return;
+        }
+        const effectiveStart = Math.max(pendingFollowupList.createdAt, lastOnlineTransitionAtRef.current);
+        const remainingTTL = effectiveStart + PENDING_FOLLOWUP_LIST_HARD_CAP_MS - Date.now();
+        if (remainingTTL <= 0) {
+            hardClearIndicator();
+            return;
+        }
+        const ttlTimer = setTimeout(hardClearIndicator, remainingTTL);
+        return () => clearTimeout(ttlTimer);
+    }, [reportID, pendingFollowupList, pendingFollowupAction, isOffline]);
 
     useEffect(() => {
         if (!reportID || !reportActionID) {
