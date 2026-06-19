@@ -186,7 +186,21 @@ const DYNAMIC_ROUTES = {
     },
     AVATAR_CROP: {
         path: 'avatar-crop',
-        entryScreens: ['*'],
+        // Limited to the screens that render an editable avatar (via `useAvatarCrop`/`AvatarWithImagePicker`).
+        // Using `'*'` would let this static suffix claim any URL ending in `avatar-crop` (e.g. a category or
+        // tag a user named "avatar-crop"), making those user-created items inaccessible via URL/navigation.
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.AVATAR,
+            SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
+            SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM,
+            SCREENS.WORKSPACE.PROFILE,
+            SCREENS.WORKSPACE_CONFIRMATION.ROOT,
+            SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR,
+            SCREENS.WORKSPACE_DUPLICATE.ROOT,
+            SCREENS.TRAVEL.WORKSPACE_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.STEP_UPGRADE,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
     },
     NEW_REPORT_WORKSPACE_SELECTION: {
         path: 'new-report-workspace-selection',
