@@ -21,7 +21,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
 import {mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {setDeleteTransactionNavigateBackUrl} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -33,6 +35,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -102,12 +105,23 @@ function Confirmation() {
     const handleMergeDuplicates = useCallback(() => {
         const transactionThreadReportID = childReportID ?? generateReportID();
         const mergeParams = !childReportID ? {...transactionsMergeParams, transactionThreadReportID} : transactionsMergeParams;
+        // Suppress the NotFound guard for the discarded thread the server tears down on merge.
+        const keptReportRoute = ROUTES.REPORT_WITH_ID.getRoute(mergeParams.reportID);
+        setDeleteTransactionNavigateBackUrl(keptReportRoute);
         mergeDuplicates({...mergeParams, ...taxData, currentUserAccountID, currentUserLogin: currentUserLogin ?? ''});
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
-        Navigation.dismissModal();
+        // From Search, dismiss back to the results (backTo is always set here, so it can't detect Search).
+        if (isSearchTopmostFullScreenRoute()) {
+            Navigation.dismissModal();
+            return;
+        }
+        // From the discarded thread: pop the modal entries, then replace the dead thread with the kept report.
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
+        });
     }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed]);
 
     const handleResolveDuplicates = useCallback(() => {

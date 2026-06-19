@@ -294,6 +294,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                     isTrackDistanceExpense: true,
                                     policy: policyForMovingExpenses,
                                     isPolicyExpenseChat: false,
+                                    expenseDate: transaction?.created,
                                 }),
                                 attendees: transaction?.comment?.attendees,
                                 gpsCoordinates,
@@ -366,6 +367,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 isPolicyExpenseChat,
                                 policy,
                                 lastSelectedDistanceRates,
+                                expenseDate: transaction?.created,
                             }),
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
@@ -435,6 +437,7 @@ function handleMoneyRequestStepDistanceNavigation({
             policy: isSelfDMReport ? policyForMovingExpenses : defaultExpensePolicy,
             lastSelectedDistanceRates,
             isTrackDistanceExpense: isSelfDMReport,
+            expenseDate: transaction?.created,
         });
 
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);

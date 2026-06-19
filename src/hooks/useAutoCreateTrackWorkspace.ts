@@ -12,7 +12,7 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -52,7 +52,7 @@ function useAutoCreateTrackWorkspace() {
 
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const {isBetaEnabled} = usePermissions();
 
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -126,7 +126,7 @@ function useAutoCreateTrackWorkspace() {
                     shouldUseNarrowLayout,
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
-                    archivedReportsIdSet,
+                    archivedReportsIDSet,
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
@@ -155,7 +155,7 @@ function useAutoCreateTrackWorkspace() {
             shouldUseNarrowLayout,
             isBetaEnabled,
             conciergeChatReportID,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             mergedAccountConciergeReportID,
         ],
     );

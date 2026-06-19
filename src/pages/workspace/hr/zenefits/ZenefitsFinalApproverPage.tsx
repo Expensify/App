@@ -6,7 +6,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
 import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
-import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 type ZenefitsFinalApproverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER>;
@@ -20,7 +19,6 @@ function ZenefitsFinalApproverPage({
 
     const config: HRFinalApproverProviderConfig = {
         testID: 'ZenefitsFinalApproverPage',
-        beta: CONST.BETAS.ZENEFITS,
         isConnected: isZenefitsConnected,
         getCurrentFinalApprover: (policy) => policy?.connections?.zenefits?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
