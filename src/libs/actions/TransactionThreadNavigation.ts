@@ -53,10 +53,19 @@ function setActiveTransactionIDs(ids: string[], siblingDescriptorsByTransactionI
     return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextDescriptors)]);
 }
 
+/**
+ * Returns the currently active transaction IDs and sibling descriptors. Used by screens that temporarily
+ * take over the carousel context (e.g. opening a money request report on top of an existing transaction
+ * thread) so they can restore the previous context when they unmount, instead of clearing it.
+ */
+function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<string, TransactionThreadNavigationDescriptor> | null} {
+    return {ids: lastSetIDs, descriptors: lastSetDescriptors};
+}
+
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
     lastSetDescriptors = null;
     return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, null)]);
 }
 
-export {setActiveTransactionIDs, clearActiveTransactionIDs};
+export {setActiveTransactionIDs, clearActiveTransactionIDs, getActiveTransactionIDs};
