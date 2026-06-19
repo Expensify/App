@@ -16,7 +16,7 @@ let mockSearchSelectorValue = {
     debouncedSearchTerm: '',
     setSearchTerm: jest.fn(),
     availableOptions: {
-        recentReports: [
+        recentOptions: [
             {
                 text: 'Recent User',
                 alternateText: 'recent@example.com',
@@ -64,7 +64,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useOnyx', () => jest.fn((key: string) => (key === 'countryCode' ? ['US'] : [false])));
-jest.mock('@hooks/useSearchSelector', () => jest.fn(() => mockSearchSelectorValue));
+jest.mock('@hooks/usePersonalDetailSearchSelector', () => jest.fn(() => mockSearchSelectorValue));
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flex1: {},
