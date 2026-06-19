@@ -4,19 +4,19 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -26,7 +26,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {clearPolicyCommuterExclusionsErrors, disablePolicyCommuterExclusions, setPolicyCommuterExclusions} from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type PolicyCommuterExclusionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS>;
@@ -70,7 +70,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             ? existingMethod
             : CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED;
     const [selectedKey, setSelectedKey] = useState<ExclusionOptionKey>(initialSelectedKey);
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const [fixedDistanceInput, setFixedDistanceInput] = useState<string>(() => (existingCommuterExclusions?.fixedDistance != null ? String(existingCommuterExclusions.fixedDistance) : ''));
     const [inlineError, setInlineError] = useState<string>('');
 
@@ -81,25 +81,35 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
+    const goToWorkspaceOverview = () => {
+        // Dismiss the modal first so the user lands on the overview page with a clean stack instead
+        // of having the confirm modal animate away on top of the navigation.
+        closeModal();
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
+    };
+
     const onSelectRow = (item: ExclusionOption) => {
         if (item.keyForList === selectedKey) {
             return;
         }
 
-        // homeAndOffice depends on the workspace's own address - if it's missing, route the admin to
-        // fill it in before letting them persist the selection. The chosen option is not stored
-        // locally until they actually have a workspace address.
+        // homeAndOffice depends on the workspace's own address - if it's missing, block the change
+        // and point the admin to the Overview page via an inline link. The chosen option is not
+        // stored locally until they actually have a workspace address.
         if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasWorkspaceAddress) {
             showConfirmModal({
                 title: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.title'),
-                prompt: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.prompt'),
+                prompt: (
+                    <Text>
+                        {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.promptStart')}
+                        <TextLink onPress={goToWorkspaceOverview}>
+                            {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.linkText')}
+                        </TextLink>
+                        {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.promptEnd')}
+                    </Text>
+                ),
                 confirmText: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.cta'),
-                cancelText: translate('common.cancel'),
-            }).then(({action}) => {
-                if (action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path));
+                shouldShowCancelButton: false,
             });
             return;
         }
