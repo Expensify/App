@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
+import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -40,7 +40,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
 
     if (!isChatReport(report)) {
@@ -53,7 +53,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         <OfflineWithFeedback
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
-            errorRowStyles={[styles.ml10, styles.mr2]}
+            errorRowStyles={[styles.ml10, styles.mr2, styles.mb2]}
             onClose={() =>
                 clearCreateChatError(
                     report,
