@@ -1100,6 +1100,12 @@ const translations = {
                 f1FlagsDescription: "You've finished all outstanding to-dos.",
             },
         },
+        recentlyAddedSection: {
+            title: 'Recently added',
+            viewAll: 'View all expenses',
+            emptyStateTitle: 'No recent expenses',
+            emptyStateMessage: 'Create one or drag a receipt here',
+        },
         gettingStartedSection: {
             title: 'Getting started',
             createWorkspace: 'Create a workspace',
