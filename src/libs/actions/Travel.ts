@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithMessage, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 
@@ -61,7 +60,6 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
             key: ONYXKEYS.TRAVEL_PROVISIONING,
             value: {
                 isLoading: false,
-                errors: getMicroSecondOnyxErrorWithTranslationKey('travel.errorMessage'),
             },
         },
     ];
@@ -95,12 +93,4 @@ function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-function setTravelProvisioningErrorMessage(message: string) {
-    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {
-        isLoading: false,
-        error: null,
-        errors: getMicroSecondOnyxErrorWithMessage(message),
-    });
-}
-
-export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningErrorMessage, setTravelProvisioningNextStep};
+export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep};
