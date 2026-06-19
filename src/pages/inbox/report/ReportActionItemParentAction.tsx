@@ -91,13 +91,9 @@ function ReportActionItemParentAction({
         [ancestors],
     );
 
-    const [ancestorsReportNameValuePairs] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        {
-            selector: ancestorReportNameValuePairsSelector,
-        },
-        [ancestors],
-    );
+    const [ancestorsReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: ancestorReportNameValuePairsSelector,
+    });
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

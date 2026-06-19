@@ -1,13 +1,15 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import type {RefObject} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 import type {ReactionListAnchor} from '@pages/inbox/ReportScreenContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import BaseReactionList from './BaseReactionList';
 
@@ -32,13 +34,17 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
     const isReady = !!selectedReaction;
     const {emojiCodes = [], reactionCount = 0, hasUserReacted = false, userAccountIDs = []} = selectedReaction ? getEmojiReactionDetails(emojiName, selectedReaction, accountID) : {};
 
-    const [users = getEmptyArray<PersonalDetails>()] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: multiPersonalDetailsSelector(isReady ? userAccountIDs : []),
-        },
-        [isReady, userAccountIDs],
+    // `userAccountIDs` is destructured fresh on every render, so stabilize its reference (keyed on
+    // contents) before the selector depends on it — otherwise the selector identity changes each render
+    // and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
+    const stableUserAccountIDs = useStableArrayReference(userAccountIDs);
+    const reactionUsersSelector = useCallback(
+        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => multiPersonalDetailsSelector(isReady ? stableUserAccountIDs : getEmptyArray<number>())(personalDetailsList),
+        [isReady, stableUserAccountIDs],
     );
+    const [users = getEmptyArray<PersonalDetails>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: reactionUsersSelector,
+    });
 
     // Hide the list when all reactions are removed
     useEffect(() => {

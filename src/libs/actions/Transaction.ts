@@ -86,7 +86,6 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             return;
@@ -95,10 +94,21 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: TransactionViolations = [];
+let allTransactionViolations: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (val) => (allTransactionViolations = val ?? []),
+    callback: (snapshot) => {
+        if (!snapshot) {
+            allTransactionViolations = {};
+            return;
+        }
+        // Rebuild the transactionID-keyed view from the prefixed-key snapshot.
+        const next: OnyxCollection<TransactionViolation[]> = {};
+        for (const [k, v] of Object.entries(snapshot)) {
+            next[k.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')] = v;
+        }
+        allTransactionViolations = next;
+    },
 });
 
 type SaveWaypointProps = {
@@ -1162,7 +1172,10 @@ function changeTransactionsReport({
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        // For each duplicate, write its own violations minus the DUPLICATED_TRANSACTION marker.
+                        // Previously this read a stale `allTransactionViolations` flat-array that held only
+                        // the last-fired per-member value (latent bug, now removed alongside per-member dispatch).
+                        value: (allTransactionViolations?.[id] ?? []).filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
                 }
             }

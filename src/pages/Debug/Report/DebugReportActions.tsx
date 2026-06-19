@@ -45,13 +45,9 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         [ifUserCanPerformWriteAction, reportID],
     );
 
-    const [sortedAllReportActions] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        {
-            selector: getSortedAllReportActionsSelector,
-        },
-        [getSortedAllReportActionsSelector],
-    );
+    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: getSortedAllReportActionsSelector,
+    });
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
 

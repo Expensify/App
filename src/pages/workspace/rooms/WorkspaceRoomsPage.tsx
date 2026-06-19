@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -31,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
 
@@ -50,13 +52,13 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const archivedReportsIDSet = useArchivedReportsIDSet();
     const personalDetails = usePersonalDetails();
 
-    const [policyReports] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            selector: policyChatRoomsSelector(policyID, archivedReportsIDSet),
-        },
+    const policyChatRoomsReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => policyChatRoomsSelector(policyID, archivedReportsIDSet)(reports),
         [policyID, archivedReportsIDSet],
     );
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: policyChatRoomsReportsSelector,
+    });
 
     // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.
     // It is cleared by the create page once the navigation transition ends (see WorkspaceNewRoomPage), so the animation doesn't replay on a later visit.

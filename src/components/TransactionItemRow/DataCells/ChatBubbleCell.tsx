@@ -34,13 +34,9 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
         [transaction.transactionID],
     );
 
-    const [iouReportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`,
-        {
-            selector: getIOUActionForTransactionIDSelector,
-        },
-        [getIOUActionForTransactionIDSelector],
-    );
+    const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`, {
+        selector: getIOUActionForTransactionIDSelector,
+    });
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`);
 

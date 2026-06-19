@@ -1,3 +1,4 @@
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import useOnyx from '@hooks/useOnyx';
@@ -140,72 +141,72 @@ function useActiveDraftReportAction({reportID, effectiveTransactionThreadReportI
             ? undefined
             : effectiveTransactionThreadReportID;
 
-    const [reportActions] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        {
-            selector: (allReportActions) => {
-                if (!allReportActions) {
-                    return {};
-                }
+    const scopedReportActionsSelector = useCallback(
+        (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            if (!allReportActions) {
+                return {};
+            }
 
-                const scopedReportActionsSlice: OnyxCollection<OnyxTypes.ReportActions> = {};
+            const scopedReportActionsSlice: OnyxCollection<OnyxTypes.ReportActions> = {};
 
-                if (reportID) {
-                    const visibleReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-                    scopedReportActionsSlice[visibleReportActionsKey] = allReportActions[visibleReportActionsKey];
-                }
+            if (reportID) {
+                const visibleReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+                scopedReportActionsSlice[visibleReportActionsKey] = allReportActions[visibleReportActionsKey];
+            }
 
-                if (transactionThreadReportID != null) {
-                    const transactionThreadActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`;
-                    scopedReportActionsSlice[transactionThreadActionsKey] = allReportActions[transactionThreadActionsKey];
-                }
+            if (transactionThreadReportID != null) {
+                const transactionThreadActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`;
+                scopedReportActionsSlice[transactionThreadActionsKey] = allReportActions[transactionThreadActionsKey];
+            }
 
-                for (const ancestor of ancestors) {
-                    const ancestorReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`;
-                    scopedReportActionsSlice[ancestorReportActionsKey] = allReportActions[ancestorReportActionsKey];
-                }
+            for (const ancestor of ancestors) {
+                const ancestorReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`;
+                scopedReportActionsSlice[ancestorReportActionsKey] = allReportActions[ancestorReportActionsKey];
+            }
 
-                return scopedReportActionsSlice;
-            },
+            return scopedReportActionsSlice;
         },
         [ancestors, reportID, transactionThreadReportID],
     );
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: scopedReportActionsSelector,
+    });
 
-    const [reportActionsDrafts] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
-        {
-            selector: (allDrafts) => {
-                if (!allDrafts) {
-                    return {};
+    const scopedReportActionsDraftsSelector = useCallback(
+        (allDrafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>) => {
+            if (!allDrafts) {
+                return {};
+            }
+
+            const scopedDraftsSlice: OnyxCollection<OnyxTypes.ReportActionsDrafts> = {};
+
+            if (reportID) {
+                const currentDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`;
+                scopedDraftsSlice[currentDraftKey] = allDrafts[currentDraftKey];
+            }
+
+            if (transactionThreadReportID != null) {
+                const transactionThreadDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${transactionThreadReportID}`;
+                scopedDraftsSlice[transactionThreadDraftKey] = allDrafts[transactionThreadDraftKey];
+            }
+
+            for (const ancestor of ancestors) {
+                const actionsForAncestorRow = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`];
+                const draftOwningReportID = getOriginalReportID(ancestor.report.reportID, ancestor.reportAction, actionsForAncestorRow);
+                if (!draftOwningReportID) {
+                    continue;
                 }
+                const ancestorDraftBucketKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${draftOwningReportID}`;
+                scopedDraftsSlice[ancestorDraftBucketKey] = allDrafts[ancestorDraftBucketKey];
+            }
 
-                const scopedDraftsSlice: OnyxCollection<OnyxTypes.ReportActionsDrafts> = {};
-
-                if (reportID) {
-                    const currentDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`;
-                    scopedDraftsSlice[currentDraftKey] = allDrafts[currentDraftKey];
-                }
-
-                if (transactionThreadReportID != null) {
-                    const transactionThreadDraftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${transactionThreadReportID}`;
-                    scopedDraftsSlice[transactionThreadDraftKey] = allDrafts[transactionThreadDraftKey];
-                }
-
-                for (const ancestor of ancestors) {
-                    const actionsForAncestorRow = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`];
-                    const draftOwningReportID = getOriginalReportID(ancestor.report.reportID, ancestor.reportAction, actionsForAncestorRow);
-                    if (!draftOwningReportID) {
-                        continue;
-                    }
-                    const ancestorDraftBucketKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${draftOwningReportID}`;
-                    scopedDraftsSlice[ancestorDraftBucketKey] = allDrafts[ancestorDraftBucketKey];
-                }
-
-                return scopedDraftsSlice;
-            },
+            return scopedDraftsSlice;
         },
         [ancestors, reportActions, reportID, transactionThreadReportID],
     );
+    const [reportActionsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
+        selector: scopedReportActionsDraftsSelector,
+    });
 
     return computeResolvedActiveDraftEdit({ancestors, reportActions, reportActionsDrafts, reportID, transactionThreadReportID});
 }

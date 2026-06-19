@@ -6111,7 +6111,6 @@ describe('OptionsListUtils', () => {
             let reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`,
-                waitForCollectionCallback: false,
                 callback: (value) => {
                     reportNameValuePair = value;
                 },
@@ -6151,7 +6150,6 @@ describe('OptionsListUtils', () => {
             let reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`,
-                waitForCollectionCallback: false,
                 callback: (value) => {
                     reportNameValuePair = value;
                 },

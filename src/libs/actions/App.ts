@@ -110,7 +110,6 @@ Onyx.connectWithoutView({
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -309,7 +308,6 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
             // connectWithoutView will fetch the latest data from Onyx.
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.COLLECTION.POLICY,
-                waitForCollectionCallback: true,
                 callback: (policies) => {
                     Onyx.disconnect(connection);
                     resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});

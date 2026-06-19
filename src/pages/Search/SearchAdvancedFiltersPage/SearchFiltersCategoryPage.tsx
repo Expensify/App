@@ -44,13 +44,9 @@ function SearchFiltersCategoryPage() {
             ),
         [personalPolicyID],
     );
-    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(
-        ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-        {
-            selector: availableNonPersonalPolicyCategoriesSelector,
-        },
-        [availableNonPersonalPolicyCategoriesSelector],
-    );
+    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        selector: availableNonPersonalPolicyCategoriesSelector,
+    });
 
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
         .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))

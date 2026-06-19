@@ -1,26 +1,24 @@
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useOnyx from './useOnyx';
+import useStableArrayReference from './useStableArrayReference';
 
 type ParticipantWithPolicyID = {
     policyID?: string;
 };
 
-function getPoliciesSelector(participants: ParticipantWithPolicyID[]): (allPolicies: OnyxCollection<Policy>) => Record<string, Policy> {
-    return (allPolicies: OnyxCollection<Policy>) => {
-        if (!participants) {
-            return {};
-        }
-        return participants.reduce<Record<string, Policy>>((acc, participant) => {
-            const key = `${ONYXKEYS.COLLECTION.POLICY}${participant.policyID}`;
-            if (allPolicies?.[key] && participant.policyID) {
-                acc[participant.policyID] = allPolicies[key];
+function getPoliciesSelector(policyIDs: Array<string | undefined>): (allPolicies: OnyxCollection<Policy>) => Record<string, Policy> {
+    return (allPolicies: OnyxCollection<Policy>) =>
+        policyIDs.reduce<Record<string, Policy>>((acc, policyID) => {
+            const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+            if (allPolicies?.[key] && policyID) {
+                acc[policyID] = allPolicies[key];
             }
             return acc;
         }, {});
-    };
 }
 
 /**
@@ -30,7 +28,13 @@ function getPoliciesSelector(participants: ParticipantWithPolicyID[]): (allPolic
  * @returns Record mapping policyID to Policy
  */
 function useParticipantsPolicies(participants: ParticipantWithPolicyID[]): Record<string, Policy> {
-    const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: getPoliciesSelector(participants)}, [participants]);
+    // Project to the participants' policy IDs (the only data the selector reads) and stabilize the
+    // reference so a caller passing a fresh array with identical IDs (e.g. a `?? []` fallback) doesn't
+    // recreate the selector every render — which would defeat useOnyx's selector memoization and cause
+    // it to re-subscribe each render (never settling under the store-based engine).
+    const policyIDs = useStableArrayReference(participants.map((participant) => participant.policyID));
+    const policiesSelector = useCallback((allPolicies: OnyxCollection<Policy>) => getPoliciesSelector(policyIDs)(allPolicies), [policyIDs]);
+    const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
 
     return participantsPolicies;
 }

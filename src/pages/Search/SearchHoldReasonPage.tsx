@@ -36,7 +36,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         [route.name, selectedTransactionIDs, selectedTransactions],
     );
     const violationsSelector = useMemo(() => transactionViolationsByIDsSelector(relevantTransactionIDs), [relevantTransactionIDs]);
-    const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector}, [violationsSelector]);
+    const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector});
     const {isOffline} = useNetwork();
 
     const selectedTransactionsList = Object.values(selectedTransactions);

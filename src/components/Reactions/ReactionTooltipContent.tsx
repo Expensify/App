@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName} from '@libs/EmojiUtils';
 import {getDisplayNameOrYou} from '@libs/PersonalDetailsUtils';
@@ -45,13 +46,17 @@ function userNamesStringSelector(accountIDs: number[], currentUserAccountID: num
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const [namesString] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: userNamesStringSelector(accountIDs, currentUserAccountID, translate),
-        },
-        [accountIDs, currentUserAccountID, translate],
+    // `accountIDs` is a prop array with no stability guarantee, so stabilize its reference (keyed on
+    // contents) before the selector depends on it — otherwise the selector identity changes each render
+    // and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
+    const stableAccountIDs = useStableArrayReference(accountIDs);
+    const namesStringSelector = useCallback(
+        (personalDetails: OnyxEntry<PersonalDetailsList>) => userNamesStringSelector(stableAccountIDs, currentUserAccountID, translate)(personalDetails),
+        [stableAccountIDs, currentUserAccountID, translate],
     );
+    const [namesString] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: namesStringSelector,
+    });
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     return (
