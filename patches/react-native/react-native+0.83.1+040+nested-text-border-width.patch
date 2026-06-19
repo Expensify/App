@@ -225,7 +225,7 @@ index 5e7895c..7d2774b 100644
          }
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-index 5f5e392..d2d71ba 100644
+index 326b049..48f6592 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 @@ -14,11 +14,15 @@ import android.text.Layout
@@ -238,10 +238,10 @@ index 5f5e392..d2d71ba 100644
 + * behind inline text spans.
   *
   * For multiline spans, only the outer corners are rounded: left corners on the first line, right
-- * corners on the last line (flipped for RTL).
-+ * corners on the last line (flipped for RTL). Border sides follow the same rule: the left border
-+ * edge is drawn only on the first line and the right border edge only on the last line; top and
-+ * bottom edges are drawn on every line.
+- * corners on the last line.
++ * corners on the last line. Border sides follow the same rule: the left border edge is drawn only
++ * on the first line and the right border edge only on the last line; top and bottom edges are drawn
++ * on every line.
 + *
 + * Each border side has its own color (null = don't draw that side).
   */
@@ -284,7 +284,7 @@ index 5f5e392..d2d71ba 100644
  
    override fun onPreDraw(start: Int, end: Int, canvas: Canvas, layout: Layout) {
      if (start >= end) return
-@@ -48,78 +69,144 @@ internal class ReactBackgroundDrawSpan(
+@@ -48,70 +69,132 @@ internal class ReactBackgroundDrawSpan(
        val lineStart = layout.getLineStart(line)
        val lineEnd = layout.getLineEnd(line)
  
@@ -325,7 +325,6 @@ index 5f5e392..d2d71ba 100644
 -      rectF.set(actualLeft, top, actualRight, bottom)
 +      val isFirstLine = line == startLine
 +      val isLastLine = line == endLine
-+      val rtl = layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT
  
 -      val hasAnyRadius = borderTopLeftRadius != 0f || borderTopRightRadius != 0f ||
 -          borderBottomLeftRadius != 0f || borderBottomRightRadius != 0f
@@ -334,11 +333,10 @@ index 5f5e392..d2d71ba 100644
 -      } else {
 -        val isFirstLine = line == startLine
 -        val isLastLine = line == endLine
--        val rtl = layout.getParagraphDirection(line) == Layout.DIR_RIGHT_TO_LEFT
--        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine, rtl)
+-        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine)
 -      }
-+      drawFill(canvas, rectF, isFirstLine, isLastLine, rtl)
-+      drawBorder(canvas, rectF, isFirstLine, isLastLine, rtl)
++      drawFill(canvas, rectF, isFirstLine, isLastLine)
++      drawBorder(canvas, rectF, isFirstLine, isLastLine)
      }
    }
  
@@ -348,31 +346,20 @@ index 5f5e392..d2d71ba 100644
        rect: RectF,
        isFirstLine: Boolean,
        isLastLine: Boolean,
-       rtl: Boolean,
    ) {
--    // For LTR: first line rounds left corners, last line rounds right corners.
--    // For RTL: first line rounds right corners, last line rounds left corners.
--    val roundStart = isFirstLine
--    val roundEnd = isLastLine
--    val roundLeft = if (rtl) roundEnd else roundStart
--    val roundRight = if (rtl) roundStart else roundEnd
--
--    val topLeft = if (roundLeft) borderTopLeftRadius else 0f
--    val bottomLeft = if (roundLeft) borderBottomLeftRadius else 0f
--    val topRight = if (roundRight) borderTopRightRadius else 0f
--    val bottomRight = if (roundRight) borderBottomRightRadius else 0f
--
--    val radii =
+-    // First line rounds left corners, last line rounds right corners.
+-    val topLeft = if (isFirstLine) borderTopLeftRadius else 0f
+-    val bottomLeft = if (isFirstLine) borderBottomLeftRadius else 0f
+-    val topRight = if (isLastLine) borderTopRightRadius else 0f
+-    val bottomRight = if (isLastLine) borderBottomRightRadius else 0f
 +    val hasAnyRadius = borderTopLeftRadius != 0f || borderTopRightRadius != 0f ||
 +        borderBottomLeftRadius != 0f || borderBottomRightRadius != 0f
 +    if (!hasAnyRadius) {
 +      canvas.drawRect(rect, fillPaint)
 +      return
 +    }
-+
-+    val roundLeft = if (rtl) isLastLine else isFirstLine
-+    val roundRight = if (rtl) isFirstLine else isLastLine
-+
+ 
+-    val radii =
 +    fillPath.reset()
 +    fillPath.addRoundRect(
 +        rect,
@@ -386,14 +373,14 @@ index 5f5e392..d2d71ba 100644
 -    path.reset()
 -    path.addRoundRect(rect, radii, Path.Direction.CW)
 -    canvas.drawPath(path, paint)
-+            if (roundLeft) borderTopLeftRadius else 0f,
-+            if (roundLeft) borderTopLeftRadius else 0f,
-+            if (roundRight) borderTopRightRadius else 0f,
-+            if (roundRight) borderTopRightRadius else 0f,
-+            if (roundRight) borderBottomRightRadius else 0f,
-+            if (roundRight) borderBottomRightRadius else 0f,
-+            if (roundLeft) borderBottomLeftRadius else 0f,
-+            if (roundLeft) borderBottomLeftRadius else 0f,
++            if (isFirstLine) borderTopLeftRadius else 0f,
++            if (isFirstLine) borderTopLeftRadius else 0f,
++            if (isLastLine) borderTopRightRadius else 0f,
++            if (isLastLine) borderTopRightRadius else 0f,
++            if (isLastLine) borderBottomRightRadius else 0f,
++            if (isLastLine) borderBottomRightRadius else 0f,
++            if (isFirstLine) borderBottomLeftRadius else 0f,
++            if (isFirstLine) borderBottomLeftRadius else 0f,
 +        ),
 +        Path.Direction.CW,
 +    )
@@ -405,18 +392,11 @@ index 5f5e392..d2d71ba 100644
 +      rect: RectF,
 +      isFirstLine: Boolean,
 +      isLastLine: Boolean,
-+      rtl: Boolean,
 +  ) {
-+    val drawLeft = if (rtl) isLastLine else isFirstLine
-+    val drawRight = if (rtl) isFirstLine else isLastLine
-+
-+    val roundLeft = drawLeft
-+    val roundRight = drawRight
-+
-+    val tl = if (roundLeft) borderTopLeftRadius else 0f
-+    val bl = if (roundLeft) borderBottomLeftRadius else 0f
-+    val tr = if (roundRight) borderTopRightRadius else 0f
-+    val br = if (roundRight) borderBottomRightRadius else 0f
++    val tl = if (isFirstLine) borderTopLeftRadius else 0f
++    val bl = if (isFirstLine) borderBottomLeftRadius else 0f
++    val tr = if (isLastLine) borderTopRightRadius else 0f
++    val br = if (isLastLine) borderBottomRightRadius else 0f
 +
 +    val x = rect.left
 +    val y = rect.top
@@ -427,8 +407,8 @@ index 5f5e392..d2d71ba 100644
 +    if (borderTopColor != null && borderTopWidth > 0f) {
 +      borderPaint.color = borderTopColor
 +      borderPaint.strokeWidth = borderTopWidth
-+      val fromX = x + (if (drawLeft) tl else 0f)
-+      val toX = x + w - (if (drawRight) tr else 0f)
++      val fromX = x + (if (isFirstLine) tl else 0f)
++      val toX = x + w - (if (isLastLine) tr else 0f)
 +      canvas.drawLine(fromX, y, toX, y, borderPaint)
 +    }
 +
@@ -436,13 +416,13 @@ index 5f5e392..d2d71ba 100644
 +    if (borderBottomColor != null && borderBottomWidth > 0f) {
 +      borderPaint.color = borderBottomColor
 +      borderPaint.strokeWidth = borderBottomWidth
-+      val fromX = x + (if (drawLeft) bl else 0f)
-+      val toX = x + w - (if (drawRight) br else 0f)
++      val fromX = x + (if (isFirstLine) bl else 0f)
++      val toX = x + w - (if (isLastLine) br else 0f)
 +      canvas.drawLine(fromX, y + h, toX, y + h, borderPaint)
 +    }
 +
 +    // Left border (with TL and BL corner arcs), drawn on the first line only
-+    if (drawLeft && borderLeftColor != null && borderLeftWidth > 0f) {
++    if (isFirstLine && borderLeftColor != null && borderLeftWidth > 0f) {
 +      borderPaint.color = borderLeftColor
 +      borderPaint.strokeWidth = borderLeftWidth
 +      borderPath.reset()
@@ -462,7 +442,7 @@ index 5f5e392..d2d71ba 100644
 +    }
 +
 +    // Right border (with TR and BR corner arcs), drawn on the last line only
-+    if (drawRight && borderRightColor != null && borderRightWidth > 0f) {
++    if (isLastLine && borderRightColor != null && borderRightWidth > 0f) {
 +      borderPaint.color = borderRightColor
 +      borderPaint.strokeWidth = borderRightWidth
 +      borderPath.reset()
