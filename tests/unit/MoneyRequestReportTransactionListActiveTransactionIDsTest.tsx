@@ -4,6 +4,7 @@ import {useEffect, useMemo} from 'react';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import SCREENS from '@src/SCREENS';
+import createRandomTransaction from '../utils/collections/transaction';
 
 // Mock the TransactionThreadNavigation module
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
@@ -53,10 +54,10 @@ function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
 }
 
 describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', () => {
-    const mockSetActiveTransactionIDs = setActiveTransactionIDs as jest.MockedFunction<typeof setActiveTransactionIDs>;
-    const mockClearActiveTransactionIDs = clearActiveTransactionIDs as jest.MockedFunction<typeof clearActiveTransactionIDs>;
-    const mockGetActiveTransactionIDs = getActiveTransactionIDs as jest.MockedFunction<typeof getActiveTransactionIDs>;
-    const mockFindFocusedRoute = findFocusedRoute as jest.MockedFunction<typeof findFocusedRoute>;
+    const mockSetActiveTransactionIDs = jest.mocked(setActiveTransactionIDs);
+    const mockClearActiveTransactionIDs = jest.mocked(clearActiveTransactionIDs);
+    const mockGetActiveTransactionIDs = jest.mocked(getActiveTransactionIDs);
+    const mockFindFocusedRoute = jest.mocked(findFocusedRoute);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -186,7 +187,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
         mockGetActiveTransactionIDs.mockReturnValue({
             ids: ['recentlyAdded1', 'recentlyAdded2'],
-            descriptors: {recentlyAdded1: {reportID: 'r1', transaction: {transactionID: 'recentlyAdded1'}}} as ReturnType<typeof getActiveTransactionIDs>['descriptors'],
+            descriptors: {recentlyAdded1: {reportID: 'r1', transaction: {...createRandomTransaction(1), transactionID: 'recentlyAdded1'}}},
         });
 
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
