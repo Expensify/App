@@ -131,7 +131,7 @@ describe('ExportDownloadStatusModal', () => {
         expect(mockFileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining(expectedURLPart), PDF_FILE_NAME, expect.anything(), expect.anything());
     });
 
-    it('shows ready state with Download and Close buttons', async () => {
+    it('shows ready state with a Download button and no Close button', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
 
         renderModal();
@@ -140,7 +140,8 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
         expect(screen.getByText('exportDownload.readyBody')).toBeTruthy();
         expect(screen.getByText('exportDownload.downloadFile')).toBeTruthy();
-        expect(screen.getByText('exportDownload.close')).toBeTruthy();
+        // The Close button is removed in the ready state; the modal is dismissible and Download closes it.
+        expect(screen.queryByText('exportDownload.close')).toBeNull();
     });
 
     it('shows failed state with correct failedBody prop', async () => {
@@ -214,16 +215,34 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.readyBody')).toBeTruthy();
     });
 
-    it('Close button calls clearExportDownload', async () => {
+    it('Download file button downloads and closes the modal, delegating the clear to the parent', async () => {
         const onClose = jest.fn();
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
 
         renderModal({onClose});
         await waitForBatchedUpdatesWithAct();
 
+        // Ignore the automatic download that fires when the export becomes ready, so we only assert the button's effect.
+        mockFileDownload.mockClear();
+
+        fireEvent.press(screen.getByText('exportDownload.downloadFile'));
+
+        expect(mockFileDownload).toHaveBeenCalled();
+        expect(onClose).toHaveBeenCalled();
+        // Clearing the export download is owned by the parent's onClose handler, so the modal must not clear it itself (avoids a duplicate write).
+        expect(mockClearExportDownload).not.toHaveBeenCalled();
+    });
+
+    it('Close button in the failed state closes the modal and delegates the clear to the parent', async () => {
+        const onClose = jest.fn();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'failed'});
+
+        renderModal({onClose});
+        await waitForBatchedUpdatesWithAct();
+
         fireEvent.press(screen.getByText('exportDownload.close'));
 
-        expect(mockClearExportDownload).toHaveBeenCalledWith(EXPORT_ID, expect.objectContaining({state: 'ready'}));
         expect(onClose).toHaveBeenCalled();
+        expect(mockClearExportDownload).not.toHaveBeenCalled();
     });
 });

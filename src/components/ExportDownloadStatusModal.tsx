@@ -13,7 +13,7 @@ import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
-import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
+import {sendExportFileFromConcierge} from '@userActions/Export';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,6 +64,9 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isPartialFailure = isReady && failedReportCount > 0;
 
+    // Build the secure download URL the same way downloadReportPDF does, so the host always follows
+    // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
+    // via the encryptedAuthToken — no separate OldDot sign-in needed.
     const downloadFile = () => {
         if (!fileName || !currentUserLogin) {
             return;
@@ -94,8 +97,10 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         }
     };
 
-    const handleClose = () => {
-        clearExportDownload(exportID, displayedExport ?? undefined);
+    const handleDownloadFile = () => {
+        downloadFile();
+        // Clearing the export download is owned by the parent's onClose handler (it runs on every dismissal and
+        // skips the clear for the Concierge path). Clearing here too would queue a duplicate ClearExportDownload write.
         onClose();
     };
 
@@ -106,7 +111,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return (
                 <>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
-                        <Text style={[styles.textHeadlineH1, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
+                        <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
                         <ActivityIndicator
                             size="small"
                             reasonAttributes={{context: 'ExportDownloadStatusModal.preparing'}}
@@ -125,7 +130,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isConcierge) {
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
                     <Text style={styles.mb5}>{translate('exportDownload.conciergeBody')}</Text>
                     <Button
                         success
@@ -145,7 +150,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         if (isReady) {
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
                     {isPartialFailure ? (
                         <View style={styles.mb5}>
                             <RenderHTML
@@ -161,13 +166,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                     <Button
                         success
                         text={translate('exportDownload.downloadFile')}
-                        onPress={downloadFile}
+                        onPress={handleDownloadFile}
                         style={styles.w100}
-                    />
-                    <Button
-                        text={translate('exportDownload.close')}
-                        onPress={handleClose}
-                        style={[styles.w100, styles.mt3]}
                     />
                 </>
             );
@@ -177,11 +177,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             const resolvedFailedBody = failedBody ?? (exportType === CONST.EXPORT_DOWNLOAD.TYPE.CSV ? translate('exportDownload.csvFailedBody') : translate('exportDownload.pdfFailedBody'));
             return (
                 <>
-                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.failedTitle')}</Text>
                     {!!resolvedFailedBody && <Text style={styles.mb5}>{resolvedFailedBody}</Text>}
                     <Button
                         text={translate('exportDownload.close')}
-                        onPress={handleClose}
+                        onPress={onClose}
                         style={styles.w100}
                     />
                 </>
