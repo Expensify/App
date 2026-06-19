@@ -1,6 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import {View} from 'react-native';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -94,13 +93,14 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
-            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
-            <Table.Header
-                showOnEmpty={!!emptyStateContent}
-                isSelectAllDisabled={isEmpty && !!emptyStateContent}
-                isSortingDisabled={isEmpty && !!emptyStateContent}
-            />
-            {isEmpty ? <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View> : <Table.Body />}
+            {isEmpty && emptyStateContent}
+            {!isEmpty && (
+                <>
+                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }

@@ -92,13 +92,14 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             narrowLayoutSortColumn="condition"
             title={translate('workspace.rules.tabs.expenseDefaults')}
         >
-            {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />}
-            <Table.Header
-                showOnEmpty={!!emptyStateContent}
-                isSelectAllDisabled={isEmpty && !!emptyStateContent}
-                isSortingDisabled={isEmpty && !!emptyStateContent}
-            />
-            {isEmpty ? emptyStateContent : <Table.Body />}
+            {isEmpty && emptyStateContent}
+            {(!isEmpty || !emptyStateContent) && (
+                <>
+                    {shouldShowSearchBar && !isEmpty && <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />}
+                    <Table.Header />
+                    <Table.Body />
+                </>
+            )}
         </Table>
     );
 }

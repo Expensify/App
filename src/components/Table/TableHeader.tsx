@@ -24,16 +24,7 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps = ViewProps & {
-    /** Whether to render the header even when data is empty (useful for empty state UIs that still need column headers) */
-    showOnEmpty?: boolean;
-
-    /** Whether the select-all checkbox should be disabled (e.g. when showing a custom empty state with no selectable rows) */
-    isSelectAllDisabled?: boolean;
-
-    /** Whether sortable column headers should be non-interactive (e.g. when showing a custom empty state with no rows) */
-    isSortingDisabled?: boolean;
-};
+type TableHeaderProps = ViewProps;
 
 /**
  * Renders the table header row with sortable column headers.
@@ -58,13 +49,7 @@ type TableHeaderProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableHeader<DataType extends TableData, ColumnKey extends string = string>({
-    style,
-    showOnEmpty,
-    isSelectAllDisabled = false,
-    isSortingDisabled = false,
-    ...props
-}: TableHeaderProps) {
+function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -76,7 +61,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         return null;
     }
 
-    if (!showOnEmpty && (isEmptyResult || !processedData.length)) {
+    if (isEmptyResult || !processedData.length) {
         return null;
     }
 
@@ -129,7 +114,6 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
-                            disabled={isSelectAllDisabled}
                             style={styles.pl1}
                         />
                     )}
@@ -152,7 +136,6 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
                             accessibilityLabel={translate('workspace.common.selectAll')}
-                            disabled={isSelectAllDisabled}
                         />
                     )}
 
@@ -161,7 +144,6 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                             <TableHeaderColumn
                                 column={column}
                                 key={column.key}
-                                isSortingDisabled={isSortingDisabled}
                             />
                         );
                     })}
@@ -177,13 +159,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
  * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
-function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({
-    column,
-    isSortingDisabled = false,
-}: {
-    column: TableColumn<ColumnKey>;
-    isSortingDisabled?: boolean;
-}) {
+function TableHeaderColumn<DataType extends TableData, ColumnKey extends string = string>({column}: {column: TableColumn<ColumnKey>}) {
     const theme = useTheme();
     const toggleCount = useRef(0);
     const styles = useThemeStyles();
@@ -212,41 +188,32 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
         toggleColumnSorting(columnKey);
     };
 
-    const isColumnSortable = column.sortable && !isSortingDisabled;
-
     const tableHeaderStyles = [
         styles.flexRow,
         styles.alignItemsCenter,
         styles.tableHeaderContentHeight,
         column.styling?.flex ? {flex: column.styling.flex} : styles.flex1,
         column.styling?.containerStyles,
-        !isColumnSortable && styles.cursorDefault,
+        !column.sortable && styles.cursorDefault,
     ];
-
-    const headerLabel = (
-        <Text
-            numberOfLines={1}
-            color={theme.textSupporting}
-            style={[styles.lh16, isSortingByColumn && isColumnSortable ? styles.textMicroBoldSupporting : styles.textMicroSupporting]}
-        >
-            {column.label}
-        </Text>
-    );
-
-    if (!isColumnSortable) {
-        return <View style={tableHeaderStyles}>{headerLabel}</View>;
-    }
 
     return (
         <PressableWithFeedback
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
+            disabled={!column.sortable}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={tableHeaderStyles}
             onPress={() => toggleSorting(column.key)}
         >
-            {headerLabel}
+            <Text
+                numberOfLines={1}
+                color={theme.textSupporting}
+                style={[styles.lh16, isSortingByColumn ? styles.textMicroBoldSupporting : styles.textMicroSupporting]}
+            >
+                {column.label}
+            </Text>
 
             {isSortingByColumn && (
                 <Icon

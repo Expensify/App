@@ -5,7 +5,7 @@ import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ImageSVG from '@components/ImageSVG';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScrollView from '@components/ScrollView';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
@@ -15,8 +15,6 @@ import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTabl
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
-import Text from '@components/Text';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
@@ -436,48 +434,32 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         enableExpensifyCard(policyID, true, true);
     }, [policyID]);
 
-    const emptyStateContainerStyle = [styles.alignItemsCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth), styles.w100];
-
-    const cardRulesEmptyStateContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
-        addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb3,
-    });
-
     const cardRulesEmptyState = useMemo(
         () => (
-            <View style={[styles.flex1, styles.mnh0]}>
-                <ScrollView
-                    style={[styles.flex1, styles.mnh0]}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, cardRulesEmptyStateContentContainerStyle]}
-                >
-                    <View style={[styles.flexGrow1, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius, styles.overflowHidden]}>
-                        <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv8, styles.ph5]}>
-                            <View style={emptyStateContainerStyle}>
-                                <ImageSVG
-                                    src={illustrations.ExpensifyCardCoins}
-                                    contentFit="contain"
-                                    width="100%"
-                                    height={variables.cardRulesEmptyStateIllustrationHeight}
-                                    style={styles.cardRulesEmptyStateIllustration}
-                                />
-                                <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
-                                <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>
-                                    {translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
-                                </Text>
-                                <Button
-                                    success
-                                    text={translate('workspace.rules.spendRules.cardRulesUpsell.cta')}
-                                    onPress={handleGetExpensifyCardPress}
-                                    style={styles.mt5}
-                                />
-                            </View>
-                        </View>
-                    </View>
-                </ScrollView>
-            </View>
+            <ScrollView
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                addBottomSafeAreaPadding
+            >
+                <GenericEmptyStateComponent
+                    headerMedia={illustrations.ExpensifyCardCoins}
+                    headerStyles={styles.emptyStateCardIllustrationContainer}
+                    headerContentStyles={styles.cardRulesEmptyStateIllustration}
+                    title={translate('workspace.rules.spendRules.cardRulesUpsell.title')}
+                    subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
+                    subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                    minModalHeight={0}
+                    containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                    buttons={[
+                        {
+                            buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
+                            buttonAction: handleGetExpensifyCardPress,
+                            success: true,
+                        },
+                    ]}
+                />
+            </ScrollView>
         ),
-        [cardRulesEmptyStateContentContainerStyle, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, styles, translate, emptyStateContainerStyle],
+        [StyleUtils, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, styles, translate],
     );
 
     const renderExpenseDefaultsContent = () => (
