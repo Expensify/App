@@ -44,7 +44,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
     const narrowWorkspaceLabel = `${translate('common.owner')}: ${formattedOwnerName} • ${formattedWorkspaceType}`;
     const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
-    const resetLoadingSpinnerIconIndex = item.resetLoadingSpinnerIconIndex;
 
     const accessibilityLabel = [
         `${translate('workspace.common.workspaceName')}: ${item.title}`,
@@ -117,13 +116,11 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             return;
         }
 
-        resetLoadingSpinnerIconIndex?.();
-
         if (!threeDotsMenuRef.current?.isPopupMenuVisible) {
             return;
         }
         threeDotsMenuRef?.current?.hidePopoverMenu();
-    }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
+    }, [isLoadingBill]);
 
     return (
         <Table.Row
