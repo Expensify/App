@@ -298,8 +298,6 @@ const config = defineConfig([
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
             // ESLint core rules
-            // eslint-config-expensify/react re-enables class-methods-use-this; App keeps it off.
-            'class-methods-use-this': 'off',
             'es/no-nullish-coalescing-operators': 'off',
             'es/no-optional-chaining': 'off',
             'arrow-body-style': 'off',
