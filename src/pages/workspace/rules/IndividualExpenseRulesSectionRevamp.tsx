@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -79,6 +79,18 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), policy?.requiresTag && translate('common.tag')].filter(Boolean).join(', ');
 
+    const prohibitedExpensesText = useMemo(() => {
+        const prohibitedExpensesList = Object.values(CONST.POLICY.PROHIBITED_EXPENSES)
+            .filter((key) => policy?.prohibitedExpenses?.[key])
+            .map((key) => translate(`workspace.rules.individualExpenseRules.${key}`));
+
+        if (!prohibitedExpensesList.length) {
+            return '';
+        }
+
+        return prohibitedExpensesList.join(', ');
+    }, [policy?.prohibitedExpenses, translate]);
+
     const policyControlItems: BasicRuleMenuItem[] = [
         {
             key: 'expensesOlderThan',
@@ -99,6 +111,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
         {
             key: 'flagReceiptLineItems',
             title: translate('workspace.rules.generalTab.flagReceiptLineItems'),
+            description: prohibitedExpensesText,
             icon: icons.Receipt,
             action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
             pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
@@ -162,6 +175,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     interactive={canWriteRules}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
+                    numberOfLinesDescription={1}
                 />
             </OfflineWithFeedback>
         ));
