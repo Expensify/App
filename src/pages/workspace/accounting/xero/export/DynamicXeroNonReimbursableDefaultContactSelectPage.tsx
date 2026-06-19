@@ -50,7 +50,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
 
     const selectSupplier = useCallback(
         ({value}: SelectorType) => {
-            // Defence-in-depth: if the screen render race-ended with isFeatureAvailable still
+            // Defense-in-depth: if the screen render race-ended with isFeatureAvailable still
             // truthy and the user managed to tap, refuse to persist the update.
             if (!isFeatureAvailable) {
                 goBack();
