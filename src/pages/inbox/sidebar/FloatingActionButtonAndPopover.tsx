@@ -8,6 +8,7 @@ import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import FABButtons from './FABPopoverContent/FABButtons';
 import FABPopoverMenu from './FABPopoverContent/FABPopoverMenu';
+import BookEventsMenuItem from './FABPopoverContent/menuItems/BookEventsMenuItem';
 import CreateReportMenuItem from './FABPopoverContent/menuItems/CreateReportMenuItem';
 import ExpenseMenuItem from './FABPopoverContent/menuItems/ExpenseMenuItem';
 import InvoiceMenuItem from './FABPopoverContent/menuItems/InvoiceMenuItem';
@@ -74,6 +75,7 @@ function FloatingActionButtonAndPopover() {
                 <NewChatMenuItem />
                 <InvoiceMenuItem reportID={reportID} />
                 <TravelMenuItem />
+                <BookEventsMenuItem />
                 <NewWorkspaceMenuItem />
                 <QuickActionMenuItem reportID={reportID} />
             </FABPopoverMenu>

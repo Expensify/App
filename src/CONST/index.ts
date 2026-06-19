@@ -2096,6 +2096,7 @@ const CONST = {
         NEW_CHAT: 'new-chat',
         INVOICE: 'invoice',
         TRAVEL: 'travel',
+        BOOK_EVENTS: 'book-events',
         TEST_DRIVE: 'test-drive',
         NEW_WORKSPACE: 'new-workspace',
     },
@@ -7814,6 +7815,10 @@ const CONST = {
         } as ResponsiveLayoutResult,
     },
 
+    BOOK_EVENTS: {
+        MOCK_FETCH_LATENCY_MS: 1200,
+    },
+
     TRAVEL: {
         DEFAULT_DOMAIN: 'domain',
         STEPS: {
@@ -7964,9 +7969,14 @@ const CONST = {
             START_CHAT: 'FABMenu-StartChat',
             SEND_INVOICE: 'FABMenu-SendInvoice',
             BOOK_TRAVEL: 'FABMenu-BookTravel',
+            BOOK_EVENTS: 'FABMenu-BookEvents',
             TEST_DRIVE: 'FABMenu-TestDrive',
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
+        },
+        EVENTS: {
+            TOGGLE_FAVORITE: 'EventCard-ToggleFavorite',
+            RETRY: 'EventsPage-Retry',
         },
         ODOMETER_EXPENSE: {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',

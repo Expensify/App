@@ -5903,6 +5903,12 @@ const staticStyles = (theme: ThemeColors) =>
             flexBasis: '35%',
         },
 
+        eventThumbnail: {
+            width: variables.avatarSizeLargeNormal,
+            height: variables.avatarSizeLargeNormal,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
         thumbnailImageContainerHover: {
             backgroundColor: theme.hoverComponentBG,
         },

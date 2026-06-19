@@ -3617,6 +3617,16 @@ const translations = {
         goToChatInstead: 'Go to the chat instead.',
         contactConcierge: 'For any questions please contact concierge@expensify.com',
     },
+    events: {
+        bookEvents: 'Book events',
+        title: 'Events',
+        emptyTitle: 'No events yet',
+        emptySubtitle: 'Events you can book will show up here.',
+        error: "We couldn't load events.",
+        retry: 'Try again',
+        favorite: 'Add to favorites',
+        unfavorite: 'Remove from favorites',
+    },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Something went wrong`,
         subtitle: 'Your request could not be completed. Please try again later.',

@@ -399,6 +399,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.TravelModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.EVENTS}
+                                component={ModalStackNavigators.EventsModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS}
                                 component={ModalStackNavigators.SearchReportActionsModalStackNavigator}
                             />

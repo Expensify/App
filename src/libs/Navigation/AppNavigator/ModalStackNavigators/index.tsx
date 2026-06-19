@@ -14,6 +14,7 @@ import type {
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
+    EventsNavigatorParamList,
     FlagCommentNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
@@ -239,6 +240,10 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
     [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceConfirmationForTravelPage').default,
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceAddressForTravelPage').default,
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/VerifyAccountPage').default,
+});
+
+const EventsModalStackNavigator = createModalStackNavigator<EventsNavigatorParamList>({
+    [SCREENS.EVENTS.ROOT]: () => require<ReactComponentModule>('../../../../pages/Events/EventsPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
@@ -1356,6 +1361,7 @@ export {
     TaskModalStackNavigator,
     TransactionDuplicateStackNavigator,
     TravelModalStackNavigator,
+    EventsModalStackNavigator,
     TwoFactorAuthenticatorStackNavigator,
     WalletStatementStackNavigator,
     WorkspaceConfirmationModalStackNavigator,

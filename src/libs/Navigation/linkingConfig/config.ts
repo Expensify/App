@@ -1936,6 +1936,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.VERIFY_ACCOUNT]: ROUTES.TRAVEL_VERIFY_ACCOUNT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.EVENTS]: {
+                    screens: {
+                        [SCREENS.EVENTS.ROOT]: ROUTES.EVENTS,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: {
                     screens: {
                         [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS,

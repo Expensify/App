@@ -3490,6 +3490,16 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         goToChatInstead: '代わりにチャットに移動してください。',
         contactConcierge: 'ご不明な点がありましたら concierge@expensify.com までご連絡ください',
     },
+    events: {
+        bookEvents: 'イベントを予約',
+        title: 'イベント',
+        emptyTitle: 'まだイベントがありません',
+        emptySubtitle: '予約できるイベントはここに表示されます。',
+        error: 'イベントを読み込めませんでした。',
+        retry: '再試行',
+        favorite: 'お気に入りに追加',
+        unfavorite: 'お気に入りから削除',
+    },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `おっと… ${isBreakLine ? '\n' : ''}問題が発生しました`,
         subtitle: 'リクエストを完了できませんでした。後でもう一度お試しください。',

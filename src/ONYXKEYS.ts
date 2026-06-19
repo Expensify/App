@@ -367,6 +367,12 @@ const ONYXKEYS = {
     /** The user's payment and P2P cards */
     FUND_LIST: 'fundList',
 
+    /** Loading/error metadata for the mocked events fetch */
+    EVENTS_FETCH_METADATA: 'eventsFetchMetadata',
+
+    /** Map of favorited event IDs (persisted across sessions) */
+    FAVORITE_EVENT_IDS: 'favoriteEventIDs',
+
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
@@ -765,6 +771,10 @@ const ONYXKEYS = {
         DOMAIN: 'domain_',
         DOWNLOAD: 'download_',
         EXPORT_DOWNLOAD: 'nvp_exportDownload_',
+
+        /** Mocked events for the Book events feature */
+        EVENT: 'event_',
+
         POLICY: 'policy_',
         POLICY_DRAFTS: 'policyDrafts_',
         POLICY_JOIN_MEMBER: 'policyJoinMember_',
@@ -1344,6 +1354,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: OnyxTypes.ExportDownload;
+    [ONYXKEYS.COLLECTION.EVENT]: OnyxTypes.Event;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
@@ -1524,6 +1535,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
     [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
+    [ONYXKEYS.EVENTS_FETCH_METADATA]: OnyxTypes.EventsFetchMetadata;
+    [ONYXKEYS.FAVORITE_EVENT_IDS]: Record<string, boolean>;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.TRAVEL_INVOICE_STATEMENT]: OnyxTypes.TravelInvoiceStatement;
