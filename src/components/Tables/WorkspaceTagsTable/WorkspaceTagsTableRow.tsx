@@ -166,7 +166,7 @@ export default function WorkspaceTagsTableRow({
                     )}
 
                     {!shouldUseNarrowTableLayout && shouldShowTagCountColumn && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <Text numberOfLines={1}>{tagCountSubtitle}</Text>
                         </View>
                     )}

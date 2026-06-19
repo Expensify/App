@@ -75,6 +75,7 @@ export default function WorkspaceTagsTable({
                       key: 'tagCount' as const,
                       label: translate('common.count'),
                       sortable: true,
+                      width: variables.workspaceTagsTableCountColumnWidth,
                   },
               ]
             : []),
