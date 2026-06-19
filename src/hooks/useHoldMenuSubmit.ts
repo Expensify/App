@@ -2,7 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
@@ -59,9 +59,15 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
         const animationCallback = () => onConfirm?.(full);
 
+        // `moneyRequestReport`/`chatReport` may be heartbeat-stripped projections (e.g. from the report list).
+        // The pay/approve actions build their failure rollback by merging the whole report back, so read the full
+        // reports here to restore the chat's last-message fields if the request fails.
+        const currentMoneyRequestReport = getReportOrDraftReport(moneyRequestReport?.reportID) ?? moneyRequestReport;
+        const currentChatReport = getReportOrDraftReport(chatReport?.reportID) ?? chatReport;
+
         if (isApprove) {
             approveMoneyRequest({
-                expenseReport: moneyRequestReport,
+                expenseReport: currentMoneyRequestReport,
                 policy: activePolicy,
                 currentUserAccountIDParam: currentUserDetails.accountID,
                 currentUserEmailParam: currentUserDetails.email ?? '',
@@ -77,11 +83,11 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 expenseReportPolicy: policy,
                 delegateEmail,
             });
-        } else if (chatReport && paymentType) {
+        } else if (currentChatReport && paymentType) {
             payMoneyRequest({
                 paymentType,
-                chatReport,
-                iouReport: moneyRequestReport,
+                chatReport: currentChatReport,
+                iouReport: currentMoneyRequestReport,
                 introSelected,
                 iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 currentUserAccountID: currentUserDetails.accountID,
