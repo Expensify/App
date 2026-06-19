@@ -195,7 +195,7 @@ export default function WorkspaceExpensifyCardsTable({
                     style={[styles.mb0, styles.mt5]}
                 />
             )}
-            <Table.Header style={shouldUseNarrowTableLayout ? styles.mt3 : styles.mt5} />
+            <Table.Header style={styles.mt5} />
             <Table.Body />
             {children}
         </Table>
