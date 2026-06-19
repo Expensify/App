@@ -6,15 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    getMemberChangeMessageFragment,
-    getOriginalMessage,
-    getUpdateRoomDescriptionFragment,
-    isMemberChangeAction,
-    isMoneyRequestAction,
-    isReimbursementDirectionInformationRequiredAction,
-} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportUtils';
+import {getOriginalMessage, getUpdateRoomDescriptionFragment, isMoneyRequestAction, isReimbursementDirectionInformationRequiredAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -52,23 +44,6 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 style={style}
                 isHidden={isHidden}
             />
-        );
-    }
-
-    if (isMemberChangeAction(action)) {
-        // This will be fixed: https://github.com/Expensify/App/issues/76852
-        const fragment = getMemberChangeMessageFragment(translate, action, getReportName);
-
-        return (
-            <View style={[styles.chatItemMessage, style]}>
-                <TextCommentFragment
-                    fragment={fragment}
-                    displayAsGroup={displayAsGroup}
-                    style={style}
-                    source=""
-                    styleAsDeleted={false}
-                />
-            </View>
         );
     }
 

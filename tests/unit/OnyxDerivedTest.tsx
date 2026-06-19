@@ -36,8 +36,6 @@ describe('OnyxDerived', () => {
         });
 
         beforeEach(async () => {
-            // The reportAttributes locale connection uses initWithStoredValues: false,
-            // so it doesn't fire after Onyx.clear(). Setting this triggers recomputation.
             await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
         });
@@ -659,6 +657,73 @@ describe('OnyxDerived', () => {
                 reportsToPay: [],
                 reportsToExport: [],
                 transactionsByReportID: {},
+            });
+        });
+
+        describe('excludes reports with all expenses on hold', () => {
+            const HELD_SUBMIT_REPORT_ID = 'held_submit_1';
+            const HELD_APPROVE_REPORT_ID = 'held_approve_1';
+            const HELD_PAY_REPORT_ID = 'held_pay_1';
+
+            beforeEach(async () => {
+                const submitReport = createMockReport(HELD_SUBMIT_REPORT_ID, {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                });
+                const approveReport = createMockReport(HELD_APPROVE_REPORT_ID, {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                });
+                const payReport = createMockReport(HELD_PAY_REPORT_ID, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                    total: -100,
+                });
+
+                const policy = createMockPolicy(POLICY_ID, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                });
+
+                const heldOverride: Partial<Transaction> = {comment: {hold: 'HOLD_ACTION_ID'}};
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: CURRENT_USER_EMAIL,
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${HELD_SUBMIT_REPORT_ID}`]: submitReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${HELD_APPROVE_REPORT_ID}`]: approveReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${HELD_PAY_REPORT_ID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}trans_${HELD_SUBMIT_REPORT_ID}`]: createMockTransaction(`trans_${HELD_SUBMIT_REPORT_ID}`, HELD_SUBMIT_REPORT_ID, heldOverride),
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}trans_${HELD_APPROVE_REPORT_ID}`]: createMockTransaction(`trans_${HELD_APPROVE_REPORT_ID}`, HELD_APPROVE_REPORT_ID, heldOverride),
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}trans_${HELD_PAY_REPORT_ID}`]: createMockTransaction(`trans_${HELD_PAY_REPORT_ID}`, HELD_PAY_REPORT_ID, heldOverride),
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+            });
+
+            it('excludes an all-held report from reportsToSubmit', async () => {
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.reportsToSubmit.map((r) => r.reportID)).not.toContain(HELD_SUBMIT_REPORT_ID);
+            });
+
+            it('excludes an all-held report from reportsToApprove', async () => {
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.reportsToApprove.map((r) => r.reportID)).not.toContain(HELD_APPROVE_REPORT_ID);
+            });
+
+            it('excludes an all-held report from reportsToPay', async () => {
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+                expect(todos?.reportsToPay.map((r) => r.reportID)).not.toContain(HELD_PAY_REPORT_ID);
             });
         });
 

@@ -36,17 +36,31 @@ type AgentsListRowProps = {
 
     /** Whether to show the red error dot indicator */
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | null;
+
+    /** Called when the Chat button is pressed */
+    onChatPress?: (accountID: number) => void;
+
+    /** Called when the Copilot button is pressed */
+    onCopilotPress?: (login: string) => void;
 };
 
-function AgentsListRow({accountID, displayName, login, pendingAction, errors, onErrorClose, brickRoadIndicator}: AgentsListRowProps) {
+function AgentsListRow({accountID, displayName, login, pendingAction, errors, onErrorClose, brickRoadIndicator, onChatPress, onCopilotPress}: AgentsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'ChatBubble']);
 
     const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isPendingAddOrDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || isPendingDeletion;
+    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !login;
     const navigateToEdit = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
+    const handleChatPress = () => {
+        onChatPress?.(accountID);
+    };
+    const handleCopilotPress = () => {
+        onCopilotPress?.(login);
+    };
 
     return (
         <OfflineWithFeedback
@@ -79,7 +93,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                     )}
                 </PressableWithFeedback>
             ) : (
-                <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}>
+                <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap2]}>
                     <AgentInfoRow
                         accountID={accountID}
                         displayName={displayName}
@@ -92,6 +106,20 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                             fill={theme.danger}
                         />
                     )}
+                    <Button
+                        small
+                        icon={icons.ChatBubble}
+                        onPress={handleChatPress}
+                        isDisabled={areActionsDisabled}
+                        accessibilityLabel={translate('editAgentPage.chatWithAgent')}
+                    />
+                    <Button
+                        small
+                        text={translate('delegate.copilot')}
+                        onPress={handleCopilotPress}
+                        isDisabled={areActionsDisabled}
+                        accessibilityLabel={translate('editAgentPage.copilotIntoAccount')}
+                    />
                     <Button
                         small
                         text={translate('common.edit')}

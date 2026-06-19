@@ -1,10 +1,10 @@
 import React, {useMemo, useRef} from 'react';
 import type {TextInput as RNTextInput} from 'react-native';
-import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
-import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';

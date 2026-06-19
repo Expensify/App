@@ -87,7 +87,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             testID="DomainSamlPage"
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
                 shouldShow={!doesDomainExist || !isAdmin}
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
@@ -159,7 +159,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 illustrationBackgroundColor={colors.blue700}
                                 illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}
                                 illustrationStyle={styles.emptyStateSamlIllustration}
-                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+                                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
                                 titleStyles={styles.textHeadlineH1}
                             />
                         )}

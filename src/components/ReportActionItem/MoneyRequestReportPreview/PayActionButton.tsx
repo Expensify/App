@@ -89,7 +89,6 @@ function PayActionButton({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
     const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
@@ -180,6 +179,7 @@ function PayActionButton({
                     introSelected,
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserEmail,
+                    currentUserLocalCurrency: currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                     payAsBusiness,
                     existingB2BInvoiceReport,
                     methodID,
@@ -206,7 +206,6 @@ function PayActionButton({
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
-                    conciergeReportID,
                     onPaid: startAnimation,
                 });
             }

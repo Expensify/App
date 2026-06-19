@@ -183,6 +183,10 @@ The skill provides guidance on:
 - **Build Compliance**: Android 16KB page alignment (Google Play requirement)
 - **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
 
+### Memoization
+
+React Compiler (`babel-plugin-react-compiler`) runs in the build pipeline (see `babel.config.js`) and auto-memoizes object literals, callbacks, JSX, and derived values inside components and hooks, excluding `tests/`.
+
 ### Code Quality
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).

@@ -8,12 +8,11 @@ let mockSelectedTransactionIDs: string[] = [];
 const mockSetSelectedTransactions = jest.fn();
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchStateContext: () => ({
+    useSearchSelectionContext: () => ({
         selectedTransactionIDs: mockSelectedTransactionIDs,
         selectedTransactions: {},
-        currentSearchHash: 12345,
     }),
-    useSearchActionsContext: () => ({
+    useSearchSelectionActions: () => ({
         setSelectedTransactions: mockSetSelectedTransactions,
         clearSelectedTransactions: jest.fn(),
     }),

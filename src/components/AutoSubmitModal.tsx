@@ -1,6 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import React, {useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -38,15 +37,21 @@ function AutoSubmitModal() {
         [illustrations.PaperAirplane, illustrations.Pencil],
     );
 
-    const onClose = useCallback((willShowAgain: boolean) => {
-        InteractionManager.runAfterInteractions(() => {
-            if (!willShowAgain) {
-                dismissASAPSubmitExplanation(true);
-            } else {
-                dismissASAPSubmitExplanation(false);
-            }
-        });
-    }, []);
+    // Defer the Onyx write until after the modal close animation finishes. The ref is set in onConfirm
+    // and consumed in onClose, which FeatureTrainingModal fires from onModalHide (after the close animation completes).
+    const willShowAgainRef = useRef<boolean | null>(null);
+
+    const onConfirm = (willShowAgain: boolean) => {
+        willShowAgainRef.current = willShowAgain;
+    };
+
+    const onClose = () => {
+        if (willShowAgainRef.current === null) {
+            return;
+        }
+        dismissASAPSubmitExplanation(!willShowAgainRef.current);
+        willShowAgainRef.current = null;
+    };
 
     return (
         <FeatureTrainingModal
@@ -63,7 +68,8 @@ function AutoSubmitModal() {
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}
             shouldShowDismissModalOption={dismissedASAPSubmitExplanation === false}
-            onConfirm={onClose}
+            onConfirm={onConfirm}
+            onClose={onClose}
             titleStyles={[styles.mb1]}
             contentInnerContainerStyles={[styles.mb5]}
             shouldUseScrollView

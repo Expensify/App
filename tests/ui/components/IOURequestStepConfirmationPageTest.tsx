@@ -89,11 +89,15 @@ jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
-    getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Step_Confirmation',
-        params: {},
-    })),
-    getState: jest.fn(() => ({})),
+    __esModule: true,
+    default: {
+        getCurrentRoute: jest.fn(() => ({
+            name: 'Money_Request_Step_Confirmation',
+            params: {},
+        })),
+        getState: jest.fn(() => ({})),
+        getRootState: jest.fn(() => ({routes: []})),
+    },
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -108,6 +112,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         dismissModal: jest.fn((options?: {afterTransition?: () => void}) => {
             options?.afterTransition?.();
         }),

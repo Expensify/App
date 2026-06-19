@@ -36,6 +36,7 @@ type PreviewConfig = {
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
@@ -59,6 +60,18 @@ type GetUserToInviteConfig = {
     canInviteUser?: boolean;
 };
 
+type GetContactConfig = {
+    searchValue: string;
+    countryCode: number;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    loginList: OnyxEntry<LoginList>;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    avatar: Icon['source'];
+};
+
 type Options = {
     selectedOptions: OptionData[];
     recentOptions: OptionData[];
@@ -68,4 +81,4 @@ type Options = {
 
 type PrivateIsArchivedMap = Record<string, boolean>;
 
-export type {OptionData, GetOptionsConfig, GetUserToInviteConfig, Options, PreviewConfig, PrivateIsArchivedMap};
+export type {OptionData, GetOptionsConfig, GetUserToInviteConfig, GetContactConfig, Options, PreviewConfig, PrivateIsArchivedMap};

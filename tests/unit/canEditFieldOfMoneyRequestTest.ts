@@ -25,6 +25,7 @@ const policy: Policy = {
     outputCurrency: '',
     isPolicyExpenseChatEnabled: false,
 };
+
 describe('canEditFieldOfMoneyRequest', () => {
     describe('move expense', () => {
         beforeAll(() => {
@@ -63,13 +64,13 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const reportAction = {
                 ...randomReportAction,
+                reportID: IOUReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 originalMessage: {
                     ...randomReportAction.originalMessage,
-                    IOUReportID,
                     IOUTransactionID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount,
@@ -161,7 +162,12 @@ describe('canEditFieldOfMoneyRequest', () => {
             const randomReportAction = createRandomReportAction(reportActionID);
             const policyID = '11';
 
-            const expensePolicy = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.USER, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
+            const expensePolicy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+            };
 
             // Create outstanding expense reports in the same policy (different IDs than our main expense report)
             const outstandingExpenseReport1 = {
@@ -178,17 +184,18 @@ describe('canEditFieldOfMoneyRequest', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
             };
 
             const reportAction = {
                 ...randomReportAction,
+                reportID: String(IOUReportID),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 originalMessage: {
                     ...randomReportAction.originalMessage,
-                    IOUReportID,
                     IOUTransactionID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: EXPENSE_AMOUNT,
@@ -210,6 +217,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 ownerAccountID: currentUserAccountID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
             };
 
             beforeEach(() => {
@@ -246,6 +254,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
                 await waitForBatchedUpdates();
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
@@ -350,10 +365,10 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             const dewReportAction = {
                 ...createRandomReportAction(7),
+                reportID: IOU_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 originalMessage: {
-                    IOUReportID: IOU_REPORT_ID,
                     IOUTransactionID: IOU_TRANSACTION_ID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: EXPENSE_AMOUNT,
@@ -525,14 +540,15 @@ describe('canEditFieldOfMoneyRequest', () => {
             const PER_DIEM_IOU_TRANSACTION_ID = '99';
             const PER_DIEM_CUSTOM_UNIT_ID = 'perDiemUnit1';
             const PER_DIEM_POLICY_ID = '55';
+            const selfDMReportID = 'self-dm-report-1';
 
             const perDiemReportAction = {
                 ...createRandomReportAction(1),
+                reportID: selfDMReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 originalMessage: {
                     IOUTransactionID: PER_DIEM_IOU_TRANSACTION_ID,
-                    IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                     type: CONST.IOU.ACTION.CREATE,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -544,6 +560,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 transactionID: PER_DIEM_IOU_TRANSACTION_ID,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 amount: 100,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -632,13 +649,13 @@ describe('canEditFieldOfMoneyRequest', () => {
 
         const reportAction = {
             ...randomReportAction,
+            reportID: RECEIPT_IOU_REPORT_ID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
             originalMessage: {
                 ...randomReportAction.originalMessage,
-                IOUReportID: RECEIPT_IOU_REPORT_ID,
                 IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,
                 type: CONST.IOU.ACTION.CREATE,
                 amount: RECEIPT_AMOUNT,

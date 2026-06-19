@@ -1,6 +1,5 @@
 import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports -- Testing submitDismissStrategies which uses TransitionTracker directly
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';

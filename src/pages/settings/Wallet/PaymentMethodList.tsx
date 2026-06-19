@@ -18,7 +18,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
@@ -84,6 +83,9 @@ type PaymentMethodListProps = {
 
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
+
+    /** Additional style for the add bank account item */
+    addBankAccountItemStyle?: StyleProp<ViewStyle>;
 
     /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
@@ -158,6 +160,7 @@ function PaymentMethodList({
     listHeaderComponent,
     onPress,
     shouldShowAddBankAccount = true,
+    addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
@@ -186,7 +189,6 @@ function PaymentMethodList({
         selector: isUserValidatedSelector,
     });
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const {isBetaEnabled} = usePermissions();
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -275,23 +277,22 @@ function PaymentMethodList({
                     } else {
                         cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                     }
-                    // Personal cards navigate to personal card details page (except CSV cards which need 3-dot menu for delete)
+                    // Personal cards (including CSV imported) navigate to the personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
-                    const cardOnPress =
-                        isUserPersonalCard && !isCSVCard
-                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
-                            : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                                  pressHandler({
-                                      event: e,
-                                      cardData: card,
-                                      icon: {
-                                          icon,
-                                          iconStyles: [styles.cardIcon],
-                                          iconWidth: variables.cardIconWidth,
-                                          iconHeight: variables.cardIconHeight,
-                                      },
-                                      cardID: card.cardID,
-                                  });
+                    const cardOnPress = isUserPersonalCard
+                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                        : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                              pressHandler({
+                                  event: e,
+                                  cardData: card,
+                                  icon: {
+                                      icon,
+                                      iconStyles: [styles.cardIcon],
+                                      iconWidth: variables.cardIconWidth,
+                                      iconHeight: variables.cardIconHeight,
+                                  },
+                                  cardID: card.cardID,
+                              });
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
@@ -301,7 +302,7 @@ function PaymentMethodList({
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
-                        shouldShowThreeDotsMenu: !isUserPersonalCard || isCSVCard,
+                        shouldShowThreeDotsMenu: !isUserPersonalCard,
                         errors: isUserPersonalCard ? undefined : card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
@@ -386,7 +387,7 @@ function PaymentMethodList({
 
             const travelCardGrouped: PaymentMethodItem[] = [];
             const travelCard = getTravelInvoicingCard(cardList);
-            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), cardList) && travelCard) {
+            if (isTravelCVVEligible(cardList) && travelCard) {
                 travelCardGrouped.push({
                     title: translate('walletPage.travelCVV.title'),
                     description: translate('walletPage.travelCVV.subtitle'),
@@ -502,7 +503,7 @@ function PaymentMethodList({
             onPress={onPressItem}
             title={translate('bankAccount.addBankAccount')}
             icon={expensifyIcons.Plus}
-            wrapperStyle={[styles.paymentMethod, listItemStyle]}
+            wrapperStyle={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
         />
     );

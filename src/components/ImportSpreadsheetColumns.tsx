@@ -28,7 +28,7 @@ type ImportSpreadsheetColumnsProps = {
     columnRoles?: ColumnRole[];
 
     // A function to perform the import operation.
-    importFunction: () => void;
+    importFunction: () => void | Promise<void>;
 
     // An optional Errors object containing any errors that may have occurred.
     errors?: Errors | null;

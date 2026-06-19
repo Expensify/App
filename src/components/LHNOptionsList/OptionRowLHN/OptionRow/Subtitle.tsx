@@ -34,8 +34,8 @@ function Subtitle({optionItem, viewMode, isOptionFocused}: SubtitleProps) {
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const alternateTextStyle = isInFocusMode
-        ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting];
+        ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.pre, styles.ml2]
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.pre];
     const alternateTextFSClass = FS.getChatFSClass(optionItem);
 
     const containsCustomEmojiWithText = containsCustomEmojiUtils(alternateText) && !containsOnlyCustomEmoji(alternateText);

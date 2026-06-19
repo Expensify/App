@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {LoginList, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {GetOptionsConfig, GetUserToInviteConfig, OptionData, Options, PreviewConfig, PrivateIsArchivedMap} from './types';
+import type {GetContactConfig, GetOptionsConfig, GetUserToInviteConfig, OptionData, Options, PreviewConfig, PrivateIsArchivedMap} from './types';
 
 /**
  * Creates a personal details list option
@@ -121,6 +121,52 @@ function getUserToInviteOption({searchValue, countryCode, formatPhoneNumber, log
     );
 }
 
+function getContactOption({searchValue, firstName, lastName, email, phone, avatar, countryCode, loginList, formatPhoneNumber}: GetContactConfig): OptionData | null {
+    // If email is provided, use it as the primary identifier
+    const effectiveSearchValue = email || searchValue;
+
+    // Handle phone number parsing for either provided phone or searchValue
+    const phoneToCheck = phone || searchValue;
+    const normalizedPhoneNumber = appendCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode);
+    const parsedPhoneNumber = parsePhoneNumber(normalizedPhoneNumber);
+
+    // Validate email (either provided email or searchValue)
+    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
+
+    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
+
+    const sanitizedPhoneLogin = isValidPhoneNumber ? addSMSDomainIfPhoneNumber(parsedPhoneNumber.number?.e164 ?? normalizedPhoneNumber) : '';
+    const login = email ? effectiveSearchValue : (sanitizedPhoneLogin ?? searchValue);
+
+    const isCurrentUserLogin = Object.keys(loginList ?? {}).some((loginToTest) => loginToTest.toLowerCase() === login);
+
+    if (!effectiveSearchValue || isCurrentUserLogin || (!isValidEmail && !isValidPhoneNumber)) {
+        return null;
+    }
+
+    // Generates an optimistic account ID for new users not yet saved in Onyx
+    const optimisticAccountID = generateAccountID(login);
+
+    // Construct display name if firstName/lastName are provided
+
+    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
+
+    // Create the base user details that will be used in both item and participantsList
+    const userDetails = {
+        accountID: optimisticAccountID,
+        avatar: avatar || FallbackAvatar,
+        firstName: firstName ?? '',
+        lastName: lastName ?? '',
+        displayName,
+        login,
+        pronouns: '',
+        phoneNumber: phone ?? '',
+        validated: true,
+    };
+
+    return createOption(userDetails, undefined, formatPhoneNumber);
+}
+
 /**
  * Sort reports by archived status and last visible action
  */
@@ -211,7 +257,8 @@ function getValidOptions(
     countryCode: number,
     loginList?: OnyxEntry<LoginList>,
     {
-        excludeLogins = {},
+        excludeLogins = CONST.EMPTY_OBJECT,
+        excludeFromSuggestionsOnly = CONST.EMPTY_OBJECT,
         includeSelectedOptions = false,
         includeRecentReports = true,
         recentAttendees,
@@ -246,8 +293,9 @@ function getValidOptions(
             !personalDetail.login ||
             !personalDetail.accountID ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN
+            // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN
         ) {
             return false;
         }
@@ -258,7 +306,7 @@ function getValidOptions(
         return matchesSearchTerms(personalDetail, searchTerms);
     };
 
-    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true);
+    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true).options;
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
@@ -271,11 +319,16 @@ function getValidOptions(
         }
     }
 
+    const loginsToExcludeFromSuggestions: Record<string, boolean> = {
+        ...loginsToExclude,
+        ...excludeFromSuggestionsOnly,
+    };
+
     // Get valid recent reports:
     let recentOptions: OptionData[] = [];
 
     if (recentAttendees && recentAttendees?.length > 0) {
-        const recentAttendeesSet = new Set(recentAttendees.filter((login) => !loginsToExclude[login]));
+        const recentAttendeesSet = new Set(recentAttendees.filter((login) => !loginsToExcludeFromSuggestions[login]));
         const potentialRecentOptions: Record<string, OptionData> = {};
         for (const option of options) {
             if (!option.login) {
@@ -310,14 +363,14 @@ function getValidOptions(
                 return false;
             }
 
-            if (!!option.login && loginsToExclude[option.login]) {
+            if (!!option.login && loginsToExcludeFromSuggestions[option.login]) {
                 return false;
             }
 
             return true;
         };
 
-        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction);
+        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction).options;
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -331,21 +384,22 @@ function getValidOptions(
             !personalDetail.accountID ||
             !!personalDetail.isOptimisticPersonalDetail ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN ||
+            // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN ||
             // Exclude any recent options from the personal details
             recentOptionsByAccountID.has(personalDetail.accountID)
         ) {
             return false;
         }
-        if (loginsToExclude[personalDetail.login]) {
+        if (loginsToExcludeFromSuggestions[personalDetail.login]) {
             return false;
         }
 
         return matchesSearchTerms(personalDetail, searchTerms);
     };
 
-    personalDetailsOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, filteringFunction, true);
+    personalDetailsOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, filteringFunction, true).options;
 
     let userToInvite: OptionData | null = null;
     if (includeUserToInvite) {
@@ -434,6 +488,16 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
     return translate('common.noResultsFound');
 }
 
-export {createOption, canCreateOptimisticPersonalDetailOption, filterOption, matchesSearchTerms, getValidOptions, createOptionList, getHeaderMessage};
+export {
+    createOption,
+    getContactOption,
+    canCreateOptimisticPersonalDetailOption,
+    filterOption,
+    matchesSearchTerms,
+    getValidOptions,
+    createOptionList,
+    getHeaderMessage,
+    getUserToInviteOption,
+};
 
 export type {OptionData};

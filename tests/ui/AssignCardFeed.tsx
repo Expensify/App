@@ -82,6 +82,8 @@ jest.mock('react-native-plaid-link-sdk', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback?.()),
     dismissModal: jest.fn(),
@@ -204,8 +206,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -259,8 +261,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -312,8 +314,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -369,7 +371,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             // Set up commercial feed card assignment data
@@ -402,7 +404,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const cardName = "John's Business Card";
@@ -439,7 +441,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             // Set up direct feed card assignment data
@@ -471,7 +473,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const cardName = "Jane's Plaid Card";
@@ -508,7 +510,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const mockData = createMockAssignCardData({feedType: 'commercial'});
@@ -544,7 +546,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const mockData = createMockAssignCardData({feedType: 'direct'});
@@ -587,8 +589,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -642,8 +644,8 @@ describe('AssignCardFeed', () => {
                 searchTerm: '',
                 debouncedSearchTerm: '',
                 setSearchTerm: jest.fn(),
-                searchOptions: getEmptyOptions(),
-                availableOptions: getEmptyOptions(),
+                searchOptions: getEmptyOptions().options,
+                availableOptions: getEmptyOptions().options,
                 selectedOptions: [],
                 selectedOptionsForDisplay: [],
                 setSelectedOptions: jest.fn(),
@@ -698,7 +700,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             await act(async () => {
@@ -734,7 +736,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             await act(async () => {
@@ -787,7 +789,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             await act(async () => {
@@ -834,7 +836,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const cardName = "Test User's card";
@@ -897,7 +899,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             // cardName is the original masked card number
@@ -977,7 +979,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             await act(async () => {
@@ -1014,7 +1016,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             const customStartDate = '2024-06-15';
@@ -1064,7 +1066,7 @@ describe('AssignCardFeed', () => {
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 role: CONST.POLICY.ROLE.ADMIN,
-                workspaceAccountID: WORKSPACE_ACCOUNT_ID,
+                policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
 
             // For commercial feeds: encryptedCardNumber is the backend identifier

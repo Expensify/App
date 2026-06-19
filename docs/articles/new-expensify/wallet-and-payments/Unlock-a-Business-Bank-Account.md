@@ -28,20 +28,21 @@ You’ll also see a Time-sensitive alert on **Home** with a **Fix** button that 
 
 ---
 
+![Account > Wallet > bank account with a Locked badge ]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_04.png){:width="100%"}
+
+![Workspace > Workflows > Payments > bank account with a Locked badge]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_05.png){:width="100%"}
+
+---
+
 ## How to unlock a business bank account
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
-2. Click the bank account with the **Locked** badge.
-3. Click **Fix** or **Unlock account**.
-4. Send the message to Concierge to request the unlock.
+From Wallet or the Workspace: 
+
+1. Click the bank account with the **Locked** badge.
+2. Click **Fix** or **Unlock account**.
+3. In the chat that opens, send the message to Concierge to request the unlock.
 
 Concierge will walk you through the next steps to unlock the account, or confirm when your account is ready to use.
-
-<!-- SCREENSHOT:
-Suggestion: Locked bank account row showing the Locked badge and Fix button
-Location: After step 2
-Purpose: Shows the locked state and how to initiate an unlock
--->
 
 ---
 

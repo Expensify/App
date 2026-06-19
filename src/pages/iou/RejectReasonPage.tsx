@@ -2,7 +2,7 @@ import {getReportPolicyID} from '@selectors/Report';
 import React, {useCallback, useEffect} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -29,7 +29,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {translate} = useLocalize();
 
     const {transactionID, reportID, backTo} = route.params;
-    const {removeTransaction} = useSearchActionsContext();
+    const {removeTransaction} = useSearchSelectionActions();
     const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportPolicyID});
     const policy = usePolicy(reportPolicyID);
     const {superWideRHPRouteKeys} = useWideRHPState();

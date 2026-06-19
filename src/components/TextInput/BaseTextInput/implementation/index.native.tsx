@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -24,6 +24,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
@@ -63,6 +64,7 @@ function BaseTextInput({
     shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
+    shouldLabelStayOnSingleLine = false,
     autoCorrect = true,
     prefixCharacter = '',
     suffixCharacter = '',
@@ -296,7 +298,8 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
-    const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
+    const resolvedAccessibilityLabel = inputProps.accessibilityLabel ?? accessibilityLabel;
+    const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, resolvedAccessibilityLabel);
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
@@ -343,8 +346,10 @@ function BaseTextInput({
                                 labelScale={labelScale}
                                 for={inputProps.nativeID}
                                 isMultiline={isMultiline}
+                                shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
                             />
                         ) : null}
+                        {hiddenLabel}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
@@ -392,7 +397,8 @@ function BaseTextInput({
                                 // eslint-disable-next-line
                                 {...inputProps}
                                 autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
-                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityLabel={resolvedAccessibilityLabel}
+                                accessibilityLabelledBy={accessibilityLabelledBy}
                                 accessibilityValue={accessibilityValue}
                                 accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}

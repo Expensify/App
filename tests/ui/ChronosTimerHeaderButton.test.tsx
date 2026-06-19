@@ -24,6 +24,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: (...args: unknown[]): void => {
         mockNavigate(...args);
     },
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     isTopmostRouteModalScreen: () => false,
 }));
 
@@ -38,7 +40,7 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/ChronosUtils', () => ({
-    isChronosTimerRunningFromVisibleActions: () => false,
+    getTimeOfChronosTimerRunningFromVisibleActions: () => null,
 }));
 
 jest.mock('@libs/ReportActionsUtils', () => ({

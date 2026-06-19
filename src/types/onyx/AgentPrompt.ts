@@ -13,6 +13,9 @@ type AgentPrompt = OnyxValueWithOfflineFeedback<{
 
     /** Errors specific to updating the agent prompt */
     promptErrors?: Errors | null;
+
+    /** Errors specific to updating the agent avatar */
+    avatarErrors?: Errors | null;
 }>;
 
 export default AgentPrompt;

@@ -181,7 +181,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             new PreloadWebpackPlugin({
                 rel: 'preload',
                 as: 'font',
-                fileWhitelist: [/\.woff2|ttf$/],
+                fileWhitelist: [/^(?!.*seguiemj).*\.(woff2|ttf)$/],
                 include: 'allAssets',
             }),
             new PreloadWebpackPlugin({

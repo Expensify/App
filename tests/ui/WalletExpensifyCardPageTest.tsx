@@ -75,7 +75,7 @@ describe('ExpensifyCardPage', () => {
         jest.clearAllMocks();
     });
 
-    it('should show the Report Fraud and Reveal details options on screen', async () => {
+    it('should show the Report Fraud and Reveal options on screen', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -107,9 +107,9 @@ describe('ExpensifyCardPage', () => {
             expect(screen.getByText(TestHelper.translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
         });
 
-        // Verify that the "Reveal Details" option is displayed on the screen.
+        // Verify that the "Reveal" option is displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.reveal'))).toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -117,7 +117,7 @@ describe('ExpensifyCardPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should not show the Report Fraud and Reveal details options on screen', async () => {
+    it('should not show the Report Fraud and Reveal options on screen', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
 
@@ -156,9 +156,9 @@ describe('ExpensifyCardPage', () => {
             expect(screen.queryByText(TestHelper.translateLocal('cardPage.reportFraud'))).not.toBeOnTheScreen();
         });
 
-        // Verify that the "Reveal Details" option is NOT displayed on the screen.
+        // Verify that the "Reveal" option is NOT displayed on the screen.
         await waitFor(() => {
-            expect(screen.queryByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.cardDetails.reveal'))).not.toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.

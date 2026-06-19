@@ -10,6 +10,11 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Bypass the HOC and render the inner component directly
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
 
+jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => children,
+}));
+
 const mockCloseRHPFlow = jest.fn();
 
 jest.mock('@hooks/useCardFeeds', () => ({
@@ -59,6 +64,8 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     closeRHPFlow: mockCloseRHPFlow,
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn(),
