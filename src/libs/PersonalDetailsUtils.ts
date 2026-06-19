@@ -199,7 +199,11 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function newGetPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+    if (!accountIDs) {
+        return [];
+    }
+
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
         const detail = getPersonalDetailsByID(accountID, personalDetails);
@@ -212,18 +216,20 @@ function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxE
     return result;
 }
 
-function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
-    return accountIDs.reduce((acc, accountID) => {
-        if (!accountID) {
+function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined> | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    return (
+        accountIDs?.reduce((acc, accountID) => {
+            if (!accountID) {
+                return acc;
+            }
+            const detail = personalDetails?.[accountID];
+            if (!detail) {
+                return acc;
+            }
+            acc[accountID] = detail;
             return acc;
-        }
-        const detail = personalDetails?.[accountID];
-        if (!detail) {
-            return acc;
-        }
-        acc[accountID] = detail;
-        return acc;
-    }, {} as PersonalDetailsList);
+        }, {} as PersonalDetailsList) ?? {}
+    );
 }
 
 /**
@@ -250,6 +256,15 @@ function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | 
         return undefined;
     }
     return emailToPersonalDetailsCache[email.toLowerCase()];
+}
+
+/**
+ * Returns the accountID for a login only when it exists in personal details.
+ * Unlike getAccountIDsByLogins, does not fabricate optimistic account IDs for unknown logins.
+ */
+function getKnownAccountIDByLogin(login: string | undefined): number | undefined {
+    const accountID = getPersonalDetailByEmail(login)?.accountID;
+    return accountID !== undefined ? Number(accountID) : undefined;
 }
 
 /**
@@ -588,6 +603,7 @@ export {
     getPersonalDetailsListByIDs,
     getDisplayNameOrYou,
     getPersonalDetailByEmail,
+    getKnownAccountIDByLogin,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
