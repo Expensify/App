@@ -121,7 +121,7 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Changing roles options', () => {
-        it('should show Make member/auditor when admin is selected', async () => {
+        it('should show Make member/auditor/card admin when admin is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -161,6 +161,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make card admin" dropdown menu item
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
+            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+
             // Find and verify "Make admin" dropdown menu item is not present
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
             const makeAdminMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`);
@@ -170,7 +175,7 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should show Make admin/auditor when member is selected', async () => {
+        it('should show Make admin/auditor/card admin when member is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -210,6 +215,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make card admin" dropdown menu item
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
+            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+
             // Find and verify "Make member" dropdown menu item is not present
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
             const makeMemberMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`);
@@ -219,7 +229,7 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should show Make member/admin when auditor is selected', async () => {
+        it('should show Make member/admin/card admin when auditor is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -259,6 +269,11 @@ describe('WorkspaceMembers', () => {
             const makeAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAdminText}`);
             expect(makeAdminMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make card admin" dropdown menu item
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
+            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+
             // Find and verify "Make auditor" dropdown menu item is not present
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
             const makeAuditorMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`);
@@ -268,7 +283,7 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should show Make member/admin/auditor when mix is selected', async () => {
+        it('should show Make member/admin/auditor/card admin when mix is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -316,6 +331,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 2});
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
+
+            // Find and verify "Make card admins" dropdown menu item (plural form for 2 selected items)
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 2});
+            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
+            expect(makeCardAdminMenuItem).toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -366,7 +386,7 @@ describe('WorkspaceMembers', () => {
             });
         });
 
-        it('should display "Role: All" by default when no filter is applied', async () => {
+        it('should display "Filters" by default when no filter is applied', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -374,14 +394,14 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
 
-            const expectedLabel = `${TestHelper.translateLocal('common.role')}: ${TestHelper.translateLocal('common.all')}`;
+            const expectedLabel = TestHelper.translateLocal('search.filtersHeader');
             expect(screen.getByText(expectedLabel)).toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should update to "Role: Members" when the Members filter is applied', async () => {
+        it('should update to "Members" when the Members filter is applied', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -389,7 +409,7 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
 
-            const defaultLabel = `${TestHelper.translateLocal('common.role')}: ${TestHelper.translateLocal('common.all')}`;
+            const defaultLabel = TestHelper.translateLocal('search.filtersHeader');
             fireEvent.press(screen.getByText(defaultLabel));
             await waitForBatchedUpdatesWithAct();
 
@@ -400,16 +420,17 @@ describe('WorkspaceMembers', () => {
             fireEvent.press(screen.getByText(applyText));
             await waitForBatchedUpdatesWithAct();
 
-            const expectedLabel = `${TestHelper.translateLocal('common.role')}: ${membersOption}`;
             await waitFor(() => {
-                expect(screen.getByText(expectedLabel)).toBeOnTheScreen();
+                expect(screen.getAllByText(membersOption).length).toBeGreaterThan(0);
             });
+            expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            expect(screen.queryByText(ADMIN_OPTION)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should update to "Role: Members, Admins" when both filters are applied', async () => {
+        it('should update to "Members, Workspace Admins" when both filters are applied', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -417,7 +438,7 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
 
-            const defaultLabel = `${TestHelper.translateLocal('common.role')}: ${TestHelper.translateLocal('common.all')}`;
+            const defaultLabel = TestHelper.translateLocal('search.filtersHeader');
             fireEvent.press(screen.getByText(defaultLabel));
             await waitForBatchedUpdatesWithAct();
 
@@ -431,10 +452,13 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Verify the label shows both filters comma separated
-            const expectedLabel = `${TestHelper.translateLocal('common.role')}: ${membersOption}, ${adminsOption}`;
+            const expectedLabel = `${adminsOption}, ${membersOption}`;
             await waitFor(() => {
                 expect(screen.getByText(expectedLabel)).toBeOnTheScreen();
             });
+            expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            expect(screen.queryByText(AUDITOR_OPTION)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
