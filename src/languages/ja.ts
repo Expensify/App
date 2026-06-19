@@ -4850,10 +4850,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Xero にアカウントを追加して、もう一度同期してください',
-            defaultSupplier: 'デフォルトのサプライヤー',
-            defaultSupplierDescription: 'エクスポート時にすべてのクレジットカード取引に適用されるデフォルトのサプライヤーを設定します。',
-            noSuppliersFound: 'サプライヤーが見つかりません',
-            noSuppliersFoundDescription: 'Xero にサプライヤーを追加して、もう一度同期してください。',
+            defaultSupplier: 'デフォルト仕入先',
+            defaultSupplierDescription: 'エクスポート時にすべてのクレジットカード取引に適用されるデフォルトの仕入先を設定します。',
+            noSuppliersFound: '仕入先が見つかりません',
+            noSuppliersFoundDescription: 'Xero に仕入先を追加して、もう一度同期してください。',
             accountingMethods: {
                 label: 'エクスポートのタイミング',
                 description: '経費をエクスポートするタイミングを選択:',
@@ -9588,7 +9588,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

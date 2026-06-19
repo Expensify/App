@@ -4906,7 +4906,7 @@ ${amount} für ${merchant} – ${date}`,
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie das Konto in Xero hinzu und synchronisieren Sie die Verbindung erneut',
             defaultSupplier: 'Standardlieferant',
-            defaultSupplierDescription: 'Legen Sie einen Standardlieferanten fest, der beim Export auf alle Kreditkartentransaktionen angewendet wird.',
+            defaultSupplierDescription: 'Legen Sie einen Standardsupplier fest, der beim Export auf alle Kreditkartentransaktionen angewendet wird.',
             noSuppliersFound: 'Keine Lieferanten gefunden',
             noSuppliersFoundDescription: 'Bitte fügen Sie den Lieferanten in Xero hinzu und synchronisieren Sie die Verbindung erneut.',
             accountingMethods: {
@@ -9723,7 +9723,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

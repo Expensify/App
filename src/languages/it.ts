@@ -4891,9 +4891,9 @@ ${amount} per ${merchant} - ${date}`,
             noAccountsFound: 'Nessun account trovato',
             noAccountsFoundDescription: 'Aggiungi l’account in Xero e sincronizza nuovamente la connessione',
             defaultSupplier: 'Fornitore predefinito',
-            defaultSupplierDescription: 'Imposta un fornitore predefinito che verrà applicato a tutte le transazioni con carta di credito durante l’esportazione.',
+            defaultSupplierDescription: 'Imposta un fornitore predefinito che verrà applicato a tutte le transazioni con carta di credito al momento dell’esportazione.',
             noSuppliersFound: 'Nessun fornitore trovato',
-            noSuppliersFoundDescription: 'Aggiungi il fornitore in Xero e sincronizza nuovamente la connessione.',
+            noSuppliersFoundDescription: 'Aggiungi il fornitore in Xero e sincronizza di nuovo la connessione.',
             accountingMethods: {
                 label: 'Quando esportare',
                 description: 'Scegli quando esportare le spese:',
@@ -9711,7 +9711,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

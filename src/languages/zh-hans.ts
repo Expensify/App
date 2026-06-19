@@ -4755,9 +4755,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 Xero 中添加该账户，然后再次同步连接',
             defaultSupplier: '默认供应商',
-            defaultSupplierDescription: '设置一个默认供应商，在导出时将其应用于所有信用卡交易。',
+            defaultSupplierDescription: '设置一个默认供应商，在导出时应用于所有信用卡交易。',
             noSuppliersFound: '未找到供应商',
-            noSuppliersFoundDescription: '请在 Xero 中添加供应商，然后再次同步连接。',
+            noSuppliersFoundDescription: '请在 Xero 中添加该供应商，然后再次同步连接。',
             accountingMethods: {
                 label: '何时导出',
                 description: '选择何时导出报销：',
@@ -9406,7 +9406,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

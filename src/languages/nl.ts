@@ -4881,9 +4881,9 @@ ${amount} voor ${merchant} - ${date}`,
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg het account toe in Xero en synchroniseer de verbinding opnieuw',
             defaultSupplier: 'Standaardleverancier',
-            defaultSupplierDescription: 'Stel een standaardleverancier in die wordt toegepast op alle creditcardtransacties bij het exporteren.',
+            defaultSupplierDescription: 'Stel een standaardsupplier in die wordt toegepast op alle creditcardtransacties bij het exporteren.',
             noSuppliersFound: 'Geen leveranciers gevonden',
-            noSuppliersFoundDescription: 'Voeg de leverancier toe in Xero en synchroniseer de verbinding opnieuw.',
+            noSuppliersFoundDescription: 'Voeg de leverancier toe in Xero en synchroniseer de koppeling opnieuw.',
             accountingMethods: {
                 label: 'Wanneer exporteren',
                 description: 'Kies wanneer de onkosten moeten worden geëxporteerd:',
@@ -9677,7 +9677,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
