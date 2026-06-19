@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import type {LayoutChangeEvent, FlatList as RNFlatList, StyleProp, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, FlatList as RNFlatList, ViewabilityConfig, ViewToken} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
@@ -10,8 +10,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import FeatureTrainingModalContent from './FeatureTrainingModalContent';
@@ -50,9 +48,6 @@ type FeatureTrainingModalCarouselBodyProps = Pick<
         /** Padding for the modal */
         modalPadding: number;
 
-        /** Styles for the wrapper */
-        wrapperStyles?: StyleProp<ViewStyle>;
-
         /** Whether the modal should be shown again */
         willShowAgain: boolean;
 
@@ -74,7 +69,6 @@ function FeatureTrainingModalCarouselBody({
     modalPadding,
     width = variables.featureTrainingModalWidth,
     titleStyles,
-    wrapperStyles,
     illustrationAspectRatio,
     illustrationInnerContainerStyle,
     illustrationOuterContainerStyle,
@@ -102,8 +96,6 @@ function FeatureTrainingModalCarouselBody({
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowHeight, windowWidth} = useWindowDimensions();
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const [currentPage, setCurrentPage] = useState(0);
     const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
@@ -173,11 +165,7 @@ function FeatureTrainingModalCarouselBody({
 
     return (
         <View
-            style={[
-                onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
-                wrapperStyles,
-                isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
-            ]}
+            style={[onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
             onLayout={(e: LayoutChangeEvent) => {
                 const newWidth = e.nativeEvent.layout.width;
                 if (newWidth === carouselViewportWidth || newWidth <= 0) {

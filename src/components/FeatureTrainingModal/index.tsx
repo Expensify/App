@@ -289,11 +289,11 @@ function FeatureTrainingModal({
 
     // Scrolls modal to the bottom when keyboard appears so the action buttons are visible.
     useEffect(() => {
-        if (contentHeight <= containerHeight || onboardingIsMediumOrLargerScreenWidth || !shouldUseScrollView || isCarousel) {
+        if (contentHeight <= containerHeight || onboardingIsMediumOrLargerScreenWidth || !shouldUseScrollView) {
             return;
         }
         scrollViewRef.current?.scrollToEnd({animated: false});
-    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView, isCarousel]);
+    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView]);
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
@@ -332,51 +332,50 @@ function FeatureTrainingModal({
             shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
         >
-            {isCarousel ? (
-                <FeatureTrainingModalCarouselBody
-                    pages={pages}
-                    modalPadding={MODAL_PADDING}
-                    width={width}
-                    titleStyles={titleStyles}
-                    wrapperStyles={wrapperStyles.containerStyle}
-                    illustrationAspectRatio={illustrationAspectRatioProp}
-                    illustrationInnerContainerStyle={illustrationInnerContainerStyle}
-                    illustrationOuterContainerStyle={illustrationOuterContainerStyle}
-                    shouldRenderSVG={shouldRenderSVG}
-                    shouldRenderHTMLDescription={shouldRenderHTMLDescription}
-                    shouldShowDismissModalOption={shouldShowDismissModalOption}
-                    helpText={helpText}
-                    onHelp={onHelp}
-                    shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
-                    helpSentryLabel={helpSentryLabel}
-                    confirmSentryLabel={confirmSentryLabel}
-                    shouldShowConfirmationLoader={shouldShowConfirmationLoader}
-                    canConfirmWhileOffline={canConfirmWhileOffline}
-                    contentInnerContainerStyles={contentInnerContainerStyles}
-                    contentOuterContainerStyles={contentOuterContainerStyles}
-                    willShowAgain={willShowAgain}
-                    toggleWillShowAgain={toggleWillShowAgain}
-                    closeModal={closeModal}
-                    onConfirm={closeAndConfirmModal}
-                    onPageChange={onPageChange}
-                />
-            ) : (
-                <Wrapper
-                    scrollsToTop={false}
-                    style={[
-                        onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
-                        wrapperStyles.style,
-                        isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
-                    ]}
-                    contentContainerStyle={wrapperStyles.containerStyle}
-                    keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
-                    ref={shouldUseScrollView ? scrollViewRef : undefined}
-                    onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
-                    onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
-                    // Wrapper is either a View or ScrollView, which is also a View.
-                    // eslint-disable-next-line react/forbid-component-props
-                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                >
+            <Wrapper
+                scrollsToTop={false}
+                style={[
+                    onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                    wrapperStyles.style,
+                    isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
+                ]}
+                contentContainerStyle={wrapperStyles.containerStyle}
+                keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
+                ref={shouldUseScrollView ? scrollViewRef : undefined}
+                onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
+                onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
+                // Wrapper is either a View or ScrollView, which is also a View.
+                // eslint-disable-next-line react/forbid-component-props
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+            >
+                {isCarousel ? (
+                    <FeatureTrainingModalCarouselBody
+                        pages={pages}
+                        modalPadding={MODAL_PADDING}
+                        width={width}
+                        titleStyles={titleStyles}
+                        illustrationAspectRatio={illustrationAspectRatioProp}
+                        illustrationInnerContainerStyle={illustrationInnerContainerStyle}
+                        illustrationOuterContainerStyle={illustrationOuterContainerStyle}
+                        shouldRenderSVG={shouldRenderSVG}
+                        shouldRenderHTMLDescription={shouldRenderHTMLDescription}
+                        shouldShowDismissModalOption={shouldShowDismissModalOption}
+                        helpText={helpText}
+                        onHelp={onHelp}
+                        shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
+                        helpSentryLabel={helpSentryLabel}
+                        confirmSentryLabel={confirmSentryLabel}
+                        shouldShowConfirmationLoader={shouldShowConfirmationLoader}
+                        canConfirmWhileOffline={canConfirmWhileOffline}
+                        contentInnerContainerStyles={contentInnerContainerStyles}
+                        contentOuterContainerStyles={contentOuterContainerStyles}
+                        willShowAgain={willShowAgain}
+                        toggleWillShowAgain={toggleWillShowAgain}
+                        closeModal={closeModal}
+                        onConfirm={closeAndConfirmModal}
+                        onPageChange={onPageChange}
+                    />
+                ) : (
                     <FeatureTrainingModalBody
                         illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                         illustrationOuterContainerStyle={illustrationOuterContainerStyle}
@@ -409,8 +408,8 @@ function FeatureTrainingModal({
                     >
                         {children}
                     </FeatureTrainingModalBody>
-                </Wrapper>
-            )}
+                )}
+            </Wrapper>
         </Modal>
     );
 }
