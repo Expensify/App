@@ -46,6 +46,7 @@ import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
+    getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
     getPolicyExpenseChat,
     getReportOrDraftReport,
@@ -86,7 +87,6 @@ import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import useAllPolicyExpenseChatReportActions from './useAllPolicyExpenseChatReportActions';
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
@@ -344,7 +344,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
@@ -938,6 +937,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const activeRoute = Navigation.getActiveRoute();
             const searchData = searchResults?.data;
+            const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
 
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
@@ -1151,7 +1151,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             lastPaymentMethods,
             allTransactions,
             policyIDsWithVBBA,
-            policyExpenseChatReportActions,
+            allReportActions,
             formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
@@ -2100,7 +2100,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
             return;
         }
-        if (activeExportID) {
+        // For the Concierge path the worker deletes the NVP after sending, so clearing it here would wipe
+        // shouldSendFromConcierge before the worker reads it and the file would never reach Concierge.
+        if (activeExportID && !activeExportDownload?.shouldSendFromConcierge) {
             clearExportDownload(activeExportID, activeExportDownload);
         }
         setActiveExportID(undefined);

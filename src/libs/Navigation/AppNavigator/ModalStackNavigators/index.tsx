@@ -972,6 +972,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleMerchantEditPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleCurrencyPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleMaxAmountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: () =>
@@ -1067,6 +1069,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_SPEND_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCardPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleMaxAmountPage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCurrencyPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleMerchantsPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleMerchantEditPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantToMatchPage').default,
