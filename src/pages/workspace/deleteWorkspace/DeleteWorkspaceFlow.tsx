@@ -106,6 +106,14 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const {shouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
     const [shouldShowDeleteWorkspaceErrorModal, setShouldShowDeleteWorkspaceErrorModal] = useState(false);
+    const didCompletePendingDelete = !isOffline && prevIsPendingDelete && !isPendingDelete;
+    const shouldLatchDeleteWorkspaceErrorModal = didCompletePendingDelete && !!policyLatestErrorMessage && hasExpensifyCardsEnabledOnWorkspace;
+
+    // Latch open: show the delete-workspace error modal when pending delete completes with an Expensify Cards error.
+    // Using setState-during-render (React-recommended derived state pattern) instead of useEffect to satisfy react-hooks/set-state-in-effect.
+    if (shouldLatchDeleteWorkspaceErrorModal && !shouldShowDeleteWorkspaceErrorModal) {
+        setShouldShowDeleteWorkspaceErrorModal(true);
+    }
 
     const hideDeleteWorkspaceErrorModal = useCallback(() => {
         setShouldShowDeleteWorkspaceErrorModal(false);
@@ -211,7 +219,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss}: DeleteWorkspaceFlowProps) {
         closeModal();
 
         if (policyLatestErrorMessage && hasExpensifyCardsEnabledOnWorkspace) {
-            setShouldShowDeleteWorkspaceErrorModal(true);
             return;
         }
 

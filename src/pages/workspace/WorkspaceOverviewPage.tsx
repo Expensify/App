@@ -268,7 +268,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = usePrevious(isPendingDelete);
-    const prevIsPendingDeleteRef = useRef(isPendingDelete);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
 
     const mentionReportContextValue = useMemo(() => ({policyID, currentReportID: undefined, exactlyMatch: true}), [policyID]);
@@ -315,6 +314,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
     const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCardsEnabledOnWorkspace && !!isOffline;
     const [shouldShowDeleteWorkspaceErrorModal, setShouldShowDeleteWorkspaceErrorModal] = useState(false);
+    const didCompletePendingDelete = !isOffline && prevIsPendingDelete && !isPendingDelete && !!policyID;
+    const shouldLatchDeleteWorkspaceErrorModal = didCompletePendingDelete && !!policyLastErrorMessage && hasExpensifyCardsEnabledOnWorkspace;
+
+    // Latch open: show the delete-workspace error modal when pending delete completes with an Expensify Cards error.
+    // Using setState-during-render (React-recommended derived state pattern) instead of useEffect to satisfy react-hooks/set-state-in-effect.
+    if (shouldLatchDeleteWorkspaceErrorModal && !shouldShowDeleteWorkspaceErrorModal) {
+        setShouldShowDeleteWorkspaceErrorModal(true);
+    }
 
     const hideDeleteWorkspaceErrorModal = useCallback(() => {
         setShouldShowDeleteWorkspaceErrorModal(false);
@@ -402,26 +409,22 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [isLoadingBill]);
 
     useEffect(() => {
-        const prevIsPendingDeleteValue = prevIsPendingDeleteRef.current;
-        prevIsPendingDeleteRef.current = isPendingDelete;
-
         if (isOffline) {
             return;
         }
 
-        if (!prevIsPendingDeleteValue || isPendingDelete || !policyID) {
+        if (!prevIsPendingDelete || isPendingDelete || !policyID) {
             return;
         }
 
         closeModal();
 
         if (policyLastErrorMessage && hasExpensifyCardsEnabledOnWorkspace) {
-            setShouldShowDeleteWorkspaceErrorModal(true);
             return;
         }
 
         goBackFromInvalidPolicy();
-    }, [isOffline, isPendingDelete, policyID, policyLastErrorMessage, hasExpensifyCardsEnabledOnWorkspace, closeModal]);
+    }, [isOffline, isPendingDelete, prevIsPendingDelete, policyID, policyLastErrorMessage, hasExpensifyCardsEnabledOnWorkspace, closeModal]);
 
     const onDeleteWorkspace = () => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
