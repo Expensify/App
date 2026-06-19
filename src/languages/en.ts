@@ -10,8 +10,8 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {
     ChangeFieldParams,
-    ConciergeBrokenCardConnectionParams,
     CompanyCardBalanceParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     DelegateRoleParams,
     DeleteActionParams,
