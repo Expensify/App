@@ -488,7 +488,8 @@ function PaymentMethodList({
         if (excludeStates?.length) {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
                 const account = paymentMethod as BankAccount;
-                return !excludeStates.includes(account.accountData?.state as ValueOf<typeof CONST.BANK_ACCOUNT.STATE>);
+                const bankAccountState = getBankAccountState(account.accountData) as ValueOf<typeof CONST.BANK_ACCOUNT.STATE> | undefined;
+                return !bankAccountState || !excludeStates.includes(bankAccountState);
             });
         }
 
