@@ -18,13 +18,14 @@ index 7f5c24d..416cfde 100644
  static NSTimer *keyboardTimer;
  static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
  static NSString *const MessageHandlerName = @"ReactNativeWebView";
-@@ -1161,6 +1170,16 @@ RCTAutoInsetsProtocol>
+@@ -1161,6 +1170,17 @@ RCTAutoInsetsProtocol>
      completionHandler(NSURLSessionAuthChallengeUseCredential, clientAuthenticationCredential);
      return;
    }
 +#if RNC_TRUSTKIT_AVAILABLE && !DEBUG
-+  // Enforce certificate pinning for server-trust challenges on TrustKit-pinned domains. Returns YES
++  // Validate certificate pins for server-trust challenges on TrustKit-pinned domains. Returns YES
 +  // (and invokes completionHandler) when the host is pinned; otherwise falls through to normal handling.
++  // Whether mismatches block the connection is controlled by kTSKEnforcePinning in CertificatePinning.swift.
 +  if ([[challenge protectionSpace] authenticationMethod] == NSURLAuthenticationMethodServerTrust) {
 +    TSKPinningValidator *pinningValidator = [[TrustKit sharedInstance] pinningValidator];
 +    if ([pinningValidator handleChallenge:challenge completionHandler:completionHandler]) {

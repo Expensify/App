@@ -4,18 +4,58 @@ SSL certificate pinning for the NewDot React Native app. Pinning is enforced **n
 HTTP stack; there is no single JS switch because the app's networking is spread across several
 native stacks.
 
-## Where pinning is enforced
+## Rollout phases
+
+Pinning ships in **monitor-only** mode first. Pin validation runs on real traffic, mismatches are
+reported to Sentry from the native layer, and connections are **not** blocked. After 1-2 weeks of
+Sentry data shows ~0 false positives (across OS versions, corporate proxies, cert rotations), flip to
+**enforce** mode.
+
+| Phase | `enforcePinning` | Behavior |
+|-------|------------------|----------|
+| Monitor (current) | `false` | Validate pins, report failures to Sentry, allow connections |
+| Enforce | `true` | Block connections on pin mismatch |
+
+To flip to enforce mode, update **all** of:
+1. `config/certificatePinning/pins.json` → `"enforcePinning": true`
+2. `ios/CertificatePinning.swift` → `enforcePinning = true`
+3. `android/.../CertificatePinning.kt` → `ENFORCE_PINNING = true`
+4. Replace `network_security_config.xml` with `network_security_config_enforce.xml`
+5. **HybridApp only:** `Mobile-Expensify/iOS/Expensify/ExpensifyAppDelegate.m` → `kTSKEnforcePinning: @YES`
+6. **HybridApp only:** `Mobile-Expensify/Android/.../ExpensifyCertificatePinner.java` → `ENFORCE_PINNING = true`
+7. **HybridApp only:** Replace `Mobile-Expensify/Android/res/xml/network_security_config.xml` with `network_security_config_enforce.xml`
+
+## Where pinning is validated
 
 | Stack | Platform | Mechanism | File |
 |-------|----------|-----------|------|
 | URLSession (`fetch()`, blob-util, etc.) | iOS | TrustKit URLSession swizzling | `ios/CertificatePinning.swift` |
+| URLSession (OldDot + NewDot HybridApp) | iOS | TrustKit URLSession swizzling | `Mobile-Expensify/iOS/Expensify/ExpensifyAppDelegate.m` |
 | OkHttp (`fetch()`, blob-util, RN networking) | Android | OkHttp `CertificatePinner` | `android/app/src/main/java/com/expensify/chat/CertificatePinning.kt` |
-| HttpURLConnection / Glide | Android | `<pin-set>` | `android/app/src/main/res/xml/network_security_config.xml` |
-| WebView | Android | `<pin-set>` | `android/app/src/main/res/xml/network_security_config.xml` |
+| OkHttp (OldDot HybridApp) | Android | OkHttp `CertificatePinner` | `Mobile-Expensify/Android/.../ExpensifyCertificatePinner.java` |
+| HttpURLConnection / Glide | Android | `<pin-set>` (enforce mode only) | `network_security_config_enforce.xml` |
+| HttpURLConnection / Glide (HybridApp) | Android | `<pin-set>` (enforce mode only) | `Mobile-Expensify/Android/res/xml/network_security_config_enforce.xml` |
+| WebView | Android | `<pin-set>` (enforce mode only) | `network_security_config_enforce.xml` |
 | WebView (WKWebView) | iOS | TrustKit validator in challenge handler | `patches/react-native-webview+13.16.0.patch` |
+| WebView (OldDot HybridApp) | iOS | TrustKit validator in challenge handler | `Mobile-Expensify/iOS/Expensify/Libraries/YAPL-Cocoa/Elements/YAPLWKWebView.m` |
 
 Pinning is **disabled in debug builds** on every layer (Android `BuildConfig.DEBUG` / debug
 `network_security_config_debug.xml`, iOS `#if DEBUG`) so local dev and debugging proxies keep working.
+
+## Sentry reporting
+
+Pin failures are reported from the **native** pinning layer (TrustKit callback on iOS, OkHttp monitor
+interceptor on Android), tagged with:
+- `certificate_pinning_host` — the hostname that failed validation
+- `certificate_pinning_mode` — `monitor` or `enforce`
+
+Reporting requires early native Sentry initialization via `SentryNativeSDKManager` in
+`AppDelegate.swift` / `MainApplication.kt` (standalone NewDot) or
+`ExpensifyAppDelegate.m` / `Expensify.java` (HybridApp), before certificate pinning. JS
+`Sentry.init()` attaches with `autoInitializeNativeSdk: false` so the SDK is not started twice.
+
+Do not rely on JS fetch error message matching for monitoring; it is incomplete (misses WebView paths)
+and fragile across OS versions.
 
 ## Single source of truth
 
@@ -43,5 +83,3 @@ resolve their runtime environment to STAGING and hit `staging.*` APIs while stil
    `pins.json` and all native files, then ship an app release.
 3. After the new certificate is live and the old app versions have aged out, remove the stale hashes.
 4. Never add an `expiration` to the Android `<pin-set>` — an expired pin-set silently disables pinning.
-5. A pin failure at runtime is reported to Sentry (tag `certificate_pinning_host`) via
-   `src/libs/CertificatePinning`, distinct from ordinary offline errors.

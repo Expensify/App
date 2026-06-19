@@ -1,7 +1,12 @@
 package com.expensify.chat
 
 import com.facebook.react.modules.network.OkHttpClientProvider
+import io.sentry.Sentry
+import io.sentry.SentryLevel
 import okhttp3.CertificatePinner
+import okhttp3.Interceptor
+import okhttp3.Response
+import javax.net.ssl.SSLPeerUnverifiedException
 
 /**
  * Certificate pinning for React Native's shared OkHttp client (Iteration 1 - NewDot).
@@ -10,13 +15,25 @@ import okhttp3.CertificatePinner
  * networking (including `fetch()`) route through `OkHttpClientProvider.getOkHttpClient()`. Installing
  * an [OkHttpClientProvider] factory with an OkHttp [CertificatePinner] here pins that traffic.
  *
- * This does not replace network_security_config.xml, which covers HttpURLConnection/WebView/Glide.
+ * When [ENFORCE_PINNING] is false, a monitor interceptor validates pins after each TLS handshake and
+ * reports mismatches to Sentry without blocking the request. Android `<pin-set>` enforcement in
+ * network_security_config is deferred until enforce mode (see network_security_config_enforce.xml).
  *
  * Keep the pins in sync with config/certificatePinning/pins.json,
- * android/app/src/main/res/xml/network_security_config.xml, and ios/CertificatePinning.swift.
+ * android/app/src/main/res/xml/network_security_config_enforce.xml, and ios/CertificatePinning.swift.
  * Regenerate via scripts/generateCertificatePins.sh.
  */
 object CertificatePinning {
+    /**
+     * When false, pin mismatches are reported to Sentry but connections are not blocked.
+     * Flip to true after 1-2 weeks of monitor-only data shows ~0 false positives.
+     * Keep in sync with `enforcePinning` in config/certificatePinning/pins.json and CertificatePinning.swift.
+     */
+    private const val ENFORCE_PINNING = false
+
+    private const val CERTIFICATE_PINNING_HOST_TAG = "certificate_pinning_host"
+    private const val CERTIFICATE_PINNING_MODE_TAG = "certificate_pinning_mode"
+
     private fun buildCertificatePinner(): CertificatePinner {
         return CertificatePinner.Builder()
             // Group A: leaf CN=expensify.com + Let's Encrypt YE1 intermediate
@@ -46,11 +63,53 @@ object CertificatePinning {
         if (BuildConfig.DEBUG) {
             return
         }
+
         val certificatePinner = buildCertificatePinner()
         OkHttpClientProvider.setOkHttpClientFactory {
-            OkHttpClientProvider.createClientBuilder()
-                .certificatePinner(certificatePinner)
-                .build()
+            val clientBuilder = OkHttpClientProvider.createClientBuilder()
+            if (ENFORCE_PINNING) {
+                clientBuilder.certificatePinner(certificatePinner)
+            } else {
+                clientBuilder.addNetworkInterceptor(CertificatePinningMonitorInterceptor(certificatePinner))
+            }
+            clientBuilder.build()
+        }
+    }
+
+    private fun reportPinningFailure(hostname: String, url: String, message: String) {
+        Sentry.captureException(SSLPeerUnverifiedException(message)) { scope ->
+            scope.level = SentryLevel.WARNING
+            scope.setTag(CERTIFICATE_PINNING_HOST_TAG, hostname)
+            scope.setTag(CERTIFICATE_PINNING_MODE_TAG, if (ENFORCE_PINNING) "enforce" else "monitor")
+            scope.setExtra("url", url)
+        }
+    }
+
+    /**
+     * Validates certificate pins after the TLS handshake completes without blocking the request.
+     * Used during the monitor-only rollout phase.
+     */
+    private class CertificatePinningMonitorInterceptor(
+        private val certificatePinner: CertificatePinner,
+    ) : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val request = chain.request()
+            val response = chain.proceed(request)
+            val handshake = chain.connection()?.handshake()
+
+            if (handshake != null) {
+                try {
+                    certificatePinner.check(request.url.host, handshake.peerCertificates)
+                } catch (error: SSLPeerUnverifiedException) {
+                    reportPinningFailure(
+                        hostname = request.url.host,
+                        url = request.url.toString(),
+                        message = error.message ?: "Certificate pinning validation failed",
+                    )
+                }
+            }
+
+            return response
         }
     }
 }

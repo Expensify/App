@@ -17,11 +17,12 @@
 - Reason:
   
     ```
-    Adds TrustKit certificate pinning to WKWebView's server-trust authentication challenge
+    Adds TrustKit certificate pinning validation to WKWebView's server-trust authentication challenge
     handler (didReceiveAuthenticationChallenge) in RNCWebViewImpl.m. WKWebView runs
     out-of-process and is not covered by TrustKit's NSURLSession delegate swizzling, so
     server-trust challenges for pinned domains are routed through TSKPinningValidator
-    explicitly. The block is compiled out in debug builds (#if !DEBUG) so local dev
+    explicitly. Whether mismatches block the connection is controlled by kTSKEnforcePinning in
+    CertificatePinning.swift. The block is compiled out in debug builds (#if !DEBUG) so local dev
     proxies and debugging tools keep working.
     ```
   
