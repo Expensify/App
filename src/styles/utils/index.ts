@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/UserAvatarCatalog';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -1949,6 +1949,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+                columnWidth = {...getWidthStyle(variables.w80)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
             case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
                 columnWidth = {...getWidthStyle(variables.w92)};
