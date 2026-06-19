@@ -22,7 +22,7 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addComment} from '@libs/actions/Report';
-import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import {acceptSpotnanaTerms, cleanupTravelProvisioningSession, setTravelProvisioningErrorMessage} from '@libs/actions/Travel';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,7 +55,7 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TCS.path);
 
-    const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
+    const errorMessage = getLatestErrorMessage(travelProvisioning);
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
     const policyID = route.params.policyID;
@@ -95,6 +95,8 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
 
                 // Handle verification required error - show modal and reject to close Safari window if open
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
+                    // The modal communicates the error, so clear the provisioning error to avoid also showing it inline behind the modal
+                    cleanupTravelProvisioningSession();
                     showConfirmModal({
                         title: translate('travel.verifyCompany.title'),
                         titleStyles: styles.textHeadlineH1,
@@ -117,8 +119,16 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
                     return Promise.reject(new Error('Verification required'));
                 }
 
-                // Handle general API failure
+                // Missing workspace address - send the user to the address screen so they can add one and continue
+                if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_MISSING_WORKSPACE_ADDRESS) {
+                    cleanupTravelProvisioningSession();
+                    Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN, policyID, Navigation.getActiveRoute()));
+                    return Promise.reject(new Error('Missing workspace address'));
+                }
+
+                // Any other backend failure - surface the message inline instead of failing silently
                 if (response?.jsonCode !== 200) {
+                    setTravelProvisioningErrorMessage(response?.message ?? translate('travel.errorMessage'));
                     return Promise.reject(new Error('Request failed'));
                 }
 
