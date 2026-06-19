@@ -62,10 +62,9 @@ import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getLengthOfTag,
+    getMatchingVendorName,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
-    getMatchingVendorName,
-    isXeroVendorMatchingActive,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasVendorFeature,
@@ -74,6 +73,7 @@ import {
     isMultiLevelTags,
     isPolicyAccessible,
     isTaxTrackingEnabled,
+    isXeroVendorMatchingActive,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';

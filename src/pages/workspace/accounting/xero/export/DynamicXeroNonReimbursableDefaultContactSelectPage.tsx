@@ -45,7 +45,12 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     const selectSupplier = useCallback(
         ({value}: SelectorType) => {
             if (value !== currentContactID && policyID) {
-                updateManyPolicyConnectionConfigs(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, {[CONST.XERO_CONFIG.DEFAULT_CONTACT]: value}, {[CONST.XERO_CONFIG.DEFAULT_CONTACT]: currentContactID});
+                updateManyPolicyConnectionConfigs(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.XERO,
+                    {[CONST.XERO_CONFIG.DEFAULT_CONTACT]: value},
+                    {[CONST.XERO_CONFIG.DEFAULT_CONTACT]: currentContactID},
+                );
             }
             goBack();
         },
