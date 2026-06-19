@@ -212,6 +212,111 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
     });
 }
 
+function getAmountWithoutCurrencyIdentifier(value: string, currencyIdentifier: string): string | undefined {
+    const trimmedValue = value.trim();
+    if (!currencyIdentifier) {
+        return undefined;
+    }
+
+    if (trimmedValue.startsWith(currencyIdentifier)) {
+        return trimmedValue.slice(currencyIdentifier.length).trim();
+    }
+
+    if (trimmedValue.endsWith(currencyIdentifier)) {
+        return trimmedValue.slice(0, -currencyIdentifier.length).trim();
+    }
+
+    return undefined;
+}
+
+function getCurrencyCodeFromAmountString(value: string): {currency: string; amount: string} | undefined {
+    const trimmedValue = value.trim();
+    const possibleCurrencyCode = trimmedValue.slice(0, 3).toUpperCase();
+    if (isValidCurrencyCode(possibleCurrencyCode)) {
+        const amount = getAmountWithoutCurrencyIdentifier(trimmedValue, possibleCurrencyCode);
+        if (amount) {
+            return {currency: possibleCurrencyCode, amount};
+        }
+    }
+
+    const matchingCurrencySymbols = Object.entries(currencyList ?? {})
+        .filter(([, currency]) => !!currency?.symbol)
+        .sort(([, firstCurrency], [, secondCurrency]) => (secondCurrency?.symbol?.length ?? 0) - (firstCurrency?.symbol?.length ?? 0));
+
+    for (const [currencyCode, currency] of matchingCurrencySymbols) {
+        const symbol = currency?.symbol;
+        if (!symbol || matchingCurrencySymbols.filter(([, otherCurrency]) => otherCurrency?.symbol === symbol).length > 1) {
+            continue;
+        }
+        const amount = getAmountWithoutCurrencyIdentifier(trimmedValue, symbol);
+        if (amount) {
+            return {currency: currencyCode, amount};
+        }
+    }
+
+    return undefined;
+}
+
+function getNormalizedAmountString(amount: string): string | undefined {
+    const numericAmount = amount.replaceAll(/[^\d.,+-]/g, '');
+    if (!/\d/.test(numericAmount)) {
+        return undefined;
+    }
+
+    const isNegative = numericAmount.startsWith('-');
+    const unsignedAmount = numericAmount.replaceAll(/[+-]/g, '');
+    const lastCommaIndex = unsignedAmount.lastIndexOf(',');
+    const lastPeriodIndex = unsignedAmount.lastIndexOf('.');
+    let normalizedAmount = unsignedAmount;
+
+    if (lastCommaIndex !== -1 && lastPeriodIndex !== -1) {
+        const decimalSeparator = lastCommaIndex > lastPeriodIndex ? ',' : '.';
+        const thousandsSeparator = decimalSeparator === ',' ? '.' : ',';
+        normalizedAmount = unsignedAmount.replaceAll(thousandsSeparator, '').replace(decimalSeparator, '.');
+    } else if (lastCommaIndex !== -1) {
+        normalizedAmount = unsignedAmount.replaceAll('.', '').replace(',', '.');
+    } else if (lastPeriodIndex !== -1) {
+        normalizedAmount = unsignedAmount.replaceAll(',', '');
+    }
+
+    return `${isNegative ? '-' : ''}${normalizedAmount}`;
+}
+
+/**
+ * Backend-generated policy change-log amount strings can contain the currency-list symbol (e.g. "AR$1,40").
+ * Convert those strings back through the App currency formatter so rate changes match rate creation logs.
+ */
+function convertPolicyChangelogAmountToDisplayString(value: string, currency?: string): string {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+        return value;
+    }
+
+    const sanitizedCurrency = currency ? sanitizeCurrencyCode(currency) : undefined;
+    const currencySymbol = sanitizedCurrency ? getCurrencySymbol(sanitizedCurrency) : undefined;
+    const amount = sanitizedCurrency
+        ? (getAmountWithoutCurrencyIdentifier(trimmedValue, sanitizedCurrency) ??
+          (currencySymbol ? getAmountWithoutCurrencyIdentifier(trimmedValue, currencySymbol) : undefined) ??
+          trimmedValue)
+        : undefined;
+    const parsedCurrencyAmount = amount ? {currency: sanitizedCurrency, amount} : getCurrencyCodeFromAmountString(trimmedValue);
+    if (!parsedCurrencyAmount) {
+        return value;
+    }
+
+    const normalizedAmount = getNormalizedAmountString(parsedCurrencyAmount.amount);
+    if (!normalizedAmount) {
+        return value;
+    }
+
+    const amountAsFloat = Number(normalizedAmount);
+    if (!Number.isFinite(amountAsFloat)) {
+        return value;
+    }
+
+    return convertAmountToDisplayString(convertToBackendAmount(amountAsFloat), parsedCurrencyAmount.currency);
+}
+
 /**
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
@@ -248,6 +353,7 @@ export {
     convertToFrontendAmountAsString,
     convertToDisplayString,
     convertAmountToDisplayString,
+    convertPolicyChangelogAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
     convertToDisplayStringWithExplicitCurrency,
     convertToShortDisplayString,

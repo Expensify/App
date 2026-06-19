@@ -66,6 +66,7 @@ import {getFakeReportAction} from '../utils/ReportTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import currencyList from './currencyList.json';
 
 describe('ReportActionsUtils', () => {
     beforeAll(() =>
@@ -4101,6 +4102,26 @@ describe('ReportActionsUtils', () => {
             };
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
+        });
+
+        it('should format rate changes with the currency code when the backend sends a currency symbol', async () => {
+            await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
+            await waitForBatchedUpdates();
+
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'rate',
+                    oldValue: 'AR$1,30',
+                    newValue: 'AR$1,40',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
+            expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "ARS 1.40" (previously "ARS 1.30")');
         });
 
         it('should return the correct message when a start date is set on a rate without dates', () => {

@@ -46,7 +46,14 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
+import {
+    convertAmountToDisplayString,
+    convertPolicyChangelogAmountToDisplayString,
+    convertToBackendAmount,
+    convertToDisplayString,
+    convertToDisplayStringWithExplicitCurrency,
+    convertToShortDisplayString,
+} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -3257,8 +3264,22 @@ function getCustomUnitRateDateRangeForMessage(translate: LocalizedTranslate, sta
 }
 
 function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, newStartDate, newEndDate, oldStartDate, oldEndDate} =
-        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
+    const {
+        customUnitName,
+        customUnitRateName,
+        updatedField,
+        oldValue,
+        newValue,
+        newTaxPercentage,
+        oldTaxPercentage,
+        newStartDate,
+        newEndDate,
+        oldStartDate,
+        oldEndDate,
+        oldRate,
+        newRate,
+        currency,
+    } = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
     const {RATE_CHANGELOG_UPDATED_FIELD} = CONST.CUSTOM_UNITS;
 
@@ -3267,7 +3288,25 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitName && customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.RATE && typeof oldValue === 'string' && typeof newValue === 'string') {
-        return translate('workspaceActions.updatedCustomUnitRate', customUnitName, customUnitRateName, updatedField, newValue, oldValue);
+        if (typeof oldRate === 'number' && typeof newRate === 'number' && currency) {
+            return translate(
+                'workspaceActions.updatedCustomUnitRate',
+                customUnitName,
+                customUnitRateName,
+                updatedField,
+                convertAmountToDisplayString(newRate, currency),
+                convertAmountToDisplayString(oldRate, currency),
+            );
+        }
+
+        return translate(
+            'workspaceActions.updatedCustomUnitRate',
+            customUnitName,
+            customUnitRateName,
+            updatedField,
+            convertPolicyChangelogAmountToDisplayString(newValue, currency),
+            convertPolicyChangelogAmountToDisplayString(oldValue, currency),
+        );
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_RATE_EXTERNAL_ID && typeof newValue === 'string' && newTaxPercentage) {
