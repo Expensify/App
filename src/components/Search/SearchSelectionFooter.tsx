@@ -157,6 +157,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 return getNumberMember(convertedTransaction, 'groupAmount') !== undefined;
             });
         const shouldUseConvertedSelectedTotal = canConvertSelectedTotal && areAllSelectedRowsConverted;
+
         // Custom-currency totals need a backend conversion round-trip, so show loading whenever that conversion snapshot is in flight.
         const isFooterTotalConverting = hasCustomFooterCurrency && !!footerTotalMetadata?.isLoading;
         let currency;
