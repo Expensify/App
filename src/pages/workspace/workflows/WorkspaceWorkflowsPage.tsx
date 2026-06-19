@@ -109,7 +109,7 @@ function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: str
     );
 }
 
-// Bordered "Load more" card matching the workflow rows: the whole card is the tap target and gets the row-hover state (per #91727 design).
+// Bordered "Load more" card matching the workflow rows: the whole card is the tap target and gets the row-hover state.
 function WorkflowsLoadMoreCard({count, icon, onPress}: {count: number; icon: IconAsset; onPress: () => void}) {
     const styles = useThemeStyles();
     const theme = useTheme();
