@@ -182,7 +182,7 @@ function getRecalculatedDistanceRateIDForExpenseDate({
     }
 
     const newRateID = DistanceRequestUtils.getCustomUnitRateID({
-        reportID: parentReport.reportID,
+        reportID: parentReport?.reportID,
         isPolicyExpenseChat: true,
         policy,
         expenseDate,
