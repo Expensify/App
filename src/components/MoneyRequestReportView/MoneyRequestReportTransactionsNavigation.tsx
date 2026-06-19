@@ -10,6 +10,7 @@ import {createTransactionThreadReport, setOptimisticTransactionThread} from '@li
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +37,7 @@ const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.Report
 
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
-    const [threadReportIDsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
+    const [siblingDescriptorsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -127,13 +128,15 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             backTo = params?.backTo ?? backTo;
         }
 
-        // Snapshot-backed flows (e.g. Home "Recently added") seed the thread reportID up front because the
-        // sibling transactions may be absent from the main Onyx collections. When present, navigate to it
-        // directly and let OpenReport hydrate the thread on arrival.
-        const precomputedNextThreadReportID = nextTransactionID ? threadReportIDsByTransactionID?.[nextTransactionID] : undefined;
-        if (precomputedNextThreadReportID) {
-            markReportIDAsExpense(precomputedNextThreadReportID);
-            requestAnimationFrame(() => Navigation.setParams({reportID: precomputedNextThreadReportID, reportActionID: undefined, backTo}));
+        // Snapshot-backed flows (e.g. Home "Recently added") seed a descriptor per sibling because the sibling
+        // transactions may be absent from the main Onyx collections. Resolve the target sibling lazily here so
+        // we only ever create a thread for the expense the user actually navigates to, then let OpenReport
+        // hydrate it on arrival.
+        const nextDescriptor = nextTransactionID ? siblingDescriptorsByTransactionID?.[nextTransactionID] : undefined;
+        if (nextDescriptor) {
+            const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
+            markReportIDAsExpense(nextReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: nextReportID, reportActionID: undefined, backTo}));
             return;
         }
 
@@ -174,11 +177,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             backTo = params?.backTo ?? backTo;
         }
 
-        // See onNext: prefer the snapshot-seeded thread reportID when available.
-        const precomputedPrevThreadReportID = prevTransactionID ? threadReportIDsByTransactionID?.[prevTransactionID] : undefined;
-        if (precomputedPrevThreadReportID) {
-            markReportIDAsExpense(precomputedPrevThreadReportID);
-            requestAnimationFrame(() => Navigation.setParams({reportID: precomputedPrevThreadReportID, reportActionID: undefined, backTo}));
+        // See onNext: resolve the target sibling lazily from its descriptor when present.
+        const prevDescriptor = prevTransactionID ? siblingDescriptorsByTransactionID?.[prevTransactionID] : undefined;
+        if (prevDescriptor) {
+            const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {introSelected, betas, currentUserEmail, currentUserAccountID});
+            markReportIDAsExpense(prevReportID);
+            requestAnimationFrame(() => Navigation.setParams({reportID: prevReportID, reportActionID: undefined, backTo}));
             return;
         }
 

@@ -16,13 +16,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createTransactionThreadReport} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import {isExpenseUnreported} from '@libs/TransactionUtils';
+import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
+import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -66,68 +64,25 @@ function RecentlyAddedSection() {
 
     const hasExpenses = transactions.length > 0;
 
-    // Each row is a single expense, so we open that specific expense rather than its parent report.
-    // A one-transaction report already renders the expense inline, so we keep its reportID; for a
-    // multi-expense report we resolve (and create if needed) the transaction thread for the tapped expense.
-    const getReportIDToOpen = (expense: RecentlyAddedExpense): string => {
-        const isUnreported = isExpenseUnreported(expense.transaction);
-
-        // Unreported (tracked) expenses live in the self-DM; their transaction thread (resolved from the
-        // snapshot) is the expense view to open, since report "0" does not exist.
-        if (isUnreported) {
-            return expense.threadReportID ?? expense.reportID;
-        }
-
-        const parentReport = getReportOrDraftReport(expense.reportID);
-        if (isOneTransactionReport(parentReport)) {
-            return expense.reportID;
-        }
-
-        // Prefer the transaction thread resolved from the Search snapshot. The main reportActions_ collection
-        // may be empty (e.g. right after clearing Onyx) so getIOUActionForReportID can fail and incorrectly
-        // fall back to the whole parent expense report; the snapshot already carries the correct childReportID.
-        if (expense.threadReportID) {
-            return expense.threadReportID;
-        }
-
-        const iouAction = getIOUActionForReportID(expense.reportID, expense.transactionID);
-        if (!iouAction) {
-            return expense.reportID;
-        }
-        if (iouAction.childReportID) {
-            return iouAction.childReportID;
-        }
-
-        const transactionThreadReport = createTransactionThreadReport({
-            introSelected,
-            currentUserLogin: currentUserEmail ?? '',
-            currentUserAccountID,
-            betas,
-            iouReport: parentReport,
-            iouReportAction: iouAction,
-            transaction: expense.transaction,
-        });
-        return transactionThreadReport?.reportID ?? expense.reportID;
-    };
-
     const openExpense = (expense: RecentlyAddedExpense) => {
-        const reportID = getReportIDToOpen(expense);
+        // Resolve only the tapped expense now. getReportIDToOpenForExpense may create a transaction thread, so
+        // resolving every sibling up front would create a thread for each multi-expense sibling on a single tap.
+        // Instead, seed the cheap snapshot-derived descriptors and let the carousel resolve each sibling lazily,
+        // one at a time, only when the user actually navigates to it.
+        const resolveContext = {introSelected, betas, currentUserEmail, currentUserAccountID};
+        const reportID = getReportIDToOpenForExpense(expense, resolveContext);
 
-        // Seed the prev/next carousel with every recently added expense so the single-expense RHP can navigate
-        // between them. This data is snapshot-backed and may be missing from the main Onyx collections, so we
-        // also seed each expense's resolved thread reportID; the carousel navigates to it directly and lets
-        // OpenReport hydrate the thread on arrival.
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
-        const threadReportIDsByTransactionID = transactions.reduce<Record<string, string>>((map, sibling) => {
+        const siblingDescriptorsByTransactionID = transactions.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
             // eslint-disable-next-line no-param-reassign
-            map[sibling.transactionID] = sibling.transactionID === expense.transactionID ? reportID : getReportIDToOpen(sibling);
+            map[sibling.transactionID] = {reportID: sibling.reportID, threadReportID: sibling.threadReportID, transaction: sibling.transaction};
             return map;
         }, {});
 
         // Each row opens a single-expense view that always lands in (Wide) RHP on both layouts so the carousel
         // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
         // data loads, instead of flickering from narrow to wide.
-        setActiveTransactionIDs(siblingTransactionIDs, threadReportIDsByTransactionID).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs, siblingDescriptorsByTransactionID).then(() => {
             markReportIDAsExpense(reportID);
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
         });

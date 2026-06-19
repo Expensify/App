@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {createTransactionThreadReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import RecentlyAddedSection from '@pages/home/RecentlyAddedSection';
 import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
@@ -73,6 +74,16 @@ jest.mock('@pages/home/RecentlyAddedSection/useRecentlyAddedData', () => ({
     useRecentlyAddedData: jest.fn(),
 }));
 
+// Partially mock the Report actions so we can assert how many transaction threads get created on a single tap
+// (the lazy carousel must never create a thread for a sibling the user hasn't navigated to).
+jest.mock('@libs/actions/Report', () => {
+    const actual = jest.requireActual('@libs/actions/Report');
+    return {
+        ...actual,
+        createTransactionThreadReport: jest.fn(() => ({reportID: 'created_thread_report'})),
+    };
+});
+
 // The real MenuItem's pressable doesn't dispatch onPress in this test harness, so mock it (as the repo's
 // PopoverMenu/YourSpendSection tests do) to a plain pressable that the overflow menu items can trigger.
 jest.mock('@components/MenuItem', () => {
@@ -87,6 +98,7 @@ jest.mock('@components/MenuItem', () => {
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseRecentlyAddedData = jest.mocked(useRecentlyAddedData);
+const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
 
 const ACCOUNT_ID = 12345;
 
@@ -311,7 +323,7 @@ describe('RecentlyAddedSection', () => {
             expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, backTo: ROUTES.HOME}));
         });
 
-        it('seeds the prev/next carousel with every recently added expense and its thread reportID', async () => {
+        it('seeds the prev/next carousel with the IDs and a lazy descriptor for every recently added expense', async () => {
             setWideLayout();
             mockUseRecentlyAddedData.mockReturnValue({transactions: [ROW_1, ROW_2]});
 
@@ -330,7 +342,7 @@ describe('RecentlyAddedSection', () => {
                     },
                 });
             });
-            const seededThreadReportIDs = await new Promise((resolve) => {
+            const seededDescriptors = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
                     callback: (value) => {
@@ -341,7 +353,43 @@ describe('RecentlyAddedSection', () => {
             });
 
             expect(seededIDs).toEqual([ROW_1.transactionID, ROW_2.transactionID]);
-            expect(seededThreadReportIDs).toEqual({[ROW_1.transactionID]: ROW_1.reportID, [ROW_2.transactionID]: ROW_2.reportID});
+            // The seeded value is the cheap descriptor (parent reportID + transaction), NOT a resolved thread
+            // reportID — resolution is deferred to navigation time so opening the list creates no threads.
+            expect(seededDescriptors).toEqual({
+                [ROW_1.transactionID]: expect.objectContaining({reportID: ROW_1.reportID, transaction: expect.objectContaining({transactionID: ROW_1.transactionID})}),
+                [ROW_2.transactionID]: expect.objectContaining({reportID: ROW_2.reportID, transaction: expect.objectContaining({transactionID: ROW_2.transactionID})}),
+            });
+        });
+
+        it('resolves only the tapped expense and creates no threads for siblings (lazy carousel)', async () => {
+            setWideLayout();
+            const parentReportID = 'report_multi_lazy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE, transactionCount: 2});
+                // Neither sibling has an existing thread (no childReportID), so resolving a sibling requires creating one.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    a1: {reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage: {IOUTransactionID: 't1'}},
+                    a2: {reportActionID: 'a2', actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage: {IOUTransactionID: 't2'}},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            mockUseRecentlyAddedData.mockReturnValue({
+                transactions: [
+                    {...ROW_1, reportID: parentReportID},
+                    {...ROW_2, reportID: parentReportID},
+                ],
+            });
+
+            renderRecentlyAddedSection();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByTestId('recentlyAddedRow-t1'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Exactly one thread is created (for the tapped expense), never one per sibling.
+            expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
+            expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({transaction: expect.objectContaining({transactionID: 't1'})}));
         });
     });
 

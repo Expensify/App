@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -8,16 +9,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
  *
  * We save this value in onyx, so that we can correctly display navigation UI in transaction thread RHP.
  *
- * Optionally a map of transactionID -> thread reportID can be provided. It is used by snapshot-backed flows
+ * Optionally a map of transactionID -> sibling descriptor can be provided. It is used by snapshot-backed flows
  * (e.g. the Home "Recently added" section) where the sibling transactions are not guaranteed to live in the
- * main Onyx collections, so the prev/next navigation can't re-derive the thread report from them. When the
- * map is provided, navigation uses it directly instead.
+ * main Onyx collections, so the prev/next navigation can't re-derive the thread report from them. When the map
+ * is provided, navigation resolves (and lazily creates) each sibling's thread on demand from its descriptor.
  */
 
 let lastSetIDs: string[] | null = null;
-let lastSetThreadReportIDs: Record<string, string> | null = null;
+let lastSetDescriptors: Record<string, TransactionThreadNavigationDescriptor> | null = null;
 
-function areThreadReportIDsEqual(a: Record<string, string> | null, b: Record<string, string> | null) {
+function areDescriptorMapsEqual(a: Record<string, TransactionThreadNavigationDescriptor> | null, b: Record<string, TransactionThreadNavigationDescriptor> | null) {
     if (a === b) {
         return true;
     }
@@ -28,28 +29,33 @@ function areThreadReportIDsEqual(a: Record<string, string> | null, b: Record<str
     if (aKeys.length !== Object.keys(b).length) {
         return false;
     }
-    return aKeys.every((key) => a[key] === b[key]);
+    // Compare the identity-bearing fields only; the transaction object is keyed by transactionID, so two
+    // descriptors with the same reportID/threadReportID/transactionID describe the same sibling.
+    return aKeys.every((key) => {
+        const next = b[key];
+        return !!next && a[key].reportID === next.reportID && a[key].threadReportID === next.threadReportID && a[key].transaction?.transactionID === next.transaction?.transactionID;
+    });
 }
 
 /**
- * Idempotent: skips the Onyx write when the IDs and the thread reportID map haven't changed.
+ * Idempotent: skips the Onyx write when the IDs and the descriptor map haven't changed.
  * This lets callers (e.g. useEffect in MoneyRequestReportTransactionList) fire
  * freely without worrying about referential equality of the input array.
  */
-function setActiveTransactionIDs(ids: string[], threadReportIDsByTransactionID?: Record<string, string>) {
-    const nextThreadReportIDs = threadReportIDsByTransactionID ?? null;
+function setActiveTransactionIDs(ids: string[], siblingDescriptorsByTransactionID?: Record<string, TransactionThreadNavigationDescriptor>) {
+    const nextDescriptors = siblingDescriptorsByTransactionID ?? null;
     const sameIDs = lastSetIDs?.length === ids.length && lastSetIDs.every((id, i) => id === ids.at(i));
-    if (sameIDs && areThreadReportIDsEqual(lastSetThreadReportIDs, nextThreadReportIDs)) {
+    if (sameIDs && areDescriptorMapsEqual(lastSetDescriptors, nextDescriptors)) {
         return Promise.resolve();
     }
     lastSetIDs = ids;
-    lastSetThreadReportIDs = nextThreadReportIDs;
-    return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextThreadReportIDs)]);
+    lastSetDescriptors = nextDescriptors;
+    return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, ids), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, nextDescriptors)]);
 }
 
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
-    lastSetThreadReportIDs = null;
+    lastSetDescriptors = null;
     return Promise.all([Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null), Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS, null)]);
 }
 
