@@ -509,6 +509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'アバター',
         editor: '編集者',
         restrictions: '制限',
+        off: 'オフ',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -1328,6 +1329,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} を支払済みにする` : `支払い済みにする`),
         confirmPaymentReceivedModalTitle: '支払いを受領したことを確認',
         receivedPayment: '支払い受領済み',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}支払いを受け取りました`,
         receivedPaymentConfirmation: 'Expensify以外で支払いを受け取っている場合のみ続行してください。',
         confirmReceivedPayment: 'はい、支払いを受け取りました。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント（下4桁 ${last4Digits}）で ${amount} を支払いました` : `個人アカウントで支払い済み`),
@@ -1687,6 +1689,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
+        categoryDisabledAlert: {
+            title: 'カテゴリは無効です',
+            prompt: 'ワークスペースでカテゴリを有効にすると、この経費の詳細を編集したり、この経費からカテゴリを削除したりできます。',
+            confirmText: 'カテゴリを削除',
+        },
+        tagDisabledAlert: {
+            title: 'タグは無効です',
+            prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
+            confirmText: 'タグを削除',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3006,12 +3018,6 @@ ${date} の ${merchant} への ${amount}`,
         welcome: 'ようこそ！',
         welcomeSignOffTitleManageTeam: '上記のタスクが完了したら、承認ワークフローやルールなど、さらに多くの機能を試してみましょう！',
         welcomeSignOffTitle: 'お会いできてうれしいです！',
-        explanationModal: {
-            title: 'Expensify へようこそ',
-            description:
-                '1つのアプリで、ビジネスとプライベートの支出をチャットのスピードで管理しましょう。ぜひお試しいただき、ご意見をお聞かせください。今後もさらに機能を追加していきます！',
-            secondaryDescription: 'Expensify Classic に戻るには、プロフィール写真をタップし、「Expensify Classic に移動」を選択してください。',
-        },
         getStarted: 'はじめる',
         whatsYourName: 'あなたの名前は何ですか？',
         peopleYouMayKnow: 'あなたのチームが Expensify を利用しているか確認する',
@@ -3492,7 +3498,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     statusPage: {
         status: 'ステータス',
-        statusExplanation: '同僚や友人が状況をひと目で分かるように、絵文字を追加しましょう。必要であればメッセージも追加できます。',
+        statusExplanation: '絵文字と任意のメッセージでステータスを設定します。',
         today: '今日',
         clearStatus: 'ステータスをクリア',
         save: '保存',
@@ -4914,6 +4920,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: '会社',
             autoSyncDescription: 'Expensify は毎日自動的に Certinia と同期します。',
             syncReimbursedReportsDescription: 'このオプションを有効にすると、FFA で買掛請求書が支払われるたびに、関連する Expensify レポートが自動的に精算済みとしてマークされます。',
             exportDescription: 'Expensify のデータを Certinia へエクスポートする方法を設定します。',
@@ -4921,9 +4929,17 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             exportStatus: {
                 label: '買掛請求書のステータス',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '完了',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: '完了',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: '進行中',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: '承認済み',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '送信済み',
+                },
+            },
+            reportExportStatus: {
+                label: '経費レポートステータス',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: '承認済み',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: '送信済み',
                 },
             },
             exportDate: {
@@ -4936,8 +4952,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             exportReimbursable: {label: '精算対象経費の書き出し形式', helperText: '払い戻し対象としてマークされた経費は、従業員宛ての未払請求書としてエクスポートされます。'},
             exportNonReimbursable: {label: '未払い精算の対象外経費を次の形式でエクスポートする'},
+            expenseReports: '経費レポート',
+            exportReimbursableExpenseReports: {helperText: '払い戻し対象としてマークされた経費は、従業員宛ての経費レポートとしてエクスポートされます。'},
+            exportNonReimbursableExpenseReports: {helperText: '払い戻し対象外としてマークされた経費は、従業員宛ての経費レポートとしてエクスポートされます。'},
             noVendorsFound: 'ベンダーが見つかりませんでした',
             noVendorsFoundDescription: 'Certinia にベンダーを追加した後に、もう一度接続の同期を行ってください。',
+            noCompaniesFound: '会社が見つかりませんでした',
+            noCompaniesFoundDescription: 'Certinia に会社を追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
                 installBundle: 'FFA 接続用',
@@ -6141,6 +6162,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'コピーする機能を選択します',
                 description: '既存のワークスペースで上書きする設定を選択します。',
                 accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
+                travelAddressMismatch: '出張をコピーできるのは、選択したすべてのワークスペースに会社の住所がある場合のみです。',
             },
             confirmSettings: {
                 title: 'すべて正しく表示されているか確認しましょう。',
@@ -6235,6 +6257,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             admins: 'ワークスペース管理者',
             approvers: '承認者',
             auditors: '監査担当者',
+            editors: '編集者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
             configureHRSync: (providerName: string) => `${providerName} の同期を設定します。`,
             syncWithHR: (providerName: string) => `${providerName}と同期`,
@@ -6769,11 +6792,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `次のレポートはすでに ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。
+            }: ExportAgainModalDescriptionParams) => `次のレポートはすでに ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} にエクスポートされています。もう一度エクスポートしてもよろしいですか？
 
-${reportName}
-
-もう一度エクスポートしてもよろしいですか？`,
+${reportName}`,
             confirmText: 'はい、再度エクスポートします',
             cancelText: 'キャンセル',
         },
@@ -6986,7 +7007,7 @@ ${reportName}
             },
             controlPolicyRoles: {
                 title: 'コントロールポリシーのロール',
-                description: '監査人やカード管理者などの専用ロールを使って、メンバーが必要なものにだけアクセスできるようにします。',
+                description: '監査人やカード管理者などのロールを割り当てて、メンバーに特定のアクセス権を付与します。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>特別なワークスペースロールは Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> から、${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブメンバー1人あたり／月`}）。</muted-text>`,
             },
@@ -7221,9 +7242,6 @@ ${reportName}
                 saveRule: 'ルールを保存',
                 allow: '許可',
                 spendRuleSectionTitle: '支出ルール',
-                restrictionType: '制限タイプ',
-                restrictionTypeHelpAllow: 'いずれかの加盟店またはカテゴリに一致し、上限金額を超えない場合、請求は承認されます。',
-                restrictionTypeHelpBlock: '加盟店またはカテゴリに一致するか、上限金額を超えた請求は拒否されます。',
                 addMerchant: '取引先を追加',
                 merchantContains: '加盟店に次を含む',
                 merchantExactlyMatches: '完全一致する加盟店',
@@ -7234,11 +7252,10 @@ ${reportName}
                 matchType: 'マッチタイプ',
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
-                spendCategory: '支出カテゴリ',
                 maxAmount: '最大金額',
                 maxAmountHelp: '加盟店や支出カテゴリの制限にかかわらず、この金額を超えるすべての支払いは拒否されます。',
-                currencyMismatchTitle: '通貨の不一致',
-                currencyMismatchPrompt: '上限金額を設定するには、同じ通貨で清算されるカードを選択してください。',
+                maxAmountCurrencyMismatchTitle: '通貨の不一致',
+                maxAmountCurrencyMismatchPrompt: '上限金額を設定するには、同じ通貨で清算されるカードを選択してください。',
                 reviewSelectedCards: '選択したカードを確認',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}、ほか+${count}件` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: '少なくとも1つの支出ルールを1枚のカードに適用してください',
@@ -7301,17 +7318,35 @@ ${reportName}
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
+                restrictMerchants: '加盟店を制限する',
+                merchantTypes: '加盟店種別',
+                allowedMerchants: '許可された加盟店',
+                allowedMerchantTypes: '許可された加盟店の種類',
+                blockedMerchants: 'ブロックされた加盟店',
+                blockedMerchantTypes: 'ブロックされた加盟店タイプ',
+                currencies: '通貨',
+                permittedCurrencies: '許可されている通貨',
+                allCurrencies: 'すべての通貨',
+                permittedCurrenciesSubtitle: 'すべての通貨、または特定の通貨のみを許可するように選択します',
+                settlementCurrencyPermittedSubtitle: 'カードの決済通貨は常に許可されています',
+                currenciesCurrencyMismatchTitle: '通貨の不一致',
+                currenciesCurrencyMismatchPrompt: '希望する通貨を設定するには、同じ通貨で清算されるカードを選択してください。',
+                restrictMerchantsOffSubtitle: '許可された通貨で、最大金額を超えない請求のみが承認されます',
+                restrictMerchantsAllowSubtitle: '許可された通貨で、上限金額を超えず、加盟店または加盟店の種類が一致する場合に、チャージが承認されます。',
+                restrictMerchantsBlockSubtitle: '承認される支出は、許可された通貨で上限金額を超えないもの、または加盟店または加盟店の種類が条件に一致するものです。',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
             },
             agentRules: {
-                title: 'エージェント ルール',
-                subtitle: '必要なときに実行される柔軟なルールを記述します。',
-                addRule: 'エージェント ルールを追加',
-                findRule: 'エージェント ルールを検索',
+                title: 'エージェントルール',
+                subtitle: 'このワークスペースで AI エージェントが経費を処理する方法のルールを設定します。',
+                addRule: 'エージェントルールを追加',
+                findRule: 'エージェントルールを検索',
                 addRuleTitle: 'ルールを追加',
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
-                describeRuleTitle: 'ルールの内容を入力すると、Concierge が自動作成します',
+                describeRuleTitle: 'AI エージェントに従わせるルールを記述してください',
                 disclaimer: 'AI エージェントは間違える場合があります。',
                 agentCreatedTitle: 'RuleBot がワークスペースに追加されました!',
                 agentCreatedDescription: (agentsRoute: string) =>
@@ -9402,6 +9437,7 @@ ${reportName}
             theresAProblemWithYourWallet: 'ウォレットに問題があります',
             theresAProblemWithYourWalletTerms: 'ウォレットの利用規約に問題があります',
             aBankAccountIsLocked: '銀行口座がロックされています',
+            completeHrSetup: '人事設定を完了する',
         },
     },
     emptySearchView: {
@@ -9503,6 +9539,7 @@ ${reportName}
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
         close: 'Close',
     },
     domain: {
