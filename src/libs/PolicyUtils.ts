@@ -47,7 +47,7 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import {isAnyHRConnected} from './HRUtils';
+import {isAnyHRConnected, shouldShowHRConnectionError} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -2046,26 +2046,6 @@ function getAccountingConnectionNames(): AccountingConnectionName[] {
 function isAccountingConnectionName(connectionName?: ConnectionName): connectionName is AccountingConnectionName {
     return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
 }
-
-/**
- * Checks if any HR connection on the policy is in an error state.
- */
-function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
-    if (!isPolicyAdmin(policy)) {
-        return false;
-    }
-    const mergeLastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
-    if (mergeLastSync?.isAuthenticationError || mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED) {
-        return true;
-    }
-    return getHRConnectionNames().some((name) => {
-        if (policy?.connections?.[name]?.lastSync?.isAuthenticationError) {
-            return true;
-        }
-        return hasSynchronizationErrorMessage(policy, name, isSyncInProgress);
-    });
-}
-
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
 }
@@ -2694,7 +2674,6 @@ export {
     tryNavigateToSubmitWorkspaceUpgrade,
     canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
-    shouldShowHRConnectionError,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     hasAnyPaidPolicy,
