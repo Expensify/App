@@ -100,6 +100,7 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
                     </View>
                     <Button
                         style={[styles.mt3, styles.noSelect]}
+                        success={hasFinishedPDFDownload}
                         onPress={() => {
                             if (!hasFinishedPDFDownload || !statementKey || !statementFileName) {
                                 onClose();
@@ -107,6 +108,7 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
                             }
 
                             downloadExpensifyCardStatementPDF(translate, statementFileName, statementKey, currentUserLogin, encryptedAuthToken, environment);
+                            onClose();
                         }}
                         text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
                     />
