@@ -226,7 +226,7 @@ describe('Split context hooks', () => {
             const {result} = renderHook(() => useMultifactorAuthenticationState(), {wrapper});
 
             expect(result.current).toEqual(DEFAULT_STATE);
-            expect(result.current.error).toBeUndefined();
+            expect(result.current.continuableError).toBeUndefined();
             expect(result.current.validateCode).toBeUndefined();
             expect(result.current.softPromptApproved).toBe(false);
             expect(result.current.isFlowComplete).toBe(false);

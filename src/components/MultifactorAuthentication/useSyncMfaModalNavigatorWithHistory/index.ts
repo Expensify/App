@@ -38,10 +38,10 @@ function getHistory(): readonly unknown[] {
  * @param requestCancel Called on every back press.
  */
 function useSyncMfaModalNavigatorWithHistory(modalState: MfaModalState, requestCancel: () => void): void {
-    // The marker tracks `open` only: `closing` already pops it so back is released while the close animation plays
     const isModalOpen = modalState === MFA_STATE.OPEN;
 
-    // Push the history marker while the modal is open; pop it on close. Tied to isModalOpen only so re-renders don't churn it.
+    // Push the history marker while the modal is open; pop it on close. `closing` is excluded because that pop
+    // already releases back while the close animation plays. Tied to isModalOpen only so re-renders don't churn it.
     useEffect(() => {
         if (!isModalOpen) {
             return;

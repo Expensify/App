@@ -1,15 +1,34 @@
 import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
-import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
-import type {MultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/state';
+import type {
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioParams,
+} from '@components/MultifactorAuthentication/config/types';
+import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type CONST from '@src/CONST';
 
 /**
- * The machine's context: the subset of {@link MultifactorAuthenticationState} actually wired into the
- * chart today - either written by an action or read off the snapshot by a consumer. Later slices add
- * fields back here as they wire them in; the full shape still lives in the Context/reducer layer for
- * its own consumers.
+ * The machine's context: the fields the chart owns and writes. Each lives here, not in
+ * `MultifactorAuthenticationState` - migrating a field into the machine means removing it from the
+ * reducer shape, so every field has exactly one home and a stale reducer read of a migrated field is
+ * a compile error.
  */
-type MfaContext = Pick<MultifactorAuthenticationState, 'error' | 'scenarioName' | 'scenario' | 'payload' | 'isCancelConfirmVisible'>;
+type MfaContext = {
+    /** Current error state - stops the flow and navigates to the failure outcome */
+    error: MFAError | undefined;
+
+    /** Scenario name identifier (e.g. 'AUTHORIZE-TRANSACTION') */
+    scenarioName: MultifactorAuthenticationScenario | undefined;
+
+    /** Current scenario configuration being executed */
+    scenario: MultifactorAuthenticationScenarioConfigFor<MultifactorAuthenticationScenario> | undefined;
+
+    /** Additional parameters for the current scenario */
+    payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
+
+    /** Whether the cancel-confirmation modal triggered by a back press is currently visible */
+    isCancelConfirmVisible: boolean;
+};
 
 /** Modal lifecycle state the view layer reads: the machine's three top-level states. */
 type MfaModalState =
