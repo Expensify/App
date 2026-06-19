@@ -2051,6 +2051,23 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
 }
 
 /**
+ * True when the QBO connection is exporting non-reimbursables to a card account, which is the
+ * mode that scopes the vendor field on QBO.
+ */
+function isQBOVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const destination = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config?.nonReimbursableExpensesExportDestination;
+    return destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * True when the Sage Intacct connection is exporting non-reimbursables as Credit Card Charge, which
+ * is the mode that scopes the vendor field on Intacct.
+ */
+function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE;
+}
+
+/**
  * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
  * enabled AND a supported accounting integration is connected with a non-reimbursable export type
  * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
@@ -2064,21 +2081,7 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (!isVendorMatchingBetaEnabled || !policy) {
         return false;
     }
-    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
-    if (qboConnection) {
-        const qboDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
-        if (qboDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || qboDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD) {
-            return true;
-        }
-    }
-    const intacctConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
-    if (intacctConnection) {
-        const intacctDestination = intacctConnection.config?.export?.nonReimbursable;
-        if (intacctDestination === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE) {
-            return true;
-        }
-    }
-    return false;
+    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy);
 }
 
 /**
@@ -2100,18 +2103,12 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
     if (!policy) {
         return [];
     }
-    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
-    const qboDestination = qboConnection?.config?.nonReimbursableExpensesExportDestination;
-    if (
-        qboConnection &&
-        (qboDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || qboDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD)
-    ) {
-        return qboConnection.data?.vendors ?? [];
+    if (isQBOVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
     }
-    const intacctConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
-    const intacctDestination = intacctConnection?.config?.export?.nonReimbursable;
-    if (intacctConnection && intacctDestination === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE) {
-        return (intacctConnection.data?.vendors ?? []).map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
+    if (isIntacctVendorMatchingActive(policy)) {
+        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
+        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
     }
     return [];
 }
