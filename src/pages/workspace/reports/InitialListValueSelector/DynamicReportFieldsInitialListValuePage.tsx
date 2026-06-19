@@ -76,7 +76,7 @@ function DynamicReportFieldsInitialListValuePage({
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 {isLoadingFormDraft || shouldRedirectToCreatePage ? (
-                    <FullScreenLoadingIndicator />
+                    <FullScreenLoadingIndicator reasonAttributes={{context: 'DynamicReportFieldsInitialListValuePage', isLoadingFormDraft: !!isLoadingFormDraft}} />
                 ) : (
                     <>
                         <View style={[styles.ph5, styles.pb4]}>
