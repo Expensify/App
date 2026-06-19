@@ -23,7 +23,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import TextFilterPopup from '../FilterDropdowns/TextFilterPopup';
+import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
 
 type FilterItem = WithSentryLabel & {

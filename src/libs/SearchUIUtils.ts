@@ -5355,7 +5355,7 @@ function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined
 }
 
 function isTextFilterKey(key: string): key is SearchTextFilterKeys {
-    return TEXT_FILTER_KEYS.includes(key as SearchTextFilterKeys);
+    return (TEXT_FILTER_KEYS as Set<string>).has(key);
 }
 
 const isAmountFilterKey = (key: SearchFilter['key']): key is SearchAmountFilterKeys => {
