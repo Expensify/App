@@ -1,9 +1,8 @@
-import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
+import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/routers';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 
 jest.mock('@react-navigation/native', () => ({
-    findFocusedRoute: jest.fn(),
     getPathFromState: jest.fn(),
 }));
 
@@ -34,7 +33,21 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         ReportScreen: {
             path: 'r/:reportID',
         },
+        // Tab-hosting dynamic screen and its tab children
+        TabHostDynamicScreen: {
+            path: ':integration/edit',
+        },
+        TabAll: {
+            path: 'all',
+        },
+        TabLinked: {
+            path: 'linked',
+        },
     },
+    // Screens that host an OnyxTabNavigator — findFocusedRouteWithOnyxTabGuard stops here
+    screensWithOnyxTabNavigator: new Set(['TabHostDynamicScreen']),
+    // Pattern-to-tabs map used by findAllMatchingDynamicSuffixes Phase 4 (not used in getPathFromState tests)
+    dynamicTabPatternToTabPaths: new Map(),
 }));
 
 jest.mock('@libs/Navigation/linkingConfig', () => ({
@@ -61,6 +74,9 @@ jest.mock('@src/ROUTES', () => ({
         CONSTANT_PICKER: {
             path: 'constant-picker',
             queryParams: ['formType', 'fieldName', 'fieldValue'],
+        },
+        TAB_HOST_DYNAMIC: {
+            path: ':integration/edit',
         },
     },
 }));
@@ -98,7 +114,6 @@ const staticBasePaths: Record<string, (params?: Record<string, unknown>) => stri
 };
 
 describe('getPathFromState', () => {
-    const mockFindFocusedRoute = findFocusedRoute as jest.Mock;
     const mockRNGetPathFromState = RNGetPathFromState as jest.Mock;
 
     beforeEach(() => {
@@ -106,7 +121,6 @@ describe('getPathFromState', () => {
     });
 
     it('should resolve dynamic screen from pattern and params', () => {
-        mockFindFocusedRoute.mockImplementation(realFindFocusedRoute);
         mockRNGetPathFromState.mockImplementation(staticBasePaths.WalletScreen);
 
         const state = buildState([{name: 'WalletScreen'}, {name: 'TestDynamicScreen'}]);
@@ -117,26 +131,21 @@ describe('getPathFromState', () => {
     });
 
     it('should use RN getPathFromState for standard screens', () => {
-        const state = {} as PartialState<NavigationState>;
         const expectedPath = '/standard/path';
-
-        mockFindFocusedRoute.mockReturnValue({
-            name: 'StandardScreen',
-        });
         mockRNGetPathFromState.mockReturnValue(expectedPath);
 
-        const result = getPathFromState(state);
+        const state = buildState([{name: 'StandardScreen'}]);
+        const result = getPathFromState(state as PartialState<NavigationState>);
 
         expect(result).toBe(expectedPath);
         expect(mockRNGetPathFromState).toHaveBeenCalledWith(state, expect.anything());
     });
 
     it('should handle state where no route is focused', () => {
-        const state = {} as PartialState<NavigationState>;
-        mockFindFocusedRoute.mockReturnValue(undefined);
         mockRNGetPathFromState.mockReturnValue('/fallback');
 
-        const result = getPathFromState(state);
+        const state = buildState([{name: 'StandardScreen'}]);
+        const result = getPathFromState(state as PartialState<NavigationState>);
 
         expect(result).toBe('/fallback');
         expect(mockRNGetPathFromState).toHaveBeenCalled();
@@ -144,8 +153,6 @@ describe('getPathFromState', () => {
 
     describe('dynamic route resolution from pattern and params', () => {
         beforeEach(() => {
-            mockFindFocusedRoute.mockImplementation(realFindFocusedRoute);
-
             mockRNGetPathFromState.mockImplementation((s: TestState) => {
                 const route = realFindFocusedRoute(s);
                 const builder = staticBasePaths[route?.name ?? ''];
@@ -300,6 +307,110 @@ describe('getPathFromState', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'CountryScreen'}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country');
+        });
+    });
+
+    describe('dynamic screen with tab navigator inside', () => {
+        beforeEach(() => {
+            mockRNGetPathFromState.mockImplementation((s: TestState) => {
+                const route = realFindFocusedRoute(s);
+                const builder = staticBasePaths[route?.name ?? ''];
+                return builder ? builder(route?.params) : '/unknown';
+            });
+        });
+
+        it('resolves default tab (index 0) when tab-host dynamic screen is focused', () => {
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'TabHostDynamicScreen',
+                    params: {integration: 'brex'},
+                    state: buildState([{name: 'TabAll'}, {name: 'TabLinked'}], 0),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/brex/edit/all');
+        });
+
+        it('resolves non-default tab (index 1) when tab-host dynamic screen is focused', () => {
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'TabHostDynamicScreen',
+                    params: {integration: 'brex'},
+                    state: buildState([{name: 'TabAll'}, {name: 'TabLinked'}], 1),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/brex/edit/linked');
+        });
+
+        it('resolves tab path when tab-host dynamic screen is the only screen (no base)', () => {
+            const state = buildState([
+                {
+                    name: 'TabHostDynamicScreen',
+                    params: {integration: 'brex'},
+                    state: buildState([{name: 'TabAll'}, {name: 'TabLinked'}], 0),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/brex/edit/all');
+        });
+
+        it('resolves tab path inside a nested navigator', () => {
+            const state = buildState([
+                {
+                    name: 'RHPNavigator',
+                    state: buildState([
+                        {name: 'WalletScreen'},
+                        {
+                            name: 'TabHostDynamicScreen',
+                            params: {integration: 'lyft'},
+                            state: buildState([{name: 'TabAll'}, {name: 'TabLinked'}], 0),
+                        },
+                    ]),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/lyft/edit/all');
+        });
+
+        it('resolves tab-host dynamic screen in backstack under another focused dynamic screen', () => {
+            // Stack: WalletScreen → TabHostDynamicScreen[TabAll] → VerifyAccountScreen (focused)
+            // Expected: basePath(WalletScreen) / tabHostSuffix / tabPath / verifyAccountSuffix
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'TabHostDynamicScreen',
+                    params: {integration: 'brex'},
+                    state: buildState([{name: 'TabAll'}, {name: 'TabLinked'}], 0),
+                },
+                {name: 'VerifyAccountScreen'},
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/brex/edit/all/verify-account');
+        });
+
+        it('tab-host in backstack uses the currently focused tab, not always default', () => {
+            // Non-default tab (linked) is focused inside the tab-host that sits under another dynamic screen
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'TabHostDynamicScreen',
+                    params: {integration: 'brex'},
+                    state: buildState([{name: 'TabAll'}, {name: 'TabLinked'}], 1),
+                },
+                {name: 'VerifyAccountScreen'},
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/brex/edit/linked/verify-account');
+        });
+
+        it('does not append tab path when tab-host dynamic screen has no nested tab state', () => {
+            // Edge case: tab state is absent (e.g. partially initialised navigation state)
+            const state = buildState([{name: 'WalletScreen'}, {name: 'TabHostDynamicScreen', params: {integration: 'brex'}}]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/brex/edit');
         });
     });
 });

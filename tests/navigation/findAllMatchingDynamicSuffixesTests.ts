@@ -1,5 +1,9 @@
 import findAllMatchingDynamicSuffixes, {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 
+jest.mock('@libs/Navigation/linkingConfig/config', () => ({
+    dynamicTabPatternToTabPaths: new Map(),
+}));
+
 jest.mock('@src/ROUTES', () => ({
     DYNAMIC_ROUTES: {
         VERIFY_ACCOUNT: {path: 'verify-account'},
@@ -18,7 +22,7 @@ jest.mock('@src/ROUTES', () => ({
 
 describe('findMatchingDynamicSuffix', () => {
     it('should match a single-segment dynamic suffix', () => {
-        expect(findMatchingDynamicSuffix('settings/wallet/verify-account')).toEqual({
+        expect(findMatchingDynamicSuffix('settings/wallet/verify-account')).toMatchObject({
             pattern: 'verify-account',
             actualSuffix: 'verify-account',
             pathParams: {},
@@ -26,7 +30,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should match when the path has a leading slash', () => {
-        expect(findMatchingDynamicSuffix('/settings/wallet/verify-account')).toEqual({
+        expect(findMatchingDynamicSuffix('/settings/wallet/verify-account')).toMatchObject({
             pattern: 'verify-account',
             actualSuffix: 'verify-account',
             pathParams: {},
@@ -46,7 +50,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should ignore query parameters when matching', () => {
-        expect(findMatchingDynamicSuffix('settings/wallet/verify-account?sortBy=date')).toEqual({
+        expect(findMatchingDynamicSuffix('settings/wallet/verify-account?sortBy=date')).toMatchObject({
             pattern: 'verify-account',
             actualSuffix: 'verify-account',
             pathParams: {},
@@ -54,7 +58,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should handle trailing slashes', () => {
-        expect(findMatchingDynamicSuffix('settings/wallet/verify-account/')).toEqual({
+        expect(findMatchingDynamicSuffix('settings/wallet/verify-account/')).toMatchObject({
             pattern: 'verify-account',
             actualSuffix: 'verify-account',
             pathParams: {},
@@ -66,7 +70,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should match a suffix when path has suffix-specific query params', () => {
-        expect(findMatchingDynamicSuffix('settings/profile/address/country?country=US')).toEqual({
+        expect(findMatchingDynamicSuffix('settings/profile/address/country?country=US')).toMatchObject({
             pattern: 'country',
             actualSuffix: 'country',
             pathParams: {},
@@ -74,7 +78,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should prefer longer multi-segment static match over shorter', () => {
-        expect(findMatchingDynamicSuffix('/settings/wallet/add-bank-account/verify-account')).toEqual({
+        expect(findMatchingDynamicSuffix('/settings/wallet/add-bank-account/verify-account')).toMatchObject({
             pattern: 'add-bank-account/verify-account',
             actualSuffix: 'add-bank-account/verify-account',
             pathParams: {},
@@ -82,7 +86,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should match parametric suffix and extract params', () => {
-        expect(findMatchingDynamicSuffix('/r/123/flag/456/abc')).toEqual({
+        expect(findMatchingDynamicSuffix('/r/123/flag/456/abc')).toMatchObject({
             pattern: 'flag/:reportID/:reportActionID',
             actualSuffix: 'flag/456/abc',
             pathParams: {reportID: '456', reportActionID: 'abc'},
@@ -90,7 +94,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should match single-param suffix', () => {
-        expect(findMatchingDynamicSuffix('/r/123/members/member-details/456')).toEqual({
+        expect(findMatchingDynamicSuffix('/r/123/members/member-details/456')).toMatchObject({
             pattern: 'member-details/:accountID',
             actualSuffix: 'member-details/456',
             pathParams: {accountID: '456'},
@@ -106,7 +110,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should handle query params alongside parametric suffix', () => {
-        expect(findMatchingDynamicSuffix('/r/123/flag/456/abc?tab=details')).toEqual({
+        expect(findMatchingDynamicSuffix('/r/123/flag/456/abc?tab=details')).toMatchObject({
             pattern: 'flag/:reportID/:reportActionID',
             actualSuffix: 'flag/456/abc',
             pathParams: {reportID: '456', reportActionID: 'abc'},
@@ -114,7 +118,7 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should match keyboard-shortcuts dynamic suffix', () => {
-        expect(findMatchingDynamicSuffix('settings/about/keyboard-shortcuts')).toEqual({
+        expect(findMatchingDynamicSuffix('settings/about/keyboard-shortcuts')).toMatchObject({
             pattern: 'keyboard-shortcuts',
             actualSuffix: 'keyboard-shortcuts',
             pathParams: {},
@@ -123,7 +127,7 @@ describe('findMatchingDynamicSuffix', () => {
 
     describe('optional path params', () => {
         it('should match trailing-optional pattern when optional is absent', () => {
-            expect(findMatchingDynamicSuffix('/r/123/opt-page')).toEqual({
+            expect(findMatchingDynamicSuffix('/r/123/opt-page')).toMatchObject({
                 pattern: 'opt-page/:id?',
                 actualSuffix: 'opt-page',
                 pathParams: {},
@@ -131,7 +135,7 @@ describe('findMatchingDynamicSuffix', () => {
         });
 
         it('should match trailing-optional pattern when optional is present', () => {
-            expect(findMatchingDynamicSuffix('/r/123/opt-page/789')).toEqual({
+            expect(findMatchingDynamicSuffix('/r/123/opt-page/789')).toMatchObject({
                 pattern: 'opt-page/:id?',
                 actualSuffix: 'opt-page/789',
                 pathParams: {id: '789'},
@@ -139,7 +143,7 @@ describe('findMatchingDynamicSuffix', () => {
         });
 
         it('should match middle-optional pattern when optional is absent', () => {
-            expect(findMatchingDynamicSuffix('/r/123/wrap/end')).toEqual({
+            expect(findMatchingDynamicSuffix('/r/123/wrap/end')).toMatchObject({
                 pattern: 'wrap/:p?/end',
                 actualSuffix: 'wrap/end',
                 pathParams: {},
@@ -147,7 +151,7 @@ describe('findMatchingDynamicSuffix', () => {
         });
 
         it('should match middle-optional pattern when optional is present', () => {
-            expect(findMatchingDynamicSuffix('/r/123/wrap/x/end')).toEqual({
+            expect(findMatchingDynamicSuffix('/r/123/wrap/x/end')).toMatchObject({
                 pattern: 'wrap/:p?/end',
                 actualSuffix: 'wrap/x/end',
                 pathParams: {p: 'x'},
@@ -155,7 +159,7 @@ describe('findMatchingDynamicSuffix', () => {
         });
 
         it('should ignore query params when matching trailing-optional present-form', () => {
-            expect(findMatchingDynamicSuffix('/r/123/opt-page/789?tab=details')).toEqual({
+            expect(findMatchingDynamicSuffix('/r/123/opt-page/789?tab=details')).toMatchObject({
                 pattern: 'opt-page/:id?',
                 actualSuffix: 'opt-page/789',
                 pathParams: {id: '789'},
@@ -163,7 +167,7 @@ describe('findMatchingDynamicSuffix', () => {
         });
 
         it('should ignore query params when matching trailing-optional absent-form', () => {
-            expect(findMatchingDynamicSuffix('/r/123/opt-page?tab=details')).toEqual({
+            expect(findMatchingDynamicSuffix('/r/123/opt-page?tab=details')).toMatchObject({
                 pattern: 'opt-page/:id?',
                 actualSuffix: 'opt-page',
                 pathParams: {},
@@ -186,11 +190,11 @@ describe('findAllMatchingDynamicSuffixes', () => {
     });
 
     it('should return a single-element array for an unambiguous static path', () => {
-        expect(findAllMatchingDynamicSuffixes('settings/wallet/verify-account')).toEqual([{pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}}]);
+        expect(findAllMatchingDynamicSuffixes('settings/wallet/verify-account')).toMatchObject([{pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}}]);
     });
 
     it('should return both a static and a parametric candidate when a tag name matches a static suffix (gl-code collision)', () => {
-        expect(findAllMatchingDynamicSuffixes('/settings/tags/tag-settings/0/gl-code')).toEqual([
+        expect(findAllMatchingDynamicSuffixes('/settings/tags/tag-settings/0/gl-code')).toMatchObject([
             {pattern: 'gl-code', actualSuffix: 'gl-code', pathParams: {}},
             {
                 pattern: 'tag-settings/:orderWeight/:tagName',
@@ -203,8 +207,8 @@ describe('findAllMatchingDynamicSuffixes', () => {
     it('should place static candidates before strict parametric candidates (priority order)', () => {
         const results = findAllMatchingDynamicSuffixes('/base/flag/123/verify-account');
         expect(results).toHaveLength(2);
-        expect(results.at(0)).toEqual({pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}});
-        expect(results.at(1)).toEqual({
+        expect(results.at(0)).toMatchObject({pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}});
+        expect(results.at(1)).toMatchObject({
             pattern: 'flag/:reportID/:reportActionID',
             actualSuffix: 'flag/123/verify-account',
             pathParams: {reportID: '123', reportActionID: 'verify-account'},
@@ -214,8 +218,8 @@ describe('findAllMatchingDynamicSuffixes', () => {
     it('should place static candidates before optional parametric candidates (priority order)', () => {
         const results = findAllMatchingDynamicSuffixes('/base/opt-page/verify-account');
         expect(results).toHaveLength(2);
-        expect(results.at(0)).toEqual({pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}});
-        expect(results.at(1)).toEqual({
+        expect(results.at(0)).toMatchObject({pattern: 'verify-account', actualSuffix: 'verify-account', pathParams: {}});
+        expect(results.at(1)).toMatchObject({
             pattern: 'opt-page/:id?',
             actualSuffix: 'opt-page/verify-account',
             pathParams: {id: 'verify-account'},
@@ -223,6 +227,71 @@ describe('findAllMatchingDynamicSuffixes', () => {
     });
 
     it('should return a single-element array when only one candidate exists (tag-approver at the end)', () => {
-        expect(findAllMatchingDynamicSuffixes('/settings/tags/tag-settings/0/tagname/tag-approver')).toEqual([{pattern: 'tag-approver', actualSuffix: 'tag-approver', pathParams: {}}]);
+        expect(findAllMatchingDynamicSuffixes('/settings/tags/tag-settings/0/tagname/tag-approver')).toMatchObject([{pattern: 'tag-approver', actualSuffix: 'tag-approver', pathParams: {}}]);
+    });
+});
+
+describe('findAllMatchingDynamicSuffixes – Phase 4 (tab-suffix stripping)', () => {
+    // 'flag/:reportID/:reportActionID' → tabs: 'AllTab', 'LinkedTab'
+    // URLs ending with .../flag/456/abc/AllTab should be recognised as the flag route with tab stripped.
+    // 'keyboard-shortcuts' is registered as a dynamic route but NOT in the tabMap, so Phase 4
+    // must not fire even when the URL ends with a seemingly tab-like segment.
+    const tabMap = new Map<string, Set<string>>([['flag/:reportID/:reportActionID', new Set(['AllTab', 'LinkedTab'])]]);
+
+    it('strips the trailing tab segment and returns match with pathUsedForMatching', () => {
+        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab', tabMap);
+        expect(results).toHaveLength(1);
+        expect(results.at(0)).toEqual({
+            pattern: 'flag/:reportID/:reportActionID',
+            actualSuffix: 'flag/456/abc',
+            pathParams: {reportID: '456', reportActionID: 'abc'},
+            pathUsedForMatching: '/base/flag/456/abc',
+        });
+    });
+
+    it('strips the non-default tab segment and sets pathUsedForMatching', () => {
+        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/LinkedTab', tabMap);
+        expect(results).toHaveLength(1);
+        expect(results.at(0)).toMatchObject({
+            pattern: 'flag/:reportID/:reportActionID',
+            pathUsedForMatching: '/base/flag/456/abc',
+        });
+    });
+
+    it('preserves query string in pathUsedForMatching when stripping tab segment', () => {
+        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab?foo=bar', tabMap);
+        expect(results).toHaveLength(1);
+        expect(results.at(0)).toMatchObject({
+            pathUsedForMatching: '/base/flag/456/abc?foo=bar',
+        });
+    });
+
+    it('does NOT strip when the last segment is a tab of a different (non-matched) pattern', () => {
+        // After stripping 'AllTab', the retry on '/base/about/keyboard-shortcuts' finds the
+        // static 'keyboard-shortcuts' pattern. But tabMap.get('keyboard-shortcuts') is undefined,
+        // so the scoped check fails and the result is empty.
+        const results = findAllMatchingDynamicSuffixes('/base/about/keyboard-shortcuts/AllTab', tabMap);
+        expect(results).toEqual([]);
+    });
+
+    it('does NOT strip when tabMap is not provided', () => {
+        expect(findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab')).toEqual([]);
+    });
+
+    it('does NOT strip when tabMap is empty', () => {
+        expect(findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab', new Map())).toEqual([]);
+    });
+
+    it('recursive retry does not receive tabMap so stripping stops after one level', () => {
+        // '/base/flag/456/AllTab/LinkedTab' → Phase 4 strips 'LinkedTab' →
+        // retry '/base/flag/456/AllTab' → 'flag/456/AllTab' matches flag pattern
+        // (reportID='456', reportActionID='AllTab') → tabMap.get(pattern)?.has('LinkedTab') → true.
+        const results = findAllMatchingDynamicSuffixes('/base/flag/456/AllTab/LinkedTab', tabMap);
+        expect(results).toHaveLength(1);
+        expect(results.at(0)).toMatchObject({
+            pattern: 'flag/:reportID/:reportActionID',
+            pathParams: {reportID: '456', reportActionID: 'AllTab'},
+            pathUsedForMatching: '/base/flag/456/AllTab',
+        });
     });
 });
