@@ -16,7 +16,7 @@ type TransactionPreviewProps = {
     /** The associated chatReport */
     chatReportID: string | undefined;
 
-    /** The associated chat report, passed from the parent to avoid subscribing to chat heartbeat fields in each preview */
+    /** The associated chat report */
     chatReport: OnyxEntry<Report>;
 
     /** The ID of the current report */

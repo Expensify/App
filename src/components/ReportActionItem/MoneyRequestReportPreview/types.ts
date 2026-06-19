@@ -33,10 +33,7 @@ type MoneyRequestReportPreviewProps = {
     /** The associated chatReport */
     chatReportID: string | undefined;
 
-    /**
-     * The chat report this preview belongs to, threaded down as a heartbeat-stripped stable projection.
-     * Passed in (instead of subscribed to in-row) so the preview subtree does not re-render on chat heartbeat writes.
-     */
+    /** The chat report this preview belongs to */
     chatReport: OnyxEntry<Report>;
 
     /** The active IOUReport, used for Onyx subscription */
