@@ -58,7 +58,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
                 shouldForceFullScreen
                 shouldShowOfflineIndicator={false}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+                    Navigation.goBack(ROUTES.DOMAINS_LIST.route);
                 }}
                 {...fullPageNotFoundViewProps}
                 shouldShowBackButton

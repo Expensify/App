@@ -6,8 +6,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {BotAvatar} from '@components/Icon/DefaultBotAvatars';
-import {botAvatarIDs, botAvatars} from '@components/Icon/DefaultBotAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -16,19 +14,27 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
+import type {AgentAvatarID} from '@libs/Avatars/AgentAvatarCatalog';
 import {isMobile} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {createAgent} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken} from './pendingAgentAvatarStore';
+import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
 
-function AddAgentPage() {
+type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
+
+function AddAgentPage({route}: AddAgentPageProps) {
+    const policyID = route.params?.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -38,7 +44,8 @@ function AddAgentPage() {
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfCenter];
-    const [avatarSource, setAvatarSource] = useState<AvatarSource>(() => botAvatars[Math.floor(Math.random() * botAvatars.length)]);
+    const [selectedPresetID, setSelectedPresetID] = useState<AgentAvatarID | null>(() => AGENT_AVATARS.ordered.at(Math.floor(Math.random() * AGENT_AVATARS.ordered.length))?.id ?? null);
+    const [uploadedURI, setUploadedURI] = useState<string | null>(null);
     const pendingFileRef = useRef<{file: File | CustomRNImageManipulatorResult; uri: string} | null>(null);
 
     useFocusEffect(
@@ -49,23 +56,24 @@ function AddAgentPage() {
             }
             clearPendingAvatar();
 
-            if (pending.type === 'preset') {
-                const matchingAvatar = botAvatars.find((av) => botAvatarIDs.get(av) === pending.id);
-                if (matchingAvatar) {
-                    setAvatarSource(() => matchingAvatar);
-                }
+            if (pending.type === 'preset' && AGENT_AVATARS.isAvatarID(pending.id)) {
+                setSelectedPresetID(pending.id);
+                setUploadedURI(null);
                 pendingFileRef.current = null;
-            } else {
-                setAvatarSource(pending.uri);
+            } else if (pending.type !== 'preset') {
+                setSelectedPresetID(null);
+                setUploadedURI(pending.uri);
                 pendingFileRef.current = {file: pending.file, uri: pending.uri};
             }
         }, []),
     );
 
+    const avatarSource: AvatarSource = selectedPresetID ? (AGENT_AVATARS.getLocal(selectedPresetID) ?? '') : (uploadedURI ?? '');
+
     const handleAvatarPress = () => {
-        const presetID = botAvatarIDs.get(avatarSource as BotAvatar);
-        setInitialPresetID(presetID);
+        setInitialPresetID(selectedPresetID ?? undefined);
         setNavigationToken();
+        setReturnRoute(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };
 
@@ -78,14 +86,17 @@ function AddAgentPage() {
     };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_AGENT_FORM>) => {
-        const firstName = values[INPUT_IDS.FIRST_NAME].trim() || undefined;
+        const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
         const pendingFile = pendingFileRef.current;
 
+        // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
+        // returns the optimistic accountID it wrote into Onyx so we can hand it to the next
+        // screen and let it render the agent with opacity until CREATE_AGENT resolves.
         if (pendingFile) {
-            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri);
+            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID);
         } else {
-            createAgent(firstName, prompt, botAvatarIDs.get(avatarSource as BotAvatar));
+            createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
         }
 
         Navigation.goBack();

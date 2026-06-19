@@ -35,7 +35,7 @@ function getBankAccountIDAsNumber(achData?: ACHDataReimbursementAccount): number
 
 /** Returns true if VBBA flow is in progress */
 const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, policyID?: string) => {
-    if (achData?.policyID !== policyID) {
+    if (policyID && achData?.policyID !== policyID) {
         return false;
     }
 

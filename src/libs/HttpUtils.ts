@@ -50,6 +50,12 @@ abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
 const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP]);
 
 /**
+ * Per-command server response messages we recognize as the PHP-wrapped "AlreadyCreated" error.
+ * Add new variants here as we discover them for other non-idempotent commands.
+ */
+const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION]);
+
+/**
  * Regex to get API command from the command
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
@@ -142,6 +148,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.DUPLICATE_RECORD,
                     status: CONST.JSON_CODE.BAD_REQUEST.toString(),
                     title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+                    requestID: response.requestID,
+                });
+            }
+
+            // Per-command messages indicating the resource already exists on the server (e.g. retry after a successful first attempt).
+            if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message && ALREADY_CREATED_MESSAGES.has(response.message)) {
+                throw new HttpsError({
+                    message: CONST.ERROR.ALREADY_CREATED,
+                    status: CONST.JSON_CODE.EXP_ERROR.toString(),
+                    title: response.message,
                 });
             }
 
@@ -151,6 +167,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                     status: CONST.JSON_CODE.EXP_ERROR.toString(),
                     title: CONST.ERROR_TITLE.SOCKET,
+                    requestID: response.requestID,
                 });
             }
 

@@ -157,7 +157,7 @@ function applyRevealPaddingOffset(state: RootHistoryState, rehydrated: RootHisto
     return rehydrated;
 }
 
-export type {PendingReveal, RehydrateRootHistoryState, RootHistoryState};
+export type {PendingReveal, RootHistoryState};
 export {
     applyRevealPaddingOffset,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,

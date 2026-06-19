@@ -13,6 +13,7 @@ import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type Report from './Report';
 import type ReportAction from './ReportAction';
+import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type Transaction from './Transaction';
 import type {TransactionViolation} from './TransactionViolation';
@@ -290,6 +291,7 @@ type SearchQuarterGroup = {
 type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
     Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
+    Partial<PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_METADATA, ReportMetadata>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &

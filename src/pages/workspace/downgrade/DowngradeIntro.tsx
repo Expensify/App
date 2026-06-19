@@ -18,7 +18,7 @@ import type {Route} from '@src/ROUTES';
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    onDowngrade: () => void;
+    onDowngrade: () => void | Promise<void>;
     policyID?: string;
     backTo?: Route;
 };

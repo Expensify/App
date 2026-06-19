@@ -9,6 +9,7 @@ export default {
     USER_IS_TYPING: 'client-userIsTyping',
     MULTIPLE_EVENTS: 'multipleEvents',
     CONCIERGE_REASONING: 'conciergeReasoning',
+    CONCIERGE_DRAFT_EVENTS: 'conciergeDraftEvents',
     CONCIERGE_DRAFT_STARTED: 'conciergeDraftStarted',
     CONCIERGE_DRAFT_UPDATED: 'conciergeDraftUpdated',
     CONCIERGE_DRAFT_COMPLETED: 'conciergeDraftCompleted',

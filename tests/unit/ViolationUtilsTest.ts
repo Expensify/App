@@ -1,6 +1,6 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
-import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
@@ -41,7 +41,8 @@ const receiptRequiredViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT),
+        amount: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
@@ -57,7 +58,8 @@ const overLimitViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+        amount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
@@ -66,7 +68,8 @@ const categoryOverLimitViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+        amount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
@@ -75,7 +78,8 @@ const overTripLimitViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
     data: {
-        formattedLimit: convertAmountToDisplayString(400),
+        amount: 400,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
@@ -141,7 +145,15 @@ describe('getViolationsOnyxData', () => {
     });
 
     it('should return an object with correct shape and with empty transactionViolations array', () => {
-        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+        const result = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: transaction,
+            transactionViolations,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            hasDependentTags: false,
+            isInvoiceTransaction: false,
+        });
 
         expect(result).toEqual({
             onyxMethod: Onyx.METHOD.SET,
@@ -158,7 +170,15 @@ describe('getViolationsOnyxData', () => {
             {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
             {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
-        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+        const result = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: transaction,
+            transactionViolations,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            hasDependentTags: false,
+            isInvoiceTransaction: false,
+        });
         expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
     });
 
@@ -195,7 +215,15 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should remove the customUnitOutOfPolicy violation if the modified one belongs to the policy', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
@@ -220,7 +248,15 @@ describe('getViolationsOnyxData', () => {
                     },
                 },
             };
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
@@ -259,7 +295,15 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should remove the customUnitOutOfPolicy violation if the per diem rate is valid for the policy', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
@@ -274,13 +318,29 @@ describe('getViolationsOnyxData', () => {
         it('should not add futureDate violation if the policy is not corporate', () => {
             transaction.created = '9999-12-31T23:59:59Z';
             policy.type = 'personal';
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(transactionViolations);
         });
 
         it('should add futureDate violation if the transaction has a future date and policy is corporate', () => {
             transaction.created = '9999-12-31T23:59:59Z';
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([futureDateViolation, ...transactionViolations]));
         });
 
@@ -288,14 +348,30 @@ describe('getViolationsOnyxData', () => {
             transaction.created = '9999-12-31T23:59:59Z';
             policy.type = 'personal';
             transactionViolations = [futureDateViolation];
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(futureDateViolation);
         });
 
         it('should add receiptRequired violation if the transaction has no receipt', () => {
             transaction.amount = -1000000;
             policy.maxExpenseAmountNoReceipt = 2500;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([receiptRequiredViolation, ...transactionViolations]));
         });
 
@@ -303,14 +379,30 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -1000000;
             transaction.modifiedCurrency = CONST.CURRENCY.CAD;
             policy.maxExpenseAmountNoReceipt = 2500;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual([]);
         });
 
         it('should add overLimit violation if the transaction amount is over the policy limit', () => {
             transaction.amount = -1000000;
             policy.maxExpenseAmount = 200000;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([overLimitViolation, ...transactionViolations]));
         });
 
@@ -318,7 +410,15 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -1000000;
             transaction.modifiedCurrency = CONST.CURRENCY.NZD;
             policy.maxExpenseAmount = 200000;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual([]);
         });
 
@@ -327,7 +427,15 @@ describe('getViolationsOnyxData', () => {
             policy.outputCurrency = CONST.CURRENCY.USD;
             transaction.amount = -10000;
             policy.maxExpenseAmountNoItemizedReceipt = 7500;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined();
@@ -340,7 +448,15 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -10000;
             transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
             policy.maxExpenseAmountNoReceipt = 2500;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
             const foundReceiptRequiredViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             expect(foundReceiptRequiredViolation).toBeUndefined();
@@ -352,7 +468,15 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -10000;
             policy.maxExpenseAmountNoReceipt = 2500; // Regular receipt required over $25
             policy.maxExpenseAmountNoItemizedReceipt = 7500; // Itemized receipt required over $75
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
             const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -367,7 +491,15 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -5000;
             transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
             policy.maxExpenseAmountNoItemizedReceipt = 7500;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
@@ -379,7 +511,15 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = -10000;
             transaction.modifiedCurrency = CONST.CURRENCY.CAD;
             policy.maxExpenseAmountNoItemizedReceipt = 7500;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
@@ -406,14 +546,30 @@ describe('getViolationsOnyxData', () => {
 
         it('should add category specific violations', () => {
             policy.areRulesEnabled = true;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
         });
 
         it('should add category-level itemizedReceiptRequired violation when category is set to always', () => {
             policyCategories.Food.maxAmountNoItemizedReceipt = 0; // Category set to "Always"
             transaction.amount = -10000;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined();
@@ -424,7 +580,15 @@ describe('getViolationsOnyxData', () => {
             policy.maxExpenseAmountNoItemizedReceipt = 7500; // Policy requires itemized receipt over $75
             policyCategories.Food.maxAmountNoItemizedReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE; // Category set to "Never"
             transaction.amount = -10000; // $100 expense - would trigger policy-level but category overrides
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined(); // Category "Never" should override policy
@@ -434,7 +598,15 @@ describe('getViolationsOnyxData', () => {
             policy.maxExpenseAmountNoItemizedReceipt = 7500; // Policy requires itemized receipt over $75
             // policyCategories.Food.maxAmountNoItemizedReceipt is undefined (Default - follow policy)
             transaction.amount = -10000; // $100 expense - exceeds policy threshold
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined(); // Should follow policy threshold
@@ -450,7 +622,15 @@ describe('getViolationsOnyxData', () => {
             const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
 
             // When the category is changed to "never require itemized receipt"
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, existingViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: existingViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
 
             // Then the itemized violation should be removed and replaced with receiptRequired because the policy still requires receipts
@@ -465,17 +645,27 @@ describe('getViolationsOnyxData', () => {
             policy.maxExpenseAmountNoItemizedReceipt = 7500; // $75.00
             transaction.amount = -10000; // $100.00
             const existingViolations: TransactionViolation[] = [
-                {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$50.00'}},
+                {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {amount: 5000, currency: CONST.CURRENCY.USD}},
             ];
 
             // When violations are recalculated after the policy threshold changed
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, existingViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: existingViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
 
             // Then the violation should have updated threshold data to reflect the current policy settings
             const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedViolation).toBeDefined();
-            expect(itemizedViolation?.data?.formattedLimit).not.toBe('$50.00');
+            expect(itemizedViolation?.data?.amount).toBe(7500);
+            expect(itemizedViolation?.data?.currency).toBe(CONST.CURRENCY.USD);
+            expect(itemizedViolation?.data?.amount).not.toBe(5000);
         });
 
         it('should replace receiptRequired with itemizedReceiptRequired when category changes to always require itemized', () => {
@@ -487,7 +677,15 @@ describe('getViolationsOnyxData', () => {
             const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
 
             // When the category is changed to "always require itemized receipts"
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, existingViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: existingViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
 
             // Then itemized should supersede receipt because itemized is more restrictive
@@ -507,7 +705,15 @@ describe('getViolationsOnyxData', () => {
             const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
 
             // When the category is set to "never" for both receipt types
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, existingViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: existingViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violations = result.value as TransactionViolation[];
 
             // Then no receipt violations should exist because category overrides take precedence over policy settings
@@ -528,18 +734,42 @@ describe('getViolationsOnyxData', () => {
 
         it('should add missingCategory violation if no category is included', () => {
             transaction.category = undefined;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
 
         it('should add categoryOutOfPolicy violation when category is not in policy', () => {
             transaction.category = 'Bananas';
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
         });
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
@@ -551,19 +781,43 @@ describe('getViolationsOnyxData', () => {
                 category: undefined,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
             };
-            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: partialTransaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
 
         it('should not add categoryOutOfPolicy violation when category is Uncategorized', () => {
             transaction.category = 'Uncategorized';
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
         it('should not add categoryOutOfPolicy violation when category is none', () => {
             transaction.category = 'none';
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
@@ -572,7 +826,15 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = 1000000;
             transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
         });
@@ -582,7 +844,15 @@ describe('getViolationsOnyxData', () => {
             transaction.amount = 1000000;
             transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
@@ -597,7 +867,17 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
             const iouReport = {reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE} as Report;
-            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: partialTransaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: false,
+                iouReport,
+            });
             expect(result.value).toEqual(
                 expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
             );
@@ -611,7 +891,15 @@ describe('getViolationsOnyxData', () => {
                 iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
-            const result = ViolationsUtils.getViolationsOnyxData(transactionWithEnteredDetails, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transactionWithEnteredDetails,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
         });
 
@@ -625,15 +913,15 @@ describe('getViolationsOnyxData', () => {
                 iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
-            const result = ViolationsUtils.getViolationsOnyxData(
-                transactionWithModifiedDetails as unknown as Transaction,
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transactionWithModifiedDetails as unknown as Transaction,
                 transactionViolations,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyCategories,
-                false,
-                false,
-            );
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
         });
     });
@@ -644,9 +932,49 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should not add any violations when categories are not required', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
+            expect(result.value).not.toContainEqual(missingCategoryViolation);
+        });
+
+        it('should add categoryOutOfPolicy when the transaction has a category that is not in policy', () => {
+            transaction.category = 'Office Supplies';
+            policyCategories = {Food: {name: 'Food', enabled: true}};
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(categoryOutOfPolicyViolation);
+        });
+
+        it('should remove a stale missingCategory violation when categories are not required', () => {
+            // e.g. after the workspace disables categories: a leftover missingCategory must clear optimistically.
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [missingCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
     });
@@ -669,7 +997,15 @@ describe('getViolationsOnyxData', () => {
         });
 
         it("shouldn't update the transactionViolations if the policy requires tags and the transaction has a tag from the policy", () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual(transactionViolations);
         });
@@ -677,7 +1013,15 @@ describe('getViolationsOnyxData', () => {
         it('should add a missingTag violation if none is provided and policy requires tags', () => {
             transaction.tag = undefined;
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}}]));
         });
@@ -686,7 +1030,15 @@ describe('getViolationsOnyxData', () => {
             policyTags = {};
             transaction.tag = undefined;
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual([]);
         });
@@ -696,7 +1048,15 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = undefined;
             transactionViolations = [missingTagViolation, {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual([{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}]);
         });
@@ -705,7 +1065,15 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = '';
             transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).toContainEqual(duplicatedTransactionViolation);
@@ -717,7 +1085,15 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = '';
             transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual([duplicatedTransactionViolation]);
         });
@@ -730,7 +1106,15 @@ describe('getViolationsOnyxData', () => {
                 tag: undefined,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
             };
-            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: partialTransaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
 
@@ -738,7 +1122,15 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = 'Bananas';
             transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
@@ -747,7 +1139,15 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = undefined;
             transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
@@ -759,13 +1159,21 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should not add any violations when tags are not required', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
 
-        it('should not add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+        it('should add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
             policyTags = {
                 Meals: {
                     name: 'Meals',
@@ -779,12 +1187,20 @@ describe('getViolationsOnyxData', () => {
             };
             transaction.tag = 'Lunch';
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
-            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual({...tagOutOfPolicyViolation, data: {tagName: 'Meals'}});
         });
 
-        it('should remove existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+        it('should keep existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
             policyTags = {
                 Meals: {
                     name: 'Meals',
@@ -799,9 +1215,17 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = 'Lunch';
             transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
-            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).toContainEqual(duplicatedTransactionViolation);
         });
     });
@@ -856,31 +1280,71 @@ describe('getViolationsOnyxData', () => {
             };
 
             // Test case where transaction has no tags
-            let result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            let result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has 1 tag
             transaction.tag = 'Africa';
             someTagLevelsRequiredViolation.data = {errorIndexes: [1, 2]};
-            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has 2 tags
             transaction.tag = 'Africa::Project1';
             someTagLevelsRequiredViolation.data = {errorIndexes: [1]};
-            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has all tags
             transaction.tag = 'Africa:Accounting:Project1';
-            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual([]);
         });
         it('should not return tagOutOfPolicy when the selected tag level has no enabled tags', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual([]);
         });
@@ -893,7 +1357,15 @@ describe('getViolationsOnyxData', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
 
             expect(result.value).toEqual([violation]);
@@ -904,7 +1376,15 @@ describe('getViolationsOnyxData', () => {
             policyTags.Project.tags.Project1.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toEqual([]);
         });
@@ -915,7 +1395,15 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = 'Africa::Project1';
 
             // hasDependentTags = true to exercise getTagViolationsForDependentTags
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: true,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED}));
         });
@@ -927,7 +1415,15 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = 'Africa';
 
             // hasDependentTags = true to exercise getTagViolationsForDependentTags
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: true,
+                isInvoiceTransaction: false,
+            });
 
             expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED}));
         });
@@ -937,7 +1433,15 @@ describe('getViolationsOnyxData', () => {
             const missingRegionTag = {...missingTagViolation, data: {tagName: 'Region'}};
             const missingProjectTag = {...missingTagViolation, data: {tagName: 'Project'}};
             transaction.tag = undefined;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: true,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([missingDepartmentTag, missingRegionTag, missingProjectTag]));
         });
     });
@@ -973,7 +1477,17 @@ describe('getViolationsOnyxData', () => {
 
         it('should add missingAttendees violation when no attendees are present', () => {
             transaction.comment = {attendees: []};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: false,
+                iouReport,
+            });
             expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
@@ -981,7 +1495,17 @@ describe('getViolationsOnyxData', () => {
             transaction.comment = {
                 attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
             };
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: false,
+                iouReport,
+            });
             expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
@@ -992,7 +1516,17 @@ describe('getViolationsOnyxData', () => {
                     {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
                 ],
             };
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: false,
+                iouReport,
+            });
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
@@ -1004,21 +1538,51 @@ describe('getViolationsOnyxData', () => {
                     {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
                 ],
             };
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: false,
+                iouReport,
+            });
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
         it('should not add missingAttendees violation when attendee tracking is disabled', () => {
             policy.isAttendeeTrackingEnabled = false;
             transaction.comment = {attendees: []};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: false,
+                iouReport,
+            });
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
         it('should not add missingAttendees violation when category does not require attendees', () => {
             policyCategories.Meals.areAttendeesRequired = false;
             transaction.comment = {attendees: []};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                isSelfDM: false,
+                iouReport,
+            });
             expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
@@ -1032,7 +1596,16 @@ describe('getViolationsOnyxData', () => {
                 transaction.comment = {
                     attendees: [{email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''}],
                 };
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                });
                 // Violation should be added since the only attendee is the current user (owner)
                 expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
@@ -1046,7 +1619,16 @@ describe('getViolationsOnyxData', () => {
                         {email: 'other@example.com', displayName: 'Other User', avatarUrl: ''},
                     ],
                 };
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                });
                 // Violation should NOT be added since there's a non-owner attendee
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
@@ -1060,7 +1642,16 @@ describe('getViolationsOnyxData', () => {
                         {email: 'other@example.com', displayName: 'Other User', avatarUrl: ''},
                     ],
                 };
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                });
                 // Violation should be removed
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
@@ -1071,7 +1662,16 @@ describe('getViolationsOnyxData', () => {
                 transaction.comment = {
                     attendees: [{email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''}],
                 };
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                });
                 // Violation should be preserved
                 expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
@@ -1096,7 +1696,16 @@ describe('getViolationsOnyxData', () => {
             it("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
                 transactionViolations = [];
                 transaction.comment = {attendees: []};
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                });
                 // With 0 attendees, attendeesMinusOwnerCount = Math.max(0, 0 - 1) = 0, violation should be added
                 expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
@@ -1106,7 +1715,16 @@ describe('getViolationsOnyxData', () => {
                 transaction.comment = {
                     attendees: [{email: 'anyone@example.com', displayName: 'Someone', avatarUrl: ''}],
                 };
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                });
                 // With 1 attendee, attendeesMinusOwnerCount = Math.max(0, 1 - 1) = 0, violation should be added
                 expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
@@ -1119,7 +1737,16 @@ describe('getViolationsOnyxData', () => {
                         {email: 'person2@example.com', displayName: 'Person 2', avatarUrl: ''},
                     ],
                 };
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                });
                 // With 2 attendees, attendeesMinusOwnerCount = Math.max(0, 2 - 1) = 1, no violation
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
@@ -1132,7 +1759,16 @@ describe('getViolationsOnyxData', () => {
                         {email: 'person2@example.com', displayName: 'Person 2', avatarUrl: ''},
                     ],
                 };
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                    isSelfDM: false,
+                });
                 // Violation should be removed since we now have 2 attendees
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
@@ -1154,14 +1790,30 @@ describe('getViolationsOnyxData', () => {
             it('should add taxOutOfPolicy violation when taxCode is not in policy tax rates', () => {
                 transaction.taxCode = 'UNKNOWN_TAX';
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).toContainEqual(taxOutOfPolicyViolation);
             });
 
             it('should not add taxOutOfPolicy violation when taxCode is in policy tax rates', () => {
                 transaction.taxCode = 'TAX_10';
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
 
@@ -1169,7 +1821,47 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxCode = 'TAX_10';
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 transactionViolations = [taxOutOfPolicyViolation];
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when the transaction has no tax code', () => {
+                // An expense whose tax was deleted has an empty tax code; re-enabling tax tracking must not flag it.
+                transaction.taxCode = '';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should remove a stale taxOutOfPolicy violation when the tax code has been cleared', () => {
+                transaction.taxCode = '';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
         });
@@ -1181,19 +1873,43 @@ describe('getViolationsOnyxData', () => {
 
             it('should add taxOutOfPolicy violation when transaction has taxCode', () => {
                 transaction.taxCode = 'SOME_TAX';
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).toContainEqual(taxOutOfPolicyViolation);
             });
 
             it('should add taxOutOfPolicy violation when transaction has taxAmount', () => {
                 transaction.taxAmount = 500;
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).toContainEqual(taxOutOfPolicyViolation);
             });
 
             it('should add taxOutOfPolicy violation when transaction has taxValue', () => {
                 transaction.taxValue = '10%';
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).toContainEqual(taxOutOfPolicyViolation);
             });
 
@@ -1201,7 +1917,15 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxCode = undefined;
                 transaction.taxAmount = undefined;
                 transaction.taxValue = undefined;
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
 
@@ -1209,7 +1933,15 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxCode = '';
                 transaction.taxAmount = 0;
                 transaction.taxValue = '';
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
 
@@ -1218,7 +1950,15 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxAmount = undefined;
                 transaction.taxValue = undefined;
                 transactionViolations = [taxOutOfPolicyViolation];
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
         });
@@ -1227,25 +1967,52 @@ describe('getViolationsOnyxData', () => {
             it('should not add taxOutOfPolicy violation for time requests even with tax data and tax tracking disabled', () => {
                 policy.tax = {trackingEnabled: false};
                 transaction.taxCode = 'SOME_TAX';
+                transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.TIME;
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
 
             it('should not add taxOutOfPolicy violation for per diem requests even with tax data and tax tracking disabled', () => {
                 policy.tax = {trackingEnabled: false};
                 transaction.taxCode = 'SOME_TAX';
+                transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}};
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
 
             it('should not add taxOutOfPolicy violation for time requests even with invalid taxCode and tax tracking enabled', () => {
                 policy.tax = {trackingEnabled: true};
                 transaction.taxCode = 'UNKNOWN_TAX';
+                transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.TIME;
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
-                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
         });
@@ -1265,7 +2032,15 @@ describe('getViolationsOnyxData', () => {
                     },
                 ],
             };
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([overTripLimitViolation, ...transactionViolations]));
         });
 
@@ -1284,7 +2059,15 @@ describe('getViolationsOnyxData', () => {
                     },
                 ],
             };
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual([]);
         });
 
@@ -1302,7 +2085,15 @@ describe('getViolationsOnyxData', () => {
                 ],
             };
             const modifiedTransactionViolations = [overTripLimitViolation, ...transactionViolations];
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, modifiedTransactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: modifiedTransactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual([]);
         });
     });
@@ -1343,28 +2134,60 @@ describe('getViolationsOnyxData', () => {
         it('adds the violation when the transaction vendor is not in the policy vendor list', () => {
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
         });
 
         it('does not duplicate the violation when one is already present and the vendor is still missing', () => {
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, [inactiveVendorViolation], policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect((result.value as TransactionViolation[]).filter((v) => v.name === CONST.VIOLATIONS.INACTIVE_VENDOR)).toHaveLength(1);
         });
 
         it('removes an existing violation when the vendor is restored in the policy list', () => {
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, [inactiveVendorViolation], policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
 
         it('removes an existing violation when the user clears the vendor while the feature is still active', () => {
             policy = policyWithQBOVendorFeature();
             // transaction.comment has no vendor key — represents a cleared selection
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, [inactiveVendorViolation], policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
 
@@ -1380,13 +2203,29 @@ describe('getViolationsOnyxData', () => {
                 },
             } as unknown as Policy;
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, [inactiveVendorViolation], policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
 
         it('does not add the violation when the feature is inactive (no QBO connection)', () => {
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
 
@@ -1394,8 +2233,52 @@ describe('getViolationsOnyxData', () => {
             isBetaEnabledSpy.mockImplementation(() => false);
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+    });
+    describe('shouldRemoveRejectedExpenseViolation (move transaction / explicit removal)', () => {
+        const autoRejectedViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        };
+
+        it('removes AUTO_REPORTED_REJECTED_EXPENSE from output when shouldRemoveRejectedExpenseViolation is true', () => {
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [autoRejectedViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                shouldRemoveRejectedExpenseViolation: true,
+            });
+            const violations = (result.value ?? []) as TransactionViolation[];
+            expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(false);
+        });
+
+        it('keeps AUTO_REPORTED_REJECTED_EXPENSE when the 11th param is omitted and submitter-edit branch does not apply', () => {
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [autoRejectedViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+            const violations = (result.value ?? []) as TransactionViolation[];
+            expect(violations.some((v) => v.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)).toBe(true);
         });
     });
 });
@@ -1631,7 +2514,9 @@ describe('getViolationTranslation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
         const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal})).toBe(brokenCardConnectionViolationExpected);
+        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal, convertToDisplayString})).toBe(
+            brokenCardConnectionViolationExpected,
+        );
         const brokenCardConnection530ViolationExpected = translateLocal(
             'violations.rter',
             true,
@@ -1641,7 +2526,9 @@ describe('getViolationTranslation', () => {
             CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             companyCardPageURL,
         );
-        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal})).toBe(brokenCardConnection530ViolationExpected);
+        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal, convertToDisplayString})).toBe(
+            brokenCardConnection530ViolationExpected,
+        );
     });
 
     describe('increasedDistance violation', () => {
@@ -1665,6 +2552,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
@@ -1676,6 +2564,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
@@ -1687,6 +2576,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters: 0,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
@@ -1698,6 +2588,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
             });
@@ -1708,6 +2599,7 @@ describe('getViolationTranslation', () => {
             const result = ViolationsUtils.getViolationTranslation({
                 violation: increasedDistanceViolation,
                 translate: translateLocal,
+                convertToDisplayString,
                 canEdit: true,
                 routeDistanceMeters,
             });
@@ -1743,6 +2635,7 @@ describe('getRBRMessages', () => {
             transaction: mockTransaction,
             transactionViolations: mockViolations,
             translate: translateLocal,
+            convertToDisplayString,
             missingFieldError,
             transactionThreadActions: [],
         });
@@ -1752,7 +2645,13 @@ describe('getRBRMessages', () => {
     });
 
     it('should filter out empty strings', () => {
-        const result = ViolationsUtils.getRBRMessages({transaction: mockTransaction, transactionViolations: mockViolations, translate: translateLocal, transactionThreadActions: []});
+        const result = ViolationsUtils.getRBRMessages({
+            transaction: mockTransaction,
+            transactionViolations: mockViolations,
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
@@ -2180,7 +3079,8 @@ describe('filterReceiptViolations', () => {
         type: CONST.VIOLATION_TYPES.VIOLATION,
         showInReview: true,
         data: {
-            formattedLimit: '$75.00',
+            amount: 7500,
+            currency: CONST.CURRENCY.USD,
         },
     };
 
@@ -2189,7 +3089,8 @@ describe('filterReceiptViolations', () => {
         type: CONST.VIOLATION_TYPES.VIOLATION,
         showInReview: true,
         data: {
-            formattedLimit: '$25.00',
+            amount: 2500,
+            currency: CONST.CURRENCY.USD,
         },
     };
 

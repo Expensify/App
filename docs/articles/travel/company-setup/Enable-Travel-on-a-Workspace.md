@@ -58,3 +58,18 @@ Yes, a Workspace Admin can book on behalf of team members and retain full visibi
 ## Is Expensify Travel only available for Expensify Card users?
 
 No. Any workspace can use Expensify Travel, regardless of whether the Expensify Card is enabled.
+
+## Why can’t I turn off Travel?
+
+If **Travel Invoicing** is enabled for your workspace, the **Travel** toggle in **More features** is locked, because Travel Invoicing requires Travel to stay on. When you press the locked toggle, a message appears asking you to turn off Travel Invoicing first.
+
+To turn off Travel:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your workspace name to access the settings for that workspace.
+3. In the left menu, click **More Features**.
+4. Press the locked **Travel** toggle, then click **Go to Travel settings**.
+5. In the **Travel Invoicing** section, switch the toggle off.
+6. Return to **More features** and toggle off **Travel**.
+
+Learn more about [Travel Invoicing](/articles/travel/travel-invoicing/Enable-Travel-Invoicing-in-a-Workspace).

@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,6 +28,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {isScanRequest} from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -161,6 +163,9 @@ function IOURequestStartPage({
         return undefined;
     }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
 
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
         report,
@@ -168,8 +173,10 @@ function IOURequestStartPage({
         isLoadingTransaction,
         isLoadingSelectedTab,
         transactionRequestType,
+        iouType,
         policy,
         skipKeyboardDismissForPerDiem: true,
+        isNewManualExpenseFlowEnabled,
     });
 
     useEffect(() => {
@@ -194,9 +201,6 @@ function IOURequestStartPage({
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
-
     const onBackButtonPress = () => {
         navigateBack();
         return true;
@@ -205,6 +209,33 @@ function IOURequestStartPage({
     useAndroidBackButtonHandler(onBackButtonPress);
 
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
+
+    let manualTabContent: React.ReactNode;
+    if (!isNewManualExpenseFlowEnabled) {
+        manualTabContent = (
+            <IOURequestStepAmountWithTransactionOnly
+                shouldKeepUserInput
+                route={route}
+                navigation={navigation}
+                report={report}
+                reportDraft={reportDraft}
+            />
+        );
+    } else if (isScanRequest(transaction)) {
+        // When switching from the Scan tab, the shared draft is briefly still a scan request (with the uploaded
+        // receipt) until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that
+        // stale scan draft does throwaway work (scan loader, reading the receipt blob and a heavy first render) that
+        // is immediately discarded once the reset lands. Wait for the reset so the manual confirmation mounts once.
+        manualTabContent = <FullScreenLoadingIndicator reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}} />;
+    } else {
+        manualTabContent = (
+            <IOURequestStepConfirmation
+                route={route}
+                navigation={navigation}
+                shouldHideHeader
+            />
+        );
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -245,27 +276,7 @@ function IOURequestStartPage({
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                                 lazyLoadEnabled
                             >
-                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
-                                    {() => (
-                                        <TabScreenWithFocusTrapWrapper>
-                                            {isNewManualExpenseFlowEnabled ? (
-                                                <IOURequestStepConfirmation
-                                                    route={route}
-                                                    navigation={navigation}
-                                                    shouldHideHeader
-                                                />
-                                            ) : (
-                                                <IOURequestStepAmountWithTransactionOnly
-                                                    shouldKeepUserInput
-                                                    route={route}
-                                                    navigation={navigation}
-                                                    report={report}
-                                                    reportDraft={reportDraft}
-                                                />
-                                            )}
-                                        </TabScreenWithFocusTrapWrapper>
-                                    )}
-                                </TopTab.Screen>
+                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
                                 <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
