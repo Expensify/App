@@ -596,20 +596,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }
 
-    const isSelectedRoleAvailable = !selectedRoleFilter || roleFilterOptions.some((option) => option.value === selectedRoleFilter.value);
-
-    // Clear the stored selection as soon as its option is no longer available (e.g. after the
-    // workspace type changes and removes that role from the dropdown). Without this the stale value
-    // would persist in state and silently reapply if the option returns later (e.g. Submit → Collect
-    // → Submit), reactivating a filter the UI already appeared to reset. Adjusting state during
-    // render (rather than in an effect) keeps it in sync without an extra render pass or effect.
-    if (!isSelectedRoleAvailable) {
-        setSelectedRoleFilter(null);
-    }
-
-    // Fall back to "All" while the selected role is unavailable so the current render doesn't flash
-    // the stale role before the state above settles.
-    const effectiveRoleFilter = isSelectedRoleAvailable ? selectedRoleFilter : null;
+    // Fall back to "All" when the selected role is no longer an available option (e.g. after the
+    // workspace type changes and removes that role from the dropdown). Deriving this from the current
+    // options keeps the filter in sync without storing a copy or mutating state during render.
+    const effectiveRoleFilter = selectedRoleFilter && roleFilterOptions.some((option) => option.value === selectedRoleFilter.value) ? selectedRoleFilter : null;
 
     const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
         setSelectedEmployees([]);
