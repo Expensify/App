@@ -2251,7 +2251,7 @@ describe('getViolationsOnyxData', () => {
             const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
             const policyWithXeroVendorFeature = (
                 contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {
-                    'xc-active': {id: 'xc-active', name: 'Acme Xero', email: 'acme@example.com'},
+                    xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'},
                 },
             ) =>
                 ({
@@ -2267,7 +2267,7 @@ describe('getViolationsOnyxData', () => {
 
             it('adds the violation when the Xero supplier ID is not in the synced contacts list', () => {
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xc-missing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     updatedTransaction: transaction,
                     transactionViolations,
@@ -2282,7 +2282,7 @@ describe('getViolationsOnyxData', () => {
 
             it('removes an existing violation when the Xero supplier is restored in the contacts list', () => {
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xc-active', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     updatedTransaction: transaction,
                     transactionViolations: [inactiveVendorViolation],
@@ -2301,7 +2301,7 @@ describe('getViolationsOnyxData', () => {
                 // missing. Otherwise every matched transaction would falsely flag inactive between
                 // the beta flip and the first supplier sync.
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xc-anything', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcAnything', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     updatedTransaction: transaction,
                     transactionViolations,
@@ -2319,7 +2319,7 @@ describe('getViolationsOnyxData', () => {
                 // server-fired inactiveVendor violation is already on the transaction, the App
                 // must preserve it rather than wiping it during the sync gap.
                 policy = policyWithXeroVendorFeature(XERO_CONTACTS_UNSYNCED);
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xc-active', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     updatedTransaction: transaction,
                     transactionViolations: [inactiveVendorViolation],
@@ -2335,7 +2335,7 @@ describe('getViolationsOnyxData', () => {
             it('does not add the violation when the vendorMatching beta is disabled, even with Xero connected', () => {
                 isBetaEnabledSpy.mockImplementation(() => false);
                 policy = policyWithXeroVendorFeature();
-                transaction.comment = {...transaction.comment, vendor: {externalID: 'xc-missing', isManuallySet: true}};
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     updatedTransaction: transaction,
                     transactionViolations,

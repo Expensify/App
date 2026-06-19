@@ -2288,8 +2288,8 @@ describe('ModifiedExpenseMessage', () => {
                         xero: {
                             data: {
                                 contacts: {
-                                    'xc-acme': {id: 'xc-acme', name: 'Acme Xero', email: 'acme@example.com'},
-                                    'xc-office': {id: 'xc-office', name: 'Office Supplies Xero', email: 'office@example.com'},
+                                    xcAcme: {id: 'xcAcme', name: 'Acme Xero', email: 'acme@example.com'},
+                                    xcOffice: {id: 'xcOffice', name: 'Office Supplies Xero', email: 'office@example.com'},
                                 },
                             },
                         },
@@ -2301,7 +2301,7 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            vendor: {externalID: 'xc-acme', isManuallySet: true},
+                            vendor: {externalID: 'xcAcme', isManuallySet: true},
                         },
                     };
                     const result = getForReportAction({
@@ -2319,8 +2319,8 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            oldVendor: {externalID: 'xc-acme', isManuallySet: false},
-                            vendor: {externalID: 'xc-office', isManuallySet: true},
+                            oldVendor: {externalID: 'xcAcme', isManuallySet: false},
+                            vendor: {externalID: 'xcOffice', isManuallySet: true},
                         },
                     };
                     const result = getForReportAction({
@@ -2338,7 +2338,7 @@ describe('ModifiedExpenseMessage', () => {
                         ...createRandomReportAction(1),
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         originalMessage: {
-                            vendor: {externalID: 'xc-deleted', isManuallySet: false},
+                            vendor: {externalID: 'xcDeleted', isManuallySet: false},
                         },
                     };
                     const result = getForReportAction({

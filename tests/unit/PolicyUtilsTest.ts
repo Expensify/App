@@ -3113,7 +3113,7 @@ describe('PolicyUtils', () => {
         // with the default contacts list.
         const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
         const buildXeroPolicy = (
-            contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'}},
+            contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}},
         ): Policy =>
             ({
                 ...createRandomPolicy(0),
@@ -3246,12 +3246,12 @@ describe('PolicyUtils', () => {
 
             it('returns the Xero supplier list normalized from the keyed Record to the shared Vendor shape (R4)', () => {
                 const policy = buildXeroPolicy({
-                    'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'},
-                    'xc-2': {id: 'xc-2', name: 'Other Xero', email: 'other@example.com'},
+                    xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'},
+                    xc2: {id: 'xc2', name: 'Other Xero', email: 'other@example.com'},
                 });
                 expect(getMatchingVendors(policy)).toEqual([
-                    {id: 'xc-1', name: 'Acme Xero', currency: '', email: 'acme@example.com'},
-                    {id: 'xc-2', name: 'Other Xero', currency: '', email: 'other@example.com'},
+                    {id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@example.com'},
+                    {id: 'xc2', name: 'Other Xero', currency: '', email: 'other@example.com'},
                 ]);
             });
 
@@ -3291,14 +3291,14 @@ describe('PolicyUtils', () => {
 
             it('returns the matching Xero supplier (normalized) when the ID exists in the contacts list (R4)', () => {
                 const policy = buildXeroPolicy({
-                    'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'},
-                    'xc-2': {id: 'xc-2', name: 'Other Xero', email: 'other@example.com'},
+                    xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'},
+                    xc2: {id: 'xc2', name: 'Other Xero', email: 'other@example.com'},
                 });
-                expect(getMatchingVendorByID(policy, 'xc-2')).toEqual({id: 'xc-2', name: 'Other Xero', currency: '', email: 'other@example.com'});
+                expect(getMatchingVendorByID(policy, 'xc2')).toEqual({id: 'xc2', name: 'Other Xero', currency: '', email: 'other@example.com'});
             });
 
             it('returns undefined for a Xero supplier ID that is not in the contacts list (inactive-supplier case)', () => {
-                expect(getMatchingVendorByID(buildXeroPolicy(), 'xc-missing')).toBeUndefined();
+                expect(getMatchingVendorByID(buildXeroPolicy(), 'xcMissing')).toBeUndefined();
             });
 
             it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
@@ -3324,8 +3324,8 @@ describe('PolicyUtils', () => {
             });
 
             it('resolves a Xero supplier (normalized) from connections.xero.data.contacts (R4)', () => {
-                const policy = buildXeroPolicy({'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'}});
-                expect(findVendorByID(policy, 'xc-1')).toEqual({id: 'xc-1', name: 'Acme Xero', currency: '', email: 'acme@example.com'});
+                const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                expect(findVendorByID(policy, 'xc1')).toEqual({id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@example.com'});
             });
 
             it('prefers the active Intacct integration over stale QBO data when both hold the same vendor ID', () => {
