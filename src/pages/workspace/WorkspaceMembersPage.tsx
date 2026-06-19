@@ -11,7 +11,6 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
@@ -94,6 +93,7 @@ import type {PersonalDetails, PolicyEmployee, PolicyEmployeeList} from '@src/typ
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MemberRightIcon from './MemberRightIcon';
+import WorkspaceMembersRoleFilterButton from './members/WorkspaceMembersRoleFilterButton';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -710,19 +710,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         .join(', ');
     const roleFilterDropdownLabel = `${translate('common.role')}: ${selectedRoleFilters.length > 0 ? selectedRoleFilterLabels : translate('common.all')}`;
 
-    const roleFilterDropdown = shouldShowRoleFilter ? (
-        <DropdownButton
-            label={roleFilterDropdownLabel}
-            value={null}
-            PopoverComponent={rolePopoverComponent}
-            innerStyles={[styles.gap2, styles.mw100]}
-            wrapperStyle={shouldUseNarrowLayout ? styles.flexGrow0 : undefined}
-            labelStyle={styles.fontSizeLabel}
-            caretWrapperStyle={styles.gap2}
-            medium
-        />
-    ) : null;
-
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
             <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
@@ -1045,14 +1032,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             {(shouldShowRoleFilter || shouldShowSearchBar) && (
                 <View style={styles.flexColumn}>
                     <View style={[styles.mh5, styles.gap3, styles.mb5, styles.flexRow, styles.alignItemsCenter]}>
-                        {!!roleFilterDropdown && roleFilterDropdown}
+                        {shouldShowRoleFilter && (
+                            <WorkspaceMembersRoleFilterButton
+                                label={roleFilterDropdownLabel}
+                                PopoverComponent={rolePopoverComponent}
+                                shouldShowSearchBar={shouldShowSearchBar}
+                            />
+                        )}
                         {shouldShowSearchBar && (
                             <SearchBar
                                 inputValue={inputValue}
                                 onChangeText={handleSearchChange}
                                 label={translate('workspace.people.findMember')}
                                 shouldShowEmptyState={false}
-                                style={[styles.flex1, styles.mh0, styles.mb0]}
+                                style={[styles.flex1, styles.mh0, styles.mb0, styles.mnw0]}
                             />
                         )}
                     </View>
