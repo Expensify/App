@@ -1,4 +1,4 @@
-import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
+import { useMultifactorAuthenticationInternal } from '../Context/MultifactorAuthenticationInternalApiContext';
 
 /**
  * Returns a focus-trap `escapeDeactivates` callback that opens the MFA cancel-confirmation modal.
@@ -12,7 +12,7 @@ import {useMultifactorAuthentication} from '@components/MultifactorAuthenticatio
  * confirmation modal is up.
  */
 function useMFACancelOnEscape(): () => boolean {
-    const {requestCancel} = useMultifactorAuthentication();
+    const {requestCancel} = useMultifactorAuthenticationInternal();
 
     return () => {
         const suppressEscapeKeyup = (event: KeyboardEvent) => {

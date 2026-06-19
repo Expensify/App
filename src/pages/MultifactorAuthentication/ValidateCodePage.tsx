@@ -52,7 +52,9 @@ function MultifactorAuthenticationValidateCodePage() {
     const {requestCancel} = useMultifactorAuthenticationInternal();
 
     const {dispatch} = useMultifactorAuthenticationActions();
-    const {continuableError, isCancelConfirmVisible} = useMultifactorAuthenticationState();
+    const {state} = useMultifactorAuthenticationInternal();
+    const {isCancelConfirmVisible} = state;
+    const {continuableError} = useMultifactorAuthenticationState();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
