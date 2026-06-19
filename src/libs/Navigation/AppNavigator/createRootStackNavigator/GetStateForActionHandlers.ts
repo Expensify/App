@@ -115,15 +115,15 @@ type TabRouteForReplacement = NavigationState['routes'][number] | NavigationPart
 type TabStateForReplacement = Omit<NavigationState, 'routes' | 'stale'> & {routes: TabRouteForReplacement[]; stale?: true | false};
 type StaleTabStateOverrides = {routes: TabRouteForReplacement[]; index: number; routeNames?: string[]};
 
-function toStaleTabState(existingTabState: NavigationState, overrides: StaleTabStateOverrides): TabStateForReplacement {
+function toStaleTabState(existingTabState: NavigationState | undefined, overrides: StaleTabStateOverrides): TabStateForReplacement {
     return {
-        type: existingTabState.type,
-        key: existingTabState.key,
+        type: existingTabState?.type ?? 'tab',
+        key: existingTabState?.key ?? '',
         stale: true as const,
-        routeNames: overrides.routeNames ?? existingTabState.routeNames,
+        routeNames: overrides.routeNames ?? existingTabState?.routeNames ?? [...TAB_SCREENS],
         routes: overrides.routes,
         index: overrides.index,
-        history: existingTabState.history,
+        history: existingTabState?.history ?? [],
     };
 }
 
@@ -259,10 +259,12 @@ function getTabStateWithExistingFocusedTarget(existingTabState: NavigationState,
     return {...existingTabState, routes: updatedTabRoutes, index: targetTabIndex};
 }
 
-function getTabStateWithFocusedTarget(existingTabState: NavigationState, focusedTargetTab: NavigationPartialRoute): TabStateForReplacement | undefined {
-    const tabStateWithExistingTarget = getTabStateWithExistingFocusedTarget(existingTabState, focusedTargetTab);
-    if (tabStateWithExistingTarget) {
-        return tabStateWithExistingTarget;
+function getTabStateWithFocusedTarget(existingTabState: NavigationState | undefined, focusedTargetTab: NavigationPartialRoute): TabStateForReplacement | undefined {
+    if (existingTabState?.routes?.length) {
+        const tabStateWithExistingTarget = getTabStateWithExistingFocusedTarget(existingTabState, focusedTargetTab);
+        if (tabStateWithExistingTarget) {
+            return tabStateWithExistingTarget;
+        }
     }
 
     const completeTabState = buildTabNavigatorNestedState(focusedTargetTab);
@@ -275,7 +277,7 @@ function getTabStateWithFocusedTarget(existingTabState: NavigationState, focused
         if (route.name === focusedTargetTab.name) {
             return getTargetTabRoute(undefined, focusedTargetTab);
         }
-        return existingTabState.routes.find((r) => r.name === route.name) ?? route;
+        return existingTabState?.routes.find((r) => r.name === route.name) ?? route;
     });
 
     // Mark the reconstructed state as stale so TabRouter.getRehydratedState()
@@ -518,7 +520,7 @@ function handleReplaceFullscreenUnderRHP(
         }
         const existingTabRoute = routesWithoutRHP.at(tabNavIndex);
         const existingTabState = existingTabRoute?.state as NavigationState | undefined;
-        if (!existingTabRoute || !existingTabState?.routes?.length) {
+        if (!existingTabRoute) {
             return null;
         }
         const focusedTargetTab = getFocusedRouteFromNavigatorState(targetRoute.state);
@@ -529,7 +531,7 @@ function handleReplaceFullscreenUnderRHP(
         if (!updatedTabState) {
             return null;
         }
-        const staleTabState = markFocusedTabRouteForRemount(updatedTabState, existingTabState);
+        const staleTabState = existingTabState ? markFocusedTabRouteForRemount(updatedTabState, existingTabState) : updatedTabState;
 
         const updatedTabRoute = {...existingTabRoute, state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
         // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
