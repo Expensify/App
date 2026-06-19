@@ -12,15 +12,19 @@ const isMobileSafariIos26 = isMobileSafariOnIos26();
 const BUBBLE_DOMAIN_HEIGHT_SAFARI_26 = 15;
 
 function BaseKeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
-    const {behavior, contentContainerStyle, enabled, keyboardVerticalOffset, style, ...rest} = props;
+    const {behavior, contentContainerStyle, enabled, keyboardVerticalOffset, style, shouldDisableSafari26BubblePadding = false, ...rest} = props;
     const sharedValue = useSharedValue(0);
+
+    // Skip the iOS 26 Safari bubble padding when the consumer opts out (e.g. bottom-docked modals where it would
+    // expose the dimmed overlay between the content and the keyboard).
+    const shouldApplyBubblePadding = isMobileSafariIos26 && !shouldDisableSafari26BubblePadding;
 
     const animatedStyle = useAnimatedStyle(() => {
         return {paddingBottom: sharedValue.get() * BUBBLE_DOMAIN_HEIGHT_SAFARI_26};
     });
 
     useEffect(() => {
-        if (!isMobileSafariIos26) {
+        if (!shouldApplyBubblePadding) {
             return;
         }
 
@@ -47,12 +51,12 @@ function BaseKeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
         };
 
         return KeyboardUtil.subscribeKeyboardVisibilityChange(handler);
-    }, [sharedValue]);
+    }, [sharedValue, shouldApplyBubblePadding]);
 
     return (
         <Animated.View
             {...rest}
-            style={[style, isMobileSafariIos26 && animatedStyle]}
+            style={[style, shouldApplyBubblePadding && animatedStyle]}
         />
     );
 }

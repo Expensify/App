@@ -135,6 +135,7 @@ function EmployeeTestDriveModal() {
             style={[styles.w100, styles.h100]}
             behavior="padding"
             shouldOffsetBottomSafeAreaPadding
+            shouldDisableSafari26BubblePadding
             enabled
         >
             <BaseTestDriveModal
