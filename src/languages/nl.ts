@@ -6229,6 +6229,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 conciergeNotificationDescription: 'Wanneer het proces is afgerond, stuurt Concierge je een bericht.',
                 copyCompleted: 'Je werkruimte-instellingen zijn gekopieerd.',
             },
+            upgrade: {
+                title: 'Voor sommige functies is een Control-abonnement vereist',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} gebruikt ${features}, waarvoor een Control-abonnement nodig is.
+
+Wil je deze functies ook in je andere werkruimtes gebruiken, upgrade die dan om door te gaan.
+
+Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
+            },
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',

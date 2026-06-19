@@ -6225,6 +6225,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 conciergeNotificationDescription: 'Quando o processo for concluído, o Concierge vai enviar uma mensagem para você.',
                 copyCompleted: 'As configurações do seu workspace foram copiadas.',
             },
+            upgrade: {
+                title: 'Alguns recursos exigem um plano Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} usa ${features}, que exigem um plano Control.
+
+Para levar esses recursos para seus outros espaços de trabalho, faça o upgrade deles para continuar.
+
+O plano Control começa em US$ 9 por membro ativo por mês.`,
+            },
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',

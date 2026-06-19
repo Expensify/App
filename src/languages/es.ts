@@ -6094,6 +6094,14 @@ ${amount} para ${merchant} - ${date}`,
                 conciergeNotificationDescription: 'Cuando el proceso se complete, Concierge te enviará un mensaje.',
                 copyCompleted: 'Se han copiado la configuración de tu espacio de trabajo.',
             },
+            upgrade: {
+                title: 'Algunas funciones requieren un plan Controlar',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} usa ${features}, que requieren un plan Controlar.
+
+Para llevar estas funciones a tus otros espacios de trabajo, mejóralos para continuar.
+
+El plan Controlar empieza en 9 $ por miembro activo al mes.`,
+            },
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',

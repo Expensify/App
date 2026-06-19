@@ -6225,6 +6225,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 conciergeNotificationDescription: 'Gdy proces się zakończy, Concierge wyśle ci wiadomość.',
                 copyCompleted: 'Twoje ustawienia przestrzeni roboczej zostały skopiowane.',
             },
+            upgrade: {
+                title: 'Niektóre funkcje wymagają planu Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} używa ${features}, które wymagają planu Control.
+
+Aby udostępnić te funkcje w innych przestrzeniach roboczych, zaktualizuj je, aby kontynuować.
+
+Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
+            },
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',

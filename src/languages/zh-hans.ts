@@ -6066,6 +6066,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 conciergeNotificationDescription: '流程完成后，Concierge 会向你发送一条消息。',
                 copyCompleted: '您的工作区设置已复制。',
             },
+            upgrade: {
+                title: '部分功能需要 Control 方案',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) =>
+                    `${workspaceName} 使用了 ${features}，这些功能需要控制方案。\r\n\r\n若要在其他工作区中使用这些功能，请升级这些工作区以继续。\r\n\r\n控制方案起价为每位活跃成员每月 9 美元。`,
+            },
         },
         emptyWorkspace: {
             title: '你还没有工作区',

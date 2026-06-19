@@ -6251,6 +6251,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 conciergeNotificationDescription: 'Quando il processo sarà completato, Concierge ti invierà un messaggio.',
                 copyCompleted: 'Le impostazioni dello spazio di lavoro sono state copiate.',
             },
+            upgrade: {
+                title: 'Alcune funzionalità richiedono un piano Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} utilizza ${features}, che richiedono un piano Control.
+
+Per portare queste funzionalità negli altri tuoi spazi di lavoro, esegui l’upgrade per continuare.
+
+Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
+            },
         },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',

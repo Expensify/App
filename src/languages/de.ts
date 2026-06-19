@@ -6262,6 +6262,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 conciergeNotificationDescription: 'Wenn der Vorgang abgeschlossen ist, sendet Concierge Ihnen eine Nachricht.',
                 copyCompleted: 'Ihre Workspace-Einstellungen wurden kopiert.',
             },
+            upgrade: {
+                title: 'Einige Funktionen erfordern einen Control-Tarif',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} verwendet ${features}, die einen Control-Tarif erfordern.
+
+Um diese Funktionen in Ihre anderen Arbeitsbereiche zu übernehmen, upgraden Sie diese bitte, um fortzufahren.
+
+Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
+            },
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',

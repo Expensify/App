@@ -6287,6 +6287,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 conciergeNotificationDescription: 'Une fois le processus terminé, Concierge vous enverra un message.',
                 copyCompleted: 'Les paramètres de votre espace de travail ont été copiés.',
             },
+            upgrade: {
+                title: 'Certaines fonctionnalités nécessitent un forfait Control',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) => `${workspaceName} utilise ${features}, qui nécessitent un forfait Control.
+
+Pour apporter ces fonctionnalités à vos autres espaces de travail, mettez-les à niveau pour continuer.
+
+Le forfait Control commence à 9 $ par Membre actif et par mois.`,
+            },
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
