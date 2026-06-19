@@ -5,10 +5,10 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
-import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import ScrollView from '@components/ScrollView';
+import AnimatedExitRow from '@components/Search/primitives/AnimatedExitRow';
 import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
@@ -60,8 +60,6 @@ import type {
 } from './ListItem/types';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
 import SearchSelectAllMenu from './SearchSelectAllMenu';
-
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
 // Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
 let savedHorizontalScrollOffset = 0;
@@ -600,11 +598,9 @@ function SearchList({
             const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
 
             return (
-                <Animated.View
-                    exiting={shouldApplyAnimation ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
-                    entering={undefined}
-                    style={styles.overflowHidden}
-                    layout={shouldApplyAnimation && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                <AnimatedExitRow
+                    shouldApplyAnimation={!!shouldApplyAnimation}
+                    hasItemsBeingRemoved={!!hasItemsBeingRemoved}
                 >
                     <ListItem
                         showTooltip
@@ -630,7 +626,7 @@ function SearchList({
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     />
-                </Animated.View>
+                </AnimatedExitRow>
             );
         },
         [
@@ -639,7 +635,6 @@ function SearchList({
             newTransactionIDByItemKey,
             shouldAnimate,
             listData.length,
-            styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
             handleSelectRow,
