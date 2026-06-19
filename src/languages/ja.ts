@@ -317,6 +317,7 @@ const translations: TranslationDeepObject<typeof en> = {
         change: '変更',
         category: 'カテゴリ',
         vendor: 'ベンダー',
+        supplier: 'サプライヤー',
         report: 'レポート',
         billable: '請求可能',
         nonBillable: '請求不可',
@@ -4849,6 +4850,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Xero にアカウントを追加して、もう一度同期してください',
+            defaultSupplier: 'デフォルトのサプライヤー',
+            defaultSupplierDescription: 'エクスポート時にすべてのクレジットカード取引に適用されるデフォルトのサプライヤーを設定します。',
+            noSuppliersFound: 'サプライヤーが見つかりません',
+            noSuppliersFoundDescription: 'Xero にサプライヤーを追加して、もう一度同期してください。',
             accountingMethods: {
                 label: 'エクスポートのタイミング',
                 description: '経費をエクスポートするタイミングを選択:',

@@ -334,6 +334,7 @@ const translations = {
         change: 'Change',
         category: 'Category',
         vendor: 'Vendor',
+        supplier: 'Supplier',
         report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
@@ -4997,6 +4998,10 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
+            defaultSupplier: 'Default supplier',
+            defaultSupplierDescription: 'Set a default supplier that will apply to all credit card transactions upon export.',
+            noSuppliersFound: 'No suppliers found',
+            noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
             accountingMethods: {
                 label: 'When to Export',
                 description: 'Choose when to export the expenses:',

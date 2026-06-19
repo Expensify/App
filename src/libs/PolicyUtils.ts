@@ -2120,21 +2120,34 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
 }
 
 /**
- * QBO vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled
- * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
- * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
- * so the App and backend agree on which workspaces see the field.
+ * True when QBO is the connected integration scoping the vendor field — i.e. non-reimbursable
+ * export is set to Credit Card or Debit Card.
+ */
+function isQBOVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const destination = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config?.nonReimbursableExpensesExportDestination;
+    return destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * True when Xero is the connected integration scoping the vendor field. Xero has no
+ * export-destination enum (bank-transactions is the only non-reimbursable mode), so the connection
+ * being present is sufficient — mirrors `Xero::hasVendorFeature` on the PHP side.
+ */
+function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO];
+}
+
+/**
+ * Vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled AND a
+ * supported accounting integration is connected with a configuration that scopes the vendor field.
+ * Mirrors the per-integration `hasVendorFeature` checks on the PHP side so the App and backend
+ * agree on which workspaces see the field.
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!isVendorMatchingBetaEnabled || !policy) {
         return false;
     }
-    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
-    if (!qboConnection) {
-        return false;
-    }
-    const exportDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
-    return exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+    return isQBOVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy);
 }
 
 /**
@@ -2156,6 +2169,52 @@ function getQBOVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefine
         return undefined;
     }
     return getQBOVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
+/**
+ * Returns the Xero supplier list imported into the workspace, normalized to the shared `Vendor`
+ * shape (id + name). Xero persists suppliers as a keyed object at
+ * `connections.xero.data.contacts`; empty array when Xero isn't connected or Integration-Server
+ * hasn't synced suppliers for the workspace yet.
+ */
+function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
+    const contacts = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts;
+    if (!contacts) {
+        return [];
+    }
+    return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/**
+ * Look up a single Xero supplier by `externalID`. Returns undefined when the ID isn't found
+ * (which happens after a supplier is removed from Xero — see the inactive-vendor violation) or
+ * when the contacts sync hasn't populated yet.
+ */
+function getXeroSupplierByID(policy: OnyxEntry<Policy>, supplierID: string | undefined): Vendor | undefined {
+    if (!supplierID) {
+        return undefined;
+    }
+    const contact = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[supplierID];
+    return contact ? {id: contact.id, name: contact.name, currency: '', email: contact.email} : undefined;
+}
+
+/**
+ * Resolve the vendor name shown to admins/submitters across supported integrations. Prefers QBO's
+ * vendor list when QBO is connected (R1 default), falls back to the Xero supplier list when Xero
+ * is connected (R4). Returns an empty string when the vendor list hasn't populated or the ID isn't
+ * found.
+ */
+function getMatchingVendorName(policy: OnyxEntry<Policy>, vendorID: string | undefined): string {
+    if (!vendorID) {
+        return '';
+    }
+    if (policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]) {
+        return getQBOVendorByID(policy, vendorID)?.name ?? '';
+    }
+    if (policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]) {
+        return getXeroSupplierByID(policy, vendorID)?.name ?? '';
+    }
+    return '';
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -2573,6 +2632,11 @@ export {
     getConnectionExporters,
     getQBOVendorByID,
     getQBOVendors,
+    getXeroSupplierByID,
+    getXeroSuppliers,
+    getMatchingVendorName,
+    isXeroVendorMatchingActive,
+    isQBOVendorMatchingActive,
     hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,

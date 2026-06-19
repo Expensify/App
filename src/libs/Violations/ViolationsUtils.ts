@@ -19,10 +19,12 @@ import {
     getPerDiemRateCustomUnitRate,
     getQBOVendorByID,
     getSortedTagKeys,
+    getXeroSupplierByID,
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
     isTaxTrackingEnabled,
+    isXeroVendorMatchingActive,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -477,11 +479,21 @@ const ViolationsUtils = {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
             } else if (transactionVendorID) {
-                const matchedVendor = getQBOVendorByID(policy, transactionVendorID);
-                if (!matchedVendor && !hasInactiveVendorViolation) {
-                    newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
-                } else if (matchedVendor && hasInactiveVendorViolation) {
-                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                // For Xero workspaces, skip the violation check entirely until Integration-Server
+                // has synced the supplier list (data.contacts is undefined). Otherwise every
+                // matched transaction would falsely flag inactive between the beta flip and the
+                // first supplier sync for the workspace.
+                const isOnXero = isXeroVendorMatchingActive(policy);
+                const xeroContactsSynced = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts !== undefined;
+                if (isOnXero && !xeroContactsSynced) {
+                    // No-op — supplier list not yet known for this workspace.
+                } else {
+                    const matchedVendor = isOnXero ? getXeroSupplierByID(policy, transactionVendorID) : getQBOVendorByID(policy, transactionVendorID);
+                    if (!matchedVendor && !hasInactiveVendorViolation) {
+                        newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+                    } else if (matchedVendor && hasInactiveVendorViolation) {
+                        newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                    }
                 }
             } else if (hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.

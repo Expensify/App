@@ -5,12 +5,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getCurrentXeroOrganizationName, getXeroSupplierByID, hasVendorFeature, settingsPendingAction} from '@libs/PolicyUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -20,13 +21,16 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path);
 
-    const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const {export: exportConfiguration, errorFields, pendingFields, defaultContact} = policy?.connections?.xero?.config ?? {};
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+    const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const defaultSupplierName = getXeroSupplierByID(policy, defaultContact)?.name ?? '';
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}` : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
@@ -96,6 +100,16 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             title: selectedBankAccountName,
             subscribedSettings: [CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
         },
+        ...(isVendorFeatureAvailable
+            ? [
+                  {
+                      description: translate('workspace.xero.defaultSupplier'),
+                      onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path))),
+                      title: defaultSupplierName,
+                      subscribedSettings: [CONST.XERO_CONFIG.DEFAULT_CONTACT],
+                  },
+              ]
+            : []),
     ];
 
     return (
