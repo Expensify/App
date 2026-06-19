@@ -18,9 +18,15 @@ type SearchSelectionFooterProps = {
 };
 
 type FooterCurrencyState = {
+    /** Search hash this footer currency state belongs to */
     searchHash: number | undefined;
+
+    /** Custom currency selected in the footer, if any */
     selectedCurrency: string | undefined;
+
+    /** Default currency captured for this search */
     defaultCurrency: string | undefined;
+
     /** Hash of the auxiliary flat-query snapshot used for converted footer totals in grouped views */
     footerTotalHash: number | undefined;
 };

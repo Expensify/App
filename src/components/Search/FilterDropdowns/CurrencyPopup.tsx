@@ -5,13 +5,28 @@ import {getCurrencyOptions} from '@libs/SearchUIUtils';
 import SingleSelectPopup from './SingleSelectPopup';
 
 type CurrencyPopupProps = {
+    /** The label to show when in an overlay on mobile */
     label?: string;
+
+    /** Function to call when the back button is pressed */
     onBackButtonPress?: () => void;
+
+    /** Function to call to close the overlay */
     closeOverlay: () => void;
+
+    /** Function to call when a currency is selected */
     onChange: (item: SingleSelectItem<string> | undefined) => void;
+
+    /** The currently selected currency code */
     value?: string;
+
+    /** The currency code to select when reset is clicked */
     defaultValue?: string;
+
+    /** Search input placeholder */
     searchPlaceholder?: string;
+
+    /** Whether the currency list should be visible */
     shouldShowList?: boolean;
 };
 

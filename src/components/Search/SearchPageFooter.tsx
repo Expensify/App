@@ -19,12 +19,25 @@ import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdow
 import SearchPageFooterSkeleton from './SearchPageFooterSkeleton';
 
 type SearchPageFooterProps = {
+    /** Number of expenses represented by the footer total */
     count: number | undefined;
+
+    /** Total amount to display in the footer */
     total: number | undefined;
+
+    /** Currency code for the displayed total */
     currency: string | undefined;
+
+    /** Currency code used when the footer currency is reset */
     defaultCurrency: string | undefined;
+
+    /** Whether the footer total is currently refreshing */
     isTotalLoading: boolean;
+
+    /** Function to call when the footer currency changes */
     onCurrencyChange: (currency: string | undefined) => void;
+
+    /** Whether the footer currency picker should be available */
     shouldAllowCurrencyChange: boolean;
 };
 

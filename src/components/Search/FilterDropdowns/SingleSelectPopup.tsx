@@ -44,6 +44,8 @@ type SingleSelectPopupProps<T> = {
 
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
+
+    /** Whether the popover should keep a fixed height while filtering results. */
     shouldUseFixedPopoverHeight?: boolean;
 };
 
