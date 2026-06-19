@@ -348,8 +348,7 @@ describe('useSearchSnapshot', () => {
             }),
         );
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        expect((result.current.chartData.at(0) as {shouldAnimateInHighlight?: boolean})?.shouldAnimateInHighlight).toBe(true);
+        expect(result.current.chartData.at(0)).toEqual(expect.objectContaining({shouldAnimateInHighlight: true}));
     });
 
     it('passes the query type through to getSortedSections for each variant shape', () => {
