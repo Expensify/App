@@ -1,14 +1,13 @@
 import {useRoute} from '@react-navigation/native';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
-import React, {useCallback, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import ScrollView from '@components/ScrollView';
 import AnimatedExitRow from '@components/Search/primitives/AnimatedExitRow';
+import HorizontalTableScroll from '@components/Search/primitives/HorizontalTableScroll';
 import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
@@ -24,13 +23,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getTableMinWidth, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -60,9 +58,6 @@ import type {
 } from './ListItem/types';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
 import SearchSelectAllMenu from './SearchSelectAllMenu';
-
-// Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
-let savedHorizontalScrollOffset = 0;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem | typeof ExpenseReportListItem;
@@ -399,24 +394,6 @@ function SearchList({
         return mappedTransactionIDs;
     })();
 
-    const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns, queryJSON.type, isActionColumnWide);
-    const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
-
-    const horizontalScrollViewRef = useRef<RNScrollView>(null);
-
-    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
-    }, []);
-
-    // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
-    useLayoutEffect(() => {
-        if (!shouldScrollHorizontally || savedHorizontalScrollOffset <= 0) {
-            return;
-        }
-        horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
-    }, [data, shouldScrollHorizontally]);
-
     const handleLongPressRowInMobileSelectionMode = (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
         const currentRoute = navigationRef.current?.getCurrentRoute();
         if (currentRoute && route.key !== currentRoute.key) {
@@ -732,24 +709,17 @@ function SearchList({
         </View>
     );
 
-    if (shouldScrollHorizontally) {
-        return (
-            <ScrollView
-                ref={horizontalScrollViewRef}
-                horizontal
-                showsHorizontalScrollIndicator
-                style={styles.flex1}
-                contentContainerStyle={{width: minTableWidth}}
-                contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
-                onScroll={handleHorizontalScroll}
-                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-            >
-                {content}
-            </ScrollView>
-        );
-    }
-
-    return content;
+    return (
+        <HorizontalTableScroll
+            columns={columns}
+            type={queryJSON.type}
+            isActionColumnWide={isActionColumnWide}
+            isHeaderVisible={!!SearchTableHeader}
+            dataKey={data}
+        >
+            {content}
+        </HorizontalTableScroll>
+    );
 }
 
 export default SearchList;
