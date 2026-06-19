@@ -1,5 +1,7 @@
 import React from 'react';
 import {Linking} from 'react-native';
+import Log from '@libs/Log';
+import {isExternalLinkSchemeAllowed} from '@libs/Url';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 import type {AnchorForCommentsOnlyProps} from './types';
 
@@ -7,6 +9,8 @@ function AnchorForCommentsOnly({onPress, href = '', ...props}: AnchorForComments
     const onLinkPress = () => {
         if (onPress) {
             onPress();
+        } else if (!isExternalLinkSchemeAllowed(href)) {
+            Log.warn('[AnchorForCommentsOnly] blocked link with disallowed scheme');
         } else {
             Linking.openURL(href);
         }

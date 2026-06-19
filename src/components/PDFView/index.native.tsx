@@ -13,9 +13,11 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Log from '@libs/Log';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
+import {isExternalLinkSchemeAllowed} from '@libs/Url';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
@@ -146,6 +148,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             if (isTravelLink(url) && activePolicyID) {
                 const postLoginPath = getRelativeUrl(url);
                 openTravelDotLink(activePolicyID, postLoginPath);
+                return;
+            }
+            if (!isExternalLinkSchemeAllowed(url)) {
+                Log.warn('[PDFView] blocked PDF link with disallowed scheme');
                 return;
             }
             Linking.openURL(url);
