@@ -332,7 +332,8 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
                 return !taxCode;
             }
             const matchingTaxRate = policyTaxRates[taxCode];
-            if (!matchingTaxRate) {
+            // A disabled rate still has a key and value, but it is no longer valid, so the violation isn't fixed.
+            if (!matchingTaxRate || matchingTaxRate.isDisabled) {
                 return false;
             }
             // If taxValue is provided, check that it matches the policy tax rate. If taxValue is not provided, just check that the tax code exists in the policy.
@@ -520,7 +521,11 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
+        // A disabled tax rate keeps its key in the policy (just `isDisabled: true`) but is no longer valid, so it must
+        // stay out of policy. A key-existence-only check would treat it as in-policy and drop the violation on any
+        // unrelated client-side recompute (e.g. deleting a tag offline).
+        const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[updatedTransaction.taxCode] : undefined;
+        const isTaxInPolicy = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

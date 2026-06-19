@@ -104,7 +104,7 @@ import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
-import {getCategoryGLCode} from './CategoryUtils';
+import {getCategoryGLCode, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -2294,13 +2294,22 @@ function pushTransactionViolationsOnyxData(
     // which a category/tag/rules toggle changes. Only let the recompute touch it when the update concerns
     // tax tracking, otherwise an unrelated toggle would flash a spurious "tax no longer valid" violation.
     const isTaxTrackingUpdate = policyUpdate.tax !== undefined;
+    // Only treat the 'Uncategorized' sentinel as a genuinely missing category when this update concerns the category
+    // requirement (e.g. enabling categories sets `requiresCategory`). Scoping it the same way as `isTaxTrackingUpdate`
+    // keeps unrelated tag/tax/rules toggles from touching the missingCategory state of a sentinel-valued expense.
+    const isCategoryRequirementUpdate = policyUpdate.requiresCategory !== undefined;
 
     for (const {
         transactionsAndViolations: {transactions, violations},
     } of nonInvoiceReportItems) {
         for (const transaction of Object.values(transactions)) {
             const pendingUpdate = transactionAutoSelections.get(transaction.transactionID);
-            const modifiedTransaction = pendingUpdate ? {...transaction, ...pendingUpdate} : transaction;
+            const baseTransaction = pendingUpdate ? {...transaction, ...pendingUpdate} : transaction;
+            // The 'Uncategorized' sentinel suppresses the optimistic missingCategory violation only at creation time. For
+            // an existing expense being re-evaluated when categories are (re-)enabled, that category is genuinely missing,
+            // so normalize the sentinel to empty here to write the violation right away.
+            const modifiedTransaction =
+                isCategoryRequirementUpdate && baseTransaction.category && isCategoryMissing(baseTransaction.category) ? {...baseTransaction, category: ''} : baseTransaction;
 
             const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData({

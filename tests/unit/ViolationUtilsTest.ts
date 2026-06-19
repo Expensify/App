@@ -1864,6 +1864,30 @@ describe('getViolationsOnyxData', () => {
                 });
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
+
+            it('should keep taxOutOfPolicy violation when the tax rate is disabled but still present in the policy', () => {
+                // Disabling a tax rate keeps its key in the policy with `isDisabled: true` - it is no longer valid,
+                // so an unrelated client-side recompute (e.g. deleting a tag offline) must not drop the violation.
+                transaction.taxCode = 'TAX_10';
+                policy.taxRates = {
+                    name: 'Taxes',
+                    defaultExternalID: 'TAX_10',
+                    defaultValue: '10%',
+                    foreignTaxDefault: 'TAX_10',
+                    taxes: {TAX_10: {name: '10%', value: '10%', isDisabled: true}},
+                };
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
         });
 
         describe('when tax tracking is disabled', () => {
@@ -2988,6 +3012,15 @@ describe('getIsViolationFixed', () => {
                 taxCode: 'CUSTOM_TAX',
                 taxValue: '15',
                 policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the taxCode exists but its rate is disabled', () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'TAX_10',
+                policyTaxRates: {TAX_10: {name: '10%', value: '10', isDisabled: true}},
             });
             expect(result).toBe(false);
         });

@@ -10216,6 +10216,80 @@ describe('ReportUtils', () => {
 
             expect(onyxData).toMatchObject(expectedOnyxData);
         });
+
+        it('should push a missingCategory violation for an Uncategorized expense when categories are enabled', async () => {
+            // A new expense is seeded with the 'Uncategorized' sentinel, not an empty category. Enabling categories must
+            // treat that sentinel as missing so the violation is written immediately.
+            const fakePolicyID = '0';
+            const fakePolicyCategories = createRandomPolicyCategories(3);
+            const fakeCategoryName = Object.keys(fakePolicyCategories).at(0) ?? '';
+
+            // Enabling a category keeps the categories update non-empty so the recompute actually runs.
+            const fakePolicyCategoriesUpdate = {
+                [fakeCategoryName]: {enabled: true},
+            };
+
+            // Enabling categories flips requiresCategory/areCategoriesEnabled on, matching enablePolicyCategories.
+            const fakePolicyUpdate = {requiresCategory: true, areCategoriesEnabled: true};
+
+            const fakePolicy = {
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                requiresTag: false,
+                areTagsEnabled: false,
+                requiresCategory: false,
+                areCategoriesEnabled: false,
+            };
+
+            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockIOUReport.reportID}`]: {
+                    ...mockIOUReport,
+                    policyID: fakePolicyID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockedChatReport.reportID}`]: {
+                    ...mockedChatReport,
+                    policyID: fakePolicyID,
+                },
+            };
+
+            await Onyx.multiSet({
+                ...fakePolicyReports,
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
+                    [mockIOUAction.reportActionID]: mockIOUAction,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
+                    ...mockTransaction,
+                    reportID: mockIOUReport.reportID,
+                    policyID: fakePolicyID,
+                    category: CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
+                    tag: '',
+                },
+            });
+
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+
+            await waitForBatchedUpdates();
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, result.current, fakePolicyUpdate, fakePolicyCategoriesUpdate);
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: expect.arrayContaining([
+                    {
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ]),
+            });
+        });
     });
 
     describe('pushTransactionAutoSelectionsOnyxData', () => {

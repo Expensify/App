@@ -70,7 +70,6 @@ import {
     hasVendorFeature,
     isAttendeeTrackingEnabled,
     isGroupPolicyByType,
-    isMultiLevelTags,
     isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
@@ -447,9 +446,10 @@ function MoneyRequestView({
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && hasEnabledTags(policyTagLists)));
     // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead
     // of navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully
-    // emptied, so also cover "no enabled tags remain". Scoped to single-level tag lists.
+    // emptied, so also cover "no enabled tags remain". Multi-level (independent/dependent) tags hit this the same way
+    // as single-level tags: when the whole tag is unusable, deleting clears the entire (colon-delimited) tag value.
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
-    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag && !isMultiLevelTags(policyTagList);
+    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag;
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
