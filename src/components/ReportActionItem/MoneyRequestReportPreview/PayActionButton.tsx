@@ -17,6 +17,7 @@ import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasUpdatedTotal,
@@ -217,6 +218,8 @@ function PayActionButton({
             onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
+            isDEWApproval={hasDynamicExternalWorkflow(policy)}
+            reportID={iouReportID}
             canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
             onAnimationFinish={stopAnimation}
             chatReportID={chatReportID}
