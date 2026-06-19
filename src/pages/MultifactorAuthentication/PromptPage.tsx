@@ -5,9 +5,10 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import {useMultifactorAuthenticationActions, usePromptContent} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
+import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -23,31 +24,27 @@ type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<Multifa
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {requestCancel} = useMultifactorAuthenticationInternal();
+    const {requestCancel, state} = useMultifactorAuthenticationInternal();
     const {dispatch} = useMultifactorAuthenticationActions();
+    const {isCancelConfirmVisible} = state;
     const {accountID} = useCurrentUserPersonalDetails();
 
     const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
+    const interceptFocusTrapEscape = useMFACancelOnEscape();
 
     const onConfirm = () => {
         markHasAcceptedSoftPrompt(accountID);
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
 
-    // Outside-clicks and Escape route through the central cancel handler; return
-    // false to keep the focus trap intact while the confirm modal opens.
-    const interceptFocusTrapEscape = () => {
-        requestCancel();
-        return false;
-    };
-
     return (
         <ScreenWrapper
             testID={MultifactorAuthenticationPromptPage.displayName}
             focusTrapSettings={{
+                // Turn the trap off while the cancel confirmation modal is up so it can't swallow
+                // the modal's clicks, and back on when it closes. See https://github.com/Expensify/App/issues/93193
+                active: isCancelConfirmVisible ? false : undefined,
                 focusTrapOptions: {
-                    allowOutsideClick: interceptFocusTrapEscape,
-                    clickOutsideDeactivates: interceptFocusTrapEscape,
                     escapeDeactivates: interceptFocusTrapEscape,
                 },
             }}

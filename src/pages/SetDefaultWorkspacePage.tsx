@@ -16,7 +16,7 @@ import useWorkspaceList from '@hooks/useWorkspaceList';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -68,7 +68,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         selectedPolicyIDs: undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isPaidGroupPolicy(newPolicy),
+        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy),
     });
 
     const textInputOptions = useMemo(

@@ -2,7 +2,7 @@ import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
-import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
+import type {SearchColumnType} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import type {CardList, Transaction} from '@src/types/onyx';
 
@@ -17,6 +17,9 @@ type BaseSearchListProps = Pick<
     | 'keyExtractor'
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
+    | 'stickyHeaderIndices'
+    | 'stickyHeaderConfig'
+    | 'overrideItemLayout'
 > & {
     /** The data to display in the list */
     data: SearchListItem[];
@@ -42,14 +45,17 @@ type BaseSearchListProps = Pick<
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;
 
-    /** Selected transactions for triggering re-render via extraData */
-    selectedTransactions?: SelectedTransactions;
-
     /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
     isAttendeesEnabledForMovingPolicy?: boolean;
 
     /** Non-personal and workspace cards for triggering re-render via extraData */
     nonPersonalAndWorkspaceCards?: CardList;
+
+    /** Function to determine item type for FlashList recycling */
+    getItemType?: (item: SearchListItem, index: number) => string | number | undefined;
+
+    /** Indexes to skip during keyboard arrow navigation */
+    disabledIndexes?: readonly number[];
 };
 
 export default BaseSearchListProps;

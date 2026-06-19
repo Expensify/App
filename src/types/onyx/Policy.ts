@@ -141,7 +141,7 @@ type UberReceiptPartner = {
     /**
      * form data for uber partner
      */
-    connectFormData: string;
+    connectFormData?: string;
     /**
      * auto invite for uber connection
      */
@@ -1389,6 +1389,12 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Certinia (FinancialForce) export destination — FFA Payable Invoice vs PSA Expense Report */
 type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DESTINATION>;
 
+/** Certinia export statuses that apply to FFA payable invoices */
+type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.COMPLETE | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
+
+/** Certinia export statuses that apply to PSA reports */
+type FinancialForceReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
+
 /** Certinia PSA parent tag mapping mode */
 type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
 
@@ -1464,7 +1470,7 @@ type FinancialForceExportConfig = {
     nonReimbursable?: FinancialForceExportDestination;
 
     /** Payable invoice / expense report export status. */
-    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | FinancialForceReportExportStatus;
 
     /** Date basis for export */
     exportDate?: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>;
@@ -1477,9 +1483,6 @@ type FinancialForceExportConfig = {
 
     /** PSA / SRP: company ID for export */
     companyID?: string;
-
-    /** PSA: report-level export status. */
-    reportExportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
 };
 
 /** Certinia auto-sync */
@@ -1800,6 +1803,18 @@ type ACHAccount = {
     sharees?: string[];
 };
 
+/** Commuter exclusion configuration for a policy */
+type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** How commuter mileage is excluded - R2 will add 'homeAndOffice' */
+    method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
+
+    /** Distance subtracted from each claim when method is 'fixedDistance' */
+    fixedDistance?: number;
+
+    /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
+    fixedDistanceUnit?: string;
+}>;
+
 /** Prohibited expense types */
 type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the policy prohibits alcohol expenses */
@@ -2044,13 +2059,16 @@ type CodingRule = {
     errors?: OnyxCommon.Errors;
 };
 
-/** Policy AI rule data model */
-type AIRule = {
+/** Policy Agent rule data model */
+type AgentRule = {
     /** Unique identifier for the rule */
     ruleID: string;
 
-    /** The AI prompt (i.e. the rule defined with natural language) */
+    /** The Agent prompt (i.e. the rule defined with natural language) */
     prompt: string;
+
+    /** Short one-line summary generated server-side from the prompt */
+    title?: string;
 
     /** When this rule was created */
     created: string;
@@ -2273,8 +2291,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** A set of coding rules for automatic expense field population based on merchant matching */
             codingRules?: Record<string, CodingRule>;
 
-            /** A set of AI rules defined with natural language - The rules are run by the "RuleBot" */
-            aiRules?: Record<string, AIRule>;
+            /** A set of Agent rules defined with natural language - The rules are run by the "RuleBot" */
+            agentRules?: Record<string, AgentRule>;
         };
 
         /** The "RuleBot" agent account ID */
@@ -2328,9 +2346,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
 
-        /** Whether the Invoice Fields feature is enabled */
-        areInvoiceFieldsEnabled?: boolean;
-
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
 
@@ -2351,6 +2366,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Settings for the Policy's prohibited expenses */
         prohibitedExpenses?: ProhibitedExpenses;
+
+        /** Commuter exclusion configuration applied to distance expenses on this workspace */
+        commuterExclusions?: CommuterExclusions;
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
@@ -2497,6 +2515,8 @@ export type {
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
     FinancialForceConnectionConfig,
+    FinancialForceFFAExportStatus,
+    FinancialForceReportExportStatus,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
@@ -2507,10 +2527,11 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    CommuterExclusions,
     NetSuiteConnectionData,
     MergeHRConnectionConfig,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
-    AIRule,
+    AgentRule,
 };
