@@ -61,8 +61,8 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
+    findVendorByID,
     getLengthOfTag,
-    getMatchingVendorName,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getTagLists,
@@ -472,7 +472,7 @@ function MoneyRequestView({
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     const transactionVendor = transaction?.comment?.vendor;
-    const transactionVendorName = getMatchingVendorName(policy, transactionVendor?.externalID);
+    const transactionVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
     const vendorFieldLabel = isXeroVendorMatchingActive(policy) ? translate('common.supplier') : translate('common.vendor');
 

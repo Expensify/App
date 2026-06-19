@@ -10,7 +10,7 @@ import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroSuppliers, settingsPendingAction} from '@libs/PolicyUtils';
+import {getMatchingVendors, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -26,7 +26,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     const xeroConfig = policy?.connections?.xero?.config;
     const currentContactID = xeroConfig?.defaultContact;
 
-    const suppliers = useMemo(() => getXeroSuppliers(policy), [policy]);
+    const suppliers = useMemo(() => getMatchingVendors(policy), [policy]);
     const data: SelectorType[] = useMemo(
         () =>
             suppliers.map((supplier) => ({

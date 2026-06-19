@@ -16,10 +16,9 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {
     getDistanceRateCustomUnitRate,
+    getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
-    getQBOVendorByID,
     getSortedTagKeys,
-    getXeroSupplierByID,
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
@@ -488,7 +487,7 @@ const ViolationsUtils = {
                 if (isOnXero && !xeroContactsSynced) {
                     // No-op — supplier list not yet known for this workspace.
                 } else {
-                    const matchedVendor = isOnXero ? getXeroSupplierByID(policy, transactionVendorID) : getQBOVendorByID(policy, transactionVendorID);
+                    const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
                     if (!matchedVendor && !hasInactiveVendorViolation) {
                         newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
                     } else if (matchedVendor && hasInactiveVendorViolation) {

@@ -2120,12 +2120,20 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
 }
 
 /**
- * True when QBO is the connected integration scoping the vendor field — i.e. non-reimbursable
- * export is set to Credit Card or Debit Card.
+ * True when the QBO connection is exporting non-reimbursables to a card account, which is the
+ * mode that scopes the vendor field on QBO.
  */
 function isQBOVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     const destination = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config?.nonReimbursableExpensesExportDestination;
     return destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * True when the Sage Intacct connection is exporting non-reimbursables as Credit Card Charge, which
+ * is the mode that scopes the vendor field on Intacct.
+ */
+function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE;
 }
 
 /**
@@ -2138,83 +2146,105 @@ function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * Vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled AND a
- * supported accounting integration is connected with a configuration that scopes the vendor field.
- * Mirrors the per-integration `hasVendorFeature` checks on the PHP side so the App and backend
- * agree on which workspaces see the field.
+ * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
+ * enabled AND a supported accounting integration is connected with a non-reimbursable export type
+ * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
+ * side so the App and backend agree on which workspaces see the field.
+ *
+ * Supported integrations:
+ *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1)
+ *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2)
+ *   - Xero (R4) — no export-destination enum; connection present is sufficient
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!isVendorMatchingBetaEnabled || !policy) {
         return false;
     }
-    return isQBOVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy);
+    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy);
 }
 
 /**
- * Returns the QBO vendor list imported into the workspace (empty array when QBO isn't connected or
- * the sync hasn't populated vendors yet). Source of truth for the workspace Vendors tab and the
- * vendor selector RHP.
+ * Returns the vendor list imported into the workspace from whichever connected integration scopes
+ * the vendor field for this workspace (QBO, Sage Intacct, or Xero). Empty array when no
+ * integration is connected or the sync hasn't populated vendors yet. Source of truth for the
+ * vendor selector RHP and inactive-vendor lookups.
+ *
+ * Selection mirrors `hasVendorFeature`: each branch is gated on the integration's own
+ * non-reimbursable export destination, so a dual-connected workspace (e.g. mid-migration with stale
+ * QBO data + active Intacct) returns vendors from the integration whose export mode actually drives
+ * vendor matching, not whichever connection happens to be populated first.
+ *
+ * The shape is normalized to `Vendor` (id + name). For Intacct's `SageIntacctDataElementWithValue`,
+ * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
+ * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI. Xero
+ * stores suppliers as a keyed object at `connections.xero.data.contacts`, normalized here to the
+ * same `Vendor` shape.
  */
-function getQBOVendors(policy: OnyxEntry<Policy>): Vendor[] {
-    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
-}
-
-/**
- * Look up a single QBO vendor by `externalID`. Used to resolve the vendor name for display when
- * only the ID is stored on the transaction NVP. Returns undefined when the ID isn't found
- * (which happens after a vendor is deleted from QBO — see the inactive-vendor violation).
- */
-function getQBOVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
-    if (!vendorID) {
-        return undefined;
-    }
-    return getQBOVendors(policy).find((vendor) => vendor.id === vendorID);
-}
-
-/**
- * Returns the Xero supplier list imported into the workspace, normalized to the shared `Vendor`
- * shape (id + name). Xero persists suppliers as a keyed object at
- * `connections.xero.data.contacts`; empty array when Xero isn't connected or Integration-Server
- * hasn't synced suppliers for the workspace yet.
- */
-function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
-    const contacts = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts;
-    if (!contacts) {
+function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    if (!policy) {
         return [];
     }
-    return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+    if (isQBOVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+    }
+    if (isIntacctVendorMatchingActive(policy)) {
+        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
+        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
+    }
+    if (isXeroVendorMatchingActive(policy)) {
+        const xeroContacts = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts;
+        if (!xeroContacts) {
+            return [];
+        }
+        return Object.values(xeroContacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+    }
+    return [];
 }
 
 /**
- * Look up a single Xero supplier by `externalID`. Returns undefined when the ID isn't found
- * (which happens after a supplier is removed from Xero — see the inactive-vendor violation) or
- * when the contacts sync hasn't populated yet.
+ * Look up a single matching vendor by `externalID`, scoped to the active vendor-matching
+ * integration. Returns undefined when the ID isn't found in the active list (the inactive-vendor
+ * violation case — see `getViolationsOnyxData`).
  */
-function getXeroSupplierByID(policy: OnyxEntry<Policy>, supplierID: string | undefined): Vendor | undefined {
-    if (!supplierID) {
+function getMatchingVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!vendorID) {
         return undefined;
     }
-    const contact = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[supplierID];
-    return contact ? {id: contact.id, name: contact.name, currency: '', email: contact.email} : undefined;
+    return getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
 /**
- * Resolve the vendor name shown to admins/submitters across supported integrations. Prefers QBO's
- * vendor list when QBO is connected (R1 default), falls back to the Xero supplier list when Xero
- * is connected (R4). Returns an empty string when the vendor list hasn't populated or the ID isn't
- * found.
+ * Resolve a stored vendor ID to a display vendor. Prefers the active vendor-matching integration
+ * (delegating to `getMatchingVendors`) so a freshly-selected vendor in the dual-connected state
+ * never gets overshadowed by a stale entry with the same ID on the inactive integration. Falls
+ * back to a permissive search across every connection's vendor data (QBO then Intacct) so
+ * historical lookups keep working after an admin switches the workspace's non-reimbursable export
+ * mode away from the vendor-matching mode — rendering a vendor name stored on a past transaction
+ * or modified-expense action must not regress to the raw external ID. Use `getMatchingVendorByID`
+ * instead when the caller is enforcing the active-integration scope (e.g. the inactive-vendor
+ * violation check).
  */
-function getMatchingVendorName(policy: OnyxEntry<Policy>, vendorID: string | undefined): string {
-    if (!vendorID) {
-        return '';
+function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!policy || !vendorID) {
+        return undefined;
     }
-    if (policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]) {
-        return getQBOVendorByID(policy, vendorID)?.name ?? '';
+    const activeMatch = getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (activeMatch) {
+        return activeMatch;
     }
-    if (policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]) {
-        return getXeroSupplierByID(policy, vendorID)?.name ?? '';
+    const qboVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (qboVendor) {
+        return qboVendor;
     }
-    return '';
+    const intacctVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (intacctVendor) {
+        return {id: intacctVendor.id, name: intacctVendor.value, currency: '', email: ''};
+    }
+    const xeroContact = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[vendorID];
+    if (xeroContact) {
+        return {id: xeroContact.id, name: xeroContact.name, currency: '', email: xeroContact.email};
+    }
+    return undefined;
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -2630,11 +2660,9 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
-    getQBOVendorByID,
-    getQBOVendors,
-    getXeroSupplierByID,
-    getXeroSuppliers,
-    getMatchingVendorName,
+    findVendorByID,
+    getMatchingVendorByID,
+    getMatchingVendors,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     getValidConnectedIntegration,
