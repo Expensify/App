@@ -2347,6 +2347,39 @@ describe('getViolationsOnyxData', () => {
                 });
                 expect(result.value).not.toContainEqual(inactiveVendorViolation);
             });
+
+            it('still fires for a missing QBO vendor when both QBO and Xero are connected but Xero contacts are unsynced (regression — dual-connection state)', () => {
+                // QBO is the active matching source (Credit Card export). Xero is also connected —
+                // e.g. an admin started setting up Xero but Integration-Server hasn't synced
+                // contacts yet. The guardrail must only fire when Xero is the active source; here
+                // QBO owns the vendor list, so a QBO vendor ID that isn't in the QBO vendor list
+                // must still flag inactive.
+                policy = {
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {},
+                            data: {},
+                        },
+                    },
+                } as unknown as Policy;
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+            });
         });
     });
     describe('shouldRemoveRejectedExpenseViolation (move transaction / explicit removal)', () => {

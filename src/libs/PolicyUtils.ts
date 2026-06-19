@@ -2663,6 +2663,8 @@ export {
     findVendorByID,
     getMatchingVendorByID,
     getMatchingVendors,
+    isIntacctVendorMatchingActive,
+    isQBOVendorMatchingActive,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     getValidConnectedIntegration,

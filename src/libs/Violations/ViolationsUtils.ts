@@ -22,6 +22,8 @@ import {
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
+    isIntacctVendorMatchingActive,
+    isQBOVendorMatchingActive,
     isTaxTrackingEnabled,
     isXeroVendorMatchingActive,
 } from '@libs/PolicyUtils';
@@ -478,13 +480,16 @@ const ViolationsUtils = {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
             } else if (transactionVendorID) {
-                // For Xero workspaces, skip the violation check entirely until Integration-Server
-                // has synced the supplier list (data.contacts is undefined). Otherwise every
-                // matched transaction would falsely flag inactive between the beta flip and the
-                // first supplier sync for the workspace.
-                const isOnXero = isXeroVendorMatchingActive(policy);
+                // When Xero is the *active* matching source (i.e. neither QBO nor Intacct is in
+                // a vendor-matching export mode), skip the inactive-vendor check while
+                // Integration-Server has not yet synced suppliers — `data.contacts === undefined`
+                // means the vendor list is unknown, so flagging would be premature. Scoped to the
+                // active-source case so dual/stale-connection states (e.g. active QBO + lingering
+                // Xero with no contacts synced) still run the QBO check normally instead of being
+                // silenced by the Xero connection's existence.
+                const isXeroActiveSource = isXeroVendorMatchingActive(policy) && !isQBOVendorMatchingActive(policy) && !isIntacctVendorMatchingActive(policy);
                 const xeroContactsSynced = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts !== undefined;
-                if (isOnXero && !xeroContactsSynced) {
+                if (isXeroActiveSource && !xeroContactsSynced) {
                     // No-op — supplier list not yet known for this workspace.
                 } else {
                     const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
