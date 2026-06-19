@@ -22,6 +22,18 @@ type SetAvatarCropResultParams = {
 };
 
 /**
+ * Token of the crop flow initiated in THIS session. Lives in memory only (reset on reload), so it lets
+ * the crop screen tell an in-session navigation apart from a refreshed/restored one whose initiating
+ * opener no longer exists. The persisted Onyx draft can outlive the opener; this can't.
+ */
+let activeCropToken: string | undefined;
+
+/** True only for a crop draft started in the current session (its opener is still alive to consume the result). */
+function isActiveCropToken(token: string | undefined): boolean {
+    return !!token && token === activeCropToken;
+}
+
+/**
  * Serializes an image for Onyx storage. On web the image is converted to a base64 data URL so it
  * survives a page refresh (blob URLs do not). On native the file URI is persisted as-is.
  */
@@ -65,6 +77,7 @@ function buildFileFromAvatarCropResult(result: AvatarCropResult): File | CustomR
 }
 
 function setAvatarCropDraft({token, image, maskType, buttonLabelKey}: SetAvatarCropDraftParams): Promise<void> {
+    activeCropToken = token;
     return serializeAvatarCropImage(image).then((imageUri) =>
         Onyx.set(ONYXKEYS.AVATAR_CROP_DRAFT, {
             token,
@@ -78,6 +91,7 @@ function setAvatarCropDraft({token, image, maskType, buttonLabelKey}: SetAvatarC
 }
 
 function clearAvatarCropDraft(): Promise<void> {
+    activeCropToken = undefined;
     return Onyx.set(ONYXKEYS.AVATAR_CROP_DRAFT, null);
 }
 
@@ -99,4 +113,4 @@ function clearAvatarCropResult(): Promise<void> {
     return Onyx.set(ONYXKEYS.AVATAR_CROP_RESULT, null);
 }
 
-export {setAvatarCropDraft, clearAvatarCropDraft, setAvatarCropResult, clearAvatarCropResult, buildFileFromAvatarCropResult};
+export {setAvatarCropDraft, clearAvatarCropDraft, setAvatarCropResult, clearAvatarCropResult, buildFileFromAvatarCropResult, isActiveCropToken};

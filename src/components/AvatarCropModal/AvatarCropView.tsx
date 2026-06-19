@@ -53,7 +53,6 @@ type AvatarCropViewProps = {
 
 const LANDSCAPE_MODE_SLIDER_CONTAINER_MIN_WIDTH = 300;
 
-// This component can't be written using class since reanimated API uses hooks.
 function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose, onSave, maskImage, buttonLabel}: AvatarCropViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
