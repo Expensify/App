@@ -552,6 +552,7 @@
 "../../src/hooks/useProactiveAppReview.ts"	"react-hooks/purity"	1
 "../../src/hooks/useReceiptScanDrop.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useRestoreInputFocus/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
@@ -1299,7 +1300,6 @@
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspacesListPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/accounting/AccountingContext/default.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

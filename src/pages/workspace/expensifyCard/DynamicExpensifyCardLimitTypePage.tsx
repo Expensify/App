@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {format, toZonedTime} from 'date-fns-tz';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DatePicker from '@components/DatePicker';
@@ -52,6 +52,12 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
 
     const card = cardsList?.[cardID];
+    // Keep the latest card snapshot so a confirmation that resolves after the card refreshes (e.g. while the
+    // confirm modal is open) still sends/rolls back against current data instead of a stale optimistic snapshot.
+    const latestCardRef = useRef(card);
+    useEffect(() => {
+        latestCardRef.current = card;
+    }, [card]);
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
     const initialLimitType = card?.nameValuePairs?.limitType ?? defaultLimitType;
@@ -90,7 +96,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
             Number(cardID),
             typeSelected,
             assigneeTimeZone,
-            card?.nameValuePairs,
+            latestCardRef.current?.nameValuePairs,
             values[INPUT_IDS.VALID_FROM],
             values[INPUT_IDS.VALID_THRU],
             !expirationToggle,

@@ -3,10 +3,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
-import useConfirmModal from '@hooks/useConfirmModal';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelResetBankAccount, resetNonUSDBankAccount, resetUSDBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -14,8 +10,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import useConfirmModal from './useConfirmModal';
+import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
+import useThemeStyles from './useThemeStyles';
 
-type WorkspaceResetBankAccountModalProps = {
+type ResetBankAccountModalOptions = {
     /** Reimbursement account data */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 
@@ -38,7 +38,11 @@ type WorkspaceResetBankAccountModalProps = {
     backTo?: Route;
 };
 
-function WorkspaceResetBankAccountModal({
+/**
+ * Watches `reimbursementAccount.shouldShowResetModal` and opens the global confirm modal that lets the user
+ * reset (disconnect / start over) their bank account when the flag transitions to `true`.
+ */
+function useResetBankAccountModal({
     reimbursementAccount,
     setShouldShowConnectedVerifiedBankAccount,
     setUSDBankAccountStep,
@@ -46,7 +50,7 @@ function WorkspaceResetBankAccountModal({
     setShouldShowContinueSetupButton,
     navigateAfterReset,
     backTo,
-}: WorkspaceResetBankAccountModalProps) {
+}: ResetBankAccountModalOptions) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -54,6 +58,7 @@ function WorkspaceResetBankAccountModal({
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const achData = reimbursementAccount?.achData;
+    const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const isInOpenState = achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
@@ -107,6 +112,16 @@ function WorkspaceResetBankAccountModal({
 
     // Guards against showing the modal more than once (e.g. React StrictMode double-invoking effects)
     const isModalOpenRef = useRef(false);
+    // Tracks whether the consuming component is still mounted so we can discard the modal resolution
+    // (destructive reset actions, parent state setters and navigation) if it unmounts while the modal is open.
+    const isMountedRef = useRef(true);
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
     const showResetModal = useEffectEvent(() => {
         if (isModalOpenRef.current) {
             return;
@@ -127,6 +142,10 @@ function WorkspaceResetBankAccountModal({
             shouldShowCancelButton: true,
         }).then(({action}) => {
             isModalOpenRef.current = false;
+            // Discard the resolution if the consuming component unmounted while the modal was open
+            if (!isMountedRef.current) {
+                return;
+            }
             if (action !== ModalActions.CONFIRM) {
                 cancelResetBankAccount();
                 return;
@@ -136,10 +155,12 @@ function WorkspaceResetBankAccountModal({
     });
 
     useEffect(() => {
+        if (!shouldShowResetModal) {
+            isModalOpenRef.current = false;
+            return;
+        }
         showResetModal();
-    }, []);
-
-    return null;
+    }, [shouldShowResetModal]);
 }
 
-export default WorkspaceResetBankAccountModal;
+export default useResetBankAccountModal;
