@@ -219,9 +219,8 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
 
-    const selectReportName = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReportID), [iouReportID]);
     const [derivedReportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: selectReportName,
+        selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReportID),
     });
     const reportName = derivedReportName ?? iouReport?.reportName ?? '';
 
