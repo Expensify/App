@@ -1,7 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useSortedActions from '@hooks/useSortedActions';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {
     calculateDefaultReimbursable,
@@ -259,7 +258,6 @@ function submitAmount({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas, betaConfiguration);
-    const sortedActions = useSortedActions();
 
     const navigateToNextPage = () => {
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
@@ -298,18 +296,7 @@ function submitAmount({
                 const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
                 return participantAccountID
                     ? getParticipantsOption(participant, allPersonalDetails)
-                    : getReportOption(
-                          participant,
-                          privateIsArchived,
-                          policy,
-                          allPersonalDetails,
-                          conciergeReportID,
-                          reportAttributesReports,
-                          reportDraft,
-                          undefined,
-                          undefined,
-                          sortedActions,
-                      );
+                    : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
