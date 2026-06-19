@@ -2877,6 +2877,11 @@ function updateSplitExpenseField(
                 amount: splitExpenseDraftTransaction?.amount ?? 0,
                 routes: splitExpenseDraftTransaction?.routes ?? undefined,
                 merchant: splitExpenseDraftTransaction?.modifiedMerchant ? splitExpenseDraftTransaction.modifiedMerchant : (splitExpenseDraftTransaction?.merchant ?? ''),
+                taxCode: transactionDetails?.taxCode,
+                taxAmount: transactionDetails?.taxAmount,
+                taxValue: transactionDetails?.taxValue,
+                reimbursable: transactionDetails?.reimbursable,
+                billable: transactionDetails?.billable,
             };
 
             // Recalculate amount for distance transactions when rate or distance changes
