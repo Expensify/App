@@ -604,7 +604,7 @@ describe('actions/Report', () => {
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
                 Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
-                Report.readNewestAction(REPORT_ID);
+                Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
             })

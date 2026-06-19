@@ -151,7 +151,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
-        readNewestAction(reportID);
+        readNewestAction(reportID, true);
         userActiveSince.current = DateUtils.getDBTime();
         // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,7 +159,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
     const markNewestActionAsRead = () => {
         readActionSkippedRef.current = false;
-        readNewestAction(reportID);
+        readNewestAction(reportID, true);
     };
 
     const completeSkippedMarkAsRead = () => {

@@ -394,7 +394,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             return;
         }
 
-        readNewestAction(report?.reportID);
+        readNewestAction(report?.reportID, true);
         userActiveSince.current = DateUtils.getDBTime();
 
         // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
@@ -620,7 +620,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
-        readNewestAction(reportID);
+        readNewestAction(reportID, true);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, reportID, introSelected, betas]);
 
     const scrollToNewTransaction = useCallback(

@@ -2730,7 +2730,7 @@ function expandURLPreview(reportID: string | undefined, reportActionID: string) 
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
  */
-function readNewestAction(reportID: string | undefined, isReportActionsLoaded = true, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, isReportActionsLoaded: boolean, shouldResetUnreadMarker = false) {
     if (!reportID) {
         return;
     }
