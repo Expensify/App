@@ -1,3 +1,5 @@
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
@@ -6,6 +8,7 @@ import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 jest.mock('@components/FormAlertWithSubmitButton', () => jest.fn(() => null));
 jest.mock('@pages/settings/Wallet/CountrySelectionList', () => jest.fn(() => null));
@@ -27,6 +30,8 @@ jest.mock('@userActions/ReimbursementAccount', () => ({
     navigateToBankAccountRoute: jest.fn(),
     updateReimbursementAccountDraft: jest.fn(),
 }));
+
+const Stack = createStackNavigator();
 
 describe('BankAccountPurpose CountrySelection', () => {
     const mockedCountrySelectionList = jest.mocked(CountrySelectionList);
@@ -61,7 +66,16 @@ describe('BankAccountPurpose CountrySelection', () => {
     });
 
     it('keeps the child list mounted while persisting the selected country and navigating', () => {
-        render(<CountrySelection />);
+        render(
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen
+                        name={SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE}
+                        component={CountrySelection}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>,
+        );
 
         const initialProps = mockedCountrySelectionList.mock.lastCall?.[0];
         expect(mockMountCount).toBe(1);
