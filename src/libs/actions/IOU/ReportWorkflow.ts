@@ -26,6 +26,7 @@ import {
     isPaidGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
 } from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
@@ -119,6 +120,12 @@ type SubmitReportFunctionParams = {
     managerEmail?: string;
     /** When provided (e.g. from the submit-to popover selection), used for optimistic managerID before falling back to email resolution. */
     managerAccountID?: number;
+
+    /**
+     * When true, also primes the report's PDF-filename NVP so the backend (Submit workspace, submitting to self)
+     * writes the generated PDF filename back into Onyx and the App auto-downloads it. Used by "Submit via PDF".
+     */
+    shouldExportToPDF?: boolean;
 };
 
 function canApproveIOU(
@@ -128,9 +135,20 @@ function canApproveIOU(
     currentUserAccountID: number,
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
+    if (!isExpenseReport(iouReport)) {
+        return false;
+    }
+
+    // On a Submit workspace the submitter is also the report manager, so hide Approve for reports they submitted.
+    // Mark as paid stays available via the pay flow. This is checked before the paid-group gate so it keeps hiding
+    // Approve even once Submit workspaces start showing Approve (redirecting to the upgrade modal) for other users.
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, iouReport?.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
     // TODO: Submit workspaces should show the APPROVE button and redirect to an upgrade modal instead of hiding it.
     // This will be addressed as part of the Wave 3 "Upgrade on Approval" feature.
-    if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
+    if (!(policy && isPaidGroupPolicy(policy))) {
         return false;
     }
 
@@ -1316,6 +1334,7 @@ function submitReport({
     delegateEmail,
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
+    shouldExportToPDF,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1380,7 +1399,13 @@ function submitReport({
               bypassNextApproverID: optimisticNextStepApproverID,
           });
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME
+        >
     > = [];
 
     if (shouldAddOptimisticSubmitAction) {
@@ -1510,7 +1535,13 @@ function submitReport({
     }
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1582,6 +1613,22 @@ function submitReport({
         });
     }
 
+    // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
+    // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
+    // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
+    if (shouldExportToPDF) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${expenseReport.reportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${expenseReport.reportID}`,
+            value: CONST.REPORT_DETAILS_MENU_ITEM.ERROR,
+        });
+    }
+
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
         managerAccountID: managerID,
@@ -1595,6 +1642,18 @@ function submitReport({
 
     onSubmitted?.();
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Optimistically persists the user's last-used report submission method (Submit / Submit via PDF) for a workspace, so
+ * the Submit button can default to it next time. New users default to "Submit". The backend writes the authoritative
+ * value (the policy-scoped preferredReportSubmissionMethod NVP) when SUBMIT_REPORT runs, and it syncs back via Onyx.
+ */
+function setPreferredReportSubmissionMethod(policyID: string | undefined, method: ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>) {
+    if (!policyID) {
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD}${policyID}`, method);
 }
 
 function assignReportToMe(
@@ -1846,6 +1905,7 @@ export {
     getReportOriginalCreationTimestamp,
     reopenReport,
     retractReport,
+    setPreferredReportSubmissionMethod,
     submitReport,
     unapproveExpenseReport,
 };
