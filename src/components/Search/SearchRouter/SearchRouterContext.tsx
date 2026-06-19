@@ -8,23 +8,25 @@ import {closeSearch, openSearch} from './toggleSearch';
 // Module-level pending query used to seed the SearchRouter input on open.
 // Set before opening, peeked during SearchRouter render, cleared on mount.
 let pendingRouterQuery = '';
+let pendingIsFromSearchPageSearchButton = false;
 
-function peekPendingRouterQuery(): string {
-    return pendingRouterQuery;
+function peekPendingRouterState() {
+    return {query: pendingRouterQuery, isFromSearchPageSearchButton: pendingIsFromSearchPageSearchButton};
 }
 
-function clearPendingRouterQuery() {
+function clearPendingRouterState() {
     pendingRouterQuery = '';
+    pendingIsFromSearchPageSearchButton = false;
 }
 
-export {peekPendingRouterQuery, clearPendingRouterQuery};
+export {peekPendingRouterState, clearPendingRouterState};
 
 type SearchRouterStateContextType = {
     isSearchRouterDisplayed: boolean;
 };
 
 type SearchRouterActionsContextType = {
-    openSearchRouter: (query?: string) => void;
+    openSearchRouter: (query?: string, isFromSearchPage?: boolean) => void;
     closeSearchRouter: () => void;
     toggleSearch: () => void;
 };
@@ -85,8 +87,9 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         });
     };
 
-    const openSearchRouter = (query?: string) => {
+    const openSearchRouter = (query?: string, isFromSearchPageSearchButton?: boolean) => {
         pendingRouterQuery = query ?? '';
+        pendingIsFromSearchPageSearchButton = isFromSearchPageSearchButton ?? false;
         if (isBrowserWithHistory) {
             window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
         }

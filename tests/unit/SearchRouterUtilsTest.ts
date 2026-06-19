@@ -16,7 +16,6 @@ describe('SearchRouterUtils', () => {
             expect(result).toEqual({
                 contextualReportID: undefined,
                 isSearchRouterScreen: false,
-                isOnSearchPage: false,
             });
         });
 
@@ -36,7 +35,6 @@ describe('SearchRouterUtils', () => {
             expect(result).toEqual({
                 contextualReportID: '12345',
                 isSearchRouterScreen: false,
-                isOnSearchPage: false,
             });
         });
 
@@ -56,7 +54,6 @@ describe('SearchRouterUtils', () => {
             expect(result).toEqual({
                 contextualReportID: '67890',
                 isSearchRouterScreen: false,
-                isOnSearchPage: false,
             });
         });
 
@@ -80,7 +77,6 @@ describe('SearchRouterUtils', () => {
             expect(result).toEqual({
                 contextualReportID: '11111',
                 isSearchRouterScreen: true,
-                isOnSearchPage: false,
             });
         });
 
@@ -104,7 +100,6 @@ describe('SearchRouterUtils', () => {
             expect(result).toEqual({
                 contextualReportID: undefined,
                 isSearchRouterScreen: true,
-                isOnSearchPage: false,
             });
         });
 
@@ -124,7 +119,6 @@ describe('SearchRouterUtils', () => {
             expect(result).toEqual({
                 contextualReportID: undefined,
                 isSearchRouterScreen: false,
-                isOnSearchPage: false,
             });
         });
 
@@ -152,7 +146,6 @@ describe('SearchRouterUtils', () => {
             expect(result).toEqual({
                 contextualReportID: '55555',
                 isSearchRouterScreen: false,
-                isOnSearchPage: false,
             });
         });
 
@@ -176,51 +169,6 @@ describe('SearchRouterUtils', () => {
             expect(result).toEqual({
                 contextualReportID: '99999',
                 isSearchRouterScreen: true,
-                isOnSearchPage: false,
-            });
-        });
-
-        it('returns isOnSearchPage true when focused on the Search page', () => {
-            const state = createMockState({
-                index: 0,
-                routes: [
-                    {
-                        name: SCREENS.SEARCH.ROOT,
-                        params: {},
-                    },
-                ],
-            });
-
-            const result = getContextualReportData(state);
-
-            expect(result).toEqual({
-                contextualReportID: undefined,
-                isSearchRouterScreen: false,
-                isOnSearchPage: true,
-            });
-        });
-
-        it('returns isOnSearchPage true when SearchRouter is open over the Search page', () => {
-            const state = createMockState({
-                index: 1,
-                routes: [
-                    {
-                        name: SCREENS.SEARCH.ROOT,
-                        params: {},
-                    },
-                    {
-                        name: SCREENS.SEARCH_ROUTER.ROOT,
-                        params: {},
-                    },
-                ],
-            });
-
-            const result = getContextualReportData(state);
-
-            expect(result).toEqual({
-                contextualReportID: undefined,
-                isSearchRouterScreen: true,
-                isOnSearchPage: true,
             });
         });
     });

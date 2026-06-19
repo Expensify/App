@@ -11,7 +11,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 type ContextualReportData = {
     contextualReportID: string | undefined;
     isSearchRouterScreen: boolean;
-    isOnSearchPage: boolean;
 };
 
 /**
@@ -32,7 +31,7 @@ type ContextualReportData = {
 function getContextualReportData(state: NavigationState | undefined): ContextualReportData {
     // Safe handling when navigation is not yet initialized
     if (!state) {
-        return {contextualReportID: undefined, isSearchRouterScreen: false, isOnSearchPage: false};
+        return {contextualReportID: undefined, isSearchRouterScreen: false};
     }
     let maybeReportRoute = findFocusedRoute(state);
     const isSearchRouterScreen = maybeReportRoute?.name === SCREENS.SEARCH_ROUTER.ROOT;
@@ -47,12 +46,9 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
 
     if (maybeReportRoute?.name === SCREENS.REPORT || maybeReportRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
         // We're guaranteed that the type of params is of SCREENS.REPORT
-        return {contextualReportID: (maybeReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID, isSearchRouterScreen, isOnSearchPage: false};
+        return {contextualReportID: (maybeReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID, isSearchRouterScreen};
     }
-
-    // Whether the screen underneath the SearchRouter (or the focused screen when the router is an overlay) is the search page
-    const isOnSearchPage = maybeReportRoute?.name === SCREENS.SEARCH.ROOT;
-    return {contextualReportID: undefined, isSearchRouterScreen, isOnSearchPage};
+    return {contextualReportID: undefined, isSearchRouterScreen};
 }
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {

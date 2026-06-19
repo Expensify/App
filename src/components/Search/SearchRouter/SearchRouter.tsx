@@ -44,6 +44,7 @@ import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
+import {setSearchContext} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,7 +53,7 @@ import {buildSubstitutionsMap} from './buildSubstitutionsMap';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
-import {clearPendingRouterQuery, peekPendingRouterQuery} from './SearchRouterContext';
+import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterContext';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 import useAskConcierge from './useAskConcierge';
@@ -77,6 +78,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -84,7 +86,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
 
-    const {contextualReportID, isSearchRouterScreen, isOnSearchPage} = useRootNavigationState(getContextualReportData);
+    const {query: pendingInitialQuery, isFromSearchPageSearchButton} = peekPendingRouterState();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -93,14 +95,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
 
-    // Seed the input on open. When the SearchRouter is opened while on the search page, we build a
-    // user-readable query string from the current search query (showing names instead of IDs) along
-    // with the substitutions map needed to map those names back to IDs when submitting.
-    // Otherwise we fall back to the explicit pending query (e.g. from ExpenseReportSearchHandler).
-    // Computed once via a lazy initializer so the query string and its substitutions stay consistent.
+    // Seed the input on open. When the SearchRouter is opened from the search button on the search page
+    // and `shouldShowSearchQuery` is true, we build a user-readable query string from the current search
+    // query (showing names instead of IDs) along with the substitutions map needed to map those names
+    // back to IDs when submitting. Otherwise we fall back to the explicit pending query (e.g. from
+    // ExpenseReportSearchHandler). Computed once via a lazy initializer so the query string and its
+    // substitutions stay consistent.
     const [[initialQuery, initialSubstitutions]] = useState<[string, SubstitutionMap]>(() => {
-        if (!isOnSearchPage || !currentSearchQueryJSON) {
-            return [peekPendingRouterQuery(), {}];
+        if (!currentSearchQueryJSON || !isFromSearchPageSearchButton || !searchContext?.shouldShowSearchQuery) {
+            return [pendingInitialQuery, {}];
         }
 
         const taxRates = getAllTaxRates(policies);
@@ -140,10 +143,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [selection, setSelection] = useState({start: initialQuery.length, end: initialQuery.length});
 
     useEffect(() => {
-        clearPendingRouterQuery();
+        clearPendingRouterState();
     }, []);
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>(initialSubstitutions);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
+
+    const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
@@ -340,13 +345,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             backHistory(() => {
                 onRouterClose();
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+                setSearchContext(true);
+                Navigation.navigate(
+                    ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
+                );
             });
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
+        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton],
     );
 
     const onListItemPress = useCallback(
