@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention -- Test assertions use FullStory's external snake_case keys. */
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep} from '@src/libs/Fullstory/utils';
+import ROUTES from '@src/ROUTES';
 import createRandomPolicy from '../utils/collections/policies';
 
 describe('FullstoryUtils', () => {
