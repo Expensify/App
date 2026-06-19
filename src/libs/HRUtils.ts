@@ -172,12 +172,18 @@ function shouldShowHRConnectionError(policy: OnyxEntry<Policy>, isSyncInProgress
     if (!isAdmin) {
         return false;
     }
-    const mergeLastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
-    if (mergeLastSync?.isAuthenticationError || mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED) {
+    const connectedProvider = getConnectedHRProvider(policy);
+    if (!connectedProvider) {
+        return false;
+    }
+    const lastSync = policy?.connections?.[connectedProvider.connectionName]?.lastSync;
+    if (lastSync?.isAuthenticationError) {
         return true;
     }
-    const connectedProvider = getConnectedHRProvider(policy);
-    return connectedProvider ? hasSynchronizationErrorMessage(policy, connectedProvider.connectionName, isSyncInProgress) : false;
+    if (connectedProvider.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR) {
+        return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.FAILED;
+    }
+    return hasSynchronizationErrorMessage(policy, connectedProvider.connectionName, isSyncInProgress);
 }
 
 export {
