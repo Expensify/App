@@ -41,7 +41,7 @@ import {
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, getPolicyIDFromDomainName, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -146,10 +146,6 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefau
 
 function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMethodID: string | number, paymentMethod: PaymentMethod) {
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
-}
-
-function getPolicyIDFromDomainName(domainName: string): string | undefined {
-    return domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
 }
 
 function getBankAccountState(accountData: PaymentMethod['accountData']): string | undefined {
