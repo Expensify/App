@@ -66,6 +66,7 @@ import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
+import {getYourSpendSnapshotSplitUpdates} from './YourSpendSnapshotUpdate';
 
 type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
@@ -1786,6 +1787,20 @@ function updateSplitTransactions({
             );
         }
     }
+
+    // A split keeps a SUBMITTED report in the "Awaiting approval" section but changes its reimbursable total
+    // (e.g. split to a lower amount). Home reads that total from the cached snapshot, which is only refreshed
+    // online, so patch the same-currency delta optimistically. `changesInReportTotal` is the signed report-total
+    // delta (new split total minus the pre-split total) in the transaction currency.
+    const yourSpendSplitUpdates = getYourSpendSnapshotSplitUpdates({
+        iouReport: expenseReport,
+        originalTransaction,
+        reimbursableDiff: changesInReportTotal,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+    });
+    onyxData.optimisticData?.push(...yourSpendSplitUpdates.optimisticData);
+    onyxData.successData?.push(...yourSpendSplitUpdates.successData);
+    onyxData.failureData?.push(...yourSpendSplitUpdates.failureData);
 
     if (isReverseSplitOperation) {
         const parameters = {
