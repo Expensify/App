@@ -156,7 +156,7 @@ describe('WorkspaceWorkflowsPage - Approvals Load more', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(countWorkflowCards()).toBe(BATCH);
-        expect(screen.queryByText(loadMoreLabel(BATCH))).not.toBeOnTheScreen();
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: /load .* more/i})).not.toBeOnTheScreen();
     });
 
     it('shows only the initial batch with a "Load more" button labelled with the full remaining count', async () => {
@@ -178,7 +178,7 @@ describe('WorkspaceWorkflowsPage - Approvals Load more', () => {
         fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: loadMoreLabel(11 - BATCH)}));
         await waitForBatchedUpdatesWithAct();
         expect(countWorkflowCards()).toBe(11);
-        expect(screen.queryByText(loadMoreLabel(11 - BATCH))).not.toBeOnTheScreen();
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: /load .* more/i})).not.toBeOnTheScreen();
     });
 
     it('shows every match and hides the Load more button while searching (search bypasses pagination)', async () => {
@@ -192,6 +192,6 @@ describe('WorkspaceWorkflowsPage - Approvals Load more', () => {
         await waitFor(() => {
             expect(countWorkflowCards()).toBe(10);
         });
-        expect(screen.queryByText(loadMoreLabel(BATCH))).not.toBeOnTheScreen();
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: /load .* more/i})).not.toBeOnTheScreen();
     });
 });
