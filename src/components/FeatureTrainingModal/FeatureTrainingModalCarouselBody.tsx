@@ -165,7 +165,14 @@ function FeatureTrainingModalCarouselBody({
 
     return (
         <View
-            style={[onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
+            // On narrow viewports (mWeb BOTTOM_DOCKED) the outer View has no intrinsic content
+            // (everything below is gated by `carouselViewportWidth > 0`), so without `w100` it
+            // collapses to 0×0 inside the `fit-content` modal sheet — `onLayout` then never
+            // fires with a positive width and the carousel never renders, leaving the modal
+            // backdrop visible with no content. `w100` makes the View stretch to the sheet's
+            // known full width and lets `onLayout` resolve immediately. On medium+ screens the
+            // explicit `getWidthStyle(width)` continues to apply.
+            style={[onboardingIsMediumOrLargerScreenWidth ? StyleUtils.getWidthStyle(width) : styles.w100]}
             onLayout={(e: LayoutChangeEvent) => {
                 const newWidth = e.nativeEvent.layout.width;
                 if (newWidth === carouselViewportWidth || newWidth <= 0) {
