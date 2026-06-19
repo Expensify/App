@@ -71,7 +71,6 @@ import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRules
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import variables from '@styles/variables';
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
@@ -127,14 +126,14 @@ function WorkflowsLoadMoreCard({count, icon, onPress}: {count: number; icon: Ico
             hoverStyle={styles.hoveredComponentBG}
             style={[styles.border, shouldUseNarrowLayout ? styles.ph3 : styles.ph4, styles.pv3, styles.mt6, styles.mbn3, styles.alignItemsCenter, styles.justifyContentCenter]}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, {minHeight: variables.componentSizeSmall}]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.minHeightComponentSizeSmall]}>
                 <Icon
                     src={icon}
                     fill={theme.textSupporting}
                     extraSmall
                     additionalStyles={styles.mr1}
                 />
-                <Text style={[styles.buttonSmallText, {color: theme.textSupporting}]}>{label}</Text>
+                <Text style={[styles.buttonSmallText, styles.textSupporting]}>{label}</Text>
             </View>
         </PressableWithFeedback>
     );
@@ -337,7 +336,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [filteredApprovalWorkflows.length, setWorkflowSearchInput]);
 
     // Searching reveals every match, so pagination is bypassed while a query is active. Pressing "Load more" reveals all remaining workflows at once.
-    const isSearchingWorkflows = workflowSearchInput.length > 0;
+    // Trim before deciding so a whitespace-only input doesn't drop pagination while searchFilteredWorkflows is still unfiltered.
+    const isSearchingWorkflows = workflowSearchInput.trim().length > 0;
     const displayedWorkflows = isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
 
