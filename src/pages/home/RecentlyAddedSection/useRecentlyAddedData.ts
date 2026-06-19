@@ -67,6 +67,22 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
 
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
+    // The Search snapshot omits each transaction's `inserted` timestamp, so recency ordering must come from the
+    // local `transactions_` collection, which carries `inserted` for expenses the user has recently added.
+    const [localTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+
+    // Maps transactionID -> local `inserted` timestamp, used as the recency key the snapshot can't provide.
+    const insertedByTransactionID = useMemo(() => {
+        const map = new Map<string, string>();
+        for (const [key, transaction] of Object.entries(localTransactions ?? {})) {
+            const transactionID = transaction?.transactionID ?? key.slice(ONYXKEYS.COLLECTION.TRANSACTION.length);
+            if (transaction?.inserted) {
+                map.set(transactionID, transaction.inserted);
+            }
+        }
+        return map;
+    }, [localTransactions]);
+
     const fireSearch = useEffectEvent(() => {
         if (isOffline || !queryJSON) {
             return;
@@ -121,22 +137,27 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             }
         }
 
-        return snapshotTransactions
-            .filter((transaction): transaction is Transaction & {reportID: string} => {
-                if (!transaction?.reportID) {
-                    return false;
-                }
-                // Unreported expenses have no parent report to resolve ownership from, but always belong to the user.
-                if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                    return true;
-                }
-                const ownerAccountID = reportOwnerByReportID.get(transaction.reportID);
-                return ownerAccountID === undefined || ownerAccountID === accountID;
-            })
+        const filtered = snapshotTransactions.filter((transaction): transaction is Transaction & {reportID: string} => {
+            if (!transaction?.reportID) {
+                return false;
+            }
+            // Unreported expenses have no parent report to resolve ownership from, but always belong to the user.
+            if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                return true;
+            }
+            const ownerAccountID = reportOwnerByReportID.get(transaction.reportID);
+            return ownerAccountID === undefined || ownerAccountID === accountID;
+        });
+
+        // Recency key: prefer the local `inserted` timestamp (full precision, present for recently added expenses),
+        // then any snapshot `inserted`, then fall back to the expense date. Newest first.
+        const getRecencyKey = (transaction: Transaction & {reportID: string}) =>
+            insertedByTransactionID.get(transaction.transactionID) ?? transaction.inserted ?? getCreated(transaction) ?? '';
+
+        return filtered
             .sort((firstTransaction, secondTransaction) => {
-                // The insertion timestamp drives ordering, most recent first.
-                const firstKey = firstTransaction.inserted ?? '';
-                const secondKey = secondTransaction.inserted ?? '';
+                const firstKey = getRecencyKey(firstTransaction);
+                const secondKey = getRecencyKey(secondTransaction);
                 if (firstKey === secondKey) {
                     return 0;
                 }
@@ -153,7 +174,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
                 transaction,
             }));
-    }, [snapshotData, accountID]);
+    }, [snapshotData, accountID, insertedByTransactionID]);
 
     return {transactions};
 }
