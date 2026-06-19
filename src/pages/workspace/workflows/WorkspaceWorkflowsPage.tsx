@@ -358,8 +358,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
         const bankConnectionStatus = getBankAccountConnectionStatus(state);
-        const bankConnectionBrickRoadIndicator =
-            bankConnectionStatus?.brickRoadIndicator ?? (state === CONST.BANK_ACCOUNT.STATE.VERIFYING ? undefined : hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
+        let bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator;
+        if (!bankConnectionBrickRoadIndicator && state !== CONST.BANK_ACCOUNT.STATE.VERIFYING && hasReimburserError) {
+            bankConnectionBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
         const bankConnectionStatusAddon = bankConnectionStatus ? (
             <ConnectionStatusBadge
                 text={translate(bankConnectionStatus.labelKey)}
@@ -369,6 +371,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         ) : undefined;
         const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
         const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
+        const canInteractWithBankAccountRow = canWritePayments && !isOffline && isPolicyAdmin;
 
         const updateWorkspaceCurrencyPrompt = (
             <View style={[styles.renderHTML, styles.flexRow]}>
@@ -637,7 +640,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 <MenuItem
                                     title={bankTitle}
                                     description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
-                                    onPress={canWritePayments ? handleBankAccountPress : undefined}
+                                    onPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
                                     displayInDefaultIconColor
                                     icon={bankIcon.icon}
                                     iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
@@ -659,7 +662,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     <InlineRBRMessage
                                         message={bankConnectionMessage}
                                         actionText={bankConnectionActionText}
-                                        onActionPress={handleBankAccountPress}
+                                        onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
                                     />
                                 )}
                             </OfflineWithFeedback>
