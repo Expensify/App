@@ -199,7 +199,11 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+function newGetPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
+    if (!accountIDs) {
+        return [];
+    }
+
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
         const detail = getPersonalDetailsByID(accountID, personalDetails);
@@ -212,18 +216,20 @@ function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxE
     return result;
 }
 
-function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined>, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
-    return accountIDs.reduce((acc, accountID) => {
-        if (!accountID) {
+function getPersonalDetailsListByIDs(accountIDs: Array<number | undefined> | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    return (
+        accountIDs?.reduce((acc, accountID) => {
+            if (!accountID) {
+                return acc;
+            }
+            const detail = personalDetails?.[accountID];
+            if (!detail) {
+                return acc;
+            }
+            acc[accountID] = detail;
             return acc;
-        }
-        const detail = personalDetails?.[accountID];
-        if (!detail) {
-            return acc;
-        }
-        acc[accountID] = detail;
-        return acc;
-    }, {} as PersonalDetailsList);
+        }, {} as PersonalDetailsList) ?? {}
+    );
 }
 
 /**
