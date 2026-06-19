@@ -142,6 +142,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
         const isServerTotalConfirmed = !hasCustomFooterCurrency || footerTotalMetadata?.currency === selectedCurrency;
         const canConvertSelectedTotal = shouldUseClientTotal && hasCustomFooterCurrency && footerTotalMetadata?.currency === selectedCurrency;
+
         // The footer conversion snapshot only covers the first flat page, so a selected row from a later page (or a
         // selected group header) may have no converted amount. Only label the selected total as the target currency
         // when every selected row is convertible; otherwise the sum would mix converted and native amounts, so fall
