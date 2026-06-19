@@ -24,27 +24,14 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return post(commandName, {
-        ...parameters,
-        forceNetworkRequest: true,
-        canCancel: false,
-    }) as Promise<{requestID: string}>;
+    return post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
 }
 
 // eslint-disable-next-line
-type ServerLoggingCallbackOptions = {
-    api_setCookie: boolean;
-    logPacket: string;
-};
+type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
 type RequestParams = Merge<
     ServerLoggingCallbackOptions,
-    {
-        shouldProcessImmediately: boolean;
-        shouldRetry: boolean;
-        expensifyCashAppVersion: string;
-        parameters?: string;
-        email?: string | null;
-    }
+    {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters?: string; email?: string | null}
 >;
 
 type LogLine = {email?: string | null; [key: string]: unknown};
