@@ -82,8 +82,8 @@ function SearchActionsBarCreateButton() {
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
                 allBetas,
-                false,
                 isTrackIntentUser,
+                false,
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {

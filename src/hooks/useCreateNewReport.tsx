@@ -29,7 +29,7 @@ function useCreateNewReport() {
     return useCallback(
         (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, betas, false, isTrackIntentUser, shouldDismissEmptyReportsConfirmation);
+            return createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, betas, isTrackIntentUser, false, shouldDismissEmptyReportsConfirmation);
         },
         [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser],
     );

@@ -63,8 +63,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     currentUserLogin ?? '',
                     currentUserAccountID,
                     selectedTransactionViolations,
-                    ancestors,
                     isTrackIntentUser,
+                    ancestors,
                 );
                 clearSelectedTransactions(true);
             } else {
@@ -80,8 +80,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                         currentUserLogin ?? '',
                         currentUserAccountID,
                         transactionViolations,
-                        ancestors,
                         isTrackIntentUser,
+                        ancestors,
                     );
                 }
                 clearSelectedTransactions();

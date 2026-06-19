@@ -861,6 +861,7 @@ function startSplitBill({
  * @param sessionAccountID - accountID of the current user
  * @param sessionEmail - email of the current user
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function completeSplitBill(
     chatReportID: string,
     reportAction: OnyxEntry<OnyxTypes.ReportAction>,

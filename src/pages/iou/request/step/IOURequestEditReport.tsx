@@ -143,8 +143,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isASAPSubmitBetaEnabled,
             policyForNewReport,
             betas,
-            false,
             isTrackIntentUser,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         selectReport(

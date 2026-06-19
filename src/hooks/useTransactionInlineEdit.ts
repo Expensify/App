@@ -3,8 +3,7 @@
  * derivation, Onyx subscriptions, and edit handlers live in one place rather
  * than being duplicated across every surface that renders a transaction.
  */
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';

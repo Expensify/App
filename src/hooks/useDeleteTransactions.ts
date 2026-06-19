@@ -361,6 +361,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
             isProduction,
+            isTrackIntentUser,
         ],
     );
 

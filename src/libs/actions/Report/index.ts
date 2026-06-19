@@ -4219,8 +4219,8 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     betas: OnyxEntry<Beta[]>,
-    shouldNotifyNewAction = false,
     isTrackIntentUser: boolean | undefined,
+    shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     reportName?: string,
 ) {

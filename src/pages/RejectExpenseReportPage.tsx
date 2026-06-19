@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getSortedReportActions, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getSortedReportActions} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import {rejectExpenseReport} from '@userActions/IOU/RejectMoneyRequest';
 import CONST from '@src/CONST';

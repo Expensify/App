@@ -82,8 +82,8 @@ function CreateReportMenuItem() {
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
             allBetas,
-            false,
             isTrackIntentUser,
+            false,
             shouldDismissEmptyReportsConfirmation,
         );
         // Navigate to the Reports page first so getCreateReportRoute() resolves against

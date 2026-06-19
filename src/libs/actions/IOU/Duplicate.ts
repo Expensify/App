@@ -934,8 +934,8 @@ function duplicateReport({
         isASAPSubmitBetaEnabled,
         targetPolicy,
         betas,
-        false,
         isTrackIntentUser,
+        false,
         undefined,
         newReportName,
     );
