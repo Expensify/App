@@ -10,7 +10,6 @@ import {updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate'
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
-import {getGroupPaidPolicies} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isIOUReport, isReportArchivedByID, isSelfDM} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
@@ -30,6 +29,7 @@ import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {getSplitEffectivePolicy} from './useSplitEffectivePolicy';
 
@@ -85,6 +85,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
@@ -163,7 +164,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     policy,
                     transaction: splitExpenseEditTransaction,
                     allPolicies,
-                    fallbackPolicy: getGroupPaidPolicies(allPolicies ?? {}).at(0),
+                    fallbackPolicy: policyForMovingExpenses,
                 });
                 initSplitExpense(splitExpenseEditTransaction, splitExpenseEditTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {
                     navigateToEditSplitExpense: true,
@@ -367,6 +368,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             personalDetails,
             selfDMReportID,
             allPolicies,
+            policyForMovingExpenses,
             restrictedActionPolicyID,
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
