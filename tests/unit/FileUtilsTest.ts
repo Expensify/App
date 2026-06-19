@@ -100,16 +100,16 @@ describe('FileUtils', () => {
     });
 
     describe('getExportFileName', () => {
-        it('builds the Expensify_<name>_<id> filename and sanitizes the export name', () => {
-            expect(getExportFileName('Current view', '123abc')).toEqual('Expensify_Current_view_123abc.csv');
+        it('builds the expensify_<name>_<id> filename, sanitizes and lowercases the export name', () => {
+            expect(getExportFileName('Current view', '123abc')).toEqual('expensify_current_view_123abc.csv');
         });
 
         it('replaces every illegal character in the export name with an underscore', () => {
-            expect(getExportFileName('All Data - expense level', 'abc')).toEqual('Expensify_All_Data_-_expense_level_abc.csv');
+            expect(getExportFileName('All Data - expense level', 'abc')).toEqual('expensify_all_data_-_expense_level_abc.csv');
         });
 
         it('honors a custom extension', () => {
-            expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('Expensify_Current_view_abc.xlsx');
+            expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('expensify_current_view_abc.xlsx');
         });
     });
 

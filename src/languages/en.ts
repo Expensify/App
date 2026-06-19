@@ -9723,8 +9723,8 @@ const translations = {
     export: {
         basicExport: 'Basic export',
         currentView: 'Current view',
-        reportLevelExport: 'All data - report level',
-        expenseLevelExport: 'All data - expense level',
+        reportLevelExport: 'All Data - report level',
+        expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },

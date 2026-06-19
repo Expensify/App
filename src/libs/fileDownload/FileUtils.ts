@@ -198,12 +198,12 @@ function cleanFileName(fileName: string): string {
 }
 
 /**
- * Builds a standardized export filename: `Expensify_<exportName>_<uniqueID>.<extension>`.
- * The export name is sanitized so it is safe to use as a filename, and the unique id keeps
- * filenames distinct without relying on a timestamp.
+ * Builds a standardized export filename: `expensify_<exportName>_<uniqueID>.<extension>`.
+ * The export name is sanitized and the whole name is lowercased so it is safe and consistent
+ * to use as a filename, and the unique id keeps filenames distinct without relying on a timestamp.
  */
 function getExportFileName(exportName: string, uniqueID: string, extension = 'csv'): string {
-    return `Expensify_${cleanFileName(exportName)}_${uniqueID}.${extension}`;
+    return `expensify_${cleanFileName(exportName)}_${uniqueID}.${extension}`.toLowerCase();
 }
 
 function appendTimeToFileName(fileName: string): string {
