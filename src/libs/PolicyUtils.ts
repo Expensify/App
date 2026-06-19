@@ -2247,6 +2247,34 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     return undefined;
 }
 
+/**
+ * Xero-scoped supplier list, normalized to the shared `Vendor` shape. Use this from Xero-specific
+ * UI (the default-supplier picker, the Xero export config row) so the data source stays bound to
+ * `connections.xero.data.contacts` regardless of whether QBO or Intacct is the *active* matching
+ * source on a dual-connected workspace — `getMatchingVendors` is integration-priority-aware and
+ * would return non-Xero vendors in that state, which is wrong for Xero-only controls.
+ */
+function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
+    const contacts = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts;
+    if (!contacts) {
+        return [];
+    }
+    return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/**
+ * Xero-scoped supplier lookup. Same rationale as `getXeroSuppliers`: bound strictly to Xero data
+ * so the Xero export config display can never accidentally render a non-Xero vendor's name when
+ * another integration is the active matching source.
+ */
+function getXeroSupplierByID(policy: OnyxEntry<Policy>, supplierID: string | undefined): Vendor | undefined {
+    if (!supplierID) {
+        return undefined;
+    }
+    const contact = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts?.[supplierID];
+    return contact ? {id: contact.id, name: contact.name, currency: '', email: contact.email} : undefined;
+}
+
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
 }
@@ -2663,6 +2691,8 @@ export {
     findVendorByID,
     getMatchingVendorByID,
     getMatchingVendors,
+    getXeroSupplierByID,
+    getXeroSuppliers,
     isIntacctVendorMatchingActive,
     isQBOVendorMatchingActive,
     isXeroVendorMatchingActive,
