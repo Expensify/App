@@ -1,12 +1,11 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
- 
+
 const {tryClaim, resetCycle, Priorities, CYCLE_TIMEOUT_MS} = require<{
     tryClaim: (priority: number) => boolean;
     resetCycle: () => void;
     Priorities: {INITIAL: number; AUTO: number; RETURN: number};
     CYCLE_TIMEOUT_MS: number;
 }>('../../src/libs/ScreenFocusArbiter.ts');
- 
 
 beforeEach(() => {
     resetCycle();
