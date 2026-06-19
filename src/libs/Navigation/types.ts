@@ -1335,6 +1335,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT]: {
         policyID: string;
     };
@@ -1523,6 +1526,10 @@ type SettingsNavigatorParamList = {
         ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES]: {
         policyID: string;
         ruleID: string;
     };
