@@ -60,7 +60,8 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
         Navigation.navigate(matchingNavigationOption.route);
     };
 
-    const renderHeader = (shouldShowHeaderButton: boolean) => (
+    const shouldRenderHeaderInTable = typeof children === 'function';
+    const renderHeaderContent = (shouldShowHeaderButton: boolean) => (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
             <TabSelectorBase
                 tabs={navigationOptions}
@@ -70,16 +71,24 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
             {shouldShowHeaderButton && headerButton}
         </View>
     );
-    const headerComponent = renderHeader(true);
-    const shouldRenderHeaderInTable = typeof children === 'function';
-    const content = shouldRenderHeaderInTable ? (
-        (children as (headerComponent: React.ReactElement) => React.ReactNode)(headerComponent)
-    ) : (
+    const renderHeader = (shouldShowHeaderButton: boolean) => {
+        if (shouldRenderHeaderInTable) {
+            return null;
+        }
+
+        return renderHeaderContent(shouldShowHeaderButton);
+    };
+    const headerComponent = renderHeaderContent(true);
+    let content: React.ReactNode = (
         <>
             {renderHeader(shouldDisplayButtonsInSeparateLine)}
             {children}
         </>
     );
+
+    if (shouldRenderHeaderInTable) {
+        content = (children as (headerComponent: React.ReactElement) => React.ReactNode)(headerComponent);
+    }
 
     return (
         <ScreenWrapper
