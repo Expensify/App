@@ -102,7 +102,6 @@ function ExpenseRulesPage() {
     };
 
     const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules
-        .filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .map((rule, index) => ({
             keyForList: getKeyForList(rule, index),
             merchant: rule.merchantToMatch,
@@ -111,7 +110,8 @@ function ExpenseRulesPage() {
             pendingAction: rule.pendingAction,
             disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             action: () => navigateToEditRulePage(getKeyForList(rule, index)),
-        }));
+        }))
+        .filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const headerDropdownOptions: Array<DropdownOption<DeepValueOf<typeof CONST.EXPENSE_RULES.BULK_ACTION_TYPES>>> = [
         {
@@ -154,12 +154,6 @@ function ExpenseRulesPage() {
                 style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
             />
-        </View>
-    );
-
-    const headerContent = (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
         </View>
     );
 
@@ -215,7 +209,9 @@ function ExpenseRulesPage() {
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
 
-            {!hasRules && !isLoading && headerContent}
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
+            </View>
 
             {!hasRules && isLoading && (
                 <ActivityIndicator
