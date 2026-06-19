@@ -8,7 +8,6 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -313,30 +312,28 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
     const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCardsEnabledOnWorkspace && !!isOffline;
-    const [shouldShowDeleteWorkspaceErrorModal, setShouldShowDeleteWorkspaceErrorModal] = useState(false);
-    const didCompletePendingDelete = !isOffline && prevIsPendingDelete && !isPendingDelete && !!policyID;
-    const shouldLatchDeleteWorkspaceErrorModal = didCompletePendingDelete && !!policyLastErrorMessage && hasExpensifyCardsEnabledOnWorkspace;
 
-    // Latch open: show the delete-workspace error modal when pending delete completes with an Expensify Cards error.
-    // Using setState-during-render (React-recommended derived state pattern) instead of useEffect to satisfy react-hooks/set-state-in-effect.
-    if (shouldLatchDeleteWorkspaceErrorModal && !shouldShowDeleteWorkspaceErrorModal) {
-        setShouldShowDeleteWorkspaceErrorModal(true);
-    }
+    const showDeleteWorkspaceErrorModal = useCallback(() => {
+        if (!isFocused) {
+            return;
+        }
 
-    const hideDeleteWorkspaceErrorModal = useCallback(() => {
-        setShouldShowDeleteWorkspaceErrorModal(false);
-    }, []);
-
-    const isDeleteWorkspaceErrorModalOpen = shouldShowDeleteWorkspaceErrorModal && hasExpensifyCardsEnabledOnWorkspace && isFocused;
-
-    const deleteWorkspaceErrorPrompt = (
-        <View style={[styles.renderHTML, styles.flexRow]}>
-            <RenderHTML
-                html={translate('workspace.common.deleteOpenExpensifyCardsError')}
-                onConciergeLinkPress={hideDeleteWorkspaceErrorModal}
-            />
-        </View>
-    );
+        showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={translate('workspace.common.deleteOpenExpensifyCardsError')}
+                        onConciergeLinkPress={closeModal}
+                    />
+                </View>
+            ),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            success: false,
+            shouldHandleNavigationBack: false,
+        });
+    }, [closeModal, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
 
     const confirmDelete = () => {
         if (!policyID || !policyName) {
@@ -364,7 +361,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         });
 
         if (hasDeleteWorkspaceExpensifyCardsError) {
-            setShouldShowDeleteWorkspaceErrorModal(true);
+            showDeleteWorkspaceErrorModal();
         } else if (isOffline) {
             goBackFromInvalidPolicy();
         }
@@ -420,11 +417,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         closeModal();
 
         if (policyLastErrorMessage && hasExpensifyCardsEnabledOnWorkspace) {
+            showDeleteWorkspaceErrorModal();
             return;
         }
 
         goBackFromInvalidPolicy();
-    }, [isOffline, isPendingDelete, prevIsPendingDelete, policyID, policyLastErrorMessage, hasExpensifyCardsEnabledOnWorkspace, closeModal]);
+    }, [isOffline, isPendingDelete, prevIsPendingDelete, policyID, policyLastErrorMessage, hasExpensifyCardsEnabledOnWorkspace, closeModal, showDeleteWorkspaceErrorModal]);
 
     const onDeleteWorkspace = () => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
@@ -631,25 +629,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         </View>
     );
 
-    const deleteWorkspaceErrorModal = (
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Local modal avoids stacking issues with the global delete confirmation modal on mobile.
-        <ConfirmModal
-            title={translate('workspace.common.delete')}
-            isVisible={isDeleteWorkspaceErrorModalOpen}
-            onConfirm={hideDeleteWorkspaceErrorModal}
-            onCancel={hideDeleteWorkspaceErrorModal}
-            prompt={deleteWorkspaceErrorPrompt}
-            confirmText={translate('common.buttonConfirm')}
-            shouldShowCancelButton={false}
-            success={false}
-            shouldHandleNavigationBack={false}
-        />
-    );
-
     const modals = (
         <>
             {outstandingBalanceModal}
-            {deleteWorkspaceErrorModal}
             {!!pendingRulesDocumentFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}
