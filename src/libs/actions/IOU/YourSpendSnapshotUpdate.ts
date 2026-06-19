@@ -96,13 +96,20 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
 
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
     const currentSnapshot = allSnapshots?.[snapshotKey];
-    const currentTotal = currentSnapshot?.search?.total;
-    const currentCurrency = currentSnapshot?.search?.currency;
-    const currentCount = currentSnapshot?.search?.count ?? 0;
+    const search = currentSnapshot?.search;
 
-    if (currentTotal === undefined || currentTotal === null) {
+    // Only bail when the snapshot hasn't been loaded at all — writing into a non-existent snapshot would create a
+    // partial/garbage entry. A loaded-but-empty snapshot (e.g. the section had nothing awaiting approval, so its
+    // `total`/`count`/`currency` are still null) is a valid zero base: the first report submitted offline should
+    // populate and reveal the row.
+    if (!search) {
         return {optimisticData: [], successData: [], failureData: []};
     }
+
+    const currentCurrency = search.currency;
+    const currentTotal = search.total ?? 0;
+    const currentCount = search.count ?? 0;
+
     if (currentCurrency && currentCurrency !== currency) {
         return {optimisticData: [], successData: [], failureData: []};
     }
@@ -132,9 +139,11 @@ function buildSnapshotTotalUpdatesForHash(snapshotHash: number | undefined, diff
                 key: snapshotKey,
                 value: {
                     search: {
-                        total: currentTotal,
-                        count: currentCount,
-                        currency: currentCurrency ?? currency,
+                        // Restore the exact prior state. When the section was empty these were null, so rolling back
+                        // to null (Onyx MERGE removes the key) cleanly re-hides the row.
+                        total: search.total ?? null,
+                        count: search.count ?? null,
+                        currency: currentCurrency ?? null,
                     },
                 },
             },
@@ -286,33 +295,39 @@ function getYourSpendSnapshotReportMoveUpdates({
 
     const paidGroupPolicyIDs = getPaidGroupPolicyIDs();
     const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(currentUserAccountID, paidGroupPolicyIDs));
-    const approvalSnapshotCurrency = getSnapshotSearchResults(approvalQueryJSON?.hash)?.currency;
+    const approvalSnapshotSearch = getSnapshotSearchResults(approvalQueryJSON?.hash);
+    const approvalSnapshotCurrency = approvalSnapshotSearch?.currency;
+    // When the section is currently empty its snapshot has no currency yet, so fall back to the report's currency.
+    // This lets the first report submitted offline populate (and reveal) the row; the backend corrects the
+    // currency/total on the next online refresh.
+    const approvalTargetCurrency = approvalSnapshotCurrency ?? iouReport.currency;
 
-    if (reportInAwaitingApprovalScope(iouReport, currentUserAccountID, paidGroupPolicyIDs) && approvalSnapshotCurrency) {
-        const aggregate = getReportReimbursableTotal(iouReport, reportTransactions, false, approvalSnapshotCurrency);
+    if (reportInAwaitingApprovalScope(iouReport, currentUserAccountID, paidGroupPolicyIDs) && approvalSnapshotSearch && approvalTargetCurrency) {
+        const aggregate = getReportReimbursableTotal(iouReport, reportTransactions, false, approvalTargetCurrency);
         if (aggregate !== null) {
             const enters = isAwaitingApprovalStatus(toStatus);
             const leaves = isAwaitingApprovalStatus(fromStatus);
             const diff = (enters ? aggregate.total : 0) - (leaves ? aggregate.total : 0);
             const countDiff = (enters ? aggregate.count : 0) - (leaves ? aggregate.count : 0);
             if (diff !== 0 || countDiff !== 0) {
-                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, diff, approvalSnapshotCurrency, countDiff));
+                mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, diff, approvalTargetCurrency, countDiff));
             }
         }
     }
 
     if (reportInRepaidScope(iouReport, currentUserAccountID)) {
         const paymentQueryJSON = buildSearchQueryJSON(buildRepaidLast30DaysQuery(currentUserAccountID));
-        const paymentSnapshotCurrency = getSnapshotSearchResults(paymentQueryJSON?.hash)?.currency;
-        if (paymentSnapshotCurrency) {
-            const aggregate = getReportReimbursableTotal(iouReport, reportTransactions, true, paymentSnapshotCurrency);
+        const paymentSnapshotSearch = getSnapshotSearchResults(paymentQueryJSON?.hash);
+        const paymentTargetCurrency = paymentSnapshotSearch?.currency ?? iouReport.currency;
+        if (paymentSnapshotSearch && paymentTargetCurrency) {
+            const aggregate = getReportReimbursableTotal(iouReport, reportTransactions, true, paymentTargetCurrency);
             if (aggregate !== null) {
                 const enters = isRepaidStatus(toStatus);
                 const leaves = isRepaidStatus(fromStatus);
                 const diff = (enters ? aggregate.total : 0) - (leaves ? aggregate.total : 0);
                 const countDiff = (enters ? aggregate.count : 0) - (leaves ? aggregate.count : 0);
                 if (diff !== 0 || countDiff !== 0) {
-                    mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, diff, paymentSnapshotCurrency, countDiff));
+                    mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(paymentQueryJSON?.hash, diff, paymentTargetCurrency, countDiff));
                 }
             }
         }
