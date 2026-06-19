@@ -59,7 +59,7 @@ function IOURequestStepTaxRatePage({
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
+    const isEditingSplitBill = isEditing && (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE);
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const taxRates = policy?.taxRates;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

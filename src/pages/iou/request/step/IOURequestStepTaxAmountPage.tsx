@@ -66,7 +66,7 @@ function IOURequestStepTaxAmountPage({
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
+    const isEditingSplitBill = isEditing && (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE);
     const focusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
