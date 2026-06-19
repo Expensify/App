@@ -75,12 +75,21 @@ function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], reque
 function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
     for (let index = 0; index < persistedRequests.length; index++) {
         const request = persistedRequests.at(index);
-        if (
-            request?.command === WRITE_COMMANDS.OPEN_REPORT &&
-            request.data?.reportID === parameters.reportID &&
-            (request.data?.emailList ?? '') === (parameters.emailList ?? '') &&
-            (request.data?.accountIDList ?? '') === (parameters.accountIDList ?? '')
-        ) {
+
+        // Skip irrelevant requests immediately
+        if (request?.command !== WRITE_COMMANDS.OPEN_REPORT || request.data?.reportID !== parameters.reportID) {
+            continue;
+        }
+
+        const queuedHasParticipants = !!(request.data?.emailList ?? request.data?.accountIDList);
+        const newHasParticipants = !!(parameters.emailList ?? parameters.accountIDList);
+
+        const isExactParticipantMatch = (request.data?.emailList ?? '') === (parameters.emailList ?? '') && (request.data?.accountIDList ?? '') === (parameters.accountIDList ?? '');
+
+        // True only if the caller completely omitted the participant keys (e.g., a simple follow-up request)
+        const isNewParticipantsUndefined = parameters.emailList === undefined && parameters.accountIDList === undefined;
+
+        if (isExactParticipantMatch || (!queuedHasParticipants && newHasParticipants) || (queuedHasParticipants && isNewParticipantsUndefined)) {
             // If the previous request had guided setup data, we can safely ignore the new request
             if (request.data.guidedSetupData) {
                 return {
