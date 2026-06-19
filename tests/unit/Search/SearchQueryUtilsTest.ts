@@ -676,7 +676,7 @@ describe('SearchQueryUtils', () => {
         const emptyTaxRates: Record<string, string[]> = {};
         const currentUserAccountID = 0;
 
-        test('produces canonical filter order', () => {
+        test('preserves manual filter order for raw queries', () => {
             const queryString = 'type:expense date:this-month groupBy:from tag:travel';
             const canonicalQueryString = getQueryWithUpdatedValues(queryString);
 
@@ -704,10 +704,10 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            expect(result).toBe('type:expense group-by:from date:this-month tag:travel');
+            expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
         });
 
-        test('drops the default status all value from the query', () => {
+        test('preserves status all default value from manual query', () => {
             const queryString = 'type:expense status:all merchant:Uber';
             const canonicalQueryString = getQueryWithUpdatedValues(queryString);
 
@@ -735,10 +735,10 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            expect(result).toBe('type:expense merchant:Uber');
+            expect(result).toBe('type:expense status:all merchant:Uber');
         });
 
-        test('maps workspace names in canonical order', () => {
+        test('maps workspace names and maintains manual order', () => {
             const queryString = 'policyID:123 type:expense merchant:Starbucks';
             const canonicalQueryString = getQueryWithUpdatedValues(queryString);
 
@@ -771,7 +771,7 @@ describe('SearchQueryUtils', () => {
                 reportAttributes: undefined,
             });
 
-            expect(result).toBe('type:expense workspace:"Team Space" merchant:Starbucks');
+            expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
         });
 
         test('rawQuery overrides canonical filter values when provided', () => {
@@ -1622,6 +1622,14 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
         });
 
+        it('should return different primary hash for implicit table view and explicit view:table', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
         it('should not include view in query string when groupBy is removed after chart drill-down', () => {
             const parsed = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
 
@@ -2059,10 +2067,10 @@ describe('SearchQueryUtils', () => {
             const result = buildSearchQueryString(queryJSON);
 
             // Re-parsing the built string must keep "status:done" as a keyword, not a status filter
-            const reparsed = buildSearchQueryJSON(result);
-            const keywordFilter = reparsed?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            const newQueryJSON = buildSearchQueryJSON(result);
+            const keywordFilter = newQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
             expect(keywordFilter?.filters.at(0)?.value).toBe('status:done');
-            expect(reparsed?.status).toBe(CONST.SEARCH.STATUS.EXPENSE.ALL);
+            expect(newQueryJSON?.status).toBe(CONST.SEARCH.STATUS.EXPENSE.ALL);
         });
 
         test('does not add quotes to non-keyword filter values', () => {
