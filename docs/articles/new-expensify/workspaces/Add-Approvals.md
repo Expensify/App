@@ -58,12 +58,6 @@ Set up default or custom approval workflows to route expenses through one or mor
 8. Use **Additional approver** to add more approvers.
 9. Click **Add workflow** to save.
 
-<!-- SCREENSHOT:
-Suggestion: The Expenses from page with a non-member's email typed into the search field, showing the typed user as a selectable result.
-Location: After step 3 of "Set a Custom Workflow for Specific Members"
-Purpose: Show that a non-workspace member can be selected and invited directly from the approval workflow flow.
--->
-
 **Note:** Custom workflows are only available on the Control plan. To enable custom workflows, upgrade to the Control plan in Settings > Billing & Subscriptions.
 
 ---
