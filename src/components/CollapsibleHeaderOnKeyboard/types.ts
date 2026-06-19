@@ -10,6 +10,11 @@ type CollapsibleHeaderOnKeyboardProps = {
      * regardless if there is enough space for the input above the keyboard.
      */
     alwaysCollapseHeaderOnKeyboard?: boolean;
+
+    /**
+     * The minimum height of the header on collapse.
+     */
+    minHeaderHeightOnCollapse?: number;
 };
 
 // eslint-disable-next-line import/prefer-default-export

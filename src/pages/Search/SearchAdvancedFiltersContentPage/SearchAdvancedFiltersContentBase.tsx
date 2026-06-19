@@ -106,6 +106,8 @@ function SearchAdvancedFiltersContentBase() {
                             collapsibleHeaderOffset={getCollapsibleHeaderOffset()}
                             // In landscape mode we want to show as much of the selection list as possible for filters that use it
                             alwaysCollapseHeaderOnKeyboard={isFilterWithSelectionList}
+                            // We want to leave some empty space above the inputs when the header collapses
+                            minHeaderHeightOnCollapse={8}
                         >
                             <HeaderWithBackButton
                                 title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
