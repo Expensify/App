@@ -65,9 +65,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         StatusBar.setBackgroundColor(color);
     };
 
-    // Registers a back-guard entry in react-navigation's history when this modal is open, so browser
-    // Back closes the modal (and forward navigation doesn't strand a phantom entry — issue #90776).
-    // No-op on native.
+    // Back closes the modal (and forward navigation doesn't strand a phantom entry).
     useSyncModalWithHistory({isVisible: rest.isVisible, shouldHandleNavigationBack, onClose: rest.onClose});
 
     const onModalWillShow = () => {

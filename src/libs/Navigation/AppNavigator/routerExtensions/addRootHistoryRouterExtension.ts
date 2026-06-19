@@ -98,7 +98,7 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
 
             const rehydrated = rehydrate(newState, configOptions);
 
-            // #90776: forward navigation out of a `shouldHandleNavigationBack` Modal. The previous state
+            // forward navigation out of a `shouldHandleNavigationBack` Modal. The previous state
             // had a trailing modal back-guard sentinel; rehydrate() re-appends it on top of the freshly
             // pushed route, which would strand a phantom browser entry (Back needing two presses). Drop only
             // the top modal sentinel so the new history length matches the previous one and useLinking

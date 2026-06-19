@@ -1,9 +1,11 @@
-import {useEffect, useId, useRef} from 'react';
-import usePrevious from '@hooks/usePrevious';
-import useRootNavigationState from '@hooks/useRootNavigationState';
+import {useEffect, useEffectEvent, useId, useRef, useSyncExternalStore} from 'react';
+import subscribeToRootNavigation from '@libs/Navigation/helpers/subscribeToRootNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
+import {EMPTY_MODAL_GUARD_SNAPSHOT_KEY, getModalGuardSnapshotKey, parseModalGuardSnapshotKey} from './modalGuardSnapshot';
+import reduceModalGuardState, {getModalGuardEventFromSnapshotChange} from './modalGuardState';
+import type {ModalGuardState} from './modalGuardState';
 
 type UseSyncModalWithHistoryParams = {
     /** Whether the modal is currently visible */
@@ -23,9 +25,8 @@ type UseSyncModalWithHistoryParams = {
  * Web: represents a `shouldHandleNavigationBack` modal's back-guard as a uniquely-tagged sentinel in the
  * root navigator's `state.history` (dispatched via `TOGGLE_MODAL_WITH_HISTORY`). React Navigation's
  * `useLinking` mirrors the history length delta into the browser, so opening the modal pushes a browser
- * entry and browser Back removes it. This replaces the legacy direct `window.history.pushState` hack and
- * fixes the stranded-phantom double-Back bug (#90776): the router consumes the sentinel on forward
- * navigation (history length unchanged → `replaceState`) so no orphaned entry is left behind.
+ * entry and browser Back removes it. The router consumes the sentinel on forward navigation
+ * (history length unchanged → `replaceState`) so no orphaned entry is left behind.
  *
  * The per-instance tag lets nested modals add/remove their own guard independently (LIFO).
  */
@@ -33,26 +34,22 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
     const modalId = useId();
     const sentinel = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}`;
 
-    // True while *we* are removing our own sentinel (intentional close), so the observer below doesn't
-    // mistake it for a browser Back and double-fire onClose.
-    const isClosingByDispatch = useRef(false);
-    // Whether our guard sentinel is currently registered, so close is a no-op when it isn't.
-    const hasGuard = useRef(false);
+    const guardStateRef = useRef<ModalGuardState>('closed');
 
-    const onCloseRef = useRef(onClose);
-    useEffect(() => {
-        onCloseRef.current = onClose;
-    }, [onClose]);
+    const onCloseEvent = useEffectEvent(() => {
+        onClose?.();
+    });
 
-    const onOpenRef = useRef(onOpen);
-    useEffect(() => {
-        onOpenRef.current = onOpen;
-    }, [onOpen]);
+    const onOpenEvent = useEffectEvent(() => {
+        onOpen?.();
+    });
 
-    const isGuardInHistory = useRootNavigationState((state) => !!state?.history?.includes(sentinel));
-    const wasGuardInHistory = usePrevious(isGuardInHistory);
-    const rootRoutesLength = useRootNavigationState((state) => state?.routes?.length ?? 0);
-    const previousRootRoutesLength = usePrevious(rootRoutesLength);
+    const snapshotKey = useSyncExternalStore(
+        subscribeToRootNavigation,
+        () => getModalGuardSnapshotKey(sentinel),
+        () => EMPTY_MODAL_GUARD_SNAPSHOT_KEY,
+    );
+    const prevSnapshotKeyRef = useRef(snapshotKey);
 
     // Add the guard entry on open / remove it on close.
     useEffect(() => {
@@ -61,74 +58,67 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
         }
 
         if (isVisible) {
-            isClosingByDispatch.current = false;
-            hasGuard.current = true;
+            guardStateRef.current = 'open';
             Navigation.isNavigationReady().then(() => {
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY, payload: {isVisible: true, modalId}});
+                navigationRef.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY,
+                    payload: {isVisible: true, modalId},
+                });
             });
             return () => {
-                if (!hasGuard.current) {
+                if (guardStateRef.current !== 'open') {
                     return;
                 }
-                hasGuard.current = false;
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY, payload: {isVisible: false, modalId}});
+                guardStateRef.current = 'closed';
+                navigationRef.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY,
+                    payload: {isVisible: false, modalId},
+                });
             };
         }
 
-        if (!hasGuard.current) {
+        if (guardStateRef.current !== 'open') {
             return;
         }
-        hasGuard.current = false;
-        isClosingByDispatch.current = true;
+        guardStateRef.current = 'closingByDispatch';
         // Defer (microtask via isNavigationReady) so any forward navigation fired from the same close
         // handler is dispatched first; the router then consumes our sentinel during that push and this
         // toggle(false) becomes a no-op, avoiding an extra browser back().
         Navigation.isNavigationReady().then(() => {
-            navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY, payload: {isVisible: false, modalId}});
+            navigationRef.dispatch({
+                type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY,
+                payload: {isVisible: false, modalId},
+            });
         });
     }, [isVisible, shouldHandleNavigationBack, modalId]);
 
-    // Our guard entry disappeared while the modal is still open. If it was a browser Back (history
-    // shrank, routes unchanged) close the modal; if a forward navigation consumed it (routes grew) the
-    // modal is already closing via that navigation, so do nothing.
+    // Browser Back/Forward changes the guard sentinel in root history — react via snapshot transitions.
     useEffect(() => {
-        if (!shouldHandleNavigationBack || !isVisible) {
+        if (!shouldHandleNavigationBack) {
+            prevSnapshotKeyRef.current = snapshotKey;
             return;
         }
 
-        const guardRemoved = !!wasGuardInHistory && !isGuardInHistory;
-        if (!guardRemoved) {
+        if (prevSnapshotKeyRef.current === snapshotKey) {
             return;
         }
 
-        // Sentinel was removed by an intentional close dispatch, not a browser Back — skip onClose to avoid double-firing it.
-        if (isClosingByDispatch.current) {
-            isClosingByDispatch.current = false;
+        const prevSnapshot = parseModalGuardSnapshotKey(prevSnapshotKeyRef.current);
+        const nextSnapshot = parseModalGuardSnapshotKey(snapshotKey);
+        prevSnapshotKeyRef.current = snapshotKey;
+
+        const event = getModalGuardEventFromSnapshotChange(prevSnapshot, nextSnapshot, isVisible);
+        if (!event) {
             return;
         }
 
-        hasGuard.current = false;
+        const {state, effect} = reduceModalGuardState(guardStateRef.current, event, isVisible);
+        guardStateRef.current = state;
 
-        // Forward navigation consumed the guard (a new route was pushed). The modal is already
-        // closing via that navigation action, so calling onClose here would double-fire it.
-        if (rootRoutesLength > previousRootRoutesLength) {
-            return;
+        if (effect === 'onClose') {
+            onCloseEvent();
+        } else if (effect === 'onOpen') {
+            onOpenEvent();
         }
-
-        onCloseRef.current?.();
-    }, [isVisible, shouldHandleNavigationBack, isGuardInHistory, wasGuardInHistory, rootRoutesLength, previousRootRoutesLength]);
-
-    // Our guard entry re-appeared while the modal is closed (browser Forward navigation restored
-    // the saved nav state). Re-open the modal if a callback is provided.
-    useEffect(() => {
-        if (!shouldHandleNavigationBack || isVisible) {
-            return;
-        }
-        // Use strict equality so we don't fire on the initial render when wasGuardInHistory is undefined.
-        const guardAppeared = wasGuardInHistory === false && isGuardInHistory;
-        if (!guardAppeared) {
-            return;
-        }
-        onOpenRef.current?.();
-    }, [isVisible, shouldHandleNavigationBack, isGuardInHistory, wasGuardInHistory]);
+    }, [snapshotKey, isVisible, shouldHandleNavigationBack]);
 }
