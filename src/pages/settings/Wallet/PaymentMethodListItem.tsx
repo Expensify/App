@@ -1,8 +1,10 @@
+import type {KeyboardEvent as ReactKeyboardEvent} from 'react';
 import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -36,10 +38,10 @@ type ConnectionStatusDetails = {
     tooltipText?: string;
     message?: string;
     actionText?: string;
-    onActionPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    onActionPress?: (e: GestureResponderEvent | ReactKeyboardEvent | undefined) => void;
     isActionDisabled?: boolean;
     linkText?: string;
-    onLinkPress?: (e: GestureResponderEvent | KeyboardEvent) => void;
+    onLinkPress?: (e: GestureResponderEvent | ReactKeyboardEvent) => void;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -114,11 +116,28 @@ function dismissError(item: PaymentMethodItem) {
 }
 
 function isAccountInSetupState(account: PaymentMethodItem) {
-    return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
+    return isBankAccountPartiallySetup(getBankAccountState(account.accountData));
 }
 
 function isBusinessBankAccountLocked(account: PaymentMethodItem) {
-    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
+    return getBankAccountState(account.accountData) === CONST.BANK_ACCOUNT.STATE.LOCKED && hasBankAccountAllowDebit(account.accountData);
+}
+
+function getBankAccountState(accountData: PaymentMethodItem['accountData']): string | undefined {
+    if (typeof accountData !== 'object' || accountData === null) {
+        return undefined;
+    }
+
+    const state = (accountData as Record<string, unknown>).state;
+    return typeof state === 'string' ? state : undefined;
+}
+
+function hasBankAccountAllowDebit(accountData: PaymentMethodItem['accountData']): boolean {
+    if (typeof accountData !== 'object' || accountData === null) {
+        return false;
+    }
+
+    return !!(accountData as Record<string, unknown>).allowDebit;
 }
 
 function isAccountNeedingAction(account: PaymentMethodItem) {
@@ -230,27 +249,58 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
     const renderStatusMessage = () => {
-        if (!item.connectionStatus?.message) {
+        if (!item.connectionStatus?.message && !item.connectionStatus?.actionText) {
             return null;
         }
 
-        return (
-            <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
-                <Text style={[styles.textLabelSupporting, item.connectionStatus.statusTone === 'danger' ? styles.textDanger : undefined]}>
-                    {item.connectionStatus.message}
-                    {!!item.connectionStatus.actionText && !!item.connectionStatus.onActionPress && (
-                        <>
-                            {' '}
-                            <TextLink onPress={item.connectionStatus.isActionDisabled ? () => {} : item.connectionStatus.onActionPress}>{item.connectionStatus.actionText}</TextLink>
-                        </>
-                    )}
-                    {!!item.connectionStatus.linkText && !!item.connectionStatus.onLinkPress && (
+        const statusMessageRowPadding = {paddingLeft: 32, paddingRight: 32};
+        const shouldShowActionButton = !!item.connectionStatus?.actionText && !!item.connectionStatus?.onActionPress;
+        const isDangerStatus = item.connectionStatus?.statusTone === 'danger';
+        const messageContent = (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                {isDangerStatus && (
+                    <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
+                        <Icon
+                            src={icons.DotIndicator}
+                            fill={theme.danger}
+                        />
+                    </View>
+                )}
+                <Text style={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, isDangerStatus ? {color: 'rgb(134, 32, 32)'} : undefined, styles.flex1]}>
+                    {item.connectionStatus?.message}
+                    {!!item.connectionStatus?.linkText && !!item.connectionStatus?.onLinkPress && (
                         <>
                             {' '}
                             <TextLink onPress={item.connectionStatus.onLinkPress}>{item.connectionStatus.linkText}</TextLink>
                         </>
                     )}
                 </Text>
+            </View>
+        );
+
+        const actionButton = shouldShowActionButton ? (
+            <Button
+                small
+                danger
+                style={styles.alignSelfStart}
+                text={item.connectionStatus?.actionText}
+                onPress={item.connectionStatus?.isActionDisabled ? () => {} : () => item.connectionStatus?.onActionPress?.(undefined)}
+            />
+        ) : null;
+
+        if (shouldUseNarrowLayout) {
+            return (
+                <View style={[statusMessageRowPadding]}>
+                    {messageContent}
+                    {!!actionButton && <View style={styles.mt3}>{actionButton}</View>}
+                </View>
+            );
+        }
+
+        return (
+            <View style={[statusMessageRowPadding, styles.flexRow, styles.alignItemsCenter]}>
+                {messageContent}
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{actionButton}</View>
             </View>
         );
     };
@@ -261,7 +311,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.paymentMethodErrorRow}
-            shouldShowErrorMessages={!!item.errors}
+            shouldShowErrorMessages={!!item.errors && !item.connectionStatus?.message}
         >
             <MenuItem
                 onPress={handleRowPress}
@@ -302,7 +352,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     ) : undefined
                 }
                 interactive={item.interactive}
-                brickRoadIndicator={item.brickRoadIndicator}
+                brickRoadIndicator={item.connectionStatus?.message ? undefined : item.brickRoadIndicator}
                 success={item.isMethodActive}
             />
             {renderStatusMessage()}

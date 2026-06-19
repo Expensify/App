@@ -152,6 +152,15 @@ function getPolicyIDFromDomainName(domainName: string): string | undefined {
     return domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
 }
 
+function getBankAccountState(accountData: PaymentMethod['accountData']): string | undefined {
+    if (typeof accountData !== 'object' || accountData === null) {
+        return undefined;
+    }
+
+    const state = (accountData as Record<string, unknown>).state;
+    return typeof state === 'string' ? state : undefined;
+}
+
 function keyExtractor(item: PaymentMethod | string) {
     if (typeof item === 'string') {
         return item;
@@ -227,7 +236,13 @@ function PaymentMethodList({
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
-        onActionPress: status.actionKey === 'walletPage.bankAccountStatus.unlock' ? (onUnlockPress ?? onActionPress) : onActionPress,
+        onActionPress: () => {
+            if (status.actionKey === 'walletPage.bankAccountStatus.unlock') {
+                (onUnlockPress ?? onActionPress)(undefined);
+                return;
+            }
+            onActionPress(undefined);
+        },
     });
 
     const computeFilteredPaymentMethods = (): Array<PaymentMethodItem | string> => {
@@ -286,21 +301,32 @@ function PaymentMethodList({
                 }
 
                 const isCardBroken = isCardConnectionBroken(card);
-                const shouldShowCardConnectionMessage = isCardBroken || shouldShowRBR;
+                const isCardInactiveState = isCardInactive(card);
+                const shouldShowCardConnectionMessage = isCardBroken || shouldShowRBR || isCardInactiveState;
                 const cardLastSyncText = card.lastScrape ? translate('walletPage.cardLastSynced', datetimeToRelative(card.lastScrape)) : translate('walletPage.cardNeverSynced');
+                let cardStatusTone: NonNullable<PaymentMethodItem['connectionStatus']>['statusTone'] = 'success';
+                if (shouldShowCardConnectionMessage) {
+                    cardStatusTone = 'danger';
+                } else if (isCardInactiveState) {
+                    cardStatusTone = 'default';
+                }
+                let cardConnectionMessage: string | undefined;
+                if (shouldShowCardConnectionMessage) {
+                    let messageKey: 'walletPage.cardStatus.fixConnectionIn' | 'walletPage.cardStatus.fixConnection' | 'walletPage.cardStatus.askAdminToFixConnection';
+                    if (!isUserPersonalCard && isAdminForCardPolicy) {
+                        messageKey = 'walletPage.cardStatus.fixConnectionIn';
+                    } else if (isUserPersonalCard) {
+                        messageKey = 'walletPage.cardStatus.fixConnection';
+                    } else {
+                        messageKey = 'walletPage.cardStatus.askAdminToFixConnection';
+                    }
+                    cardConnectionMessage = translate(messageKey);
+                }
                 const cardConnectionStatus: PaymentMethodItem['connectionStatus'] = {
-                    statusText: translate(isCardInactive(card) ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active'),
-                    statusTone: shouldShowCardConnectionMessage ? 'danger' : isCardInactive(card) ? 'default' : 'success',
-                    message: shouldShowCardConnectionMessage
-                        ? translate(
-                              !isUserPersonalCard && isAdminForCardPolicy
-                                  ? 'walletPage.cardStatus.fixConnectionIn'
-                                  : isUserPersonalCard
-                                    ? 'walletPage.cardStatus.fixConnection'
-                                    : 'walletPage.cardStatus.askAdminToFixConnection',
-                          )
-                        : undefined,
-                    actionText: isUserPersonalCard && shouldShowCardConnectionMessage ? translate('walletPage.cardStatus.fixConnection') : undefined,
+                    statusText: translate(isCardInactiveState ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active'),
+                    statusTone: cardStatusTone,
+                    message: cardConnectionMessage,
+                    actionText: isUserPersonalCard && shouldShowCardConnectionMessage ? translate('common.actionBadge.fix') : undefined,
                     onActionPress:
                         isUserPersonalCard && shouldShowCardConnectionMessage
                             ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
@@ -354,7 +380,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard,
-                        errors: isUserPersonalCard ? undefined : card.errors,
+                        errors: undefined,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator,
@@ -404,7 +430,7 @@ function PaymentMethodList({
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
-                    errors: card.errors,
+                    errors: undefined,
                     canDismissError: true,
                     pendingAction: card.pendingAction,
                     brickRoadIndicator,
@@ -488,7 +514,7 @@ function PaymentMethodList({
                 description: paymentMethod.description,
             };
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
-            const bankConnectionStatus = isMissingPersonalInfo ? undefined : getBankAccountConnectionStatus(paymentMethod.accountData?.state);
+            const bankConnectionStatus = isMissingPersonalInfo ? undefined : getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData));
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,
