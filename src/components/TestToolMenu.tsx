@@ -161,7 +161,7 @@ function TestToolMenu() {
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
-            {/* Opens the Stately inspector window visualizing every XState machine wired to it. Available on web in dev builds only. */}
+            {/* Opens the Stately inspector window, which shows every XState machine wired to it. The row appears on web dev builds only, where the inspector can run. */}
             {!!xstateInspector.start && (
                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.xstateInspector')}>
                     <Button

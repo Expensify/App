@@ -211,10 +211,12 @@ const EMAIL = {
 
 const CONST = {
     /**
-     * Credential and secret keys redacted everywhere user data can leave the running app:
-     * request/response logs (`sanitizeLogParams`), thrown parameter errors (`requireParameters`)
-     * and the XState inspector stream (`XStateInspector/maskSensitive`). This is the single source
-     * for that set so the redaction sites can never drift apart - extend it here, not per call site.
+     * Credential and secret keys that must be redacted before any user data leaves the running app.
+     * Every place where data can leave redacts them, such as the request and response logs
+     * (`sanitizeLogParams`), the thrown parameter errors (`requireParameters`), and the XState
+     * inspector stream (`XStateInspector/maskSensitive`). Keeping the keys in this single list is
+     * what stops those sites from drifting apart, so always add a new key here rather than at each
+     * call site.
      */
     SENSITIVE_AUTH_KEYS: [
         'authToken',

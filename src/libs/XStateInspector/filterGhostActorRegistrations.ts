@@ -1,16 +1,17 @@
 import type {InspectionEvent, Observer} from 'xstate';
 
 /**
- * Wraps the inspector's observer to hold back each `@xstate.actor` registration until that actor
- * shows life (any later inspection event for its session).
+ * Wraps the inspector's observer so that each `@xstate.actor` registration is held back until a
+ * later inspection event arrives for the same session, which keeps "ghost" actors out of the
+ * inspector.
  *
- * Why: `useMachine` calls `createActor` during render (inside a `useState` initializer) and XState
- * announces the actor to inspectors in the Actor constructor - before `start()`. Whenever React
- * throws a render pass away and redoes it (concurrent restarts, Strict Mode, machine hot reloads),
- * the discarded pass leaves a "ghost" actor that is registered but never started, which the Stately
- * UI then shows forever stuck in its initial state with no events. A registration that never
- * activates is never forwarded, so ghosts stay out of the inspector; real actors emit their init
- * snapshot immediately on start, so their registration is flushed - in order - right away.
+ * A ghost appears because `useMachine` calls `createActor` during render, and XState announces the
+ * actor to inspectors in the Actor constructor, before `start()` runs. Whenever React discards a
+ * render pass and runs it again, for example under Strict Mode or a machine hot reload, the
+ * discarded pass leaves an actor that was registered but never started. The Stately UI would
+ * otherwise show that actor forever, stuck in its initial state. Because a registration that never
+ * receives a later event is never forwarded, those ghosts stay hidden, while a real actor emits its
+ * first snapshot on start and therefore has its registration forwarded immediately and in order.
  */
 function filterGhostActorRegistrations(target: Observer<InspectionEvent>): Observer<InspectionEvent> {
     const pendingRegistrations = new Map<string, InspectionEvent>();
@@ -35,8 +36,9 @@ function filterGhostActorRegistrations(target: Observer<InspectionEvent>): Obser
             }
             flushRegistration(event.actorRef.sessionId);
             if (event.type === '@xstate.event') {
-                // An actor can send before its own first snapshot is emitted (e.g. from an entry
-                // action while starting); flush the sender too so the UI knows the source lane.
+                // An actor can send an event before its own first snapshot is emitted, for example
+                // from an entry action that runs while it is starting. We therefore flush the sender
+                // as well, so the inspector can attribute the event to the correct actor.
                 flushRegistration(event.sourceRef?.sessionId);
             }
             target.next?.(event);

@@ -5,13 +5,13 @@ const SENSITIVE_VALUE_MASK = '***';
 const CIRCULAR_MARKER = '[Circular]';
 const MAX_DEPTH_MARKER = '[MaxDepth]';
 
-/** Depth cap of the inspector's default serializer, so oversized structures stay bounded. */
+/** This depth cap matches the inspector's default serializer and keeps oversized structures bounded. */
 const MAX_DEPTH = 10;
 
 /**
- * Keys whose entire subtree is masked at any depth - exactly the shared credential base
- * ({@link CONST.SENSITIVE_AUTH_KEYS}) the log and parameter-error redactors use, so secrets are redacted
- * identically wherever data leaves the app.
+ * Keys whose entire subtree is masked at any depth. This is the same shared set
+ * ({@link CONST.SENSITIVE_AUTH_KEYS}) that the log and parameter-error redactors use, so that secrets
+ * are redacted identically wherever data leaves the app.
  */
 const SENSITIVE_KEYS = new Set<string>(CONST.SENSITIVE_AUTH_KEYS);
 
@@ -24,14 +24,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Serializes a value to postMessage-safe data like the inspector's default serializer (honor `toJSON`,
- * drop functions and symbols, collapse cycles, cap depth). When `maskSensitiveKeys` is set, every
- * primitive under a {@link SENSITIVE_KEYS} key becomes {@link SENSITIVE_VALUE_MASK}; the shape is kept
- * so the inspector still shows which fields exist, never their values.
+ * Serializes a value into postMessage-safe data, much like the inspector's default serializer. It
+ * honors `toJSON`, drops functions and symbols, collapses cycles, and caps the depth. When
+ * `maskSensitiveKeys` is set, every primitive under a {@link SENSITIVE_KEYS} key becomes
+ * {@link SENSITIVE_VALUE_MASK}. The shape itself is preserved, so the inspector still shows which
+ * fields exist without revealing their values.
  */
 function serialize(value: unknown, maskSensitiveKeys: boolean): unknown {
-    // `visited` holds only the current recursion path (cleared on the way back up), so shared
-    // non-circular references still render in full and only true cycles collapse to the marker.
+    // `visited` holds only the nodes on the current path, because each one is removed again as the
+    // walk returns. A value that is shared but not circular therefore still renders in full, and only
+    // a true cycle collapses to the marker.
     const visited = new WeakSet<WeakKey>();
 
     function walk(node: unknown, depth: number, isSensitive: boolean): unknown {
@@ -51,8 +53,9 @@ function serialize(value: unknown, maskSensitiveKeys: boolean): unknown {
         visited.add(node);
         let result: unknown;
         if (hasToJSON(node)) {
-            // Unwrapping `toJSON` keeps the same depth (like JSON.stringify), letting XState snapshots
-            // shed unserializable internals such as `machine` and `_nodes`.
+            // Calling `toJSON` does not increase the depth, exactly as `JSON.stringify` behaves, which
+            // lets XState snapshots drop internal fields that cannot be serialized, such as `machine`
+            // and `_nodes`.
             result = walk(node.toJSON(), depth, isSensitive);
         } else if (Array.isArray(node)) {
             result = node.map((item) => walk(item, depth + 1, isSensitive) ?? null);
@@ -79,18 +82,18 @@ function maskEvent(value: unknown): unknown {
     return serialize(value, true);
 }
 
-/** Serializes the machine state value without key masking - it is built only from static state-node names, never runtime data. */
+/** Serializes the machine state value without masking, because it is built only from static state-node names and never from runtime data. */
 function serializeStateValue(value: unknown): unknown {
     return serialize(value, false);
 }
 
 /**
- * The inspector's `serialize` option: masks the whole event before it reaches the stately.ai window.
- * The overloads keep the option's declared type while still accepting the looser raw snapshots the
- * inspector actually feeds in.
+ * This is the inspector's `serialize` option, which masks the whole event before it reaches the
+ * stately.ai window. The overloads keep the option's declared type while still accepting the looser
+ * raw snapshots that the inspector actually passes in.
  *
- * `snapshot.value` is re-serialized without masking so a state named like a sensitive key
- * (`validateCode`, `pin`) stays readable; the exemption is scoped to that one path.
+ * The `snapshot.value` is re-serialized without masking, so that a state named like a sensitive key
+ * such as `validateCode` or `pin` stays readable. This exemption applies only to that one path.
  */
 function maskInspectionEvent(event: StatelyInspectionEvent): StatelyInspectionEvent;
 function maskInspectionEvent(event: unknown): unknown;
