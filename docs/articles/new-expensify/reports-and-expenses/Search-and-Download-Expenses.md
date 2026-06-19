@@ -104,7 +104,7 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 ## How do I receive my export?
 
-A status window appears while your file is prepared, and the file downloads automatically when it’s ready (if it doesn’t, use the **Download file** button). If you’d rather not wait, click **Send me the file when it’s ready** and Concierge will send it to you in a chat message.
+A status window appears while your file is prepared, and the file downloads automatically when it’s ready (if it doesn’t, use the **Download file** button). If you’d rather not wait, click/tap **Send me the file when it’s ready** and **Concierge** will send it to you in a chat message.
 
 ## Can I export expenses or reports in bulk?
 
