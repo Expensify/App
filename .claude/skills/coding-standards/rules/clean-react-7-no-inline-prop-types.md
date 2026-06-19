@@ -1,9 +1,9 @@
 ---
-ruleId: CLEAN-REACT-7
+ruleId: CLEAN-REACT-PATTERNS-7
 title: Do not inline prop types on exported components
 ---
 
-## [CLEAN-REACT-7] Do not inline prop types on exported components
+## [CLEAN-REACT-PATTERNS-7] Do not inline prop types on exported components
 
 ### Reasoning
 

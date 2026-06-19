@@ -1030,6 +1030,12 @@ const translations: TranslationDeepObject<typeof en> = {
             today: 'Hoy',
         },
         seeMore: ({count}: {count: number}) => `Ver ${count} más`,
+        recentlyAddedSection: {
+            title: 'Añadido recientemente',
+            viewAll: 'Ver todos los gastos',
+            emptyStateTitle: 'No hay gastos recientes',
+            emptyStateMessage: 'Crea uno o arrastra un recibo aquí',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -6154,7 +6160,7 @@ ${amount} para ${merchant} - ${date}`,
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: (count) => `Total de miembros del espacio de trabajo: ${count}`,
-            members: 'Miembros',
+            allMembers: 'Todos los miembros',
             admins: 'Administradores del espacio de trabajo',
             approvers: 'Aprobadores',
             auditors: 'Auditores',
@@ -6660,6 +6666,17 @@ ${amount} para ${merchant} - ${date}`,
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
             workspaceNeeds: 'Un espacio de trabajo necesita al menos una tasa de distancia activa.',
+            commuterExclusions: {
+                title: 'Excluir desplazamientos al trabajo',
+                summaryDisabled: 'Sin exclusión por desplazamiento al trabajo',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por reclamación`,
+                optionDisabledTitle: 'No excluir los desplazamientos al trabajo',
+                optionDisabledHelp: 'No se aplica ninguna exclusión de desplazamiento.',
+                optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
+                optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
+                distanceLabel: 'Distancia',
+                errors: {distanceMustBePositive: 'La distancia debe ser mayor que 0.'},
+            },
             distance: 'Distancia',
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
@@ -7762,6 +7779,22 @@ ${amount} para ${merchant} - ${date}`,
         updatedTimeRate: (newRate, oldRate) => `cambió la tarifa por hora a "${newRate}" (anteriormente "${oldRate}")`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
+        commuterExclusions: {
+            changedToFixedDistance: 'cambió la exclusión de trayectos al trabajo a una distancia fija por reclamación',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'milla' : 'millas';
+                } else {
+                    unitLabel = isSingular ? 'kilómetro' : 'kilómetros';
+                }
+                return `establecer exclusión de distancia fija en ${distance} ${unitLabel} por reclamación`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `cambió la exclusión de distancia fija a ${newDistance} ${unit} por reclamación (previamente ${oldDistance} ${unit})`,
+            disabled: 'desactivó la opción de excluir desplazamientos para las tarifas por distancia',
+        },
         updatedReimbursementChoice: (newReimbursementChoice, oldReimbursementChoice) =>
             `cambió el método de reembolso a "${newReimbursementChoice}" (previamente "${oldReimbursementChoice}")`,
         setAutoJoin: (enabled) => `${enabled ? 'habilitó' : 'deshabilitó'} la aprobación previa de solicitudes para unirse al espacio de trabajo`,
@@ -9727,6 +9760,7 @@ ${amount} para ${merchant} - ${date}`,
             theresAProblemWithYourWallet: 'Hay un problema con tu billetera',
             theresAProblemWithYourWalletTerms: 'Hay un problema con los términos de tu billetera',
             aBankAccountIsLocked: 'Una cuenta bancaria está bloqueada',
+            completeHrSetup: 'Completa la configuración de RR. HH.',
         },
     },
     emptySearchView: {
@@ -9955,7 +9989,7 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'No hay miembros en este grupo',
                 subtitle: 'Añade un miembro o intenta cambiar el filtro de arriba.',
             },
-            allMembers: 'Miembros',
+            allMembers: 'Todos los miembros',
             email: 'Dirección de correo electrónico',
             closeAccount: () => ({
                 one: 'Cerrar cuenta',
@@ -10127,22 +10161,6 @@ ${amount} para ${merchant} - ${date}`,
             button: 'Ver progreso',
             lockScreenBadgeText: 'Distancia',
             lockScreenTrackingText: 'Siguiendo...',
-        },
-    },
-    aiFeaturesPromoModal: {
-        subtitle: 'Nuevo en Concierge AI',
-        confirmText: '¡Vamos!',
-        spendAnalysis: {
-            title: 'Análisis interactivo del gasto',
-            description: `<muted-text>Concierge muestra información mensual sobre gastos y te permite profundizar en los detalles detrás de cada cifra. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Más información</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Conoce a tu nuevo asistente de gastos',
-            description: `<muted-text>Chatea con Concierge para crear y actualizar gastos, directamente en la aplicación o por correo electrónico o mensaje de texto. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Más información</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Crea tus propios agentes',
-            description: `<muted-text>Crea agentes personalizados para revisar, aprobar y asignar gastos según las reglas que configures. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Más información</a>.</muted-text>`,
         },
     },
 };

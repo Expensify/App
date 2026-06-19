@@ -2958,6 +2958,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/distance-rates/settings/unit',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/unit` as const,
     },
+    WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS: {
+        route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions` as const,
+    },
     WORKSPACE_DISTANCE_RATE_DETAILS: {
         route: 'workspaces/:policyID/distance-rates/:rateID',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}` as const,
@@ -3375,7 +3379,6 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/migrated-user-welcome', backTo, false),
     },
-    AI_FEATURES_PROMO_MODAL: 'ai-features-promo',
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
