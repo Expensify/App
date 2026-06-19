@@ -1154,6 +1154,8 @@ function updateSplitTransactions({
                 },
                 reimbursable: split?.reimbursable,
                 billable: split?.billable,
+                taxCode: split?.taxCode,
+                taxAmount: split?.taxAmount,
                 quantity: split.customUnit?.quantity ?? undefined,
                 customUnitRateID: split.customUnit?.customUnitRateID,
                 odometerStart: split.odometerStart,

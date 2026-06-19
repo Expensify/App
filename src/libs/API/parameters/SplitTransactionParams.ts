@@ -14,6 +14,8 @@ type SplitTransactionSplitParam = {
     modifiedExpenseReportActionID?: string;
     reimbursable?: boolean;
     billable?: boolean;
+    taxCode?: string;
+    taxAmount?: number;
     reportID?: string;
     quantity?: number;
     customUnitRateID?: string;
