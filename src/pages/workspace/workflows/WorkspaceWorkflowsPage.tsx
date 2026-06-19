@@ -9,6 +9,7 @@ import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
+import InlineTextWithOptionalLink from '@components/InlineTextWithOptionalLink';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -113,15 +114,12 @@ function InlineRBRMessage({message, actionText, onActionPress}: {message: string
 
     return (
         <View style={[styles.mt2, styles.ml7]}>
-            <Text style={[styles.textLabelSupporting, styles.textDanger]}>
-                {message}
-                {!!actionText && !!onActionPress && (
-                    <>
-                        {' '}
-                        <TextLink onPress={onActionPress}>{actionText}</TextLink>
-                    </>
-                )}
-            </Text>
+            <InlineTextWithOptionalLink
+                message={message}
+                linkText={actionText}
+                onLinkPress={onActionPress}
+                textStyle={[styles.textLabelSupporting, styles.textDanger]}
+            />
         </View>
     );
 }

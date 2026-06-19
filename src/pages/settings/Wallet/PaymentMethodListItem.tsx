@@ -7,12 +7,12 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import Icon from '@components/Icon';
+import InlineTextWithOptionalLink from '@components/InlineTextWithOptionalLink';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -256,15 +256,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         />
                     </View>
                 )}
-                <Text style={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, isDangerStatus ? {color: 'rgb(134, 32, 32)'} : undefined, styles.flex1]}>
-                    {item.connectionStatus?.message}
-                    {!!item.connectionStatus?.linkText && !!item.connectionStatus?.onLinkPress && (
-                        <>
-                            {' '}
-                            <TextLink onPress={item.connectionStatus.onLinkPress}>{item.connectionStatus.linkText}</TextLink>
-                        </>
-                    )}
-                </Text>
+                <InlineTextWithOptionalLink
+                    message={item.connectionStatus?.message ?? ''}
+                    linkText={item.connectionStatus?.linkText}
+                    onLinkPress={item.connectionStatus?.onLinkPress}
+                    textStyle={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, isDangerStatus ? {color: 'rgb(134, 32, 32)'} : undefined, styles.flex1]}
+                />
             </View>
         );
 
