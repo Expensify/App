@@ -3471,7 +3471,6 @@ const CONST = {
     RILLET_CONFIG: {
         SUBSIDIARY_ID: 'subsidiaryID',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
-        FIELD_MAPPINGS: 'fieldMappings',
         SYNC_TAX_RATES: 'syncTaxRates',
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
@@ -3481,7 +3480,7 @@ const CONST = {
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         CARD_PROGRAM_ACCOUNTS: 'cardProgramAccounts',
-        ACCOUNTING_METHOD: 'cardProgramAccounts',
+        ACCOUNTING_METHOD: 'accountingMethod',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',

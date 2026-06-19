@@ -395,12 +395,34 @@ function getAccountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => null,
-                subscribedImportSettings: [],
+                subscribedImportSettings: [
+                    // s77rt TODO for release 2 make sure to subscribe to mapping fields errors
+                    CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.RILLET_CONFIG.SYNC_TAX_RATES,
+                ],
                 onExportPagePress: () => null,
-                subscribedExportSettings: [],
+                subscribedExportSettings: [
+                    CONST.RILLET_CONFIG.EXPORTER,
+                    CONST.RILLET_CONFIG.EXPORT_DATE,
+                    CONST.RILLET_CONFIG.REIMBURSABLE,
+                    CONST.RILLET_CONFIG.COMPANY_CARD,
+                    CONST.RILLET_CONFIG.DEFAULT_VENDORID,
+                    CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
+                    CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNTS,
+                ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.RILLET)),
                 onAdvancedPagePress: () => null,
-                subscribedAdvancedSettings: [],
+                subscribedAdvancedSettings: [
+                    CONST.RILLET_CONFIG.ACCOUNTING_METHOD,
+                    CONST.RILLET_CONFIG.AUTO_SYNC,
+                    CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,
+                    CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
+                    CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.rillet.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForRillet(),
