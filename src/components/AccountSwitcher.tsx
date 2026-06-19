@@ -112,7 +112,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
               shouldRender: shouldShowProductTrainingTooltip,
               renderTooltipContent: renderProductTrainingTooltip,
               anchorAlignment: {
-                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                  // Right-align so the tooltip opens leftward into the sidebar (matching the design mockup),
+                  // instead of overflowing past the Switch button into the central pane.
+                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
               shiftVertical: variables.accountSwitcherTooltipShiftVertical,
