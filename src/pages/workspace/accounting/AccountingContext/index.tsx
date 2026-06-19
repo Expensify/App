@@ -33,6 +33,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
+    const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -48,7 +49,12 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.name,
                 policyID,
                 translate,
-                {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD, certinia: hasReusablePoliciesConnectedToCertinia},
+                {
+                    sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                    qbd: hasReusablePoliciesConnectedToQBD,
+                    certinia: hasReusablePoliciesConnectedToCertinia,
+                    rillet: hasReusablePoliciesConnectedToRillet,
+                },
                 undefined,
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
@@ -69,7 +75,16 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate, hasReusablePoliciesConnectedToSageIntacct, hasReusablePoliciesConnectedToQBD, hasReusablePoliciesConnectedToCertinia, accountingIcons],
+        [
+            policy,
+            policyID,
+            translate,
+            hasReusablePoliciesConnectedToSageIntacct,
+            hasReusablePoliciesConnectedToQBD,
+            hasReusablePoliciesConnectedToCertinia,
+            hasReusablePoliciesConnectedToRillet,
+            accountingIcons,
+        ],
     );
 
     const closeConfirmationModal = () => {
@@ -109,7 +124,12 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             activeIntegration.name,
             policyID,
             translate,
-            {sageIntacct: hasReusablePoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD, certinia: hasReusablePoliciesConnectedToCertinia},
+            {
+                sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                qbd: hasReusablePoliciesConnectedToQBD,
+                certinia: hasReusablePoliciesConnectedToCertinia,
+                rillet: hasReusablePoliciesConnectedToRillet,
+            },
             policy,
             activeIntegration.key,
             undefined,
