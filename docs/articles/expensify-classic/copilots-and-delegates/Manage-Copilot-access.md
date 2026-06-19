@@ -1,5 +1,4 @@
 ---
-
 title: Manage Copilot access
 description: Add, update, or remove Copilot access so someone can help manage your Expensify account without sharing your login credentials.
 keywords: [copilot access, add a copilot, remove a copilot, change copilot access, copilot permissions, delegated access, account delegation, proxy access, manage copilot, delegate, assistant, manage someone else's account, shared access, account access, executive assistant, accountant]
