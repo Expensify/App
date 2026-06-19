@@ -7037,6 +7037,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Los roles especializados del espacio de trabajo solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            unlockFeatures: '¡Desbloquea estas funciones!',
         },
         downgrade: {
             commonFeatures: {

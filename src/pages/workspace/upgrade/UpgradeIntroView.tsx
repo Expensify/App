@@ -40,6 +40,9 @@ type UpgradeIntroViewProps = {
     /** Primary button label. */
     buttonText: string;
 
+    /** Unlock badge text. */
+    unlockBadgeText?: string;
+
     /** Called when the primary button is pressed. */
     onUpgrade: () => void;
 
@@ -66,6 +69,7 @@ function UpgradeIntroView({
     onUpgrade,
     buttonDisabled,
     loading,
+    unlockBadgeText
 }: UpgradeIntroViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -96,7 +100,7 @@ function UpgradeIntroView({
                         ))}
                     <Badge
                         icon={Unlock}
-                        text={translate('workspace.upgrade.upgradeToUnlock')}
+                        text={unlockBadgeText ?? translate('workspace.upgrade.upgradeToUnlock')}
                         success
                     />
                 </View>

@@ -7206,6 +7206,7 @@ const translations = {
             },
             note: (subscriptionLink: string) => `<muted-text><a href="${subscriptionLink}">Learn more</a> about our plans and pricing.</muted-text>`,
             upgradeToUnlock: 'Unlock this feature',
+            unlockFeatures: 'Unlock these features!',
             completed: {
                 headline: `You've upgraded your workspace!`,
                 successMessage: (policyName: string, planName: string, subscriptionLink: string) =>

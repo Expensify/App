@@ -123,6 +123,7 @@ function CopyPolicySettingsUpgradePage() {
                             onUpgrade={onUpgrade}
                             buttonDisabled={isOffline || policiesToUpgrade.length === 0}
                             loading={isUpgradePending}
+                            unlockBadgeText={translate('workspace.upgrade.unlockFeatures')}
                         />
                     </ScrollView>
                 )}
