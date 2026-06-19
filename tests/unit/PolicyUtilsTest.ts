@@ -3106,6 +3106,19 @@ describe('PolicyUtils', () => {
                 } as unknown as Connections,
             }) as Policy;
 
+        const buildXeroPolicy = (
+            contacts: Record<string, {id: string; name: string; email: string}> | undefined = {'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'}},
+        ): Policy =>
+            ({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        config: {},
+                        data: contacts === undefined ? {} : {contacts},
+                    },
+                } as unknown as Connections,
+            }) as Policy;
+
         describe('hasVendorFeature', () => {
             it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
@@ -3119,12 +3132,27 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), true)).toBe(true);
             });
 
+            it('returns true when beta is enabled and Xero is connected (R4) — no export-destination enum on Xero', () => {
+                expect(hasVendorFeature(buildXeroPolicy(), true)).toBe(true);
+            });
+
+            it('returns true when beta is enabled and Xero is connected but contacts have not synced yet — feature gate is connection-based, not data-based', () => {
+                // The matcher itself short-circuits when contacts is undefined (see
+                // ViolationsUtils' inactiveVendor guardrail); hasVendorFeature stays true so the
+                // App still surfaces the UI surfaces (picker, default-supplier row).
+                expect(hasVendorFeature(buildXeroPolicy(undefined), true)).toBe(true);
+            });
+
             it('returns false when beta is disabled, even with Credit Card export configured', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
             });
 
             it('returns false when beta is disabled, even with Intacct CC Charge export configured', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled, even with Xero connected', () => {
+                expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
@@ -3210,6 +3238,24 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(policy)).toEqual(qboVendors);
             });
 
+            it('returns the Xero supplier list normalized from the keyed Record to the shared Vendor shape (R4)', () => {
+                const policy = buildXeroPolicy({
+                    'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'},
+                    'xc-2': {id: 'xc-2', name: 'Other Xero', email: 'other@example.com'},
+                });
+                expect(getMatchingVendors(policy)).toEqual([
+                    {id: 'xc-1', name: 'Acme Xero', currency: '', email: 'acme@example.com'},
+                    {id: 'xc-2', name: 'Other Xero', currency: '', email: 'other@example.com'},
+                ]);
+            });
+
+            it('returns an empty array when Xero is connected but contacts have not synced yet (data.contacts undefined)', () => {
+                // Integration-Server has not yet completed a supplier sync for this workspace.
+                // The matcher must treat the contact list as unknown rather than failing — this
+                // is the same guardrail that prevents inactiveVendor from firing falsely.
+                expect(getMatchingVendors(buildXeroPolicy(undefined))).toEqual([]);
+            });
+
             it('returns an empty array when no supported connection exists', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
                 expect(getMatchingVendors(policy)).toEqual([]);
@@ -3237,6 +3283,18 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendorByID(policy, 'iv-2')).toEqual({id: 'iv-2', name: 'Other Intacct', currency: '', email: ''});
             });
 
+            it('returns the matching Xero supplier (normalized) when the ID exists in the contacts list (R4)', () => {
+                const policy = buildXeroPolicy({
+                    'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'},
+                    'xc-2': {id: 'xc-2', name: 'Other Xero', email: 'other@example.com'},
+                });
+                expect(getMatchingVendorByID(policy, 'xc-2')).toEqual({id: 'xc-2', name: 'Other Xero', currency: '', email: 'other@example.com'});
+            });
+
+            it('returns undefined for a Xero supplier ID that is not in the contacts list (inactive-supplier case)', () => {
+                expect(getMatchingVendorByID(buildXeroPolicy(), 'xc-missing')).toBeUndefined();
+            });
+
             it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
                 expect(getMatchingVendorByID(policy, 'v-missing')).toBeUndefined();
@@ -3257,6 +3315,11 @@ describe('PolicyUtils', () => {
             it('resolves an Intacct vendor (normalized) even when the current export mode is no longer Credit Card Charge', () => {
                 const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL, [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]);
                 expect(findVendorByID(policy, 'iv-1')).toEqual({id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''});
+            });
+
+            it('resolves a Xero supplier (normalized) from connections.xero.data.contacts (R4)', () => {
+                const policy = buildXeroPolicy({'xc-1': {id: 'xc-1', name: 'Acme Xero', email: 'acme@example.com'}});
+                expect(findVendorByID(policy, 'xc-1')).toEqual({id: 'xc-1', name: 'Acme Xero', currency: '', email: 'acme@example.com'});
             });
 
             it('prefers the active Intacct integration over stale QBO data when both hold the same vendor ID', () => {
