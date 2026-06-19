@@ -5,8 +5,9 @@ import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ImageSVG from '@components/ImageSVG';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import ScrollView from '@components/ScrollView';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
@@ -14,7 +15,6 @@ import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTabl
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
-import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
@@ -430,29 +430,36 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
 
-    const emptyStateContainerStyle = [styles.alignItemsCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth), styles.overflowHidden];
-
     const cardRulesEmptyState = useMemo(
         () => (
-            <View style={[styles.flex1, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius, styles.alignItemsCenter, styles.justifyContentCenter, styles.pv8, styles.ph5]}>
-                <View style={emptyStateContainerStyle}>
-                    <ImageSVG
-                        src={illustrations.ExpensifyCardCoins}
-                        contentFit="contain"
-                        style={styles.cardRulesEmptyStateIllustration}
+            <View style={[styles.flex1, styles.mnh0, styles.mh5, styles.mb5, styles.highlightBG, styles.tableBottomRadius]}>
+                <ScrollView
+                    style={[styles.flex1, styles.mnh0]}
+                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                    addBottomSafeAreaPadding
+                >
+                    <GenericEmptyStateComponent
+                        headerMedia={illustrations.ExpensifyCardCoins}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                        headerContentStyles={styles.cardRulesEmptyStateIllustration}
+                        title={translate('workspace.rules.spendRules.cardRulesUpsell.title')}
+                        subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
+                        subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                        minModalHeight={0}
+                        containerStyles={[styles.alignItemsCenter, styles.overflowHidden]}
+                        cardStyles={StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)}
+                        buttons={[
+                            {
+                                buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
+                                buttonAction: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)),
+                                success: true,
+                            },
+                        ]}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.mt5, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.title')}</Text>
-                    <Text style={[styles.textLabel, styles.textSupporting, styles.mt2, styles.textAlignCenter]}>{translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}</Text>
-                    <Button
-                        success
-                        text={translate('workspace.rules.spendRules.cardRulesUpsell.cta')}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID))}
-                        style={styles.mt5}
-                    />
-                </View>
+                </ScrollView>
             </View>
         ),
-        [illustrations.ExpensifyCardCoins, styles, translate, policyID, emptyStateContainerStyle],
+        [StyleUtils, illustrations.ExpensifyCardCoins, policyID, styles, translate],
     );
 
     const renderExpenseDefaultsContent = () => (
