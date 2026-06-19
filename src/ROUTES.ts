@@ -3972,6 +3972,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/existing-connections',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/existing-connections` as const,
     },
+    POLICY_ACCOUNTING_RILLET_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/rillet/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/subsidiary-selector` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,

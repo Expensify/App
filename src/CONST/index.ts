@@ -3468,6 +3468,29 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    RILLET_CONFIG: {
+        SUBSIDIARY_ID: 'subsidiaryID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        FIELD_MAPPINGS: 'fieldMappings',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE: 'reimbursable',
+        COMPANY_CARD: 'companyCard',
+        DEFAULT_VENDORID: 'defaultVendorID',
+        CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
+        EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
+        CARD_PROGRAM_ACCOUNTS: 'cardProgramAccounts',
+        ACCOUNTING_METHOD: 'cardProgramAccounts',
+        AUTO_SYNC: 'autoSync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
+        SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
+        SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
+        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
