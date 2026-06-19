@@ -28,9 +28,6 @@ function createXStateInspector(): XStateInspector {
     });
 
     return {
-        // The filter keeps actors created in render passes React threw away (and thus never
-        // started) out of the inspector; without it every such ghost shows up as a duplicate
-        // machine forever stuck in its initial state.
         inspect: filterGhostActorRegistrations(inspector.inspect),
         start: () => inspector.start(),
     };
