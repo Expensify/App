@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import {
     arePersonalDetailsMissing,
@@ -11,6 +12,7 @@ import {
     getPersonalDetailsListByIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     newGetPersonalDetailsByIDs,
+    temporaryGetDisplayNameOrDefault,
 } from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -18,6 +20,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+const mockTranslate = jest.fn((key: string) => {
+    if (key === 'common.hidden') {
+        return 'Hidden';
+    }
+    if (key === 'common.you') {
+        return 'you';
+    }
+    return key;
+});
+
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({
+        translate: mockTranslate,
+    }),
+}));
 
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
     firstName?: string | null;
@@ -706,6 +725,118 @@ describe('PersonalDetailsUtils', () => {
 
             // The second entry should overwrite the first
             expect(result[1]).toEqual({accountID: 1, login: 'second@example.com', displayName: 'Second'});
+        });
+    });
+
+    describe('temporaryGetDisplayNameOrDefault', () => {
+        const translate = translateLocal;
+
+        test('should return displayName when present', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, displayName: 'Ada Lovelace', login: 'ada@example.com'},
+                    translate,
+                }),
+            ).toBe('Ada Lovelace');
+        });
+
+        test('should strip merged-account prefix from displayName', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {
+                        accountID: 1,
+                        displayName: 'MERGED_99@visible.name@example.com',
+                        login: 'user@example.com',
+                    },
+                    translate,
+                }),
+            ).toBe('visible.name@example.com');
+        });
+
+        test('should normalize SMS login when displayName equals login', () => {
+            const smsLogin = '+18005550000@expensify.sms';
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {
+                        accountID: 1,
+                        login: smsLogin,
+                        displayName: smsLogin,
+                    },
+                    translate,
+                }),
+            ).toBe(Str.removeSMSDomain(smsLogin));
+        });
+
+        test('should append current-user postfix using localized "you"', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
+                    shouldAddCurrentUserPostfix: true,
+                    translate,
+                }),
+            ).toBe('Sam (you)');
+        });
+
+        test('should prefer explicit youAfterTranslation over localized "you"', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
+                    shouldAddCurrentUserPostfix: true,
+                    youAfterTranslation: 'anotherYou',
+                    translate,
+                }),
+            ).toBe('Sam (anotherYou)');
+        });
+
+        test('should return concierge display name for concierge accountID', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {
+                        accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                        displayName: 'Ignored',
+                        login: CONST.EMAIL.CONCIERGE,
+                    },
+                    translate,
+                }),
+            ).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        test('should return defaultValue when displayName is empty', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, login: 'only@example.com'},
+                    defaultValue: 'Custom default',
+                    translate,
+                }),
+            ).toBe('Custom default');
+        });
+
+        test('should fall back to login when displayName and defaultValue are empty', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1, login: 'fallback@example.com'},
+                    translate,
+                }),
+            ).toBe('fallback@example.com');
+        });
+
+        test('should return hidden translation when nothing else applies', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1},
+                    translate,
+                }),
+            ).toBe('Hidden');
+        });
+
+        test('should return empty string when shouldFallbackToHidden is false and nothing else applies', () => {
+            expect(
+                temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: {accountID: 1},
+                    shouldFallbackToHidden: false,
+                    translate,
+                }),
+            ).toBe('');
         });
     });
 
