@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -193,6 +194,7 @@ function SearchAutocompleteInput({
 
     const clearInput = () => {
         onSearchQueryChange('');
+        setSearchContext(false);
     };
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};

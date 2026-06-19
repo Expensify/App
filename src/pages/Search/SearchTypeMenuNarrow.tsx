@@ -22,6 +22,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
@@ -209,6 +210,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             return;
         }
         onTabPress?.();
+        setSearchContext(false);
     };
 
     const handleTabPress = (tabKey: string) => {
@@ -217,10 +219,11 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             return;
         }
         onTabPress?.();
+        setSearchContext(false);
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: searchData.query, name: searchData.name},
+                params: {q: searchData.query, name: searchData.name, rawQuery: undefined},
             },
         });
     };

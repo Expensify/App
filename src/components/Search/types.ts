@@ -334,6 +334,15 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
+type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+
+type RawQueryFilter = {
+    key: RawFilterKey;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | string[];
+    isDefault?: boolean;
+};
+
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -345,6 +354,7 @@ type SearchQueryAST = {
     view: SearchView;
     filters: ASTNode;
     policyID?: string[];
+    rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
     limit?: number;
 };
@@ -357,6 +367,7 @@ type SearchQueryJSON = {
     /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
     similarSearchHash: number;
     flatFilters: QueryFilters;
+    isViewExplicitlySet?: boolean;
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -466,6 +477,7 @@ export type {
     QueryFilter,
     QueryFilters,
     SyntaxFilterKey,
+    RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
     SearchAutocompleteResult,

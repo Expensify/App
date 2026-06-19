@@ -113,7 +113,7 @@ function CardSection() {
             ],
         });
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
     };
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>

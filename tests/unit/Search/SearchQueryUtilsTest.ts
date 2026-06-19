@@ -180,6 +180,13 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
             expect(result).toEqual(`${defaultQuery} action:submit from:me`);
+
+            const queryJSON = buildSearchQueryJSON(result ?? '', userQuery);
+            expect(queryJSON?.rawFilterList).toEqual([
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'submit', isDefault: false},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'me', isDefault: false},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATA_TYPES.EXPENSE, isDefault: true},
+            ]);
         });
     });
 
@@ -677,7 +684,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
 
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
@@ -708,7 +715,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
 
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
@@ -739,7 +746,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to standardize query string');
             }
 
-            const queryJSON = buildSearchQueryJSON(canonicalQueryString);
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}123`]: {
                     name: 'Team Space',
@@ -765,6 +772,21 @@ describe('SearchQueryUtils', () => {
             });
 
             expect(result).toBe('type:expense workspace:"Team Space" merchant:Starbucks');
+        });
+
+        test('rawQuery overrides canonical filter values when provided', () => {
+            const queryString = 'type:expense merchant:Uber';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+
+            const overriddenRawQuery = 'type:expense merchant:Lyft';
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, overriddenRawQuery);
+            const merchantFilter = queryJSON?.rawFilterList?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+
+            expect(merchantFilter?.value).toBe('Lyft');
         });
 
         test('includes limit in readable query string when present', () => {
@@ -1957,6 +1979,22 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildSearchQueryString', () => {
+        test('includes view when explicitly set in rawFilterList', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:line', 'type:expense view:line');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:line');
+        });
+
+        test('includes view when differs from default even without rawFilterList', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:pie');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:pie');
+        });
+
         test('includes view when set to bar', () => {
             const queryJSON = buildSearchQueryJSON('type:expense view:bar');
 
@@ -1973,6 +2011,14 @@ describe('SearchQueryUtils', () => {
             expect(result).not.toContain('view:table');
         });
 
+        test('includes view when explicitly set to table in rawFilterList', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:table');
+        });
+
         test('preserves view along with other filters', () => {
             const queryJSON = buildSearchQueryJSON('type:expense view:line category:travel');
 
@@ -1980,6 +2026,15 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toContain('view:line');
             expect(result).toContain('category:travel');
+        });
+
+        test('handles view with rawFilterList containing other filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:pie merchant:Amazon', 'type:expense view:pie merchant:Amazon');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:pie');
+            expect(result).toContain('merchant:Amazon');
         });
 
         test('wraps keyword values in quotes so they are not re-interpreted as filter syntax', () => {
@@ -2306,6 +2361,17 @@ describe('SearchQueryUtils', () => {
             expect(first).toEqual(second);
             expect(first).toBe(second);
             expect(Object.isFrozen(first)).toBe(true);
+        });
+
+        test('returns independent results for the same query with different rawQuery values', () => {
+            const query = 'type:expense';
+            const rawQueryA = 'type:expense status:drafts';
+            const rawQueryB = 'type:expense status:paid';
+
+            const resultA = buildSearchQueryJSON(query, rawQueryA);
+            const resultB = buildSearchQueryJSON(query, rawQueryB);
+
+            expect(resultA?.rawFilterList).not.toEqual(resultB?.rawFilterList);
         });
 
         test('does not cache a failed parse result so subsequent calls retry the parser', () => {
@@ -2972,6 +3038,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected merchant node to be found in AST');
             }
             expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should apply contains to merchant in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should not affect non-text fields in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
         });
     });
 

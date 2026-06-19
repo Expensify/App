@@ -43,7 +43,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             return;
         }
 
-        Navigation.setParams({q: queryString});
+        Navigation.setParams({q: queryString, rawQuery: undefined});
     }
 
     function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {

@@ -1183,6 +1183,7 @@ function rejectMoneyRequestsOnSearch(
                     const searchParams = lastRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
                     urlToNavigateBack = ROUTES.SEARCH_ROOT.getRoute({
                         query: searchParams.q,
+                        ...(searchParams?.rawQuery && {rawQuery: searchParams.rawQuery}),
                         ...(searchParams?.name && {name: searchParams.name}),
                     });
                 } else {
@@ -1385,6 +1386,13 @@ function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ON
         return;
     }
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
+}
+
+/**
+ * Sets whether the search query should be displayed in the search input field
+ */
+function setSearchContext(shouldShowSearchQuery: boolean) {
+    Onyx.set(ONYXKEYS.SEARCH_CONTEXT, {shouldShowSearchQuery});
 }
 
 /**
@@ -1660,6 +1668,7 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
+    setSearchContext,
     deleteSavedSearch,
     getSearchPayOnyxData,
     approveMoneyRequestOnSearch,

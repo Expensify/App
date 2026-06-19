@@ -160,6 +160,7 @@ import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCS
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchContext from './SearchContext';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
 import type SecurityGroup from './SecurityGroup';
@@ -355,6 +356,7 @@ export type {
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
     PolicyJoinMember,
+    SearchContext,
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,

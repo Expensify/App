@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useOnyx from '@hooks/useOnyx';
+import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,14 +45,26 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm) : undefined;
 
     const applyFilters = () => {
-        Navigation.dismissModal({afterTransition: () => setFilterQueryParams(values)});
+        Navigation.dismissModal({
+            afterTransition: () => {
+                setFilterQueryParams(values);
+                if (values.keyword) {
+                    setSearchContext(true);
+                }
+            },
+        });
     };
 
     const resetFilters = () => {
         if (!advancedFiltersToReset) {
             return;
         }
-        Navigation.dismissModal({afterTransition: () => setFilterQueryParams(advancedFiltersToReset)});
+        Navigation.dismissModal({
+            afterTransition: () => {
+                setFilterQueryParams(advancedFiltersToReset);
+                setSearchContext(false);
+            },
+        });
     };
 
     const setDraftFilters = (newValues: Partial<SearchAdvancedFiltersForm>) => {
