@@ -22,7 +22,7 @@ type TransferOwnershipActionProps = {
  * The full policy entry needed by requestWorkspaceOwnerChange is subscribed to only for the moment
  * the flow starts, so the workspaces list rows don't re-render on every policy change.
  */
-function TransferOwnershipAction({policyID, onDismiss}: TransferOwnershipActionProps) {
+function TransferOwnershipFlow({policyID, onDismiss}: TransferOwnershipActionProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
@@ -51,4 +51,4 @@ function TransferOwnershipAction({policyID, onDismiss}: TransferOwnershipActionP
     return null;
 }
 
-export default TransferOwnershipAction;
+export default TransferOwnershipFlow;

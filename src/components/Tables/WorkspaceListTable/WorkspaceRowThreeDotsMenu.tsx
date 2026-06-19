@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -21,10 +22,10 @@ import {canDowngradeSelector} from '@src/selectors/Account';
 import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 import type {WorkspaceRowData} from '.';
-import LeaveWorkspaceAction from './LeaveWorkspaceAction';
-import TransferOwnershipAction from './TransferOwnershipAction';
+import LeaveWorkspaceFlow from './LeaveWorkspaceAction';
+import TransferOwnershipFlow from './TransferOwnershipAction';
 
-type ActiveAction = 'leave' | 'transferOwnership';
+type ActiveAction = ValueOf<typeof CONST.POLICY.THREE_DOT_MENU_ACTION>;
 
 type WorkspaceRowThreeDotsMenuProps = {
     /** The workspace row the menu is rendered for */
@@ -97,7 +98,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
         menuItems.push({
             icon: icons.Exit,
             text: translate('common.leave'),
-            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction('leave')),
+            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE)),
             shouldCallAfterModalHide: true,
         });
     }
@@ -162,7 +163,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
         menuItems.push({
             icon: icons.Transfer,
             text: translate('workspace.people.transferOwner'),
-            onSelected: () => setActiveAction('transferOwnership'),
+            onSelected: () => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.TRANSFER_OWNERSHIP),
             shouldCallAfterModalHide: true,
         });
     }
@@ -181,14 +182,14 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
             />
-            {activeAction === 'leave' && (
-                <LeaveWorkspaceAction
+            {activeAction === CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE && (
+                <LeaveWorkspaceFlow
                     policyID={item.policyID}
                     onDismiss={() => setActiveAction(undefined)}
                 />
             )}
-            {activeAction === 'transferOwnership' && (
-                <TransferOwnershipAction
+            {activeAction === CONST.POLICY.THREE_DOT_MENU_ACTION.TRANSFER_OWNERSHIP && (
+                <TransferOwnershipFlow
                     policyID={item.policyID}
                     onDismiss={() => setActiveAction(undefined)}
                 />

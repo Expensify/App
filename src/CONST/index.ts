@@ -3900,6 +3900,10 @@ const CONST = {
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
         },
+        THREE_DOT_MENU_ACTION: {
+            LEAVE: 'leave',
+            TRANSFER_OWNERSHIP: 'transferOwnership',
+        },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',

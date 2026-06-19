@@ -28,7 +28,7 @@ const ownerDisplayNameSelector = (ownerAccountID: number) => (personalDetailsLis
  * The full policy entry needed to build the confirmation prompt is subscribed to only for the
  * lifetime of the flow, so the workspaces list rows don't re-render on every policy change.
  */
-function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) {
+function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceActionProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -78,4 +78,4 @@ function LeaveWorkspaceAction({policyID, onDismiss}: LeaveWorkspaceActionProps) 
     return null;
 }
 
-export default LeaveWorkspaceAction;
+export default LeaveWorkspaceFlow;
