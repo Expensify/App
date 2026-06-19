@@ -48,4 +48,3 @@ function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadi
 }
 
 export default usePressLoading;
-export type {UsePressLoadingOptions, UsePressLoading};
