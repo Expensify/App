@@ -437,7 +437,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
                 optimisticTransactionID: lastOptimisticTransactionID,
-                // Action owns post-create navigation + growl; only the final transaction should trigger it.
+                // The action owns post-create navigation + growl, but only when the caller permits it
+                // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
+                // the destination themselves) and only for the final transaction of the batch.
+                shouldHandleNavigation,
                 isLastTransactionOfBatch: index === transactions.length - 1,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
@@ -652,7 +655,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 },
                 optimisticChatReportID: optimisticSelfDMReportID,
                 optimisticTransactionID: lastOptimisticTransactionID,
-                // Action owns post-create navigation + growl; only the final transaction should trigger it.
+                // The action owns post-create navigation + growl, but only when the caller permits it
+                // (dismiss-first orchestrators pass shouldHandleNavigation=false after revealing/dismissing
+                // the destination themselves) and only for the final transaction of the batch.
+                shouldHandleNavigation,
                 isLastTransactionOfBatch: index === transactions.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserPersonalDetails.accountID, email},
