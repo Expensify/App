@@ -9,7 +9,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 
 let mockCurrentSearchResults: SearchResults | undefined;
-let mockPolicyForMovingExpenses: Policy | undefined;
+let mockGroupPaidPolicies: Policy[] = [];
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsContext: () => ({
@@ -17,13 +17,9 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 
-jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
-    __esModule: true,
-    default: () => ({
-        policyForMovingExpensesID: mockPolicyForMovingExpenses?.id,
-        policyForMovingExpenses: mockPolicyForMovingExpenses,
-        shouldSelectPolicy: false,
-    }),
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils'),
+    getGroupPaidPolicies: () => mockGroupPaidPolicies,
 }));
 
 function buildTransaction(customUnit?: {customUnitID?: string; customUnitRateID?: string}): Transaction {
@@ -82,7 +78,7 @@ describe('useSplitEffectivePolicy', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         mockCurrentSearchResults = undefined;
-        mockPolicyForMovingExpenses = undefined;
+        mockGroupPaidPolicies = [];
     });
 
     it('returns the current report policy when it has an employeeList', async () => {
@@ -147,17 +143,17 @@ describe('useSplitEffectivePolicy', () => {
         await waitFor(() => expect(result.current?.id).toBe('workspace-by-rate'));
     });
 
-    it('falls back to policyForMovingExpenses when no report/customUnit lookup resolves', async () => {
-        mockPolicyForMovingExpenses = {...createRandomPolicy(1), id: 'workspace-moving'};
+    it('falls back to the first group-paid workspace when no report/customUnit lookup resolves', async () => {
+        mockGroupPaidPolicies = [{...createRandomPolicy(1), id: 'workspace-group-paid'}];
 
         const draftTransaction = buildTransaction();
         const {result} = renderHook(() => useSplitEffectivePolicy(buildReport(undefined), draftTransaction));
 
-        await waitFor(() => expect(result.current?.id).toBe('workspace-moving'));
+        await waitFor(() => expect(result.current?.id).toBe('workspace-group-paid'));
     });
 
-    it('falls back to policyForMovingExpenses for the P2P rate', async () => {
-        mockPolicyForMovingExpenses = {...createRandomPolicy(1), id: 'workspace-moving-p2p'};
+    it('returns undefined for the P2P rate even when a group-paid workspace exists', async () => {
+        mockGroupPaidPolicies = [{...createRandomPolicy(1), id: 'workspace-group-paid-p2p'}];
         const unrelatedPolicy = buildPolicyWithRate('workspace-other', 'unit-other', 'rate-other');
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${unrelatedPolicy.id}`, unrelatedPolicy);
 
@@ -168,10 +164,10 @@ describe('useSplitEffectivePolicy', () => {
 
         const {result} = renderHook(() => useSplitEffectivePolicy(buildReport(undefined), draftTransaction));
 
-        await waitFor(() => expect(result.current?.id).toBe('workspace-moving-p2p'));
+        await waitFor(() => expect(result.current).toBeUndefined());
     });
 
-    it('returns undefined when nothing resolves (no currentPolicy, no customUnit match, no policyForMovingExpenses)', async () => {
+    it('returns undefined when nothing resolves (no currentPolicy, no customUnit match, no group-paid workspace)', async () => {
         const draftTransaction = buildTransaction({customUnitID: 'unit-missing', customUnitRateID: 'rate-missing'});
 
         const {result} = renderHook(() => useSplitEffectivePolicy(buildReport(undefined), draftTransaction));
@@ -179,7 +175,7 @@ describe('useSplitEffectivePolicy', () => {
         await waitFor(() => expect(result.current).toBeUndefined());
     });
 
-    it('returns undefined when currentReport, draftTransaction, and transaction are all undefined and no policyForMovingExpenses', async () => {
+    it('returns undefined when currentReport, draftTransaction, and transaction are all undefined and no group-paid workspace', async () => {
         const {result} = renderHook(() => useSplitEffectivePolicy(undefined, undefined, undefined));
 
         await waitFor(() => expect(result.current).toBeUndefined());
@@ -216,10 +212,10 @@ describe('getSplitEffectivePolicy', () => {
         expect(result?.id).toBe(customUnitPolicy.id);
     });
 
-    it('skips the customUnit lookups for the P2P rate and uses the fallback', () => {
+    it('returns undefined for the P2P rate, skipping both the customUnit lookups and the fallback', () => {
         const transaction = buildTransaction({customUnitID: 'unit-x', customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID});
         const result = getSplitEffectivePolicy({policy: undefined, transaction, allPolicies, fallbackPolicy});
-        expect(result?.id).toBe(fallbackPolicy.id);
+        expect(result).toBeUndefined();
     });
 
     it('returns the fallback policy when nothing else resolves', () => {

@@ -1,12 +1,12 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getGroupPaidPolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
-import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 
 /**
  * Pure resolver for the workspace policy used across the split flow.
@@ -20,8 +20,9 @@ import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
  * 1. `currentPolicy` — the report's policy, when provided by the caller.
  * 2. Policy matching the transaction's `customUnitID`.
  * 3. Policy matching the transaction's `customUnitRateID` (skipped for the P2P rate).
- * 4. `fallbackPolicy` — the user's active workspace for moving expenses. Needed for self-DM splits,
- *    which have no workspace-bound report/customUnit but still need a policy to resolve categories/tags.
+ * 4. `fallbackPolicy` — the first group-paid workspace, used for self-DM splits which have no
+ *    workspace-bound report/customUnit but still need a policy to resolve the mileage rate / categories.
+ *    Skipped for the P2P rate, which has no workspace policy to resolve.
  *
  * Reads `customUnit` from `draftTransaction` first (the in-progress split draft), falling back to
  * `transaction` when the draft doesn't carry one yet (e.g. optimistic transaction before the server
@@ -66,23 +67,24 @@ function getSplitEffectivePolicy({
         return policyByCustomUnitRateID;
     }
 
-    return fallbackPolicy;
+    // Self-DM splits have no report/customUnit policy; fall back to the first group-paid workspace so the
+    // mileage rate still resolves (matches main). Skipped for the P2P rate, which has no workspace policy.
+    return isP2PRate ? undefined : fallbackPolicy;
 }
 
 /**
  * Resolves the workspace policy for a split flow. Thin hook wrapper around {@link getSplitEffectivePolicy}
  * that gathers the required Onyx data (current policy incl. the search results snapshot, all policies,
- * and the moving-expenses fallback).
+ * and the first group-paid workspace as the self-DM fallback).
  */
 function useSplitEffectivePolicy(currentReport: OnyxEntry<Report>, draftTransaction: OnyxEntry<Transaction>, transaction?: OnyxEntry<Transaction>): OnyxEntry<Policy> {
     const {currentSearchResults} = useSearchResultsContext();
     const policy = usePolicy(currentReport?.policyID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const searchSnapshotPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`] as OnyxEntry<Policy>;
 
-    return getSplitEffectivePolicy({policy, searchSnapshotPolicy, transaction, draftTransaction, allPolicies, fallbackPolicy: policyForMovingExpenses});
+    return getSplitEffectivePolicy({policy, searchSnapshotPolicy, transaction, draftTransaction, allPolicies, fallbackPolicy: getGroupPaidPolicies(allPolicies ?? {}).at(0)});
 }
 
 export {getSplitEffectivePolicy};
