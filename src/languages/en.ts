@@ -6309,6 +6309,11 @@ const translations = {
                 continue: 'Continue without members',
                 description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
             },
+            upgrade: {
+                title: 'Some features require a Control plan',
+                description: ({workspaceName, features}: {workspaceName: string; features: string}) =>
+                    `${workspaceName} uses ${features}, which require a Control plan.\n\nTo bring these features to your other workspaces, upgrade them to continue.\n\nThe Control plan starts at $9 per active member per month.`,
+            },
             progress: {
                 copyInProgressTitle: 'Copy in progress...',
                 copyInProgressDescription: 'You can either wait for the process to finish or Concierge can let you know when it’s done.',

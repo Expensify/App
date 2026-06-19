@@ -2,10 +2,10 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
 import type {Part} from './actions/Policy/CopyPolicySettings';
-import {isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
+import {canPolicyAccessFeature, isCollectPolicy, isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -238,6 +238,64 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
     }
 }
 
+/**
+ * Maps each copy-settings part to the policy feature it enables. This carries no plan judgment - it
+ * only relates a part to its feature name so `canPolicyAccessFeature` can decide which features a
+ * Collect (Team) target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
+ */
+const PART_TO_POLICY_FEATURE = {
+    reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
+    accounting: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+    categories: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+    tags: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
+    taxes: CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
+    workflows: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+    rules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+    codingRules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+    distanceRates: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+    perDiem: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+    invoices: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
+    travel: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+    timeTracking: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
+    receiptPartners: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+} as const satisfies Partial<Record<Part, PolicyFeatureName>>;
+
+/**
+ * The selected parts that the Collect (Team) targets can't access on their current plan, as
+ * determined by `canPolicyAccessFeature` (the single source of truth for which features require a
+ * Control plan). Returns empty when there are no Collect targets.
+ */
+function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): Part[] {
+    const collectTargets = targetPolicies.filter((policy): policy is Policy => isCollectPolicy(policy));
+    if (collectTargets.length === 0) {
+        return [];
+    }
+    return selectedParts.filter((part) => {
+        const featureName = (PART_TO_POLICY_FEATURE as Partial<Record<Part, PolicyFeatureName>>)[part];
+        if (!featureName) {
+            return false;
+        }
+        return collectTargets.some((policy) => !canPolicyAccessFeature(policy, featureName));
+    });
+}
+
+/**
+ * Returns the Collect (Team) targets that must be upgraded to Control before the copy can run.
+ * Upgrade is required when at least one selected part is unavailable on the Collect targets; in that
+ * case every selected Collect target is returned so the upgrade step can upgrade them all.
+ */
+function getCollectTargetsToUpgrade(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): Policy[] {
+    if (getControlOnlySelectedParts(targetPolicies, selectedParts).length === 0) {
+        return [];
+    }
+    return targetPolicies.filter((policy): policy is Policy => isCollectPolicy(policy));
+}
+
+/** Whether the Upgrade step should be shown between Select Features and Confirm. */
+function shouldShowCopyPolicySettingsUpgradeStep(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[]): boolean {
+    return getCollectTargetsToUpgrade(targetPolicies, selectedParts).length > 0;
+}
+
 /** Subtitle for the receipt partners row when Uber is connected on the source. */
 function getReceiptPartnersCopySettingsDescription(policy: Policy | undefined, translate: LocalizedTranslate): string {
     const organizationName = policy?.receiptPartners?.uber?.organizationName;
@@ -277,6 +335,9 @@ export {
     getTimeTrackingCopySettingsDescription,
     isSourceProvisionedForTravel,
     getReceiptPartnersCopySettingsDescription,
+    getCollectTargetsToUpgrade,
+    shouldShowCopyPolicySettingsUpgradeStep,
+    getControlOnlySelectedParts,
     FEATURE_ROWS,
 };
 export type {CopyPolicySettingsSourceFeatureContext};

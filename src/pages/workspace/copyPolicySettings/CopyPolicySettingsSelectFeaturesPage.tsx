@@ -25,6 +25,7 @@ import {
     getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
     isCopyPolicySettingsPartEnabledOnSource,
+    shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -273,8 +274,14 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({parts: effectiveSelectedFeatures.slice()}).then(() => {
-            Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        const parts = effectiveSelectedFeatures.slice();
+        setCopyPolicySettingsData({parts}).then(() => {
+            // Copying Control-only settings onto a Collect (Team) target requires upgrading it first,
+            // so insert the upgrade step before Confirm; otherwise skip straight to Confirm.
+            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)
+                ? ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID)
+                : ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID);
+            Navigation.navigate(nextRoute);
         });
     };
 
