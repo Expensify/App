@@ -1781,7 +1781,15 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
     return lodashSortBy(cards, getAssignedCardSortKey);
 }
 
-function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+/**
+ * Determines the currency of the card and/or feed. Data sources are prioritized as follows:
+ * 1. Card currency, if card is passed and has a currency set on it
+ * 2. Feed settings currency, if settings are passed and have a currency
+ * 3. Use USD for US program keys
+ * 4. For UK/EU feeds, determine currency based on card country, defaulting to GBP
+ * 5. Finally, if all else fails, fallback to USD
+ */
+function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
     // If currency is set on the card itself, use it.
     if (card?.nameValuePairs?.currency) {
         return card.nameValuePairs.currency;
@@ -2001,7 +2009,7 @@ export {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     isExpiredCard,
-    getCardCurrency,
+    getCardOrFeedCurrency,
     getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,

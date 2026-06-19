@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenChildReport} from '@libs/actions/Report';
+import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -65,7 +66,8 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
                     onPress={() => {
-                        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, personalDetails, isSelfTourViewed);
+                        const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
+                        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={`${numberOfReplies} ${replyText}`}

@@ -1,5 +1,4 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {RefObject} from 'react';
 import {useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -33,7 +32,11 @@ type UseMarkAsReadParams = {
 };
 
 type UseMarkAsReadResult = {
-    readActionSkippedRef: RefObject<boolean>;
+    /** Marks the newest action as read and clears any pending skipped mark-as-read */
+    markNewestActionAsRead: () => void;
+
+    /** Completes a previously skipped mark-as-read; no-op when none is pending */
+    completeSkippedMarkAsRead: () => void;
 };
 
 function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisibleReportActions, isScrolledToEnd, hasNewerActions}: UseMarkAsReadParams): UseMarkAsReadResult {
@@ -100,8 +103,9 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+        const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && !hasNewerActions && isScrolledToEnd;
 
-        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
+        if (shouldReadOnReportChange) {
             readNewestAction(reportID, isReportActionsLoaded);
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
@@ -111,6 +115,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         }
 
         readActionSkippedRef.current = true;
+        // This effect should only run when the newest visible action changes, otherwise every action/report object update can prematurely consume unread state.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded]);
 
@@ -123,7 +128,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             return;
         }
 
-        if (!isVisible || !isFocused) {
+        if (!isVisible || !Visibility.hasFocus() || !isFocused) {
             if (!lastMessageTime.current) {
                 lastMessageTime.current = lastAction?.created ?? '';
             }
@@ -148,10 +153,23 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         readNewestAction(reportID);
         userActiveSince.current = DateUtils.getDBTime();
+        // This effect should only run when app visibility/focus changes; the helper reads the latest report/action values without making every action update mark the report as read.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isFocused]);
 
-    return {readActionSkippedRef};
+    const markNewestActionAsRead = () => {
+        readActionSkippedRef.current = false;
+        readNewestAction(reportID);
+    };
+
+    const completeSkippedMarkAsRead = () => {
+        if (!readActionSkippedRef.current || !Visibility.hasFocus()) {
+            return;
+        }
+        markNewestActionAsRead();
+    };
+
+    return {markNewestActionAsRead, completeSkippedMarkAsRead};
 }
 
 export default useMarkAsRead;

@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import {setWasmUrl} from '@lottiefiles/dotlottie-react';
 import * as Sentry from '@sentry/react-native';
 import {maybeCompleteAuthSession} from 'expo-web-browser';
 import React from 'react';
@@ -53,6 +54,10 @@ import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 // This is needed to close pop-up window during logout for users logged in via SSO
 maybeCompleteAuthSession();
+
+// On web, dotlottie-web fetches its WASM binary from a third-party CDN (jsdelivr/unpkg) at runtime,
+// which is blocked by our Content Security Policy. Point it at the Expensify CDN proxy instead.
+setWasmUrl(CONST.DOTLOTTIE_WASM_URL);
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
