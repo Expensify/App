@@ -110,7 +110,11 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     const renderListItem = (info: ListRenderItemInfo<DataType>) => {
         if (isTableHeaderItem(info.index)) {
-            return <TableHeader />;
+            return (
+                <View style={styles.appBG}>
+                    <TableHeader />
+                </View>
+            );
         }
 
         return renderItem?.({...info, index: getDataIndex(info.index)}) ?? null;
