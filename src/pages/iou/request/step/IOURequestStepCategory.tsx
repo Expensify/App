@@ -1,7 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -31,6 +30,7 @@ import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {hasAccountingConnections, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTransactionDetails, isReportInGroupPolicy, isSelfDM} from '@libs/ReportUtils';
@@ -240,13 +240,15 @@ function IOURequestStepCategory({
                                     if (!policy?.areCategoriesEnabled) {
                                         enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
-                                    InteractionManager.runAfterInteractions(() => {
-                                        Navigation.navigate(
-                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                                policyID,
-                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
+                                    TransitionTracker.runAfterTransitions({
+                                        callback: () =>
+                                            Navigation.navigate(
+                                                ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                                    policyID,
+                                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
+                                                ),
                                             ),
-                                        );
+                                        waitForUpcomingTransition: true,
                                     });
                                 }}
                                 text={translate('workspace.categories.editCategories')}
