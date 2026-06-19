@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -27,6 +26,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {
+    getAllPolicyExpenseChatReportActions,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isIOUReport,
@@ -78,7 +78,8 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const filteredReportActions = useAllPolicyExpenseChatReportActions();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -92,6 +93,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             return;
         }
         Navigation.goBack(navigateBackFromChangeWorkspacePath);
+        const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         if (isIOUReport(reportID)) {
             const invite = moveIOUReportToPolicyAndInviteSubmitter(
                 report,
