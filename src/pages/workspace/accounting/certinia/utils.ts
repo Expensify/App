@@ -23,6 +23,7 @@ const CERTINIA_FFA_EXPORT_STATUSES: FinancialForceFFAExportStatus[] = [CONST.CER
 
 type CertiniaMappingValue = ValueOf<typeof CONST.CERTINIA_MAPPING_VALUE>;
 type CertiniaExportStatus = ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+type CertiniaReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
 
 function dimensionParamToNumber(dimension: string): number {
     return Number(dimension.replace('dimension', ''));
@@ -69,6 +70,18 @@ function getCertiniaFFAExportStatusValue(status: string | undefined): FinancialF
     return CERTINIA_FFA_EXPORT_STATUSES.find((ffaStatus) => ffaStatus === value);
 }
 
+function getCertiniaReportExportStatusValue(status: string | undefined): CertiniaReportExportStatus | undefined {
+    const normalizedStatus = getCertiniaExportStatusValue(status);
+    switch (normalizedStatus) {
+        case CONST.CERTINIA_EXPORT_STATUS.APPROVED:
+            return CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED;
+        case CONST.CERTINIA_EXPORT_STATUS.SUBMITTED:
+            return CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED;
+        default:
+            return undefined;
+    }
+}
+
 function updateFinancialForceDimensionMapping(policyID: string | undefined, dimension: CertiniaDimensionParam, value: CertiniaMappingValue, previousValue: CertiniaMappingValue | null) {
     if (!policyID) {
         return;
@@ -100,10 +113,11 @@ export {
     CERTINIA_DIMENSION_PARAMS,
     CERTINIA_FFA_EXPORT_STATUSES,
     dimensionParamToNumber,
+    getCertiniaReportExportStatusValue,
     getCertiniaFFAExportStatusValue,
     getDimensionLabel,
     getDisplayTypeLabel,
     isCertiniaDimensionParam,
     updateFinancialForceDimensionMapping,
 };
-export type {CertiniaDimensionParam, CertiniaMappingValue};
+export type {CertiniaDimensionParam, CertiniaMappingValue, CertiniaReportExportStatus};
