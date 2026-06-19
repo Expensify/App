@@ -182,7 +182,7 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
             });
         };
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- imperative module (not a React component); no useLocalize hook available here
-        Growl.success(growlMessage, 6000, {label: translateLocal('common.view'), onPress: navigateToExpenseRHP});
+        Growl.success(growlMessage, CONST.GROWL.DURATION_WITH_ACTION, {label: translateLocal('common.view'), onPress: navigateToExpenseRHP});
     };
 
     // Fast path: the thread is already resolvable, so show the growl immediately instead of waiting on

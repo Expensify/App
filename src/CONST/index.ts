@@ -3841,6 +3841,8 @@ const CONST = {
         LOADING: 'loading',
         DURATION: 2000,
         DURATION_LONG: 3500,
+        // Longer duration for growls with an actionable button (e.g. "View"), giving the user enough time to tap it.
+        DURATION_WITH_ACTION: 6000,
     },
 
     LOCALES,
