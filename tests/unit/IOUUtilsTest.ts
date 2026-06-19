@@ -830,9 +830,9 @@ describe('getExistingTransactionID', () => {
             reportActionID: 'action1',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '',
+            reportID: 'report456',
             originalMessage: {
                 IOUTransactionID: 'txn123',
-                IOUReportID: 'report456',
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
         } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
@@ -942,5 +942,64 @@ describe('getExistingTransactionID', () => {
             const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
             expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
         });
+    });
+});
+
+describe('isParticipantP2P', () => {
+    it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false when participant is undefined', () => {
+        expect(IOUUtils.isParticipantP2P(undefined)).toBe(false);
+    });
+
+    it('should return false when participant has no accountID', () => {
+        const participant = {
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when participant is a policy expense chat', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when accountID is 0', () => {
+        const participant = {
+            accountID: 0,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return true for P2P participant without isPolicyExpenseChat property', () => {
+        const participant = {
+            accountID: 456,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false for self-DM participant', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+            isSelfDM: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
     });
 });
