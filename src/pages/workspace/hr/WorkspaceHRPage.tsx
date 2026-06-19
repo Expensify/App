@@ -92,6 +92,11 @@ function WorkspaceHRPage({
             return;
         }
 
+        if (!canWriteMoreFeatures) {
+            showReadOnlyModal();
+            return;
+        }
+
         if (!card.isConnected && connectedCards.length > 0) {
             showConfirmModal({
                 title: translate('workspace.hr.alreadyConnectedTitle'),

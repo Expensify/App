@@ -141,13 +141,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
             <Button
                 small
                 text={translate('workspace.hr.connect')}
-                onPress={() => {
-                    if (!canWriteMoreFeatures) {
-                        showReadOnlyModal();
-                        return;
-                    }
-                    handleConnect();
-                }}
+                onPress={handleConnect}
                 innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 isDisabled={isOffline}
