@@ -24,6 +24,7 @@ import useOptimisticSearchTracking from './useOptimisticSearchTracking';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 type OptimisticTrackingReturn = ReturnType<typeof useOptimisticSearchTracking>;
+type OptimisticTrackingParams = Parameters<typeof useOptimisticSearchTracking>[0];
 
 /**
  * Public contract of the Search data layer (Slice S4, callstack-internal/expensify-issues#2546).
@@ -35,9 +36,11 @@ type OptimisticTrackingReturn = ReturnType<typeof useOptimisticSearchTracking>;
  * hook owns the whole projection (sort/group/paginate + the two-phase optimistic resilience) so the
  * screen does it exactly once.
  *
- * `searchResults` and `newSearchResultKeys` are transitional inputs: the snapshot subscription moves
- * inside the hook in S6 (when `<Search>` becomes the router), and the highlight keys move in with the
- * S5 highlight primitive. They are threaded for now so this stays a behavior-preserving S4 change.
+ * `searchResults`, `newSearchResultKeys`, `transactions`, and `reportActions` are transitional inputs.
+ * The snapshot subscription moves inside the hook in S6 (when `<Search>` becomes the router) and the
+ * highlight keys move in with the S5 highlight primitive. The full TRANSACTION/REPORT_ACTIONS
+ * collections are threaded from the parent (which already subscribes to them for the highlight hook)
+ * rather than re-subscribed here, so the screen opens each full-collection subscription only once.
  */
 type SearchSnapshotResult = {
     /** Sorted + optimistic-stabilized row items for the current query (hydrated for now). */
@@ -73,6 +76,10 @@ type UseSearchSnapshotParams = {
     searchResults: SearchResults | undefined;
     /** Keys flagged for the post-create highlight animation. Passed in until the highlight primitive lands (S5). */
     newSearchResultKeys: Set<string> | null | undefined;
+    /** Full TRANSACTION + REPORT_ACTIONS collections for the optimistic Phase 1. Passed in from the parent
+     *  (which already subscribes for the highlight hook) so we don't open duplicate full-collection reads. */
+    transactions: OptimisticTrackingParams['transactions'];
+    reportActions: OptimisticTrackingParams['reportActions'];
 };
 
 const EMPTY_DATA: SearchListItem[] = [];
@@ -91,7 +98,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * resilience. Returns the hydrated rows plus the list-level meta and the transitional carriers
  * `<Search>` still needs while it owns the view/interaction layer.
  */
-function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys}: UseSearchSnapshotParams): SearchSnapshotResult {
+function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -118,11 +125,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys}: UseS
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-
-    // Phase 1 needs the full (unfiltered) TRANSACTION + REPORT_ACTIONS collections to resolve the
-    // optimistic watch key, swap split-parent -> child, and match the optimistic IOU report action.
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
     // Phase 1 (snapshot augmentation): inject an optimistically-created transaction the server has not
     // indexed yet so its row mounts immediately. Composed here; the standalone hook is deleted in S6.

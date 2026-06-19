@@ -222,7 +222,7 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
-    } = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys});
+    } = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions});
 
     // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
     // (which has empty deps) can read the latest value without re-creating its callback.

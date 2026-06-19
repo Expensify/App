@@ -180,6 +180,8 @@ describe('useSearchSnapshot', () => {
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -204,6 +206,8 @@ describe('useSearchSnapshot', () => {
                 queryJSON: makeQueryJSON(),
                 searchResults: undefined,
                 newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -221,6 +225,8 @@ describe('useSearchSnapshot', () => {
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -239,6 +245,8 @@ describe('useSearchSnapshot', () => {
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -260,6 +268,8 @@ describe('useSearchSnapshot', () => {
                 }),
                 searchResults,
                 newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -279,6 +289,8 @@ describe('useSearchSnapshot', () => {
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -302,6 +314,8 @@ describe('useSearchSnapshot', () => {
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -328,6 +342,8 @@ describe('useSearchSnapshot', () => {
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -345,6 +361,8 @@ describe('useSearchSnapshot', () => {
                 queryJSON: makeQueryJSON(),
                 searchResults,
                 newSearchResultKeys: new Set([`${ONYXKEYS.COLLECTION.TRANSACTION}7`]),
+                transactions: undefined,
+                reportActions: undefined,
             }),
         );
 
@@ -369,6 +387,8 @@ describe('useSearchSnapshot', () => {
                     queryJSON: makeQueryJSON({type}),
                     searchResults,
                     newSearchResultKeys: undefined,
+                    transactions: undefined,
+                    reportActions: undefined,
                 }),
             );
 
