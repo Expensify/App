@@ -38,7 +38,6 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
             openHoldMenu({
-                requestType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
                 onConfirm: () => startApprovedAnimation(),
             });
         } else {

@@ -164,9 +164,8 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         startApprovedAnimation,
         startAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
+        onHoldMenuOpen: (onConfirm, paymentType) =>
             openHoldMenu({
-                requestType,
                 onConfirm: () => {
                     onConfirm?.();
                     clearSelectedTransactions(true);
@@ -258,7 +257,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
         if (isAnyTransactionOnHold) {
             openHoldMenu({
-                requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onConfirm: () => clearSelectedTransactions(true),
@@ -530,6 +528,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                     customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                     shouldShowSuccessStyle
                     ref={kycWallRef}
+                    shouldPutHeaderTextAfterBackButton
                 />
             </>
         );

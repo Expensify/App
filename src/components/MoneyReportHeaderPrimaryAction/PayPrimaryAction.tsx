@@ -122,7 +122,6 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
             openHoldMenu({
-                requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
                 methodID,
                 onConfirm: () => startAnimation(),

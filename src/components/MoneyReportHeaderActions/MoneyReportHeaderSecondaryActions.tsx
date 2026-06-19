@@ -280,8 +280,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         startApprovedAnimation,
         startAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType, onConfirm, paymentType) => {
-            openHoldMenu({requestType, onConfirm: onConfirm ?? (() => startApprovedAnimation()), paymentType});
+        onHoldMenuOpen: (onConfirm, paymentType) => {
+            openHoldMenu({onConfirm: onConfirm ?? (() => startApprovedAnimation()), paymentType});
         },
     });
 
@@ -414,6 +414,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             dropdownMenuRef={dropdownMenuRef}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
+            shouldPutHeaderTextAfterBackButton
         />
     );
 }
