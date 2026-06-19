@@ -1763,7 +1763,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsPdfModalVisible(true);
                         return;
                     }
-                    const exportID = exportReportsToPDF(selectedReportIDs.map(Number));
+                    const exportID = exportReportsToPDF(selectedReportIDs);
                     setActiveExportID(exportID);
                 },
             });

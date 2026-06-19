@@ -75,7 +75,7 @@ function clearStaleExportDownloads() {
     });
 }
 
-function exportReportsToPDF(reportIDs: number[]): string {
+function exportReportsToPDF(reportIDs: string[]): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
