@@ -74,7 +74,10 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
     if (isRHPHomePage) {
-        Navigation.navigate(ROUTES.HOME);
+        const shouldPreserveRevealedReport = isReportTopmostSplitNavigator();
+        if (!shouldPreserveRevealedReport) {
+            Navigation.navigate(ROUTES.HOME);
+        }
     } else {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
     }
