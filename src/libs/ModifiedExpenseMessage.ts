@@ -15,7 +15,7 @@ import {formatList} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin, isXeroVendorMatchingActive} from './PolicyUtils';
+import {findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin, isXeroActiveMatchingSource} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
@@ -473,7 +473,7 @@ function getForReportAction({
             translate,
             resolveVendorName(reportActionOriginalMessage?.vendor),
             resolveVendorName(reportActionOriginalMessage?.oldVendor),
-            isXeroVendorMatchingActive(policy) ? translate('common.supplier') : translate('common.vendor'),
+            isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor'),
             true,
             setFragments,
             removalFragments,

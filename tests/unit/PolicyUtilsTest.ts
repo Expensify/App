@@ -48,6 +48,7 @@ import {
     hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isXeroActiveMatchingSource,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -3479,6 +3480,73 @@ describe('PolicyUtils', () => {
 
             it('returns undefined when Xero contacts have not synced yet', () => {
                 expect(getXeroSupplierByID(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), 'xc1')).toBeUndefined();
+            });
+        });
+
+        describe('isXeroActiveMatchingSource (R4)', () => {
+            it('returns true when only Xero is connected', () => {
+                expect(isXeroActiveMatchingSource(buildXeroPolicy())).toBe(true);
+            });
+
+            it('returns false when QBO is the active matching source even if Xero is also connected', () => {
+                // The exact dual-connection state the helper was introduced for: QBO is in
+                // vendor-matching export mode (CC), and Xero is connected with contacts. The
+                // label flip / picker copy must stay on "Vendor" because the user is actually
+                // seeing QBO vendors via getMatchingVendors' precedence rule.
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = {
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                } as Policy;
+                expect(isXeroActiveMatchingSource(policy)).toBe(false);
+            });
+
+            it('returns false when Intacct is the active matching source even if Xero is also connected', () => {
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = {
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                            data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
+                        },
+                    },
+                } as Policy;
+                expect(isXeroActiveMatchingSource(policy)).toBe(false);
+            });
+
+            it('returns true when QBO is connected but in a non-matching export mode (Vendor Bill) + Xero is connected', () => {
+                // QBO is connected but not in CC/DC mode, so isQBOVendorMatchingActive is false.
+                // Xero is connected, so it takes over as the active source via getMatchingVendors'
+                // fall-through.
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = {
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                } as Policy;
+                expect(isXeroActiveMatchingSource(policy)).toBe(true);
+            });
+
+            it('returns false when Xero is not connected', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(isXeroActiveMatchingSource(policy)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(isXeroActiveMatchingSource(undefined)).toBe(false);
             });
         });
     });

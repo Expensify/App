@@ -2137,12 +2137,28 @@ function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * True when Xero is the connected integration scoping the vendor field. Xero has no
- * export-destination enum (bank-transactions is the only non-reimbursable mode), so the connection
- * being present is sufficient — mirrors `Xero::hasVendorFeature` on the PHP side.
+ * True when Xero is connected. Xero has no export-destination enum (bank-transactions is the only
+ * non-reimbursable mode), so connection presence is sufficient — mirrors `Xero::hasVendorFeature`
+ * on the PHP side. This is the *eligibility* predicate used by `hasVendorFeature`, NOT the source
+ * predicate — on dual-connected workspaces QBO/Intacct precedence still applies in
+ * `getMatchingVendors`. Use `isXeroActiveMatchingSource` when the question is "is Xero the
+ * integration whose vendors are actually being shown to the user?" (e.g. for the Supplier/Vendor
+ * label flip in the expense row, picker, and modified-expense fragments).
  */
 function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO];
+}
+
+/**
+ * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
+ * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
+ * in `getMatchingVendors` (QBO → Intacct → Xero) so the UI labels, copy, and inactive-vendor
+ * guardrail stay bound to whichever integration's vendor list is actually being consulted. Without
+ * this scoping, a workspace with active QBO matching + a lingering Xero connection would render
+ * QBO vendors under the "Supplier" label.
+ */
+function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
+    return isXeroVendorMatchingActive(policy) && !isQBOVendorMatchingActive(policy) && !isIntacctVendorMatchingActive(policy);
 }
 
 /**
@@ -2693,8 +2709,7 @@ export {
     getMatchingVendors,
     getXeroSupplierByID,
     getXeroSuppliers,
-    isIntacctVendorMatchingActive,
-    isQBOVendorMatchingActive,
+    isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     getValidConnectedIntegration,

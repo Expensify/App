@@ -22,10 +22,8 @@ import {
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
-    isIntacctVendorMatchingActive,
-    isQBOVendorMatchingActive,
     isTaxTrackingEnabled,
-    isXeroVendorMatchingActive,
+    isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -487,9 +485,8 @@ const ViolationsUtils = {
                 // active-source case so dual/stale-connection states (e.g. active QBO + lingering
                 // Xero with no contacts synced) still run the QBO check normally instead of being
                 // silenced by the Xero connection's existence.
-                const isXeroActiveSource = isXeroVendorMatchingActive(policy) && !isQBOVendorMatchingActive(policy) && !isIntacctVendorMatchingActive(policy);
                 const xeroContactsSynced = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.data?.contacts !== undefined;
-                if (isXeroActiveSource && !xeroContactsSynced) {
+                if (isXeroActiveMatchingSource(policy) && !xeroContactsSynced) {
                     // No-op — supplier list not yet known for this workspace.
                 } else {
                     const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);

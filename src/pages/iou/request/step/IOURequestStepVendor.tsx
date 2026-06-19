@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingVendors, hasVendorFeature, isXeroVendorMatchingActive} from '@libs/PolicyUtils';
+import {getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -56,7 +56,7 @@ function IOURequestStepVendor({
     const delegateAccountID = useDelegateAccountID();
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
-    const isOnXero = isXeroVendorMatchingActive(policy);
+    const isOnXero = isXeroActiveMatchingSource(policy);
 
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;

@@ -73,7 +73,7 @@ import {
     isMultiLevelTags,
     isPolicyAccessible,
     isTaxTrackingEnabled,
-    isXeroVendorMatchingActive,
+    isXeroActiveMatchingSource,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -474,7 +474,7 @@ function MoneyRequestView({
     const transactionVendor = transaction?.comment?.vendor;
     const transactionVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
-    const vendorFieldLabel = isXeroVendorMatchingActive(policy) ? translate('common.supplier') : translate('common.vendor');
+    const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
