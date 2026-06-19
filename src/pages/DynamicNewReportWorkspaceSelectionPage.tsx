@@ -73,6 +73,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -130,6 +131,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     policyTagList,
                     transactions,
                     allTransactionViolation: transactionViolations,
+                    allReports,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

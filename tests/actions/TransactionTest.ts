@@ -292,6 +292,7 @@ describe('actions/Transaction', () => {
                 allTransactions,
                 policyTagList,
                 transactionViolations: {},
+                allReports: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -502,7 +503,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
@@ -681,7 +682,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
@@ -874,7 +875,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,
@@ -1090,7 +1091,7 @@ describe('actions/Transaction', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
-                    policyTags,
+                    allPolicyTags: policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
                     expenseReport: reports.expenseReport,

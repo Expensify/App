@@ -43,6 +43,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -88,6 +89,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         policyTagList,
                         transactions,
                         allTransactionViolation: transactionViolations,
+                        allReports,
                     });
                 }
             },

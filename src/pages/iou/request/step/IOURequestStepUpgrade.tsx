@@ -88,6 +88,7 @@ function IOURequestStepUpgrade({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -139,6 +140,7 @@ function IOURequestStepUpgrade({
                 policyTagList,
                 transactions,
                 allTransactionViolation: transactionViolations,
+                allReports,
             });
 
             clearSelectedTransactions();
@@ -236,6 +238,7 @@ function IOURequestStepUpgrade({
         allPolicyTags,
         createReportForCurrentUser,
         transactionViolations,
+        allReports,
     ]);
 
     const participant = transaction?.participants?.[0];
