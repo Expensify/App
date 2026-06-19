@@ -14,6 +14,7 @@ import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +22,7 @@ import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/Company
 import {getDefaultCardName} from '@libs/CardUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import WorkspaceCompanyCardsBalanceLabels from '@pages/workspace/companyCards/WorkspaceCompanyCardsBalanceLabels';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
@@ -79,6 +81,7 @@ function WorkspaceCompanyCardsTable({
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const policy = usePolicy(policyID);
 
     const {
         feedName,
@@ -365,6 +368,13 @@ function WorkspaceCompanyCardsTable({
     const ListHeader = (
         <>
             {headerButtonsComponent}
+            {!isLoadingFeed && !isFeedPending && showCards && (
+                <WorkspaceCompanyCardsBalanceLabels
+                    selectedFeed={selectedFeed}
+                    feedName={feedName}
+                    currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
+                />
+            )}
             {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
         </>
     );

@@ -3,6 +3,10 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type CompanyCardBalanceParams = {
+    lastUpdated: string;
+};
+
 type EditActionParams = {
     action: OnyxInputOrEntry<ReportAction>;
 };
@@ -143,6 +147,7 @@ export type {
     ExportIntegrationSelectedParams,
     YourPlanPriceParams,
     DeleteActionParams,
+    CompanyCardBalanceParams,
     DeleteConfirmationParams,
     EditActionParams,
     MovedFromPersonalSpaceParams,
