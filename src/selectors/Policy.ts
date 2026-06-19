@@ -40,15 +40,17 @@ const createOwnedPaidPoliciesCountsSelector =
     };
 
 /**
- * Creates a selector returning only the IDs of policies eligible as copy-settings targets (every
- * non-personal workspace the user administers), so subscribers don't re-render when anything else on
- * the policy collection changes.
+ * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
+ * subscribers don't re-render when anything else on the policy collection changes. Targets are
+ * limited to paid group workspaces (Collect/Control) the user administers - copy-settings carries
+ * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
+ * are never valid targets.
  */
 const createCopySettingsEligibleTargetsSelector =
     (currentUserLogin: string | undefined) =>
     (policies: OnyxCollection<Policy>): string[] =>
         Object.values(policies ?? {})
-            .filter((policy): policy is Policy => !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && isPolicyAdmin(policy, currentUserLogin) && !isPendingDeletePolicy(policy))
+            .filter((policy): policy is Policy => !!policy && isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserLogin) && !isPendingDeletePolicy(policy))
             .map((policy) => policy.id);
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);

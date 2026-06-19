@@ -168,7 +168,7 @@ describe('createCopySettingsEligibleTargetsSelector', () => {
             ...overrides,
         }) as Policy;
 
-    it('includes non-personal admin policies regardless of plan', () => {
+    it('includes paid group (Collect and Control) admin policies', () => {
         const policies = {
             [`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.TEAM, employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}}),
             [`${P}p2`]: makePolicy({id: 'p2', type: CONST.POLICY.TYPE.CORPORATE, employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}}),
@@ -180,6 +180,12 @@ describe('createCopySettingsEligibleTargetsSelector', () => {
 
     it('excludes personal policies', () => {
         const policies = {[`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.PERSONAL})};
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
+        expect(result).toHaveLength(0);
+    });
+
+    it('excludes Submit policies (not a paid group plan, cannot receive paid settings)', () => {
+        const policies = {[`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.SUBMIT, employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}})};
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
         expect(result).toHaveLength(0);
     });
