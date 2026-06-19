@@ -4,6 +4,8 @@ import useOnyx from '@hooks/useOnyx';
 import {setIssueNewCardData} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
@@ -21,9 +23,16 @@ export default function SpendRuleCategoryEditPage({route}: SpendRuleCategoryEdit
     };
 
     return (
-        <SpendRuleCategoryBase
-            categories={categories}
-            onCategoriesChange={handleCategoriesChange}
-        />
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <SpendRuleCategoryBase
+                categories={categories}
+                onCategoriesChange={handleCategoriesChange}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
