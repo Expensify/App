@@ -191,16 +191,42 @@ Onyx.connectWithoutView({
 
 /**
  * Block navigation while the AI features promo modal is active (on top of the stack).
- * Mirrors the pattern from MigratedUserWelcomeModalGuard.
+ *
+ * The block exists only to keep an underlying in-app tab swipe from racing the modal overlay
+ * (the original use case mirrored from MigratedUserWelcomeModalGuard). It must NOT swallow
+ * top-level intents that come from outside the app — share intents and report deep-links arrive
+ * as `RESET` actions (via `getAdaptedStateFromPath`) or as `NAVIGATE`/`PUSH` actions whose
+ * `payload.name` is a sibling root-stack navigator (e.g. `SHARE_MODAL_NAVIGATOR`). Blocking
+ * those silently drops the navigation and strands the user on the modal.
  */
 function shouldBlockWhileModalActive(state: NavigationState, action: NavigationAction): boolean {
-    const isAllowedAction = action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL || action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK;
-    return (
-        hasRedirectedToAIFeaturesPromoModal &&
-        !isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) &&
-        state.routes.at(-1)?.name === NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR &&
-        !isAllowedAction
-    );
+    if (
+        !hasRedirectedToAIFeaturesPromoModal ||
+        isProductTrainingElementDismissed(CONST.AI_FEATURES_PROMO_MODAL, dismissedProductTraining) ||
+        state.routes.at(-1)?.name !== NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR
+    ) {
+        return false;
+    }
+
+    // Internal modal-close actions always allowed.
+    if (action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL || action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK) {
+        return false;
+    }
+
+    // RESET actions are how deep links / share intents enter the app — never block them.
+    if (action.type === 'RESET') {
+        return false;
+    }
+
+    // For NAVIGATE/PUSH/REPLACE actions, only block if the target lives inside the AI promo
+    // navigator (i.e. an in-modal sub-route). If the target is any other navigator/screen the
+    // navigation should proceed — the new screen will overlay or replace our modal naturally.
+    const targetName = (action.payload as {name?: string} | undefined)?.name;
+    if (targetName && targetName !== NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR) {
+        return false;
+    }
+
+    return true;
 }
 
 /** Prevents redirect loops by detecting when we're already on or resetting to the modal. */
