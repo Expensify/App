@@ -6,13 +6,13 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AvatarCropResult} from '@src/types/onyx';
+import type {AvatarCropMaskType, AvatarCropResult} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type SetAvatarCropDraftParams = {
     token: string;
     image: FileObject;
-    maskType?: 'square' | 'circle';
+    maskType?: AvatarCropMaskType;
     buttonLabelKey?: TranslationPaths;
 };
 

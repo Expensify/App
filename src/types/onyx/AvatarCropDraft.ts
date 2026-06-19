@@ -1,5 +1,8 @@
 import type {TranslationPaths} from '@src/languages/types';
 
+/** Shape of the avatar crop mask */
+type AvatarCropMaskType = 'square' | 'circle';
+
 /**
  * Input handed to the avatar crop screen. The picked image is stored as a base64 data URL on web
  * (so it survives a page refresh) or a file URI on native.
@@ -18,10 +21,11 @@ type AvatarCropDraft = {
     imageType: string;
 
     /** Shape of the crop mask */
-    maskType?: 'square' | 'circle';
+    maskType?: AvatarCropMaskType;
 
     /** Translation key for the primary action button label */
     buttonLabelKey?: TranslationPaths;
 };
 
 export default AvatarCropDraft;
+export type {AvatarCropMaskType};
