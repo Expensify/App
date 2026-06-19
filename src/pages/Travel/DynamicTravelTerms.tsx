@@ -22,7 +22,7 @@ import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addComment} from '@libs/actions/Report';
-import {acceptSpotnanaTerms, cleanupTravelProvisioningSession, setTravelProvisioningErrorMessage} from '@libs/actions/Travel';
+import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -119,16 +119,8 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
                     return Promise.reject(new Error('Verification required'));
                 }
 
-                // Missing workspace address - send the user to the address screen so they can add one and continue
-                if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_MISSING_WORKSPACE_ADDRESS) {
-                    cleanupTravelProvisioningSession();
-                    Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN, policyID, Navigation.getActiveRoute()));
-                    return Promise.reject(new Error('Missing workspace address'));
-                }
-
-                // Any other backend failure - surface the message inline instead of failing silently
+                // Any other backend failure surfaces its error inline via the travelProvisioning Onyx key set by the backend
                 if (response?.jsonCode !== 200) {
-                    setTravelProvisioningErrorMessage(response?.message ?? translate('travel.errorMessage'));
                     return Promise.reject(new Error('Request failed'));
                 }
 
