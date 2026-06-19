@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
@@ -25,6 +25,29 @@ const defaultAnchorAlignment = {
     // we assume that popover menu opens below the button, anchor is at TOP
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+type DoubleLineButtonTextProps = {
+    primaryText: string;
+    primaryTextStyle?: StyleProp<TextStyle>;
+    secondLineText: string;
+};
+
+// Must be rendered inside `<Button>` so `Button.Text` still receives its context.
+function DoubleLineButtonText({primaryText, primaryTextStyle, secondLineText}: DoubleLineButtonTextProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
+            <Button.Text style={primaryTextStyle}>{primaryText}</Button.Text>
+            <Text
+                style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
+                numberOfLines={1}
+            >
+                {secondLineText}
+            </Text>
+        </View>
+    );
+}
 
 function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
@@ -201,23 +224,15 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             />
                         )}
                         {secondLineText ? (
-                            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
-                                <Button.Text
-                                    style={[
-                                        isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {},
-                                        !!splitButtonIcon && styles.textAlignLeft,
-                                        styles.noPaddingBottom,
-                                    ]}
-                                >
-                                    {customText ?? selectedItem?.text ?? ''}
-                                </Button.Text>
-                                <Text
-                                    style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
-                                    numberOfLines={1}
-                                >
-                                    {secondLineText}
-                                </Text>
-                            </View>
+                            <DoubleLineButtonText
+                                primaryText={customText ?? selectedItem?.text ?? ''}
+                                primaryTextStyle={[
+                                    isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {},
+                                    !!splitButtonIcon && styles.textAlignLeft,
+                                    styles.noPaddingBottom,
+                                ]}
+                                secondLineText={secondLineText}
+                            />
                         ) : (
                             <Button.Text style={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}>
                                 {customText ?? selectedItem?.text ?? ''}
@@ -297,15 +312,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     )}
                     {!!singleOptionButtonIcon && <Button.Icon src={singleOptionButtonIcon} />}
                     {secondLineText ? (
-                        <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
-                            <Button.Text style={[!!singleOptionButtonIcon && styles.textAlignLeft, styles.noPaddingBottom]}>{selectedItem?.text ?? ''}</Button.Text>
-                            <Text
-                                style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
-                                numberOfLines={1}
-                            >
-                                {secondLineText}
-                            </Text>
-                        </View>
+                        <DoubleLineButtonText
+                            primaryText={selectedItem?.text ?? ''}
+                            primaryTextStyle={[!!singleOptionButtonIcon && styles.textAlignLeft, styles.noPaddingBottom]}
+                            secondLineText={secondLineText}
+                        />
                     ) : (
                         <Button.Text>{selectedItem?.text ?? ''}</Button.Text>
                     )}
