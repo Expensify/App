@@ -440,7 +440,6 @@ function computeReportNameBasedOnReportAction(
         if (harvesting) {
             return Parser.htmlToText(translate('iou.automaticallySubmitted'));
         }
-        console.log('log inside ReportNameUtils', isTrackIntentUser);
         if (
             shouldShowMarkAsDone({
                 isTrackIntentUser,
