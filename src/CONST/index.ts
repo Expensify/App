@@ -8497,6 +8497,7 @@ const CONST = {
                 INVITE_BUTTON: 'WorkspaceMembers-InviteButton',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
+                ROLE_FILTER_BUTTON: 'WorkspaceMembers-RoleFilterButton',
             },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',
