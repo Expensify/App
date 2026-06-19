@@ -464,6 +464,14 @@ function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName
     return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
 
+function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
+    if (originalMessage?.isSubmitterMarkedPaymentReceived) {
+        return translate('iou.receivedPaymentReportAction', payer);
+    }
+
+    return translate('iou.paidElsewhere', {payer, comment: originalMessage?.comment?.trim()});
+}
+
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
@@ -793,14 +801,29 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
+ * Predicate for IOU actions of type `create`. Used by `getCombinedReportActions` to drop
+ * preview cards we never want to show (on single-transaction reports normally, and on
+ * SendMoney reports where a `type=create` can only be a phantom from OpenReport's orphan path).
+ */
+function isIOUCreateAction(action: ReportAction): boolean {
+    return isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+}
+
+/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
 function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportID: string | null, transactionThreadReportActions: ReportAction[], isSelfDM = false): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
-    // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
-    if (!transactionThreadReportID || isSentMoneyReport) {
+    // SendMoney reports never legitimately have a `type=create` IOU action — drop any that appear,
+    // since they can only be phantoms synthesized by OpenReport's orphan-thread path.
+    if (isSentMoneyReport) {
+        return reportActions.filter((action) => !isIOUCreateAction(action));
+    }
+
+    // Nothing to combine when there's no transaction thread.
+    if (!transactionThreadReportID) {
         return reportActions;
     }
 
@@ -821,14 +844,16 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
 
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+        if (isIOUCreateAction(action)) {
+            return false;
+        }
         if (!isMoneyRequestAction(action)) {
             return true;
         }
-        const actionType = getOriginalMessage(action)?.type ?? '';
         if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+            return true;
         }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+        return getOriginalMessage(action)?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     });
 
     return getSortedReportActions(filteredReportActions, true);
@@ -962,6 +987,9 @@ function getReportActionActorAccountID(
     iouReport: OnyxEntry<Report>,
     report: OnyxEntry<Report>,
     delegatePersonalDetails?: PersonalDetails | undefined | null,
+    // When true (e.g. in search results) the actual author is returned instead of the Concierge
+    // display override used in inbox timelines for automated actions.
+    shouldUseRealActor = false,
 ): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
@@ -977,7 +1005,7 @@ function getReportActionActorAccountID(
 
         case CONST.REPORT.ACTIONS.TYPE.CREATED: {
             const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-            if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
+            if (!shouldUseRealActor && isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
                 return CONST.ACCOUNT_ID.CONCIERGE;
             }
             return reportAction?.actorAccountID;
@@ -1002,7 +1030,7 @@ function getReportActionActorAccountID(
             // - Harvesting (delayed submissions)
             // - Automatic approvals/forwards via workspace rules
             // - Automatic payments via workspace rules
-            if (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment)) {
+            if (!shouldUseRealActor && (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment))) {
                 return CONST.ACCOUNT_ID.CONCIERGE;
             }
 
@@ -2809,7 +2837,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
 
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
+    const role = originalMessage?.role ?? '';
     const formattedEmail = formatPhoneNumber(email);
     return translate('report.actions.type.addEmployee', formattedEmail, role, originalMessage?.didJoinPolicy);
 }
@@ -4174,6 +4202,39 @@ function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: 
     return getReportActionText(reportAction);
 }
 
+function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS)) {
+        return getReportActionText(reportAction);
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const updatedField = originalMessage?.updatedField;
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD) {
+        const newMethod = originalMessage?.newValue;
+        if (newMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+            return translate('workspaceActions.commuterExclusions.changedToFixedDistance');
+        }
+    }
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE) {
+        const newValue = typeof originalMessage?.newValue === 'number' ? originalMessage.newValue : Number(originalMessage?.newValue ?? 0);
+        const unit = originalMessage?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+
+        if (originalMessage?.oldValue == null) {
+            return translate('workspaceActions.commuterExclusions.setFixedDistance', {distance: newValue, unit});
+        }
+
+        const oldValue = typeof originalMessage.oldValue === 'number' ? originalMessage.oldValue : Number(originalMessage.oldValue);
+        return translate('workspaceActions.commuterExclusions.changedFixedDistance', {newDistance: newValue, oldDistance: oldValue, unit});
+    }
+
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED) {
+        return translate('workspaceActions.commuterExclusions.disabled');
+    }
+
+    return getReportActionText(reportAction);
+}
+
 function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {newProhibitedExpenses, oldProhibitedExpenses} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES>) ?? {};
@@ -4672,6 +4733,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getElsewherePaymentReportActionMessage,
     getMarkedReimbursedMessage,
     getReimbursedMessage,
     getMemberChangeMessageFragment,
@@ -4842,6 +4904,7 @@ export {
     getWorkspaceCustomUnitRateAddedMessage,
     getSendMoneyFlowAction,
     getUpdatedProhibitedExpensesMessage,
+    getUpdatedCommuterExclusionsMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,

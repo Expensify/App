@@ -103,6 +103,8 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceCompanyCardEditTransactionStartDatePage"
@@ -147,7 +149,6 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
                                             setStartDate(value);
                                         }}
                                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                        maxDate={new Date()}
                                         errorText={errorText}
                                     />
                                 </View>

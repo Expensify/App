@@ -470,6 +470,7 @@
         "barwidth",
         "basehead",
         "baselined",
+        "beforeunload",
         "behaviour",
         "bigdecimal",
         "billpay",
@@ -516,6 +517,7 @@
         "creditamount",
         "creditcards",
         "crios",
+        "csvexport",
         "csvg",
         "customairshipextender",
         "customfield",
@@ -812,6 +814,7 @@
         "reactnativehybridapp",
         "reactnativekeycommand",
         "reannounce",
+        "reauthenticating",
         "reauthentication",
         "rebooking",
         "recategorize",
@@ -1009,7 +1012,8 @@
         "NitroFetch",
         "Prefetch",
         "Prefetcher",
-        "knip"
+        "knip",
+        "lottiefiles"
     ],
     "ignorePaths": [
         ".gitignore",

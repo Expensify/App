@@ -44,7 +44,6 @@ const reportActionBaseMock: ReportAction = {
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         IOUTransactionID: '555',
-        IOUReportID: reportBaseMock.reportID,
     },
     reportID: reportBaseMock.reportID,
 };
