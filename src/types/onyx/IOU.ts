@@ -164,6 +164,15 @@ type SplitExpense = {
     /** Whether the split expense is billable */
     billable?: boolean;
 
+    /** Tax rate code applied to this split */
+    taxCode?: string;
+
+    /** Tax amount for this split */
+    taxAmount?: number;
+
+    /** Tax rate value (e.g. "10%") applied to this split */
+    taxValue?: string;
+
     /** Custom unit data for distance requests */
     customUnit?: TransactionCustomUnit;
 
