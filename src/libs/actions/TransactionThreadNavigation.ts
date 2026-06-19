@@ -54,9 +54,9 @@ function setActiveTransactionIDs(ids: string[], siblingDescriptorsByTransactionI
 }
 
 /**
- * Returns the currently active transaction IDs and sibling descriptors. Used by screens that temporarily
- * take over the carousel context (e.g. opening a money request report on top of an existing transaction
- * thread) so they can restore the previous context when they unmount, instead of clearing it.
+ * Returns the currently active transaction IDs and sibling descriptors. Used by screens that would otherwise
+ * take over the carousel context (e.g. a money request report opened on top of an existing transaction thread)
+ * so they can detect a snapshot-backed carousel (one with descriptors) and avoid clobbering it.
  */
 function getActiveTransactionIDs(): {ids: string[] | null; descriptors: Record<string, TransactionThreadNavigationDescriptor> | null} {
     return {ids: lastSetIDs, descriptors: lastSetDescriptors};

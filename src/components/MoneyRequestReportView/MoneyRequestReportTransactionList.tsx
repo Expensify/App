@@ -486,34 +486,22 @@ function MoneyRequestReportTransactionList({
     // the effect only re-fires when the actual content changes.
     const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
 
-    // Opening this money request report in the same SEARCH_REPORT RHP that already hosts a transaction-thread
-    // carousel (e.g. the Home "Recently added" flow) would otherwise overwrite and then clear that carousel's
-    // active transaction IDs, dropping the carousel when the user navigates back. Capture the carousel context
-    // present underneath this report on mount and restore it on unmount instead of unconditionally clearing.
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
-        const previousActiveTransactionIDs = getActiveTransactionIDs();
-        return () => {
-            if (previousActiveTransactionIDs.ids && previousActiveTransactionIDs.ids.length > 0) {
-                setActiveTransactionIDs(previousActiveTransactionIDs.ids, previousActiveTransactionIDs.descriptors ?? undefined);
-            } else {
-                clearActiveTransactionIDs();
-            }
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this lifecycle save/restore must run only on mount/unmount
-    }, []);
-
-    useEffect(() => {
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+        // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
+        // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
+        // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
+        // still seed the correct siblings lazily via useNavigateToTransactionThread.
+        if (getActiveTransactionIDs().descriptors) {
             return;
         }
-        // The lifecycle save/restore effect above owns clearing on unmount, so this effect only updates the
-        // active IDs while the report is mounted (and re-fires when its transaction set changes).
         setActiveTransactionIDs(visualOrderTransactionIDs);
+        return () => {
+            clearActiveTransactionIDs();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
     }, [visualOrderTransactionIDsKey]);
 
