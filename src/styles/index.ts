@@ -5890,6 +5890,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
+        featureTrainingModalNavButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: variables.spacing2,
+        },
+
         twoColumnLayoutCol: {
             flexGrow: 1,
             flexShrink: 1,

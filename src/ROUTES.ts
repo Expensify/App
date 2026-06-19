@@ -3375,6 +3375,7 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/migrated-user-welcome', backTo, false),
     },
+    AI_FEATURES_PROMO_MODAL: 'ai-features-promo',
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
