@@ -2,8 +2,9 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy} from '@src/types/onyx';
-import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isAuthenticationError} from './actions/connections';
+import {PART_TO_POLICY_FEATURE} from './actions/Policy/CopyPolicySettings';
 import type {Part} from './actions/Policy/CopyPolicySettings';
 import {canPolicyAccessFeature, isCollectPolicy, isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
@@ -239,28 +240,6 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
 }
 
 /**
- * Maps each copy-settings part to the policy feature it enables. This carries no plan judgment - it
- * only relates a part to its feature name so `canPolicyAccessFeature` can decide which features a
- * Collect (Team) target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
- */
-const PART_TO_POLICY_FEATURE = {
-    reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
-    accounting: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
-    categories: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
-    tags: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
-    taxes: CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
-    workflows: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
-    rules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-    codingRules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-    distanceRates: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
-    perDiem: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
-    invoices: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
-    travel: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
-    timeTracking: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
-    receiptPartners: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
-} as const satisfies Partial<Record<Part, PolicyFeatureName>>;
-
-/**
  * The selected parts that the Collect (Team) targets can't access on their current plan, as
  * determined by `canPolicyAccessFeature` (the single source of truth for which features require a
  * Control plan). Returns empty when there are no Collect targets.
@@ -271,7 +250,7 @@ function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | unde
         return [];
     }
     return selectedParts.filter((part) => {
-        const featureName = (PART_TO_POLICY_FEATURE as Partial<Record<Part, PolicyFeatureName>>)[part];
+        const featureName = PART_TO_POLICY_FEATURE[part];
         if (!featureName) {
             return false;
         }
