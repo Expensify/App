@@ -30,7 +30,6 @@ function createMockUsePaymentContextModule(overrides: MockPaymentContextOverride
             ...mockPaymentContextValue,
             nextStep: undefined,
             chatReportPolicy: undefined,
-            existingB2BInvoiceReport: undefined,
         }),
     };
 }

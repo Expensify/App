@@ -280,22 +280,16 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
 }
 
 /**
+ * Checks whether a single policy's tag lists contain at least one tag.
+ * Short-circuits on the first tag found.
+ */
+const policyTagListHasTags = (policyTagList: PolicyTagLists | undefined) => Object.values(policyTagList ?? {}).some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
+
+/**
  * Selector that checks if any tags exist across all policy tag lists.
  * Returns a boolean with early exit on first tag found.
  */
-const hasTagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => {
-    for (const policyTagList of Object.values(allPolicyTagLists ?? {})) {
-        if (!policyTagList) {
-            continue;
-        }
-        for (const tagList of Object.values(policyTagList)) {
-            if (Object.keys(tagList.tags ?? {}).length > 0) {
-                return true;
-            }
-        }
-    }
-    return false;
-};
+const hasTagsSelector = (allPolicyTagLists: OnyxCollection<PolicyTagLists>) => Object.values(allPolicyTagLists ?? {}).some(policyTagListHasTags);
 
 function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>, searchTerm?: string) {
     const {localeCompare} = useLocalize();
@@ -340,7 +334,8 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: s
     });
 
     const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
-    const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, !!selectedPolicyTagLists);
+    const hasSelectedPolicyTags = selectedPolicyTagLists.some(policyTagListHasTags);
+    const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, hasSelectedPolicyTags);
     // Count every business account, not just OPEN ones, so historical expenses paid from a now-closed settlement account stay searchable.
     const hasBusinessBankAccount = Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
     const shouldDisplayBankAccountFilter = shouldDisplayFilter(hasBusinessBankAccount ? 1 : 0, true);
