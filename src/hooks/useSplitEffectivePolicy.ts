@@ -22,6 +22,7 @@ import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
  * 3. Policy matching the transaction's `customUnitRateID` (skipped for the P2P rate).
  * 4. `fallbackPolicy` — the user's active workspace for moving expenses. Needed for self-DM splits,
  *    which have no workspace-bound report/customUnit but still need a policy to resolve categories/tags.
+ *    Skipped for the P2P rate, which has no workspace policy and must keep the transaction's own rate.
  *
  * Reads `customUnit` from `draftTransaction` first (the in-progress split draft), falling back to
  * `transaction` when the draft doesn't carry one yet (e.g. optimistic transaction before the server
@@ -66,7 +67,10 @@ function getSplitEffectivePolicy({
         return policyByCustomUnitRateID;
     }
 
-    return fallbackPolicy;
+    // Skip the workspace fallback for the P2P rate: `getRateForP2P` derives the rate from the policy's
+    // output currency, so a fallback workspace with a different currency would ignore the transaction's
+    // saved `defaultP2PRate` and compute the wrong rate. P2P expenses have no workspace policy anyway.
+    return isP2PRate ? undefined : fallbackPolicy;
 }
 
 /**

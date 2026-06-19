@@ -156,7 +156,7 @@ describe('useSplitEffectivePolicy', () => {
         await waitFor(() => expect(result.current?.id).toBe('workspace-moving'));
     });
 
-    it('falls back to policyForMovingExpenses for the P2P rate', async () => {
+    it('returns undefined for the P2P rate, skipping the moving-expenses fallback', async () => {
         mockPolicyForMovingExpenses = {...createRandomPolicy(1), id: 'workspace-moving-p2p'};
         const unrelatedPolicy = buildPolicyWithRate('workspace-other', 'unit-other', 'rate-other');
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${unrelatedPolicy.id}`, unrelatedPolicy);
@@ -168,7 +168,7 @@ describe('useSplitEffectivePolicy', () => {
 
         const {result} = renderHook(() => useSplitEffectivePolicy(buildReport(undefined), draftTransaction));
 
-        await waitFor(() => expect(result.current?.id).toBe('workspace-moving-p2p'));
+        await waitFor(() => expect(result.current).toBeUndefined());
     });
 
     it('returns undefined when nothing resolves (no currentPolicy, no customUnit match, no policyForMovingExpenses)', async () => {
@@ -216,10 +216,10 @@ describe('getSplitEffectivePolicy', () => {
         expect(result?.id).toBe(customUnitPolicy.id);
     });
 
-    it('skips the customUnit lookups for the P2P rate and uses the fallback', () => {
+    it('returns undefined for the P2P rate, skipping both the customUnit lookups and the fallback', () => {
         const transaction = buildTransaction({customUnitID: 'unit-x', customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID});
         const result = getSplitEffectivePolicy({policy: undefined, transaction, allPolicies, fallbackPolicy});
-        expect(result?.id).toBe(fallbackPolicy.id);
+        expect(result).toBeUndefined();
     });
 
     it('returns the fallback policy when nothing else resolves', () => {
