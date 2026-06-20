@@ -242,9 +242,11 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     // Use isKeyboardActive (toggles on keyboardWillShow/WillHide) rather than isKeyboardShown (toggles on
     // keyboardDidShow/DidHide) so the padding changes in sync with the modal's keyboard-avoidance animation. Keying it
     // on isKeyboardShown removes/re-adds the padding only after the keyboard animation finishes, which abruptly changes
-    // the picker height a beat behind the modal motion and makes the picker bounce.
-    const {isKeyboardActive} = useKeyboardState();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: !isKeyboardActive});
+    // the picker height a beat behind the modal motion and makes the picker bounce. We also require keyboardHeight > 0 so
+    // the padding isn't dropped while the keyboard is only animating but hasn't reported a real height yet.
+    const {isKeyboardActive, keyboardHeight} = useKeyboardState();
+    const isSoftKeyboardActive = isKeyboardActive && keyboardHeight > 0;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: !isSoftKeyboardActive});
 
     return (
         <PopoverWithMeasuredContent
