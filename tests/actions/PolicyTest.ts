@@ -5943,23 +5943,23 @@ describe('actions/Policy', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL}});
             await waitForBatchedUpdates();
 
-            const getSuccessParticipant = (result: ReturnType<typeof Policy.createPolicyExpenseChats>) => {
+            const getSuccessValue = (result: ReturnType<typeof Policy.createPolicyExpenseChats>) => {
                 const reportID = result.reportCreationData[newMemberEmail]?.reportID;
-                const successData = result.onyxSuccessData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-                return (successData?.value as Report | undefined)?.participants?.[newMemberAccountID];
+                return result.onyxSuccessData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.value;
             };
+            const participantPath = ['participants', String(newMemberAccountID)];
 
             // When the explicit map says the member exists, the success-data participant is kept ({}), beating the empty fallback
             const existsResult = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID}, undefined, undefined, undefined, {
                 [newMemberAccountID]: true,
             });
-            expect(getSuccessParticipant(existsResult)).toEqual({});
+            expect(getSuccessValue(existsResult)).toHaveProperty(participantPath, {});
 
             // When the explicit map says the member does NOT exist, the success-data participant is removed (null)
             const missingResult = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID}, undefined, undefined, undefined, {
                 [newMemberAccountID]: false,
             });
-            expect(getSuccessParticipant(missingResult)).toBeNull();
+            expect(getSuccessValue(missingResult)).toHaveProperty(participantPath, null);
         });
     });
     describe('setPolicyCustomTaxName', () => {
