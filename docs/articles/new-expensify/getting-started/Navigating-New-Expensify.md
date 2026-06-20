@@ -1,7 +1,7 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All, Unread, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter]
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter]
 internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs and primary action buttons. Does not explain the detailed behavior of the Home tab sections.
 ---
 
@@ -57,7 +57,7 @@ Use Inbox to:
 
 At the top of the **Inbox**, three tabs let you filter your chats:
 
-- **All** — Shows every chat.
+- **All** — Shows all chats.
 - **Unread** — Shows only chats with unread messages.
 - **To-dos** — Shows only chats that need your attention, such as a report awaiting your approval.
 
