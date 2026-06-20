@@ -1,5 +1,5 @@
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -12,7 +12,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {setContactMethodAsDefault} from '@libs/actions/User';
@@ -26,7 +25,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {setErrorFields} from '@userActions/FormActions';
-import {AddWorkEmail} from '@userActions/Session';
+import {AddWorkspaceWorkEmail} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,9 +36,15 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceExpensifyCardAddWorkEmailPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL>;
 
+function shouldValidateWorkspaceWorkEmail(response: Awaited<ReturnType<typeof AddWorkspaceWorkEmail>>) {
+    const onboardingUpdate = response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING);
+    const onboardingValues = onboardingUpdate?.value;
+
+    return !!onboardingValues && typeof onboardingValues === 'object' && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate === true;
+}
+
 function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardAddWorkEmailPageProps) {
     const {policyID, fundID} = route.params;
-    const primaryContactMethod = usePrimaryContactMethod();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
@@ -47,11 +52,30 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
 
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const [email, setEmail] = useState('');
-    const emailLoginKey = email ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === email.toLowerCase()) : undefined;
-    const isWorkEmailValidated = emailLoginKey ? !!loginList?.[emailLoginKey]?.validatedDate : false;
 
     const {inputCallbackRef} = useAutoFocusInput();
+
+    const setAddWorkEmailError = (errorMessage: string) => {
+        setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
+            [INPUT_IDS.EMAIL]: getMicroSecondOnyxErrorWithMessage(errorMessage),
+        });
+    };
+
+    const getAddWorkEmailErrorMessage = (response: Awaited<ReturnType<typeof AddWorkspaceWorkEmail>>, submittedEmail: string) => {
+        if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
+            return translate('onboarding.workEmail2FAError');
+        }
+
+        if (response?.message?.includes(CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR)) {
+            return translate('onboarding.singleSignOnError');
+        }
+
+        if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
+            return translate('onboarding.mergeBlockScreen.workAccountClosedSubtitle');
+        }
+
+        return translate('onboarding.mergeBlockScreen.subtitle', submittedEmail);
+    };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>) => {
         const submittedEmail = values[INPUT_IDS.EMAIL].trim();
@@ -60,7 +84,6 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
 
         if (existingLoginKey) {
             if (!isExistingLoginValidated) {
-                setEmail(submittedEmail);
                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
                 return;
             }
@@ -72,25 +95,28 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                     Navigation.closeRHPFlow();
                 })
                 .catch((error: TranslationPaths) => {
-                    setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
-                        [INPUT_IDS.EMAIL]: getMicroSecondOnyxErrorWithMessage(translate(error)),
-                    });
+                    setAddWorkEmailError(translate(error));
                 })
                 .finally(() => {
                     setLoading(false);
                 });
         } else {
-            AddWorkEmail(submittedEmail);
-        }
-        setEmail(submittedEmail);
-    };
+            AddWorkspaceWorkEmail(submittedEmail)
+                .then((response) => {
+                    if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
+                        setAddWorkEmailError(getAddWorkEmailErrorMessage(response, submittedEmail));
+                        return;
+                    }
 
-    useEffect(() => {
-        if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
-            return;
+                    if (shouldValidateWorkspaceWorkEmail(response)) {
+                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
+                    }
+                })
+                .catch(() => {
+                    setAddWorkEmailError(translate('common.genericErrorMessage'));
+                });
         }
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
-    }, [primaryContactMethod, email, policyID, fundID, isWorkEmailValidated]);
+    };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>): Errors => {
         const errors = {};
