@@ -1,5 +1,4 @@
 import type {TextInput} from 'react-native';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 type Selection = {
     start: number;
@@ -10,6 +9,6 @@ type Selection = {
 
 type FocusComposerWithDelay = (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => Promise<void>;
 
-type InputType = TextInput | HTMLTextAreaElement | BaseTextInputRef;
+type InputType = TextInput | HTMLTextAreaElement;
 
 export type {Selection, FocusComposerWithDelay, InputType};

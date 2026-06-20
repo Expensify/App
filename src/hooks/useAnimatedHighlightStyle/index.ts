@@ -93,6 +93,7 @@ export default function useAnimatedHighlightStyle({
         if (!shouldHighlight || startHighlight) {
             return;
         }
+        console.log('[debug] start the highlight');
         setStartHighlight(true);
         // We only need to add shouldHighlight as a dependency and adding startHighlight as deps will cause a loop because
         // if shouldHighlight stays at true the above early return will not be executed and this useEffect will be run
@@ -101,6 +102,7 @@ export default function useAnimatedHighlightStyle({
     }, [shouldHighlight]);
 
     React.useEffect(() => {
+        console.log('[debug] should highlight?', startHighlight, didScreenTransitionEnd);
         if (!startHighlight || !didScreenTransitionEnd) {
             return;
         }

@@ -2,7 +2,6 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
@@ -20,8 +19,8 @@ import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
 
 type UseAutoFocusInput = {
-    inputCallbackRef: (ref: TextInput | BaseTextInputRef | null) => void;
-    inputRef: RefObject<TextInput | BaseTextInputRef | null>;
+    inputCallbackRef: (ref: TextInput | null) => void;
+    inputRef: RefObject<TextInput | null>;
     cancelAutoFocus: () => void;
 };
 
@@ -36,7 +35,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const {splashScreenState} = useSplashScreenState();
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
 
-    const inputRef = useRef<TextInput | BaseTextInputRef | null>(null);
+    const inputRef = useRef<TextInput | null>(null);
     const transitionEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isAutoFocusCancelledRef = useRef(false);
 
@@ -147,7 +146,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         }
     }
 
-    const inputCallbackRef = (ref: TextInput | BaseTextInputRef | null) => {
+    const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
         if (isInputInitialized) {
             return;

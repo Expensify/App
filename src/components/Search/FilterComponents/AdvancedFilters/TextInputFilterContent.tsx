@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import TextInput from '@components/TextInput';
@@ -26,6 +26,10 @@ type TextInputFilterContentProps = {
     onChange: (value: string | undefined) => void;
 };
 
+function isTextInput(el: BaseTextInputRef | RNTextInput | null): el is RNTextInput {
+    return !!el && 'isFocused' in el;
+}
+
 function TextInputFilterContent({filterKey, value: initialValue, autoFocus, largeButton, style, onChange}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -38,7 +42,12 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <TextInput
-                ref={autoFocus ? inputCallbackRef : undefined}
+                ref={(ref) => {
+                    if (!autoFocus || !isTextInput(ref)) {
+                        return;
+                    };
+                    inputCallbackRef(ref);
+                }}
                 placeholder={label}
                 value={value}
                 errorText={error}
