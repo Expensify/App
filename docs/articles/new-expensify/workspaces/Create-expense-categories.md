@@ -183,14 +183,11 @@ It will be removed from the workspace’s category list. However, it will remain
 
 ## What happens to an expense if its category is disabled on the workspace?
 
-If categories are disabled on the workspace while an expense still has a category applied, the **Category** field stays on the expense with a "Category no longer valid" violation.
+If categories are disabled on the workspace while an expense still has a category applied, the **Category** field stays on the expense with a **Category no longer valid** violation.
 
-To resolve this, select the **Category** field on the expense. An alert will appear explaining that categories are disabled on the workspace. You can then choose to:
+To resolve the violation, select the **Category** field on the expense. A **Category disabled** alert appears with options for managing the disabled category.
 
-- **Delete category** — Removes the category from the expense.
-- **Cancel** — Keeps the category on the expense.
-
-Alternatively, you can enable categories on the workspace to edit the category directly.
+Alternatively, you can enable tags on the workspace to edit the category directly.
 
 ## How can members see GL codes?
 
