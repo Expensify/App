@@ -98,6 +98,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const cardList = useNonPersonalCardList();
     const [, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -276,10 +277,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    // The card data is loaded by the OpenApp request, so until the app has finished loading or CARD_LIST is still
-    // hydrating we show the loading indicator instead of the NotFoundPage. Otherwise, when opening this page directly
-    // (e.g. via a deep link from OldDot), the NotFoundPage briefly flashes before OpenApp populates CARD_LIST.
-    const isLoadingCardData = !currentCard && (!hasLoadedApp || isLoadingOnyxValue(cardListResult));
+    // The card data is loaded by the OpenApp request. We show the loading indicator instead of the NotFoundPage while the card
+    // could still arrive: before the app has loaded for the first time (hasLoadedApp), while an OpenApp/reconnect is in flight
+    // (isLoadingApp), or while CARD_LIST is still hydrating. hasLoadedApp is a one-shot flag that never resets, so on a warm app
+    // it can't represent a later OpenApp that brings in a card missing from CARD_LIST (e.g. a freshly issued replacement card or
+    // a card deep-linked from OldDot); isLoadingApp covers those in-flight refreshes so the NotFoundPage doesn't flash before
+    // the card lands. Once all of these settle and the card is still absent, the NotFoundPage is the correct terminal state.
+    const isLoadingCardData = !currentCard && (!hasLoadedApp || isLoadingApp || isLoadingOnyxValue(cardListResult));
 
     if (isLoadingCardData) {
         return (
@@ -291,7 +295,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'ExpensifyCardPage', isOffline, hasLoadedApp: !!hasLoadedApp}}
+                        reasonAttributes={{context: 'ExpensifyCardPage', isOffline, hasLoadedApp: !!hasLoadedApp, isLoadingApp: !!isLoadingApp}}
                     />
                 </View>
             </ScreenWrapper>
