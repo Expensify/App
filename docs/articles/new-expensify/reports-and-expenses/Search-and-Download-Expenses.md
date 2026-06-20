@@ -20,32 +20,23 @@ Expensify offers flexible options to search and export expenses and reports in v
 
 ## Web
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) on the left, select **Spend** > **Reports**.
-2. Check the box next to the expenses or reports you want to export, or use the top checkbox to select all.
-3. Click **Selected** at the top.
-4. Select **Export** from the dropdown.
-5. Choose one of the following templates:
-   - **Basic Export** – Simplified, essential fields (date, amount, merchant, category, receipt URL).
-   - **All Data – Expense Level Export** – One row per expense with full data.
-   - **All Data – Report Level Export** – One row per report with summary data.
-   - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
+1. In the navigation tabs on the left, select **Spend**.
+2. Choose **Expenses** or **Reports**.
+3. Select the expenses or reports you want to export, or **Select all**.
+4. Click **Selected**. 
+5. Select **Export** from the dropdown.
+6. Choose an export template.
 
 A **Preparing download** window appears while your file is generated, and the file downloads automatically to your device when it’s ready. If you’d rather not wait, select **Send me the file when it's ready**, and Concierge will message you the file in chat.
 
-> **Note:** Report-level templates only appear if you select full reports (i.e., all expenses in the report).
-
 ## Mobile
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) at the bottom, select **Spend** > **Reports**.
-2. Tap the three-line icon in the top-right corner.
-3. Choose between **Reports** or **Expenses**.
-4. Check the box next to the items you want to export, or use the top checkbox to select all.
+1. In the navigation tabs at the bottom, tap **Spend**.
+2. In the menu at the top, choose **Expenses** or **Reports**.
+3. Long-press any expense or report, then tap **Select**. 
+4. Select the expenses or reports you want to export, or tap **Select all**.
 5. Tap **Selected**, then choose **Export**.
-6. Choose a default or custom export template as described above.
-
-A **Preparing download** window appears while your file is generated, and the file downloads automatically when it’s ready. If you’d rather not wait, tap **Send me the file when it's ready**, and Concierge will message you the file in chat.
-
-> **Note:** Report-level templates only appear when full reports are selected.
+6. Choose an export template.
 
 # Export grouped expenses
 
