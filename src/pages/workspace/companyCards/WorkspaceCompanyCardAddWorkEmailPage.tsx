@@ -41,11 +41,15 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCompanyCardAddWorkEmailPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL>;
 
-function shouldValidateWorkspaceWorkEmail(response: Awaited<ReturnType<typeof AddWorkspaceWorkEmail>>) {
+function getShouldValidateWorkspaceWorkEmail(response: Awaited<ReturnType<typeof AddWorkspaceWorkEmail>>) {
     const onboardingUpdate = response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING);
     const onboardingValues = onboardingUpdate?.value;
 
-    return !!onboardingValues && typeof onboardingValues === 'object' && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate === true;
+    if (!onboardingValues || typeof onboardingValues !== 'object' || !('shouldValidate' in onboardingValues) || typeof onboardingValues.shouldValidate !== 'boolean') {
+        return undefined;
+    }
+
+    return onboardingValues.shouldValidate;
 }
 
 function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWorkEmailPageProps) {
@@ -84,6 +88,27 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
         return translate('onboarding.mergeBlockScreen.subtitle', submittedEmail);
     };
 
+    const linkWorkspaceCompanyCardFeed = () => {
+        if (!feedInfo) {
+            setAddWorkEmailError(translate('workspace.companyCards.error.feedCouldNotBeLoadedMessage'));
+            return;
+        }
+
+        setLoading(true);
+        const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
+        linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
+            .then(() => {
+                updateSelectedFeed(feedValue, policyID);
+                Navigation.closeRHPFlow();
+            })
+            .catch((error: TranslationPaths) => {
+                setAddWorkEmailError(translate(error));
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>) => {
         const submittedEmail = values[INPUT_IDS.EMAIL].trim();
         const existingLoginKey = Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === submittedEmail.toLowerCase());
@@ -95,23 +120,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                 return;
             }
             setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
-            if (!feedInfo) {
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
-                return;
-            }
-            setLoading(true);
-            const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
-            linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
-                .then(() => {
-                    updateSelectedFeed(feedValue, policyID);
-                    Navigation.closeRHPFlow();
-                })
-                .catch((error: TranslationPaths) => {
-                    setAddWorkEmailError(translate(error));
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+            linkWorkspaceCompanyCardFeed();
         } else {
             AddWorkspaceWorkEmail(submittedEmail)
                 .then((response) => {
@@ -120,9 +129,18 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                         return;
                     }
 
-                    if (shouldValidateWorkspaceWorkEmail(response)) {
+                    const shouldValidate = getShouldValidateWorkspaceWorkEmail(response);
+                    if (shouldValidate) {
                         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
+                        return;
                     }
+
+                    if (shouldValidate === false) {
+                        linkWorkspaceCompanyCardFeed();
+                        return;
+                    }
+
+                    setAddWorkEmailError(translate('common.genericErrorMessage'));
                 })
                 .catch(() => {
                     setAddWorkEmailError(translate('common.genericErrorMessage'));

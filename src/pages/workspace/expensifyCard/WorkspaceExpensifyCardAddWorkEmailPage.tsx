@@ -36,11 +36,15 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceExpensifyCardAddWorkEmailPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL>;
 
-function shouldValidateWorkspaceWorkEmail(response: Awaited<ReturnType<typeof AddWorkspaceWorkEmail>>) {
+function getShouldValidateWorkspaceWorkEmail(response: Awaited<ReturnType<typeof AddWorkspaceWorkEmail>>) {
     const onboardingUpdate = response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING);
     const onboardingValues = onboardingUpdate?.value;
 
-    return !!onboardingValues && typeof onboardingValues === 'object' && 'shouldValidate' in onboardingValues && onboardingValues.shouldValidate === true;
+    if (!onboardingValues || typeof onboardingValues !== 'object' || !('shouldValidate' in onboardingValues) || typeof onboardingValues.shouldValidate !== 'boolean') {
+        return undefined;
+    }
+
+    return onboardingValues.shouldValidate;
 }
 
 function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardAddWorkEmailPageProps) {
@@ -77,6 +81,21 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
         return translate('onboarding.mergeBlockScreen.subtitle', submittedEmail);
     };
 
+    const linkWorkspaceExpensifyCardFeed = () => {
+        setLoading(true);
+        linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
+            .then(() => {
+                updateSelectedExpensifyCardFeed(Number(fundID), policyID);
+                Navigation.closeRHPFlow();
+            })
+            .catch((error: TranslationPaths) => {
+                setAddWorkEmailError(translate(error));
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM>) => {
         const submittedEmail = values[INPUT_IDS.EMAIL].trim();
         const existingLoginKey = Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === submittedEmail.toLowerCase());
@@ -88,18 +107,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                 return;
             }
             setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
-            setLoading(true);
-            linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
-                .then(() => {
-                    updateSelectedExpensifyCardFeed(Number(fundID), policyID);
-                    Navigation.closeRHPFlow();
-                })
-                .catch((error: TranslationPaths) => {
-                    setAddWorkEmailError(translate(error));
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+            linkWorkspaceExpensifyCardFeed();
         } else {
             AddWorkspaceWorkEmail(submittedEmail)
                 .then((response) => {
@@ -108,9 +116,18 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                         return;
                     }
 
-                    if (shouldValidateWorkspaceWorkEmail(response)) {
+                    const shouldValidate = getShouldValidateWorkspaceWorkEmail(response);
+                    if (shouldValidate) {
                         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
+                        return;
                     }
+
+                    if (shouldValidate === false) {
+                        linkWorkspaceExpensifyCardFeed();
+                        return;
+                    }
+
+                    setAddWorkEmailError(translate('common.genericErrorMessage'));
                 })
                 .catch(() => {
                     setAddWorkEmailError(translate('common.genericErrorMessage'));
