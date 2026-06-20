@@ -17,6 +17,9 @@ type UseDomainGroupFilterResult = {
     /** The currently selected groups. */
     selectedGroups: Array<MultiSelectItem<string>>;
 
+    /** The currently selected groups, resolved against the latest group options. */
+    effectiveSelectedGroups: Array<MultiSelectItem<string>>;
+
     /** Handler for when the user changes the group selection. */
     handleGroupChange: (items: Array<MultiSelectItem<string>>) => void;
 
@@ -48,10 +51,14 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
         }
     }, [groups, selectedGroups]);
 
+    const effectiveSelectedGroups = selectedGroups
+        .map((selectedGroup) => groupOptions.find((option) => option.value === selectedGroup.value))
+        .filter((option): option is MultiSelectItem<string> => !!option);
+
     let selectedGroupMemberIDs: Set<number> | null = null;
-    if (selectedGroups.length > 0) {
+    if (effectiveSelectedGroups.length > 0) {
         selectedGroupMemberIDs = new Set<number>();
-        for (const selectedGroup of selectedGroups) {
+        for (const selectedGroup of effectiveSelectedGroups) {
             const securityGroup = groups?.find((group) => group.id === selectedGroup.value);
             if (!securityGroup) {
                 continue;
@@ -67,12 +74,13 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
 
     const groupPreFilter = (item: MemberOption) => !selectedGroupMemberIDs || selectedGroupMemberIDs.has(item.accountID);
 
-    const dropdownLabel = `${translate('common.group')}: ${selectedGroups.length > 0 ? selectedGroups.map((g) => g.text).join(', ') : translate('common.all')}`;
+    const dropdownLabel = `${translate('common.group')}: ${effectiveSelectedGroups.length > 0 ? effectiveSelectedGroups.map((group) => group.text).join(', ') : translate('common.all')}`;
 
     return {
         groupPreFilter,
         groupOptions,
         selectedGroups,
+        effectiveSelectedGroups,
         handleGroupChange: setSelectedGroups,
         dropdownLabel,
         groups,

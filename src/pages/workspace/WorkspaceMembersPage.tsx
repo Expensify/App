@@ -600,8 +600,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         setSelectedRoleFilters(items);
     };
 
+    const effectiveSelectedRoleFilters = selectedRoleFilters
+        .map((selectedFilter) => roleFilterOptions.find((option) => option.value === selectedFilter.value))
+        .filter((option): option is WorkspaceMemberFilterOption => !!option);
+
     const rolePreFilter = (member: MemberOption) => {
-        if (selectedRoleFilters.length === 0) {
+        if (effectiveSelectedRoleFilters.length === 0) {
             return true;
         }
 
@@ -613,7 +617,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const isEditor = employee?.role === CONST.POLICY.ROLE.EDITOR;
         const isMember = !isAdmin && !isApprover && !isAuditor && !isCardAdmin && !isEditor;
 
-        return selectedRoleFilters.some(({value}) => {
+        return effectiveSelectedRoleFilters.some(({value}) => {
             switch (value) {
                 case WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS:
                     return isMember;
@@ -685,7 +689,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
     const hasNoDisplayedMembers = displayedFilteredData.length === 0;
     const shouldShowRoleFilter = data.length > 0;
-    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && selectedRoleFilters.length > 0 && inputValue.length === 0 && hasNoDisplayedMembers;
+    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && effectiveSelectedRoleFilters.length > 0 && inputValue.length === 0 && hasNoDisplayedMembers;
     const shouldShowEmptySearchMessage = !shouldShowRoleFilterEmptyState && hasNoDisplayedMembers;
     const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
 
@@ -698,17 +702,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         <MultiSelectPopup
             label={translate('common.role')}
             items={roleFilterOptions}
-            value={selectedRoleFilters}
+            value={effectiveSelectedRoleFilters}
             closeOverlay={closeOverlay}
             onChange={handleRoleFilterChange}
         />
     );
 
-    const selectedRoleFilterLabels = selectedRoleFilters
-        .map(({value}) => roleFilterOptions.find((option) => option.value === value)?.text)
-        .filter((text): text is string => !!text)
-        .join(', ');
-    const roleFilterDropdownLabel = `${translate('common.role')}: ${selectedRoleFilters.length > 0 ? selectedRoleFilterLabels : translate('common.all')}`;
+    const selectedRoleFilterLabels = effectiveSelectedRoleFilters.map(({text}) => text).join(', ');
+    const roleFilterDropdownLabel = `${translate('common.role')}: ${effectiveSelectedRoleFilters.length > 0 ? selectedRoleFilterLabels : translate('common.all')}`;
 
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>

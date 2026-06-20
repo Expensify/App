@@ -80,7 +80,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         selector: memberAccountIDsSelector,
     });
 
-    const {groupPreFilter, groupOptions, selectedGroups, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
+    const {groupPreFilter, groupOptions, effectiveSelectedGroups, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
 
     const membersFeatureListItems: FeatureListItem[] = [
         {
@@ -101,7 +101,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         <MultiSelectPopup
             label={translate('common.group')}
             items={groupOptions}
-            value={selectedGroups}
+            value={effectiveSelectedGroups}
             closeOverlay={closeOverlay}
             onChange={handleGroupChange}
         />
