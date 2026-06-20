@@ -426,5 +426,44 @@ describe('WorkspaceMembers', () => {
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should fall back to "Role: All" when a selected role is no longer available after the workspace type changes', async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            const defaultLabel = `${TestHelper.translateLocal('common.role')}: ${TestHelper.translateLocal('common.all')}`;
+            fireEvent.press(screen.getByText(defaultLabel));
+            await waitForBatchedUpdatesWithAct();
+
+            const auditorOption = TestHelper.translateLocal('workspace.people.auditors');
+            fireEvent.press(await screen.findByRole(CONST.ROLE.CHECKBOX, {name: auditorOption}));
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.apply')));
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.queryByText(ADMIN_OPTION)).not.toBeOnTheScreen();
+                expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
+            });
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {type: CONST.POLICY.TYPE.TEAM});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const allLabel = `${TestHelper.translateLocal('common.role')}: ${TestHelper.translateLocal('common.all')}`;
+            await waitFor(() => {
+                expect(screen.getByText(allLabel)).toBeOnTheScreen();
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+                expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 });

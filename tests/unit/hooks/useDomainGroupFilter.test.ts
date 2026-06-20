@@ -153,6 +153,36 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.groupPreFilter(buildMemberOption(999))).toBe(false);
         });
 
+        it('should allow all members when the selected group is no longer in groupOptions', async () => {
+            const domain = buildDomain({
+                '1': {members: {'100': 'read'}, name: 'Engineering'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+
+            await waitFor(() => {
+                expect(result.current.groupOptions).toHaveLength(1);
+            });
+
+            act(() => {
+                result.current.handleGroupChange([{text: 'Engineering', value: '1'}]);
+            });
+            expect(result.current.groupPreFilter(buildMemberOption(999))).toBe(false);
+
+            const updatedDomain = buildDomain({
+                '2': {members: {'200': 'read'}, name: 'Marketing'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, updatedDomain);
+
+            await waitFor(() => {
+                expect(result.current.effectiveSelectedGroups).toHaveLength(0);
+                expect(result.current.groupPreFilter(buildMemberOption(100))).toBe(true);
+                expect(result.current.groupPreFilter(buildMemberOption(200))).toBe(true);
+                expect(result.current.groupPreFilter(buildMemberOption(999))).toBe(true);
+            });
+        });
+
         it('should allow all members again after clearing the selection', async () => {
             const domain = buildDomain({
                 '1': {members: {'100': 'read'}, name: 'Group 1'},
