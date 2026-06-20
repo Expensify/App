@@ -149,7 +149,6 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
                                             setStartDate(value);
                                         }}
                                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                        maxDate={new Date()}
                                         errorText={errorText}
                                     />
                                 </View>

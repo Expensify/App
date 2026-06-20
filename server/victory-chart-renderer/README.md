@@ -2,6 +2,10 @@
 
 Standalone Bun CLI (`@expensify/victory-chart-renderer`) that renders Expensify chart XML to PNG in a headless skia environment, reusing as much code from the main app as possible.
 
+## Prerequisites
+
+Bun is installed automatically via the root `npm install` (devDependency). No separate Bun installation is required.
+
 ## Usage
 
 From the App repository root:
