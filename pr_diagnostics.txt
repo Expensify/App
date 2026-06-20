@@ -1,0 +1,36 @@
+## PR Diagnostics - Issue #93835
+
+### Issue Details
+- Title: [$250] [Sentry: APP-2D7] Web Notification illegal constructor crash
+- Status: OPEN
+- Assignees: mananjadhav, mountiny
+
+### Problem
+- Users affected (total): 389
+- Events: 1,535
+- Users (last 14d): 53
+- Platform: Web (Samsung Internet on Android)
+- App versions: 9.4.5–9.4.9
+- Affected route: /r/:reportID
+- Mechanism: auto.browser.global_handlers.onunhandledrejection
+
+### Root Cause
+File: src/libs/Notification/LocalNotification/BrowserNotifications.ts:58
+- Issue: Uses `new Notification()` directly
+- Problem: Not supported in all browsers (e.g., Samsung Internet)
+- Solution: Use ServiceWorkerRegistration.showNotification() instead
+
+### Related
+- Sentry Issue: APP-2D7 (https://expensify.sentry.io/issues/APP-2D7)
+- Upwork Job: 2067266019042576521
+- Bounty: $250
+
+### Repository Information
+- Repository: Expensify/App
+- Fork: https://github.com/ipezygj/bounty-hunter-93850
+- Branch: feature/issue-93835
+- Base: main
+
+### Diagnostics
+- Created: 2026-06-20
+- Worktree: wf_2be764ef-e0f-11
