@@ -291,6 +291,9 @@ describe('actions/OnyxUpdateManager', () => {
             // Once the OnyxUpdateManager has finished filling the gaps, the SequentialQueue should be unpaused again.
             // It must not necessarily be running, because it might not have been flushed yet.
             expect(isSequentialQueuePaused()).toBeFalsy();
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
         });
     });
 });
