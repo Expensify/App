@@ -673,7 +673,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     success
                     large
                     style={[styles.w100, styles.p5]}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID)))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID), route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL))
+                    }
                     text={translate('activateCardPage.activatePhysicalCard')}
                 />
             )}
