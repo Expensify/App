@@ -5,7 +5,7 @@ function getActionBadgeText(actionBadge: OptionData['actionBadge'], translate: (
     if (!actionBadge) {
         return '';
     }
-    return isMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${actionBadge}`);
+    return isMarkAsDone && actionBadge === 'submit' ? translate('common.markAsDone') : translate(`common.actionBadge.${actionBadge}`);
 }
 
 export default getActionBadgeText;

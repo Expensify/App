@@ -89,19 +89,19 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(
-            reportID,
+        completeSplitBill({
+            chatReportID: reportID,
             reportAction,
-            draftTransaction,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            updatedTransaction: draftTransaction,
+            sessionAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
             betas,
             personalDetails,
             isTrackIntentUser,
-            session?.email,
-        );
+            sessionEmail: session?.email,
+        });
     }, [
         reportID,
         reportAction,
