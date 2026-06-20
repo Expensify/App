@@ -18,6 +18,7 @@ import type {
     ShareBankAccountParams,
     UnshareBankAccountParams,
     UpdatePersonalBankAccountInfoParams,
+    UploadUserKYBDocsParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -1273,6 +1274,7 @@ function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurre
         policyID,
         bankAccountID,
         shouldPreserveDraft,
+        includeUploadKYBSetupStep: true,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
@@ -1329,6 +1331,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
             ...params,
             bankAccountID,
             policyID,
+            includeUploadKYBSetupStep: true,
         },
         onyxData,
     );
@@ -1364,6 +1367,10 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
+}
+
+function uploadUserKYBDocs(parameters: UploadUserKYBDocsParams) {
+    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, getVBBADataForOnyx());
 }
 
 function openWorkspaceView(policyID: string | undefined) {
@@ -1885,4 +1892,5 @@ export {
     updatePersonalBankAccountInfo,
     initiateBankAccountUnlock,
     pressLockedBankAccount,
+    uploadUserKYBDocs,
 };

@@ -852,7 +852,7 @@ function dismissModal({ref = navigationRef, afterTransition, waitForTransition}:
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
     ref = navigationRef,
-    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void; afterTransition?: () => void},
 ) => {
     const dismissAndOpenReport = () => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
@@ -860,7 +860,7 @@ const dismissModalWithReport = (
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
             options?.onBeforeNavigate?.(false);
-            dismissToSuperWideRHP();
+            dismissToSuperWideRHP({afterTransition: options?.afterTransition});
             return;
         }
 
@@ -869,14 +869,14 @@ const dismissModalWithReport = (
         const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
-            dismissModal();
+            dismissModal({afterTransition: options?.afterTransition});
             return;
         }
         options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         dismissModal({
             afterTransition: () => {
-                navigate(reportRoute);
+                navigate(reportRoute, {afterTransition: options?.afterTransition});
             },
         });
     };
@@ -1021,12 +1021,8 @@ function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
  *             Browser history is NOT touched (the custom history extension preserves the old history array).
  *   Frame 2 - DISMISS_MODAL pops the RHP: [Tab, Tab', RHP] -> [Tab, Tab'].
  *             useLinking syncs browser history to the new top fullscreen route.
- *
- * `collapseTabToLeaf` (opt-in): replaces the destination tab's nested stack with the leaf route only,
- * so no sidebar/list is seeded underneath. Use when the caller has just created the destination
- * (e.g. a new workspace) and the prior list should not flash through nor stay in the back stack.
  */
-function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void; collapseTabToLeaf?: boolean}) {
+function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransition?: () => void}) {
     if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
         return;
@@ -1035,14 +1031,15 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
     requestAnimationFrame(() => {
         navigationRef.current?.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-            payload: {route, collapseTabToLeaf: options?.collapseTabToLeaf},
+            payload: {route},
         });
-
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
-            },
-            waitForUpcomingTransition: true,
+        // Nested rAF: the first frame commits the route insertion, the second
+        // frame starts the dismiss. This ensures React processes the two dispatches
+        // in separate renders so the dismiss animation is preserved. On narrow,
+        // wait for the hidden destination transition first so the RHP slides out
+        // over the final page instead of briefly revealing the previous page.
+        requestAnimationFrame(() => {
+            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
         });
     });
 }
@@ -1156,29 +1153,27 @@ function removePreInsertedFullscreenIfNeeded() {
         return;
     }
 
-    // RHP already dismissed. Restore the whole TAB_NAVIGATOR route from the snapshot so both the focused
-    // tab and its nested stack are put back. A bare jumpTo only handles the cross-tab case; an in-tab
-    // pre-insert (e.g. `collapseTabToLeaf` that wiped WORKSPACES_LIST under the new workspace leaf) would
-    // otherwise strand the user on the collapsed leaf.
+    // RHP already dismissed. For the tab-switch path, jump back to the original tab.
+    // For the push path, pop the pre-inserted route directly.
     const originalTabRoute = getPreInsertedOriginalTabRoute();
     if (originalTabRoute) {
         clearPreInsertedOriginalTabRoute();
-        // Read the root state inside rAF and dispatch CommonActions.reset on navigationRef. The function
-        // form `dispatch((state) => ...)` runs against the focused navigator (the collapsed WorkspaceSplit),
-        // which doesn't contain TAB_NAVIGATOR.
-        requestAnimationFrame(() => {
-            const rootStateAtRAF = navigationRef.getRootState();
-            if (!rootStateAtRAF) {
-                return;
-            }
-            const tabNavIndex = rootStateAtRAF.routes.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
-            if (tabNavIndex < 0) {
-                return;
-            }
-            const newRoutes = [...rootStateAtRAF.routes.slice(0, tabNavIndex), originalTabRoute, ...rootStateAtRAF.routes.slice(tabNavIndex + 1)];
-            const clampedIndex = rootStateAtRAF.index >= newRoutes.length ? newRoutes.length - 1 : rootStateAtRAF.index;
-            navigationRef.current?.dispatch(CommonActions.reset({...rootStateAtRAF, routes: newRoutes, index: clampedIndex}));
-        });
+        const originalTabState = originalTabRoute.state;
+        const originalFocusedTabIndex = originalTabState?.index ?? 0;
+        const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
+        if (originalTabName) {
+            requestAnimationFrame(() => {
+                const currentState = navigationRef.getRootState();
+                const tabNavRoute = currentState?.routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+                if (!tabNavRoute?.state?.key) {
+                    return;
+                }
+                navigationRef.current?.dispatch({
+                    ...TabActions.jumpTo(originalTabName),
+                    target: tabNavRoute.state.key,
+                });
+            });
+        }
         return;
     }
 

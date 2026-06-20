@@ -1,6 +1,4 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -55,6 +53,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
               }, {});
     const [selectedTransactions = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: getSelectedTransactions});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -68,37 +67,40 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
             return;
         }
 
-        Navigation.dismissToSuperWideRHP();
-        InteractionManager.runAfterInteractions(() => {
-            if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU({
-                    transactions: Object.values(selectedTransactions),
-                    iouReport: report,
-                    chatReport,
-                    isASAPSubmitBetaEnabled,
-                    currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    currentUserEmailParam: session?.email ?? '',
-                    transactionViolations,
-                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    quickAction,
-                    personalDetails,
-                    betas,
-                    policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
-                });
-            } else {
-                changeTransactionsReport({
-                    transactionIDs: [...selectedIds],
-                    isASAPSubmitBetaEnabled,
-                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    email: session?.email ?? '',
-                    newReport: reportToConfirm,
-                    policy,
-                    reportNextStep,
-                    policyCategories,
-                    allTransactions: selectedTransactions,
-                    policyTagList,
-                });
-            }
+        Navigation.dismissToSuperWideRHP({
+            afterTransition: () => {
+                if (report && isIOUReport(report)) {
+                    convertBulkTrackedExpensesToIOU({
+                        transactions: Object.values(selectedTransactions),
+                        iouReport: report,
+                        chatReport,
+                        isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        currentUserEmailParam: session?.email ?? '',
+                        transactionViolations,
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        quickAction,
+                        personalDetails,
+                        betas,
+                        policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
+                    });
+                } else {
+                    changeTransactionsReport({
+                        transactionIDs: [...selectedIds],
+                        isASAPSubmitBetaEnabled,
+                        accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        email: session?.email ?? '',
+                        newReport: reportToConfirm,
+                        policy,
+                        reportNextStep,
+                        policyCategories,
+                        allTransactions: selectedTransactions,
+                        policyTagList,
+                        allTransactionViolation: transactionViolations,
+                        allReports,
+                    });
+                }
+            },
         });
         setErrorMessage('');
     };

@@ -8,7 +8,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,16 +19,17 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyRoomsPage} from '@libs/actions/Policy/Room';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceRoomsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.ROOMS>;
@@ -42,18 +43,19 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const isAdmin = isPolicyAdmin(policy);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     const reportAttributes = useReportAttributes();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const personalDetails = usePersonalDetails();
 
     const [policyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
-            selector: policyChatRoomsSelector(policyID, archivedReportsIdSet),
+            selector: policyChatRoomsSelector(policyID, archivedReportsIDSet),
         },
-        [policyID, archivedReportsIdSet],
+        [policyID, archivedReportsIDSet],
     );
 
     // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.
@@ -61,18 +63,16 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const [roomIDToHighlight] = useOnyx(ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE);
     const highlightedReportID = roomIDToHighlight ?? undefined;
 
-    const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => {
-        const ownerDetails = report.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
-        return {
-            reportID: report.reportID,
-            name: getReportName(report, reportAttributes),
-            ownerAccountID: report.ownerAccountID,
-            ownerAvatar: ownerDetails?.avatar,
-            ownerDisplayName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : '',
-            memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
-            action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID)),
-        };
-    });
+    const rooms: WorkspaceRoomRowData[] = (policyReports ?? []).map((report) => ({
+        keyForList: report.reportID,
+        reportID: report.reportID,
+        name: getReportName(report, reportAttributes),
+        memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
+        action: () => {
+            const targetRoute = isAdmin ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(report.reportID)) : ROUTES.REPORT_WITH_ID.getRoute(report.reportID);
+            Navigation.navigate(targetRoute);
+        },
+    }));
 
     useFocusEffect(() => {
         openPolicyRoomsPage(policyID);

@@ -17,6 +17,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {isValidPersonName} from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
@@ -27,7 +28,7 @@ function IntroSchoolPrincipalPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM);
     const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
     const optimisticReportID = useRef(generateReportID());

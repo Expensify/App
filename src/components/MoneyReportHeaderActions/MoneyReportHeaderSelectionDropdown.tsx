@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -43,8 +43,10 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
-import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
+import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
@@ -54,6 +56,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -61,7 +64,7 @@ import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -122,7 +125,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -233,7 +235,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             return true;
         }
         if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            handleUnvalidatedAccount(moneyRequestReport);
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
             return true;
         }
         return false;
@@ -303,7 +305,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                conciergeReportID,
                 onPaid: () => {
                     startAnimation();
                 },
@@ -387,7 +388,15 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         });
     };
 
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+    });
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
+    const submitButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
+    const approveButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
 
@@ -395,7 +404,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         ...(hasSubmitAction && !shouldBlockSubmit
             ? [
                   {
-                      text: translate('common.submit'),
+                      text: submitButtonText,
                       icon: expensifyIcons.Send,
                       value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                       onSelected: () => handleSubmitReport(true),
@@ -405,7 +414,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
             ? [
                   {
-                      text: translate('iou.approve'),
+                      text: approveButtonText,
                       icon: expensifyIcons.ThumbsUp,
                       value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                       onSelected: () => confirmApproval(true),

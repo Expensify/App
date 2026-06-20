@@ -6,7 +6,7 @@ import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreat
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Pages, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -20,12 +20,12 @@ type UseReportActionsPaginationResult = {
     hasNewerActions: boolean;
     sortedAllReportActions: ReportAction[] | undefined;
     oldestUnreadReportAction: ReportAction | undefined;
-    reportActionPages: OnyxEntry<Pages>;
     transactionThreadReportID: string | undefined;
     transactionThreadReport: OnyxEntry<Report>;
     parentReportActionForTransactionThread: ReportAction | undefined;
     treatAsNoPaginationAnchor: boolean;
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
+    reportPreviewAction: OnyxEntry<ReportAction> | null;
 };
 
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
@@ -33,8 +33,6 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const {isOffline} = useNetwork();
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
-    const nonEmptyReportIDForPages = getNonEmptyStringOnyxID(reportID);
-    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyReportIDForPages}`);
 
     const {
         reportActions: unfilteredReportActions,
@@ -58,7 +56,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const lastAction = allReportActions?.at(-1);
     const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
 
-    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID, chatReportActions), [report?.chatReportID, report?.reportID, chatReportActions]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -85,12 +84,12 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        reportActionPages,
         transactionThreadReportID: thread.transactionThreadReportID,
         transactionThreadReport: thread.transactionThreadReport,
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
+        reportPreviewAction,
     };
 }
 

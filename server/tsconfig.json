@@ -17,7 +17,6 @@
             "@src/*": ["../src/*"],
             "@styles/*": ["../src/styles/*"],
             "@userActions/*": ["../src/libs/actions/*"],
-            "canvaskit-wasm/bin/full/canvaskit.wasm": ["./victory-chart-renderer/src/canvaskit-wasm.d.ts"],
             "tests/*": ["../tests/*"]
         }
     },
