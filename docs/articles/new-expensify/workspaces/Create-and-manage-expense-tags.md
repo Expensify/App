@@ -215,12 +215,9 @@ It will be removed from the workspace’s tag list. However, it will still appea
 
 ## What happens to an expense if its tag is disabled on the workspace?
 
-If tags are disabled on the workspace while an expense still has a tag applied, the **Tag** field stays on the expense with a "Tag no longer valid" violation.
+If tags are disabled on the workspace while an expense still has a tag applied, the **Tag** field stays on the expense with a **Tag no longer valid** violation.
 
-To resolve this, select the **Tag** field on the expense. An alert will appear explaining that tags are disabled on the workspace. You can then choose to:
-
-- **Delete tag** — Removes the tag from the expense.
-- **Cancel** — Keeps the tag on the expense.
+To resolve the violation, select the **Tag** field on the expense. A **Tag disabled** alert appears with options for managing the disabled tag.
 
 Alternatively, you can enable tags on the workspace to edit the tag directly.
 
