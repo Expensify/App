@@ -5931,6 +5931,36 @@ describe('actions/Policy', () => {
             expect(reportValue?.participants?.[customAccountID]).toBeTruthy();
             expect(reportValue?.participants?.[ESH_ACCOUNT_ID]).toBeUndefined();
         });
+
+        it('uses the explicit doesPersonalDetailExistByAccountID map for success-data participants instead of the deprecated personal details list', async () => {
+            const policyID = Policy.generatePolicyID();
+            const newMemberEmail = 'mapmember@test.com';
+            const newMemberAccountID = 314;
+
+            // Given a signed-in user, and a personal details list that does NOT contain the new member
+            // (so the deprecated module-level fallback would treat the member as unknown)
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL}});
+            await waitForBatchedUpdates();
+
+            const getSuccessParticipant = (result: ReturnType<typeof Policy.createPolicyExpenseChats>) => {
+                const reportID = result.reportCreationData[newMemberEmail]?.reportID;
+                const successData = result.onyxSuccessData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                return (successData?.value as Report | undefined)?.participants?.[newMemberAccountID];
+            };
+
+            // When the explicit map says the member exists, the success-data participant is kept ({}), beating the empty fallback
+            const existsResult = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID}, undefined, undefined, undefined, {
+                [newMemberAccountID]: true,
+            });
+            expect(getSuccessParticipant(existsResult)).toEqual({});
+
+            // When the explicit map says the member does NOT exist, the success-data participant is removed (null)
+            const missingResult = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID}, {accountID: ESH_ACCOUNT_ID}, undefined, undefined, undefined, {
+                [newMemberAccountID]: false,
+            });
+            expect(getSuccessParticipant(missingResult)).toBeNull();
+        });
     });
     describe('setPolicyCustomTaxName', () => {
         it('should set custom tax name optimistically and succeed', async () => {

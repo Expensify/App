@@ -85,6 +85,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -1010,6 +1011,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         policyExpenseChatReportActions,
                         accountID,
                         getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
+                        doesPersonalDetailExistSelector(itemReport?.ownerAccountID)(personalDetails),
                         reportTransactions,
                     );
                     if (!invite?.policyExpenseChatReportID) {

@@ -37,6 +37,16 @@ const createDisplayDetailsByAccountIDsSelector =
         return result;
     };
 
+/**
+ * Creates a selector returning whether a personal detail entry exists for the given account. Lets callers check
+ * existence (e.g. to decide optimistic participant data) by reading only this boolean off the personal details
+ * list, instead of reaching for a module-level Onyx.connect copy.
+ */
+const doesPersonalDetailExistSelector =
+    (accountID: number | undefined) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean =>
+        accountID !== undefined && !!personalDetailsList?.[accountID];
+
 const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
     const map: Record<number, string> = {};
     for (const report of reportsToArchive) {
@@ -68,6 +78,7 @@ export {
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
     conciergePersonalDetailSelector,
+    doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,
