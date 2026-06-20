@@ -104,15 +104,22 @@ Onyx.connectWithoutView({
     },
 });
 
-// allReports is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
-// so retrieving it using Onyx.connectWithoutView is correct.
-// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
+// allReports and allPolicies are used in the "ForOpenOrReconnect" functions and are not directly associated with the View,
+// so retrieving them using Onyx.connectWithoutView is correct.
 let allReports: OnyxCollection<OnyxTypes.Report>;
+let allPolicies: OnyxCollection<OnyxTypes.Policy>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allPolicies = value;
     },
 });
 
@@ -301,22 +308,8 @@ AppState.addEventListener('change', (nextAppState) => {
 /**
  * Gets the policy params that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
  */
-function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
-    return new Promise((resolve) => {
-        isReadyToOpenApp.then(() => {
-            // Using Onyx.connectWithoutView is appropriate here because the data retrieved is not directly bound to the View
-            // and each time the getPolicyParamsForOpenOrReconnect function is called,
-            // connectWithoutView will fetch the latest data from Onyx.
-            const connection = Onyx.connectWithoutView({
-                key: ONYXKEYS.COLLECTION.POLICY,
-                waitForCollectionCallback: true,
-                callback: (policies) => {
-                    Onyx.disconnect(connection);
-                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
-                },
-            });
-        });
-    });
+function getPolicyParamsForOpenOrReconnect(): PolicyParamsForOpenOrReconnect {
+    return {policyIDList: getNonOptimisticPolicyIDs(allPolicies)};
 }
 
 type OnyxDataForOpenOrReconnectKeys =
