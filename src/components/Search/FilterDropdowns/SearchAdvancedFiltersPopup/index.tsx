@@ -64,7 +64,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     // While a search year write-back is pending, force the Date view so the CalendarPicker stays mounted to
     // consume/apply the picked year and clear the pending key. This also makes the suppression above self-healing:
     // even if a stale search year ever sticks in Onyx, the calendar is shown so it can consume and unblock — the
-    // filter never dead-ends on an unclickable menu.
+    // filter never dead-ends on a blocked menu.
     const effectiveFilter = pendingSearchYearRestore ? CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE : selectedFilter;
 
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);

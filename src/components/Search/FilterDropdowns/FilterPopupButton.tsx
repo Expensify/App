@@ -59,7 +59,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const isFocused = useIsFocused();
     const isYearSelectorOpen = useIsYearSelectorOpen();
     // While the year-selector RHP is open, hide the whole popover frame (opacity/pointerEvents) instead of
-    // unmounting it, so it never overpaints or blocks the RHP. The popover itself stays mounted across the blur
+    // unmounting it, so it never paints over or blocks the RHP. The popover itself stays mounted across the blur
     // because its render is gated on the user-controlled isOverlayVisible (not navigation focus), so its state
     // survives the round-trip — mirroring how DatePickerModal keeps the DOB picker mounted and hides the calendar.
     const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;

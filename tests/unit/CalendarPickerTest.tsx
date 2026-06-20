@@ -161,7 +161,7 @@ const NARROW_LAYOUT: ResponsiveLayoutResult = {
 // The CalendarPicker self-hide is applied ONLY to its root View as the combination of
 // pointerEvents='none' + a flattened style of {opacity: 0, visibility: 'hidden'}. Disabled/empty day
 // cells also carry pointerEvents='none' (with no opacity), so match on the full hide signature.
-type JsonNode = {type?: string; props?: {style?: unknown; pointerEvents?: string}; children?: JsonNode[] | null};
+type JsonNode = {type?: string; props?: {style?: unknown; pointerEvents?: unknown}; children?: Array<JsonNode | string> | null};
 
 function flattenStyle(style: unknown): {opacity?: unknown; visibility?: unknown} {
     if (Array.isArray(style)) {
@@ -198,6 +198,9 @@ function collectHiddenNodes(node: JsonNode | null | undefined, acc: JsonNode[]):
         acc.push(node);
     }
     for (const child of node.children ?? []) {
+        if (typeof child === 'string') {
+            continue;
+        }
         collectHiddenNodes(child, acc);
     }
     return acc;

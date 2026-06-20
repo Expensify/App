@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
 import useResponsiveLayoutDefault from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import {setCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
@@ -91,15 +92,17 @@ const mockedUseIsYearSelectorOpen = jest.mocked(useIsYearSelectorOpen);
 const mockedGetPlatform = jest.mocked(getPlatform);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayoutDefault);
 
-const WIDE_LAYOUT = {
+const WIDE_LAYOUT: ResponsiveLayoutResult = {
     shouldUseNarrowLayout: false,
     isSmallScreenWidth: false,
     isInNarrowPaneModal: false,
     isExtraSmallScreenHeight: false,
     isMediumScreenWidth: false,
     isLargeScreenWidth: true,
+    isExtraLargeScreenWidth: false,
     isExtraSmallScreenWidth: false,
     isSmallScreen: false,
+    isInLandscapeMode: false,
     onboardingIsMediumOrLargerScreenWidth: true,
 };
 const NARROW_LAYOUT = {...WIDE_LAYOUT, shouldUseNarrowLayout: true, isSmallScreenWidth: true, isLargeScreenWidth: false, isSmallScreen: true};
