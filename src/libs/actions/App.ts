@@ -191,15 +191,6 @@ Onyx.connectWithoutView({
     },
 });
 
-let resolveIsReadyPromise: () => void;
-const isReadyToOpenApp = new Promise<void>((resolve) => {
-    resolveIsReadyPromise = resolve;
-});
-
-function confirmReadyToOpenApp() {
-    resolveIsReadyPromise();
-}
-
 function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): string[] {
     const result: string[] = [];
     for (const policy of Object.values(policies ?? {})) {
@@ -965,7 +956,6 @@ export {
     setAppLoading,
     reconnectApp,
     triggerFullReconnect,
-    confirmReadyToOpenApp,
     handleRestrictedEvent,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,

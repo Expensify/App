@@ -11,7 +11,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Log');
 jest.mock('@libs/Network/SequentialQueue', () => ({flush: jest.fn()}));
-jest.mock('@libs/actions/App', () => ({openApp: jest.fn(), reconnectApp: jest.fn(), confirmReadyToOpenApp: jest.fn()}));
+jest.mock('@libs/actions/App', () => ({openApp: jest.fn(), reconnectApp: jest.fn()}));
 jest.mock('@libs/AppStateMonitor', () => ({
     __esModule: true,
     default: {

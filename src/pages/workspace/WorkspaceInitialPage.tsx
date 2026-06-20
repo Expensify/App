@@ -12,7 +12,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
@@ -225,7 +224,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             fetchPolicyData();
         }, [fetchPolicyData]),
     );
-    useConfirmReadyToOpenApp();
 
     // Navigate away when workspace is deleted
     useEffect(() => {
