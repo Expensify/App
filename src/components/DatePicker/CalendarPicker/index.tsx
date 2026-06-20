@@ -126,7 +126,8 @@ function CalendarPicker({
     // On wide-screen web the date popover stays mounted while the @react-navigation year-selector RHP is open
     // (so the picker context is preserved); hide this CalendarPicker — a z-index-9996 portal that would otherwise
     // paint over the RHP — and disable its pointer events until the user returns. Narrow/native dismiss the host instead.
-    const shouldHideForYearSelector = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth && isYearSelectorOpen;
+    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
+    const shouldHideForYearSelector = isDesktopWeb && isYearSelectorOpen;
 
     // When the year picker screen writes back a selection for this CalendarPicker instance,
     // apply it to the displayed date and clear the transient result so it isn't re-applied.
@@ -250,7 +251,7 @@ function CalendarPicker({
 
     return (
         <View
-            style={[themeStyles.pb4, themeStyles.pt1, shouldHideForYearSelector && {opacity: 0}]}
+            style={[themeStyles.pb4, themeStyles.pt1, shouldHideForYearSelector && {opacity: 0, visibility: 'hidden'}]}
             pointerEvents={shouldHideForYearSelector ? 'none' : undefined}
         >
             <View

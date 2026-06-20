@@ -1,13 +1,22 @@
 import type * as ReactNavigationNative from '@react-navigation/native';
-import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
+import {fireEvent, render, screen, userEvent, waitFor, within} from '@testing-library/react-native';
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 import {createElement} from 'react';
 import type {ComponentProps, ComponentType, ReactNode} from 'react';
+import Onyx from 'react-native-onyx';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
+import useIsYearSelectorOpen from '@components/DatePicker/useIsYearSelectorOpen';
+import useResponsiveLayoutDefault from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import {setCalendarPickerSelectedYear} from '@libs/actions/CalendarPicker';
 import * as Modal from '@libs/actions/Modal';
 import DateUtils from '@libs/DateUtils';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type MockPressableProps = {testID?: string; accessibilityLabel?: string; role?: string; onPress?: () => void; children?: ReactNode};
 type MockTextProps = {children?: ReactNode};
@@ -32,6 +41,34 @@ jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
     default: (selector: (state: undefined) => unknown) => selector(undefined),
 }));
+
+// The wide-screen self-hide is driven by useIsYearSelectorOpen; default it to "closed" so every existing
+// test renders the calendar normally, and toggle it to "open" per-test in the round-trip suite.
+jest.mock('@components/DatePicker/useIsYearSelectorOpen', () => ({
+    __esModule: true,
+    default: jest.fn(() => false),
+}));
+
+// isDesktopWeb = getPlatform() === web && !isSmallScreenWidth. The real values in jsdom are already
+// web + wide; mocking them with the same defaults keeps the existing tests unchanged while letting the
+// round-trip suite switch to native / narrow to prove the hide does NOT apply there.
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'web'),
+}));
+jest.mock('@hooks/useResponsiveLayout', () =>
+    jest.fn(() => ({
+        shouldUseNarrowLayout: false,
+        isSmallScreenWidth: false,
+        isInNarrowPaneModal: false,
+        isExtraSmallScreenHeight: false,
+        isMediumScreenWidth: false,
+        isLargeScreenWidth: true,
+        isExtraSmallScreenWidth: false,
+        isSmallScreen: false,
+        onboardingIsMediumOrLargerScreenWidth: true,
+    })),
+);
 
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -94,6 +131,95 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 function CalendarPickerForTest({pickerContextID = 'test-calendar', ...rest}: Omit<ComponentProps<typeof CalendarPicker>, 'pickerContextID'> & {pickerContextID?: string}) {
     return createElement(CalendarPicker, {pickerContextID, ...rest});
 }
+
+const mockedUseIsYearSelectorOpen = jest.mocked(useIsYearSelectorOpen);
+const mockedGetPlatform = jest.mocked(getPlatform);
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayoutDefault);
+
+const WIDE_LAYOUT: ResponsiveLayoutResult = {
+    shouldUseNarrowLayout: false,
+    isSmallScreenWidth: false,
+    isInNarrowPaneModal: false,
+    isExtraSmallScreenHeight: false,
+    isMediumScreenWidth: false,
+    isLargeScreenWidth: true,
+    isExtraLargeScreenWidth: true,
+    isExtraSmallScreenWidth: false,
+    isSmallScreen: false,
+    onboardingIsMediumOrLargerScreenWidth: true,
+    isInLandscapeMode: true,
+};
+const NARROW_LAYOUT: ResponsiveLayoutResult = {
+    ...WIDE_LAYOUT,
+    shouldUseNarrowLayout: true,
+    isSmallScreenWidth: true,
+    isLargeScreenWidth: false,
+    isExtraLargeScreenWidth: false,
+    isSmallScreen: true,
+};
+
+// The CalendarPicker self-hide is applied ONLY to its root View as the combination of
+// pointerEvents='none' + a flattened style of {opacity: 0, visibility: 'hidden'}. Disabled/empty day
+// cells also carry pointerEvents='none' (with no opacity), so match on the full hide signature.
+type JsonNode = {type?: string; props?: {style?: unknown; pointerEvents?: string}; children?: JsonNode[] | null};
+
+function flattenStyle(style: unknown): {opacity?: unknown; visibility?: unknown} {
+    if (Array.isArray(style)) {
+        const merged: {opacity?: unknown; visibility?: unknown} = {};
+        for (const entry of style) {
+            const flat = flattenStyle(entry);
+            if (flat.opacity !== undefined) {
+                merged.opacity = flat.opacity;
+            }
+            if (flat.visibility !== undefined) {
+                merged.visibility = flat.visibility;
+            }
+        }
+        return merged;
+    }
+    if (typeof style === 'object' && style !== null) {
+        return style;
+    }
+    return {};
+}
+
+function isHidden(node: JsonNode): boolean {
+    const style = flattenStyle(node.props?.style);
+    return node.props?.pointerEvents === 'none' && style.opacity === 0 && style.visibility === 'hidden';
+}
+
+// Walk the rendered JSON tree (plain serialized nodes — no react-test-renderer instances) and collect
+// every element that has the full hide signature.
+function collectHiddenNodes(node: JsonNode | null | undefined, acc: JsonNode[]): JsonNode[] {
+    if (!node) {
+        return acc;
+    }
+    if (isHidden(node)) {
+        acc.push(node);
+    }
+    for (const child of node.children ?? []) {
+        collectHiddenNodes(child, acc);
+    }
+    return acc;
+}
+
+function findHiddenRoots(): JsonNode[] {
+    const tree = screen.toJSON();
+    const roots: Array<JsonNode | null> = Array.isArray(tree) ? tree : [tree];
+    const acc: JsonNode[] = [];
+    for (const root of roots) {
+        collectHiddenNodes(root, acc);
+    }
+    return acc;
+}
+
+// Restore the default desktop-web / wide / year-selector-closed environment before every test so the
+// per-test overrides in the round-trip suite can't leak into the rest of the file.
+beforeEach(() => {
+    mockedUseIsYearSelectorOpen.mockReturnValue(false);
+    mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+    mockedUseResponsiveLayout.mockReturnValue(WIDE_LAYOUT);
+});
 
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
@@ -661,5 +787,148 @@ describe('CalendarPicker', () => {
         // unrestricted; a partial entryScreens allowlist would silently break the year picker
         // on any screen it omits.
         expect(DYNAMIC_ROUTES.YEAR_SELECTOR.entryScreens).toContain('*');
+    });
+});
+
+describe('year selector round-trip', () => {
+    const CONTEXT_ID = 'datePicker-roundTripInput';
+    // A fixed starting view so an adopted year is unambiguous and "view preserved" can be asserted by
+    // checking that the month/day grid is NOT reset to today.
+    const START_VALUE = '2023-06-15';
+    const MIN_DATE = new Date('2000-01-01');
+    const MAX_DATE = new Date('2030-12-31');
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
+
+    test('adopts the year written back for its own contextID, preserves the month/day view, and clears the Onyx key', async () => {
+        render(
+            <CalendarPickerForTest
+                pickerContextID={CONTEXT_ID}
+                value={START_VALUE}
+                minDate={MIN_DATE}
+                maxDate={MAX_DATE}
+            />,
+        );
+
+        // Starts on the value's year/month, and the value's day (15) is selected in the grid.
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(5) ?? '')).toBeTruthy();
+        expect(screen.getByLabelText('Thursday, June 15, 2023')).toBeTruthy();
+
+        // Simulate the year picker screen writing the user's selection back for THIS host's contextID,
+        // exactly as the real setter does on goBack.
+        setCalendarPickerSelectedYear(CONTEXT_ID, 2019);
+        await waitForBatchedUpdates();
+
+        // CalendarPicker consumes the matching contextID and applies the year to the displayed month
+        // (deferred via requestAnimationFrame).
+        await waitFor(() => {
+            expect(within(screen.getByTestId('currentYearText')).getByText('2019')).toBeTruthy();
+        });
+
+        // The month/day VIEW is preserved (only the year changed via setYear(prev, year)) — it is NOT
+        // reset to today's month. June must still be shown, and the same day-of-month (June 15, 2019)
+        // is still rendered/selectable in the grid.
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(5) ?? '')).toBeTruthy();
+        expect(screen.getByLabelText('Saturday, June 15, 2019')).toBeTruthy();
+
+        // The transient selection is cleared so it isn't re-applied on the next render.
+        expect(await getOnyxValue(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR)).toBeUndefined();
+    });
+
+    test('ignores a year written back for a DIFFERENT contextID and leaves the Onyx key intact for its owner', async () => {
+        render(
+            <CalendarPickerForTest
+                pickerContextID={CONTEXT_ID}
+                value={START_VALUE}
+                minDate={MIN_DATE}
+                maxDate={MAX_DATE}
+            />,
+        );
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+
+        // A different host's selection lands in Onyx.
+        setCalendarPickerSelectedYear('datePicker-someOtherInput', 2019);
+        await waitForBatchedUpdates();
+
+        // Give the consume effect (and its deferred rAF) a chance to wrongly fire.
+        await waitFor(() => {
+            jest.advanceTimersByTime(0);
+        });
+        await waitForBatchedUpdates();
+
+        // This instance must NOT consume it (contextID mismatch): year unchanged...
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(5) ?? '')).toBeTruthy();
+        // ...and it must NOT clear the key — that's the owning host's responsibility.
+        expect(await getOnyxValue(ONYXKEYS.CALENDAR_PICKER_SELECTED_YEAR)).toEqual({contextID: 'datePicker-someOtherInput', year: 2019});
+    });
+
+    test('on desktop web the calendar root hides itself (opacity 0 + hidden + pointerEvents none) while the year selector is open', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockedUseResponsiveLayout.mockReturnValue(WIDE_LAYOUT);
+        mockedUseIsYearSelectorOpen.mockReturnValue(true);
+
+        render(
+            <CalendarPickerForTest
+                pickerContextID={CONTEXT_ID}
+                value={START_VALUE}
+                minDate={MIN_DATE}
+                maxDate={MAX_DATE}
+            />,
+        );
+
+        // Exactly one element — the calendar root View — carries the hide signature.
+        const hiddenRoots = findHiddenRoots();
+        expect(hiddenRoots).toHaveLength(1);
+        const root = hiddenRoots.at(0);
+        const style = flattenStyle(root?.props?.style);
+        expect(style.opacity).toBe(0);
+        expect(style.visibility).toBe('hidden');
+        expect(root?.props?.pointerEvents).toBe('none');
+    });
+
+    test('on native the calendar does NOT hide even while the year selector is open', () => {
+        // Native dismisses its host instead of self-hiding, so isDesktopWeb is false (getPlatform !== web).
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
+        mockedUseResponsiveLayout.mockReturnValue(NARROW_LAYOUT);
+        mockedUseIsYearSelectorOpen.mockReturnValue(true);
+
+        render(
+            <CalendarPickerForTest
+                pickerContextID={CONTEXT_ID}
+                value={START_VALUE}
+                minDate={MIN_DATE}
+                maxDate={MAX_DATE}
+            />,
+        );
+
+        expect(findHiddenRoots()).toHaveLength(0);
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
+    });
+
+    test('on narrow web the calendar does NOT self-hide even while the year selector is open (the narrow host owns dismissal)', () => {
+        // Narrow web keeps getPlatform === web but isSmallScreenWidth is true, so isDesktopWeb is false:
+        // the small-screen backdrop handles the overlap, the calendar must not opacity-hide itself.
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockedUseResponsiveLayout.mockReturnValue(NARROW_LAYOUT);
+        mockedUseIsYearSelectorOpen.mockReturnValue(true);
+
+        render(
+            <CalendarPickerForTest
+                pickerContextID={CONTEXT_ID}
+                value={START_VALUE}
+                minDate={MIN_DATE}
+                maxDate={MAX_DATE}
+            />,
+        );
+
+        expect(findHiddenRoots()).toHaveLength(0);
+        expect(within(screen.getByTestId('currentYearText')).getByText('2023')).toBeTruthy();
     });
 });

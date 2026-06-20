@@ -62,7 +62,8 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     // unmounting it, so it never overpaints or blocks the RHP. The popover itself stays mounted across the blur
     // because its render is gated on the user-controlled isOverlayVisible (not navigation focus), so its state
     // survives the round-trip — mirroring how DatePickerModal keeps the DOB picker mounted and hides the calendar.
-    const shouldHideForYearSelector = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth && isYearSelectorOpen;
+    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
+    const shouldHideForYearSelector = isDesktopWeb && isYearSelectorOpen;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
@@ -141,7 +142,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
                     // Make the whole modal subtree pointer-transparent while the year selector is open so the year
                     // is clickable; the popover content is already visually hidden + stays mounted (state preserved).
                     shouldDisablePointerEvents={shouldHideForYearSelector}
-                    innerContainerStyle={{...containerStyles, ...styles.p0, ...(shouldHideForYearSelector ? {opacity: 0, pointerEvents: 'none'} : {})}}
+                    innerContainerStyle={{...containerStyles, ...styles.p0, ...(shouldHideForYearSelector ? {opacity: 0, visibility: 'hidden', pointerEvents: 'none'} : {})}}
                     popoverDimensions={{
                         width: actualPopoverWidth,
                         height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,

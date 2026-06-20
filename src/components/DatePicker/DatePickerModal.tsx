@@ -87,7 +87,7 @@ function DatePickerModal({
             shouldDisablePointerEvents={shouldHideForYearSelector}
             innerContainerStyle={{
                 ...(isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}),
-                ...(shouldHideForYearSelector ? {opacity: 0, pointerEvents: 'none'} : {}),
+                ...(shouldHideForYearSelector ? {opacity: 0, visibility: 'hidden', pointerEvents: 'none'} : {}),
             }}
             anchorAlignment={anchorAlignment}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}

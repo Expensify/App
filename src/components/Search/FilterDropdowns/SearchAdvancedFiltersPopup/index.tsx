@@ -37,7 +37,8 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const isYearSelectorOpen = useIsYearSelectorOpen();
     // Hide the whole filter menu (FilterList + content) while the year selector is open so the kept-mounted
     // popover doesn't paint over the RHP year list. The CalendarPicker inside already self-hides the same way.
-    const shouldHideForYearSelector = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth && isYearSelectorOpen;
+    const isDesktopWeb = getPlatform() === CONST.PLATFORM.WEB && !isSmallScreenWidth;
+    const shouldHideForYearSelector = isDesktopWeb && isYearSelectorOpen;
     const [selectedFilter, setSelectedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -71,7 +72,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     return (
         <SafeTriangle submenuRef={filterContentRef}>
             <View
-                style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT)), shouldHideForYearSelector && {opacity: 0}]}
+                style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT)), shouldHideForYearSelector && {opacity: 0, visibility: 'hidden'}]}
                 pointerEvents={shouldHideForYearSelector ? 'none' : undefined}
             >
                 <FilterList
