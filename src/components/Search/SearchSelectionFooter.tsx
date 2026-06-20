@@ -70,6 +70,23 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const isMetadataLoading = !!metadata?.isLoading;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const hasSelectedGroup = selectedTransactionsKeys.some(isGroupEntry);
+    const selectedExpenseCount = useMemo(
+        () =>
+            selectedTransactionsKeys.reduce((count, key) => {
+                if (isGroupEntry(key)) {
+                    const group: unknown = searchResults?.data?.[key];
+                    return count + (getNumberMember(group, 'count') ?? 0);
+                }
+                const item = selectedTransactions[key];
+                if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
+                    return count;
+                }
+                return count + 1;
+            }, 0),
+        [searchResults?.data, selectedTransactions, selectedTransactionsKeys],
+    );
+    const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
+    const hasPartialSelectionBeyondFirstPage = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter && (metadata?.offset ?? 0) > 0;
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
     const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
@@ -80,7 +97,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const shouldResetCustomCurrencyAfterLiveRefresh =
         !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency && !!wasMetadataLoading && !isMetadataLoading && metadata?.offset === 0;
     const shouldResetCustomCurrencyForGroupSelection = hasSelectedGroup && !!selectedCurrency;
-    if (shouldResetCustomCurrencyAfterLiveRefresh || shouldResetCustomCurrencyForGroupSelection) {
+    const shouldResetCustomCurrencyForLargeSelection = hasPartialSelectionBeyondFirstPage && !!selectedCurrency;
+    if (shouldResetCustomCurrencyAfterLiveRefresh || shouldResetCustomCurrencyForGroupSelection || shouldResetCustomCurrencyForLargeSelection) {
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: undefined,
@@ -131,18 +149,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         }
 
         const selectedTransactionItems = Object.values(selectedTransactions);
-        const selectedExpenseCount = selectedTransactionsKeys.reduce((count, key) => {
-            if (isGroupEntry(key)) {
-                const group: unknown = searchResults?.data?.[key];
-                return count + (getNumberMember(group, 'count') ?? 0);
-            }
-            const item = selectedTransactions[key];
-            if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
-                return count;
-            }
-            return count + 1;
-        }, 0);
-        const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
         const shouldUseClientTotal = !metadataCount || (selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter);
         const defaultCurrency = effectiveDefaultCurrency;
         const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== defaultCurrency;
@@ -194,7 +200,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
         return {count, total, currency, isLoading: isFooterTotalConverting};
     }, [
-        areAllMatchingItemsSelected,
+        areAllSelectedForFooter,
         effectiveDefaultCurrency,
         footerTotalData,
         footerTotalMetadata?.currency,
@@ -203,8 +209,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         metadataCount,
         metadataCurrency,
         metadataTotal,
-        searchResults?.data,
         selectedCurrency,
+        selectedExpenseCount,
         selectedTransactions,
         selectedTransactionsKeys,
         shouldAllowFooterTotals,
@@ -226,7 +232,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             defaultCurrency={effectiveDefaultCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
-            shouldAllowCurrencyChange={!hasSelectedGroup}
+            shouldAllowCurrencyChange={!hasSelectedGroup && !hasPartialSelectionBeyondFirstPage}
         />
     );
 }
