@@ -10204,10 +10204,9 @@ describe('ReportUtils', () => {
             expect(onyxData).toMatchObject(expectedOnyxData);
         });
 
-        it('should push a missingCategory violation for an Uncategorized expense when categories are enabled', async () => {
+        it('should push a missingCategory violation for an Uncategorized expense when categories are enabled', () => {
             // A new expense is seeded with the 'Uncategorized' sentinel, not an empty category. Enabling categories must
             // treat that sentinel as missing so the violation is written immediately.
-            const fakePolicyID = '0';
             const fakePolicyCategories = createRandomPolicyCategories(3);
             const fakeCategoryName = Object.keys(fakePolicyCategories).at(0) ?? '';
 
@@ -10219,6 +10218,7 @@ describe('ReportUtils', () => {
             // Enabling categories flips requiresCategory/areCategoriesEnabled on, matching enablePolicyCategories.
             const fakePolicyUpdate = {requiresCategory: true, areCategoriesEnabled: true};
 
+            const fakePolicyID = '0';
             const fakePolicy = {
                 ...createRandomPolicy(0),
                 id: fakePolicyID,
@@ -10228,39 +10228,36 @@ describe('ReportUtils', () => {
                 areCategoriesEnabled: false,
             };
 
-            const fakePolicyReports: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${mockIOUReport.reportID}`]: {
-                    ...mockIOUReport,
-                    policyID: fakePolicyID,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT}${mockedChatReport.reportID}`]: {
-                    ...mockedChatReport,
-                    policyID: fakePolicyID,
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                category: CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
+                tag: '',
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: fakePolicyCategories,
+                tags: {},
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
                 },
             };
 
-            await Onyx.multiSet({
-                ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
-                    ...mockTransaction,
-                    reportID: mockIOUReport.reportID,
-                    policyID: fakePolicyID,
-                    category: CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
-                    tag: '',
-                },
-            });
-
-            await waitForBatchedUpdates();
-
-            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
-
-            await waitForBatchedUpdates();
-
             const onyxData = {optimisticData: [], failureData: []};
 
-            pushTransactionViolationsOnyxData(onyxData, result.current, fakePolicyUpdate, fakePolicyCategoriesUpdate);
+            pushTransactionViolationsOnyxData(onyxData, policyData, fakePolicyUpdate, fakePolicyCategoriesUpdate);
 
             expect(onyxData.optimisticData).toContainEqual({
                 onyxMethod: Onyx.METHOD.SET,
