@@ -45,7 +45,7 @@ function TextInputFilterContent({filterKey, value: initialValue, autoFocus, larg
                 ref={(ref) => {
                     if (!autoFocus || !isTextInput(ref)) {
                         return;
-                    };
+                    }
                     inputCallbackRef(ref);
                 }}
                 placeholder={label}
