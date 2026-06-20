@@ -632,7 +632,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         showLockedAccountModal();
                                                         return;
                                                     }
-                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                                    Navigation.navigate(
+                                                        ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(
+                                                            String(currentPhysicalCard?.cardID),
+                                                            route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+                                                        ),
+                                                    );
                                                 }}
                                             />
                                         )}

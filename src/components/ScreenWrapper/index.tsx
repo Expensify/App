@@ -192,7 +192,13 @@ function ScreenWrapper({
         Navigation.isNavigationReady().then(() => setInitialActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams()));
     }, []);
     const initialURLWithoutParams = initialURL?.replaceAll(/\?.*/g, '');
-    const doesInitialURLMatchActiveRoute = !!initialURLWithoutParams?.endsWith(Navigation.getActiveRouteWithoutParams() || initialActiveRouteWithoutParams);
+    const activeRouteWithoutParams = Navigation.getActiveRouteWithoutParams() || initialActiveRouteWithoutParams;
+    // Reporting a card lost from a card deep-linked by OldDot (settings/card/:cardID) deletes the original card and lands the
+    // user on the replacement card's route. The cardID segment changes, so a plain endsWith comparison would no longer match the
+    // initial URL and the OldDot exit handoff below would not fire. Normalize the cardID segment so the same card-detail screen
+    // still counts as a match regardless of which card is shown.
+    const normalizeDomainCardDetailRoute = (path: string) => path.replace(/(^|\/)settings\/card\/[^/?]+/, '$1settings/card/:cardID');
+    const doesInitialURLMatchActiveRoute = !!initialURLWithoutParams && normalizeDomainCardDetailRoute(initialURLWithoutParams).endsWith(normalizeDomainCardDetailRoute(activeRouteWithoutParams));
 
     // A multifactor authentication flow (e.g. Face ID to reveal UK/EU card details) renders in an independent navigation tree
     // overlaid above the single NewDot entry, and each MFA screen renders its own ScreenWrapper. Navigation.getActiveRouteWithoutParams()

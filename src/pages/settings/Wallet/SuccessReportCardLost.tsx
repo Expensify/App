@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
-function SuccessReportCardLost({cardID}: {cardID: string}) {
+function SuccessReportCardLost({cardID, isFromDomainCardDetail = false}: {cardID: string; isFromDomainCardDetail?: boolean}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -20,7 +20,13 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
             illustration={illustrations.CardReplacementSuccess}
             shouldShowButton
             onButtonPress={() => {
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID), {forceReplace: true});
+                // Reporting a card lost deletes the original card and issues a replacement with a new cardID. The RHP stack still
+                // holds the card route for the now-deleted original card that the flow was launched from. Going back with
+                // compareParams: false collapses the flow onto that existing card route and replaces its cardID with the
+                // replacement card, leaving the user on a single valid card route whose back button returns to where the flow
+                // started (OldDot when launched from the top-level DomainCard route) instead of a stale/NotFound route.
+                const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
+                Navigation.goBack(cardDetailRoute, {compareParams: false});
             }}
             buttonText={translate('common.buttonConfirm')}
             containerStyle={styles.h100}
