@@ -456,21 +456,17 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
     }
 
-    return getPolicyParamsForOpenOrReconnect()
-        .then((policyParams: PolicyParamsForOpenOrReconnect) => {
-            const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-            return API.writeWithNoDuplicatesConflictAction(
-                WRITE_COMMANDS.OPEN_APP,
-                params,
-                getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
-            );
-        })
-        .finally(() => {
-            if (!bootsplashSpan) {
-                return;
-            }
-            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
-        });
+    const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
+    return API.writeWithNoDuplicatesConflictAction(
+        WRITE_COMMANDS.OPEN_APP,
+        params,
+        getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+    ).finally(() => {
+        if (!bootsplashSpan) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+    });
 }
 
 /**
@@ -504,25 +500,21 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
         }
 
         console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-        getPolicyParamsForOpenOrReconnect()
-            .then((policyParams) => {
-                const params: ReconnectAppParams = policyParams;
+        const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
 
-                // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-                // Otherwise, a full set of app data will be returned.
-                if (updateIDFrom) {
-                    params.updateIDFrom = updateIDFrom;
-                }
+        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+        // Otherwise, a full set of app data will be returned.
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
 
-                const isFullReconnect = !updateIDFrom;
-                return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
-            })
-            .finally(() => {
-                if (!bootsplashSpan) {
-                    return;
-                }
-                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
-            });
+        const isFullReconnect = !updateIDFrom;
+        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded)).finally(() => {
+            if (!bootsplashSpan) {
+                return;
+            }
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+        });
     });
 }
 
@@ -543,16 +535,14 @@ function triggerFullReconnect(cutoff: string) {
  */
 function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
-    return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params: ReconnectAppParams = {...policyParams};
+    const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
 
-        // It is SUPER BAD FORM to return promises from action methods.
-        // DO NOT FOLLOW THIS PATTERN!!!!!
-        // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
-        // as soon as we have everyone migrated to the reliableUpdate beta.
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
-    });
+    // It is SUPER BAD FORM to return promises from action methods.
+    // DO NOT FOLLOW THIS PATTERN!!!!!
+    // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
+    // as soon as we have everyone migrated to the reliableUpdate beta.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
 }
 
 /**
