@@ -123,12 +123,6 @@ function BookTravelButton({
             return;
         }
 
-        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
-            shouldResumeBookingRef.current = true;
-            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
-            return;
-        }
-
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(<RenderHTML html={translate('travel.phoneError', phoneErrorMethodsRoute)} />);
@@ -138,6 +132,12 @@ function BookTravelButton({
         // Spotnana requires a private domain email for travel booking
         if (isEmailPublicDomain(primaryContactMethod)) {
             navigateToPublicDomainError();
+            return;
+        }
+
+        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            shouldResumeBookingRef.current = true;
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
             return;
         }
 
