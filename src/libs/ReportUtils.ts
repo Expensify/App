@@ -2294,9 +2294,8 @@ function pushTransactionViolationsOnyxData(
     // which a category/tag/rules toggle changes. Only let the recompute touch it when the update concerns
     // tax tracking, otherwise an unrelated toggle would flash a spurious "tax no longer valid" violation.
     const isTaxTrackingUpdate = policyUpdate.tax !== undefined;
-    // Only treat the 'Uncategorized' sentinel as a genuinely missing category when this update concerns the category
-    // requirement (e.g. enabling categories sets `requiresCategory`). Scoping it the same way as `isTaxTrackingUpdate`
-    // keeps unrelated tag/tax/rules toggles from touching the missingCategory state of a sentinel-valued expense.
+    // Only treat the 'Uncategorized' sentinel as missing when the update concerns the category requirement (enabling
+    // categories sets `requiresCategory`), so unrelated tag/tax/rules toggles leave a sentinel expense's violation alone.
     const isCategoryRequirementUpdate = policyUpdate.requiresCategory !== undefined;
 
     for (const {
@@ -2305,9 +2304,8 @@ function pushTransactionViolationsOnyxData(
         for (const transaction of Object.values(transactions)) {
             const pendingUpdate = transactionAutoSelections.get(transaction.transactionID);
             const baseTransaction = pendingUpdate ? {...transaction, ...pendingUpdate} : transaction;
-            // The 'Uncategorized' sentinel suppresses the optimistic missingCategory violation only at creation time. For
-            // an existing expense being re-evaluated when categories are (re-)enabled, that category is genuinely missing,
-            // so normalize the sentinel to empty here to write the violation right away.
+            // The 'Uncategorized' sentinel suppresses the optimistic missingCategory only at creation time; for an
+            // existing expense re-evaluated when categories are (re-)enabled it's genuinely missing, so normalize it.
             const modifiedTransaction =
                 isCategoryRequirementUpdate && baseTransaction.category && isCategoryMissing(baseTransaction.category) ? {...baseTransaction, category: ''} : baseTransaction;
 

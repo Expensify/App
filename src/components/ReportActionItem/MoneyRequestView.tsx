@@ -444,10 +444,9 @@ function MoneyRequestView({
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && hasEnabledTags(policyTagLists)));
-    // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead
-    // of navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully
-    // emptied, so also cover "no enabled tags remain". Multi-level (independent/dependent) tags hit this the same way
-    // as single-level tags: when the whole tag is unusable, deleting clears the entire (colon-delimited) tag value.
+    // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead of
+    // navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully emptied,
+    // so also cover "no enabled tags remain". Applies to multi-level tags too - deleting clears the whole tag value.
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
     const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag;
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);

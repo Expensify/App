@@ -202,15 +202,13 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
-            // Only a level that actually holds a value can be out of policy; empty levels are covered by the
-            // someTagLevelsRequired check above.
+            // Only a filled level can be out of policy; empty levels are covered by someTagLevelsRequired above.
             if (!selectedTag) {
                 continue;
             }
             const tags = policyTagList[policyTagKeys[i]].tags;
-            // Flag the selected tag whenever it isn't an enabled policy tag - including when its whole level was
-            // disabled (e.g. the Tags feature was turned off). Not gated on enabled tags remaining, so it mirrors
-            // single-level tags and categoryOutOfPolicy instead of silently dropping the violation.
+            // Flag a selected tag that isn't an enabled policy tag - including when its whole level was disabled (Tags
+            // feature off). Not gated on enabled tags remaining, mirroring single-level tags and categoryOutOfPolicy.
             const isTagInPolicy = !!tags[selectedTag]?.enabled;
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
@@ -525,9 +523,8 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        // A disabled tax rate keeps its key in the policy (just `isDisabled: true`) but is no longer valid, so it must
-        // stay out of policy. A key-existence-only check would treat it as in-policy and drop the violation on any
-        // unrelated client-side recompute (e.g. deleting a tag offline).
+        // A disabled tax rate keeps its key (just `isDisabled: true`) but isn't valid, so it stays out of policy. A
+        // key-only check would treat it as in-policy and drop the violation on any unrelated recompute (e.g. tag delete).
         const taxRate = updatedTransaction.taxCode ? policy.taxRates?.taxes?.[updatedTransaction.taxCode] : undefined;
         const isTaxInPolicy = !!taxRate && !taxRate.isDisabled;
 
