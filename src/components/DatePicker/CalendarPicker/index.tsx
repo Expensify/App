@@ -48,7 +48,10 @@ type CalendarPickerProps = {
     /** Optional style override for the header container */
     headerContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether Month right-docked picker modal should keep backdrop in narrow pane context */
+    /** Optional additional style for the outermost container */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 
     /**
@@ -97,6 +100,7 @@ function CalendarPicker({
     DayComponent = Day,
     selectableDates,
     headerContainerStyle,
+    containerStyle,
     shouldEnableMonthYearBackdropInNarrowPane = false,
     pickerContextID,
     shouldCloseModalOnYearPickerOpen = false,
@@ -251,7 +255,7 @@ function CalendarPicker({
 
     return (
         <View
-            style={[themeStyles.pb4, themeStyles.pt1, shouldHideForYearSelector && {opacity: 0, visibility: 'hidden'}]}
+            style={[themeStyles.pb4, themeStyles.pt1, containerStyle, shouldHideForYearSelector && {opacity: 0, visibility: 'hidden'}]}
             pointerEvents={shouldHideForYearSelector ? 'none' : undefined}
         >
             <View
