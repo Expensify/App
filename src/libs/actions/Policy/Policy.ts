@@ -1579,8 +1579,6 @@ function createPolicyExpenseChats(
     reportActionsList?: OnyxCollection<ReportActions>,
     hasOutstandingChildRequest = false,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-    // Maps each invited accountID to whether a personal detail entry exists for it. Threaded from the caller's
-    // useOnyx(PERSONAL_DETAILS_LIST) so we don't read the deprecated module-level copy.
     doesPersonalDetailExistByAccountID?: Record<number, boolean>,
 ): WorkspaceMembersChats {
     const {accountID: currentUserAccountID, displayName: currentUserDisplayName, email: currentUserEmail, avatar: currentUserAvatar} = currentUser;

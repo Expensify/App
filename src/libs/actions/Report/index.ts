@@ -6605,8 +6605,6 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     reportActions: OnyxCollection<ReportActions>,
     currentUserAccountID: number,
     submitterLogin: string | undefined,
-    // Whether a personal detail entry exists for the submitter. Threaded from the caller's useOnyx(PERSONAL_DETAILS_LIST)
-    // and forwarded to createPolicyExpenseChats instead of reading the deprecated module-level copy.
     doesSubmitterPersonalDetailExist: boolean,
     reportTransactions: Transaction[] = [],
 ): {policyExpenseChatReportID?: string} | undefined {
