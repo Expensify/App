@@ -81,6 +81,7 @@ type TransactionItemRowProps = {
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
+    shouldDisableActionPointerEvents?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: (event?: ModifiedMouseEvent) => void;
@@ -140,6 +141,7 @@ type TransactionItemRowWideComputedData = Omit<TransactionItemRowNarrowComputedD
     transactionAttendees: Attendee[];
     shouldShowAttendees: boolean;
     totalPerAttendee: number | undefined;
+    isMarkAsDone: boolean;
 };
 
 export type {TransactionWithOptionalSearchFields, TransactionItemRowProps, TransactionItemRowNarrowComputedData, TransactionItemRowWideComputedData};

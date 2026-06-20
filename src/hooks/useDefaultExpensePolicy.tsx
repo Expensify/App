@@ -1,5 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import {isPaidGroupPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
+import {isGroupPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -17,7 +17,7 @@ function getSingleGroupPolicyID(policies: OnyxCollection<Policy>, login: string)
 
     let singlePolicyID: string | undefined;
     for (const policy of Object.values(policies)) {
-        if (!policy || !isPaidGroupPolicy(policy) || !isPolicyAccessible(policy, login)) {
+        if (!policy || !isGroupPolicy(policy) || !isPolicyAccessible(policy, login)) {
             continue;
         }
         if (!singlePolicyID) {
@@ -45,11 +45,11 @@ export default function useDefaultExpensePolicy() {
     // Per-key lookup for the single group policy (only fires when that specific policy changes)
     const [singleGroupPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${singleGroupPolicyID}`);
 
-    if (isRestrictedToPreferredPolicy && isPaidGroupPolicy(preferredPolicy) && isPolicyAccessible(preferredPolicy, login)) {
+    if (isRestrictedToPreferredPolicy && isGroupPolicy(preferredPolicy) && isPolicyAccessible(preferredPolicy, login)) {
         return preferredPolicy;
     }
 
-    if (isPaidGroupPolicy(activePolicy) && isPolicyAccessible(activePolicy, login)) {
+    if (isGroupPolicy(activePolicy) && isPolicyAccessible(activePolicy, login)) {
         return activePolicy;
     }
 

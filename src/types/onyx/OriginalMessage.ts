@@ -36,7 +36,11 @@ type OriginalMessageIOU = {
     /** The ID of the `IOU` transaction */
     IOUTransactionID?: string;
 
-    /** ID of the `IOU` report */
+    /**
+     * ID of the IOU/expense report the action belongs to. Temporary fallback for resolving the report when the
+     * backend omits `reportID` on hydrated IOU actions. Remove once the backend reliably sends `reportID`.
+     * See https://github.com/Expensify/App/issues/93882.
+     */
     IOUReportID?: string;
 
     /** ID of the expense report */
@@ -74,28 +78,19 @@ type OriginalMessageIOU = {
 
     /** The bank account id */
     bankAccountID?: number;
-} & (
-    | {
-          /** How much was transaction */
-          amount: number;
 
-          /** Currency of the transaction money */
-          currency: string;
+    /** True when the submitter marked the report as payment received outside Expensify */
+    isSubmitterMarkedPaymentReceived?: boolean;
 
-          /** Only exists when we are sending money */
-          IOUDetails?: IOUDetails;
-      }
-    | {
-          /** How much was transaction */
-          amount?: number;
+    /** How much was transaction */
+    amount?: number;
 
-          /** Currency of the transaction money */
-          currency?: string;
+    /** Currency of the transaction money */
+    currency?: string;
 
-          /** Only exists when we are sending money */
-          IOUDetails: IOUDetails;
-      }
-);
+    /** Only exists when we are sending money */
+    IOUDetails?: IOUDetails;
+};
 
 /** Names of moderation decisions */
 type DecisionName = ValueOf<
@@ -585,7 +580,10 @@ type OriginalMessagePolicyChangeLog = {
     /** Rate amount in cents for the custom unit rate */
     rate?: number;
 
-    /** Unit of the custom unit (e.g. "mi", "km") */
+    /**
+     * Distance unit ('mi' or 'km'). Used by custom-unit rate change logs and
+     * commuter-exclusion change logs.
+     */
     unit?: string;
 
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
@@ -606,11 +604,17 @@ type OriginalMessagePolicyChangeLog = {
     /** Previous end date of the custom unit rate (yyyy-MM-dd) */
     oldEndDate?: string;
 
-    /** Tax percentage of the new tax rate linked to distance rate */
+    /** Tax percentage of the new tax rate linked to distance rate or category */
     newTaxPercentage?: string;
 
-    /** Tax percentage of the old tax rate linked to distance rate */
+    /** Tax percentage of the old tax rate linked to distance rate or category */
     oldTaxPercentage?: string;
+
+    /** Name of the new tax rate (without percentage) for category default tax rate */
+    newTaxName?: string;
+
+    /** Name of the old tax rate (without percentage) for category default tax rate */
+    oldTaxName?: string;
 
     /** Added/Updated tag name */
     tagName?: string;

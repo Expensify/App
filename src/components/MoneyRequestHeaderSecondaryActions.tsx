@@ -3,8 +3,6 @@ import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -35,7 +33,6 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -67,7 +64,7 @@ import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -85,7 +82,7 @@ type MoneyRequestHeaderSecondaryActionsProps = {
     reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: (prioritizeBackTo?: boolean) => void;
+    onBackButtonPress: (prioritizeBackTo?: boolean, options?: {afterTransition?: () => void}) => void;
 };
 
 function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: MoneyRequestHeaderSecondaryActionsProps) {
@@ -444,6 +441,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     }
                     const backToRoute = route.params?.backTo ?? Navigation.getActiveRoute();
                     setDeleteTransactionNavigateBackUrl(backToRoute);
+
+                    let afterDelete: (() => void) | undefined;
                     if (isTrackExpenseAction(parentReportAction) && !isExpenseSplit) {
                         deleteTrackExpense({
                             chatReportID: report?.parentReportID,
@@ -466,8 +465,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
                             return;
                         }
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
+                        afterDelete = () => {
                             const deleteResult = deleteTransactions(
                                 [transaction.transactionID],
                                 duplicateTransactions,
@@ -481,14 +479,19 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             }
 
                             removeTransaction(transaction.transactionID);
-                        });
+                        };
                     }
                     if (isInNarrowPaneModal) {
-                        Navigation.navigateBackToLastSuperWideRHPScreen();
+                        // The super wide RHP close animation was changed, and because of that the report was deleted right after
+                        // the animation finished, which caused flickering in the reports list. We want the user to see
+                        // the expense in the list for a little bit longer, so we wait for the animation to finish and then
+                        // add an additional delay before removing it.
+                        // See https://github.com/Expensify/App/issues/92036
+                        Navigation.navigateBackToLastSuperWideRHPScreen({afterTransition: () => setTimeout(() => afterDelete?.(), CONST.EXPENSE_REPORT_DELETE_DELAY_MS)});
                         return;
                     }
 
-                    onBackButtonPress();
+                    onBackButtonPress(false, {afterTransition: afterDelete});
                 });
             },
         },
@@ -522,15 +525,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 const iouType = isExpenseReport(parentReport) ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.TRACK;
                 if (shouldNavigateToUpgradePath && reportID) {
                     Navigation.navigate(
-                        createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action: CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                transactionID: transaction.transactionID,
-                                reportID,
-                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                            }),
-                        ),
+                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType,
+                            transactionID: transaction.transactionID,
+                            reportID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
                     );
                     return;
                 }

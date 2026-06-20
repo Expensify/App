@@ -4,10 +4,13 @@ Welcome! Thanks for checking out the New Expensify app and taking the time to co
 ## Getting Started
 If you would like to become an Expensify contributor, the first step is to read this document in its **entirety**. The second step is to review the README guidelines [here](https://github.com/Expensify/App/blob/main/README.md) to understand our coding philosophy and for a general overview of the code repository (i.e. how to run the app locally, testing, storage, our app philosophy, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
+### MelvinBot issues (read this)
+Many App jobs use [MelvinBot](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_WORK_WITH_MELVINBOT.md) (Melvin), our AI agent that posts the first proposal on an issue. **Do not open a pull request until a proposal is accepted.** Contributors, C+, and internal engineers each have specific responsibilities on these jobs. See **[How to Work with MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md)** before working on any issue where Melvin has posted a proposal.
+
 ### Test Accounts
 You can create as many accounts as needed in order to test your changes directly from [the app](https://new.expensify.com/). An initial account can be created when logging in for the first time, and additional accounts can be created by opening the "New Chat" or "Group Chat" pages via the Global Create menu, inputting a valid email or phone number, and tapping the user's avatar. Do not use Expensify employee or customer accounts for testing.
 
-**Notes**: 
+**Notes**:
 
 1. When creating test accounts:
   - Include a `+` (plus sign) in the email address (e.g., matt+1@gmail.com). This marks the account and their associated workspaces as test accounts in Expensify, ensuring Expensify Guides are not assigned to help with account setup.
@@ -21,7 +24,7 @@ You can generate multiple test accounts by using a `+` postfix, for example if y
 
 #### High Traffic Accounts
 
-All internal engineers, contributors, and C+ members are required to test with a “high traffic” account against the staging or production web servers. Use these Google forms to manage your high-traffic accounts. You'll need to authenticate via Google first. 
+All internal engineers, contributors, and C+ members are required to test with a “high traffic” account against the staging or production web servers. Use these Google forms to manage your high-traffic accounts. You'll need to authenticate via Google first.
 1. [Make an account high-traffic](https://docs.google.com/forms/d/e/1FAIpQLScpiS0Mo-HA5xHPsvDow79yTsMBgF0wjuqc0K37lTK5fheB8Q/viewform)
 2. [Remove a high-traffic account](https://docs.google.com/forms/d/e/1FAIpQLSd9_FDav83pnhhtu1KGAKIpf2yttQ_0Bvq1b9nuFM1-wbL11Q/viewform)
 
@@ -40,7 +43,7 @@ We have a shared Slack channel called #expensify-open-source — this channel is
 
 That said, we have a small issue with adding users at the moment and we’re working with Slack to try and get this resolved. If you would like to join, [fill out this form](https://forms.gle/Q7hnhUJPnQCK7Fe56) with your email and Upwork profile link. Once resolved, we’ll add you.
 
-Note: Do not send direct messages to the Expensify team in Slack or Expensify Chat, they will not be able to respond. 
+Note: Do not send direct messages to the Expensify team in Slack or Expensify Chat, they will not be able to respond.
 
 Note: if you are hired for an Upwork job and have any job-specific questions, please ask in the GitHub issue or pull request. This will ensure that the person addressing your question has as much context as possible.
 
@@ -48,9 +51,9 @@ Note: if you are hired for an Upwork job and have any job-specific questions, pl
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via [Upwork.com](https://www.upwork.com). If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
+We hire and pay external contributors via [Upwork.com](https://www.upwork.com). If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted.
 
-Please add your Upwork profile link in your GitHub Bio to help ensure prompt payment.  If you're using Slack or Expensify for discussions, please add your Upwork profile link **and** your GitHub username in your Slack Title and Expensify Status. 
+Please add your Upwork profile link in your GitHub Bio to help ensure prompt payment.  If you're using Slack or Expensify for discussions, please add your Upwork profile link **and** your GitHub username in your Slack Title and Expensify Status.
 
 Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the team member assigned to pay (Look for the melvin-bot "Triggered auto assignment to... (`Awaiting Payment`)" to see who this is).
 
@@ -58,13 +61,13 @@ New contributors are limited to working on one job at a time, **do not submit pr
 
 Please be aware that compensation for any support in solving an issue is provided **entirely at Expensify’s discretion**. Personal time or resources applied towards investigating a proposal **will not guarantee compensation**. Compensation is only guaranteed to those who **[propose a solution and get hired for that job](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job)**. We understand there may be cases where a selected proposal may take inspiration from a previous proposal. Unfortunately, it’s not possible for us to evaluate every individual case and we have no process that can efficiently do so. Issues with higher rewards come with higher risk factors so try to keep things civil and make the best proposal you can. Once again, **any information provided may not necessarily lead to you getting hired for that issue or compensated in any way.**
 
-**Important:** Payment amounts are variable, dependent on if there are any [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions). Your PR will be reviewed by a [Contributor+ (C+)](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
+**Important:** Payment amounts are variable, dependent on if there are any [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions). Your PR will be reviewed by a [Contributor+ (C+)](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge.
 
 Contributors are eligible to be paid via Expensify 18 months after they were first assigned to a job. More details at [PAYMENT_VIA_EXPENSIFY.md](https://github.com/Expensify/App/blob/main/contributingGuides/PAYMENT_VIA_EXPENSIFY.md)
 
 ### Regressions
 
-If a PR causes a regression at any point within the regression period (starting when the code is merged and ending 168 hours (that's 7 days) after being deployed to production): 
+If a PR causes a regression at any point within the regression period (starting when the code is merged and ending 168 hours (that's 7 days) after being deployed to production):
 - payments will be issued 7 days after all regressions are fixed (ie: deployed to production)
 - a 50% penalty will be applied to the Contributor and [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) for each regression on an issue
 
@@ -88,7 +91,7 @@ In short, a good problem statement makes no mention whatsoever of the desired so
 
 **Bad:**
 > **Problem:** We don't have a car
-> 
+>
 > **Solution:** Buy a car.
 
 
@@ -152,8 +155,9 @@ This helps future investigators understand the history and current status of err
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 ### Propose a solution for the job
-4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed. Do not post proposals in Slack.
-5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program. 
+4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed. Do not post proposals in Slack. MelvinBot is an exception: it may post a proposal before `Help Wanted` is applied.
+    - On issues where [MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md) has posted a proposal, review Melvin's proposal using the same standards as contributor proposals. Melvin's proposal is not guaranteed to be the earliest, but it should always be reviewed first because we are spending the money to run it. Follow first-come-first-serve review order for all other proposals after `Help Wanted`. **Do not open a PR** until a proposal is accepted. See [How to Work with MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md) for more details.
+5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program.
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
 7. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
@@ -197,18 +201,18 @@ This helps future investigators understand the history and current status of err
 
 ### Completing the final checklist
 20. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
-21. The items requiring your completion consist of: 
+21. The items requiring your completion consist of:
     1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head [here](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md)).
     2. Identifying and noting the offending PR that caused the bug (if any).
     3. Commenting on the offending PR to note the bug it caused and why (if applicable).
-    4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again. 
-22. Once the above items have been successfully completed, then payments will begin to be issued. 
+    4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again.
+22. Once the above items have been successfully completed, then payments will begin to be issued.
 
 ### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
 - Please keep the conversation in GitHub, and do not ping individual reviewers in Slack or Upwork to get their attention.
 - Pull Request reviews can sometimes take a few days. If your pull request has not been addressed after four days, please let us know via the #expensify-open-source Slack channel.
-- On occasion, our engineers will need to focus on a feature release and choose to place a hold on the review of your PR. 
+- On occasion, our engineers will need to focus on a feature release and choose to place a hold on the review of your PR.
 
 ### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
@@ -219,9 +223,9 @@ This helps future investigators understand the history and current status of err
 ### For external agencies that Expensify partners with
 Follow all the above above steps and processes. When you find a job you'd like to work on:
 - Post “I’m from [agency], I’d like to work on this job”
-  - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
-  - If there are existing proposals, BZ will put the issue on hold. [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) will review the existing proposals.  If a contributor’s proposal is accepted then the contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
-- Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
+  - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you.
+  - If there are existing proposals, BZ will put the issue on hold. [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) will review the existing proposals.  If a contributor’s proposal is accepted then the contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee.
+- Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal
 
 ## Guide on Acronyms used within Expensify Communication
 During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in Slack or the GH issue if there are any that are not understood/known!
@@ -231,8 +235,8 @@ During communication with Expensify, you will come across a variety of acronyms 
 - **LHN:** Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left-hand side)
 - **OP:** Original Post (Most commonly the post in E/App GH issues that reports the bug)
 - **FAB** Floating Action Button (the + Button that is used to launch flows like 'New Chat', 'Request Money')
-- **GBR:** Green Brick Road (UX Design Principle that utilizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
-- **RBR:** Red Brick Road (UX Design Principle that utilizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
+- **GBR:** Green Brick Road (UX Design Principle that utilizes green indicators on action items to encourage the user down the optimal path for a given process or task)
+- **RBR:** Red Brick Road (UX Design Principle that utilizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors)
 - **VBA:** Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
 - **NAB:** Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
 - **IOU:** I owe you (used to describe payment requests between users)
@@ -241,3 +245,4 @@ During communication with Expensify, you will come across a variety of acronyms 
 - **QA:** Quality Assurance
 - **GH:** GitHub
 - **LGTM:*** Looks good to me
+- **MelvinBot:** Expensify's AI agent for App GitHub issues (posts proposals, implements accepted solutions). See [How to Work with MelvinBot](./HOW_TO_WORK_WITH_MELVINBOT.md).
