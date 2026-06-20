@@ -564,14 +564,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isLoading = !isOffline && policyCategories === undefined;
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceCategoriesPage', isOffline, isPolicyCategoriesUndefined: policyCategories === undefined};
 
-    useEffect(() => {
-        if (isMobileSelectionModeEnabled) {
-            return;
-        }
-
-        clearTableSelection();
-    }, [clearTableSelection, isMobileSelectionModeEnabled]);
-
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const headerContent = (

@@ -282,6 +282,7 @@ describe('actions/Transaction', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                allReports: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;

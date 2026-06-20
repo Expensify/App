@@ -16,6 +16,7 @@ type DistanceData = {
     rate: number | undefined;
     distanceRateName: string | undefined;
     distanceRateCurrency: string;
+    shouldShowRateAutoUpdatedTooltip?: boolean;
 };
 
 /** Distance-mode discriminators (manual / odometer / GPS) */

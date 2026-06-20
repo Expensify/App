@@ -1,3 +1,4 @@
+import {format, parseISO} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
@@ -5,9 +6,11 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
@@ -35,6 +38,7 @@ Onyx.connectWithoutView({
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
+const DEFAULT_P2P_RATE_CENTS_PER_MILE = 67;
 
 function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false, selectedRateID?: string): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
@@ -280,13 +284,6 @@ function getDistanceMerchant(
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
 
-function ensureRateDefined(rate: number | undefined): asserts rate is number {
-    if (rate !== undefined) {
-        return;
-    }
-    throw new Error('All default P2P rates should have a rate defined');
-}
-
 /**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
@@ -296,16 +293,16 @@ function ensureRateDefined(rate: number | undefined): asserts rate is number {
  * @returns The rate and unit in MileageRate object.
  */
 function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
-    const currencyWithExistingRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ? currency : CONST.CURRENCY.USD;
-    const mileageRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currencyWithExistingRate];
-    ensureRateDefined(mileageRate.rate);
+    const defaultRate = getStoredDefaultP2PMileageRate();
+    const p2pRate: DefaultP2PMileageRate = defaultRate ?? {rate: DEFAULT_P2P_RATE_CENTS_PER_MILE, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+    const rate = transaction && getCurrency(transaction) === currency ? (transaction.comment?.customUnit?.defaultP2PRate ?? p2pRate.rate) : p2pRate.rate;
 
-    // Ensure the rate is updated when the currency changes, otherwise use the stored rate
-    const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate) : mileageRate.rate;
+    // If a distance expense is being edited, the defaultP2PRate may not have been loaded yet, so use data from the existing transaction.
+    const fallbackUnit = transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     return {
-        ...mileageRate,
-        currency: currencyWithExistingRate,
         rate,
+        unit: defaultRate ? p2pRate.unit : fallbackUnit,
+        currency: defaultRate ? currency : getCurrency(transaction),
     };
 }
 
@@ -639,6 +636,29 @@ function prepareTextForDisplay(text: string): string {
     return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
+function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate']): string {
+    const dateFormat = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT;
+
+    try {
+        if (rate.startDate && rate.endDate) {
+            return translate('iou.rateValidDateRange', {
+                startDate: format(parseISO(rate.startDate), dateFormat),
+                endDate: format(parseISO(rate.endDate), dateFormat),
+            });
+        }
+        if (rate.startDate) {
+            return translate('iou.rateValidFrom', {startDate: format(parseISO(rate.startDate), dateFormat)});
+        }
+        if (rate.endDate) {
+            return translate('iou.rateValidUntil', {endDate: format(parseISO(rate.endDate), dateFormat)});
+        }
+    } catch {
+        return '';
+    }
+
+    return '';
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -663,6 +683,7 @@ export default {
     prepareTextForDisplay,
     isRateEligibleForDate,
     getBestEligibleRate,
+    getRateDateLabel,
 };
 
 export type {MileageRate};

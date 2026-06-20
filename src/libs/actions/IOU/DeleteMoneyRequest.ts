@@ -1,6 +1,4 @@
 import cloneDeep from 'lodash/cloneDeep';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -12,7 +10,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getLastVisibleAction, getLastVisibleMessage, getOriginalMessage, getReportActionMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getLastVisibleAction, getLastVisibleMessage, getReportActionMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getOutstandingChildRequest,
@@ -479,13 +477,13 @@ function cleanUpMoneyRequest(
 
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
-        Navigation.goBack(urlToNavigateBack);
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldDeleteIOUReport) {
-                clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
-            }
-            // After navigation, update the remaining data.
-            Onyx.update(onyxUpdates);
+        Navigation.goBack(urlToNavigateBack, {
+            afterTransition: () => {
+                if (shouldDeleteIOUReport) {
+                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+                }
+                Onyx.update(onyxUpdates);
+            },
         });
     });
 }
@@ -574,7 +572,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     }
 
     // Update the child comment visible count for reportPreviewAction.
-    const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction?.reportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
     const originalReportPreviewAction = getReportPreviewAction(chatReport?.reportID, iouReport?.reportID) ?? undefined;
