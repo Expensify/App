@@ -1959,6 +1959,81 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
         });
 
+        it('should disable every level when disabling a multi-level tag policy', async () => {
+            // Given a multi-level tag policy with two enabled levels
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const multiLevelTags: PolicyTagLists = {
+                ...createRandomPolicyTags('Department', 2),
+                ...createRandomPolicyTags('Region', 2),
+            };
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, multiLevelTags);
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When disabling the feature
+            enablePolicyTags(policyData.current, false);
+            await waitForBatchedUpdates();
+
+            rerender(fakePolicy.id);
+
+            // Then every tag in every level is disabled, not just the first list
+            for (const [listName, tagList] of Object.entries(multiLevelTags)) {
+                for (const tagName of Object.keys(tagList.tags)) {
+                    expect(policyData.current?.tags?.[listName]?.tags[tagName]?.enabled).toBe(false);
+                }
+            }
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should re-enable every level when re-enabling a multi-level tag policy', async () => {
+            // Given a multi-level tag policy whose every level was turned off when the feature was disabled
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = false;
+
+            const multiLevelTags: PolicyTagLists = {
+                ...createRandomPolicyTags('Department', 2),
+                ...createRandomPolicyTags('Region', 2),
+            };
+            for (const tagList of Object.values(multiLevelTags)) {
+                for (const tag of Object.values(tagList.tags)) {
+                    tag.enabled = false;
+                }
+            }
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, multiLevelTags);
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When re-enabling the feature
+            enablePolicyTags(policyData.current, true);
+            await waitForBatchedUpdates();
+
+            rerender(fakePolicy.id);
+
+            // Then every tag in every level is restored to enabled, not just the first list
+            for (const [listName, tagList] of Object.entries(multiLevelTags)) {
+                for (const tagName of Object.keys(tagList.tags)) {
+                    expect(policyData.current?.tags?.[listName]?.tags[tagName]?.enabled).toBe(true);
+                }
+            }
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('should reset changes when API returns error', async () => {
             // Given a policy with disabled tags
             const fakePolicy = createRandomPolicy(0);

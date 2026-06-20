@@ -1370,7 +1370,9 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).toEqual([violation]);
         });
-        it('should return tagOutOfPolicy for every stale level when the Tags feature is disabled and no tags are enabled', () => {
+        it('should return a single tagOutOfPolicy for the first stale level when the Tags feature is disabled and no tags are enabled', () => {
+            // The backend emits one tagOutOfPolicy for the whole multi-level tag (the first out-of-policy level by
+            // orderWeight), so the optimistic recompute must match it instead of flagging every level.
             policyTags.Department.tags.Accounting.enabled = false;
             policyTags.Region.tags.Africa.enabled = false;
             policyTags.Project.tags.Project1.enabled = false;
@@ -1386,11 +1388,8 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toEqual([
-                {...tagOutOfPolicyViolation, data: {tagName: 'Region'}},
-                {...tagOutOfPolicyViolation, data: {tagName: 'Department'}},
-                {...tagOutOfPolicyViolation, data: {tagName: 'Project'}},
-            ]);
+            // Region has the lowest orderWeight (1), so it is the level the violation is reported on.
+            expect(result.value).toEqual([{...tagOutOfPolicyViolation, data: {tagName: 'Region'}}]);
         });
         it('should not return allTagLevelsRequired when only non-required dependent tag levels are empty', () => {
             // Make Department non-required
