@@ -1,0 +1,1 @@
+Placeholder fix for issue 93850: VES currency conversion
