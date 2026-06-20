@@ -71,7 +71,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'MoneyCircle', 'CoinsButton', 'Basket', 'CircleSlash']);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'MoneyCircle', 'CoinsButton', 'Basket']);
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
@@ -91,6 +91,14 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     });
 
     useEffect(() => () => clearDraftSpendRule(), []);
+
+    useEffect(() => {
+        if (!isNewRule || spendRuleForm?.restrictionAction) {
+            return;
+        }
+
+        updateDraftSpendRule({restrictionAction: CONST.SPEND_RULES.ACTION.ALLOW});
+    }, [isNewRule, spendRuleForm?.restrictionAction]);
 
     useEffect(() => {
         if (!isEditingRule || !existingFormValues) {
@@ -180,8 +188,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const hasSelectedCards = !!cardIDs?.length;
     const hasMaxAmount = maxAmount.trim() !== '';
     const hasAnyCurrency = currencies.length > 0;
-    const hasAnyCategory = categories.length > 0 && !isRestrictMerchantsOff;
-    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '') && !isRestrictMerchantsOff;
+    const shouldIncludeMerchantRestrictions = isRulesRevampEnabled || !isRestrictMerchantsOff;
+    const hasAnyCategory = categories.length > 0 && shouldIncludeMerchantRestrictions;
+    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '') && shouldIncludeMerchantRestrictions;
     const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
     const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
 
@@ -201,9 +210,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
         const updatedSpendRuleForm = {
             ...spendRuleForm,
-            categories: !isRestrictMerchantsOff ? categories : [],
-            merchantNames: !isRestrictMerchantsOff ? spendRuleForm.merchantNames : [],
-            merchantMatchTypes: !isRestrictMerchantsOff ? spendRuleForm.merchantMatchTypes : [],
+            categories: shouldIncludeMerchantRestrictions ? categories : [],
+            merchantNames: shouldIncludeMerchantRestrictions ? spendRuleForm.merchantNames : [],
+            merchantMatchTypes: shouldIncludeMerchantRestrictions ? spendRuleForm.merchantMatchTypes : [],
         };
 
         clearError();
@@ -319,10 +328,11 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID, currentRuleID));
     };
 
-    const merchantsDescription =
-        restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchants');
-    const merchantTypeDescription =
-        restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
+    const isAllowRestriction = restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW;
+    const merchantsDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchants');
+    const merchantTypeDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
+    const revampMerchantDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchant');
+    const revampMerchantTypeDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
 
     if (isEditingRule && !existingRule) {
         return <NotFoundPage />;
@@ -374,7 +384,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     });
 
     const merchantMenuItem = renderEditableMenuItem({
-        description: isRulesRevampEnabled ? translate('workspace.rules.spendRules.blockedMerchant') : merchantsDescription,
+        description: isRulesRevampEnabled ? revampMerchantDescription : merchantsDescription,
         title: merchantsMenuTitle,
         onPress: chooseMerchants,
         sentryLabel: isRulesRevampEnabled ? spendRuleSectionSentryLabel : merchantRuleSectionSentryLabel,
@@ -382,7 +392,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     });
 
     const categoryMenuItem = renderEditableMenuItem({
-        description: isRulesRevampEnabled ? translate('workspace.rules.spendRules.blockedMerchantTypes') : merchantTypeDescription,
+        description: isRulesRevampEnabled ? revampMerchantTypeDescription : merchantTypeDescription,
         title: categoriesMenuTitle,
         onPress: chooseCategories,
         sentryLabel: isRulesRevampEnabled ? spendRuleSectionSentryLabel : merchantRuleSectionSentryLabel,
@@ -419,21 +429,12 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             <View style={[styles.ph5, styles.pv3]}>
                 <SpendRuleRestrictionTypeToggleRevamp
                     restrictionAction={restrictionAction}
-                    label={
-                        restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK
-                            ? translate('workspace.rules.spendRules.merchantRestrictions')
-                            : translate('workspace.rules.spendRules.setRestrictions')
-                    }
-                    icon={restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? icons.CircleSlash : undefined}
+                    label={translate('workspace.rules.spendRules.setRestrictions')}
                     onSelect={handleRestrictionActionSelect}
                 />
             </View>
-            {restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK && (
-                <>
-                    {merchantMenuItem}
-                    {categoryMenuItem}
-                </>
-            )}
+            {merchantMenuItem}
+            {categoryMenuItem}
         </>
     );
 
