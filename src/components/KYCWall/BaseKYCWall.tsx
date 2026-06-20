@@ -238,6 +238,7 @@ function KYCWall({
             currentUserAccountID,
             currentUserEmail,
             employeeLogin,
+            doesSubmitterPersonalDetailExist,
             introSelected,
             formatPhoneNumber,
             translate,
