@@ -66,10 +66,9 @@ function ReportCardLostConfirmMagicCodePage({
                 <HeaderWithBackButton
                     title={translate('common.success')}
                     onBackButtonPress={() =>
-                        Navigation.goBack(
-                            isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(newCardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(newCardID),
-                            {compareParams: false},
-                        )
+                        Navigation.goBack(isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(newCardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(newCardID), {
+                            compareParams: false,
+                        })
                     }
                 />
                 <SuccessReportCardLost

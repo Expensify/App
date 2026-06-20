@@ -283,7 +283,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     // it can't represent a later OpenApp that brings in a card missing from CARD_LIST (e.g. a freshly issued replacement card or
     // a card deep-linked from OldDot); isLoadingApp covers those in-flight refreshes so the NotFoundPage doesn't flash before
     // the card lands. Once all of these settle and the card is still absent, the NotFoundPage is the correct terminal state.
-    const isLoadingCardData = !currentCard && (!hasLoadedApp || isLoadingApp || isLoadingOnyxValue(cardListResult));
+    const isLoadingCardData = !currentCard && (!hasLoadedApp || !!isLoadingApp || isLoadingOnyxValue(cardListResult));
 
     if (isLoadingCardData) {
         return (
