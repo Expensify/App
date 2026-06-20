@@ -524,8 +524,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * cutoff by the time the response lands, so subscribeToFullReconnect does not fire a second reconnect.
  */
 function triggerFullReconnect(cutoff: string) {
-    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff));
-    reconnectApp();
+    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff)).then(() => reconnectApp());
 }
 
 /**
