@@ -53,15 +53,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.AI_FEATURES_PROMO_MODAL.ROOT]: {
-                    path: ROUTES.AI_FEATURES_PROMO_MODAL,
-                    exact: true,
-                },
-            },
-        },
-
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
@@ -864,6 +855,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY]: {
                             path: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY.path,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY]: {
+                            path: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY.path,
+                        },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT]: {
                             path: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT.path,
                         },
@@ -1062,6 +1056,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.route,
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
@@ -1301,6 +1298,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
                             path: ROUTES.RULES_SPEND_MAX_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES]: {
+                            path: ROUTES.RULES_SPEND_CURRENCIES.route,
                         },
                         [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: {
                             path: ROUTES.RULES_SPEND_MERCHANTS.route,
