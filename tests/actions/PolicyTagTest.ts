@@ -1923,6 +1923,42 @@ describe('actions/Policy', () => {
             expect(policyData.current.policy?.pendingFields).toBeDefined();
         });
 
+        it('should re-enable the tags it previously disabled when enabling the feature again', async () => {
+            // Given a policy whose tags were turned off when the Tags feature was disabled
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = false;
+
+            const tagListName = 'Tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const existingTags = fakePolicyTags[tagListName]?.tags ?? {};
+            for (const tagName of Object.keys(existingTags)) {
+                existingTags[tagName].enabled = false;
+            }
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
+
+            const {result: policyData, rerender} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When re-enabling the feature
+            enablePolicyTags(policyData.current, true);
+            await waitForBatchedUpdates();
+
+            rerender(fakePolicy.id);
+
+            // Then the feature is on and the tags are restored to enabled, so a stale tagOutOfPolicy clears optimistically
+            expect(policyData.current.policy?.areTagsEnabled).toBe(true);
+            for (const tagName of Object.keys(existingTags)) {
+                expect(policyData.current?.tags?.[tagListName]?.tags[tagName]?.enabled).toBe(true);
+            }
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('should reset changes when API returns error', async () => {
             // Given a policy with disabled tags
             const fakePolicy = createRandomPolicy(0);

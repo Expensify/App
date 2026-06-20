@@ -845,7 +845,33 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
 
         pushTransactionViolationsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData, autoSelections);
     } else {
-        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+        const policyTag = PolicyUtils.getTagLists(policyData.tags).at(0);
+
+        if (policyTag && Object.keys(policyTag.tags).length > 0) {
+            // Re-enabling the feature restores the tags the matching disable turned off, so a stale tagOutOfPolicy
+            // violation clears optimistically (mirrors enablePolicyCategories) instead of lingering until OpenReport.
+            const reEnabledTags = Object.entries(policyTag.tags).reduce<PolicyTags>((acc, [tagName, tag]) => {
+                acc[tagName] = {...tag, enabled: true};
+                return acc;
+            }, {});
+            const policyTagsOptimisticData: Record<string, Partial<PolicyTagList>> = {[policyTag.name]: {tags: reEnabledTags}};
+            const policyTagsFailureData: Record<string, Partial<PolicyTagList>> = {[policyTag.name]: {tags: policyTag.tags}};
+
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: policyTagsOptimisticData,
+            });
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: policyTagsFailureData,
+            });
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, policyTagsOptimisticData);
+        } else {
+            pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+        }
     }
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};

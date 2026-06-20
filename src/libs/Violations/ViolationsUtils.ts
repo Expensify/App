@@ -202,13 +202,17 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
-            const tags = policyTagList[policyTagKeys[i]].tags;
-            const listHasEnabledTags = hasEnabledTags(tags);
-            if (!listHasEnabledTags) {
+            // Only a level that actually holds a value can be out of policy; empty levels are covered by the
+            // someTagLevelsRequired check above.
+            if (!selectedTag) {
                 continue;
             }
-            const isTagInPolicy = !!selectedTag && !!tags[selectedTag]?.enabled;
-            if (!isTagInPolicy && selectedTag) {
+            const tags = policyTagList[policyTagKeys[i]].tags;
+            // Flag the selected tag whenever it isn't an enabled policy tag - including when its whole level was
+            // disabled (e.g. the Tags feature was turned off). Not gated on enabled tags remaining, so it mirrors
+            // single-level tags and categoryOutOfPolicy instead of silently dropping the violation.
+            const isTagInPolicy = !!tags[selectedTag]?.enabled;
+            if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,

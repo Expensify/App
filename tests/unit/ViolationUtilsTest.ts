@@ -1332,7 +1332,7 @@ describe('getViolationsOnyxData', () => {
             });
             expect(result.value).toEqual([]);
         });
-        it('should not return tagOutOfPolicy when the selected tag level has no enabled tags', () => {
+        it('should return tagOutOfPolicy when the selected tag is disabled and its level has no enabled tags left', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
 
@@ -1346,7 +1346,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toEqual([]);
+            expect(result.value).toEqual([{...tagOutOfPolicyViolation, data: {tagName: 'Department'}}]);
         });
 
         it('should return tagOutOfPolicy when selected tag is disabled and another tag in that level is enabled', () => {
@@ -1370,7 +1370,7 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).toEqual([violation]);
         });
-        it('should not return tagOutOfPolicy when no tags are enabled in the policy', () => {
+        it('should return tagOutOfPolicy for every stale level when the Tags feature is disabled and no tags are enabled', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             policyTags.Region.tags.Africa.enabled = false;
             policyTags.Project.tags.Project1.enabled = false;
@@ -1386,7 +1386,11 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toEqual([]);
+            expect(result.value).toEqual([
+                {...tagOutOfPolicyViolation, data: {tagName: 'Region'}},
+                {...tagOutOfPolicyViolation, data: {tagName: 'Department'}},
+                {...tagOutOfPolicyViolation, data: {tagName: 'Project'}},
+            ]);
         });
         it('should not return allTagLevelsRequired when only non-required dependent tag levels are empty', () => {
             // Make Department non-required
