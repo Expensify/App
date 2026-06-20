@@ -6,10 +6,10 @@ import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
+import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
-import InlineTextWithOptionalLink from '@components/InlineTextWithOptionalLink';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -105,21 +105,6 @@ function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: str
             >
                 {message}
             </Text>
-        </View>
-    );
-}
-
-function InlineRBRMessage({message, actionText, onActionPress}: {message: string; actionText?: string; onActionPress?: () => void}) {
-    const styles = useThemeStyles();
-
-    return (
-        <View style={[styles.mt2, styles.ml7]}>
-            <InlineTextWithOptionalLink
-                message={message}
-                linkText={actionText}
-                onLinkPress={onActionPress}
-                textStyle={[styles.textLabelSupporting, styles.textDanger]}
-            />
         </View>
     );
 }
@@ -657,11 +642,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     brickRoadIndicator={bankConnectionBrickRoadIndicator}
                                 />
                                 {!!bankConnectionMessage && (
-                                    <InlineRBRMessage
-                                        message={bankConnectionMessage}
-                                        actionText={bankConnectionActionText}
-                                        onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
-                                    />
+                                    <View style={[styles.mt2, styles.ml7]}>
+                                        <ConnectionStatusMessage
+                                            message={bankConnectionMessage}
+                                            actionText={bankConnectionActionText}
+                                            onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
+                                            isActionDisabled={!canInteractWithBankAccountRow}
+                                            statusTone="danger"
+                                        />
+                                    </View>
                                 )}
                             </OfflineWithFeedback>
                         ) : (

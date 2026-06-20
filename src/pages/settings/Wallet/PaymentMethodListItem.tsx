@@ -6,8 +6,8 @@ import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
+import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Icon from '@components/Icon';
-import InlineTextWithOptionalLink from '@components/InlineTextWithOptionalLink';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -142,65 +142,6 @@ function hasBankAccountAllowDebit(accountData: PaymentMethodItem['accountData'])
 
 function isAccountNeedingAction(account: PaymentMethodItem) {
     return isAccountInSetupState(account) || !!account.isMissingPersonalInfo;
-}
-
-function ConnectionStatusMessage({connectionStatus}: {connectionStatus?: ConnectionStatusDetails}) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    if (!connectionStatus?.message && !connectionStatus?.actionText) {
-        return null;
-    }
-
-    const statusMessageRowPadding = {paddingLeft: 32, paddingRight: 32};
-    const shouldShowActionButton = !!connectionStatus.actionText && !!connectionStatus.onActionPress;
-    const isDangerStatus = connectionStatus.statusTone === 'danger';
-    const messageContent = (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-            {isDangerStatus && (
-                <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
-                    <Icon
-                        src={icons.DotIndicator}
-                        fill={theme.danger}
-                    />
-                </View>
-            )}
-            <InlineTextWithOptionalLink
-                message={connectionStatus.message ?? ''}
-                linkText={connectionStatus.linkText}
-                onLinkPress={connectionStatus.onLinkPress}
-                textStyle={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, isDangerStatus ? {color: 'rgb(134, 32, 32)'} : undefined, styles.flex1]}
-            />
-        </View>
-    );
-
-    const actionButton = shouldShowActionButton ? (
-        <Button
-            small
-            danger
-            style={styles.alignSelfStart}
-            text={connectionStatus.actionText}
-            onPress={connectionStatus.isActionDisabled ? () => {} : () => connectionStatus.onActionPress?.(undefined)}
-        />
-    ) : null;
-
-    if (shouldUseNarrowLayout) {
-        return (
-            <View style={[statusMessageRowPadding]}>
-                {messageContent}
-                {!!actionButton && <View style={styles.mt3}>{actionButton}</View>}
-            </View>
-        );
-    }
-
-    return (
-        <View style={[statusMessageRowPadding, styles.flexRow, styles.alignItemsCenter]}>
-            {messageContent}
-            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{actionButton}</View>
-        </View>
-    );
 }
 
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
@@ -347,7 +288,15 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 brickRoadIndicator={item.connectionStatus?.message ? undefined : item.brickRoadIndicator}
                 success={item.isMethodActive}
             />
-            <ConnectionStatusMessage connectionStatus={item.connectionStatus} />
+            <ConnectionStatusMessage
+                message={item.connectionStatus?.message}
+                actionText={item.connectionStatus?.actionText}
+                onActionPress={item.connectionStatus?.onActionPress ? () => item.connectionStatus?.onActionPress?.(undefined) : undefined}
+                isActionDisabled={item.connectionStatus?.isActionDisabled}
+                statusTone={item.connectionStatus?.statusTone}
+                linkText={item.connectionStatus?.linkText}
+                onLinkPress={item.connectionStatus?.onLinkPress}
+            />
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
                     <PressableWithFeedback
