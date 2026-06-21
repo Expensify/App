@@ -8350,6 +8350,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
         expenseType: 'Ausgabenart',
+        receiptType: 'Belegart',
+        receiptTypeValues: {
+            ereceipt: 'eBeleg',
+            itemized: 'Aufgeschlüsselt',
+            hotel: 'Hotel',
+        },
         withdrawalType: 'Auszahlungsart',
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
