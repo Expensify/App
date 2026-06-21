@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {Linking} from 'react-native';
 import CONST from './CONST';
@@ -40,6 +40,17 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
+    // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
+    // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
+    const trackPendingPublicRoomFromDeepLink = useCallback((url: string, isCurrentlyAuthenticated: boolean) => {
+        const deepLinkReportID = getReportIDFromLink(url);
+        if (!deepLinkReportID || isCurrentlyAuthenticated) {
+            return;
+        }
+        pendingPublicRoomReportID.current = deepLinkReportID;
+        hasRefetchedPublicRoom.current = false;
+    }, []);
+
     useEffect(() => {
         if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
             return;
@@ -80,11 +91,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
                     const isCurrentlyAuthenticated = hasAuthToken();
                     openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
-                    const deepLinkReportID = getReportIDFromLink(url);
-                    if (deepLinkReportID && !isCurrentlyAuthenticated) {
-                        pendingPublicRoomReportID.current = deepLinkReportID;
-                        hasRefetchedPublicRoom.current = false;
-                    }
+                    trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
                     Report.doneCheckingPublicRoom();
                 }
@@ -112,11 +119,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             }
             const isCurrentlyAuthenticated = hasAuthToken();
             openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
-            const deepLinkReportID = getReportIDFromLink(state.url);
-            if (deepLinkReportID && !isCurrentlyAuthenticated) {
-                pendingPublicRoomReportID.current = deepLinkReportID;
-                hasRefetchedPublicRoom.current = false;
-            }
+            trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
 
         return () => {
@@ -158,7 +161,9 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         if (!reportID || isLoadingApp || !isAnonymousUser()) {
             return;
         }
+        // The room made it into Onyx, so the cold-start race is over - stop tracking it.
         if (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+            pendingPublicRoomReportID.current = '';
             hasRefetchedPublicRoom.current = false;
             return;
         }
