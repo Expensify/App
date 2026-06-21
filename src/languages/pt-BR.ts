@@ -7418,6 +7418,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             agentRules: {
                 title: 'Regras do agente',
                 subtitle: 'Defina regras para como os agentes de IA lidam com despesas neste workspace.',
+                enforcedBy: 'As regras de agente são aplicadas por',
+                ruleBotName: 'RuleBot',
                 addRule: 'Adicionar regra de agente',
                 findRule: 'Encontrar regra de agente',
                 addRuleTitle: 'Adicionar regra',
