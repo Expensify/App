@@ -20,6 +20,7 @@ function useDismissableLayerWorker(kind: DismissableLayerKind, {onDismiss, escap
         depth: myDepth,
         mountId: nextLayerMountId(),
         onDismiss: stableDismiss,
+        escapeBehavior,
     }));
     const top = useSyncExternalStore(dismissableLayerStore.subscribe, () => selectTopLayer(dismissableLayerStore.getSnapshot()));
     const isTop = top === entry;
@@ -27,11 +28,11 @@ function useDismissableLayerWorker(kind: DismissableLayerKind, {onDismiss, escap
     useEffect(() => pushDismissableLayer(entry), [entry]);
 
     useEffect(() => {
+        // Defensive — RNModal suppresses BackHandler, so this only fires for standalone DismissableLayer use.
         if (!isTop) {
             return undefined;
         }
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-            // Always consume when top — pre-empts RNModal's onRequestClose fallback.
             if (escapeBehavior !== 'ignore') {
                 stableDismiss();
             }

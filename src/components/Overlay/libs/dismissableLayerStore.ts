@@ -1,4 +1,5 @@
 import createExternalStore from './createExternalStore';
+import type {EscapeBehavior} from './overlayStore';
 
 type DismissableLayerKind = 'modal' | 'floating';
 
@@ -7,6 +8,7 @@ type DismissableLayerEntry = {
     readonly depth: number;
     readonly mountId: number;
     readonly onDismiss?: () => void;
+    readonly escapeBehavior?: EscapeBehavior;
 };
 
 let nextMountId = 0;

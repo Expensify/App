@@ -80,6 +80,8 @@ function Presence({present, onExitComplete, children}: PresenceProps) {
 
     useEffect(() => {
         if (publishedState !== 'unmountSuspended') {
+            // Drop owed callback on re-mount — a stale animation completion shouldn't fire onExitComplete on a visible overlay.
+            owedRef.current = false;
             return undefined;
         }
         owedRef.current = true;
