@@ -34,7 +34,11 @@ function SearchFiltersReceiptTypePage() {
         return {name: receiptTypeName, value: receiptType};
     });
 
-    const updateReceiptTypeFilter = (values: ReceiptTypeValues) => updateAdvancedFilters({receiptType: values});
+    const updateReceiptTypeFilter = (values: ReceiptTypeValues) => {
+        // Drop any of the selected values from the negated filter so a positive selection can't leave a conflicting -receiptType in the query
+        const remainingNegatedReceiptTypes = searchAdvancedFiltersForm?.receiptTypeNot?.filter((receiptType) => !values.includes(receiptType));
+        updateAdvancedFilters({receiptType: values, receiptTypeNot: remainingNegatedReceiptTypes?.length ? remainingNegatedReceiptTypes : null});
+    };
 
     return (
         <ScreenWrapper
