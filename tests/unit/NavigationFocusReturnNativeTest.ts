@@ -209,10 +209,10 @@ describe('notifyPressedTrigger', () => {
     });
 
     it('drops a stale press so a much-later forward nav (deeplink, timer) does not capture an unrelated trigger', () => {
-        const before = Date.now();
-        jest.setSystemTime(before);
+        const nowSpy = jest.spyOn(performance, 'now');
+        nowSpy.mockReturnValue(0);
         notifyPressedTrigger(fakeRef(fakeView('non-nav-toggle')));
-        jest.setSystemTime(before + 4_000);
+        nowSpy.mockReturnValue(4_000);
         const prev = stackState(0, [{key: 'a', name: 'A'}]);
         const next = stackState(1, [
             {key: 'a', name: 'A'},
@@ -221,6 +221,7 @@ describe('notifyPressedTrigger', () => {
         handleStateChange(prev);
         handleStateChange(next);
         expect(getTriggerMapSizeForTests()).toBe(0);
+        nowSpy.mockRestore();
     });
 });
 

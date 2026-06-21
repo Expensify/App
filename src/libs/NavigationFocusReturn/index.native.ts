@@ -41,13 +41,12 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     }
 }
 
+// Recorded unconditionally so first-press registrations aren't dropped during the SR-cache cold-start window; captureTriggerForRoute
+// still gates on SR so non-SR users do no work past this write. performance.now is monotonic — Date.now would corrupt the TTL on clock jumps.
 function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: string): void {
-    if (!Accessibility.isScreenReaderEnabledSync()) {
-        return;
-    }
     lastPressedTriggerRef = ref;
     lastPressedTriggerIdentifier = identifier ?? null;
-    lastPressedTriggerAt = ref ? Date.now() : 0;
+    lastPressedTriggerAt = ref ? performance.now() : 0;
 }
 
 /* Single-use: consumed by the next navigation so a later press-less forward can't reuse a stale ref within the TTL. */
@@ -95,7 +94,7 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!Accessibility.isScreenReaderEnabledSync()) {
         return;
     }
-    if (!lastPressedTriggerRef || Date.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
+    if (!lastPressedTriggerRef || performance.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
         return;
     }
     setTriggerEntry(routeKey, {ref: lastPressedTriggerRef, identifier: lastPressedTriggerIdentifier ?? undefined});

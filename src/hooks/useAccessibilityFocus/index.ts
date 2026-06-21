@@ -29,29 +29,32 @@ const useAccessibilityFocus: UseAccessibilityFocus = ({didScreenTransitionEnd, i
             return;
         }
 
-        const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-        for (const focusTarget of focusTargets) {
-            const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled') === 'true';
-            if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
-                continue;
+        // Release after the focus call so a same-tree sub-modal's INITIAL claim isn't blocked when no nav state change runs handleStateChange's resetCycle.
+        try {
+            const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+            for (const focusTarget of focusTargets) {
+                const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled') === 'true';
+                if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
+                    continue;
+                }
+
+                if (focusTarget === activeElement) {
+                    return;
+                }
+
+                const unmarkProgrammaticFocus = markProgrammaticFocus(focusTarget);
+                focusTarget.focus();
+
+                const focusedElement = document.activeElement;
+                if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
+                    return;
+                }
+
+                unmarkProgrammaticFocus();
             }
-
-            if (focusTarget === activeElement) {
-                return;
-            }
-
-            const unmarkProgrammaticFocus = markProgrammaticFocus(focusTarget);
-            focusTarget.focus();
-
-            const focusedElement = document.activeElement;
-            if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
-                return;
-            }
-
-            unmarkProgrammaticFocus();
+        } finally {
+            resetCycle();
         }
-        // No target accepted focus — release so a later claim isn't blocked.
-        resetCycle();
     }, [didScreenTransitionEnd, isFocused, ref, shouldMoveAccessibilityFocus]);
 };
 

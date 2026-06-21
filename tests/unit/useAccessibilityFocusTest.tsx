@@ -43,7 +43,7 @@ beforeEach(() => {
 });
 
 describe('useAccessibilityFocus — arbiter integration', () => {
-    it('claims AUTO before focusing so an in-flight RETURN can preempt and a later INITIAL is vetoed', () => {
+    it('claims AUTO before focusing so an in-flight RETURN can preempt, then releases so a same-tree sub-modal INITIAL is not blocked', () => {
         const {container, button} = makeContainer();
         const spy = jest.spyOn(button, 'focus');
         render(
@@ -54,7 +54,7 @@ describe('useAccessibilityFocus — arbiter integration', () => {
             />,
         );
         expect(spy).toHaveBeenCalled();
-        expect(tryClaim(Priorities.INITIAL)).toBe(false);
+        expect(tryClaim(Priorities.INITIAL)).toBe(true);
     });
 
     it('yields to an in-flight RETURN restore', () => {

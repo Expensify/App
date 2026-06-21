@@ -89,6 +89,9 @@ const {
         cachedReduceMotionValue = enabled;
     },
 );
+ensureReduceMotionWarm();
+
+let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null = null;
 
 function resetForTests() {
     cachedScreenReaderValue = false;
@@ -97,6 +100,8 @@ function resetForTests() {
     resetReduceMotionWarm();
     screenReaderSubscribers.clear();
     reduceMotionSubscribers.clear();
+    appStateSubscription?.remove();
+    appStateSubscription = null;
 }
 
 function subscribeReduceMotion(callback: () => void) {
@@ -120,32 +125,28 @@ function subscribeReduceMotion(callback: () => void) {
 }
 
 /*
- * `screenReaderChanged`/`reduceMotionChanged` events fired while the JS thread was suspended (or while no JS listener was attached) are not
- * reliably delivered on resume, so re-warm both caches on every background→active transition and notify subscribers if the value flipped.
+ * Re-warm both caches on background→active because change events fired while the JS thread was suspended aren't reliably delivered on resume.
+ * Skip iOS 'inactive' transitions (Notification Center, Control Center, banners) — those don't suspend JS.
  */
 let previousAppStateStatus: AppStateStatus = AppState.currentState ?? 'active';
-AppState.addEventListener('change', (status) => {
-    const wasInactive = previousAppStateStatus === 'inactive' || previousAppStateStatus === 'background';
+appStateSubscription = AppState.addEventListener('change', (status) => {
+    const wasBackgrounded = previousAppStateStatus === 'background';
     previousAppStateStatus = status;
-    if (!wasInactive || status !== 'active') {
+    if (!wasBackgrounded || status !== 'active') {
         return;
     }
     const prevScreenReader = cachedScreenReaderValue;
-    refreshScreenReaderWarm().then(() => {
-        if (cachedScreenReaderValue === prevScreenReader) {
-            return;
-        }
-        for (const cb of screenReaderSubscribers) {
-            cb();
-        }
-    });
     const prevReduceMotion = cachedReduceMotionValue;
-    refreshReduceMotionWarm().then(() => {
-        if (cachedReduceMotionValue === prevReduceMotion) {
-            return;
+    Promise.all([refreshScreenReaderWarm(), refreshReduceMotionWarm()]).then(() => {
+        if (cachedScreenReaderValue !== prevScreenReader) {
+            for (const cb of screenReaderSubscribers) {
+                cb();
+            }
         }
-        for (const cb of reduceMotionSubscribers) {
-            cb();
+        if (cachedReduceMotionValue !== prevReduceMotion) {
+            for (const cb of reduceMotionSubscribers) {
+                cb();
+            }
         }
     });
 });
