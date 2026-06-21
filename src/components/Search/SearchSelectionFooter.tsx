@@ -62,7 +62,6 @@ function shouldAllowFooterCurrencyChange(
     hasSelectedGroup: boolean,
     hasPartialSelection: boolean,
     areAllSelectedForFooter: boolean,
-    hasCustomFooterCurrency: boolean,
     footerTotalData: Record<string, unknown> | undefined,
     isFooterTotalConverting: boolean,
     selectedTransactions: SelectedTransactions,
@@ -79,7 +78,7 @@ function shouldAllowFooterCurrencyChange(
         return true;
     }
 
-    if (hasCustomFooterCurrency && footerTotalData) {
+    if (footerTotalData) {
         return areAllSelectedExpensesInAuxiliarySnapshot(selectedTransactions, footerTotalData);
     }
 
@@ -148,7 +147,14 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const shouldResetCustomCurrencyForGroupSelection = hasSelectedGroup && !!selectedCurrency;
     const shouldResetCustomCurrencyForUncoveredSelection =
         hasPartialSelection && !!selectedCurrency && !!footerTotalDataRecord && !isFooterTotalConverting && !areAllSelectedInAuxiliarySnapshot;
-    if (shouldResetCustomCurrencyAfterLiveRefresh || shouldResetCustomCurrencyForGroupSelection || shouldResetCustomCurrencyForUncoveredSelection) {
+    if (shouldResetCustomCurrencyForUncoveredSelection) {
+        setFooterCurrencyState({
+            searchHash: currentSearchHash,
+            selectedCurrency: undefined,
+            defaultCurrency: effectiveDefaultCurrency,
+            footerTotalHash: footerCurrencyState.footerTotalHash,
+        });
+    } else if (shouldResetCustomCurrencyAfterLiveRefresh || shouldResetCustomCurrencyForGroupSelection) {
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: undefined,
@@ -275,7 +281,6 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 hasSelectedGroup,
                 hasPartialSelection,
                 areAllSelectedForFooter,
-                hasCustomFooterCurrency,
                 footerTotalDataRecord,
                 isFooterTotalConverting,
                 selectedTransactions,
