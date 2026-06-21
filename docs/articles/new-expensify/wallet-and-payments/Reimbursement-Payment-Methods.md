@@ -31,7 +31,7 @@ Available payment types depend on the location of the Workspace’s business ban
 The steps to send reimbursement are the same for ACH reimbursement, global reimbursement, and Pay elsewhere. The only difference is the payment method selected when clicking **Pay**.
 
 - **US-based business bank account:**  
-  ACH reimbursement is used for payments in USD from a US business bank account to a US personal deposit account. [Learn how to set up ACH reimbursement](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account). 
+  ACH reimbursement is used for payments in USD from a US business bank account to a USD personal deposit account. The member's deposit account must be in USD — a deposit account in another currency (for example CAD) can't receive ACH reimbursement, and the report will stay unpaid until the member adds a USD account or the Workspace is set up for Global Reimbursement. [Learn how to set up ACH reimbursement](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account). 
 
 - **International business bank account:**  
   Global reimbursement is available for business bank accounts located in:
@@ -132,6 +132,10 @@ Expensify does not issue checks. Workspace Admins can select **Pay elsewhere** a
 ## What is the difference between ACH reimbursement and global reimbursement?
 
 ACH reimbursement applies to US-based USD payments. Global reimbursement supports international payments and multiple currencies.
+
+## Why is a member not getting reimbursed even though the report is approved?
+
+A common cause is a currency mismatch between the member's deposit account and the Workspace's reimbursement currency. ACH reimbursement from a USD business bank account can only pay out to a **USD** deposit account, so a member whose only deposit account is in another currency (for example CAD) won't be reimbursed. Ask the member to add a USD deposit account, or [enable Global Reimbursement](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement) to support cross-border payments in supported currencies.
 
 ## Why is direct reimbursement not available for some reports?
 
