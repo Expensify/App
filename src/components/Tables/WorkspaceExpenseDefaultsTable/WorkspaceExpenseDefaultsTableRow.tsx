@@ -7,7 +7,6 @@ import type {TableData} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,9 +38,8 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Pencil']);
-    const {processedData, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext<ExpenseDefaultTableItem>();
+    const {processedData} = useTableContext<ExpenseDefaultTableItem>();
 
     const tableRowItem = processedData.at(rowIndex) ?? item;
     const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -54,25 +52,16 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
     const badgeColors = tableRowItem.isRename ? theme.reportStatusBadge.approved : theme.reportStatusBadge.draft;
 
-    const handleLongPress = () => {
-        if (isDeleting || tableRowItem.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout) {
-            return;
-        }
-
-        tableMethods.setMobileSelectionModalRowKey(tableRowItem.keyForList);
-    };
-
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
-            disabled={isDeleting}
+            disabled={tableRowItem.disabled}
             accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
             offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false, errors: tableRowItem.errors, onClose: tableRowItem.onCloseError}}
             onPress={tableRowItem.action}
-            onLongPress={handleLongPress}
         >
             {({hovered}) => (
                 <>
