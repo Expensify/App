@@ -322,8 +322,6 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const isAllowRestriction = restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW;
     const merchantsDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchants');
     const merchantTypeDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
-    const revampMerchantDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchants') : translate('workspace.rules.spendRules.blockedMerchant');
-    const revampMerchantTypeDescription = isAllowRestriction ? translate('workspace.rules.spendRules.allowedMerchantTypes') : translate('workspace.rules.spendRules.blockedMerchantTypes');
 
     if (isEditingRule && !existingRule) {
         return <NotFoundPage />;
@@ -368,7 +366,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     });
 
     const merchantMenuItem = renderEditableMenuItem({
-        description: isRulesRevampEnabled ? revampMerchantDescription : merchantsDescription,
+        description: merchantsDescription,
         title: merchantsMenuTitle,
         onPress: chooseMerchants,
         sentryLabel: isRulesRevampEnabled ? spendRuleSectionSentryLabel : merchantRuleSectionSentryLabel,
@@ -376,7 +374,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     });
 
     const categoryMenuItem = renderEditableMenuItem({
-        description: isRulesRevampEnabled ? revampMerchantTypeDescription : merchantTypeDescription,
+        description: merchantTypeDescription,
         title: categoriesMenuTitle,
         onPress: chooseCategories,
         sentryLabel: isRulesRevampEnabled ? spendRuleSectionSentryLabel : merchantRuleSectionSentryLabel,
@@ -413,7 +411,6 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             <View style={[styles.ph5, styles.pv3]}>
                 <SpendRuleRestrictionTypeToggleRevamp
                     restrictionAction={!isRestrictMerchantsOff ? restrictionAction : null}
-                    label={translate('workspace.rules.spendRules.setRestrictions')}
                     onSelect={handleRestrictionActionSelect}
                 />
             </View>
