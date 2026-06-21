@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -76,7 +76,12 @@ function DynamicReportFieldsInitialListValuePage({
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 {isLoadingFormDraft || shouldRedirectToCreatePage ? (
-                    <FullScreenLoadingIndicator reasonAttributes={{context: 'DynamicReportFieldsInitialListValuePage', isLoadingFormDraft: !!isLoadingFormDraft}} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size="large"
+                            reasonAttributes={{context: 'DynamicReportFieldsInitialListValuePage', isLoadingFormDraft: !!isLoadingFormDraft}}
+                        />
+                    </View>
                 ) : (
                     <>
                         <View style={[styles.ph5, styles.pb4]}>
