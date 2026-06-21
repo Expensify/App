@@ -211,7 +211,7 @@ function SearchList({
     newTransactions = [],
     nonPersonalAndWorkspaceCards,
     hasLoadedAllTransactions,
-                        policyTags,
+    policyTags,
     isActionColumnWide,
     isAttendeesEnabledForMovingPolicy,
     ref,

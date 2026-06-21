@@ -1292,9 +1292,10 @@ function Search({
                         isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         policyTags={policyTags}
-                    isActionColumnWide={isTask || hasDeletedTransaction}
-                />
-            </Animated.View></SearchWriteActionsProvider>
+                        isActionColumnWide={isTask || hasDeletedTransaction}
+                    />
+                </Animated.View>
+            </SearchWriteActionsProvider>
         </SearchScopeProvider>
     );
 }
