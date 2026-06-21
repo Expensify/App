@@ -2309,13 +2309,14 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
  * Not every property of the report option can be computed on the initial computing in the OptionListContextProvider. Some of them are based on the context (config) so they are computed here.
  *
  * @param options - Array of report options to prepare
+ * @param isOffline - Whether the app is currently offline. Passed in to keep this function pure.
  * @param config - Configuration object specifying display preferences and filtering criteria
  * @returns Array of enriched and filtered report options ready for UI display
  */
 function prepareReportOptionsForDisplay(
     options: Array<SearchOption<Report>>,
     policiesCollection: OnyxCollection<Policy>,
-    currentUserAccountID: number,
+    isOffline: boolean,
     config: GetValidReportsConfig,
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
@@ -2342,8 +2343,6 @@ function prepareReportOptionsForDisplay(
     const validOptions: Array<SearchOption<Report>> = [];
 
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
-    // Read the in-memory offline state once for the whole batch since this is an imperative one-shot computation (reactivity is not needed here).
-    const isOffline = getIsOffline();
 
     for (let i = 0; i < options.length; i++) {
         const option = options.at(i);
@@ -2522,6 +2521,8 @@ function getValidOptions(
     let hasMore = false;
 
     const searchTerms = processSearchString(searchString);
+    // Read the in-memory offline state once for the whole batch since this is an imperative one-shot computation (reactivity is not needed here).
+    const isOffline = getIsOffline();
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
 
@@ -2600,7 +2601,7 @@ function getValidOptions(
             selfDMChat = prepareReportOptionsForDisplay(
                 selfDMChats,
                 policiesCollection,
-                currentUserAccountID,
+                isOffline,
                 {
                     ...getValidReportsConfig,
                     selectedOptions,
@@ -2625,7 +2626,7 @@ function getValidOptions(
         recentReportOptions = prepareReportOptionsForDisplay(
             recentReportOptions,
             policiesCollection,
-            currentUserAccountID,
+            isOffline,
             {
                 ...getValidReportsConfig,
                 selectedOptions,
@@ -2646,7 +2647,7 @@ function getValidOptions(
         workspaceChats = prepareReportOptionsForDisplay(
             workspaceChats,
             policiesCollection,
-            currentUserAccountID,
+            isOffline,
             {
                 ...getValidReportsConfig,
                 selectedOptions,
