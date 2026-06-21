@@ -113,8 +113,6 @@ function IOURequestStepParticipants({
         navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
     };
 
-    // The amount step is skipped, so we need to include the recents for all the cases.
-    const isWorkspacesOnly = false;
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly
@@ -144,7 +142,7 @@ function IOURequestStepParticipants({
                 action={action}
                 isPerDiemRequest={isPerDiem}
                 isTimeRequest={isTime}
-                isWorkspacesOnly={isWorkspacesOnly}
+                isWorkspacesOnly={false}
                 isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop
