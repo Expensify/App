@@ -27,11 +27,14 @@ function useDismissableLayerWorker(kind: DismissableLayerKind, {onDismiss, escap
     useEffect(() => pushDismissableLayer(entry), [entry]);
 
     useEffect(() => {
-        if (!isTop || escapeBehavior === 'ignore') {
+        if (!isTop) {
             return undefined;
         }
         const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-            stableDismiss();
+            // Always consume when top — pre-empts RNModal's onRequestClose fallback.
+            if (escapeBehavior !== 'ignore') {
+                stableDismiss();
+            }
             return true;
         });
         return () => subscription.remove();

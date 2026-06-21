@@ -109,7 +109,7 @@ function useAriaHideSiblings(containerRef: RefObject<AnchorNode | null>, isActiv
                 const isOverlayPortal =
                     child instanceof HTMLElement && (child.dataset[OVERLAY_PORTAL_DATASET_KEY] !== undefined || child.dataset[OVERLAY_TOP_LAYER_DATASET_KEY] !== undefined);
                 if (isOverlayPortal) {
-                    // eslint-disable-next-line no-bitwise
+                    // eslint-disable-next-line no-bitwise -- compareDocumentPosition returns a bitmask; the & is the standard way to test DOCUMENT_POSITION_FOLLOWING.
                     const followsOwnPortal = (ownPortalRoot.compareDocumentPosition(child) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
                     if (followsOwnPortal) {
                         continue;

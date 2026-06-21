@@ -10,6 +10,7 @@ type PortalProps = {
 };
 
 function handleAndroidBack() {
+    // Fallback only — DismissableLayer's BackHandler pre-empts this when top is mounted.
     const top = selectTopLayer(dismissableLayerStore.getSnapshot());
     top?.onDismiss?.();
 }

@@ -67,7 +67,8 @@ function FloatingHost({
             >
                 <View
                     onLayout={onContentLayout}
-                    style={[positionStyle, {maxHeight: available.height, opacity: isPositioned ? 1 : 0}]}
+                    // Measuring with the cap would trap the flip logic at the capped height.
+                    style={[positionStyle, {maxHeight: isPositioned ? available.height : undefined, opacity: isPositioned ? 1 : 0}]}
                 >
                     <AnimatedSurface
                         enterSpec={FADE_ONLY_ENTER_SPEC}

@@ -7,6 +7,9 @@ function useOverlayEntry(entry: OverlayEntry | null): void {
 
     useLayoutEffect(() => {
         if (entry !== null) {
+            if (publishedIdRef.current !== null && publishedIdRef.current !== entry.id) {
+                removeOverlayEntry(publishedIdRef.current);
+            }
             publishedIdRef.current = entry.id;
             upsertOverlayEntry(entry);
             return;

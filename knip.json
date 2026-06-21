@@ -28,7 +28,14 @@
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js", "src/libs/actions/connections/FinancialForce.ts"],
+            "ignore": [
+                ".github/actions/**/index.js",
+                "tests/perf-test/**",
+                "web/snippets/gib.js",
+                "src/libs/actions/connections/FinancialForce.ts",
+                "src/components/Overlay/**",
+                "src/libs/isHTMLElement.ts"
+            ],
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },
