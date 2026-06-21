@@ -170,7 +170,7 @@ afterEach(() => {
 });
 
 describe('notifyPressedTrigger', () => {
-    it('is a no-op when the screen reader is off — non-AT users pay zero capture cost', () => {
+    it('captures regardless of screen-reader state so a cold-start press before the SR cache warms is not dropped', () => {
         mockScreenReaderEnabled = false;
         notifyPressedTrigger(fakeRef(fakeView('button')));
         const prev = stackState(0, [{key: 'a', name: 'A'}]);
@@ -180,7 +180,7 @@ describe('notifyPressedTrigger', () => {
         ]);
         handleStateChange(prev);
         handleStateChange(next);
-        expect(getTriggerMapSizeForTests()).toBe(0);
+        expect(getTriggerMapSizeForTests()).toBe(1);
     });
 
     it('stores the most recently pressed ref when the screen reader is on', () => {
@@ -382,8 +382,9 @@ describe('handleStateChange — backward', () => {
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
 
-    it('back navigation without a captured trigger is a no-op — no rAF/transition wait, no budget-exhausted warn', () => {
-        mockScreenReaderEnabled = false;
+    it('back navigation skips the restore work when the screen reader is off, even when a trigger was captured', () => {
+        const view = fakeView('display-name');
+        notifyPressedTrigger(fakeRef(view));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         handleStateChange(
             stackState(1, [
@@ -391,12 +392,34 @@ describe('handleStateChange — backward', () => {
                 {key: 'display-name-page', name: 'DisplayName'},
             ]),
         );
+
+        mockScreenReaderEnabled = false;
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         flushTransitions();
 
         expect(mockTtQueue).toHaveLength(0);
         expect(mockLogWarn).not.toHaveBeenCalled();
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
+    });
+
+    it('cold-start race — press happens before SR cache warms, but back navigation after the cache warms still restores', () => {
+        mockScreenReaderEnabled = false;
+        const view = fakeView('display-name');
+        notifyPressedTrigger(fakeRef(view));
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'profile', name: 'Profile'},
+                {key: 'display-name-page', name: 'DisplayName'},
+            ]),
+        );
+        expect(getTriggerMapSizeForTests()).toBe(1);
+
+        mockScreenReaderEnabled = true;
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        flushTransitions();
+
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });
 
     it('clears the staged press on a backward nav so a later press-less forward cannot capture the stale Back/Save ref', () => {
