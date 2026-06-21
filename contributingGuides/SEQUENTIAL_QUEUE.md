@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SequentialQueue is how the app keeps its **offline-first promise**: a user can "do their thing" regardless of connectivity, and every change they make is sent to the server **serially, in order, at the right time** (deduplicated server-side on the rare resend from a retry or leadership change), even across going offline, refreshing the tab, or restarting the app.
+The SequentialQueue is how the app keeps its **offline-first promise**: a user can "do their thing" regardless of connectivity, and every change they make is sent to the server **serially, in order, at the right time**, even across going offline, refreshing the tab, or restarting the app.
 
 `SequentialQueue` is a **single-flight, first-in-first-out (FIFO), leader-only engine** that drains every `API.write()` request one at a time, with exponential backoff on failure, surviving offline periods and (for most requests) app restarts. It is a coordinator over four collaborators:
 
