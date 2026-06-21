@@ -12,8 +12,8 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type SpendRuleRestrictionTypeToggleRevampProps = {
-    restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
-    onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION>) => void;
+    restrictionAction: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null;
+    onSelect: (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => void;
     label: string;
     icon?: IconAsset;
 };
@@ -23,6 +23,7 @@ function SpendRuleRestrictionTypeToggleRevamp({restrictionAction, onSelect, labe
     const theme = useTheme();
     const {translate} = useLocalize();
 
+    const isOffSelected = restrictionAction === null;
     const isAllowSelected = restrictionAction === CONST.SPEND_RULES.ACTION.ALLOW;
     const isBlockSelected = restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK;
 
@@ -39,6 +40,16 @@ function SpendRuleRestrictionTypeToggleRevamp({restrictionAction, onSelect, labe
             )}
             <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{label}</Text>
             <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
+                <Button
+                    text={translate('common.off')}
+                    onPress={() => onSelect(null)}
+                    small
+                    style={styles.ph0}
+                    innerStyles={!isOffSelected ? styles.bgTransparent : undefined}
+                    textStyles={[styles.alignSelfCenter, !isOffSelected ? styles.textSupporting : undefined]}
+                    accessibilityLabel={translate('common.off')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_RESTRICTION_TYPE}
+                />
                 <Button
                     text={translate('workspace.rules.spendRules.allow')}
                     onPress={() => onSelect(CONST.SPEND_RULES.ACTION.ALLOW)}

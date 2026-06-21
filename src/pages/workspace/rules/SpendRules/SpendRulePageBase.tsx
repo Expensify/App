@@ -93,14 +93,6 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     useEffect(() => () => clearDraftSpendRule(), []);
 
     useEffect(() => {
-        if (!isNewRule || spendRuleForm?.restrictionAction) {
-            return;
-        }
-
-        updateDraftSpendRule({restrictionAction: CONST.SPEND_RULES.ACTION.ALLOW});
-    }, [isNewRule, spendRuleForm?.restrictionAction]);
-
-    useEffect(() => {
         if (!isEditingRule || !existingFormValues) {
             return;
         }
@@ -188,9 +180,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const hasSelectedCards = !!cardIDs?.length;
     const hasMaxAmount = maxAmount.trim() !== '';
     const hasAnyCurrency = currencies.length > 0;
-    const shouldIncludeMerchantRestrictions = isRulesRevampEnabled || !isRestrictMerchantsOff;
-    const hasAnyCategory = categories.length > 0 && shouldIncludeMerchantRestrictions;
-    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '') && shouldIncludeMerchantRestrictions;
+    const hasAnyCategory = categories.length > 0 && !isRestrictMerchantsOff;
+    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '') && !isRestrictMerchantsOff;
     const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
     const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
 
@@ -210,9 +201,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
         const updatedSpendRuleForm = {
             ...spendRuleForm,
-            categories: shouldIncludeMerchantRestrictions ? categories : [],
-            merchantNames: shouldIncludeMerchantRestrictions ? spendRuleForm.merchantNames : [],
-            merchantMatchTypes: shouldIncludeMerchantRestrictions ? spendRuleForm.merchantMatchTypes : [],
+            categories: !isRestrictMerchantsOff ? categories : [],
+            merchantNames: !isRestrictMerchantsOff ? spendRuleForm.merchantNames : [],
+            merchantMatchTypes: !isRestrictMerchantsOff ? spendRuleForm.merchantMatchTypes : [],
         };
 
         clearError();
@@ -349,14 +340,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         shouldIconUseAutoWidthStyle: true,
     });
 
-    const handleRestrictionActionSelect = (action: typeof restrictionAction) => {
-        if (!canWriteSpendRules) {
-            showReadOnlyModal();
-            return;
-        }
-        clearError();
-        updateDraftSpendRule({restrictionAction: action});
-    };
+    const handleRestrictionActionSelect = setSpendRuleRestrictionType;
 
     const spendRuleSectionSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SECTION_ITEM;
     const merchantRuleSectionSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM;
@@ -428,13 +412,17 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             {maxAmountMenuItem}
             <View style={[styles.ph5, styles.pv3]}>
                 <SpendRuleRestrictionTypeToggleRevamp
-                    restrictionAction={restrictionAction}
+                    restrictionAction={!isRestrictMerchantsOff ? restrictionAction : null}
                     label={translate('workspace.rules.spendRules.setRestrictions')}
                     onSelect={handleRestrictionActionSelect}
                 />
             </View>
-            {merchantMenuItem}
-            {categoryMenuItem}
+            {!isRestrictMerchantsOff && (
+                <>
+                    {merchantMenuItem}
+                    {categoryMenuItem}
+                </>
+            )}
         </>
     );
 
