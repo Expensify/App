@@ -97,42 +97,38 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.justifyContentCenter]}>
-                            <Badge
-                                text={tableRowItem.typeLabel}
-                                icon={Expensicons.Pencil}
-                                iconFill={badgeColors.textColor}
-                                badgeStyles={[
-                                    styles.ml0,
-                                    styles.justifyContentCenter,
-                                    styles.borderNone,
-                                    StyleUtils.getMinimumWidth(variables.componentSizeNormal),
-                                    StyleUtils.getBackgroundColorStyle(badgeColors.backgroundColor),
-                                ]}
-                                textStyles={StyleUtils.getColorStyle(badgeColors.textColor)}
-                                isCondensed
-                            />
-                        </View>
-                    )}
-
-                    {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1]}>
-                            <TextWithTooltip
-                                numberOfLines={1}
-                                text={tableRowItem.conditionText}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            />
-                        </View>
-                    )}
-
-                    {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1]}>
-                            <TextWithTooltip
-                                numberOfLines={1}
-                                text={tableRowItem.ruleDescription}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                            />
-                        </View>
+                        <>
+                            <View style={[styles.justifyContentCenter]}>
+                                <Badge
+                                    text={tableRowItem.typeLabel}
+                                    icon={Expensicons.Pencil}
+                                    iconFill={badgeColors.textColor}
+                                    badgeStyles={[
+                                        styles.ml0,
+                                        styles.justifyContentCenter,
+                                        styles.borderNone,
+                                        StyleUtils.getMinimumWidth(variables.componentSizeNormal),
+                                        StyleUtils.getBackgroundColorStyle(badgeColors.backgroundColor),
+                                    ]}
+                                    textStyles={StyleUtils.getColorStyle(badgeColors.textColor)}
+                                    isCondensed
+                                />
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <TextWithTooltip
+                                    numberOfLines={1}
+                                    text={tableRowItem.conditionText}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <TextWithTooltip
+                                    numberOfLines={1}
+                                    text={tableRowItem.ruleDescription}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            </View>
+                        </>
                     )}
 
                     <Icon

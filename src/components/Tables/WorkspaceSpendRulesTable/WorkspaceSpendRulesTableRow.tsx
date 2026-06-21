@@ -8,7 +8,6 @@ import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,9 +39,8 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lock', 'CircleSlash', 'Checkmark']);
-    const {processedData, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext<SpendRuleTableItem>();
+    const {processedData} = useTableContext<SpendRuleTableItem>();
 
     const tableRowItem = processedData.at(rowIndex) ?? item;
     const isDeleting = tableRowItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -67,14 +65,6 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
         />
     ) : undefined;
 
-    const handleLongPress = () => {
-        if (isDeleting || tableRowItem.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout) {
-            return;
-        }
-
-        tableMethods.setMobileSelectionModalRowKey(tableRowItem.keyForList);
-    };
-
     return (
         <>
             {!!showSectionHeader && (
@@ -94,7 +84,6 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
                 offlineWithFeedback={{pendingAction: tableRowItem.pendingAction, shouldHideOnDelete: false}}
                 onPress={tableRowItem.action}
-                onLongPress={handleLongPress}
                 checkboxReplacementElement={lockIcon}
             >
                 {({hovered}) => (
@@ -125,36 +114,32 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
                         )}
 
                         {!shouldUseNarrowTableLayout && (
-                            <View style={[styles.justifyContentCenter]}>
-                                <Badge
-                                    text={tableRowItem.actionLabel}
-                                    icon={tableRowItem.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
-                                    badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(variables.componentSizeNormal)]}
-                                    error={tableRowItem.isBlock}
-                                    success={!tableRowItem.isBlock}
-                                    isCondensed
-                                />
-                            </View>
-                        )}
-
-                        {!shouldUseNarrowTableLayout && (
-                            <View style={[styles.flex1]}>
-                                <TextWithTooltip
-                                    numberOfLines={1}
-                                    text={tableRowItem.cardSummary}
-                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                                />
-                            </View>
-                        )}
-
-                        {!shouldUseNarrowTableLayout && (
-                            <View style={[styles.flex1]}>
-                                <TextWithTooltip
-                                    numberOfLines={1}
-                                    text={tableRowItem.ruleSummary}
-                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                                />
-                            </View>
+                            <>
+                                <View style={[styles.justifyContentCenter]}>
+                                    <Badge
+                                        text={tableRowItem.actionLabel}
+                                        icon={tableRowItem.isBlock ? Expensicons.CircleSlash : Expensicons.Checkmark}
+                                        badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(variables.componentSizeNormal)]}
+                                        error={tableRowItem.isBlock}
+                                        success={!tableRowItem.isBlock}
+                                        isCondensed
+                                    />
+                                </View>
+                                <View style={[styles.flex1]}>
+                                    <TextWithTooltip
+                                        numberOfLines={1}
+                                        text={tableRowItem.cardSummary}
+                                        style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                    />
+                                </View>
+                                <View style={[styles.flex1]}>
+                                    <TextWithTooltip
+                                        numberOfLines={1}
+                                        text={tableRowItem.ruleSummary}
+                                        style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                    />
+                                </View>
+                            </>
                         )}
 
                         <Icon

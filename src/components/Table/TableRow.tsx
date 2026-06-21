@@ -170,7 +170,7 @@ export default function TableRow({
     };
 
     const handleRowLongPress = () => {
-        if (isDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
+        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
             return;
         }
 

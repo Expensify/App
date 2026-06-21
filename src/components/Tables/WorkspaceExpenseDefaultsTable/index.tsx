@@ -36,7 +36,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
         {key: 'condition', label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'), sortable: true},
-        {key: 'rule', label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'), sortable: false},
+        {key: 'rule', label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'), sortable: true},
         {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
     ];
 
@@ -55,6 +55,10 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
 
         if (activeSorting.columnKey === 'condition') {
             return localeCompare(a.conditionText, b.conditionText) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'rule') {
+            return localeCompare(a.ruleDescription, b.ruleDescription) * orderMultiplier;
         }
 
         return 0;

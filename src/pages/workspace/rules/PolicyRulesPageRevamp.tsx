@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -62,7 +63,7 @@ const RULES_TAB = CONST.TAB.RULES;
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
 
-type RulesTab = (typeof RULES_TAB)[keyof typeof RULES_TAB];
+type RulesTab = ValueOf<typeof RULES_TAB>;
 
 const RULES_TAB_VALUES = new Set<string>(Object.values(RULES_TAB));
 
@@ -485,25 +486,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         [StyleUtils, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, shouldUseNarrowLayout, styles, translate],
     );
 
-    const renderExpenseDefaultsContent = () => (
-        <WorkspaceExpenseDefaultsTable
-            rulesData={expenseDefaultsTableData}
-            selectionEnabled={canWriteRules}
-            selectedKeys={selectedExpenseDefaultKeys}
-            onRowSelectionChange={handleExpenseDefaultSelectionChange}
-        />
-    );
-
-    const renderCardRestrictionsContent = () => (
-        <WorkspaceSpendRulesTable
-            rulesData={areCardsEnabled ? spendRulesTableData : []}
-            selectionEnabled={canWriteRules}
-            selectedKeys={selectedSpendRuleKeys}
-            onRowSelectionChange={handleSpendRuleSelectionChange}
-            emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
-        />
-    );
-
     const renderTabContent = () => {
         switch (activeTab) {
             case RULES_TAB.GENERAL:
@@ -579,8 +561,23 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                         {activeTab === RULES_TAB.GENERAL && renderTabContent()}
                         {isTableTab && (
                             <View style={[styles.flex1, styles.mnh0]}>
-                                {activeTab === RULES_TAB.CARD_RESTRICTIONS && renderCardRestrictionsContent()}
-                                {activeTab === RULES_TAB.EXPENSE_DEFAULTS && renderExpenseDefaultsContent()}
+                                {activeTab === RULES_TAB.CARD_RESTRICTIONS && (
+                                    <WorkspaceSpendRulesTable
+                                        rulesData={areCardsEnabled ? spendRulesTableData : []}
+                                        selectionEnabled={canWriteRules}
+                                        selectedKeys={selectedSpendRuleKeys}
+                                        onRowSelectionChange={handleSpendRuleSelectionChange}
+                                        emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
+                                    />
+                                )}
+                                {activeTab === RULES_TAB.EXPENSE_DEFAULTS && (
+                                    <WorkspaceExpenseDefaultsTable
+                                        rulesData={expenseDefaultsTableData}
+                                        selectionEnabled={canWriteRules}
+                                        selectedKeys={selectedExpenseDefaultKeys}
+                                        onRowSelectionChange={handleExpenseDefaultSelectionChange}
+                                    />
+                                )}
                             </View>
                         )}
                         {isCustomAgentBetaEnabled && !isRulesRevampEnabled && (
