@@ -7357,7 +7357,7 @@ ${amount} para ${merchant} - ${date}`,
             agentRules: {
                 title: 'Reglas del agente',
                 subtitle: 'Configura reglas para cómo los agentes de IA gestionan los gastos en este espacio de trabajo.',
-                enforcedBy: 'Las reglas de agente son aplicadas por',
+                enforcedBy: 'Las reglas del agente se aplican mediante',
                 ruleBotName: 'RuleBot',
                 addRule: 'Añadir regla de agente',
                 findRule: 'Encontrar regla de agente',

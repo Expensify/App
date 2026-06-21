@@ -7416,7 +7416,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             agentRules: {
                 title: 'Zasady agenta',
                 subtitle: 'Ustaw zasady dotyczące tego, jak agenci AI obsługują wydatki w tym obszarze roboczym.',
-                enforcedBy: 'Reguły agenta są egzekwowane przez',
+                enforcedBy: 'Zasady agenta są egzekwowane przez',
                 ruleBotName: 'RuleBot',
                 addRule: 'Dodaj regułę agenta',
                 findRule: 'Znajdź regułę agenta',

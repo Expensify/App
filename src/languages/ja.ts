@@ -7364,7 +7364,7 @@ ${reportName}`,
             agentRules: {
                 title: 'エージェントルール',
                 subtitle: 'このワークスペースで AI エージェントが経費を処理する方法のルールを設定します。',
-                enforcedBy: 'エージェントルールの適用者：',
+                enforcedBy: 'エージェントルールは次によって適用されます',
                 ruleBotName: 'RuleBot',
                 addRule: 'エージェントルールを追加',
                 findRule: 'エージェントルールを検索',
