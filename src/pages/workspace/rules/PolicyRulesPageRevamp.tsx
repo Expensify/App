@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
@@ -103,16 +103,34 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules} = useExpensifyCardRules(policyID);
+    const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
+    const attemptedCardSettingsFetchRef = useRef<Set<number>>(new Set());
+    const hasFetchedRulesRef = useRef(false);
+    const hadPendingCodingRulesRef = useRef(false);
 
     useEffect(() => {
-        if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
+        attemptedCardSettingsFetchRef.current.clear();
+        hasFetchedRulesRef.current = false;
+        hadPendingCodingRulesRef.current = false;
+    }, [policyID]);
+
+    useEffect(() => {
+        if (!areCardsEnabled || !defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
             return;
         }
-        if (expensifyCardSettings?.isLoading || expensifyCardSettings?.hasOnceLoaded) {
+        if (expensifyCardSettings?.isLoading) {
             return;
         }
+        if (expensifyCardSettings?.hasOnceLoaded) {
+            return;
+        }
+        if (attemptedCardSettingsFetchRef.current.has(defaultFundID)) {
+            return;
+        }
+
+        attemptedCardSettingsFetchRef.current.add(defaultFundID);
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [defaultFundID, expensifyCardSettings?.hasOnceLoaded, expensifyCardSettings?.isLoading, policyID]);
+    }, [areCardsEnabled, defaultFundID, expensifyCardSettings?.hasOnceLoaded, expensifyCardSettings?.isLoading, policyID]);
 
     const showBuiltInProtectionModal = useCallback(() => {
         showConfirmModal({
@@ -245,17 +263,23 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         [policy?.rules?.codingRules],
     );
 
-    const fetchRules = useCallback(() => {
+    useEffect(() => {
         // Avoid refetching while optimistic create/update is in flight — a stale OpenPolicyRulesPage response can overwrite the new rule.
         if (hasPendingCodingRules) {
+            hadPendingCodingRulesRef.current = true;
             return;
         }
+
+        const shouldFetchRules = !hasFetchedRulesRef.current || hadPendingCodingRulesRef.current;
+        hadPendingCodingRulesRef.current = false;
+
+        if (!shouldFetchRules) {
+            return;
+        }
+
+        hasFetchedRulesRef.current = true;
         openPolicyRulesPage(policyID);
     }, [hasPendingCodingRules, policyID]);
-
-    useEffect(() => {
-        fetchRules();
-    }, [fetchRules]);
 
     const selectedRuleKeys = useMemo(() => {
         if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
@@ -427,8 +451,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     };
 
     const headerButtons = getHeaderContent();
-
-    const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
 
     const handleGetExpensifyCardPress = useCallback(() => {
         enableExpensifyCard(policyID, true, true);
