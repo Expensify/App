@@ -246,8 +246,7 @@ function reauthenticate(command = ''): Promise<boolean> {
                 // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
                 if (isConnectedAsDelegate({delegatedAccess: account?.delegatedAccess})) {
                     Log.info('[Reauthenticate] Reauthenticate while connected as a delegate. Restoring original account.');
-                    restoreDelegateSession(response);
-                    return true;
+                    return restoreDelegateSession(response).then(() => true);
                 }
 
                 // Update authToken in Onyx and in our local variables so that API requests will use the new authToken

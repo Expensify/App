@@ -37,7 +37,10 @@ function DelegatorConnectGate({children, delegatorEmail}: DelegatorConnectGatePr
             activePolicyID,
             isFromOldDot: true,
         })?.then((success) => {
-            App.setAppLoading(!!success);
+            if (!success) {
+                connectPromise = null;
+                App.setAppLoading(false);
+            }
             return success;
         }) ?? Promise.resolve(undefined);
 

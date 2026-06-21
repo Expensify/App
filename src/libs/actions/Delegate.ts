@@ -34,6 +34,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.SESSION,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.HAS_LOADED_APP,
+    ONYXKEYS.CREDENTIALS,
     ONYXKEYS.STASHED_CREDENTIALS,
     ONYXKEYS.HYBRID_APP,
 
@@ -754,8 +755,8 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
-function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Response<TKey>) {
-    clearOnyxForDelegateTransition().then(() => {
+function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Response<TKey>): Promise<void> {
+    return clearOnyxForDelegateTransition().then(() => {
         updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
         updateSessionUser(authenticateResponse?.accountID, authenticateResponse?.email);
 
@@ -763,7 +764,7 @@ function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Resp
         NetworkStore.setIsAuthenticating(false);
 
         confirmReadyToOpenApp();
-        openApp();
+        return openApp().then(() => undefined);
     });
 }
 
