@@ -1,10 +1,10 @@
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
+import {useRefMirror} from '@hooks/useCallbackRef';
 
 type SubNavigationActions = {
-    enterSub: (id: string) => void;
+    enterSub: (id: string, level: number) => void;
     exitSub: (target?: string | null) => void;
     registerSub: (subID: string) => void;
-    /** Pops to the nearest still-mounted ancestor when an active sub unmounts. */
     unregisterSub: (subID: string) => void;
 };
 
@@ -15,9 +15,18 @@ type UseSubNavigationResult = {
 };
 
 function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubNavigationResult {
-    // Outermost → active level; empty = top.
     const [pathStack, setPathStack] = useState<string[]>([]);
     const mountedSubs = useRef<Set<string>>(new Set());
+
+    const onLevelChangeRef = useRefMirror(onLevelChange);
+    const previousPathStack = useRef(pathStack);
+    useEffect(() => {
+        if (previousPathStack.current === pathStack) {
+            return;
+        }
+        previousPathStack.current = pathStack;
+        onLevelChangeRef.current();
+    }, [pathStack, onLevelChangeRef]);
 
     const currentSubID = pathStack.length > 0 ? (pathStack.at(-1) ?? null) : null;
 
@@ -26,20 +35,23 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
         return idx >= 0 && idx < pathStack.length - 1;
     };
 
-    const actions: SubNavigationActions = {
-        enterSub: (id) => {
-            setPathStack((prev) => [...prev, id]);
-            onLevelChange();
+    const [actions] = useState<SubNavigationActions>(() => ({
+        enterSub: (id, level) => {
+            setPathStack((prev) => {
+                if (level > prev.length) {
+                    return prev;
+                }
+                return [...prev.slice(0, level), id];
+            });
         },
         exitSub: (target = null) => {
             setPathStack((prev) => {
                 if (target === null) {
-                    return [];
+                    return prev.length === 0 ? prev : [];
                 }
                 const idx = prev.indexOf(target);
                 return idx < 0 ? prev : prev.slice(0, idx + 1);
             });
-            onLevelChange();
         },
         registerSub: (subID) => {
             mountedSubs.current.add(subID);
@@ -50,7 +62,6 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
                 if (prev.at(-1) !== subID) {
                     return prev;
                 }
-                // Cascade past any further unmounted ancestors to the nearest still-mounted one.
                 let next = prev.slice(0, -1);
                 while (next.length > 0) {
                     const top = next.at(-1);
@@ -61,9 +72,8 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
                 }
                 return next;
             });
-            onLevelChange();
         },
-    };
+    }));
 
     return {
         currentSubID,

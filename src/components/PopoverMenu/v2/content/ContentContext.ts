@@ -9,52 +9,29 @@ type FocusableItem = {
     text?: string;
 };
 
-type ContentNavigation = {
-    currentSubID: string | null;
-    isAncestorOfCurrent: (subID: string) => boolean;
+type ContentState = {
+    readonly focusedID: string | null;
+    readonly currentSubID: string | null;
+    readonly isAncestorOfCurrent: (subID: string) => boolean;
 };
 
-// Split from navigation so focus changes don't re-render navigation-only consumers.
-type ContentFocus = {
-    focusedID: string | null;
+type ContentActions = {
+    readonly enterSub: (id: string, level: number) => void;
+    readonly exitSub: (target?: string | null) => void;
+    readonly registerSub: (subID: string) => void;
+    readonly unregisterSub: (subID: string) => void;
+    readonly registerItem: (id: string, item: FocusableItem) => void;
+    readonly unregisterItem: (id: string) => void;
+    readonly setFocusedID: (id: string | null) => void;
+    readonly close: () => void;
 };
 
-type ContentSubActions = {
-    enterSub: (id: string) => void;
-    /** `null` pops to root. */
-    exitSub: (target?: string | null) => void;
-    registerSub: (subID: string) => void;
-    /** Pops to the nearest still-mounted ancestor when an active sub unmounts. */
-    unregisterSub: (subID: string) => void;
+type ContentContextValue = {
+    readonly state: ContentState;
+    readonly actions: ContentActions;
 };
 
-type ContentItemActions = {
-    registerItem: (id: string, item: FocusableItem) => void;
-    unregisterItem: (id: string) => void;
-    setFocusedID: (id: string | null) => void;
-};
+const [ContentContext, useContent] = createContextNamespace('PopoverMenu.Content')<ContentContextValue>();
 
-/** Closes and resets sub-navigation + focus state. */
-type ContentClose = () => void;
-
-const createContentContext = createContextNamespace('PopoverMenu.Content');
-
-const [ContentNavigationContext, useContentNavigation] = createContentContext<ContentNavigation>('Navigation');
-const [ContentFocusContext, useContentFocus] = createContentContext<ContentFocus>('Focus');
-const [ContentSubActionsContext, useContentSubActions] = createContentContext<ContentSubActions>('SubActions');
-const [ContentItemActionsContext, useContentItemActions] = createContentContext<ContentItemActions>('ItemActions');
-const [ContentCloseContext, useContentClose] = createContentContext<ContentClose>('Close');
-
-export {
-    ContentNavigationContext,
-    ContentFocusContext,
-    ContentSubActionsContext,
-    ContentItemActionsContext,
-    ContentCloseContext,
-    useContentNavigation,
-    useContentFocus,
-    useContentSubActions,
-    useContentItemActions,
-    useContentClose,
-};
-export type {ContentNavigation, ContentFocus, ContentSubActions, ContentItemActions, ContentClose, FocusableItem};
+export {ContentContext, useContent};
+export type {ContentActions, ContentContextValue, ContentState, FocusableItem};

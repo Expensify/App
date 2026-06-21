@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
+import {useRoot} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,8 +8,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
+import ResponsiveShell from './ResponsiveShell';
+import useContentController from './useContentController';
 import useMaxHeightStyle from './useMaxHeightStyle';
 
 type ScrollableContentProps = BasePopoverProps & {
@@ -18,12 +19,13 @@ type ScrollableContentProps = BasePopoverProps & {
 
 const VIRTUALIZATION_RECOMMENDED_THRESHOLD = 50;
 
-/** Popover surface for bounded-but-tall menus; wraps children in a `<ScrollView>` capped at window height. */
-function ScrollableContent({contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
+function ScrollableContent({contentContainerStyle, children, containerStyles, onExitComplete, testID, anchorAlignment}: ScrollableContentProps): React.ReactElement | null {
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float on desktop, so device width drives the padding split.
     const {isSmallScreenWidth} = useResponsiveLayout();
-    useRootVisibility(ScrollableContent.displayName);
+    const {state, meta} = useRoot(ScrollableContent.displayName);
+    const {isOpen} = state;
+    const {triggerID, contentID} = meta;
     if (__DEV__) {
         const childCount = React.Children.count(children);
         if (childCount > VIRTUALIZATION_RECOMMENDED_THRESHOLD) {
@@ -33,20 +35,28 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
         }
     }
     const {windowHeight} = useWindowDimensions();
-    // Cap to window height (with a floor of POPOVER_MENU_MAX_HEIGHT) so the inner scroll has room.
     const maxHeightStyle = useMaxHeightStyle({
         desktopFallback: {maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)},
     });
+    const controller = useContentController(ScrollableContent.displayName);
+
+    const scrolledChildren = <ScrollView contentContainerStyle={[isSmallScreenWidth ? styles.pv4 : styles.pv2, contentContainerStyle]}>{children}</ScrollView>;
 
     return (
-        <BaseContent
-            {...rest}
+        <ResponsiveShell
             componentName={ScrollableContent.displayName}
+            controller={controller}
+            isOpen={isOpen}
+            triggerID={triggerID}
+            contentID={contentID}
+            anchorAlignment={anchorAlignment}
             maxHeightStyle={maxHeightStyle}
-            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+            containerStyles={containerStyles}
+            onExitComplete={onExitComplete}
+            testID={testID}
         >
-            <ScrollView contentContainerStyle={[isSmallScreenWidth ? styles.pv4 : styles.pv2, contentContainerStyle]}>{children}</ScrollView>
-        </BaseContent>
+            {scrolledChildren}
+        </ResponsiveShell>
     );
 }
 

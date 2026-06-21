@@ -1,15 +1,19 @@
 import {NavigationContext} from '@react-navigation/core';
 import {use, useEffect} from 'react';
 
-/** Soft-reads `NavigationContext`; no-ops when rendered outside a `<NavigationContainer>`. */
-function useCloseOnScreenBlur(close: () => void): void {
+function useCloseOnScreenBlur(close: () => void, isOpen: boolean): void {
     const navigation = use(NavigationContext);
     useEffect(() => {
-        if (!navigation) {
+        if (!navigation || !isOpen) {
             return undefined;
         }
-        return navigation.addListener('blur', close);
-    }, [navigation, close]);
+        return navigation.addListener('blur', () => {
+            if (navigation.isFocused()) {
+                return;
+            }
+            close();
+        });
+    }, [navigation, close, isOpen]);
 }
 
 export default useCloseOnScreenBlur;

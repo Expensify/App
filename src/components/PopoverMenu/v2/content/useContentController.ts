@@ -1,38 +1,62 @@
-import {useRootActions, useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
-import type {ContentClose, ContentFocus, ContentItemActions, ContentNavigation, ContentSubActions} from './ContentContext';
-import useCloseOnModalCover from './useCloseOnModalCover';
+import {useEffect, useRef} from 'react';
+import {useIsModalCovering} from '@components/Overlay/hooks/useOverlaySelectors';
+import usePreviousRenderValue from '@components/Overlay/hooks/usePreviousRenderValue';
+import {useRoot} from '@components/PopoverMenu/v2/root/RootContext';
+import useCallbackRef from '@hooks/useCallbackRef';
+import type {ContentContextValue} from './ContentContext';
 import useCloseOnScreenBlur from './useCloseOnScreenBlur';
 import useFocusableRegistry from './useFocusableRegistry';
 import useSubNavigation from './useSubNavigation';
 
-function useContentController(componentName: string): {
-    navigation: ContentNavigation;
-    focus: ContentFocus;
-    subActions: ContentSubActions;
-    itemActions: ContentItemActions;
-    close: ContentClose;
-} {
-    const {isVisible} = useRootVisibility(componentName);
-    const {setIsVisible} = useRootActions(componentName);
+function useContentController(componentName: string): ContentContextValue {
+    const {state, actions} = useRoot(componentName);
+    const {isOpen} = state;
+    const {close: closeRoot} = actions;
 
-    const focus = useFocusableRegistry({isVisible});
-    // Order matters: `focus` must exist before `subNav` so `resetFocus` is in scope for `onLevelChange`.
+    const focus = useFocusableRegistry({isOpen});
     const subNav = useSubNavigation({onLevelChange: focus.resetFocus});
 
-    const close: ContentClose = () => {
-        setIsVisible(false);
-        subNav.actions.exitSub(null);
-    };
+    const exitSub = useCallbackRef(subNav.actions.exitSub);
+    const wasOpen = usePreviousRenderValue(isOpen, isOpen);
+    useEffect(() => {
+        if (wasOpen || !isOpen) {
+            return;
+        }
+        exitSub(null);
+    }, [isOpen, wasOpen, exitSub]);
 
-    useCloseOnModalCover(isVisible, close);
-    useCloseOnScreenBlur(close);
+    const close = useCallbackRef(() => {
+        closeRoot();
+    });
+
+    const isCovered = useIsModalCovering();
+    const prevIsCoveredRef = useRef(isCovered);
+    useEffect(() => {
+        const justBecameCovered = !prevIsCoveredRef.current && isCovered;
+        prevIsCoveredRef.current = isCovered;
+        if (justBecameCovered && isOpen) {
+            close();
+        }
+    }, [isCovered, isOpen, close]);
+
+    useCloseOnScreenBlur(close, isOpen);
 
     return {
-        navigation: {currentSubID: subNav.currentSubID, isAncestorOfCurrent: subNav.isAncestorOfCurrent},
-        focus: {focusedID: focus.focusedID},
-        subActions: subNav.actions,
-        itemActions: focus.actions,
-        close,
+        state: {
+            focusedID: focus.focusedID,
+            currentSubID: subNav.currentSubID,
+            isAncestorOfCurrent: subNav.isAncestorOfCurrent,
+        },
+        actions: {
+            enterSub: subNav.actions.enterSub,
+            exitSub: subNav.actions.exitSub,
+            registerSub: subNav.actions.registerSub,
+            unregisterSub: subNav.actions.unregisterSub,
+            registerItem: focus.actions.registerItem,
+            unregisterItem: focus.actions.unregisterItem,
+            setFocusedID: focus.actions.setFocusedID,
+            close,
+        },
     };
 }
 

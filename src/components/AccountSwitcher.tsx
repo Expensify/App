@@ -2,7 +2,6 @@ import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,8 +25,8 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
+import {Confirm, DialogActions} from './Dialog';
 import Icon from './Icon';
-import {ModalActions} from './Modal/Global/ModalContext';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
@@ -76,26 +75,23 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         isScreenFocused && canSwitchAccounts,
     );
 
-    const {showConfirmModal} = useConfirmModal();
-
     const showOfflineModal = () => {
-        showConfirmModal({
+        Confirm.upsert({
             title: translate('common.youAppearToBeOffline'),
             prompt: translate('common.offlinePrompt'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
+            submit: {text: translate('common.buttonConfirm')},
         });
     };
 
     const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
-        const result = await showConfirmModal({
+        const result = await Confirm.call({
             title: translate('gps.switchAccountWarningTripInProgress.title'),
             prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
-            confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
-            cancelText: translate('common.cancel'),
+            submit: {text: translate('gps.switchAccountWarningTripInProgress.confirm')},
+            cancel: {text: translate('common.cancel')},
         });
 
-        if (result.action !== ModalActions.CONFIRM) {
+        if (result.action !== DialogActions.CONFIRM) {
             return;
         }
 

@@ -73,4 +73,3 @@ function usePopoverPosition() {
 }
 
 export default usePopoverPosition;
-export {computeAnchorPosition};

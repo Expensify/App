@@ -1,8 +1,6 @@
 import React, {useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDecisionModal from '@hooks/useDecisionModal';
-import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -12,6 +10,7 @@ import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesRepor
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {Decision, HoldMenu} from './Dialog';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
 import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
@@ -49,41 +48,53 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const transactionIDs = transactions.map((t) => t.transactionID);
 
-    // Imperative modals
-    const {showHoldMenu} = useHoldMenuModal();
-    const {showDecisionModal} = useDecisionModal();
     const {translate} = useLocalize();
 
     const showOfflineModal = () => {
-        showDecisionModal({
+        // `upsert` so rapid taps don't stack duplicate offline dialogs.
+        Decision.upsert({
             title: translate('common.youAppearToBeOffline'),
             prompt: translate('common.offlinePrompt'),
             secondOptionText: translate('common.buttonConfirm'),
+            secondOptionVariant: 'neutral',
         });
     };
 
     const showDownloadErrorModal = () => {
-        showDecisionModal({
+        Decision.upsert({
             title: translate('common.downloadFailedTitle'),
             prompt: translate('common.downloadFailedDescription'),
             secondOptionText: translate('common.buttonConfirm'),
+            secondOptionVariant: 'neutral',
         });
     };
 
     const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
-        const open = () =>
-            showHoldMenu({
+        const open = () => {
+            // Discriminated union: presence of `nonHeldAmount` selects partial dialog; absence selects full-only with `transactionCount`.
+            if (!hasOnlyHeldExpenses && hasValidNonHeldAmount) {
+                return HoldMenu.upsert({
+                    reportID: moneyRequestReport?.reportID,
+                    chatReportID: chatReport?.reportID,
+                    requestType,
+                    paymentType,
+                    methodID,
+                    fullAmount,
+                    onConfirm,
+                    nonHeldAmount,
+                });
+            }
+            return HoldMenu.upsert({
                 reportID: moneyRequestReport?.reportID,
                 chatReportID: chatReport?.reportID,
                 requestType,
                 paymentType,
                 methodID,
-                nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
                 fullAmount,
-                hasNonHeldExpenses: !hasOnlyHeldExpenses,
-                transactionCount: transactionIDs.length,
                 onConfirm,
+                transactionCount: transactionIDs.length,
             });
+        };
 
         // On iOS, defer by one frame so the current touch animation finishes before the modal opens
         if (getPlatform() === CONST.PLATFORM.IOS) {

@@ -15,7 +15,11 @@
                 "metro.config.js",
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
-                "rock.config.mjs"
+                "rock.config.mjs",
+                "src/components/Modal/v2/index.ts",
+                "src/components/Dialog/index.ts",
+                "src/components/Popover/v2/index.ts",
+                "src/components/PopoverMenu/v2/index.tsx"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
@@ -28,7 +32,17 @@
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"
             ],
-            "ignore": [".github/actions/**/index.js", "tests/perf-test/**", "web/snippets/gib.js", "src/libs/actions/connections/FinancialForce.ts"],
+            "ignore": [
+                ".github/actions/**/index.js",
+                "tests/perf-test/**",
+                "web/snippets/gib.js",
+                "src/libs/actions/connections/FinancialForce.ts",
+                "src/components/Overlay/**",
+                "src/components/Modal/v2/**",
+                "src/components/Dialog/**",
+                "src/components/Popover/v2/**",
+                "src/components/PopoverMenu/v2/**"
+            ],
             "eslint": {
                 "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
             },

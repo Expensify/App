@@ -1,8 +1,7 @@
 export {default as Root} from './Root';
-export type {RootProps} from './Root';
+export type {RootProps as PopoverMenuRootProps} from './Root';
 export {default as Trigger} from './Trigger';
-export type {TriggerProps} from './Trigger';
-export {default as SecondaryInteractionTrigger} from './SecondaryInteractionTrigger';
-export type {SecondaryInteractionTriggerProps} from './SecondaryInteractionTrigger';
-export {default as useIsPopoverVisible} from './useIsPopoverVisible';
-export type {AnchorRef} from './RootContext';
+export type {InteractionMode as PopoverMenuTriggerInteractionMode, TriggerProps as PopoverMenuTriggerProps} from './Trigger';
+export {default as useIsOpen} from './useIsOpen';
+export {default as useTrigger} from './useTrigger';
+export type {UseTriggerResult as UsePopoverMenuTriggerResult} from './useTrigger';

@@ -13,7 +13,6 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -177,9 +176,6 @@ function AttachmentModalBaseContent({
             onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
         });
     }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
-
-    // Close the modal when the escape key is pressed
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose?.(), {shouldBubble: true});
 
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
     useEffect(() => {

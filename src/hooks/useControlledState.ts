@@ -1,0 +1,44 @@
+import {useLayoutEffect, useRef, useState} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
+import Log from '@libs/Log';
+
+function useControlledState<T>(controlledValue: T | undefined, defaultValue: T, onChange?: (next: T) => void): [T, Dispatch<SetStateAction<T>>] {
+    const isControlled = controlledValue !== undefined;
+    const [internal, setInternal] = useState(isControlled ? (controlledValue as T) : defaultValue);
+    const current = isControlled ? (controlledValue as T) : internal;
+
+    const valueRef = useRef(current);
+    const onChangeRef = useRef(onChange);
+    const isControlledRef = useRef(isControlled);
+
+    useLayoutEffect(() => {
+        valueRef.current = current;
+        onChangeRef.current = onChange;
+        if (__DEV__ && isControlledRef.current !== isControlled) {
+            Log.warn(
+                `[useControlledState] component is changing ${isControlledRef.current ? 'a controlled' : 'an uncontrolled'} input to ${isControlled ? 'controlled' : 'uncontrolled'}. Components should not switch between controlled and uncontrolled.`,
+            );
+        }
+        isControlledRef.current = isControlled;
+    });
+
+    const [setValue] = useState<Dispatch<SetStateAction<T>>>(() => {
+        const isUpdater = (a: SetStateAction<T>): a is (prevState: T) => T => typeof a === 'function';
+        const apply: Dispatch<SetStateAction<T>> = (action) => {
+            const resolved = isUpdater(action) ? action(valueRef.current) : action;
+            if (Object.is(resolved, valueRef.current)) {
+                return;
+            }
+            valueRef.current = resolved;
+            if (!isControlledRef.current) {
+                setInternal(resolved);
+            }
+            onChangeRef.current?.(resolved);
+        };
+        return apply;
+    });
+
+    return [current, setValue];
+}
+
+export default useControlledState;

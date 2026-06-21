@@ -442,6 +442,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The accessibility role to use for this menu item */
         role?: Role;
 
+        /** Omitting falls back to `{selected: focused}` for `role={CONST.ROLE.TAB}`, otherwise undefined. */
+        accessibilityState?: React.ComponentProps<typeof View>['accessibilityState'];
+
+        /** Pass when this item opens a popup (e.g. a submenu or dialog) so AT advertises the affordance. */
+        accessibilityHasPopup?: React.ComponentProps<typeof View>['accessibilityHasPopup'];
+
         /** Whether to show the badge in a separate row */
         shouldShowBadgeInSeparateRow?: boolean;
 
@@ -602,6 +608,8 @@ function MenuItem({
     sentryLabel,
     rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
+    accessibilityState,
+    accessibilityHasPopup,
     shouldBeAccessible = true,
     tabIndex = 0,
     rightIconWrapperStyle,
@@ -879,7 +887,8 @@ function MenuItem({
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
-                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
+                                accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
+                                accessibilityHasPopup={accessibilityHasPopup}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}

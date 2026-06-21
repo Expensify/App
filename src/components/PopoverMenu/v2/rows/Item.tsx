@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContent} from '@components/PopoverMenu/v2/content/ContentContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +15,6 @@ import type {ItemSelectEvent} from './useSelectableRow';
 
 type ItemOwnProps = {
     text: string;
-    /** Call `event.preventDefault()` to keep the menu open after select. */
     onSelect?: (event: ItemSelectEvent) => void;
     disabled?: boolean;
     pendingAction?: PendingAction;
@@ -26,7 +25,7 @@ type ItemOwnProps = {
 type ItemProps = ItemOwnProps & MenuItemForwardProps;
 
 function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: ItemProps): React.ReactElement | null {
-    useContentClose(Item.displayName);
+    useContent(Item.displayName);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

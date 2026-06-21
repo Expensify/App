@@ -1,7 +1,7 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
+import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/context';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {LabelMenuItemForwardProps} from './types';
@@ -14,7 +14,6 @@ type LabelOwnProps = {
 
 type LabelProps = LabelOwnProps & LabelMenuItemForwardProps;
 
-/** Non-interactive — for clickable rows use `<Item>`. */
 function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}: LabelProps): React.ReactElement | null {
     const isAtActiveLevel = useIsAtActiveLevel(Label.displayName);
 
