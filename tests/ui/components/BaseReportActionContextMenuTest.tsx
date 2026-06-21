@@ -187,9 +187,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'parentIOUAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
@@ -214,9 +214,9 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
             reportActionID: 'iouAction',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             actorAccountID: currentUserAccountID,
+            reportID: iouReportID,
             childReportID,
             originalMessage: {
-                IOUReportID: iouReportID,
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
