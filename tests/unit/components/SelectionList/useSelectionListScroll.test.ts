@@ -2,6 +2,7 @@ import type {FlashListRef} from '@shopify/flash-list';
 import {renderHook} from '@testing-library/react-native';
 import type {RefObject} from 'react';
 import useSelectionListScroll from '@components/SelectionList/hooks/useSelectionListScroll';
+import Log from '@libs/Log';
 
 type MockItem = {keyForList: string};
 
@@ -62,7 +63,8 @@ describe('useSelectionListScroll', () => {
         expect(() => result.current.scrollToIndex(0)).not.toThrow();
     });
 
-    it('swallows a FlashList scroll error without throwing', () => {
+    it('logs a warning when FlashList throws, without rethrowing', () => {
+        const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
         const scrollToIndex = jest.fn(() => {
             throw new Error('layout not ready');
         });
@@ -70,6 +72,9 @@ describe('useSelectionListScroll', () => {
         const {result} = renderHook(() => useSelectionListScroll(listRef, data));
 
         expect(() => result.current.scrollToIndex(0)).not.toThrow();
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+
+        warnSpy.mockRestore();
     });
 
     it('debouncedScrollToIndex scrolls on the leading edge', () => {
