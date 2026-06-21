@@ -26,6 +26,9 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
 
     /** Whether the network is offline */
     isOffline: boolean;
+
+    /** Whether the app window is focused */
+    hasWindowFocus?: boolean;
 };
 
 /**
@@ -41,6 +44,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     prevSortedVisibleReportActionsObjects,
     isScrolledOverThreshold,
     isOffline,
+    hasWindowFocus = true,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
@@ -82,7 +86,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
         return !shouldIgnoreUnreadForCurrentUserMessage;
     }
 
-    return !isNewMessage || isScrolledOverThreshold;
+    return !isNewMessage || isScrolledOverThreshold || !hasWindowFocus;
 };
 
 export default shouldDisplayNewMarkerOnReportAction;
@@ -114,6 +118,9 @@ type GetUnreadMarkerReportActionParams = {
 
     /** Whether the current user is anonymous — skips the scan entirely */
     isAnonymousUser?: boolean;
+
+    /** Whether the app window is focused */
+    hasWindowFocus?: boolean;
 };
 
 /**
@@ -130,6 +137,7 @@ const getUnreadMarkerReportAction = ({
     isOffline,
     isReversed,
     isAnonymousUser = false,
+    hasWindowFocus = true,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
     if (isAnonymousUser) {
         return [null, -1];
@@ -169,6 +177,7 @@ const getUnreadMarkerReportAction = ({
                 unreadMarkerTime,
                 isScrolledOverThreshold,
                 isOffline,
+                hasWindowFocus,
             });
 
         if (shouldShowMarker) {

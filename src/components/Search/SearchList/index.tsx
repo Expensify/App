@@ -10,7 +10,8 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -26,6 +27,7 @@ import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
+import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getTableMinWidth, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
@@ -85,12 +87,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
 
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
-
-    /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
-    onAllCheckboxPress: () => void;
-
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -120,21 +116,17 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     newTransactions?: Transaction[];
 
-    /** Selected transactions for determining isSelected state */
-    selectedTransactions: SelectedTransactions;
-
     /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
     nonPersonalAndWorkspaceCards?: CardList;
 
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
-    /** Precomputed boolean: shouldShowAttendees applied to the user's policy-for-moving-expenses.
-     * Drilled instead of the policy object to avoid ref churn on unrelated policy updates. */
-    isAttendeesEnabledForMovingPolicy?: boolean;
-
     /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
     isActionColumnWide?: boolean;
+
+    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
+    isAttendeesEnabledForMovingPolicy?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -198,10 +190,8 @@ function SearchList({
     ListItem,
     SearchTableHeader,
     onSelectRow,
-    onCheckboxPress,
     canSelectMultiple,
     onScroll = () => {},
-    onAllCheckboxPress,
     contentContainerStyle,
     onEndReachedThreshold,
     onEndReached,
@@ -216,14 +206,15 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     nonPersonalAndWorkspaceCards,
-    selectedTransactions,
     hasLoadedAllTransactions,
-    isAttendeesEnabledForMovingPolicy,
     isActionColumnWide,
+    isAttendeesEnabledForMovingPolicy,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const {toggle, toggleAll} = useSearchRowSelectionActions();
+    const {selectedTransactions} = useSearchSelectionContext();
 
     const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
@@ -236,11 +227,11 @@ function SearchList({
         return data;
     }, [data, groupBy, type]);
     const emptyReports = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            return data.filter((item) => item.transactions.length === 0);
+        if (isTransactionGroupListItemArray(data)) {
+            return data.filter((item) => item.transactions.length === 0 && item.keyForList);
         }
         return [];
-    }, [data, type]);
+    }, [data]);
 
     const selectedItemsLength = useMemo(() => {
         const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
@@ -248,7 +239,7 @@ function SearchList({
             return acc + (isTransactionSelected ? 1 : 0);
         }, 0);
 
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
+        if (isTransactionGroupListItemArray(data)) {
             const selectedEmptyReports = emptyReports.reduce((acc, item) => {
                 const isEmptyReportSelected = !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
                 return acc + (isEmptyReportSelected ? 1 : 0);
@@ -258,10 +249,10 @@ function SearchList({
         }
 
         return selectedTransactionsCount;
-    }, [flattenedItems, type, data, emptyReports, selectedTransactions]);
+    }, [flattenedItems, data, emptyReports, selectedTransactions]);
 
     const totalItems = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
+        if (isTransactionGroupListItemArray(data)) {
             const selectableEmptyReports = emptyReports.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const selectableTransactions = flattenedItems.filter((item) => {
                 if ('pendingAction' in item) {
@@ -279,7 +270,7 @@ function SearchList({
             return true;
         });
         return selectableTransactions.length;
-    }, [data, type, flattenedItems, emptyReports]);
+    }, [data, flattenedItems, emptyReports]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -312,20 +303,34 @@ function SearchList({
         });
     }, []);
 
-    const shouldSplitGroups = !!groupBy && isLargeScreenWidth;
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const shouldSplitGroups = !!groupBy && isLargeScreenWidth && isWeb;
 
-    const {splitData: listData, stickyHeaderIndices} = useMemo(() => {
+    const {
+        splitData: listData,
+        stickyHeaderIndices,
+        childrenContainerIndices,
+    } = useMemo(() => {
         if (!shouldSplitGroups) {
-            return {splitData: data, stickyHeaderIndices: undefined};
+            return {splitData: data, stickyHeaderIndices: undefined, childrenContainerIndices: CONST.EMPTY_ARRAY as readonly number[]};
         }
-        const {splitData, stickyHeaderIndices: allIndices} = splitGroupsIntoPairs(data);
-        const activeIndices = allIndices.filter((idx) => {
-            const item = splitData.at(idx);
-            const originalKey = item?.keyForList?.replace('header_', '') ?? '';
-            return expandedGroups.has(originalKey);
-        });
-        return {splitData, stickyHeaderIndices: activeIndices.length > 0 ? activeIndices : undefined};
-    }, [data, shouldSplitGroups, expandedGroups]);
+
+        const {splitData, stickyHeaderIndices: splitStickyIndices} = splitGroupsIntoPairs(data);
+        const childrenIndices: number[] = [];
+
+        for (let i = 0; i < splitData.length; i++) {
+            const item = splitData.at(i);
+            if (item && isGroupChildrenContainerItem(item)) {
+                childrenIndices.push(i);
+            }
+        }
+
+        return {
+            splitData,
+            stickyHeaderIndices: splitStickyIndices.length > 0 ? splitStickyIndices : undefined,
+            childrenContainerIndices: childrenIndices,
+        };
+    }, [data, shouldSplitGroups]);
 
     const getItemType = useCallback(
         (item: SearchListItem) => {
@@ -340,6 +345,27 @@ function SearchList({
             }
             return 'default';
         },
+        [shouldSplitGroups],
+    );
+
+    const overrideItemLayout = useCallback((layout: {size?: number; span?: number}, item: SearchListItem) => {
+        if (!isGroupHeaderItem(item)) {
+            return;
+        }
+        // FlashList requires mutating the layout object passed to overrideItemLayout
+        // eslint-disable-next-line no-param-reassign -- FlashList overrideItemLayout API
+        layout.size = variables.tableRowHeight;
+    }, []);
+
+    const stickyHeaderConfig = useMemo(
+        () =>
+            shouldSplitGroups
+                ? {
+                      hideRelatedCell: true,
+                      useNativeDriver: true,
+                      zIndex: 2,
+                  }
+                : undefined,
         [shouldSplitGroups],
     );
 
@@ -404,7 +430,7 @@ function SearchList({
             return;
         }
 
-        onCheckboxPress(item, itemTransactions);
+        toggle(item, itemTransactions);
     };
 
     const handleLongPressRow = useCallback(
@@ -429,18 +455,54 @@ function SearchList({
         turnOnMobileSelectionMode();
         setIsModalVisible(false);
 
-        if (onCheckboxPress && longPressedItem) {
-            onCheckboxPress?.(longPressedItem, longPressedItemTransactions);
+        if (longPressedItem) {
+            toggle(longPressedItem, longPressedItemTransactions);
         }
-    }, [longPressedItem, onCheckboxPress, longPressedItemTransactions]);
+    }, [longPressedItem, toggle, longPressedItemTransactions]);
+
+    // In mobile selection mode a row tap toggles selection. This must live here (not in <Search>) because
+    // <Search> renders SearchWriteActionsProvider as its child, so the `toggle` it reads is the default no-op;
+    // SearchList sits inside the provider and gets the real one.
+    const handleSelectRow = useCallback(
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            if (isMobileSelectionModeEnabled) {
+                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return;
+                }
+                toggle(item);
+                return;
+            }
+            onSelectRow(item, transactionPreviewData, event);
+        },
+        [isMobileSelectionModeEnabled, toggle, onSelectRow],
+    );
 
     /**
-     * Scrolls to the desired item index in the section list
-     *
-     * @param index - the index of the item to scroll to
-     * @param animated - whether to animate the scroll
+     * Scrolls to the desired item index in the FlashList (listData coordinates).
+     * Used by keyboard navigation where focused indices map directly to listData rows.
      */
-    const scrollToIndex = useCallback(
+    const scrollToListIndex = useCallback(
+        (index: number, animated = true) => {
+            const item = listData.at(index);
+
+            if (!listRef.current || !item || index === -1) {
+                return;
+            }
+
+            if (isEditingCell || wasRecentlyEditingCell) {
+                return;
+            }
+
+            listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
+        },
+        [listData, isEditingCell, wasRecentlyEditingCell],
+    );
+
+    /**
+     * Scrolls to the desired item index in the source data array.
+     * Remaps to split listData indices when sticky group headers are active.
+     */
+    const scrollToDataIndex = useCallback(
         (index: number, animated = true) => {
             const item = data.at(index);
 
@@ -454,7 +516,7 @@ function SearchList({
 
             let targetIndex = index;
             if (shouldSplitGroups && item.keyForList) {
-                const splitIndex = listData.findIndex((li) => li.keyForList === `header_${item.keyForList}` || li.keyForList === item.keyForList);
+                const splitIndex = listData.findIndex((listItem) => listItem.keyForList === `header_${item.keyForList}`);
                 if (splitIndex !== -1) {
                     targetIndex = splitIndex;
                 }
@@ -462,7 +524,7 @@ function SearchList({
 
             listRef.current.scrollToIndex({index: targetIndex, animated, viewOffset: -variables.contentHeaderHeight});
         },
-        [data, isEditingCell, wasRecentlyEditingCell, shouldSplitGroups, listData],
+        [data, listData, shouldSplitGroups, isEditingCell, wasRecentlyEditingCell],
     );
 
     useFocusEffect(
@@ -478,7 +540,7 @@ function SearchList({
         }, [getScrollOffset, route]),
     );
 
-    useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
+    useImperativeHandle(ref, () => ({scrollToIndex: scrollToDataIndex}), [scrollToDataIndex]);
 
     const isItemVisible = useCallback((item: SearchListItem) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline, [isOffline]);
     const firstVisibleIndex = useMemo(() => listData.findIndex(isItemVisible), [listData, isItemVisible]);
@@ -499,20 +561,13 @@ function SearchList({
                         canSelectMultiple={canSelectMultiple}
                         isExpanded={expandedGroups.has(originalKey)}
                         onToggle={() => onToggleGroup(originalKey)}
-                        onSelectRow={(rowItem, previewData, event) => onSelectRow({...rowItem, keyForList: originalKey}, previewData, event)}
-                        onCheckboxPress={(val, itemTransactions) => onCheckboxPress({...val, keyForList: originalKey} as SearchListItem, itemTransactions)}
-                        onLongPressRow={(rowItem, itemTransactions) => {
-                            const fixedItem = {...rowItem, keyForList: originalKey} as SearchListItem;
-                            if (isMobileSelectionModeEnabled) {
-                                handleLongPressRowInMobileSelectionMode(fixedItem, itemTransactions);
-                            } else {
-                                handleLongPressRow(fixedItem, itemTransactions);
-                            }
-                        }}
+                        onSelectRow={handleSelectRow}
+                        onCheckboxPress={toggle}
+                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         onFocus={onFocus}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
-                        isLastItem={index + 1 >= lastVisibleIndex && !ListFooterComponent}
+                        isLastItem={false}
                         originalKey={originalKey}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
@@ -528,19 +583,16 @@ function SearchList({
                 const containerItem = item;
                 const originalKey = (item.keyForList ?? '').replace('children_', '');
                 const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
-                const isContainerSelected =
-                    !!containerItem.isSelected || (containerItem.transactions.length > 0 && containerItem.transactions.every((t) => selectedTransactions[t.transactionID]?.isSelected));
                 return (
                     <GroupChildrenContainer
                         item={containerItem}
                         isExpanded={expandedGroups.has(originalKey)}
-                        isSelected={isContainerSelected}
                         groupBy={groupBy}
                         searchType={type}
                         columns={columns}
                         canSelectMultiple={canSelectMultiple}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
+                        onSelectRow={handleSelectRow}
+                        onCheckboxPress={toggle}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onUndelete={handleUndelete}
@@ -569,13 +621,12 @@ function SearchList({
                     <ListItem
                         showTooltip
                         isFocused={isItemFocused}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={handleSelectRow}
                         onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
-                        onSelectionButtonPress={onCheckboxPress}
+                        onSelectionButtonPress={toggle}
                         canSelectMultiple={canSelectMultiple}
                         item={item}
                         columns={columns}
-                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
@@ -603,11 +654,11 @@ function SearchList({
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
-            onSelectRow,
+            handleSelectRow,
             handleLongPressRow,
             handleLongPressRowInMobileSelectionMode,
             isMobileSelectionModeEnabled,
-            onCheckboxPress,
+            toggle,
             canSelectMultiple,
             columns,
             lastPaymentMethod,
@@ -616,7 +667,6 @@ function SearchList({
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,
             ListFooterComponent,
-            isAttendeesEnabledForMovingPolicy,
             handleUndelete,
             firstVisibleIndex,
             lastVisibleIndex,
@@ -626,7 +676,6 @@ function SearchList({
             cardFeeds,
             conciergeReportID,
             visibleColumns,
-            selectedTransactions,
         ],
     );
 
@@ -651,24 +700,23 @@ function SearchList({
                             selectedItemsLength={selectedItemsLength}
                             totalItems={totalItems}
                             shouldShowTextButton={selectAllButtonVisible}
-                            onAllCheckboxPress={onAllCheckboxPress}
+                            onAllCheckboxPress={toggleAll}
                         />
                     )}
 
                     {SearchTableHeader}
-                    {isLargeScreenWidth && shouldSplitGroups && <View style={styles.searchListHeaderBorderCover} />}
                 </View>
             )}
             <BaseSearchList
                 data={listData}
                 renderItem={renderItem}
-                onSelectRow={onSelectRow}
+                onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}
-                scrollToIndex={scrollToIndex}
+                scrollToIndex={scrollToListIndex}
                 flattenedItemsLength={listData.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
@@ -677,11 +725,13 @@ function SearchList({
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
-                selectedTransactions={selectedTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={stickyHeaderIndices}
                 getItemType={getItemType}
+                stickyHeaderConfig={stickyHeaderConfig}
+                disabledIndexes={shouldSplitGroups ? childrenContainerIndices : undefined}
+                overrideItemLayout={shouldSplitGroups ? overrideItemLayout : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
