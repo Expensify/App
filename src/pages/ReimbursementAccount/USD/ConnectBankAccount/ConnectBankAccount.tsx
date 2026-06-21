@@ -1,8 +1,9 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -18,6 +19,8 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
@@ -30,9 +33,15 @@ type ConnectBankAccountProps = {
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setUSDBankAccountStep?: (step: string | null) => void;
+
+    /** ID of current policy */
+    policyID?: string;
+
+    /** Route to return to when navigating back out of the flow */
+    backTo?: Route;
 };
 
-function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectBankAccountProps) {
+function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep, policyID, backTo}: ConnectBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
@@ -48,6 +57,22 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
 
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, true);
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
+    const pendingAction = reimbursementAccount?.pendingAction;
+
+    // After a disconnect, wait for the reset API to finish before navigating to the entry point.
+    const prevPendingActionRef = useRef(pendingAction);
+    useEffect(() => {
+        const prev = prevPendingActionRef.current;
+        prevPendingActionRef.current = pendingAction;
+        if (prev === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}));
+        }
+    }, [pendingAction, policyID, backTo]);
+
+    // While the disconnect is in flight, show the existing flow loader so the success screen doesn't re-render with cleared bank data
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return <ReimbursementAccountLoadingIndicator onBackButtonPress={onBackButtonPress} />;
+    }
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
     if (bankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN) {
@@ -116,6 +141,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
                     reimbursementAccount={reimbursementAccount}
                     setUSDBankAccountStep={setUSDBankAccountStep}
+                    backTo={backTo}
+                    policy={policy}
                 />
             )}
         </ScreenWrapper>

@@ -45,16 +45,16 @@ jobs:
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
     steps:
+      # v3.2.4
       - name: Run turnstyle
-        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
+        uses: softprops/turnstyle@4415445a6780f85c074f0e4334cf8e65bae3ad45
         with:
           poll-interval-seconds: 10
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Check out
-        # v6
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
         with:
           ref: main
           submodules: true

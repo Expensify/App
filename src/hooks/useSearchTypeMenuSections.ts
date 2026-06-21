@@ -5,7 +5,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {IntroSelected, Policy, Session} from '@src/types/onyx';
+import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
+import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useMappedPolicies from './useMappedPolicies';
@@ -35,15 +36,13 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
+        areWorkflowsEnabled: policy.areWorkflowsEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
-
-const isTrackIntentUserSelector = (introSelected: OnyxEntry<IntroSelected>) =>
-    introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
 
 type UseSearchTypeMenuSectionsParams = {
     hash?: number;
@@ -168,9 +167,12 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         return -1;
     }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
 
+    const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
+
     return {
         typeMenuSections,
         activeItemIndex,
+        activeKey,
     };
 };
 

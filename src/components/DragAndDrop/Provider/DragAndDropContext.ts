@@ -14,4 +14,3 @@ function useDragAndDropActions(): DragAndDropActionsContextType {
 }
 
 export {DragAndDropActionsContext, DragAndDropStateContext, useDragAndDropActions, useDragAndDropState};
-export type {DragAndDropActionsContextType, DragAndDropStateContextType} from './types';

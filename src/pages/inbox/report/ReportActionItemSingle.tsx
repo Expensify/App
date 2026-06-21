@@ -1,3 +1,4 @@
+import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -6,20 +7,23 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDelegateAccountIDFromReportAction, getHumanAgentAccountIDFromReportAction, getManagerOnVacation, getModerationFlagState, getVacationer} from '@libs/ReportActionsUtils';
-import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import DelegateOnBehalfOfText from './DelegateOnBehalfOfText';
@@ -52,14 +56,14 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 };
 
 const showUserDetails = (accountID: number | undefined) => {
-    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
 };
 
 const showWorkspaceDetails = (reportID: string | undefined) => {
     if (!reportID) {
         return;
     }
-    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path));
 };
 
 function ReportActionItemSingle({
@@ -77,8 +81,9 @@ function ReportActionItemSingle({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isOnSearch = useIsOnSearch();
 
-    const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
+    const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action, shouldUseRealActor: isOnSearch});
 
     const reportID = source.chatReport?.reportID;
     const iouReportID = source.iouReport?.reportID;
@@ -111,16 +116,16 @@ function ReportActionItemSingle({
         } else {
             // Show participants page IOU report preview
             if (iouReportID && details.shouldDisplayAllActors) {
-                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID, Navigation.getReportRHPActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
                 return;
             }
             showUserDetails(Number(primaryAvatar.id));
         }
     };
 
-    const shouldDisableDetailPage =
-        CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
-        (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID)));
+    const optimisticCheckAccountID = action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const [isOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(optimisticCheckAccountID)});
+    const shouldDisableDetailPage = CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) || (!details.isWorkspaceActor && !!isOptimistic);
 
     const getBackgroundColor = () => {
         if (isActive) {
@@ -164,6 +169,7 @@ function ReportActionItemSingle({
                         reportID={iouReportID}
                         chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}
+                        shouldUseRealActor={isOnSearch}
                     />
                 </OfflineWithFeedback>
             </PressableWithoutFeedback>

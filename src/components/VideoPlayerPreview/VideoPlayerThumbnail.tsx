@@ -10,7 +10,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -31,7 +30,7 @@ type VideoPlayerThumbnailProps = {
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDeleted}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Play']);
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
@@ -60,15 +59,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                             return;
                         }
                         onShowContextMenu(() => {
-                            showContextMenuForReport(
-                                event,
-                                anchor,
-                                report?.reportID,
-                                action,
-                                checkIfContextMenuActive,
-                                isArchivedNonExpenseReport(report, isReportArchived),
-                                originalReportID,
-                            );
+                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
                         });
                     }}
                     shouldUseHapticsOnLongPress

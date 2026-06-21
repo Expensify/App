@@ -11,13 +11,17 @@ import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+import {canAccessSubmitWorkspaceFeatures} from '@libs/PolicyUtils';
+import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import GenericFeaturesView from './GenericFeaturesView';
@@ -34,26 +38,36 @@ type Props = {
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
+    /** Target plan the user chose to upgrade to (drives Collect vs Control copy/pricing in the generic view) */
+    upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const {isBetaEnabled} = usePermissions();
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isSubmitPolicy = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const subscriptionPlan = useSubscriptionPlan();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
+    const isSubmitFeature = isSubmitPolicy && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
+
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting;
+        const matchesTeamPricingHeuristics = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
+        // An explicit upgradePlanType (chosen in the Plan RHP) is authoritative over the feature-based heuristics, so pricing matches the plan title shown in GenericFeaturesView.
+        const shouldUseTeamPricing = upgradePlanType === CONST.POLICY.TYPE.CORPORATE ? false : matchesTeamPricingHeuristics;
         return `${convertToShortDisplayString(
             CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
-    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting]);
+    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting, isSubmitFeature, upgradePlanType]);
 
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
@@ -70,9 +84,13 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'BlueShield',
         'Pencil',
         'Luggage',
+        'Workflows',
+        'Accounting',
+        'HandCard',
+        'InvoiceBlue',
         'Members',
     ]);
-    const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'AdvancedApprovalsSquare', 'Unlock']);
+    const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'AdvancedApprovalsSquare', 'Unlock']);
     const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
     const missing = allIconNames.filter((n): n is string => !!n && !imported.has(n));
     if (missing.length) {
@@ -103,6 +121,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 loading={loading}
                 policyID={policyID}
                 backTo={backTo}
+                upgradePlanType={upgradePlanType}
             />
         );
     }
@@ -157,7 +176,11 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 </View>
                 <Button
                     isLoading={loading}
-                    text={translate('common.upgrade')}
+                    text={
+                        isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id
+                            ? translate('workspace.upgrade.expensifyCard.upgradeButton')
+                            : translate('common.upgrade')
+                    }
                     testID="upgrade-button"
                     success
                     onPress={onUpgrade}

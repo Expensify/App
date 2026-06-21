@@ -72,7 +72,7 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
                         small
                         style={styles.widgetItemButton}
                         // Prop spreading allows parent components to pass additional button styling props (e.g., danger: true, success: true)
-                        // eslint-disable-next-line react/jsx-props-no-spreading
+
                         {...buttonProps}
                     />
                 </View>
@@ -82,4 +82,3 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
 }
 
 export default BaseWidgetItem;
-export type {BaseWidgetItemProps};

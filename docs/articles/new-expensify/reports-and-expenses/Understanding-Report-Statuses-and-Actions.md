@@ -33,6 +33,7 @@ The grey **More** button is always visible in the report header. Tap it to acces
 
 - Hold / Unhold
 - Unapprove
+- **Received payment**
 - Duplicate report
 - Download as CSV
 - Print
@@ -50,13 +51,13 @@ Depending on the report status and your role, the primary action button may say:
 
 - **Submit**: The report is ready to submit.
 - **Review**: The report contains holds, violations, or duplicate warnings.
-  - A red dot means something needs attention.
+  - A **Fix** badge means something needs attention.
 - **Approve**: The report is ready for approval.
 - **Pay**: The report has been approved and is ready for reimbursement.
 - **Export**: Send the approved report to your accounting system.
 - **View**: No further action is required; you have view-only access.
 
-**Note:** If you selected "Track and budget expenses" during onboarding and your workspace does not use an approval workflow, **Submit** and **Approve** will both display as **Mark as done**.
+**Note:** If your workspace does not use an approval workflow, you'll see **Mark as done** instead of **Submit** and **Approve**. 
 
 ---
 

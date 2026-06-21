@@ -41,8 +41,18 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
     const [namePendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: domainSecurityGroupSettingPendingActionSelector('name', groupID)});
     const [nameErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: domainSecurityGroupSettingErrorsSelector('nameErrors', groupID)});
 
+    const [deleteGroupPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        selector: domainSecurityGroupSettingPendingActionSelector('deleteGroup', groupID),
+    });
+
     return (
-        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+        <DomainNotFoundPageWrapper
+            domainAccountID={domainAccountID}
+            shouldBeBlocked={!group || !!deleteGroupPendingAction}
+            fullPageNotFoundViewProps={{
+                onBackButtonPress: () => Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID)),
+            }}
+        >
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID="DomainGroupDetailsPage"

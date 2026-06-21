@@ -110,6 +110,7 @@ function getOnboardingRoute(): Route {
         currentOnboardingPurposeSelected: onboardingPurposeSelected,
         onboardingInitialPath,
         onboardingValues: onboarding,
+        isAccountValidated: !!account?.validated,
     }) as Route;
 }
 
@@ -168,9 +169,9 @@ const OnboardingGuard: NavigationGuard = {
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
-        const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
+        const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
+        const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
@@ -184,7 +185,15 @@ const OnboardingGuard: NavigationGuard = {
         const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
 
         const shouldSkipOnboarding =
-            skipOnboardingConfig || isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isNavigatingWithReplace;
+            skipOnboardingConfig ||
+            isLoading ||
+            isTransitioning ||
+            isOnboardingCompleted ||
+            isMigratedUser ||
+            isInvitedOrGroupMember ||
+            isSingleEntry ||
+            isFirstTimeHybridAppTransition ||
+            isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
@@ -209,7 +218,7 @@ const OnboardingGuard: NavigationGuard = {
             isOnboardingCompleted,
             isMigratedUser,
             isSingleEntry,
-            needsExplanationModal,
+            isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
         });

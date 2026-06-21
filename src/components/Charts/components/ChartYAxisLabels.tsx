@@ -2,9 +2,9 @@ import {Paragraph} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
-import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import {useChartParagraphs} from '@components/Charts/hooks';
 import {getFontLineMetrics} from '@components/Charts/utils';
+import VictoryTheme, {GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 type ChartYAxisLabelsProps = {
     /** Tick values on the Y axis. */
@@ -28,7 +28,7 @@ type ChartYAxisLabelsProps = {
     /** Formats a tick value to its display string. */
     formatValue: (value: number) => string;
 
-    /** When true, labels are left-aligned starting at chartBounds.left + AXIS_LABEL_GAP instead of right-aligned. */
+    /** When true, labels are left-aligned starting at the left edge of the chart instead of right-aligned. */
     leftAlign?: boolean;
 };
 
@@ -47,7 +47,7 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
             return null;
         }
 
-        const x = chartBounds.left - AXIS_LABEL_GAP + GLYPH_PADDING - (leftAlign ? maxWidth : paraData.width);
+        const x = chartBounds.left - VictoryTheme.axis.labelGap + GLYPH_PADDING - (leftAlign ? maxWidth : paraData.width);
         const tickY = yScale(tick);
 
         return (
@@ -63,4 +63,3 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
 }
 
 export default ChartYAxisLabels;
-export type {ChartYAxisLabelsProps};

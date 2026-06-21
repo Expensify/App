@@ -9,7 +9,6 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ImageSVG from './ImageSVG';
@@ -27,7 +26,6 @@ const logoComponents = {
 };
 
 function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environment} = useEnvironment();
@@ -44,7 +42,6 @@ function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
             style={[
                 StyleUtils.getSignInWordmarkWidthStyle(shouldUseNarrowLayout, environment),
                 StyleUtils.getHeight(shouldUseNarrowLayout ? variables.signInLogoHeightSmallScreen : variables.signInLogoHeight),
-                shouldUseNarrowLayout && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) ? styles.ml3 : {},
                 style,
             ]}
         >

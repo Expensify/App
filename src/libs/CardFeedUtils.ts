@@ -32,7 +32,6 @@ import type {OptionData} from './ReportUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
 type DomainFeedData = {bank: CardFeedWithNumber; domainName: string; correspondingCardIDs: string[]; fundID?: string; feedCountry?: string};
-type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
 type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
 type CardFeedData = {cardName: string; bank: CardFeedWithNumber; label?: string; type: 'domain' | 'workspace'; feedCountry?: string};
 type GetCardFeedData = {
@@ -152,7 +151,7 @@ function buildCardsData(
     companyCardIcons: CompanyCardFeedIcons,
     isClosedCards = false,
     customCardNames?: Record<string, string>,
-): ItemsGroupedBySelection {
+): CardFilterItem[] {
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
     const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isCard(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
@@ -168,17 +167,7 @@ function buildCardsData(
                 .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons, customCardNames));
         });
 
-    const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
-    const selectedCardItems: CardFilterItem[] = [];
-    const unselectedCardItems: CardFilterItem[] = [];
-    for (const card of allCardItems) {
-        if (card.isSelected) {
-            selectedCardItems.push(card);
-        } else {
-            unselectedCardItems.push(card);
-        }
-    }
-    return {selected: selectedCardItems, unselected: unselectedCardItems};
+    return [...userAssignedCards, ...allWorkspaceCards];
 }
 
 /**
@@ -377,9 +366,8 @@ function buildCardFeedsData(
     translate: LocaleContextProps['translate'],
     illustrations: IllustrationsType,
     companyCardIcons: CompanyCardFeedIcons,
-): ItemsGroupedBySelection {
-    const selectedFeeds: CardFilterItem[] = [];
-    const unselectedFeeds: CardFilterItem[] = [];
+): CardFilterItem[] {
+    const feeds: CardFilterItem[] = [];
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
 
     for (const domainFeed of Object.values(domainFeedsData)) {
@@ -388,21 +376,18 @@ function buildCardFeedsData(
         const cardFeedKey = createCardFeedKey(domainFeed.fundID, bank, feedCountry);
         const {cardName} = getDomainCardFeedData(domainFeed, policies, repeatingBanks, translate);
 
-        const feedItem = createCardFeedItem({
-            cardName,
-            bank,
-            correspondingCardIDs,
-            keyForList: feedCountry ? `${domainName}-${bank}-${feedCountry}` : `${domainName}-${bank}`,
-            cardFeedKey,
-            selectedCards,
-            illustrations,
-            companyCardIcons,
-        });
-        if (feedItem.isSelected) {
-            selectedFeeds.push(feedItem);
-        } else {
-            unselectedFeeds.push(feedItem);
-        }
+        feeds.push(
+            createCardFeedItem({
+                cardName,
+                bank,
+                correspondingCardIDs,
+                keyForList: feedCountry ? `${domainName}-${bank}-${feedCountry}` : `${domainName}-${bank}`,
+                cardFeedKey,
+                selectedCards,
+                illustrations,
+                companyCardIcons,
+            }),
+        );
     }
 
     for (const [workspaceFeedKey, workspaceFeed] of filterOutDomainCards(workspaceCardFeeds)) {
@@ -417,24 +402,21 @@ function buildCardFeedsData(
         const {cardName, bank} = cardFeedData;
         const cardFeedKey = getCardFeedKey(workspaceCardFeeds, workspaceFeedKey);
 
-        const feedItem = createCardFeedItem({
-            cardName,
-            bank,
-            correspondingCardIDs,
-            cardFeedKey: cardFeedKey ?? '',
-            keyForList: workspaceFeedKey,
-            selectedCards,
-            illustrations,
-            companyCardIcons,
-        });
-        if (feedItem.isSelected) {
-            selectedFeeds.push(feedItem);
-        } else {
-            unselectedFeeds.push(feedItem);
-        }
+        feeds.push(
+            createCardFeedItem({
+                cardName,
+                bank,
+                correspondingCardIDs,
+                cardFeedKey: cardFeedKey ?? '',
+                keyForList: workspaceFeedKey,
+                selectedCards,
+                illustrations,
+                companyCardIcons,
+            }),
+        );
     }
 
-    return {selected: selectedFeeds, unselected: unselectedFeeds};
+    return feeds;
 }
 
 function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFeeds?: Record<string, WorkspaceCardsList | undefined>, selectedFeeds?: string[]): string[] {
@@ -495,7 +477,7 @@ function getCardFeedBankDisplayName(bank: string, feedCountry: string | undefine
         return companyCardBankName;
     }
     if (feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-        return translate('search.filters.card.centralInvoicing');
+        return translate('search.filters.card.travelInvoicing');
     }
     return translate('search.filters.card.expensify');
 }
@@ -518,7 +500,7 @@ function getExpensifyCardFeedsForDisplay(allCards: CardList | undefined, transla
         // Travel Invoicing lives on its own feed but shares the `Expensify Card` bank. Use the
         // translated label so the Feed dropdown shows "Travel Invoicing" for travel cards and
         // "Expensify Card" for everything else.
-        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.centralInvoicing') : CONST.EXPENSIFY_CARD.BANK;
+        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.travelInvoicing') : CONST.EXPENSIFY_CARD.BANK;
 
         result[id] = {
             id,
@@ -577,12 +559,20 @@ function getCardFeedsForDisplay(
 /**
  * Given a collection of card feeds, return formatted card feeds grouped per policy.
  *
+ * Each feed is assigned to one or more policies using a three-tier fallback:
+ *  1. **linkedPolicyIDs** – if the feed has explicit linked policies, it is indexed under each of them.
+ *  2. **preferredPolicy** – if there are no linked policies but a preferred policy exists, use that.
+ *  3. **policyAccountID match** – if neither is set (orphan feed), fall back to any policy whose
+ *     policyAccountID matches the feed's fundID so the feed still surfaces under the correct workspace.
+ *     If no policy matches, the feed is stored under an empty-string key to avoid being silently lost.
+ *
  * Note: "Expensify Card" feeds are not included.
  */
 function getCardFeedsForDisplayPerPolicy(
     allCardFeeds: OnyxCollection<CardFeeds>,
     translate: LocalizedTranslate,
-    feedKeysWithCards?: FeedKeysWithAssignedCards,
+    feedKeysWithCards: FeedKeysWithAssignedCards | undefined,
+    policies: OnyxCollection<Policy>,
 ): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 
@@ -599,15 +589,40 @@ function getCardFeedsForDisplayPerPolicy(
             const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
-
-            (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
+            const feedEntry: CardFeedForDisplay = {
                 id,
                 feed,
                 country,
                 fundID,
                 linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
-            });
+            };
+
+            const validLinkedPolicyIDs = linkedPolicyIDs?.filter(Boolean);
+            if (validLinkedPolicyIDs?.length) {
+                // Index the feed under each linked policy so it appears for all of them
+                for (const linkedPolicyID of validLinkedPolicyIDs) {
+                    (cardFeedsForDisplayPerPolicy[linkedPolicyID] ||= []).push(feedEntry);
+                }
+            } else if (preferredPolicy) {
+                (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push(feedEntry);
+            } else {
+                // Orphan feed: no linkedPolicyIDs and no preferredPolicy.
+                // Find policies whose policyAccountID matches the fundID so the feed
+                // still appears under the correct workspace.
+                const numericFundID = Number(fundID);
+                const matchingPolicies = Object.values(policies ?? {}).filter((policy) => policy?.policyAccountID === numericFundID);
+                if (matchingPolicies.length) {
+                    for (const policy of matchingPolicies) {
+                        if (policy?.id) {
+                            (cardFeedsForDisplayPerPolicy[policy.id] ||= []).push(feedEntry);
+                        }
+                    }
+                } else {
+                    // Still store under empty key so the feed is not silently lost
+                    (cardFeedsForDisplayPerPolicy[''] ||= []).push(feedEntry);
+                }
+            }
         }
     }
 
@@ -710,7 +725,7 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
-export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
+export type {CardFilterItem, CardFeedForDisplay};
 export type {DomainFeedData};
 export {
     buildCardsData,
@@ -718,9 +733,6 @@ export {
     buildCardFeedsData,
     generateSelectedCards,
     getSelectedCardsFromFeeds,
-    createCardFeedKey,
-    getCardFeedKey,
-    getWorkspaceCardFeedKey,
     getFeedInfo,
     getLinkedPolicyName,
     getDomainFeedData,
@@ -729,5 +741,4 @@ export {
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
-    getFeedCountryForDisplay,
 };

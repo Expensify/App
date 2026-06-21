@@ -1,13 +1,15 @@
 /**
- * Ephemeral in-memory store for the optimistic "Concierge is thinking…" state per report.
+ * Ephemeral in-memory store for the optimistic "thinking…" state, keyed by `(reportID,
+ * agentAccountID)` so a room with several agents tracks each one independently.
  *
  * The optimistic counter has to survive ReportScreen remounts (switching chats and coming
  * back) — React state scoped to the mounted provider doesn't. This store holds it at the
- * module level, keyed by reportID, so the next mount can restore the indicator.
+ * module level so the next mount can restore the indicator.
  *
  * Transient by nature: cleared on reply detection, safety timeout, reconnect, or by the
  * caller. Not persisted to Onyx.
  */
+import getAgentStoreKey from './AgentZeroStoreUtils';
 
 /** Upper bound on how long an optimistic entry stays valid without a server label or reply. */
 const MAX_AGE_MS = 120000;
@@ -32,14 +34,14 @@ type OptimisticEntry = {
     baselineActionID: string | null;
 };
 
-type Listener = (reportID: string) => void;
+type Listener = (reportID: string, agentAccountID: number) => void;
 
 const store = new Map<string, OptimisticEntry>();
 const listeners = new Set<Listener>();
 
-function notifyListeners(reportID: string) {
+function notifyListeners(reportID: string, agentAccountID: number) {
     for (const listener of listeners) {
-        listener(reportID);
+        listener(reportID, agentAccountID);
     }
 }
 
@@ -48,12 +50,12 @@ function isFresh(entry: OptimisticEntry): boolean {
 }
 
 /**
- * Get the current entry for a report, or undefined if none exists or the entry is past
- * its MAX_AGE_MS window. Stale entries are left in the map — the next increment/clear
+ * Get the current entry for an agent in a report, or undefined if none exists or the entry is
+ * past its MAX_AGE_MS window. Stale entries are left in the map — the next increment/clear
  * will evict them. Callers that care about cleanup can call `clear` imperatively.
  */
-function getEntry(reportID: string): OptimisticEntry | undefined {
-    const entry = store.get(reportID);
+function getEntry(reportID: string, agentAccountID: number): OptimisticEntry | undefined {
+    const entry = store.get(getAgentStoreKey(reportID, agentAccountID));
     if (!entry) {
         return undefined;
     }
@@ -61,8 +63,8 @@ function getEntry(reportID: string): OptimisticEntry | undefined {
 }
 
 /**
- * Increment the pending count for a report, or start a fresh entry if none exists / the
- * existing one is stale. `baselineActionID` is only recorded on a fresh start — subsequent
+ * Increment the pending count for an agent in a report, or start a fresh entry if none exists /
+ * the existing one is stale. `baselineActionID` is only recorded on a fresh start — subsequent
  * kickoffs within the same window keep the original baseline (we care about replies newer
  * than the *first* optimistic message).
  *
@@ -70,32 +72,34 @@ function getEntry(reportID: string): OptimisticEntry | undefined {
  * recent kickoff — this matches the in-memory `startPolling` behavior where each call
  * resets the 120s timer.
  */
-function increment(reportID: string, baselineActionID: string | null) {
-    const existing = store.get(reportID);
+function increment(reportID: string, agentAccountID: number, baselineActionID: string | null) {
+    const key = getAgentStoreKey(reportID, agentAccountID);
+    const existing = store.get(key);
     const now = Date.now();
     if (existing && isFresh(existing)) {
-        store.set(reportID, {
+        store.set(key, {
             count: existing.count + 1,
             startedAt: now,
             baselineActionID: existing.baselineActionID,
         });
     } else {
-        store.set(reportID, {
+        store.set(key, {
             count: 1,
             startedAt: now,
             baselineActionID,
         });
     }
-    notifyListeners(reportID);
+    notifyListeners(reportID, agentAccountID);
 }
 
-/** Drop all optimistic state for a report. Safe to call when no entry exists. */
-function clear(reportID: string) {
-    if (!store.has(reportID)) {
+/** Drop optimistic state for an agent in a report. Safe to call when no entry exists. */
+function clear(reportID: string, agentAccountID: number) {
+    const key = getAgentStoreKey(reportID, agentAccountID);
+    if (!store.has(key)) {
         return;
     }
-    store.delete(reportID);
-    notifyListeners(reportID);
+    store.delete(key);
+    notifyListeners(reportID, agentAccountID);
 }
 
 function subscribe(listener: Listener): () => void {
@@ -113,4 +117,3 @@ export default {
 };
 
 export {MAX_AGE_MS};
-export type {OptimisticEntry};

@@ -29,7 +29,7 @@ function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
                 />
             )}
             <FloatingActionButton
-                accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
+                accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                 role={CONST.ROLE.BUTTON}
                 isActive={isActive}
                 ref={fabRef}

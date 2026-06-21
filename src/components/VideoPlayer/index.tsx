@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {Root as PopoverMenuRoot} from '@components/PopoverMenu/v2';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
 import BaseVideoPlayer from './BaseVideoPlayer';
 import type VideoPlayerProps from './types';
@@ -9,11 +10,12 @@ function VideoPlayer(props: VideoPlayerProps) {
     const {reportID} = props;
 
     return (
-        <BaseVideoPlayer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            reportID={reportID ?? fakeReportID}
-        />
+        <PopoverMenuRoot>
+            <BaseVideoPlayer
+                {...props}
+                reportID={reportID ?? fakeReportID}
+            />
+        </PopoverMenuRoot>
     );
 }
 

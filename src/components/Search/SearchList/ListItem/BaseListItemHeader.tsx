@@ -185,4 +185,4 @@ function BaseListItemHeader<TItem extends ListItem>({
 }
 
 export default BaseListItemHeader;
-export type {BaseListItemHeaderProps, BaseGroupListItemType};
+export type {BaseListItemHeaderProps};

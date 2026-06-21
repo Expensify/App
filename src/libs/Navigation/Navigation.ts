@@ -13,7 +13,9 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
+import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -38,12 +40,12 @@ import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
+import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from './TransitionTracker';
 import type {
     NavigationPartialRoute,
@@ -61,11 +63,16 @@ type FocusedScreen = {
     params?: Record<string, unknown>;
 };
 
+// Installs the modality flag (keydown/mousedown) and focus-return listeners (focusin/click); NavigationRoot.onReady attaches the state listener once live.
+setupHadTabNavigation();
+setupNavigationFocusReturn();
+
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([
-    SCREENS.TWO_FACTOR_AUTH.ROOT,
-    SCREENS.TWO_FACTOR_AUTH.VERIFY,
-    SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.SUCCESS,
     SCREENS.TWO_FACTOR_AUTH.DISABLED,
     SCREENS.TWO_FACTOR_AUTH.DISABLE,
@@ -511,16 +518,23 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     const runImmediately = !options?.waitForTransition;
     TransitionTracker.runAfterTransitions({
         callback: () => {
-            if (backToRoute) {
-                goUp(backToRoute, options);
-            } else if (shouldPopToSidebar) {
-                popToSidebar();
-            } else if (!navigationRef.current?.canGoBack()) {
+            if (!backToRoute && !shouldPopToSidebar && !navigationRef.current?.canGoBack()) {
                 Log.hmmm('[Navigation] Unable to go back');
                 return;
-            } else {
-                navigationRef.current?.goBack();
             }
+
+            popAndRealignMfaMarker(
+                () => {
+                    if (backToRoute) {
+                        goUp(backToRoute, options);
+                    } else if (shouldPopToSidebar) {
+                        popToSidebar();
+                    } else {
+                        navigationRef.current?.goBack();
+                    }
+                },
+                (callback) => TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true}),
+            );
 
             if (options?.afterTransition) {
                 TransitionTracker.runAfterTransitions({callback: options.afterTransition, waitForUpcomingTransition: true});
@@ -676,6 +690,25 @@ function isNavigationReady(): Promise<void> {
     return navigationIsReadyPromise;
 }
 
+/**
+ * Runs the callback after any active navigation transition completes. If no transitions are
+ * active, the callback fires synchronously. Use this when you need to defer work behind an
+ * in-flight transition but the work is not itself a Navigation call (e.g. pushing on an
+ * independent navigator like the MFA modal).
+ */
+function runAfterTransition(callback: () => void) {
+    return TransitionTracker.runAfterTransitions({callback});
+}
+
+/**
+ * Like {@link runAfterTransition} but waits for the next transition to start before queuing the
+ * callback (with {@link CONST.MAX_TRANSITION_START_WAIT_MS} safety net). Use after dispatching a
+ * navigation action whose transition has not yet started.
+ */
+function runAfterUpcomingTransition(callback: () => void) {
+    return TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+}
+
 function setIsNavigationReady() {
     goToPendingRoute();
     resolveNavigationIsReadyPromise();
@@ -819,7 +852,7 @@ function dismissModal({ref = navigationRef, afterTransition, waitForTransition}:
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
     ref = navigationRef,
-    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void; afterTransition?: () => void},
 ) => {
     const dismissAndOpenReport = () => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
@@ -827,7 +860,7 @@ const dismissModalWithReport = (
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
             options?.onBeforeNavigate?.(false);
-            dismissToSuperWideRHP();
+            dismissToSuperWideRHP({afterTransition: options?.afterTransition});
             return;
         }
 
@@ -836,14 +869,14 @@ const dismissModalWithReport = (
         const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
-            dismissModal();
+            dismissModal({afterTransition: options?.afterTransition});
             return;
         }
         options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         dismissModal({
             afterTransition: () => {
-                navigate(reportRoute);
+                navigate(reportRoute, {afterTransition: options?.afterTransition});
             },
         });
     };
@@ -974,12 +1007,6 @@ function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => 
 }
 
 function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
-    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
-    if (getIsNarrowLayout()) {
-        dismissModal(options);
-        return;
-    }
-    // On wide layouts, dismiss back to the Super Wide RHP modal stack
     navigateBackToLastSuperWideRHPScreen(options);
 }
 
@@ -1008,9 +1035,11 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         });
         // Nested rAF: the first frame commits the route insertion, the second
         // frame starts the dismiss. This ensures React processes the two dispatches
-        // in separate renders so the dismiss animation is preserved.
+        // in separate renders so the dismiss animation is preserved. On narrow,
+        // wait for the hidden destination transition first so the RHP slides out
+        // over the final page instead of briefly revealing the previous page.
         requestAnimationFrame(() => {
-            dismissModal({afterTransition: options?.afterTransition});
+            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
         });
     });
 }
@@ -1129,7 +1158,7 @@ function removePreInsertedFullscreenIfNeeded() {
     const originalTabRoute = getPreInsertedOriginalTabRoute();
     if (originalTabRoute) {
         clearPreInsertedOriginalTabRoute();
-        const originalTabState = originalTabRoute.state as NavigationState | undefined;
+        const originalTabState = originalTabRoute.state;
         const originalFocusedTabIndex = originalTabState?.index ?? 0;
         const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
         if (originalTabName) {
@@ -1199,6 +1228,8 @@ export default {
     getActiveRouteWithoutParams,
     getReportRHPActiveRoute,
     goBack,
+    runAfterTransition,
+    runAfterUpcomingTransition,
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,

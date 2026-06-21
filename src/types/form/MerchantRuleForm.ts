@@ -21,4 +21,5 @@ type MerchantRuleForm = Form<
     }
 >;
 
-export type {MerchantRuleForm, InputID};
+// eslint-disable-next-line import/prefer-default-export
+export type {MerchantRuleForm};

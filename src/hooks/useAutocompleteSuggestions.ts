@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -9,7 +10,7 @@ import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtil
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
-import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -113,6 +114,7 @@ function useAutocompleteSuggestions({
     const sortedActions = useSortedActions();
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
@@ -219,6 +221,9 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
+            // Soft-exclude Expensify-team logins (current and former AMs/Guides) from user filter suggestions. Users can still type any email manually because the search bar accepts free text.
+            const memberExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserEmail);
+
             const participants = getSearchOptions({
                 options,
                 draftComments,
@@ -240,7 +245,9 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
-            }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
+                excludeFromSuggestionsOnly: memberExclusions,
+                isTrackIntentUser,
+            }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
                 filterKey: autocompleteKey,
@@ -277,7 +284,8 @@ function useAutocompleteSuggestions({
                 personalDetails,
                 sortedActions,
                 conciergeReportID,
-            }).recentReports.filter((chat) => {
+                isTrackIntentUser,
+            }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;
                 }
@@ -536,4 +544,3 @@ function useAutocompleteSuggestions({
 }
 
 export default useAutocompleteSuggestions;
-export type {AutocompleteItemData};

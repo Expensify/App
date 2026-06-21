@@ -34,6 +34,9 @@ type MapViewProps = {
 
     // Reference to the outerElement
     ref?: React.ForwardedRef<MapViewHandle>;
+
+    // Whether it should display the current user's location on the map
+    shouldDisplayCurrentLocation?: boolean;
 };
 
 type DirectionProps = {

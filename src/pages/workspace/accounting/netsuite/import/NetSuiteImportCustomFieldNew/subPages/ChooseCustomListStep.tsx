@@ -14,7 +14,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const STEP_FIELDS = [INPUT_IDS.LIST_NAME, INPUT_IDS.INTERNAL_ID];
 
-function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubPageWithPolicy) {
+function ChooseCustomListStep({policyIDParam, onNext, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubPageWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -49,8 +49,8 @@ function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFor
             <InputWrapper
                 InputComponent={NetSuiteCustomListPicker}
                 inputID={INPUT_IDS.LIST_NAME}
-                policy={policy}
-                internalIDInputID={INPUT_IDS.INTERNAL_ID}
+                policyID={policyIDParam}
+                isEditing={isEditing}
                 defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.LIST_NAME]}
             />
         </FormProvider>

@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 type PreRendererProps = CustomRendererProps<TBlock> & {
@@ -33,7 +32,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
     const isLast = defaultRendererProps.renderIndex === defaultRendererProps.renderLength - 1;
 
@@ -44,7 +43,6 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     if (isChildOfTaskTitle) {
         return (
             <TDefaultRenderer
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultRendererProps}
                 style={styles.taskTitleMenuItem}
             />
@@ -63,15 +61,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                         if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        return showContextMenuForReport(
-                            event,
-                            anchor,
-                            report?.reportID,
-                            action,
-                            checkIfContextMenuActive,
-                            isArchivedNonExpenseReport(report, isReportArchived),
-                            originalReportID,
-                        );
+                        return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
                     });
                 }}
                 shouldUseHapticsOnLongPress
@@ -80,7 +70,6 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
             >
                 <View>
                     <Text style={{fontSize}}>
-                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <TDefaultRenderer {...defaultRendererProps} />
                     </Text>
                 </View>

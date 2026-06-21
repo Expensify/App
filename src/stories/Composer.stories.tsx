@@ -45,7 +45,6 @@ function Default(props: ComposerProps) {
         <View>
             <View style={[defaultStyles.border, defaultStyles.p4]}>
                 <ComposerWithNavigation
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     multiline
                     value={comment}

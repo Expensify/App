@@ -40,6 +40,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_REPORT
@@ -99,7 +100,6 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         }
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 transaction={shouldUseTransactionDraft(userAction, userType) ? transactionDraftData : transaction}
                 isLoadingTransaction={isLoadingTransaction}

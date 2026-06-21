@@ -49,4 +49,3 @@ function useSelectedItemFocusSync<TItem extends ListItem, TData = TItem>({
 }
 
 export default useSelectedItemFocusSync;
-export type {UseSelectedItemFocusSyncParams};

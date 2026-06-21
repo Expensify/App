@@ -25,7 +25,6 @@ const createCellRendererComponent = <Item,>(CellRendererComponentProp?: CellRend
                 onLayout={props.onLayout}
                 style={CellRendererComponentProp ? undefined : props.style}
             >
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 {CellRendererComponentProp ? <CellRendererComponentProp {...props}>{props.children}</CellRendererComponentProp> : props.children}
             </Animated.View>
         );
@@ -46,9 +45,6 @@ type ReanimatedFlatListPropsWithLayout<T> = {
 
 // Since createAnimatedComponent return type is ComponentClass that has the props of the argument,
 // but not things like NativeMethods, etc. we need to add them manually by extending the type.
-type AnimatedFlatListComplement<T> = {
-    getNode(): FlatList<T>;
-} & FlatList<T>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatListPropsWithLayout<Item>, 'CellRendererComponent' | 'onScroll' | 'inverted'> & {
@@ -85,7 +81,6 @@ function FlatListRender<Item = any>(props: AnimatedFlatListWithCellRendererProps
         // @ts-expect-error In its current type state, createAnimatedComponent cannot create generic components.
         <AnimatedFlatList
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             CellRendererComponent={CellRendererComponent}
         />
@@ -113,8 +108,6 @@ const AnimatedFlatListWithCellRenderer = FlatListRender as <
     props: AnimatedFlatListWithCellRendererProps<ItemT>,
 ) => React.ReactElement;
 
-type ReanimatedFlatList<T> = typeof AnimatedFlatList & AnimatedFlatListComplement<T>;
-
-export type {ReanimatedFlatList, AnimatedFlatListWithCellRendererProps};
+export type {AnimatedFlatListWithCellRendererProps};
 
 export default AnimatedFlatListWithCellRenderer;

@@ -211,7 +211,7 @@ function ExpenseRulesPage() {
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
             </View>
-            {rulesList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {rulesList.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('expenseRulesPage.findRule')}
                     inputValue={inputValue}
@@ -270,7 +270,6 @@ function ExpenseRulesPage() {
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <GenericEmptyStateComponent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...genericIllustration}
                         title={translate('expenseRulesPage.emptyRules.title')}
                         subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
@@ -297,6 +296,7 @@ function ExpenseRulesPage() {
                 <SelectionListWithModal
                     addBottomSafeAreaPadding
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllRules')}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
                     data={filteredRuleList}

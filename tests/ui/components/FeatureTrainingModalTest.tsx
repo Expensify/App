@@ -25,7 +25,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@components/ImageSVG', () => {
     const {View} = require<typeof ReactNative>('react-native');
-    // eslint-disable-next-line react/jsx-props-no-spreading
+
     return (props: ViewProps) => <View {...props} />;
 });
 
@@ -41,7 +41,7 @@ describe('FeatureTrainingModal', () => {
                 <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
                     <FeatureTrainingModal
                         confirmText={CONFIRM_TEXT}
-                        videoURL={CONST.WELCOME_VIDEO_URL}
+                        videoURL={CONST.FEATURE_TRAINING['track-expenses'].VIDEO_URL}
                     />
                 </ComposeProviders>,
             );

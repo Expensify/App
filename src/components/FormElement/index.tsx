@@ -43,7 +43,6 @@ function FormElement({ref, ...props}: FormElementProps) {
         <View
             role={ACCESSIBILITY_ROLE_FORM}
             ref={mergedRef}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

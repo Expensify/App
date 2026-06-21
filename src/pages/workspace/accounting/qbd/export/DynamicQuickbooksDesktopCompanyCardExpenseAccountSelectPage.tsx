@@ -33,6 +33,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: W
     const nonReimbursable = qbdConfig?.export?.nonReimbursable;
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.path);
+
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const data: CardListItem[] = useMemo(() => {
         const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
@@ -40,14 +41,12 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: W
             value: card,
             text: card.name,
             keyForList: card.name,
-            // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            isSelected: card.id === (nonReimbursableAccount || accounts.at(0)?.id),
+            isSelected: card.id === nonReimbursableAccount,
         }));
     }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
+        Navigation.goBack(backPath, {compareParams: false});
     }, [backPath]);
 
     const selectExportAccount = useCallback(

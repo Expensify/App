@@ -69,4 +69,4 @@ type UseBiometricsReturn = {
     deleteLocalKeysForAccount: () => Promise<void>;
 };
 
-export type {BaseRegisterResult, RegisterResult, AuthorizeParams, AuthorizeResultSuccess, AuthorizeResultFailure, AuthorizeResult, UseBiometricsReturn};
+export type {RegisterResult, AuthorizeParams, AuthorizeResult, UseBiometricsReturn};

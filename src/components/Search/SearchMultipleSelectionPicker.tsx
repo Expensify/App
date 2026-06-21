@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitiallyFocusedKey from '@hooks/useInitiallyFocusedKey';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
@@ -13,6 +14,7 @@ type SearchMultipleSelectionPickerItem<T> = {
     name: string;
     value: T;
     leftElement?: React.ReactNode;
+    searchableText?: string;
 };
 
 type SearchMultipleSelectionPickerProps<T> = {
@@ -35,10 +37,7 @@ function SearchMultipleSelectionPicker<T extends string | string[]>({
 
     const [initialSelectedIDs] = useState(() => new Set((initiallySelectedItems ?? []).map((item) => item.value.toString())));
     const [selectedItemIDs, setSelectedItemIDs] = useState(() => initialSelectedIDs);
-    // Clear after mount to prevent FlashList from auto-scrolling when data changes
-    // cause the key to transition from "not found" to "found" (e.g., clearing a search).
-    // Deferred by one frame so FlashList processes the initial scroll first.
-    const [initiallyFocusedKey, setInitiallyFocusedKey] = useState(() => {
+    const initiallyFocusedKey = useInitiallyFocusedKey(() => {
         let minItem: SearchMultipleSelectionPickerItem<T> | undefined;
         for (const item of items) {
             if (initialSelectedIDs.has(item.value.toString())) {
@@ -49,17 +48,11 @@ function SearchMultipleSelectionPicker<T extends string | string[]>({
         }
         return minItem?.name;
     });
-    useEffect(() => {
-        const id = requestAnimationFrame(() => {
-            setInitiallyFocusedKey(undefined);
-        });
-        return () => cancelAnimationFrame(id);
-    }, []);
 
     const searchLower = debouncedSearchTerm.toLowerCase();
     const sectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: T; leftElement?: React.ReactNode}> = [];
     for (const item of items) {
-        if (!item.name.toLowerCase().includes(searchLower)) {
+        if (!item.name.toLowerCase().includes(searchLower) && !item.searchableText?.toLowerCase().includes(searchLower)) {
             continue;
         }
         const isSelected = selectedItemIDs.has(item.value.toString());

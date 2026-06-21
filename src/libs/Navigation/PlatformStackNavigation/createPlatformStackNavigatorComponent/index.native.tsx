@@ -97,23 +97,18 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             () => (
                 <NavigationContent>
                     <NativeStackView
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         state={state}
                         descriptors={wrappedDescriptors}
                         navigation={navigation}
                         describe={describe}
                     />
-                    {!!ExtraContent && (
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        <ExtraContent {...customCodePropsWithCustomState} />
-                    )}
+                    {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}
                 </NavigationContent>
             ),
             [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, navigation, props, state],
         );
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithCustomState}>{Content}</NavigationContentWrapper>;
     }
     PlatformNavigator.displayName = displayName;

@@ -3,6 +3,7 @@ import {TextEncoder} from 'util';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
+    containsHtmlTag,
     getAgeRequirementError,
     isInvalidMerchantValue,
     isRequiredFulfilled,
@@ -12,6 +13,7 @@ import {
     isValidExpirationDate,
     isValidInputLength,
     isValidLegalName,
+    isValidNANPPhone,
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
@@ -589,6 +591,40 @@ describe('ValidationUtils', () => {
         });
     });
 
+    describe('isValidNANPPhone', () => {
+        test('Should return true for a standard US phone number', () => {
+            expect(isValidNANPPhone('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a Puerto Rico phone number', () => {
+            expect(isValidNANPPhone('+17873464732')).toBe(true);
+        });
+
+        test('Should return true for a US Virgin Islands phone number', () => {
+            expect(isValidNANPPhone('+13405551234')).toBe(true);
+        });
+
+        test('Should return true for a Guam phone number', () => {
+            expect(isValidNANPPhone('+16715551234')).toBe(true);
+        });
+
+        test('Should return true for a Northern Mariana Islands phone number', () => {
+            expect(isValidNANPPhone('+16705551234')).toBe(true);
+        });
+
+        test('Should return true for a Canadian phone number', () => {
+            expect(isValidNANPPhone('+14165551234')).toBe(true);
+        });
+
+        test('Should return false for a UK phone number', () => {
+            expect(isValidNANPPhone('+442071234567')).toBe(false);
+        });
+
+        test('Should return false for an empty string', () => {
+            expect(isValidNANPPhone('')).toBe(false);
+        });
+    });
+
     describe('isInvalidMerchantValue', () => {
         test('Valid merchnt name', () => {
             expect(isInvalidMerchantValue('test name')).toBe(false);
@@ -679,6 +715,37 @@ describe('ValidationUtils', () => {
             expect(isValidEmailWithTLD('notanemail')).toBe(false);
             expect(isValidEmailWithTLD('user@')).toBe(false);
             expect(isValidEmailWithTLD('@domain.com')).toBe(false);
+        });
+    });
+
+    describe('containsHtmlTag', () => {
+        test('flags <script> tags (the case from the agent prompt regression)', () => {
+            expect(containsHtmlTag("<script>alert('true');</script>")).toBe(true);
+            expect(containsHtmlTag("<script>alert('test');</script>")).toBe(true);
+            expect(containsHtmlTag('hello <script>alert(1)</script> world')).toBe(true);
+            expect(containsHtmlTag('<img src=x onerror=alert(1)>')).toBe(true);
+        });
+
+        test('returns false for empty / non-string-like inputs', () => {
+            expect(containsHtmlTag('')).toBe(false);
+        });
+
+        test('returns false for plain text and markdown without HTML-shaped tokens', () => {
+            expect(containsHtmlTag('Hello world')).toBe(false);
+            expect(containsHtmlTag('# Heading\n\n> blockquote\n\n- bullet')).toBe(false);
+            expect(containsHtmlTag('Use **bold** and _italic_ and `code`.')).toBe(false);
+        });
+
+        test('honours the WHITELISTED_TAGS list', () => {
+            expect(containsHtmlTag('<>')).toBe(false);
+            expect(containsHtmlTag('<->')).toBe(false);
+            expect(containsHtmlTag('<br>')).toBe(false);
+            expect(containsHtmlTag('<br/>')).toBe(false);
+        });
+
+        test('strict mode flags non-standard angle-bracket content', () => {
+            expect(containsHtmlTag('<\u2713>')).toBe(false);
+            expect(containsHtmlTag('<\u2713>', true)).toBe(true);
         });
     });
 });

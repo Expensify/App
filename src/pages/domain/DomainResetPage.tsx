@@ -57,8 +57,8 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
             Log.hmmm('Domain data is missing or there are more than 1 admin left');
             return;
         }
-        resetDomain(route.params.domainAccountID, domainName, domain);
-        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+        resetDomain(route.params.domainAccountID, domainName);
+        Navigation.goBack(ROUTES.DOMAINS_LIST.route);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RESET_DOMAIN_FORM>) => {

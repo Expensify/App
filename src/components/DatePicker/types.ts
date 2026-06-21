@@ -35,16 +35,12 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
 
     /** ID of the wrapping form */
     formID?: keyof OnyxFormValuesMapping;
-};
 
-type DatePickerModalProps = DatePickerBaseProps & {
-    isVisible: boolean;
-    onClose: () => void;
-    anchorPosition: {
-        horizontal: number;
-        vertical: number;
-    };
-    onSelected?: (value: string) => void;
+    /**
+     * Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context.
+     * Used by inline editing flows that require background dimming.
+     */
+    shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 };
 
 type DateInputWithPickerProps = DatePickerBaseProps &
@@ -54,6 +50,15 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldHideClearButton?: boolean;
+
+        /**
+         * Defers showing the popover until the anchor position has been freshly measured, and opens the picker on
+         * press instead of focus. Use in scrollable contexts where the field position can
+         * change after mount: it prevents the popover from blinking at a stale position, and the press-based open
+         * prevents the picker from reopening when focus returns to the input as it is dismissed.
+         * @default false
+         */
+        shouldDeferShowUntilPositioned?: boolean;
     };
 
 type DatePickerProps = {
@@ -103,6 +108,12 @@ type DatePickerProps = {
 
     /** If the popover will be positioned from the top */
     shouldPositionFromTop?: boolean;
+
+    /**
+     * Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context.
+     * Used by inline editing flows that require background dimming.
+     */
+    shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
-export type {DatePickerBaseProps, DatePickerModalProps, DateInputWithPickerProps, DatePickerProps};
+export type {DateInputWithPickerProps, DatePickerProps};

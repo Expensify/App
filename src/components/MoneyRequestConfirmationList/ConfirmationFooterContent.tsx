@@ -157,4 +157,3 @@ function ConfirmationFooterContent({
 }
 
 export default ConfirmationFooterContent;
-export type {ConfirmationFooterContentProps};

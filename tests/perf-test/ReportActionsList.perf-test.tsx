@@ -22,6 +22,8 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
+const REPORT_ACTIONS_LIST_ID = 'perf-test-list';
+
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;
 };
@@ -39,7 +41,6 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
 
             return (
                 <Component
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     currentUserPersonalDetails={LHNTestUtils.fakePersonalDetails[currentUserAccountID]}
                 />
@@ -116,9 +117,13 @@ function ReportActionsListWrapper() {
                             report={report}
                             onLayout={mockOnLayout}
                             onScroll={mockOnScroll}
-                            listID={1}
+                            listID={REPORT_ACTIONS_LIST_ID}
                             loadOlderChats={mockLoadChats}
                             loadNewerChats={mockLoadChats}
+                            hasNewerActions={false}
+                            sortedAllReportActionsForPagination={reportActions}
+                            treatAsNoPaginationAnchor={false}
+                            setTreatAsNoPaginationAnchor={() => {}}
                             transactionThreadReport={report}
                         />
                     </ActionListContext.Provider>

@@ -10,7 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import SidePanelActions from '@libs/actions/SidePanel';
 import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -33,7 +33,7 @@ type SidePanelStateContextProps = {
 
 type SidePanelActionsContextProps = {
     openSidePanel: () => void;
-    closeSidePanel: () => void;
+    closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
 const SidePanelStateContext = createContext<SidePanelStateContextProps>({
@@ -82,12 +82,13 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
     const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
-    const isUserAdmin = isPolicyAdmin(activePolicy, sessionEmail);
+    const isUserAdmin = canEditWorkspaceSettings(activePolicy);
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
     const reportID = (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
 
+    const onCloseCompleteRef = useRef<(() => void) | undefined>(undefined);
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
     const [prevShouldHideSidePanel, setPrevShouldHideSidePanel] = useState(shouldHideSidePanel);
 
@@ -121,17 +122,22 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => setIsSidePanelTransitionEnded(true));
+        ]).start(() => {
+            setIsSidePanelTransitionEnded(true);
+            onCloseCompleteRef.current?.();
+            onCloseCompleteRef.current = undefined;
+        });
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
-    const closeSidePanel = (shouldUpdateNarrow = false) => {
+    const closeSidePanel = (options?: {afterTransition?: () => void}) => {
         // User shouldn't be able to close side panel if side panel NVP is undefined
         if (!sidePanelNVP) {
             return;
         }
 
+        onCloseCompleteRef.current = options?.afterTransition;
         setIsSidePanelTransitionEnded(false);
-        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
+        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth);
 
         // Focus the composer after closing the Side Panel
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);

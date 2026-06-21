@@ -155,12 +155,4 @@ type AttachmentModalBaseContentProps = {
     pdfRotation?: RotationDegrees;
 };
 
-export type {
-    AttachmentModalBaseContentProps,
-    AttachmentModalOnCloseOptions,
-    DownloadAttachmentCallback,
-    AttachmentContent,
-    AttachmentContentProps,
-    ThreeDotsMenuItemFactory,
-    ThreeDotsMenuItemFactoryProps,
-};
+export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, DownloadAttachmentCallback, AttachmentContentProps, ThreeDotsMenuItemFactory};

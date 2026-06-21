@@ -1,4 +1,4 @@
-import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 

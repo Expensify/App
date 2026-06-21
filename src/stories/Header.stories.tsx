@@ -16,7 +16,6 @@ const story: Meta<typeof Header> = {
 };
 
 function Template(props: HeaderProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Header {...props} />;
 }
 

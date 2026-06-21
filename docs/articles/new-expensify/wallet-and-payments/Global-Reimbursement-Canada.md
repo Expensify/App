@@ -40,7 +40,7 @@ To comply with financial regulations, you’ll need:
 - A recent bank statement for the connected account  
 - Beneficial ownership information (for anyone owning 25% or more)  
 
-Accepted file types: PDF, PNG, JPEG.
+Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
 
 Note: Additional documentation may be requested by Expensify’s Compliance team during review.
 
@@ -141,6 +141,8 @@ If you are not a Director or Senior Officer:
 
 - Enter the Director’s or Senior Officer’s information  
 - They will receive instructions to complete identity verification  
+
+**Note:** The designated Director or Senior Officer will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
 
 ---
 

@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import type {TableData} from '@components/Table/types';
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
@@ -23,12 +24,12 @@ type FilterConfig<FilterKey extends string = string> = Record<FilterKey, FilterC
 /**
  * Callback to check if an item matches a filter.
  *
- * @template T - The type of items in the data array.
+ * @template DataType - The type of items in the data array.
  * @param item - The item to check.
  * @param filters - The filters to check against.
  * @returns True if the item matches the filters, false otherwise.
  */
-type IsItemInFilterCallback<T> = (item: T, filters: string[]) => boolean;
+type IsItemInFilterCallback<DataType extends TableData> = (item: DataType, filters: string[]) => boolean;
 
 /**
  * Methods exposed by the table to control filtering.
@@ -46,34 +47,37 @@ type FilteringMethods<FilterKey extends string = string> = {
 /**
  * Props for the filtering middleware.
  *
- * @template T - The type of items in the data array.
+ * @template DataType - The type of items in the data array.
  * @template FilterKey - The type of filter keys.
  */
-type UseFilteringProps<T, FilterKey extends string = string> = {
+type UseFilteringProps<DataType extends TableData, FilterKey extends string = string> = {
     filters?: FilterConfig<FilterKey>;
-    isItemInFilter?: IsItemInFilterCallback<T>;
+    isItemInFilter?: IsItemInFilterCallback<DataType>;
 };
 
 /**
  * Result returned by the filtering middleware.
  *
- * @template T - The type of items in the data array.
+ * @template DataType - The type of items in the data array.
  * @template FilterKey - The type of filter keys.
  */
-type UseFilteringResult<T, FilterKey extends string = string> = MiddlewareHookResult<T, FilteringMethods<FilterKey>> & {
+type UseFilteringResult<DataType extends TableData, FilterKey extends string = string> = MiddlewareHookResult<DataType, FilteringMethods<FilterKey>> & {
     currentFilters: Record<FilterKey, unknown>;
 };
 
 /**
  * Provides functionality to filter table data.
  *
- * @template T - The type of items in the data array.
+ * @template DataType - The type of items in the data array.
  * @template FilterKey - The type of filter keys.
  * @param filters - The filters to use.
  * @param isItemInFilter - The callback to check if an item matches a filter.
  * @returns The result of the filtering middleware.
  */
-function useFiltering<T, FilterKey extends string = string>({filters, isItemInFilter}: UseFilteringProps<T, FilterKey>): UseFilteringResult<T, FilterKey> {
+function useFiltering<DataType extends TableData, FilterKey extends string = string>({
+    filters,
+    isItemInFilter,
+}: UseFilteringProps<DataType, FilterKey>): UseFilteringResult<DataType, FilterKey> {
     const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, unknown>>(() => {
         const initialFilters = {} as Record<FilterKey, unknown>;
 
@@ -97,7 +101,7 @@ function useFiltering<T, FilterKey extends string = string>({filters, isItemInFi
         return currentFilters;
     };
 
-    const middleware: Middleware<T> = (data) => filter({data, filters, currentFilters, isItemInFilter});
+    const middleware: Middleware<DataType> = (data) => filter({data, filters, currentFilters, isItemInFilter});
 
     const methods: FilteringMethods<FilterKey> = {
         updateFilter,
@@ -110,20 +114,20 @@ function useFiltering<T, FilterKey extends string = string>({filters, isItemInFi
 /**
  * Parameters for the filtering middleware.
  *
- * @template T - The type of items in the data array.
+ * @template DataType - The type of items in the data array.
  * @template FilterKey - The type of filter keys.
  */
-type FilteringMiddlewareParams<T, FilterKey extends string = string> = {
-    data: T[];
+type FilteringMiddlewareParams<DataType extends TableData, FilterKey extends string = string> = {
+    data: DataType[];
     filters?: FilterConfig<FilterKey>;
     currentFilters: Record<FilterKey, unknown>;
-    isItemInFilter?: IsItemInFilterCallback<T>;
+    isItemInFilter?: IsItemInFilterCallback<DataType>;
 };
 
 /**
  * Filters table data based on the current filters.
  *
- * @template T - The type of items in the data array.
+ * @template DataType - The type of items in the data array.
  * @template FilterKey - The type of filter keys.
  * @param data - The data to filter.
  * @param filters - The filters to use.
@@ -131,7 +135,7 @@ type FilteringMiddlewareParams<T, FilterKey extends string = string> = {
  * @param isItemInFilter - The callback to check if an item matches a filter.
  * @returns The filtered data.
  */
-function filter<T, FilterKey extends string = string>({data, filters, currentFilters, isItemInFilter}: FilteringMiddlewareParams<T, FilterKey>): T[] {
+function filter<DataType extends TableData, FilterKey extends string = string>({data, filters, currentFilters, isItemInFilter}: FilteringMiddlewareParams<DataType, FilterKey>): DataType[] {
     if (!filters) {
         // No filters configured, return original data.
         return data;
@@ -181,4 +185,4 @@ function filter<T, FilterKey extends string = string>({data, filters, currentFil
 }
 
 export default useFiltering;
-export type {FilteringMiddlewareParams, UseFilteringProps, FilteringMethods, FilterConfig, FilterConfigEntry, IsItemInFilterCallback};
+export type {FilteringMethods, FilterConfig, FilterConfigEntry, IsItemInFilterCallback};

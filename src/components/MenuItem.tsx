@@ -1,8 +1,9 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -107,7 +108,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         style?: StyleProp<ViewStyle>;
 
         /** Outer wrapper styles */
-        outerWrapperStyle?: StyleProp<ViewStyle>;
+        outerWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
         /** Any additional styles to apply */
         wrapperStyle?: StyleProp<ViewStyle>;
@@ -618,6 +619,18 @@ function MenuItem({
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
+    const pressableRef = useRef<View>(null);
+    useEffect(() => {
+        const element = pressableRef.current;
+        if (interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
+            return;
+        }
+        // React Native Web's Pressable always attaches an onClick handler to the DOM element.
+        // TalkBack on Android web uses the presence of a click event listener to determine whether
+        // an element is clickable and announces "double tap to activate" even for non-interactive elements.
+        // Removing the onclick property prevents TalkBack from treating the element as clickable.
+        element.onclick = null;
+    }, [interactive]);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
     const isCompactPopoverItem = isCompactMenu && !isSmallScreenWidth && !shouldIgnoreCompactStyle;
@@ -861,7 +874,7 @@ function MenuItem({
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
-                                ref={mergeRefs(ref, popoverAnchor)}
+                                ref={mergeRefs(ref, popoverAnchor, pressableRef)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
@@ -892,7 +905,6 @@ function MenuItem({
                                                     ]}
                                                 >
                                                     {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
-                                                    {}
                                                     {isIDPassed && (
                                                         <ReportActionAvatars
                                                             subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
@@ -1100,7 +1112,7 @@ function MenuItem({
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                                 {(subtitle === 0 || !!subtitle) && (
                                                     <View style={[styles.justifyContentCenter, styles.mr1, subtitleStyle]}>
-                                                        <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
+                                                        <Text style={[styles.textLabelSupporting]}>{subtitle}</Text>
                                                     </View>
                                                 )}
                                                 {(!!rightIconAccountID || !!rightIconReportID) && (
@@ -1122,7 +1134,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
-                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, styles.mr2]}>
+                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, badgeText ? undefined : styles.mr2]}>
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}

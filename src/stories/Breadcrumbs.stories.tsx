@@ -16,7 +16,6 @@ const story = {
 type StoryType = typeof Template & {args?: Partial<BreadcrumbsProps>};
 
 function Template(args: BreadcrumbsProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Breadcrumbs {...args} />;
 }
 

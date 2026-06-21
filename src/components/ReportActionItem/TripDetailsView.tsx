@@ -22,7 +22,7 @@ import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {formatAirportInfo, formatCancelledDescription, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {formatCancelledDescription, formatTransitLocationLabel, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -102,18 +102,18 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                         {shouldShowArrowIcon ? (
                             <>
-                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
+                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatTransitLocationLabel(reservation.start)}</Text>
                                 <Icon
                                     src={expensifyIcons.ArrowRightLong}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
                                     fill={theme.icon}
                                 />
-                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
+                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatTransitLocationLabel(reservation.end)}</Text>
                             </>
                         ) : (
                             <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>
-                                {formatAirportInfo(reservation.start)} {translate('common.to').toLowerCase()} {formatAirportInfo(reservation.end)}
+                                {formatTransitLocationLabel(reservation.start)} {translate('common.to').toLowerCase()} {formatTransitLocationLabel(reservation.end)}
                             </Text>
                         )}
                     </View>
@@ -217,7 +217,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                     if (!destinationReservation) {
                         return '';
                     }
-                    return `${translate('travel.flightTo')} ${formatAirportInfo(destinationReservation.reservation.end, true)}`;
+                    return `${translate('travel.flightTo')} ${formatTransitLocationLabel(destinationReservation.reservation.end, true)}`;
                 }
                 case CONST.RESERVATION_TYPE.TRAIN:
                     if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {

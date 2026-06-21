@@ -206,7 +206,7 @@ function getTagVisibility({
     shouldShowTags: boolean;
     policy: Policy | undefined;
     policyTags: OnyxEntry<PolicyTagLists>;
-    transaction: Transaction | undefined;
+    transaction: Pick<Transaction, 'tag'> | undefined;
 }): TagVisibility[] {
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const isMultilevelTags = isMultiLevelTagsPolicyUtils(policyTags);
@@ -354,4 +354,4 @@ function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
 }
 
 export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
-export type {SelectedTagOption, TagVisibility, TagOption};
+export type {SelectedTagOption, TagOption};

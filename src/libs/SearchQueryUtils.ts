@@ -13,6 +13,7 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
+    SearchAutocompleteResult,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchDatePreset,
@@ -45,15 +46,28 @@ import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
+import {isRecord} from './ObjectUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
+import {parse as parseForAutocomplete} from './SearchParser/autocompleteParser';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
+type SearchRootParams = SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+type NavigationRouteLike = {
+    /** Unique React Navigation route identifier. */
+    key?: string;
+    /** Screen name as registered in the navigator. */
+    name?: string;
+    /** Screen-specific params passed to the route. */
+    params?: Record<string, unknown>;
+    /** Nested navigator state, if this route is itself a navigator. */
+    state?: unknown;
+};
 
 // This map contains chars that match each operator
 const operatorToCharMap = {
@@ -953,6 +967,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
+                    if (!isNegated && filterKey === FILTER_KEYS.TAG && filterValueArray.length === 1 && filterValueArray.at(0) === CONST.SEARCH.TAG_EMPTY_VALUE) {
+                        return `-${CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}:${CONST.SEARCH.HAS_VALUES.TAG}`;
+                    }
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
@@ -1062,6 +1079,7 @@ function buildFilterFormValuesFromQuery(
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
     exportedToFilterOptions?: string[],
+    currentUserAccountID?: number,
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -1095,7 +1113,21 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ExpenseTypeValue)) as ExpenseTypeValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
+            const validHasFilters = filterList.filter((item) => VALID_HAS_TYPES.has(item.value as HasFilterValue));
+            const positiveHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
+            const negatedHasFilters = validHasFilters.filter((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO).map((item) => item.value.toString()) as HasFilterValues;
+            const hasNegatedTagFilter = negatedHasFilters.includes(CONST.SEARCH.HAS_VALUES.TAG);
+            const remainingNegatedHasFilters = negatedHasFilters.filter((hasType) => hasType !== CONST.SEARCH.HAS_VALUES.TAG);
+
+            if (hasNegatedTagFilter) {
+                filtersForm[FILTER_KEYS.TAG] = [CONST.SEARCH.TAG_EMPTY_VALUE];
+            }
+            if (positiveHasFilters.length > 0) {
+                filtersForm[FILTER_KEYS.HAS] = positiveHasFilters;
+            }
+            if (remainingNegatedHasFilters.length > 0) {
+                filtersForm[FILTER_KEYS.HAS_NOT] = remainingNegatedHasFilters;
+            }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
             filtersForm[key as typeof filterKey] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as IsFilterValue)) as IsFilterValues;
@@ -1128,7 +1160,8 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
         ) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
+            const resolvedValues = filterValues.map((id) => (id === CONST.SEARCH.ME && currentUserAccountID ? currentUserAccountID.toString() : id));
+            filtersForm[key as typeof filterKey] = resolvedValues.filter((id) => personalDetails?.[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
             // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
@@ -1437,6 +1470,9 @@ function getFilterDisplayValue({
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
     ) {
+        if (filterValue === CONST.SEARCH.ME) {
+            return CONST.SEARCH.ME;
+        }
         return filterValue === currentUserAccountID.toString() ? CONST.SEARCH.ME : getDisplayNameOrDefault(personalDetails?.[filterValue], filterValue, false);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
@@ -1855,6 +1891,18 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
     return standardQuery;
 }
 
+function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString, currentQueryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
+    const autocompleteRanges = (parseForAutocomplete(queryString) as SearchAutocompleteResult).ranges;
+    const hasOnlyKeywordSearch = queryString.trim().length > 0 && autocompleteRanges.length === 0;
+    if (!hasOnlyKeywordSearch) {
+        return queryString;
+    }
+
+    const currentFiltersWithoutKeywords = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+    const currentQueryString = buildSearchQueryString({...currentQueryJSON, flatFilters: currentFiltersWithoutKeywords});
+    return `${currentQueryString} ${queryString}`;
+}
+
 /**
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
@@ -1869,32 +1917,114 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
 
     const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
+    const rawFilterList = getRawFilterListFromQuery(query);
+    const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
+    const hasExplicitType = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) ?? false;
+
+    if (hasInFilter && !hasExplicitType) {
+        standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
+    }
+
     return buildSearchQueryString(standardizedQuery);
+}
+
+function isSearchRootParams(params: unknown): params is SearchRootParams {
+    return (
+        !!params &&
+        typeof params === 'object' &&
+        'q' in params &&
+        typeof params.q === 'string' &&
+        (!('rawQuery' in params) || params.rawQuery === undefined || typeof params.rawQuery === 'string')
+    );
+}
+
+function isUnknownArray(value: unknown): value is unknown[] {
+    return Array.isArray(value);
+}
+
+function getParamsState(params: unknown): unknown {
+    return isRecord(params) ? params.state : undefined;
+}
+
+function getRoutes(state: unknown): unknown[] | undefined {
+    if (!isRecord(state) || !isUnknownArray(state.routes)) {
+        return undefined;
+    }
+    return state.routes;
+}
+
+function getLastRouteByName(state: unknown, routeName: string): NavigationRouteLike | undefined {
+    const routes = getRoutes(state);
+    const route = routes?.findLast((candidate) => isRecord(candidate) && candidate.name === routeName);
+    return isRecord(route) ? route : undefined;
+}
+
+function getSearchRootParamsFromNestedNavigatorParams(params: unknown): SearchRootParams | undefined {
+    if (!params || typeof params !== 'object') {
+        return undefined;
+    }
+
+    const screen = 'screen' in params ? params.screen : undefined;
+    const nestedParams = 'params' in params ? params.params : undefined;
+    if (screen === SCREENS.SEARCH.ROOT) {
+        return isSearchRootParams(nestedParams) ? nestedParams : undefined;
+    }
+
+    if (screen === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+        return getSearchRootParamsFromNestedNavigatorParams(nestedParams);
+    }
+
+    return undefined;
+}
+
+function getSearchRootParamsFromSearchNavigatorState(state: unknown): SearchRootParams | undefined {
+    const searchRootRoute = getLastRouteByName(state, SCREENS.SEARCH.ROOT);
+    const searchRootParams = searchRootRoute?.params;
+    return isSearchRootParams(searchRootParams) ? searchRootParams : undefined;
+}
+
+function getSearchRootParamsFromTabState(state: unknown): SearchRootParams | undefined {
+    const searchNavigatorRoute = getLastRouteByName(state, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    return getSearchRootParamsFromNestedNavigatorParams(searchNavigatorRoute?.params) ?? getSearchRootParamsFromSearchNavigatorState(searchNavigatorRoute?.state);
+}
+
+function getSearchQueryJSONFromRouteParams(params: unknown) {
+    if (!isSearchRootParams(params)) {
+        return undefined;
+    }
+
+    return buildSearchQueryJSON(params.q, params.rawQuery);
 }
 
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
     const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    const lastSearchNavigator = lastTabNavigator?.state?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const tabStateFromParams = getParamsState(lastTabNavigator?.params);
+    const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
+    const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     let lastSearchNavigatorState = lastSearchNavigator?.state;
     if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator.key) : undefined;
     }
 
+    const nestedSearchRootParams =
+        getSearchRootParamsFromNestedNavigatorParams(lastSearchNavigator?.params) ??
+        getSearchRootParamsFromNestedNavigatorParams(lastTabNavigator?.params) ??
+        getSearchRootParamsFromTabState(tabStateFromParams);
+
     // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
-    // neither .state nor the preserved state map will have an entry. Fall back to the default
-    // query that the navigator would use as its initialParams.
+    // neither .state nor the preserved state map will have an entry. Use nested route params when
+    // React Navigation provided them, otherwise fall back to the default initialParams query.
     if (!lastSearchNavigatorState) {
+        const nestedQueryJSON = getSearchQueryJSONFromRouteParams(nestedSearchRootParams);
+        if (nestedQueryJSON) {
+            return nestedQueryJSON;
+        }
         return buildSearchQueryJSON(buildSearchQueryString());
     }
 
-    const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-    if (!lastSearchRoute?.params) {
-        return;
-    }
-
-    const {q: searchParams, rawQuery} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-    const queryJSON = buildSearchQueryJSON(searchParams, rawQuery);
+    const lastSearchRoute = getLastRouteByName(lastSearchNavigatorState, SCREENS.SEARCH.ROOT);
+    const queryJSON = getSearchQueryJSONFromRouteParams(lastSearchRoute?.params);
     if (!queryJSON) {
         return;
     }
@@ -2074,6 +2204,34 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
+ * Returns an object containing the filter values needed to reset
+ * the currently applied advanced filters back to their initial state.
+ *
+ * - STATUS is reset to `ALL`
+ * - TYPE is reset to `EXPENSE`
+ * - COLUMNS is reset to undefined only if the current TYPE is not EXPENSE
+ * - Other filters are reset to `undefined`
+ */
+function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
+    const isTypeExpense = searchAdvancedFiltersForm.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
+        if (filterKey === FILTER_KEYS.STATUS) {
+            if (searchAdvancedFiltersForm[filterKey] !== CONST.SEARCH.STATUS.EXPENSE.ALL) {
+                acc[filterKey] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            }
+        } else if (filterKey === FILTER_KEYS.TYPE) {
+            if (!isTypeExpense) {
+                acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
+            }
+        } else if (filterKey !== FILTER_KEYS.COLUMNS || !isTypeExpense) {
+            Object.assign(acc, {[filterKey]: undefined});
+        }
+
+        return acc;
+    }, {} as Partial<SearchAdvancedFiltersForm>);
+}
+
+/**
  * Set of filter keys that represent free-text fields where the default `:` (eq) operator
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
@@ -2148,6 +2306,7 @@ export {
     buildCannedSearchQuery,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
+    getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
@@ -2163,9 +2322,14 @@ export {
     buildOptimisticSnapshotData,
     getDateFilterKeys,
     getEmptyDateValues,
+    getAdvancedFiltersToReset,
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
+    getLastRouteByName,
+    getParamsState,
+    getRoutes,
+    isSearchRootParams,
 };
 
 export type {BuildUserReadableQueryStringParams};

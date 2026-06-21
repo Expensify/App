@@ -29,6 +29,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
+    | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
@@ -104,7 +105,6 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 report={report}
                 reportDraft={reportDraft}

@@ -22,7 +22,6 @@ function Template(props: MagicCodeInputProps) {
         <MagicCodeInput
             value={value}
             onChangeText={setValue}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

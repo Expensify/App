@@ -79,4 +79,4 @@ function getIllustrationsChunk(): IllustrationsChunk | null {
 
 export {loadIllustration, loadIllustrationsChunk, getIllustrationsChunk};
 
-export type {IllustrationName, IllustrationsChunk};
+export type {IllustrationName};

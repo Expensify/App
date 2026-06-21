@@ -58,6 +58,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Configuration options for the text input */
     textInputOptions?: TextInputOptions;
 
+    /** Search value used for focus synchronization. Defaults to textInputOptions.value */
+    searchValueForFocusSync?: string;
+
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
@@ -185,6 +188,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Whether to place customListHeader in the list so it scrolls with data */
         shouldHeaderBeInsideList?: boolean;
+
+        /** Custom accessibility label for the select all checkbox, providing context about what is being selected */
+        selectAllAccessibilityLabel?: string;
     };
 
 type SelectionListStyle = {
@@ -290,6 +296,12 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
 
     /** Whether the button is disabled */
     isDisabled?: boolean;
+
+    /**
+     * Visual size of the footer confirm button (SelectionList Footer only).
+     * Defaults to large for backwards compatibility.
+     */
+    confirmButtonSize?: 'large' | 'medium' | 'small';
 };
 
 type InteractiveElementRoles = 'button' | 'checkbox' | 'switch';

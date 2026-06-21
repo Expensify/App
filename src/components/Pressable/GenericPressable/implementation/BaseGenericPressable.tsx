@@ -209,7 +209,6 @@ function GenericPressable({
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
             fsClass={forwardedFSClass}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onHoverOut={(event) => {
                 if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {

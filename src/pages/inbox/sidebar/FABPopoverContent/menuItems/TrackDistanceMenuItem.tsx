@@ -3,7 +3,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {startDistanceRequest} from '@libs/actions/IOU';
+import {startDistanceRequest} from '@libs/actions/IOU/MoneyRequest';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import CONST from '@src/CONST';

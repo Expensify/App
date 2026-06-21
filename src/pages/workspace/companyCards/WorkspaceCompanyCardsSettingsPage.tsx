@@ -1,7 +1,6 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -52,7 +51,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [cardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
@@ -99,17 +98,19 @@ function WorkspaceCompanyCardsSettingsPage({
     };
 
     const deleteCompanyCardFeed = () => {
-        Navigation.goBack();
-        if (feed) {
-            const {cardList, ...cards} = cardsList ?? {};
-            const cardIDs = Object.keys(cards);
-            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
-                (feedWithDomainID) => feedWithDomainID !== selectedFeed && companyFeeds[feedWithDomainID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            );
-            InteractionManager.runAfterInteractions(() => {
+        Navigation.goBack(undefined, {
+            afterTransition: () => {
+                if (!feed) {
+                    return;
+                }
+                const {cardList, ...cards} = cardsList ?? {};
+                const cardIDs = Object.keys(cards);
+                const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
+                    (feedWithDomainID) => feedWithDomainID !== selectedFeed && companyFeeds[feedWithDomainID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                );
                 deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, feed, cardIDs, feedToOpen);
-            });
-        }
+            },
+        });
     };
 
     const onToggleLiability = (isOn: boolean) => {
@@ -128,6 +129,8 @@ function WorkspaceCompanyCardsSettingsPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceCompanyCardsSettingsPage"

@@ -182,7 +182,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
 
     return (
         <AutoCompleteSuggestionsPortal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             left={containerState.left}
             width={containerState.width}

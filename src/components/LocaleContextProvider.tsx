@@ -177,4 +177,4 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
 export {LocaleContext, LocaleContextProvider};
 
-export type {Locale, LocaleContextProps, LocalizedTranslate};
+export type {LocaleContextProps, LocalizedTranslate};

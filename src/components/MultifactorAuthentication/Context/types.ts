@@ -9,6 +9,10 @@ import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 type MultifactorAuthenticationState = {
+    /** Whether the MFA modal overlay is open. Separate from scenario lifecycle
+     *  so the close animation can play before state is fully reset. */
+    isModalOpen: boolean;
+
     /** Current error state - stops the flow and navigates to failure outcome */
     error: MFAError | undefined;
 
@@ -50,6 +54,9 @@ type MultifactorAuthenticationState = {
 
     /** Response from the scenario API call, stored for callback invocation at outcome navigation */
     scenarioResponse: MultifactorAuthenticationScenarioResponse | undefined;
+
+    /** Whether the cancel-confirmation modal triggered by a back press is currently visible */
+    isCancelConfirmVisible: boolean;
 };
 
 type InitPayload = {
@@ -71,8 +78,10 @@ type Action =
     | {type: 'SET_FLOW_COMPLETE'; payload: boolean}
     | {type: 'SET_AUTHENTICATION_METHOD'; payload: AuthTypeInfo | undefined}
     | {type: 'SET_SCENARIO_RESPONSE'; payload: MultifactorAuthenticationScenarioResponse | undefined}
+    | {type: 'SET_CANCEL_CONFIRM_VISIBLE'; payload: boolean}
     | {type: 'INIT'; payload: InitPayload}
     | {type: 'REREGISTER'}
+    | {type: 'CLOSE_MODAL'}
     | {type: 'RESET'};
 
 /** Context value for state - the current MFA state */
@@ -83,4 +92,4 @@ type MultifactorAuthenticationActionsContextType = {
     dispatch: (action: Action) => void;
 };
 
-export type {MultifactorAuthenticationState, InitPayload, Action, MultifactorAuthenticationStateContextType, MultifactorAuthenticationActionsContextType};
+export type {MultifactorAuthenticationState, Action, MultifactorAuthenticationStateContextType, MultifactorAuthenticationActionsContextType};

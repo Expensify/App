@@ -158,11 +158,6 @@ const restrictedImportPaths = [
 
 const restrictedImportPatterns = [
     {
-        group: ['**/TransitionTracker', './TransitionTracker', '../TransitionTracker'],
-        message:
-            "TransitionTracker is an internal primitive. Please use higher-level APIs (Navigation with 'afterTransition'/'waitForTransition', KeyboardUtils, useConfirmModal). See contributingGuides/INTERACTION_MANAGER.md.",
-    },
-    {
         group: ['**/assets/animations/**/*.json'],
         message: "Do not import animations directly. Please use the '@components/LottieAnimations' import instead.",
     },
@@ -185,6 +180,26 @@ const restrictedReportNameImportPatterns = [
         group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
         importNames: ['computeReportName'],
         message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
+    },
+];
+
+// `isPaidGroupPolicy` is BILLING/paid-only (Collect/Control). Existing usages are grandfathered via
+// eslint-seatbelt; this only flags NEW imports so they make a conscious choice: for workspace feature
+// gating (violations, report fields, workspace chat, report creation, expense-workspace usability) use
+// `isGroupPolicy` / `isReportInGroupPolicy` instead, otherwise free group plans like Submit (submit2026)
+// are wrongly excluded and access bugs return.
+const restrictedPaidGroupPolicyImportPatterns = [
+    {
+        group: ['**/PolicyUtils', '**/libs/PolicyUtils'],
+        importNames: ['isPaidGroupPolicy'],
+        message:
+            'isPaidGroupPolicy is billing/paid-only (Collect/Control). For workspace feature gating use isGroupPolicy so free group plans like Submit are not excluded. If this is genuinely a billing/paid-only check, keep it and disable this line with a reason.',
+    },
+    {
+        group: ['**/ReportUtils', '**/libs/ReportUtils'],
+        importNames: ['isPaidGroupPolicy', 'isPaidGroupPolicyExpenseReport'],
+        message:
+            'isPaidGroupPolicy / isPaidGroupPolicyExpenseReport are billing/paid-only. For feature gating use isReportInGroupPolicy / isGroupPolicyExpenseReport so Submit workspaces are not excluded. If this is genuinely billing/paid-only, keep it and disable this line with a reason.',
     },
 ];
 
@@ -255,12 +270,11 @@ const config = defineConfig([
 
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
-            '@lwc/lwc/no-async-await': 'off',
-
             // TypeScript specific rules
             '@typescript-eslint/prefer-enum-initializers': 'error',
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-non-null-assertion': 'error',
+            '@typescript-eslint/no-unsafe-type-assertion': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': ['error', {considerDefaultExhaustiveForUnions: true}],
             '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
             '@typescript-eslint/no-floating-promises': 'off',
@@ -335,7 +349,6 @@ const config = defineConfig([
             'es/no-optional-chaining': 'off',
             '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
             'arrow-body-style': 'off',
-            'no-continue': 'off',
             'no-empty': ['error', {allowEmptyCatch: true}],
 
             // Import specific rules
@@ -401,11 +414,6 @@ const config = defineConfig([
                 {
                     selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
                     message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
-                },
-                {
-                    selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
-                    message:
-                        'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
                 },
                 {
                     selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
@@ -636,7 +644,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'server/**/*'],
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
@@ -644,7 +652,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*', 'tests/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
         rules: {
             'no-await-in-loop': 'off',
             'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
@@ -719,7 +727,7 @@ const config = defineConfig([
                 'error',
                 {
                     paths: restrictedImportPaths,
-                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns],
+                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
                 },
             ],
         },
@@ -740,6 +748,24 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['server/**/*.ts', 'server/**/*.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'server/tsconfig.json'),
+            },
+        },
+    },
+
+    {
+        files: ['server/victory-chart-renderer/**/*.ts', 'server/victory-chart-renderer/**/*.tsx'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'server/victory-chart-renderer/tsconfig.json'),
+            },
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
@@ -748,6 +774,7 @@ const config = defineConfig([
         '**/*.config.mjs',
         '**/node_modules/**/*',
         '**/dist/**/*',
+        'server/**/dist/**',
         '.eslint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
@@ -766,6 +793,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',
         'src/languages/ja.ts',

@@ -47,7 +47,6 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(rest as TProps)}
                 isLoadingReportData={isLoadingReportData}
                 personalDetails={personalDetails}

@@ -63,6 +63,7 @@ function BaseTextInput({
     shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
+    shouldLabelStayOnSingleLine = false,
     shouldInterceptSwipe = false,
     autoCorrect = true,
     prefixCharacter = '',
@@ -341,7 +342,6 @@ function BaseTextInput({
         <>
             <View
                 style={[containerStyles]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
                 <PressableWithoutFeedback
@@ -393,6 +393,7 @@ function BaseTextInput({
                                     labelScale={labelScale}
                                     for={inputProps.nativeID}
                                     isMultiline={isMultiline}
+                                    shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
                                 />
                             </>
                         ) : null}

@@ -73,5 +73,4 @@ function useChartInteractionState(): {state: ChartInteractionState} {
     return {state};
 }
 
-export {useChartInteractionState};
-export type {ChartInteractionState};
+export default useChartInteractionState;

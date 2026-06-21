@@ -163,4 +163,4 @@ function hasBelowShowMore(flags: FieldVisibility): boolean {
 
 export default computeFieldVisibility;
 export {hasBelowShowMore};
-export type {FieldVisibility, TagEntry, TagVisibilityEntry};
+export type {FieldVisibility, TagEntry};

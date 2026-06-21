@@ -39,7 +39,7 @@ If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify T
 ## What happens after booking with Expensify Travel 
 
 - Your company’s travel policy may require approval before final confirmation.
-- You’ll receive a confirmation email after booking.
+- You’ll receive a confirmation email that includes the relevant booking details.
 - The booking receipt will automatically sync with your Expensify account.
 - If your card is connected to Expensify, the receipt will merge with the credit card expense.
 

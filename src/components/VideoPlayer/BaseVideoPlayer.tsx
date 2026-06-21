@@ -4,7 +4,6 @@ import {useVideoPlayer, VideoView} from 'expo-video';
 import debounce from 'lodash/debounce';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -12,10 +11,10 @@ import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Hoverable from '@components/Hoverable';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
+import {useIsPopoverVisible} from '@components/PopoverMenu/v2';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
@@ -31,28 +30,31 @@ import * as VideoUtils from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
-function BaseVideoPlayer({
-    url,
-    onSourceLoaded,
-    isLooping = false,
-    style,
-    videoPlayerStyle,
-    videoControlsStyle,
-    videoDuration = 0,
-    shouldUseSharedVideoElement = false,
-    shouldUseSmallVideoControls = false,
-    // TODO: investigate what is the root cause of the bug with unexpected video switching
-    // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
-    // but current workaround is just not to use it here for now. This causes not displaying the video controls when
-    // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isVideoHovered = false,
-    controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
-    shouldPlay,
-    isPreview,
-    reportID,
-    onTap,
-}: VideoPlayerProps & {reportID: string}) {
+type BaseVideoPlayerProps = VideoPlayerProps & {reportID: string};
+
+function BaseVideoPlayer(props: BaseVideoPlayerProps) {
+    const {
+        url,
+        onSourceLoaded,
+        isLooping = false,
+        style,
+        videoPlayerStyle,
+        videoControlsStyle,
+        videoDuration = 0,
+        shouldUseSharedVideoElement = false,
+        shouldUseSmallVideoControls = false,
+        // TODO: investigate what is the root cause of the bug with unexpected video switching
+        // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
+        // but current workaround is just not to use it here for now. This causes not displaying the video controls when
+        // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        isVideoHovered = false,
+        controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
+        shouldPlay,
+        isPreview,
+        reportID,
+        onTap,
+    } = props;
     const styles = useThemeStyles();
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
@@ -61,7 +63,8 @@ function BaseVideoPlayer({
     const report = useReportOrReportDraft(reportID);
 
     const isOffline = useNetwork().isOffline;
-    const [isVideoOffline, setIsVideoOffline] = useState(false);
+    // A player mounted while already offline should not auto-play content retained in the browser cache.
+    const [isVideoOffline, setIsVideoOffline] = useState(() => isOffline);
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const [duration, setDuration] = useState(videoDuration);
@@ -69,8 +72,7 @@ function BaseVideoPlayer({
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
+    const isPopoverVisible = useIsPopoverVisible();
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
@@ -93,7 +95,7 @@ function BaseVideoPlayer({
     // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
     const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false} as PlayingChangeEventPayload);
 
-    const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
+    const {currentTime} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
@@ -160,8 +162,9 @@ function BaseVideoPlayer({
         return isLoading && (!isPlaying || currentTime <= 0) && !isVideoOffline && !hasError;
     }, [currentTime, hasError, isLoading, isVideoOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
-        return isVideoOffline && currentTime + bufferedPosition <= 0;
-    }, [bufferedPosition, currentTime, isVideoOffline]);
+        return isVideoOffline && !isPlaying;
+    }, [isPlaying, isVideoOffline]);
+
     const {updateVolume} = useVolumeActions();
     const {lastNonZeroVolume} = useVolumeState();
     useHandleNativeVideoControls({
@@ -170,9 +173,11 @@ function BaseVideoPlayer({
         isLocalFile: isUploading,
     });
 
-    const {updateVideoPopoverMenuPlayerRef, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
-
     const togglePlayCurrentVideo = useCallback(() => {
+        if (isOffline) {
+            return;
+        }
+
         if (!isCurrentlyURLSet) {
             updateCurrentURLAndReportID(url, report, reportID);
             return;
@@ -196,7 +201,7 @@ function BaseVideoPlayer({
 
         allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
+    }, [isOffline, isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded || isSeeking) {
@@ -266,20 +271,6 @@ function BaseVideoPlayer({
         controlsOpacity.set(1);
     }, [controlStatusState, controlsOpacity, hideControl]);
 
-    const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
-        updateVideoPopoverMenuPlayerRef(videoPlayerRef.current);
-        if (!videoPlayerRef.current) {
-            return;
-        }
-        setIsPopoverVisible(true);
-
-        updatePopoverMenuSource(url);
-        if (!event || !('nativeEvent' in event)) {
-            return;
-        }
-        setPopoverAnchorPosition({horizontal: event.nativeEvent.pageX, vertical: event.nativeEvent.pageY});
-    };
-
     useEventListener(videoPlayerRef.current, 'mutedChange', (payload: MutedChangeEventPayload) => {
         if (payload.muted || !payload.oldMuted) {
             return;
@@ -309,7 +300,7 @@ function BaseVideoPlayer({
         setHasErrorIconVisible(false);
         if (isFirstLoad) {
             setIsFirstLoad(false);
-            if (videoPlayerRef.current === currentVideoPlayerRef.current && !isUploading) {
+            if (videoPlayerRef.current === currentVideoPlayerRef.current && !isUploading && !isOffline) {
                 playVideo();
             }
         }
@@ -616,7 +607,6 @@ function BaseVideoPlayer({
                                         style={[videoControlsStyle, controlsAnimatedStyle]}
                                         togglePlayCurrentVideo={togglePlayCurrentVideo}
                                         controlsStatus={controlStatusState}
-                                        showPopoverMenu={showPopoverMenu}
                                         reportID={reportID}
                                         onSeekStart={() => {
                                             allowSharedAutoPlayRef.current = false;
@@ -639,11 +629,7 @@ function BaseVideoPlayer({
                     )}
                 </Hoverable>
             </PressableWithoutFeedback>
-            <VideoPopoverMenu
-                isPopoverVisible={isPopoverVisible}
-                hidePopover={() => setIsPopoverVisible(false)}
-                anchorPosition={popoverAnchorPosition}
-            />
+            <VideoPopoverMenu />
         </>
     );
 }

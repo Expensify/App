@@ -8,10 +8,20 @@ import * as ReportUtils from '@libs/ReportUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportActions, ReportNameValuePairs, Session} from '@src/types/onyx';
 import updateUnread from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+let currentUserLogin = '';
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value: Session | undefined) => {
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        currentUserLogin = value?.email ?? '';
+    },
+});
 
 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
@@ -62,6 +72,8 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
                 excludeEmptyChats: false,
                 isReportArchived,
                 draftComment,
+                currentUserLogin,
+                currentUserAccountID,
             }) &&
             /**
              * Chats with hidden preference remain invisible in the LHN and are not considered "unread."

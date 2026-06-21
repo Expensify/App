@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useEffect} from 'react';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
@@ -10,6 +10,10 @@ import CONST from '@src/CONST';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+
+// Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
+// (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
+let lastSavedSearchHash: number | undefined;
 
 /**
  * Handles page-level setup for Search that must happen before the Search component mounts:
@@ -21,8 +25,9 @@ import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const {clearSelectedTransactions} = useSearchActionsContext();
-    const {shouldUseLiveData, currentSearchResults, currentSearchKey} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
+    const {currentSearchKey} = useSearchQueryContext();
 
     const hash = queryJSON?.hash;
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
@@ -52,16 +57,19 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (!queryJSON || hash === undefined || shouldUseLiveData || isOffline) {
             return;
         }
+
+        // Must run even on cached snapshots, else SearchTabButton's Onyx fallback restores
+        // a stale query after a tab switch (e.g. filter reappears after Reset).
+        if (lastSavedSearchHash !== hash) {
+            saveLastSearchParams({queryJSON, offset: 0, searchKey: currentSearchKey, hasMoreResults: false, allowPostSearchRecount: false});
+            lastSavedSearchHash = hash;
+        }
+
         if (isSnapshotDataLoaded || isSnapshotSearchLoading) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
-
-        // Save query context so SearchTabButton can restore the last search when
-        // the user returns to the Search tab. This is the explicit replacement for
-        // the old implicit save-on-every-search() default.
-        saveLastSearchParams({queryJSON, offset: 0, searchKey: currentSearchKey, hasMoreResults: false, allowPostSearchRecount: false});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {

@@ -20,12 +20,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AttachmentCamera from './AttachmentCamera';
-import type {CapturedPhoto} from './AttachmentCamera';
+import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
 
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
@@ -54,23 +54,14 @@ type LocalCopy = {
     type: string | null;
 };
 
-type Item =
-    | {
-          /** The icon associated with the item. */
-          icon: IconAsset;
-          /** The key in the translations file to use for the title */
-          textTranslationKey: TranslationPaths;
-          /** Function to call when the user clicks the item */
-          pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
-      }
-    | {
-          /** The icon associated with the item. */
-          icon: IconAsset;
-          /** The key in the translations file to use for the title */
-          textTranslationKey: TranslationPaths;
-          /** Direct action that doesn't go through the promise-based selectItem flow */
-          onPress: () => void;
-      };
+type Item = {
+    /** The icon associated with the item. */
+    icon: IconAsset;
+    /** The key in the translations file to use for the title */
+    textTranslationKey: TranslationPaths;
+    /** Function to call when the user clicks the item */
+    pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
+};
 
 /**
  * Ensures asset has proper fileName and type properties
@@ -118,7 +109,7 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
  * send to the xhr will be handled properly.
  */
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
-    const fileName = fileData.name || 'chat_attachment';
+    const fileName = fileData.name || CONST.DEFAULT_ATTACHMENT_FILENAME;
     const fileResult: FileObject = {
         name: cleanFileName(fileName),
         type: fileData.type,
@@ -128,14 +119,25 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
         size: fileData.size,
     };
 
-    if (fileResult.size) {
-        return Promise.resolve(fileResult);
-    }
+    const fileWithSize = fileResult.size
+        ? Promise.resolve(fileResult)
+        : RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+              fileResult.size = stats.size;
+              return fileResult;
+          });
 
-    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
-        fileResult.size = stats.size;
-        return fileResult;
-    });
+    // Move the file out of the cache directory (which the OS can purge) into durable storage so it
+    // survives an app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
+    // re-reads on offline replay, so it must point at the durable path too. On failure
+    // moveReceiptToDurableStorage returns the original URI, so the catch is just a safeguard.
+    return fileWithSize.then((file) =>
+        moveReceiptToDurableStorage(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
+            .then((durableUri) => ({...file, uri: durableUri, source: durableUri}) as FileObject)
+            .catch((error: unknown) => {
+                Log.warn('[AttachmentPicker] Failed to move attachment to durable storage, using original URI', {error});
+                return file;
+            }),
+    );
 };
 
 /**
@@ -158,7 +160,6 @@ function AttachmentPicker({
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
-    const [showAttachmentCamera, setShowAttachmentCamera] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -182,19 +183,9 @@ function AttachmentPicker({
     );
 
     /**
-     * Launch the in-app VisionCamera instead of the external system camera.
-     * Opens the camera modal directly — bypasses the promise-based selectItem flow.
-     * handleCameraCapture / handleCameraClose handle completion.
-     */
-    const launchInAppCamera = useCallback(() => {
-        onOpenPicker?.();
-        setShowAttachmentCamera(true);
-    }, [onOpenPicker]);
-
-    /**
      * Common image picker handling
      *
-     * @param {function} imagePickerFunc - RNImagePicker.launchImageLibrary
+     * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
      */
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
@@ -360,12 +351,12 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                onPress: launchInAppCamera,
+                pickAttachment: () => showImagePicker(launchCamera),
             });
         }
 
         return data;
-    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, launchInAppCamera, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -488,31 +479,6 @@ function AttachmentPicker({
         [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
-    const handleCameraCapture = useCallback(
-        (photos: CapturedPhoto[]) => {
-            setShowAttachmentCamera(false);
-            const assets: Asset[] = photos.map((photo) => ({
-                uri: photo.uri,
-                fileName: photo.fileName,
-                type: photo.type,
-                width: photo.width,
-                height: photo.height,
-            }));
-            Promise.resolve(pickAttachment(assets)).finally(() => {
-                onClosed.current();
-                delete onModalHide.current;
-            });
-        },
-        [pickAttachment],
-    );
-
-    const handleCameraClose = useCallback(() => {
-        setShowAttachmentCamera(false);
-        onCanceled.current();
-        onClosed.current();
-        delete onModalHide.current;
-    }, []);
-
     /**
      * Opens the attachment modal, or directly launches the document picker when shouldSkipAttachmentTypeModal is true.
      */
@@ -548,19 +514,6 @@ function AttachmentPicker({
      */
     const selectItem = useCallback(
         (item: Item) => {
-            /* Items with onPress (e.g. in-app camera) handle their own flow
-             * and don't go through the promise-based pickAttachment chain.
-             * We still defer via onModalHide so the popover fully dismisses
-             * before the camera Modal presents — on iOS, presenting a new
-             * modal while another is closing can cause the new one to fail. */
-            if ('onPress' in item) {
-                onModalHide.current = () => {
-                    item.onPress();
-                };
-                close();
-                return;
-            }
-
             onOpenPicker?.();
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
@@ -637,11 +590,6 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            <AttachmentCamera
-                isVisible={showAttachmentCamera}
-                onCapture={handleCameraCapture}
-                onClose={handleCameraClose}
-            />
             {renderChildren()}
         </>
     );

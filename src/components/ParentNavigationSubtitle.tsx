@@ -66,6 +66,9 @@ type ParentNavigationSubtitleProps = {
 
     /** Display name of the human agent; falls back to a generic label when missing */
     humanAgentName?: string;
+
+    /** Whether to show the "from" prefix */
+    shouldShowFromPrefix?: boolean;
 };
 
 function ParentNavigationSubtitle({
@@ -83,6 +86,7 @@ function ParentNavigationSubtitle({
     subtitleNumberOfLines = 1,
     humanAgentAccountID,
     humanAgentName,
+    shouldShowFromPrefix = true,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -191,6 +195,23 @@ function ParentNavigationSubtitle({
                 }
             }
 
+            // When the parent report is already the topmost route in the tab underneath the RHP,
+            // update its reportActionID and dismiss the modal instead of pushing a new instance
+            // on top of the tab navigator.
+            if (currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                const fullScreenState = currentFullScreenRoute.state;
+                const topRoute = fullScreenState?.routes?.[fullScreenState.index ?? 0];
+                const topRouteReportID = topRoute?.params && 'reportID' in topRoute.params ? String(topRoute.params.reportID) : undefined;
+
+                if (topRouteReportID === parentReportID && topRoute?.key && fullScreenState?.key) {
+                    if (isVisibleAction && parentReportActionID) {
+                        Navigation.setParams({reportActionID: parentReportActionID}, topRoute.key, fullScreenState.key);
+                    }
+                    Navigation.dismissModal();
+                    return;
+                }
+            }
+
             // Stay in the Search tab when the parent link is tapped from a SEARCH_REPORT RHP
             // and the parent isn't already in the stack — otherwise the REPORT_WITH_ID fallback
             // would yank the user to Inbox.
@@ -241,7 +262,7 @@ function ParentNavigationSubtitle({
             >
                 {!!reportName && (
                     <>
-                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
+                        {shouldShowFromPrefix && <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>}
                         {hasAccessToParentReport ? (
                             <TextLink
                                 testID="parent-navigation-subtitle-link"
@@ -253,8 +274,8 @@ function ParentNavigationSubtitle({
                                     pressableStyles,
                                     styles.optionAlternateText,
                                     styles.textLabelSupporting,
-                                    hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
                                     textStyles,
+                                    hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
                                 ]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >

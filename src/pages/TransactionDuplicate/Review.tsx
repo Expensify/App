@@ -1,13 +1,15 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +28,7 @@ import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils'
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
+import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,6 +53,7 @@ function TransactionDuplicateReview() {
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -71,6 +75,14 @@ function TransactionDuplicateReview() {
         }
     }
     transactions.sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
+    const [selectedTransactionID, setSelectedTransactionID] = useState<string | undefined>(transactionID);
+    const defaultSelectedTransactionID = transactionID ?? transactions.at(0)?.transactionID;
+    const effectiveSelectedTransactionID = transactions.some((transaction) => transaction.transactionID === selectedTransactionID) ? selectedTransactionID : defaultSelectedTransactionID;
+    const selectedTransaction = transactions.find((transaction) => transaction.transactionID === effectiveSelectedTransactionID);
+    const [selectedTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedTransaction?.reportID}`);
+    const [selectedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactionReport?.policyID}`);
+    const [selectedTransactionPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${selectedTransactionReport?.policyID}`);
+    const [selectedTransactionPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${selectedTransactionReport?.policyID}`);
 
     const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
     const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
@@ -120,21 +132,25 @@ function TransactionDuplicateReview() {
         clearDeleteTransactionNavigateBackUrl();
     }, [isDeleteNavigateBackToThisReview, wasTransactionDeleted]);
 
-    useFocusEffect(() => {
-        return () => {
-            if (!deleteTransactionNavigateBackUrl) {
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (!deleteTransactionNavigateBackUrl) {
+                    return;
+                }
+                clearDeleteTransactionNavigateBackUrl();
+            };
+        }, [deleteTransactionNavigateBackUrl]),
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!originalTransactionIDsListRef.current) {
                 return;
             }
-            clearDeleteTransactionNavigateBackUrl();
-        };
-    });
-
-    useFocusEffect(() => {
-        if (!originalTransactionIDsListRef.current) {
-            return;
-        }
-        setActiveTransactionIDs(originalTransactionIDsListRef.current);
-    });
+            setActiveTransactionIDs(originalTransactionIDsListRef.current);
+        }, []),
+    );
 
     const onPreviewPressed = (reportID: string) => {
         const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
@@ -148,6 +164,11 @@ function TransactionDuplicateReview() {
         }
     };
 
+    const currentTransactionViolations = transactionIDs.map((id) => ({
+        transactionID: id,
+        violations: allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [],
+    }));
+
     const keepAll = () => {
         dismissDuplicateTransactionViolation({
             transactionIDs,
@@ -156,8 +177,28 @@ function TransactionDuplicateReview() {
             policy,
             isASAPSubmitBetaEnabled,
             allTransactions,
+            currentTransactionViolations,
         });
         Navigation.goBack();
+    };
+
+    const keepSelected = () => {
+        if (!selectedTransaction || !selectedTransactionReport) {
+            return;
+        }
+
+        Navigation.navigate(
+            getReviewNavigationRoute(
+                Navigation.getActiveRoute(),
+                route.params.threadReportID,
+                selectedTransaction,
+                transactions.filter((transaction) => transaction.transactionID !== selectedTransaction.transactionID),
+                selectedTransactionPolicy,
+                selectedTransactionPolicyCategories,
+                selectedTransactionPolicyTags ?? {},
+                selectedTransactionReport,
+            ),
+        );
     };
 
     if (isLoadingPage) {
@@ -195,23 +236,48 @@ function TransactionDuplicateReview() {
     }
 
     return (
-        <ScreenWrapper testID="TransactionDuplicateReview">
+        <ScreenWrapper
+            testID="TransactionDuplicateReview"
+            shouldEnableMaxHeight
+            includeSafeAreaPaddingBottom
+        >
             <FullPageNotFoundView shouldShow={shouldShowNotFound}>
                 <HeaderWithBackButton
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
                 />
-                <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
-                    <Button
-                        text={translate('iou.keepAll')}
-                        onPress={keepAll}
-                    />
-                    {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mt3]}>{translate('iou.someDuplicatesArePaid')}</Text>}
+                <View style={styles.flex1}>
+                    <ScrollView
+                        style={styles.flex1}
+                        contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
+                    >
+                        {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
+                        <DuplicateTransactionsList
+                            transactions={transactions}
+                            selectedTransactionID={effectiveSelectedTransactionID}
+                            shouldShowSelection={!hasSettledOrApprovedTransaction}
+                            onSelectTransaction={setSelectedTransactionID}
+                            onPreviewPressed={onPreviewPressed}
+                        />
+                    </ScrollView>
+                    <FixedFooter style={[styles.mtAuto, styles.gap3]}>
+                        <Button
+                            success={hasSettledOrApprovedTransaction}
+                            large
+                            text={translate('iou.keepAll')}
+                            onPress={keepAll}
+                        />
+                        {!hasSettledOrApprovedTransaction && (
+                            <Button
+                                success
+                                large
+                                text={translate('iou.keepSelected')}
+                                onPress={keepSelected}
+                                isDisabled={!selectedTransaction || !selectedTransactionReport}
+                            />
+                        )}
+                    </FixedFooter>
                 </View>
-                <DuplicateTransactionsList
-                    transactions={transactions}
-                    onPreviewPressed={onPreviewPressed}
-                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

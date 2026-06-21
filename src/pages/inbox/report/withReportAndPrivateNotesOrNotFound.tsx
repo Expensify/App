@@ -100,7 +100,6 @@ export default function (pageTitle: TranslationPaths) {
 
             return (
                 <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     accountID={session?.accountID}
                 />

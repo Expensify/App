@@ -5,6 +5,7 @@ import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTrig
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import {setIsComposerFullSize} from '@libs/actions/Report';
 import FS from '@libs/Fullstory';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -17,14 +18,10 @@ import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useComposerActions, useComposerMeta, useComposerSendActions, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
-
-type ComposerInputProps = {
-    reportID: string;
-};
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
@@ -33,21 +30,27 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
     return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
 }
 
-function ComposerInput({reportID}: ComposerInputProps) {
+function ComposerInput() {
+    const {reportID} = useComposerState();
     const {translate, preferredLocale} = useLocalize();
     const {isMenuVisible} = useComposerState();
-    const {isBlockedFromConcierge} = useComposerSendState();
+    const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();
     const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
-    const {handleSendMessage, onValueChange} = useComposerSendActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
 
-    const submitForm = useComposerSubmit(reportID);
+    const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
     const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
-    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
+
+    const onValueChange = (v: string) => {
+        if (v.length === 0 && isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+        debouncedCommentMaxLengthValidation?.(v);
+    };
 
     const measureContainer = (callback: MeasureInWindowOnSuccessCallback) => {
         containerRef.current?.measureInWindow(callback);
@@ -89,10 +92,9 @@ function ComposerInput({reportID}: ComposerInputProps) {
                 isComposerFullSize={isComposerFullSize}
                 setIsFullComposerAvailable={setIsFullComposerAvailable}
                 onPasteFile={(files) => pickAttachments({files})}
-                onClear={submitForm}
+                onClear={validateAndSubmitDraft}
                 disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
-                onEnterKeyPress={handleSendMessage}
-                shouldShowComposeInput={shouldShowComposeInput}
+                onEnterKeyPress={submitDraftAndClearComposer}
                 onFocus={onFocus}
                 onBlur={onBlur}
                 measureParentContainer={measureContainer}

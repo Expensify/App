@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createAdminPoliciesSelector, lastWorkspaceNumberSelector, policyNameSelector} from '@src/selectors/Policy';
+import {createAdminPoliciesSelector, createCopySettingsEligibleTargetsSelector, isAdminForPolicyByIDSelector, lastWorkspaceNumberSelector, policyNameSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
 describe('lastWorkspaceNumberSelector', () => {
@@ -121,5 +121,109 @@ describe('createAdminPoliciesSelector', () => {
         const entry = result[`${P}1`];
         expect(entry).toBeDefined();
         expect(Object.keys(entry ?? {})).toEqual(['id', 'name', 'avatarURL', 'created']);
+    });
+});
+
+describe('isAdminForPolicyByIDSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+
+    it('returns true when policyID is undefined', () => {
+        expect(isAdminForPolicyByIDSelector(undefined)(null)).toBe(true);
+    });
+
+    it('returns true when policyID is empty string', () => {
+        expect(isAdminForPolicyByIDSelector('')({[`${P}p1`]: {role: CONST.POLICY.ROLE.USER} as Policy})).toBe(true);
+    });
+
+    it('returns false when policies is null and policyID is provided', () => {
+        expect(isAdminForPolicyByIDSelector('p1')(null)).toBe(false);
+    });
+
+    it('returns false when the policy is not found in the collection', () => {
+        const policies = {[`${P}p2`]: {role: CONST.POLICY.ROLE.ADMIN} as Policy};
+        expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(false);
+    });
+
+    it('returns false when policy exists but role is not admin', () => {
+        const policies = {[`${P}p1`]: {role: CONST.POLICY.ROLE.USER} as Policy};
+        expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(false);
+    });
+
+    it('returns true when policy exists and role is admin', () => {
+        const policies = {[`${P}p1`]: {role: CONST.POLICY.ROLE.ADMIN} as Policy};
+        expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(true);
+    });
+});
+
+describe('createCopySettingsEligibleTargetsSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+    const adminLogin = 'admin@example.com';
+
+    const makePolicy = (overrides: Partial<Policy>): Policy =>
+        ({
+            id: 'p1',
+            name: 'Test WS',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            ...overrides,
+        }) as Policy;
+
+    it('includes non-personal admin policies in adminNonPersonal', () => {
+        const policies = {[`${P}p1`]: makePolicy({employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}}})};
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
+        expect(result.adminNonPersonal).toContain('p1');
+    });
+
+    it('includes corporate admin policies in both adminNonPersonal and corporateOnly', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({
+                type: CONST.POLICY.TYPE.CORPORATE,
+                employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}},
+            }),
+        };
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
+        expect(result.adminNonPersonal).toContain('p1');
+        expect(result.corporateOnly).toContain('p1');
+    });
+
+    it('does not include corporate policies in corporateOnly when type is TEAM', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({
+                type: CONST.POLICY.TYPE.TEAM,
+                employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}},
+            }),
+        };
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
+        expect(result.adminNonPersonal).toContain('p1');
+        expect(result.corporateOnly).not.toContain('p1');
+    });
+
+    it('excludes personal policies', () => {
+        const policies = {[`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.PERSONAL})};
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
+        expect(result.adminNonPersonal).toHaveLength(0);
+        expect(result.corporateOnly).toHaveLength(0);
+    });
+
+    it('excludes non-admin policies', () => {
+        const policies = {[`${P}p1`]: makePolicy({role: CONST.POLICY.ROLE.USER})};
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
+        expect(result.adminNonPersonal).toHaveLength(0);
+    });
+
+    it('excludes pending-delete policies', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                employeeList: {[adminLogin]: {role: CONST.POLICY.ROLE.ADMIN}},
+            }),
+        };
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(policies);
+        expect(result.adminNonPersonal).toHaveLength(0);
+    });
+
+    it('returns empty arrays when policies is undefined', () => {
+        const result = createCopySettingsEligibleTargetsSelector(adminLogin)(undefined);
+        expect(result).toEqual({adminNonPersonal: [], corporateOnly: []});
     });
 });

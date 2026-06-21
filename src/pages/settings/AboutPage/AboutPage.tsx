@@ -180,7 +180,6 @@ function AboutPage() {
                         illustrationBackgroundColor={colors.yellow600}
                         titleStyles={styles.accountSettingsSectionTitle}
                         overlayContent={overlayContent}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...aboutIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>

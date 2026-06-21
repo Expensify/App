@@ -10,12 +10,14 @@ import Text from '@components/Text';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import {clearAddNewPersonalCardFlow, setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
@@ -42,6 +44,9 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
     };
 
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const initialSelectedValue = useInitialSelection(currentCountry || undefined, {resetOnFocus: true});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
     const [hasError, setHasError] = useState(false);
     const isUS = currentCountry === CONST.COUNTRY.US;
 
@@ -88,7 +93,9 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
 
     const countries = getCountries();
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const orderedCountries = moveInitialSelectionToTop(countries, initialSelectedValues);
+    const filteredCountries = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
+    const searchResults = filteredCountries.map((country) => ({...country, isSelected: currentCountry === country.value}));
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
@@ -117,15 +124,17 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
                     onChangeText: setSearchValue,
                     disableAutoFocus,
                 }}
+                searchValueForFocusSync={debouncedSearchValue}
                 confirmButtonOptions={{
                     onConfirm: submit,
                     showButton: true,
                     text: translate('common.next'),
                 }}
-                initiallyFocusedItemKey={currentCountry}
+                initiallyFocusedItemKey={initialSelectedValue}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
+                shouldScrollToFocusedIndexOnMount={false}
                 addBottomSafeAreaPadding
                 shouldStopPropagation
             >

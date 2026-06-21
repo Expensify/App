@@ -34,9 +34,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
                 value: vendor.id,
                 text: vendor.name,
                 keyForList: vendor.name,
-                // We use the logical OR (||) here instead of ?? because `nonReimbursableBillDefaultVendor` can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                isSelected: vendor.id === (nonReimbursableBillDefaultVendor || vendors.at(0)?.id),
+                isSelected: vendor.id === nonReimbursableBillDefaultVendor,
             })) ?? [],
         [nonReimbursableBillDefaultVendor, vendors],
     );

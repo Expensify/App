@@ -45,5 +45,4 @@ function getDraftValuesForBeneficialOwners(reimbursementAccount: OnyxEntry<Reimb
     return result;
 }
 
-export type {DraftValuesForBeneficialOwners};
 export default getDraftValuesForBeneficialOwners;

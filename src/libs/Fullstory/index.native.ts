@@ -10,7 +10,7 @@ const FS: Fullstory = {
 
     init: (userMetadata) => FS.consentAndIdentify(userMetadata),
 
-    onReady: () => FullStory.onReady(),
+    onReady: async () => FullStory.onReady(),
 
     shouldInitialize: shouldInitializeFullstory,
 
@@ -49,11 +49,11 @@ const FS: Fullstory = {
 
     anonymize: () => FullStory.anonymize(),
 
-    getSessionId: () => {
+    getSessionId: async () => {
         return FullStory.getCurrentSession();
     },
 
-    getSessionURL: () => {
+    getSessionURL: async () => {
         return FullStory.getCurrentSessionURL();
     },
 

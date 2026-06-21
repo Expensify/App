@@ -56,6 +56,7 @@ function makeBase(overrides: Partial<Params> = {}): Params {
         iouAmount: 1000,
         iouCurrencyCode: 'USD',
         ...overrides,
+        currentUserAccountID: payee.accountID,
     };
 }
 
