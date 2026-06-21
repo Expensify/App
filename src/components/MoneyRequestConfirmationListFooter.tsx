@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -140,8 +139,6 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const showMoreFields = compactControls?.showMoreFields ?? false;
     const setShowMoreFields = compactControls?.setShowMoreFields ?? noopSetShowMoreFields;
@@ -158,7 +155,6 @@ function MoneyRequestConfirmationListFooter({
             isReadOnly={isReadOnly}
             didConfirm={didConfirm}
             isEditingSplitBill={isEditingSplitBill}
-            isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             isPolicyExpenseChat={isPolicyExpenseChat}
             isDistanceRequest={expenseMode.isDistance}
             isPerDiemRequest={expenseMode.isPerDiem}
