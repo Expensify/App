@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -21,26 +21,20 @@ function SearchFiltersReceiptTypePage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const initiallySelectedItems = useMemo(
-        () =>
-            searchAdvancedFiltersForm?.receiptType
-                ?.filter((receiptType) => Object.values(CONST.SEARCH.RECEIPT_TYPE).includes(receiptType as ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>))
-                .map((receiptType) => {
-                    const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType as ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>));
-                    return {name: receiptTypeName, value: receiptType};
-                }),
-        [searchAdvancedFiltersForm, translate],
-    );
-    const allReceiptTypes = Object.values(CONST.SEARCH.RECEIPT_TYPE);
-
-    const receiptTypesItems = useMemo(() => {
-        return allReceiptTypes.map((receiptType) => {
-            const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType));
+    const initiallySelectedItems = searchAdvancedFiltersForm?.receiptType
+        ?.filter((receiptType) => Object.values(CONST.SEARCH.RECEIPT_TYPE).includes(receiptType as ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>))
+        .map((receiptType) => {
+            const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType as ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>));
             return {name: receiptTypeName, value: receiptType};
         });
-    }, [allReceiptTypes, translate]);
+    const allReceiptTypes = Object.values(CONST.SEARCH.RECEIPT_TYPE);
 
-    const updateReceiptTypeFilter = useCallback((values: ReceiptTypeValues) => updateAdvancedFilters({receiptType: values}), []);
+    const receiptTypesItems = allReceiptTypes.map((receiptType) => {
+        const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType));
+        return {name: receiptTypeName, value: receiptType};
+    });
+
+    const updateReceiptTypeFilter = (values: ReceiptTypeValues) => updateAdvancedFilters({receiptType: values});
 
     return (
         <ScreenWrapper
