@@ -4,8 +4,9 @@
 import {renderHook} from '@testing-library/react-native';
 import useModalOverlay from '@components/Overlay/hooks/useModalOverlay';
 
-const mockEscapeRecorder: {isActive: boolean; callback?: () => void} = {isActive: false};
-jest.mock('@components/Overlay/hooks/useEscapeKeydown', () => (callback: () => void, options: {isActive: boolean}) => {
+type EscapeKeydownCallback = (event: {preventDefault: () => void; stopPropagation: () => void}) => void;
+const mockEscapeRecorder: {isActive: boolean; callback?: EscapeKeydownCallback} = {isActive: false};
+jest.mock('@components/Overlay/hooks/useEscapeKeydown', () => (callback: EscapeKeydownCallback, options: {isActive: boolean}) => {
     mockEscapeRecorder.isActive = options.isActive;
     mockEscapeRecorder.callback = callback;
 });
@@ -57,9 +58,15 @@ describe('useModalOverlay', () => {
             expect(mockScrollLockRecorder.isActive).toBe(false);
         });
 
-        it('isKeyboardDismissDisabled disables Escape but keeps the other effects active', () => {
-            renderHook(() => useModalOverlay({isOpen: true, onClose: () => {}, isKeyboardDismissDisabled: true}));
-            expect(mockEscapeRecorder.isActive).toBe(false);
+        it('isKeyboardDismissDisabled keeps Escape installed (to consume the event) but the callback no-ops without calling onClose', () => {
+            const onClose = jest.fn();
+            renderHook(() => useModalOverlay({isOpen: true, onClose, isKeyboardDismissDisabled: true}));
+            expect(mockEscapeRecorder.isActive).toBe(true);
+            const event = {preventDefault: jest.fn(), stopPropagation: jest.fn()};
+            mockEscapeRecorder.callback?.(event);
+            expect(event.preventDefault).toHaveBeenCalled();
+            expect(event.stopPropagation).toHaveBeenCalled();
+            expect(onClose).not.toHaveBeenCalled();
             expect(mockPointerOutsideRecorder.isActive).toBe(true);
         });
 
@@ -116,6 +123,15 @@ describe('useModalOverlay', () => {
             const first = result.current.containerRef;
             rerender({});
             expect(result.current.containerRef).toBe(first);
+        });
+    });
+
+    describe('Top-of-stack gating', () => {
+        it('when isOpen flips from false to true after mount, the listeners activate', () => {
+            const {rerender} = renderHook(({open}: {open: boolean}) => useModalOverlay({isOpen: open, onClose: () => {}}), {initialProps: {open: false}});
+            expect(mockEscapeRecorder.isActive).toBe(false);
+            rerender({open: true});
+            expect(mockEscapeRecorder.isActive).toBe(true);
         });
     });
 });

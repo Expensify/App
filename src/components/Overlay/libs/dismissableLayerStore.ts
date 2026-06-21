@@ -8,7 +8,7 @@ type DismissableLayerEntry = {
     readonly depth: number;
     readonly mountId: number;
     readonly onDismiss?: () => void;
-    readonly escapeBehavior?: EscapeBehavior;
+    readonly escapeBehaviorRef?: {readonly current: EscapeBehavior | undefined};
 };
 
 let nextMountId = 0;
@@ -33,9 +33,6 @@ function pushDismissableLayer(entry: DismissableLayerEntry): () => void {
 }
 
 function isHigher(a: DismissableLayerEntry, b: DismissableLayerEntry): boolean {
-    if (a.depth !== b.depth) {
-        return a.depth > b.depth;
-    }
     return a.mountId > b.mountId;
 }
 

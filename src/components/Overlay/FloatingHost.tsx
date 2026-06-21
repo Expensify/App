@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import CONST from '@src/CONST';
@@ -8,6 +8,7 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import AnimatedSurface, {FADE_ONLY_ENTER_SPEC, FADE_ONLY_EXIT_SPEC} from './AnimatedSurface';
 import DismissableLayer from './DismissableLayer';
 import useAnchoredPosition from './hooks/useAnchoredPosition';
+import useDismissOnAnchorMove from './hooks/useDismissOnAnchorMove';
 import useOverlayEntry from './hooks/useOverlayEntry';
 import type {AnchorNode, AnchorRect} from './libs/measureAnchor';
 import type {PopoverOverlayEntry} from './libs/overlayStore';
@@ -59,8 +60,11 @@ function FloatingHost({
             : null,
     );
 
+    useDismissOnAnchorMove(anchor, onDismiss, isOpen && anchor !== null);
+
     const inner = (
-        <View>
+        // absoluteFill bridges FocusTrap's block div back to a sized containing block for the flex:1 child below.
+        <View style={StyleSheet.absoluteFill}>
             <DismissableLayer.Floating
                 onDismiss={onDismiss}
                 additionalAnchors={anchor ? [anchor] : []}

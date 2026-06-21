@@ -58,10 +58,26 @@ describe('useControlledState', () => {
             });
             act(() => result.current[1](99));
             expect(onChange).toHaveBeenCalledWith(99);
-            // Controlled value did not change; current still reflects the prop, not 99.
             expect(result.current[0]).toBe(1);
             rerender({c: 99});
             expect(result.current[0]).toBe(99);
+        });
+
+        it('fires onChange again when the parent rejects the previous update (no cached requested value)', () => {
+            const onChange = jest.fn();
+            const {result} = renderHook(() => useControlledState<number>(1, 0, onChange));
+            act(() => result.current[1](99));
+            act(() => result.current[1](99));
+            expect(onChange).toHaveBeenCalledTimes(2);
+            expect(onChange).toHaveBeenNthCalledWith(2, 99);
+        });
+
+        it('functional updater resolves against the current prop, not the previously requested value', () => {
+            const onChange = jest.fn();
+            const {result} = renderHook(() => useControlledState<number>(5, 0, onChange));
+            act(() => result.current[1](99));
+            act(() => result.current[1]((prev) => prev + 1));
+            expect(onChange).toHaveBeenLastCalledWith(6);
         });
     });
 

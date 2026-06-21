@@ -116,3 +116,35 @@ describe('useAnchoredPositionShared — RTL', () => {
         expect(states.at(-1)?.edgeStyle).not.toHaveProperty('left');
     });
 });
+
+describe('useAnchoredPositionShared — centered horizontal clamping', () => {
+    it('clamps a wide centered surface near the LEFT viewport edge to the gutter', () => {
+        const states: ProbeState[] = [];
+        render(
+            <Probe
+                input={{anchorRect: makeAnchorRect(0, 100, 40, 40), alignment: {horizontal: horizontal.CENTER, vertical: vertical.TOP}}}
+                onState={(state) => states.push(state)}
+            />,
+        );
+        dispatchLayout(800, 60);
+        const left = Reflect.get(states.at(-1)?.edgeStyle ?? {}, 'left');
+        expect(typeof left).toBe('number');
+        expect(left).toBeGreaterThanOrEqual(8);
+    });
+});
+
+describe('useAnchoredPositionShared — vertical CENTER', () => {
+    it('positions content centered over the anchor when vertical alignment is CENTER', () => {
+        const states: ProbeState[] = [];
+        render(
+            <Probe
+                input={{anchorRect: makeAnchorRect(100, 200, 200, 100), alignment: {horizontal: horizontal.LEFT, vertical: vertical.CENTER}}}
+                onState={(state) => states.push(state)}
+            />,
+        );
+        dispatchLayout(150, 80);
+        const style = states.at(-1)?.edgeStyle ?? {};
+        expect(Reflect.get(style, 'bottom')).toBeUndefined();
+        expect(Reflect.get(style, 'top')).toBe(210);
+    });
+});

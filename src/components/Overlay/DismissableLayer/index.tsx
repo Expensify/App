@@ -3,7 +3,7 @@ import {BackHandler, StyleSheet, View} from 'react-native';
 import dismissableLayerStore, {nextLayerMountId, pushDismissableLayer, selectTopLayer} from '@components/Overlay/libs/dismissableLayerStore';
 import type {DismissableLayerEntry, DismissableLayerKind} from '@components/Overlay/libs/dismissableLayerStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useCallbackRef from '@hooks/useCallbackRef';
+import useCallbackRef, {useRefMirror} from '@hooks/useCallbackRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import LayerDepthContext from './LayerDepthContext';
@@ -14,13 +14,14 @@ function useDismissableLayerWorker(kind: DismissableLayerKind, {onDismiss, escap
     const myDepth = parentDepth + 1;
 
     const stableDismiss = useCallbackRef(() => onDismiss?.());
+    const escapeBehaviorRef = useRefMirror(escapeBehavior);
 
     const [entry] = useState<DismissableLayerEntry>(() => ({
         kind,
         depth: myDepth,
         mountId: nextLayerMountId(),
         onDismiss: stableDismiss,
-        escapeBehavior,
+        escapeBehaviorRef,
     }));
     const top = useSyncExternalStore(dismissableLayerStore.subscribe, () => selectTopLayer(dismissableLayerStore.getSnapshot()));
     const isTop = top === entry;

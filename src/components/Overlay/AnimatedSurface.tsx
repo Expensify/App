@@ -55,7 +55,6 @@ function AnimatedSurface({enterSpec, exitSpec, enterTiming, exitTiming, easing, 
         }
         if (presenceState === 'unmountSuspended') {
             const options = {duration: exitTiming, easing: resolvedEasing, reduceMotion: ReduceMotion.System};
-            // Opacity is the single completion signal (all three share timing).
             opacity.set(withTiming(exitOpacity, options, onAnimationFinished(onAnimationEnd)));
             translateX.set(withTiming(exitTranslateX, options));
             translateY.set(withTiming(exitTranslateY, options));

@@ -2819,6 +2819,10 @@ const staticStyles = (theme: ThemeColors) =>
             pointerEvents: 'none',
         },
 
+        overlayCenteringTransform: {
+            transform: 'translateX(-50%)',
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,

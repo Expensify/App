@@ -12,7 +12,7 @@ type PortalProps = {
 function handleAndroidBack() {
     // Only Android-back path — RNModal suppresses BackHandler subscribers while mounted.
     const top = selectTopLayer(dismissableLayerStore.getSnapshot());
-    if (top?.escapeBehavior === 'ignore') {
+    if (top?.escapeBehaviorRef?.current === 'ignore') {
         return;
     }
     top?.onDismiss?.();

@@ -29,8 +29,9 @@ function useControlledState<T>(controlledValue: T | undefined, defaultValue: T, 
             if (Object.is(resolved, valueRef.current)) {
                 return;
             }
-            valueRef.current = resolved;
+            // Controlled mode: the layout effect re-syncs valueRef from the actual prop, so caching here would suppress retries against a rejected update.
             if (!isControlledRef.current) {
+                valueRef.current = resolved;
                 setInternal(resolved);
             }
             onChangeRef.current?.(resolved);

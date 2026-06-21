@@ -5,13 +5,15 @@ import type {DismissableLayerEntry} from '@components/Overlay/libs/dismissableLa
 import Portal from '@components/Overlay/Portal';
 import Text from '@components/Text';
 
-function makeEntry(escapeBehavior: 'dismiss' | 'ignore' | undefined, onDismiss: () => void): DismissableLayerEntry {
+type EscapeBehavior = 'dismiss' | 'ignore' | undefined;
+
+function makeEntry(escapeBehavior: EscapeBehavior, onDismiss: () => void): DismissableLayerEntry {
     return {
         kind: 'floating',
         depth: 1,
         mountId: nextLayerMountId(),
         onDismiss,
-        escapeBehavior,
+        escapeBehaviorRef: {current: escapeBehavior},
     };
 }
 
@@ -81,7 +83,7 @@ describe('Portal — Android hardware back via RNModal onRequestClose', () => {
             depth: 2,
             mountId: nextLayerMountId(),
             onDismiss: dismissInner,
-            escapeBehavior: 'dismiss',
+            escapeBehaviorRef: {current: 'dismiss'},
         });
 
         const {root} = render(
@@ -96,5 +98,33 @@ describe('Portal — Android hardware back via RNModal onRequestClose', () => {
 
         unregisterInner();
         unregisterOuter();
+    });
+
+    it('honors escapeBehavior mutations after the entry is published', () => {
+        const onDismiss = jest.fn();
+        const escapeBehaviorRef: {current: EscapeBehavior} = {current: 'dismiss'};
+        const unregister = pushDismissableLayer({
+            kind: 'floating',
+            depth: 1,
+            mountId: nextLayerMountId(),
+            onDismiss,
+            escapeBehaviorRef,
+        });
+
+        const {root} = render(
+            <Portal>
+                <Text>content</Text>
+            </Portal>,
+        );
+
+        captureOnRequestClose(root)?.();
+        expect(onDismiss).toHaveBeenCalledTimes(1);
+
+        escapeBehaviorRef.current = 'ignore';
+
+        captureOnRequestClose(root)?.();
+        expect(onDismiss).toHaveBeenCalledTimes(1);
+
+        unregister();
     });
 });

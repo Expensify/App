@@ -38,6 +38,9 @@ function usePointerDownOutside(callback: (event: PointerEvent) => void, contains
             if (event.pointerType === 'touch') {
                 const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
                     pendingTimers.delete(timer);
+                    if (stableContainsTarget(event.target)) {
+                        return;
+                    }
                     stableCallback(event);
                 }, TOUCH_CLICK_DEFER_MS);
                 pendingTimers.add(timer);

@@ -1,8 +1,12 @@
-import {useRef} from 'react';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import asHostElement from '@components/Overlay/libs/asHostElement';
+import dismissableLayerStore, {nextLayerMountId, pushDismissableLayer, selectTopLayer} from '@components/Overlay/libs/dismissableLayerStore';
+import type {DismissableLayerEntry} from '@components/Overlay/libs/dismissableLayerStore';
 import type {AnchorNode} from '@components/Overlay/libs/measureAnchor';
+import type {EscapeBehavior} from '@components/Overlay/libs/overlayStore';
+import useCallbackRef, {useRefMirror} from '@hooks/useCallbackRef';
 import useLocalize from '@hooks/useLocalize';
 import useAriaHideSiblings from './useAriaHideSiblings';
 import useBodyScrollLock from './useBodyScrollLock';
@@ -51,17 +55,48 @@ function useModalOverlay({
     const containerRef = useRef<View | null>(null);
     const {translate} = useLocalize();
 
+    const stableClose = useCallbackRef(() => onClose?.());
+    const escapeBehaviorRef = useRefMirror<EscapeBehavior>(isKeyboardDismissDisabled ? 'ignore' : 'dismiss');
+
+    // Allocate mountId on every isOpen→true transition so push order drives ranking.
+    const [previousIsOpen, setPreviousIsOpen] = useState(false);
+    const [activeMountId, setActiveMountId] = useState<number | null>(null);
+    if (previousIsOpen !== isOpen) {
+        setPreviousIsOpen(isOpen);
+        setActiveMountId(isOpen ? nextLayerMountId() : null);
+    }
+
+    const top = useSyncExternalStore(dismissableLayerStore.subscribe, () => selectTopLayer(dismissableLayerStore.getSnapshot()));
+    const isTop = activeMountId !== null && top?.mountId === activeMountId;
+
+    useEffect(() => {
+        if (activeMountId === null) {
+            return undefined;
+        }
+        const entry: DismissableLayerEntry = {
+            kind: modal ? 'modal' : 'floating',
+            depth: 0,
+            mountId: activeMountId,
+            onDismiss: stableClose,
+            escapeBehaviorRef,
+        };
+        return pushDismissableLayer(entry);
+    }, [activeMountId, modal, stableClose, escapeBehaviorRef]);
+
     useEscapeKeydown(
-        () => {
-            onClose?.();
+        (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (isKeyboardDismissDisabled) {
+                return;
+            }
+            stableClose();
         },
-        {isActive: isOpen && !isKeyboardDismissDisabled},
+        {isActive: isTop},
     );
 
     usePointerDownOutside(
-        () => {
-            onClose?.();
-        },
+        stableClose,
         (target) => {
             if (nodeContainsTarget(containerRef.current, target)) {
                 return true;
@@ -74,7 +109,7 @@ function useModalOverlay({
             }
             return false;
         },
-        {isActive: isOpen && isDismissable},
+        {isActive: isTop && isDismissable},
     );
 
     useAriaHideSiblings(containerRef, isOpen && modal);

@@ -26,14 +26,15 @@ function useAnchoredOpener({onOpen}: UseAnchoredOpenerInput): UseAnchoredOpenerR
             if (!node) {
                 return;
             }
-            measureAnchor(node)
-                .then((rect) => {
-                    if (!rect) {
+            measureAnchor(node).then(
+                (rect) => {
+                    if (!rect || nodeRef.current !== node) {
                         return;
                     }
                     onOpenStable(node, rect);
-                })
-                .catch(() => {});
+                },
+                () => {},
+            );
         },
     }));
     return stable;

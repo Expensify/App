@@ -7,12 +7,12 @@ function useAnchoredPosition(input: UseAnchoredPositionInput): UseAnchoredPositi
     const styles = useThemeStyles();
     const {edgeStyle, available, isPositioned, onContentLayout} = useAnchoredPositionShared(input);
     const isCenter = input.alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER;
-    const usePreMeasureTranslate = isCenter && input.anchorRect && !isPositioned;
-    const centerOverride = usePreMeasureTranslate ? {transform: 'translateX(-50%)'} : {};
+    // Pre-measure transform is harmless; flipping isPositioned would trick FloatingHost's maxHeight gate.
+    const centerOverride = isCenter && input.anchorRect && !isPositioned ? styles.overlayCenteringTransform : {};
     return {
         style: {...styles.pFixed, ...edgeStyle, ...centerOverride},
         available,
-        isPositioned: usePreMeasureTranslate ? true : isPositioned,
+        isPositioned,
         onContentLayout,
     };
 }

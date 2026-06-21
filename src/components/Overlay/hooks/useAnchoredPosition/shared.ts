@@ -52,6 +52,14 @@ function useAnchoredPositionShared({anchorRect, alignment, offsetPx = 0, gutterP
 } {
     const viewport = useSyncExternalStore(subscribeViewport, getViewportSnapshot);
     const [contentSize, setContentSize] = useState<{width: number; height: number} | null>(null);
+    const [previousAnchorClosed, setPreviousAnchorClosed] = useState<boolean>(anchorRect === null);
+    const isAnchorClosed = anchorRect === null;
+    if (previousAnchorClosed !== isAnchorClosed) {
+        setPreviousAnchorClosed(isAnchorClosed);
+        if (isAnchorClosed) {
+            setContentSize(null);
+        }
+    }
 
     const onContentLayout = (event: LayoutChangeEvent) => {
         const {width, height} = event.nativeEvent.layout;
@@ -75,12 +83,13 @@ function useAnchoredPositionShared({anchorRect, alignment, offsetPx = 0, gutterP
     const clampedRight = Math.max(0, Math.min(viewport.width, anchorRect.right));
     const clampedWidth = Math.max(0, clampedRight - clampedLeft);
 
+    const isVerticalCenter = alignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER;
     const requestedAbove = alignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM;
     const availableAbove = Math.max(0, clampedTop - offsetPx - gutterPx);
     const availableBelow = Math.max(0, viewport.height - clampedBottom - offsetPx - gutterPx);
 
     const isContentAbove = (() => {
-        if (!contentSize) {
+        if (isVerticalCenter || !contentSize) {
             return requestedAbove;
         }
         const requestedRoom = requestedAbove ? availableAbove : availableBelow;
@@ -101,8 +110,20 @@ function useAnchoredPositionShared({anchorRect, alignment, offsetPx = 0, gutterP
         return alignment.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT;
     })();
 
-    const verticalStyle: ViewStyle = isContentAbove ? {bottom: viewport.height - clampedTop + offsetPx} : {top: clampedBottom + offsetPx};
-    const availableHeight = isContentAbove ? availableAbove : availableBelow;
+    let verticalStyle: ViewStyle;
+    let availableHeight: number;
+    if (isVerticalCenter) {
+        const centerY = (clampedTop + clampedBottom) / 2;
+        let contentTop = contentSize ? centerY - contentSize.height / 2 : centerY;
+        if (contentSize) {
+            contentTop = Math.max(gutterPx, Math.min(contentTop, viewport.height - gutterPx - contentSize.height));
+        }
+        verticalStyle = {top: contentTop};
+        availableHeight = Math.max(0, viewport.height - 2 * gutterPx);
+    } else {
+        verticalStyle = isContentAbove ? {bottom: viewport.height - clampedTop + offsetPx} : {top: clampedBottom + offsetPx};
+        availableHeight = isContentAbove ? availableAbove : availableBelow;
+    }
 
     let horizontalStyle: ViewStyle;
     let availableWidth: number;
@@ -123,7 +144,10 @@ function useAnchoredPositionShared({anchorRect, alignment, offsetPx = 0, gutterP
         availableWidth = Math.max(0, viewport.width - contentRight - gutterPx);
     } else {
         const centerX = clampedLeft + clampedWidth / 2;
-        const contentLeft = contentSize ? centerX - contentSize.width / 2 : centerX;
+        let contentLeft = contentSize ? centerX - contentSize.width / 2 : centerX;
+        if (contentSize) {
+            contentLeft = Math.max(gutterPx, Math.min(contentLeft, viewport.width - gutterPx - contentSize.width));
+        }
         horizontalStyle = {left: contentLeft};
         const halfRoom = Math.min(centerX - gutterPx, viewport.width - gutterPx - centerX);
         availableWidth = Math.max(0, halfRoom * 2);
