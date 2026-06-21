@@ -3063,10 +3063,7 @@ const CONST = {
         EXPENSE_REPORT: 'EXPENSE_REPORT',
     },
 
-    /**
-     * PSA parent tag mapping mode. The backend stores, returns, and expects on write the unprefixed values below
-     * (despite the PARENT_TAG_ prefixed names used in the integration docs).
-     */
+    /** PSA parent tag mapping mode */
     CERTINIA_PARENT_TAG_MAPPING: {
         PARENT_TAG_PROJECTS_AND_ASSIGNMENTS: 'PROJECTS_AND_ASSIGNMENTS',
         PARENT_TAG_PROJECTS: 'PROJECTS',
