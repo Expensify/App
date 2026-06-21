@@ -1,6 +1,6 @@
 import {useCallback, useState, useSyncExternalStore} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {AccessibilityInfo} from 'react-native';
+import type {AppStateStatus, LayoutChangeEvent} from 'react-native';
+import {AccessibilityInfo, AppState} from 'react-native';
 import Log from '@libs/Log';
 import isScreenReaderEnabled from './isScreenReaderEnabled';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
@@ -10,32 +10,44 @@ type HitSlop = {x: number; y: number};
 /**
  * Memoized warmer: success is shared via one Promise; rejection clears the memo so the next caller retries.
  * Subscribers `.then()` it to catch the boot-race — the platform listener only fires on toggles, never on the initial state.
+ * `refresh()` invalidates the memo and re-warms; used on AppState resume to recover from toggles that fire while no JS listener was active.
  */
-function makeWarmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) => void): {ensure: () => Promise<void>; reset: () => void} {
+function makeWarmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) => void): {ensure: () => Promise<void>; reset: () => void; refresh: () => Promise<void>} {
     let warm: Promise<void> | null = null;
+    const ensure = () => {
+        warm ??= fetch()
+            .then(apply)
+            .catch((error: unknown) => {
+                Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
+                warm = null;
+            });
+        return warm;
+    };
     return {
-        ensure: () => {
-            warm ??= fetch()
-                .then(apply)
-                .catch((error: unknown) => {
-                    Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
-                    warm = null;
-                });
-            return warm;
-        },
+        ensure,
         reset: () => {
             warm = null;
+        },
+        refresh: () => {
+            warm = null;
+            return ensure();
         },
     };
 }
 
 let cachedScreenReaderValue = false;
-const {ensure: ensureScreenReaderWarm, reset: resetScreenReaderWarm} = makeWarmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
+const screenReaderSubscribers = new Set<() => void>();
+const {
+    ensure: ensureScreenReaderWarm,
+    reset: resetScreenReaderWarm,
+    refresh: refreshScreenReaderWarm,
+} = makeWarmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
     cachedScreenReaderValue = enabled;
 });
 ensureScreenReaderWarm();
 
 function subscribeScreenReader(callback: () => void) {
+    screenReaderSubscribers.add(callback);
     const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
         cachedScreenReaderValue = enabled;
         callback();
@@ -49,6 +61,7 @@ function subscribeScreenReader(callback: () => void) {
     });
     return () => {
         cancelled = true;
+        screenReaderSubscribers.delete(callback);
         subscription?.remove();
     };
 }
@@ -64,7 +77,12 @@ function isScreenReaderEnabledSync(): boolean {
 }
 
 let cachedReduceMotionValue = false;
-const {ensure: ensureReduceMotionWarm, reset: resetReduceMotionWarm} = makeWarmCache(
+const reduceMotionSubscribers = new Set<() => void>();
+const {
+    ensure: ensureReduceMotionWarm,
+    reset: resetReduceMotionWarm,
+    refresh: refreshReduceMotionWarm,
+} = makeWarmCache(
     'reduce-motion',
     () => AccessibilityInfo.isReduceMotionEnabled(),
     (enabled) => {
@@ -77,9 +95,12 @@ function resetForTests() {
     cachedReduceMotionValue = false;
     resetScreenReaderWarm();
     resetReduceMotionWarm();
+    screenReaderSubscribers.clear();
+    reduceMotionSubscribers.clear();
 }
 
 function subscribeReduceMotion(callback: () => void) {
+    reduceMotionSubscribers.add(callback);
     const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
         cachedReduceMotionValue = enabled;
         callback();
@@ -93,9 +114,41 @@ function subscribeReduceMotion(callback: () => void) {
     });
     return () => {
         cancelled = true;
+        reduceMotionSubscribers.delete(callback);
         subscription?.remove();
     };
 }
+
+/*
+ * `screenReaderChanged`/`reduceMotionChanged` events fired while the JS thread was suspended (or while no JS listener was attached) are not
+ * reliably delivered on resume, so re-warm both caches on every background→active transition and notify subscribers if the value flipped.
+ */
+let previousAppStateStatus: AppStateStatus = AppState.currentState ?? 'active';
+AppState.addEventListener('change', (status) => {
+    const wasInactive = previousAppStateStatus === 'inactive' || previousAppStateStatus === 'background';
+    previousAppStateStatus = status;
+    if (!wasInactive || status !== 'active') {
+        return;
+    }
+    const prevScreenReader = cachedScreenReaderValue;
+    refreshScreenReaderWarm().then(() => {
+        if (cachedScreenReaderValue === prevScreenReader) {
+            return;
+        }
+        for (const cb of screenReaderSubscribers) {
+            cb();
+        }
+    });
+    const prevReduceMotion = cachedReduceMotionValue;
+    refreshReduceMotionWarm().then(() => {
+        if (cachedReduceMotionValue === prevReduceMotion) {
+            return;
+        }
+        for (const cb of reduceMotionSubscribers) {
+            cb();
+        }
+    });
+});
 
 function getReduceMotionSnapshot() {
     return cachedReduceMotionValue;
