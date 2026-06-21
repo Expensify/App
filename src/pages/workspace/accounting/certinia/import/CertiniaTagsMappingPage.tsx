@@ -54,6 +54,7 @@ function CertiniaTagsMappingPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="CertiniaTagsMappingPage"
             data={data}
+            shouldBeBlocked={!config?.hasPSA}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             onSelectRow={updateMapping}
             shouldSingleExecuteRowSelect
