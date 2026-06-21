@@ -283,6 +283,7 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
+    POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
@@ -493,6 +494,15 @@ const CONST = {
             READY: 'ready',
             FAILED: 'failed',
         },
+        TYPE: {
+            CSV: 'csv',
+            PDF: 'pdf',
+        },
+    },
+
+    SECURE_DOWNLOAD_TYPE: {
+        CSV_EXPORT: 'csvexport',
+        PDF_REPORT: 'pdfreport',
     },
 
     EXPORT_LABELS: {
@@ -1031,6 +1041,7 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        COMMUTER_EXCLUSIONS: 'commuterExclusions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1318,6 +1329,8 @@ const CONST = {
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     COMPANY_CARD_PLAID: `${CLOUDFRONT_URL}/images/plaid/`,
+    // The version below must stay in sync with the `@lottiefiles/dotlottie-web` version pinned in package-lock.json.
+    DOTLOTTIE_WASM_URL: 'https://cdn.expensify.com/cdn.jsdelivr.net/npm/@lottiefiles/dotlottie-web@0.44.0/dist/dotlottie-player.wasm',
     CONCIERGE_EXPLAIN_LINK_PATH: '/concierge/explain',
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
@@ -1385,6 +1398,7 @@ const CONST = {
     CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Configure-approval-workflows',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
+    CUSTOM_AGENTS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents',
     BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
@@ -1478,6 +1492,10 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
         FLASH_DELAY_MS: 2000,
+        // Maximum magnification applied while hover-zooming a receipt (see ReceiptHoverZoom).
+        // Remote PDFs are rendered at this multiple of their on-screen size so the magnified
+        // view shows real pixels instead of an upscaled low-resolution raster.
+        HOVER_ZOOM_SCALE: 2.5,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -1783,6 +1801,7 @@ const CONST = {
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
+                    UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -2076,6 +2095,8 @@ const CONST = {
             RHP_DURATION_OUT_WEB: 100,
             CENTERED_DURATION_IN_WEB: 120,
             CENTERED_DURATION_OUT_WEB: 80,
+            NARROW_SLIDE_DURATION_IN_WEB: 300,
+            NARROW_SLIDE_DURATION_OUT_WEB: 200,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
@@ -2741,6 +2762,8 @@ const CONST = {
 
     MULTI_LEVEL_TAGS_FILE_NAME: 'MultiLevelTags.csv',
 
+    DEFAULT_ATTACHMENT_FILENAME: 'chat_attachment',
+
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',
@@ -3003,16 +3026,23 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         PARENT_TAG_MAPPING: 'parentTagMapping',
         SYNC_MILESTONES: 'syncMilestones',
-        REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
     },
 
+    // These are the native values stored in the connection's export.exportStatus config, shared with
+    // OldDot and pushed to Certinia at export time. COMPLETE/IN_PROGRESS apply to FFA, APPROVED/SUBMITTED to PSA.
     CERTINIA_EXPORT_STATUS: {
-        APPROVED: 'APPROVED',
-        IN_PROGRESS: 'IN_PROGRESS',
-        SUBMITTED: 'SUBMITTED',
+        COMPLETE: 'Complete',
+        IN_PROGRESS: 'In Progress',
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
+    },
+
+    CERTINIA_REPORT_EXPORT_STATUS: {
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
     },
 
     CERTINIA_EXPORT_DATE: {
@@ -3882,6 +3912,10 @@ const CONST = {
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
         },
+        THREE_DOT_MENU_ACTION: {
+            LEAVE: 'leave',
+            TRANSFER_OWNERSHIP: 'transferOwnership',
+        },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
@@ -4063,6 +4097,15 @@ const CONST = {
             ADULT_ENTERTAINMENT: 'adultEntertainment',
             GIFT_CARD: 'giftCard',
             HANDWRITTEN_RECEIPT: 'handwrittenReceipt',
+        },
+        COMMUTER_EXCLUSION_METHOD: {
+            FIXED_DISTANCE: 'fixedDistance',
+            // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
+        },
+        COMMUTER_EXCLUSION_TYPE: {
+            METHOD: 'method',
+            FIXED_DISTANCE: 'fixedDistance',
+            DISABLED: 'disabled',
         },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},
@@ -4775,6 +4818,11 @@ const CONST = {
         },
     },
     SPEND_RULES: {
+        BADGE_VARIANTS: {
+            SUCCESS: 'success',
+            ERROR: 'error',
+            NEUTRAL: 'neutral',
+        },
         CATEGORIES: {
             AIRLINES: 'airlines',
             ALCOHOL_AND_BARS: 'alcoholAndBars',
@@ -4806,11 +4854,16 @@ const CONST = {
                 MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
                 CATEGORIES: 'categories',
                 MAX_AMOUNT: 'maxAmount',
+                CURRENCIES: 'currencies',
             },
         },
         ACTION: {
             ALLOW: 'allow',
             BLOCK: 'block',
+        },
+        NOUN: {
+            MERCHANT: 'merchant',
+            SPEND_CATEGORY: 'spendCategory',
         },
     },
     get SUBSCRIPTION_PRICES() {
@@ -5129,6 +5182,7 @@ const CONST = {
     },
     EXPENSE_PENDING_ACTION: {
         SUBMIT: 'SUBMIT',
+        SUBMIT_FAILED: 'SUBMIT_FAILED',
         APPROVE: 'APPROVE',
     },
     BRICK_ROAD_INDICATOR_STATUS: {
@@ -6315,8 +6369,6 @@ const CONST = {
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
     EXPENSIFY_ICON_NAME: 'Expensify',
-
-    WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
@@ -7624,6 +7676,7 @@ const CONST = {
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
+        HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
     },
 
     DEBUG: {
@@ -7679,20 +7732,23 @@ const CONST = {
             SIGN_UP: {
                 NAME: 'sign_up',
                 META: 'CompleteRegistration',
-                REDDIT: 'SignUp',
-                LINKEDIN: 507587661,
             },
+            // Fired for workspace creations that don't match the "sales-eligible" profile. Uses a custom Meta event
+            // so the lower-value, higher-volume conversions don't dilute the standard "Lead" optimization below.
             WORKSPACE_CREATED: {
                 NAME: 'workspace_created',
+                META: 'workspace_created',
+                IS_CUSTOM_PIXEL_EVENT: true,
+            },
+            // Fired for workspace creations that match the "sales-eligible" profile (see getWorkspaceCreatedAnalyticsEvent).
+            // Uses the standard "Lead" event so Meta can optimize bids toward these higher-value leads.
+            WORKSPACE_CREATED_SALES_ELIGIBLE: {
+                NAME: 'workspace_created_sales_eligible',
                 META: 'Lead',
-                REDDIT: 'Lead',
-                LINKEDIN: 25474804,
             },
             PAID_ADOPTION: {
                 NAME: 'paid_adoption',
                 META: 'Purchase',
-                REDDIT: 'Purchase',
-                LINKEDIN: 25474820,
             },
         },
     },
@@ -8504,13 +8560,14 @@ const CONST = {
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
                 MERCHANT_RULE_DELETE: 'WorkspaceRules-MerchantRuleDelete',
                 CATEGORY_SELECTOR: 'WorkspaceRules-CategorySelector',
+                CURRENCY_SELECTOR: 'WorkspaceRules-CurrencySelector',
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
-                AI_RULE_ITEM: 'WorkspaceRules-AIRuleItem',
-                ADD_AI_RULE: 'WorkspaceRules-AddAIRule',
-                AI_RULE_SAVE: 'WorkspaceRules-AIRuleSave',
-                AI_RULE_DELETE: 'WorkspaceRules-AIRuleDelete',
+                AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
+                ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
+                AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
+                AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
@@ -8754,8 +8811,12 @@ const CONST = {
             BACKDROP: 'MfaOverlay-Backdrop',
         },
         DOMAIN: {
+            ADMINS: {
+                ROW: 'DomainAdmins-Row',
+            },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
+                ROW: 'DomainGroups-Row',
             },
         },
     },

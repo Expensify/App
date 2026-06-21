@@ -10,6 +10,7 @@ import {
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
+    findVendorByID,
     getActivePolicies,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
@@ -19,13 +20,15 @@ import {
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
+    getExcludedUsers,
     getExpensifyTeamExclusions,
     getManagerAccountID,
+    getMatchingVendorByID,
+    getMatchingVendors,
     getPolicyEmployeeAccountIDs,
-    getQBOVendorByID,
-    getQBOVendors,
     getRateDisplayValue,
     getSubmitToAccountID,
+    getSubmitToEmail,
     getTagApproverRule,
     getTagList,
     getTagListByOrderWeight,
@@ -42,6 +45,7 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isPolicyMemberWithoutPendingDelete,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -1054,6 +1058,26 @@ describe('PolicyUtils', () => {
             expect(result).toBe(adminAccountID);
         });
 
+        it('should return submitsTo email from workspace approval config', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: undefined,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        submitsTo: adminEmail,
+                    },
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                ownerAccountID: employeeAccountID,
+            };
+
+            expect(getSubmitToEmail(policy, report)).toBe(adminEmail);
+        });
+
         it('should return the default approver', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
@@ -1686,16 +1710,34 @@ describe('PolicyUtils', () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
         });
-        it('should return empty array if no admins in policies', () => {
+        it('should return empty array if no admins in policies', async () => {
+            const bankAccountID = '1';
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
             const policies = {
                 '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(0);
         });
-        it('should return array with admins', () => {
+        it('should return array with admins from the bank account workspace', async () => {
+            const bankAccountID = '1';
             const currentUserLogin = adminEmail;
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
 
             const policies = {
                 '1': {
@@ -1708,7 +1750,7 @@ describe('PolicyUtils', () => {
                 },
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
             };
-            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
             expect(result).toHaveLength(1);
         });
         it('should not return user with already shared bank account', async () => {
@@ -1718,6 +1760,7 @@ describe('PolicyUtils', () => {
                 1: {
                     methodID: 12345,
                     accountData: {
+                        additionalData: {policyID: '1'},
                         sharees: [adminEmail],
                     },
                 },
@@ -1739,6 +1782,14 @@ describe('PolicyUtils', () => {
         });
         it('should not return current user for sharing account', async () => {
             const bankAccountID = '1';
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
 
             const policies = {
                 '1': {
@@ -1747,13 +1798,6 @@ describe('PolicyUtils', () => {
                     role: CONST.POLICY.ROLE.ADMIN,
                     employeeList: {
                         [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-                '2': {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
                         [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
                     },
                 },
@@ -1862,6 +1906,77 @@ describe('PolicyUtils', () => {
             };
             const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, '1');
             expect(result).toBe(true);
+        });
+    });
+
+    describe('hasEligibleActiveAdminFromWorkspaces', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return true when another admin is available in the bank account workspace', async () => {
+            const bankAccountID = '1';
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, bankAccountID);
+            expect(result).toBe(true);
+        });
+        it('should return false when the user only joined another workspace as a member', async () => {
+            const bankAccountID = '1';
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        additionalData: {policyID: '1'},
+                    },
+                },
+            });
+
+            const policies = {
+                // The bank account's own workspace - current user is the only admin, no one to share with
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                // Another user's workspace the current user only joined as a member - has its own admin
+                '2': {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeList: {
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.USER},
+                    },
+                },
+            };
+            const result = hasEligibleActiveAdminFromWorkspaces(policies, adminEmail, bankAccountID);
+            expect(result).toBe(false);
         });
     });
 
@@ -2889,6 +3004,28 @@ describe('PolicyUtils', () => {
             expect(result['bob@acme.com']).toBeUndefined();
         });
     });
+    describe('isSubmitterApproveBlockedOnSubmitWorkspace', () => {
+        const submitPolicy: Policy = {...createRandomPolicy(99000, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-approve-block-test'};
+        const teamPolicy: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.TEAM), id: 'policy-team-approve-block-test'};
+        const submitterAccountID = 100;
+
+        it('returns true when policy is Submit and the approver is the report owner', () => {
+            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, submitterAccountID, submitterAccountID)).toBe(true);
+        });
+
+        it('returns false when policy is Submit and the approver is not the report owner', () => {
+            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, submitterAccountID, approverAccountID)).toBe(false);
+        });
+
+        it('returns false when policy is not Submit even if the approver is the report owner', () => {
+            expect(isSubmitterApproveBlockedOnSubmitWorkspace(teamPolicy, submitterAccountID, submitterAccountID)).toBe(false);
+        });
+
+        it('returns false when report owner account ID is undefined', () => {
+            expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, undefined, submitterAccountID)).toBe(false);
+        });
+    });
+
     describe('canAccessSubmitWorkspaceFeatures', () => {
         const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
         const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
@@ -2955,6 +3092,20 @@ describe('PolicyUtils', () => {
                 } as unknown as Connections,
             }) as Policy;
 
+        const buildIntacctPolicy = (
+            nonReimbursable: string | undefined,
+            vendors: Array<{id: string; name: string; value: string}> = [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}],
+        ): Policy =>
+            ({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        config: nonReimbursable ? {export: {nonReimbursable}} : {export: {}},
+                        data: {vendors},
+                    },
+                } as unknown as Connections,
+            }) as Policy;
+
         describe('hasVendorFeature', () => {
             it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
@@ -2964,19 +3115,31 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), true)).toBe(true);
             });
 
+            it('returns true when beta is enabled and Intacct non-reimbursable export is Credit Card Charge (R2)', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), true)).toBe(true);
+            });
+
             it('returns false when beta is disabled, even with Credit Card export configured', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled, even with Intacct CC Charge export configured', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), true)).toBe(false);
             });
 
+            it('returns false when Intacct non-reimbursable export is Vendor Bill', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL), true)).toBe(false);
+            });
+
             it('returns false when QBO export destination is not set', () => {
                 expect(hasVendorFeature(buildQBOPolicy(undefined), true)).toBe(false);
             });
 
-            it('returns false when no QBO connection exists on the policy', () => {
+            it('returns false when no supported connection exists on the policy', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
                 expect(hasVendorFeature(policy, true)).toBe(false);
             });
@@ -2986,43 +3149,184 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('getQBOVendors', () => {
-            it('returns the vendor list from the QBO connection', () => {
+        describe('getMatchingVendors', () => {
+            it('returns the QBO vendor list when QBO is connected', () => {
                 const vendors = [
                     {id: 'v-1', name: 'Acme', currency: 'USD'},
                     {id: 'v-2', name: 'Other Co', currency: 'USD'},
                 ];
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, vendors);
-                expect(getQBOVendors(policy)).toEqual(vendors);
+                expect(getMatchingVendors(policy)).toEqual(vendors);
             });
 
-            it('returns an empty array when no QBO connection exists', () => {
+            it('returns the Intacct vendor list normalized to {id, name} using Intacct `value` for the display label (R2)', () => {
+                const intacctVendors = [
+                    {id: 'iv-1', name: 'V001', value: 'Acme Intacct'},
+                    {id: 'iv-2', name: 'V002', value: 'Other Intacct'},
+                ];
+                const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, intacctVendors);
+                expect(getMatchingVendors(policy)).toEqual([
+                    {id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''},
+                    {id: 'iv-2', name: 'Other Intacct', currency: '', email: ''},
+                ]);
+            });
+
+            it('returns Intacct vendors when both QBO and Intacct are connected but only Intacct has a vendor-matching export destination', () => {
+                const intacctVendors = [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}];
+                const qboVendors = [{id: 'v-1', name: 'Stale QBO', currency: 'USD'}];
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            // QBO is connected but not in CC/DC mode, so vendor matching isn't active on the QBO side
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                            data: {vendors: qboVendors},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                            data: {vendors: intacctVendors},
+                        },
+                    } as unknown as Connections,
+                } as Policy;
+                expect(getMatchingVendors(policy)).toEqual([{id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''}]);
+            });
+
+            it('returns QBO vendors when both connections are populated and QBO is the active vendor-matching integration', () => {
+                const qboVendors = [{id: 'v-1', name: 'Acme', currency: 'USD'}];
+                const intacctVendors = [{id: 'iv-stale', name: 'V001', value: 'Stale Intacct'}];
+                const policy = {
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: qboVendors},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                            data: {vendors: intacctVendors},
+                        },
+                    } as unknown as Connections,
+                } as Policy;
+                expect(getMatchingVendors(policy)).toEqual(qboVendors);
+            });
+
+            it('returns an empty array when no supported connection exists', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
-                expect(getQBOVendors(policy)).toEqual([]);
+                expect(getMatchingVendors(policy)).toEqual([]);
             });
 
             it('returns an empty array when policy is undefined', () => {
-                expect(getQBOVendors(undefined)).toEqual([]);
+                expect(getMatchingVendors(undefined)).toEqual([]);
             });
         });
 
-        describe('getQBOVendorByID', () => {
-            it('returns the matching vendor when the ID exists in the list', () => {
+        describe('getMatchingVendorByID', () => {
+            it('returns the matching QBO vendor when the ID exists in the list', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [
                     {id: 'v-1', name: 'Acme', currency: 'USD'},
                     {id: 'v-2', name: 'Other Co', currency: 'USD'},
                 ]);
-                expect(getQBOVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
+                expect(getMatchingVendorByID(policy, 'v-2')).toEqual({id: 'v-2', name: 'Other Co', currency: 'USD'});
+            });
+
+            it('returns the matching Intacct vendor (normalized) when the ID exists in the list (R2)', () => {
+                const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, [
+                    {id: 'iv-1', name: 'V001', value: 'Acme Intacct'},
+                    {id: 'iv-2', name: 'V002', value: 'Other Intacct'},
+                ]);
+                expect(getMatchingVendorByID(policy, 'iv-2')).toEqual({id: 'iv-2', name: 'Other Intacct', currency: '', email: ''});
             });
 
             it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
-                expect(getQBOVendorByID(policy, 'v-missing')).toBeUndefined();
+                expect(getMatchingVendorByID(policy, 'v-missing')).toBeUndefined();
             });
 
-            it('returns undefined when no QBO connection exists', () => {
+            it('returns undefined when no supported connection exists', () => {
                 const policy = {...createRandomPolicy(0), connections: {}} as Policy;
-                expect(getQBOVendorByID(policy, 'v-1')).toBeUndefined();
+                expect(getMatchingVendorByID(policy, 'v-1')).toBeUndefined();
+            });
+        });
+
+        describe('findVendorByID', () => {
+            it('resolves a QBO vendor even when the current export mode is no longer vendor-matching (Vendor Bill)', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, [{id: 'v-1', name: 'Acme', currency: 'USD'}]);
+                expect(findVendorByID(policy, 'v-1')).toEqual({id: 'v-1', name: 'Acme', currency: 'USD'});
+            });
+
+            it('resolves an Intacct vendor (normalized) even when the current export mode is no longer Credit Card Charge', () => {
+                const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL, [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]);
+                expect(findVendorByID(policy, 'iv-1')).toEqual({id: 'iv-1', name: 'Acme Intacct', currency: '', email: ''});
+            });
+
+            it('prefers the active Intacct integration over stale QBO data when both hold the same vendor ID', () => {
+                // Workspace state: QBO connected but in Vendor Bill mode (not vendor-matching),
+                // Intacct connected in Credit Card Charge mode (the active matching integration).
+                // Both happen to carry a vendor with the same external ID. The selector wrote the
+                // Intacct vendor, so the display lookup must return the Intacct name, not the
+                // stale QBO one.
+                const intacctPolicy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, [{id: 'shared', name: 'V001', value: 'Intacct Name'}]);
+                const policy = {
+                    ...intacctPolicy,
+                    connections: {
+                        ...intacctPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                            data: {vendors: [{id: 'shared', name: 'QBO Stale Name', currency: 'USD'}]},
+                        },
+                    },
+                } as Policy;
+                expect(findVendorByID(policy, 'shared')).toEqual({id: 'shared', name: 'Intacct Name', currency: '', email: ''});
+            });
+
+            it('prefers the active QBO integration over stale Intacct data when both hold the same vendor ID', () => {
+                // Symmetric to the prior case: QBO is the active matching integration, Intacct has
+                // lingering data from a prior config. QBO wins.
+                const qboPolicy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, [{id: 'shared', name: 'QBO Name', currency: 'USD'}]);
+                const policy = {
+                    ...qboPolicy,
+                    connections: {
+                        ...qboPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL}},
+                            data: {vendors: [{id: 'shared', name: 'V001', value: 'Intacct Stale Name'}]},
+                        },
+                    },
+                } as Policy;
+                expect(findVendorByID(policy, 'shared')).toEqual({id: 'shared', name: 'QBO Name', currency: 'USD'});
+            });
+
+            it('falls back to QBO data first when neither integration is in vendor-matching mode and both hold the same vendor ID (historical lookup)', () => {
+                // Workspace state: admin switched both integrations away from vendor-matching mode
+                // after a vendor was set on a historical transaction. The display must still
+                // resolve to *a* vendor name; pick the QBO entry first to match `getMatchingVendors`'
+                // QBO-first tie-break.
+                const qboPolicy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, [{id: 'shared', name: 'QBO Name', currency: 'USD'}]);
+                const policy = {
+                    ...qboPolicy,
+                    connections: {
+                        ...qboPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {}},
+                            data: {vendors: [{id: 'shared', name: 'V001', value: 'Intacct Name'}]},
+                        },
+                    },
+                } as Policy;
+                expect(findVendorByID(policy, 'shared')).toEqual({id: 'shared', name: 'QBO Name', currency: 'USD'});
+            });
+
+            it('returns undefined when the ID is not found in any connection vendor list', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+                expect(findVendorByID(policy, 'v-missing')).toBeUndefined();
+            });
+
+            it('returns undefined when the policy is undefined', () => {
+                expect(findVendorByID(undefined, 'v-1')).toBeUndefined();
+            });
+
+            it('returns undefined when the vendorID is undefined', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+                expect(findVendorByID(policy, undefined)).toBeUndefined();
             });
         });
     });
@@ -3032,7 +3336,7 @@ describe('PolicyUtils', () => {
             expect(hasPolicyRulesError(undefined)).toBe(false);
         });
 
-        it('returns false when no coding or AI rules exist', () => {
+        it('returns false when no coding or agent rules exist', () => {
             const policy: Policy = {...createRandomPolicy(0), rules: {}};
             expect(hasPolicyRulesError(policy)).toBe(false);
         });
@@ -3042,7 +3346,7 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(0),
                 rules: {
                     codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
-                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
+                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
                 },
             };
             expect(hasPolicyRulesError(policy)).toBe(false);
@@ -3058,14 +3362,51 @@ describe('PolicyUtils', () => {
             expect(hasPolicyRulesError(policy)).toBe(true);
         });
 
-        it('returns true when an AI rule has errors', () => {
+        it('returns true when an agent rule has errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
                 rules: {
-                    aiRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
+                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
                 },
             };
             expect(hasPolicyRulesError(policy)).toBe(true);
+        });
+    });
+
+    describe('getExcludedUsers', () => {
+        it('marks every active policy member as excluded', () => {
+            const result = getExcludedUsers(employeeList);
+            expect(result['owner@test.com']).toBe(true);
+            expect(result['admin@test.com']).toBe(true);
+            expect(result['employee@test.com']).toBe(true);
+        });
+
+        it('always excludes Expensify emails', () => {
+            const result = getExcludedUsers(employeeList);
+            for (const email of CONST.EXPENSIFY_EMAILS) {
+                expect(result[email]).toBe(true);
+            }
+        });
+
+        it('does not exclude a member that is pending delete', () => {
+            const list: PolicyEmployeeList = {
+                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+            const result = getExcludedUsers(list);
+            expect(result['employee@test.com']).toBeUndefined();
+        });
+
+        it('does not exclude a member that has errors', () => {
+            const list: PolicyEmployeeList = {
+                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', errors: {error1: 'Something went wrong'}},
+            };
+            const result = getExcludedUsers(list);
+            expect(result['employee@test.com']).toBeUndefined();
+        });
+
+        it('returns only Expensify emails when the employee list is undefined', () => {
+            const result = getExcludedUsers(undefined);
+            expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
         });
     });
 });
