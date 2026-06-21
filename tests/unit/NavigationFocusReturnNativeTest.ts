@@ -13,7 +13,21 @@ type NavState = {
 
 const mockFireFocusEvent = jest.fn();
 const mockSendAccessibilityEvent = jest.fn();
+const mockLogWarn = jest.fn();
 let mockScreenReaderEnabled = true;
+
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {
+        warn: (...args: unknown[]) => {
+            mockLogWarn(...args);
+        },
+        info: jest.fn(),
+        alert: jest.fn(),
+        hmmm: jest.fn(),
+        client: jest.fn(),
+    },
+}));
 
 jest.mock('../../src/libs/Accessibility', () => ({
     __esModule: true,
@@ -143,6 +157,7 @@ beforeEach(() => {
     jest.useFakeTimers();
     mockSendAccessibilityEvent.mockClear();
     mockFireFocusEvent.mockClear();
+    mockLogWarn.mockClear();
     mockScreenReaderEnabled = true;
     mockStateListeners = [];
     mockNavigationRefState = undefined;
@@ -364,6 +379,23 @@ describe('handleStateChange — backward', () => {
         handleStateChange(back);
         flushTransitions();
         expect(getTriggerMapSizeForTests()).toBe(0);
+    });
+
+    it('back navigation without a captured trigger is a no-op — no rAF/transition wait, no budget-exhausted warn', () => {
+        mockScreenReaderEnabled = false;
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'profile', name: 'Profile'},
+                {key: 'display-name-page', name: 'DisplayName'},
+            ]),
+        );
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        flushTransitions();
+
+        expect(mockTtQueue).toHaveLength(0);
+        expect(mockLogWarn).not.toHaveBeenCalled();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
     it('clears the staged press on a backward nav so a later press-less forward cannot capture the stale Back/Save ref', () => {

@@ -3,15 +3,21 @@ import getHadTabNavigation from './hadTabNavigation';
 
 /**
  * Pauses the topmost focus-trap during the focus call — works around focus-trap-react auto-unpausing the next-topmost trap on
- * `deactivate()`, whose re-attached `checkFocusIn` would otherwise yank focus back into the closing container.
+ * `deactivate()`, whose re-attached `checkFocusIn` would otherwise yank focus back into the closing container. Leaves an
+ * already-paused trap alone so we don't resurrect a pause owned by another caller.
  */
 function restoreFocusWithModality(el: HTMLElement): void {
     const parentTrap = sharedTrapStack.at(-1);
-    parentTrap?.pause();
+    const wasAlreadyPaused = parentTrap?.paused ?? false;
+    if (parentTrap && !wasAlreadyPaused) {
+        parentTrap.pause();
+    }
     try {
         el.focus({preventScroll: true, focusVisible: getHadTabNavigation()});
     } finally {
-        parentTrap?.unpause();
+        if (parentTrap && !wasAlreadyPaused) {
+            parentTrap.unpause();
+        }
     }
 }
 

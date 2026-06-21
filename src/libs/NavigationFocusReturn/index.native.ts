@@ -142,6 +142,10 @@ function applySkippedRestore(restoreKey: string): void {
 }
 
 function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
+    // Capture is gated on the screen reader; non-SR users would otherwise pay a transition wait + the rAF retry loop + a warn on every back nav.
+    if (!triggerMap.has(routeKey)) {
+        return;
+    }
     cancelPendingRestore();
     let cancelled = false;
     let refocusHandle: {cancel: () => void} | null = null;
