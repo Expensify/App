@@ -1513,7 +1513,8 @@ function shouldShowYear(
                 }
 
                 // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
-                if (item?.posted) {
+                // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
+                if (!result.shouldShowYearPosted && item?.posted) {
                     const postedYear = parseInt(item.posted.slice(0, 4), 10);
                     result.shouldShowYearPosted = postedYear !== currentYear;
                 }
@@ -1545,7 +1546,8 @@ function shouldShowYear(
             }
 
             // Posted date is in the YYYYMMDD format, so we extract the year manually here since JS's Date constructor interprets it as an invalid date.
-            if (item?.posted) {
+            // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
+            if (!result.shouldShowYearPosted && item?.posted) {
                 const postedYear = parseInt(item.posted.slice(0, 4), 10);
                 result.shouldShowYearPosted = postedYear !== currentYear;
             }
@@ -5894,6 +5896,9 @@ function getColumnsToShow({
             }
             if (hasDisplayableMCC(transaction.mcc)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.MCC] = true;
+            }
+            if (transaction.posted) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.POSTED] = true;
             }
 
             const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
