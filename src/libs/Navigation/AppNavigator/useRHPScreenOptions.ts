@@ -8,6 +8,7 @@ import {isSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types/NavigationOptions';
+import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
 // This function is necessary for proper animation if a wide format RHP screen is visible.
@@ -51,9 +52,10 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
                 cardOverlayEnabled: false,
                 cardStyle: styles.navigationScreenCardStyle,
                 gestureDirection: 'horizontal',
+                transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
             },
         };
-    }, [customInterpolator, shouldAdjustInterpolatorProps, styles.navigationScreenCardStyle]);
+    }, [customInterpolator, shouldAdjustInterpolatorProps, isSmallScreenWidth, styles.navigationScreenCardStyle]);
 };
 
 export default useRHPScreenOptions;
