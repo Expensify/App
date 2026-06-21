@@ -1064,6 +1064,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `${count} weitere anzeigen`,
+        recentlyAddedSection: {
+            title: 'Kürzlich hinzugefügt',
+            viewAll: 'Alle Ausgaben anzeigen',
+            emptyStateTitle: 'Keine aktuellen Ausgaben',
+            emptyStateMessage: 'Erstellen Sie eine oder ziehen Sie eine Quittung hierher',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1651,6 +1657,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
+        submitReportTo: {
+            subtitle: 'Wählen Sie ein Arbeitsbereichsmitglied aus oder geben Sie die E-Mail-Adresse der Person ein, die diese Einreichung erhalten soll.',
+            emailLabel: 'E-Mail-Adresse',
+            workspaceMembers: 'Workspace-Mitglieder',
+            sendExpense: 'Senden Sie Ihre Ausgabe an jede beliebige Person',
+            sendExpenseSubtitle: 'Laden Sie jede beliebige Person zu Expensify ein, indem Sie ihre E-Mail-Adresse oder Telefonnummer verwenden.',
+        },
         changeApprover: {
             title: 'Genehmigende Person ändern',
             header: (workflowSettingLink: string) =>
@@ -6744,6 +6757,17 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         distanceRates: {
             oopsNotSoFast: 'Ups! Nicht so schnell ...',
             workspaceNeeds: 'Ein Arbeitsbereich benötigt mindestens einen aktivierten Entfernungssatz.',
+            commuterExclusions: {
+                title: 'Arbeitswege ausschließen',
+                summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `${distance} ${unit} pro Abrechnung ausschließen`,
+                optionDisabledTitle: 'Pendelfahrten nicht ausschließen',
+                optionDisabledHelp: 'Es wird kein Ausschluss für den Arbeitsweg angewendet.',
+                optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
+                optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
+                distanceLabel: 'Entfernung',
+                errors: {distanceMustBePositive: 'Die Entfernung muss größer als 0 sein.'},
+            },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
             rate: 'Bewerten',
@@ -8128,6 +8152,22 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
+        commuterExclusions: {
+            changedToFixedDistance: 'hat das Ausschließen von Pendelstrecken in eine feste Entfernung pro Antrag geändert',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'Meile' : 'Meilen';
+                } else {
+                    unitLabel = isSingular ? 'Kilometer' : 'Kilometer';
+                }
+                return `feste Distanz von ${distance} ${unitLabel} pro Antrag ausschließen`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `feste Entfernungsausschlussgrenze auf ${newDistance} ${unit} pro Antrag geändert (zuvor ${oldDistance} ${unit})`,
+            disabled: 'Ausschluss von Pendelstrecken für Distanzsätze deaktiviert',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `Erstattungmethode zu „${newReimbursementChoice}“ geändert (vorher „${oldReimbursementChoice}“)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Vorabgenehmigung von Arbeitsbereich-Beitrittsanfragen`,
@@ -9767,6 +9807,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
