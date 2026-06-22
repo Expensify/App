@@ -316,6 +316,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
+                    Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
