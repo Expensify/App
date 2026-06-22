@@ -167,7 +167,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         allDataLength: number;
         hasDeletedTransaction: boolean;
     }>(() => {
-        if (!shouldComputeSections || !searchDataWithOptimisticTransaction) {
+        if (!shouldComputeSections) {
             return {
                 baseFilteredData: EMPTY_DATA,
                 filteredDataLength: 0,
