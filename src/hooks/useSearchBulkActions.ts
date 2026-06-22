@@ -10,9 +10,10 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import {clearExportDownload} from '@libs/actions/Export';
+import {clearExportDownload, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -42,7 +43,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -382,6 +383,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
     const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
     const {showConfirmModal} = useConfirmModal();
+    const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -442,6 +444,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
+
+    const doSelectedItemsBelongToSubmitPolicy = useMemo(() => {
+        const selectedItems = selectedReports.length > 0 ? selectedReports : Object.values(selectedTransactions);
+        if (selectedItems.length === 0) {
+            return false;
+        }
+
+        return selectedItems.some((item) => {
+            const policy = item.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
+            return isSubmitPolicy(policy);
+        });
+    }, [selectedReports, selectedTransactions, policies]);
 
     const selectedPolicyIDs = useMemo(
         () => [
@@ -1681,8 +1695,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        const uniqueSelectedReportIDsFromTransactions = new Set(
+            selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).filter((reportID): reportID is string => !!reportID),
+        );
+        const hasSingleSubmitPolicySelection = selectedReports.length === 1 || uniqueSelectedReportIDsFromTransactions.size === 1;
+
         const shouldShowSubmitOption =
             !isOffline &&
+            (!doSelectedItemsBelongToSubmitPolicy || (doSelectedItemsBelongToSubmitPolicy && hasSingleSubmitPolicySelection)) &&
             areSelectedTransactionsIncludedInReports &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.canSubmit) &&
@@ -1723,10 +1743,33 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
 
+                    const selectedReportForSubmit = selectedReports.at(0);
+                    const reportIDForSubmit = selectedReportForSubmit?.reportID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).find((id): id is string => !!id);
+                    const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
+                    const policyForSubmit = policyIDForSubmit ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForSubmit}`] : undefined;
+
+                    if (policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
+                        const snapshotReport = getReportOrDraftReport(
+                            reportIDForSubmit,
+                            undefined,
+                            searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`] ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`],
+                        );
+
+                        if (snapshotReport) {
+                            openSearchReportSubmitToPopover(reportIDForSubmit, {
+                                onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
+                                    submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey, managerEmail, managerAccountID);
+                                    clearSelectedTransactions();
+                                },
+                            });
+                        }
+                        return;
+                    }
+
                     for (const item of itemList) {
-                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
-                        if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy]);
+                        const itemPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+                        if (itemPolicy) {
+                            submitMoneyRequestOnSearch(hash, [item as Report], [itemPolicy]);
                         }
                     }
                     clearSelectedTransactions();
@@ -1755,8 +1798,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         options.push(exportButtonOption);
 
-        if (isExpenseReportSearch && selectedReportIDs.length === 1) {
-            const reportIDForPDF = selectedReportIDs.at(0);
+        if (isExpenseReportSearch && selectedReportIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadAsPDF'),
@@ -1767,14 +1809,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         setIsOfflineModalVisible(true);
                         return;
                     }
-                    if (!reportIDForPDF) {
+                    if (selectedReportIDs.length === 1) {
+                        const reportIDForPDF = selectedReportIDs.at(0);
+                        if (!reportIDForPDF) {
+                            return;
+                        }
+                        await exportReportToPDF({reportID: reportIDForPDF});
+                        setPdfReportID(reportIDForPDF);
+                        setIsPdfModalVisible(true);
                         return;
                     }
-                    // Using await prevent the double-download on the second PDF export
-                    // by clearing Onyx filename before modal is visible
-                    await exportReportToPDF({reportID: reportIDForPDF});
-                    setPdfReportID(reportIDForPDF);
-                    setIsPdfModalVisible(true);
+                    const exportID = exportReportsToPDF(selectedReportIDs);
+                    setActiveExportID(exportID);
                 },
             });
         }
@@ -2064,6 +2110,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        doSelectedItemsBelongToSubmitPolicy,
+        openSearchReportSubmitToPopover,
+        searchResults?.data,
         accountID,
         deleteTransactionsFromHook,
         duplicateTransactionViolations,
@@ -2140,6 +2189,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
+        activeExportID,
+        handleExportModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -2149,8 +2200,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allTransactions: allTransactionsForDuplicate,
         allReports,
         searchData: currentSearchResults?.data,
-        activeExportID,
-        handleExportModalClose,
     };
 }
 
