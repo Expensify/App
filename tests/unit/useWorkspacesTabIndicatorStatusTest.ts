@@ -49,6 +49,11 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR,
     },
+    hasMergeHRSetupNeeded: {
+        name: 'has Merge HR setup needed',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const getMockForTestCase = ({name}: IndicatorTestCase) =>
@@ -98,6 +103,15 @@ const getMockForTestCase = ({name}: IndicatorTestCase) =>
                                   reimbursableExpensesExportDestination: 'VENDOR_BILL',
                                   reimbursableExpensesAccount: undefined,
                               },
+                          },
+                      }
+                    : {}),
+                ...(name === TEST_CASES.hasMergeHRSetupNeeded.name
+                    ? {
+                          [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                              config: {integration: 'workday'},
+                              data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                              lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
                           },
                       }
                     : {}),
@@ -151,11 +165,11 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             expect(status).toBe(testCase.status);
         });
 
-        it('returns policyIDWithErrors', async () => {
+        it('returns indicatorPolicyID', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
-            expect(policyIDWithErrors).toBe(WORKSPACE.policyID);
+            const {indicatorPolicyID} = result.current;
+            expect(indicatorPolicyID).toBe(WORKSPACE.policyID);
         });
     });
 
@@ -193,11 +207,11 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             expect(indicatorColor).toBe(defaultTheme.success);
         });
 
-        it('returns undefined policyIDWithErrors when no errors exist', async () => {
+        it('returns undefined indicatorPolicyID when no errors exist', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
-            expect(policyIDWithErrors).toBeUndefined();
+            const {indicatorPolicyID} = result.current;
+            expect(indicatorPolicyID).toBeUndefined();
         });
     });
 
@@ -280,9 +294,9 @@ describe('useWorkspacesTabIndicatorStatus', () => {
         it('returns the policyID of the policy with errors', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {policyIDWithErrors} = result.current;
+            const {indicatorPolicyID} = result.current;
 
-            expect(policyIDWithErrors).toBe(SECOND_WORKSPACE.policyID);
+            expect(indicatorPolicyID).toBe(SECOND_WORKSPACE.policyID);
         });
     });
 
@@ -296,11 +310,11 @@ describe('useWorkspacesTabIndicatorStatus', () => {
         it('handles missing data gracefully', async () => {
             const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
             await waitForBatchedUpdatesWithAct();
-            const {status, indicatorColor, policyIDWithErrors} = result.current;
+            const {status, indicatorColor, indicatorPolicyID} = result.current;
 
             expect(status).toBeUndefined();
             expect(indicatorColor).toBe(defaultTheme.success);
-            expect(policyIDWithErrors).toBeUndefined();
+            expect(indicatorPolicyID).toBeUndefined();
         });
     });
 
@@ -344,6 +358,54 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             // 3. HAS_EMPLOYEE_LIST_ERROR
             // etc.
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS);
+        });
+    });
+
+    describe('error priority over info', () => {
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: userID,
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                        id: WORKSPACE.policyID,
+                        name: WORKSPACE.policyName,
+                        owner: userID,
+                        role: 'admin',
+                        policyAccountID: WORKSPACE.policyAccountID,
+                        connections: {
+                            quickbooksOnline: {
+                                lastSync: {
+                                    errorMessage: 'Sync failed',
+                                    isSuccessful: false,
+                                    errorDate: new Date().toISOString(),
+                                },
+                            },
+                            [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                                config: {integration: 'workday'},
+                                data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                                lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                            },
+                        },
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                        stageInProgress: null,
+                        connectionName: 'quickbooksOnline',
+                    },
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('shows red sync error when both sync error and merge HR setup are needed', async () => {
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
+            expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
 });
