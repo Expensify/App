@@ -24,6 +24,7 @@ import {
     canModifyPlan,
     getDefaultApprover,
     getPerDiemCustomUnit,
+    getUserFriendlyWorkspaceType,
     isControlPolicy,
     isPaidGroupPolicy,
 } from '@libs/PolicyUtils';
@@ -79,6 +80,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const canAccessSubmitWorkspaceFeatures = canAccessSubmitWorkspaceFeaturesUtils(policy, isSubmit2026BetaEnabled);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
+    // upgradePlanType comes from the URL, so only honor the plans we explicitly support upgrading to.
+    const rawUpgradePlanType = route.params?.upgradePlanType;
+    const upgradePlanType = rawUpgradePlanType === CONST.POLICY.TYPE.TEAM || rawUpgradePlanType === CONST.POLICY.TYPE.CORPORATE ? rawUpgradePlanType : undefined;
     const [upgradingFromSubmit, setUpgradingFromSubmit] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
@@ -172,11 +176,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (canAccessSubmitWorkspaceFeatures) {
-            const isCorporateUpgrade =
-                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id ||
-                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id ||
-                feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id;
-            const targetType = isCorporateUpgrade ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+            const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial);
             return;
         }
@@ -364,6 +364,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     <UpgradeConfirmation
                         afterUpgradeAcknowledged={goBack}
                         policyName={policy.name}
+                        planName={getUserFriendlyWorkspaceType(policy.type, translate)}
                     />
                 )}
                 {!isUpgraded && (
@@ -374,6 +375,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
+                        upgradePlanType={upgradePlanType}
                     />
                 )}
             </ScrollView>

@@ -85,7 +85,7 @@ type OnboardingListItem = ListItem & {
     keyForList: OnboardingAccounting;
 };
 
-function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -182,7 +182,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         setOnboardingUserReportedIntegration(userReportedIntegration);
 
         // Navigate to the next onboarding step interested features with the selected integration
-        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
+        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
     };
 
     const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {

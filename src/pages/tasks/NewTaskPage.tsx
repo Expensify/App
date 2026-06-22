@@ -1,7 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,7 +16,6 @@ import usePolicy from '@hooks/usePolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
@@ -41,6 +39,9 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const reportAttributes = useReportAttributes();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
+    });
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails);
@@ -63,15 +64,6 @@ function NewTaskPage({route}: NewTaskPageProps) {
 
     const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    useFocusEffect(() => {
-        focusTimeoutRef.current = setTimeout(() => {
-            InteractionManager.runAfterInteractions(() => {
-                blurActiveElement();
-            });
-        }, CONST.ANIMATED_TRANSITION);
-        return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-    });
 
     useEffect(() => {
         if (!task?.parentReportID) {
@@ -113,6 +105,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
             isCreatedUsingMarkdown: false,
             quickAction,
             ancestors,
+            taskCreatorAndAssigneeDetails,
         });
     };
 
@@ -132,6 +125,8 @@ function NewTaskPage({route}: NewTaskPageProps) {
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS.getRoute(backTo));
                     }}
+                    /** Skip focus of the first interactive element in the header to make sure that Enter key confirms the task instead of navigating back. */
+                    shouldSkipFocusAfterTransition
                 />
                 {!!hasDestinationError && (
                     <FormHelpMessage

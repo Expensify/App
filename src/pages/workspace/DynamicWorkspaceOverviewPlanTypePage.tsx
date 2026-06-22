@@ -98,12 +98,12 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         // still pick Team/Corporate. Route any selection from a Submit policy to the
         // upgrade screen — the polished Submit-specific upgrade UX ships in #87263.
         if (policyID && policy?.type === CONST.POLICY.TYPE.SUBMIT && (currentPlan === CONST.POLICY.TYPE.TEAM || currentPlan === CONST.POLICY.TYPE.CORPORATE)) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined, undefined, currentPlan));
             return;
         }
 
         if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined, undefined, currentPlan));
             return;
         }
 

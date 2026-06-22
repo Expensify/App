@@ -132,28 +132,6 @@ describe('useSearchSelector sortedActions integration', () => {
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
-    it('passes sortedActions to getValidOptions for MEMBER_INVITE context', async () => {
-        const mockData = buildMockSortedActions(['10']);
-
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, mockData);
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderHook(() =>
-            useSearchSelectorBase({
-                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-            }),
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockGetValidOptions).toHaveBeenCalled();
-        const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
-        expect(config?.sortedActions).toEqual(mockData.sortedActions);
-    });
-
     it('passes sortedActions to getValidOptions for SHARE_DESTINATION context', async () => {
         const mockData = buildMockSortedActions(['20', '21']);
 
@@ -317,7 +295,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 initialSelected: [EXISTING_CONTACT],
             }),
@@ -344,7 +322,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: false,
                 initialSelected: [EXISTING_CONTACT],
             }),
@@ -372,7 +350,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
                 initialSelected: [NON_EXISTING_USER_TO_INVITE],
@@ -403,7 +381,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: false,
                 initialSelected: [NON_EXISTING_USER_TO_INVITE],
@@ -428,7 +406,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
                 initialSelected: [EXISTING_CONTACT],
@@ -458,7 +436,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
             }),
@@ -496,7 +474,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
                 initialSelected: [NON_EXISTING_USER_TO_INVITE],
@@ -530,7 +508,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         const {result} = renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
                 shouldKeepSelectedInAvailableOptions: true,
                 shouldSeparateNonExistingSelectedOptions: true,
                 initialSelected: [EXISTING_CONTACT, NON_EXISTING_USER_TO_INVITE],

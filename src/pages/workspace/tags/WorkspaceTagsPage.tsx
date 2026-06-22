@@ -62,6 +62,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
     getConnectedIntegration,
+    getCountOfEnabledTagsOfList,
     getCurrentConnectionName,
     getTagApproverRule,
     getTagLists,
@@ -301,11 +302,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => {
+        const firstTagList = policyTagLists.at(0);
+        const enabledTagsCount = getCountOfEnabledTagsOfList(firstTagList?.tags);
+        const isLastEnabledTagLocked = !!firstTagList?.required && enabledTagsCount === 1;
+
+        return Object.values(firstTagList?.tags ?? {}).map((tag) => {
             const approverEmail = shouldShowApproverColumn ? (getTagApproverRule(policy, tag.name)?.approver ?? '') : '';
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
             const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
+            const isLastEnabledTagAndEnabled = isLastEnabledTagLocked && tag.enabled;
 
             return {
                 value: tag.name,
@@ -354,7 +360,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 disabledAction={withReadOnlyFallback()}
                                 accessibilityLabel={translate('workspace.tags.enableTag')}
                                 onToggle={(newValue: boolean) => {
-                                    if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                                    if (isLastEnabledTagAndEnabled) {
                                         showConfirmModal({
                                             title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
                                             prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
@@ -365,7 +371,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     }
                                     updateWorkspaceTagEnabled(newValue, tag.name);
                                 }}
-                                showLockIcon={!canWriteTags || isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                                showLockIcon={!canWriteTags || isLastEnabledTagAndEnabled}
                             />
                         </View>
                     </>
@@ -376,7 +382,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         disabledAction={withReadOnlyFallback()}
                         accessibilityLabel={translate('workspace.tags.enableTag')}
                         onToggle={(newValue: boolean) => {
-                            if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                            if (isLastEnabledTagAndEnabled) {
                                 showConfirmModal({
                                     title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
                                     prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
@@ -387,7 +393,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             }
                             updateWorkspaceTagEnabled(newValue, tag.name);
                         }}
-                        showLockIcon={!canWriteTags || isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                        showLockIcon={!canWriteTags || isLastEnabledTagAndEnabled}
                     />
                 ),
             };
@@ -481,7 +487,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.approver')}</Text>
                         </View>
                     )}
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), canWriteTags && styles.mr5]}>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
                     </View>
                 </View>
@@ -854,20 +860,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             );
         }
 
+        const importSpreadsheetURL = isQuickSettingsFlow
+            ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
+            : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`;
+        let subtitleHTML = `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`;
+        if (hasDependentTags) {
+            subtitleHTML = translate('workspace.tags.subtitleWithDependentTags', importSpreadsheetURL, canWriteTags);
+        }
+
         return (
             <View style={[styles.flexRow, styles.renderHTML]}>
-                <RenderHTML
-                    html={
-                        hasDependentTags
-                            ? translate(
-                                  'workspace.tags.subtitleWithDependentTags',
-                                  isQuickSettingsFlow
-                                      ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
-                                      : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
-                              )
-                            : `<muted-text>${translate('workspace.tags.subtitle')}</muted-text>`
-                    }
-                />
+                <RenderHTML html={subtitleHTML} />
             </View>
         );
     };
@@ -888,14 +891,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const subtitleText = useMemo(() => {
         const emptyTagsSubtitle = hasAccountingConnections
-            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`)
+            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, canWriteTags)
             : translate('workspace.tags.emptyTags.subtitleHTML');
         return (
             <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
                 <RenderHTML html={emptyTagsSubtitle} />
             </View>
         );
-    }, [hasAccountingConnections, translate, environmentURL, policyID, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]);
+    }, [hasAccountingConnections, translate, environmentURL, policyID, canWriteTags, styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]);
 
     return (
         <>
