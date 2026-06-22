@@ -1,18 +1,23 @@
 import * as Sentry from '@sentry/react-native';
+import type {SeverityLevel} from '@sentry/react-native';
+import type {TupleToUnion} from 'type-fest';
 
 type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+/** Maps our internal log levels onto Sentry breadcrumb severity levels (note: `warn` becomes `warning`). */
+const SENTRY_BREADCRUMB_LEVEL: Record<SentryLogLevel, SeverityLevel> = {debug: 'debug', info: 'info', warn: 'warning', error: 'error'};
 
 /**
  * Whitelist of parameter key patterns allowed to be forwarded to Sentry.
  * Exact strings match the key literally, regexes match against the flattened dot-notation key.
  * Example: /^mfa\./ matches all keys under the `mfa` namespace (mfa.scenario, mfa.isOffline, etc.).
  */
-const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = ['timestamp', 'error', 'command', 'isSupportAuthTokenUsed', /^mfa\./];
+const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = ['timestamp', 'error', 'command', 'isSupportAuthTokenUsed', /^mfa\./, 'receiptTraceId', 'transactionID', 'event'];
 
 /**
  * Only log lines whose message contains one of these prefixes are forwarded to Sentry.
  */
-const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]'] as const;
+const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]', '[Receipt]'] as const;
 
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.
@@ -22,8 +27,8 @@ const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]'] as const;
  * There is no redaction / filtering of sensitive data implemented yet. When you implement any log forwarding logic, make sure that you do not leak any sensitive data.
  */
 
-function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
-    return FORWARDED_LOG_PREFIXES.some((prefix) => log.message?.includes(prefix));
+function getMatchedForwardPrefix(message: string): TupleToUnion<typeof FORWARDED_LOG_PREFIXES> | undefined {
+    return FORWARDED_LOG_PREFIXES.find((prefix) => message.includes(prefix));
 }
 
 function mapLogMessageToSentryLevel(message: string): SentryLogLevel {
@@ -95,20 +100,34 @@ function forwardLogsToSentry(logPacket: string | undefined) {
         if (!logLine || typeof logLine.message !== 'string') {
             continue;
         }
-        if (!shouldForwardLog(logLine)) {
+        const prefix = getMatchedForwardPrefix(logLine.message);
+        if (!prefix) {
             continue;
         }
 
+        const params = prepareParametersForSentry(logLine.parameters);
         const level = mapLogMessageToSentryLevel(logLine.message);
         const logMethod = Sentry.logger[level];
-        if (!logMethod) {
-            continue;
+        if (logMethod) {
+            if (params) {
+                logMethod(logLine.message, params);
+            } else {
+                logMethod(logLine.message);
+            }
         }
 
-        if (logLine.parameters) {
-            logMethod(logLine.message, prepareParametersForSentry(logLine.parameters));
-        } else {
-            logMethod(logLine.message);
+        // Mirror the line as a breadcrumb so the trail rides along on any crash/error event, and tag the scope by
+        // trace id so a crash can be filtered/searched by receipt. Breadcrumb data is the same whitelisted set as the
+        // forwarded log — opaque ids only, never the receipt source/filename/bytes.
+        Sentry.addBreadcrumb({
+            category: prefix.replaceAll(/[[\]]/g, '').toLowerCase(),
+            type: 'info',
+            level: SENTRY_BREADCRUMB_LEVEL[level],
+            message: logLine.message,
+            data: params,
+        });
+        if (prefix === '[Receipt]' && params && typeof params.receiptTraceId === 'string') {
+            Sentry.setTag('receiptTraceId', params.receiptTraceId);
         }
     }
 }

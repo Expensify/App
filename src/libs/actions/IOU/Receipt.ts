@@ -9,6 +9,7 @@ import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -179,6 +180,9 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
     if (!file) {
         return;
     }
+
+    const receiptTraceId = mintAndStampReceiptTraceId(file);
+    logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
 
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
