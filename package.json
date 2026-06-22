@@ -192,7 +192,7 @@
     "react-native-localize": "^3.5.4",
     "react-native-nitro-modules": "0.35.0",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#8bc993cafd23c8980d9274333a38bb335f28c244",
+    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#23bc519d72335bcd25c6c504eb9e8049e472ac88",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
