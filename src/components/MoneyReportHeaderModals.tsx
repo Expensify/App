@@ -1,7 +1,5 @@
 import React, {useRef, useState} from 'react';
 import type {ReactNode} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
@@ -87,10 +85,10 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
                 onConfirm,
             });
 
-        // On iOS, delay opening the hold menu until active touch interactions finish to prevent visual glitches
+        // On iOS, defer by one frame so the current touch animation finishes before the modal opens
         if (getPlatform() === CONST.PLATFORM.IOS) {
             return new Promise<void>((resolve) => {
-                InteractionManager.runAfterInteractions(() => {
+                requestAnimationFrame(() => {
                     open().then(() => resolve());
                 });
             });

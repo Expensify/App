@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: '头像',
         editor: '编辑',
         restrictions: '限制',
+        off: '关',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -1028,6 +1029,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
+        recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1599,6 +1601,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
+        submitReportTo: {
+            subtitle: '选择一个工作区成员，或输入应接收此提交的收件人邮箱地址。',
+            emailLabel: '电子邮箱地址',
+            workspaceMembers: '工作区成员',
+            sendExpense: '将你的报销发送给任何人',
+            sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
+        },
         changeApprover: {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
@@ -6134,7 +6143,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其技术联系人替换为工作区所有者 ${workspaceOwner}。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName} 还有一份待处理报告需要处理。请在将其从工作区中移除之前，先让 TA 完成所需操作。`,
-            members: '成员',
+            allMembers: '所有成员',
             admins: '工作区管理员',
             approvers: '审批人',
             auditors: '审计员',
@@ -6535,6 +6544,17 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         distanceRates: {
             oopsNotSoFast: '哎呀！先别急……',
             workspaceNeeds: '一个工作区至少需要一个已启用的距离费率。',
+            commuterExclusions: {
+                title: '排除通勤',
+                summaryDisabled: '不排除通勤',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `每次报销排除 ${distance} ${unit}`,
+                optionDisabledTitle: '不要排除通勤',
+                optionDisabledHelp: '未应用通勤排除规则。',
+                optionFixedDistanceTitle: '为每笔报销排除固定距离',
+                optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
+                distanceLabel: '距离',
+                errors: {distanceMustBePositive: '距离必须大于 0。'},
+            },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
             rate: '评分',
@@ -7105,9 +7125,6 @@ ${reportName}`,
                 saveRule: '保存规则',
                 allow: '允许',
                 spendRuleSectionTitle: '支出规则',
-                restrictionType: '限制类型',
-                restrictionTypeHelpAllow: '如果符合任一商户或类别，且不超过最大金额，则费用会被批准。',
-                restrictionTypeHelpBlock: '如果交易符合任一商户或类别，或超过最高金额，都会被拒付。',
                 addMerchant: '添加商家',
                 merchantContains: '商家包含',
                 merchantExactlyMatches: '商户完全匹配',
@@ -7118,11 +7135,10 @@ ${reportName}`,
                 matchType: '匹配类型',
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
-                spendCategory: '支出类别',
                 maxAmount: '最高金额',
                 maxAmountHelp: '无论商家或消费类别限制如何，任何超过此金额的消费都会被拒绝。',
-                currencyMismatchTitle: '货币不匹配',
-                currencyMismatchPrompt: '若要设置最高金额，请选择以相同货币结算的卡片。',
+                maxAmountCurrencyMismatchTitle: '货币不匹配',
+                maxAmountCurrencyMismatchPrompt: '要设置最高金额，请选择以相同货币结算的卡片。',
                 reviewSelectedCards: '检查所选卡片',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}，还有 +${count} 项` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: '至少将一条支出规则应用到一张卡上',
@@ -7185,6 +7201,24 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
+                restrictMerchants: '限制商家',
+                merchantTypes: '商户类型',
+                allowedMerchants: '允许的商户',
+                allowedMerchantTypes: '允许的商户类型',
+                blockedMerchants: '已屏蔽商户',
+                blockedMerchantTypes: '已屏蔽商户类型',
+                currencies: '货币',
+                permittedCurrencies: '允许的货币',
+                allCurrencies: '所有货币',
+                permittedCurrenciesSubtitle: '选择允许所有货币或特定货币',
+                settlementCurrencyPermittedSubtitle: '始终允许使用该卡的结算货币',
+                currenciesCurrencyMismatchTitle: '货币不匹配',
+                currenciesCurrencyMismatchPrompt: '要设置首选货币，请选择以同一货币结算的卡片。',
+                restrictMerchantsOffSubtitle: '在允许的货币中，核准不超过最高金额的消费',
+                restrictMerchantsAllowSubtitle: '会批准符合条件的交易：使用允许的货币、未超过最高金额，并且商户或商户类型匹配。',
+                restrictMerchantsBlockSubtitle: '对于允许的币种中，若消费金额未超过最高限额，或商户或商户类型匹配，则该笔消费将被批准。',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `已允许 ${shownCount > 1 ? '货币' : '货币'}：${currencies}${hiddenCount > 0 ? `，还有 +${hiddenCount} 项` : ''}`,
             },
             agentRules: {
                 title: '代理规则',
@@ -7765,6 +7799,22 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
+        commuterExclusions: {
+            changedToFixedDistance: '已将“排除通勤”更改为“按每次报销固定距离”',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? '英里' : '英里';
+                } else {
+                    unitLabel = isSingular ? '公里' : '千米';
+                }
+                return `将每次报销的固定排除距离设置为 ${distance} ${unitLabel}`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `已将固定距离排除调整为每笔报销 ${newDistance} ${unit}（之前为 ${oldDistance} ${unit}）`,
+            disabled: '已停用“排除通勤距离费率”',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) => `将报销方式更改为“${newReimbursementChoice}”（原为“${oldReimbursementChoice}”）`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 预先批准加入工作区的请求`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `将自定义报表名称公式更改为“${newDefaultTitle}”（之前为“${oldDefaultTitle}”）`,
@@ -9247,6 +9297,7 @@ ${reportName}`,
             theresAProblemWithYourWallet: '您的钱包出现问题',
             theresAProblemWithYourWalletTerms: '您的钱包条款存在问题',
             aBankAccountIsLocked: '银行账户已锁定',
+            completeHrSetup: '完成人力资源设置',
         },
     },
     emptySearchView: {
@@ -9347,6 +9398,10 @@ ${reportName}`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
@@ -9546,21 +9601,5 @@ ${reportName}`,
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
     monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Concierge AI 新手指南',
-        confirmText: '出发吧！',
-        spendAnalysis: {
-            title: '交互式支出分析',
-            description: `<muted-text>Concierge 会提供每月支出洞察，并让你深入查看每个数字背后的详细信息。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">了解详情</a>。</muted-text>`,
-        },
-        expenseAssistant: {
-            title: '认识你的全新报销助手',
-            description: `<muted-text>在应用内或通过电子邮件、短信与 Concierge 聊天来创建和更新报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">了解更多</a>。</muted-text>`,
-        },
-        customAgents: {
-            title: '构建你自己的代理',
-            description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
-        },
-    },
 };
 export default translations;
