@@ -240,15 +240,13 @@ function IOURequestStepCategory({
                                     if (!policy?.areCategoriesEnabled) {
                                         enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
-                                    TransitionTracker.runAfterTransitions({
-                                        callback: () =>
-                                            Navigation.navigate(
-                                                ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                                    policyID,
-                                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
-                                                ),
+                                    requestAnimationFrame(() => {
+                                        Navigation.navigate(
+                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                                policyID,
+                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
                                             ),
-                                        waitForUpcomingTransition: true,
+                                        );
                                     });
                                 }}
                                 text={translate('workspace.categories.editCategories')}
