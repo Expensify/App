@@ -2,6 +2,7 @@ type AppStateChangeListener = (status: string) => void;
 type AccessibilityModule = {
     default: {
         isScreenReaderEnabledSync: () => boolean;
+        isScreenReaderKnownOff: () => boolean;
     };
 };
 
@@ -90,6 +91,23 @@ describe('Accessibility warm cache — AppState refresh', () => {
 
         expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(false);
         expect(mockReduceMotionFetchCount).toBe(initialReduceMotionFetches);
+    });
+
+    it('isScreenReaderKnownOff returns false before warm resolves and true only after a false-resolution', async () => {
+        mockScreenReaderValue = false;
+        const Accessibility = loadModule();
+        // Synchronously after module load the warm promise has not resolved — unknown state must not report known-off.
+        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+        await flushPromises();
+        // Warm resolved with false — now known-off.
+        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(true);
+    });
+
+    it('isScreenReaderKnownOff returns false after warm resolves with SR enabled', async () => {
+        mockScreenReaderValue = true;
+        const Accessibility = loadModule();
+        await flushPromises();
+        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
     });
 
     it('re-fetches the reduce-motion value on background→active transition', async () => {

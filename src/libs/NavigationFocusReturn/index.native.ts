@@ -90,8 +90,11 @@ function registerPressable(routeKey: string, identifier: string, ref: RefObject<
     };
 }
 
-// SR gate lives at restore time, not here, so a cold-start press captured before ensureScreenReaderWarm resolves still survives.
+// Gate on known-off so the warm-up window (cold start, AppState resume) still captures defensively.
 function captureTriggerForRoute(routeKey: string): void {
+    if (Accessibility.isScreenReaderKnownOff()) {
+        return;
+    }
     if (!lastPressedTriggerRef || performance.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
         return;
     }
@@ -139,8 +142,8 @@ function applySkippedRestore(restoreKey: string): void {
 }
 
 function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
-    // Skip all expensive work for non-SR users and when nothing was captured. Capture upstream is unconditional so cold-start presses aren't dropped here.
-    if (!Accessibility.isScreenReaderEnabledSync() || !triggerMap.has(routeKey)) {
+    // Known-off bails (sendAccessibilityEvent has no consumer); unknown proceeds so the warm-up window doesn't drop the first restore.
+    if (Accessibility.isScreenReaderKnownOff() || !triggerMap.has(routeKey)) {
         return;
     }
     cancelPendingRestore();

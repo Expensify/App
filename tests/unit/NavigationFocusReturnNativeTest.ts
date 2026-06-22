@@ -15,6 +15,7 @@ const mockFireFocusEvent = jest.fn();
 const mockSendAccessibilityEvent = jest.fn();
 const mockLogWarn = jest.fn();
 let mockScreenReaderEnabled = true;
+let mockScreenReaderCacheWarmed = true;
 
 jest.mock('@libs/Log', () => ({
     __esModule: true,
@@ -34,6 +35,7 @@ jest.mock('../../src/libs/Accessibility', () => ({
     default: {
         moveAccessibilityFocus: jest.fn(),
         isScreenReaderEnabledSync: () => mockScreenReaderEnabled,
+        isScreenReaderKnownOff: () => mockScreenReaderCacheWarmed && !mockScreenReaderEnabled,
         useScreenReaderStatus: () => mockScreenReaderEnabled,
         useReducedMotion: () => false,
     },
@@ -159,6 +161,7 @@ beforeEach(() => {
     mockFireFocusEvent.mockClear();
     mockLogWarn.mockClear();
     mockScreenReaderEnabled = true;
+    mockScreenReaderCacheWarmed = true;
     mockStateListeners = [];
     mockNavigationRefState = undefined;
     mockTtQueue = [];
@@ -170,8 +173,23 @@ afterEach(() => {
 });
 
 describe('notifyPressedTrigger', () => {
-    it('captures regardless of screen-reader state so a cold-start press before the SR cache warms is not dropped', () => {
+    it('does not capture when the screen reader is known off — non-AT users pay zero capture cost', () => {
         mockScreenReaderEnabled = false;
+        mockScreenReaderCacheWarmed = true;
+        notifyPressedTrigger(fakeRef(fakeView('button')));
+        const prev = stackState(0, [{key: 'a', name: 'A'}]);
+        const next = stackState(1, [
+            {key: 'a', name: 'A'},
+            {key: 'b', name: 'B'},
+        ]);
+        handleStateChange(prev);
+        handleStateChange(next);
+        expect(getTriggerMapSizeForTests()).toBe(0);
+    });
+
+    it('captures defensively when the SR cache has not yet warmed — cold-start / resume press is not dropped', () => {
+        mockScreenReaderEnabled = false;
+        mockScreenReaderCacheWarmed = false;
         notifyPressedTrigger(fakeRef(fakeView('button')));
         const prev = stackState(0, [{key: 'a', name: 'A'}]);
         const next = stackState(1, [
@@ -382,7 +400,7 @@ describe('handleStateChange — backward', () => {
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
 
-    it('back navigation skips the restore work when the screen reader is off, even when a trigger was captured', () => {
+    it('back navigation skips the restore work when the screen reader is known off, even when a trigger was captured', () => {
         const view = fakeView('display-name');
         notifyPressedTrigger(fakeRef(view));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
@@ -394,6 +412,7 @@ describe('handleStateChange — backward', () => {
         );
 
         mockScreenReaderEnabled = false;
+        mockScreenReaderCacheWarmed = true;
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         flushTransitions();
 
@@ -402,8 +421,9 @@ describe('handleStateChange — backward', () => {
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
-    it('cold-start race — press happens before SR cache warms, but back navigation after the cache warms still restores', () => {
+    it('warm-up race — back navigation while SR cache is not yet resolved still restores (resume / cold start)', () => {
         mockScreenReaderEnabled = false;
+        mockScreenReaderCacheWarmed = false;
         const view = fakeView('display-name');
         notifyPressedTrigger(fakeRef(view));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
@@ -415,7 +435,6 @@ describe('handleStateChange — backward', () => {
         );
         expect(getTriggerMapSizeForTests()).toBe(1);
 
-        mockScreenReaderEnabled = true;
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         flushTransitions();
 

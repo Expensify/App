@@ -36,6 +36,7 @@ function makeWarmCache<T>(label: string, fetch: () => Promise<T>, apply: (value:
 }
 
 let cachedScreenReaderValue = false;
+let screenReaderCacheWarmed = false;
 const screenReaderSubscribers = new Set<() => void>();
 const {
     ensure: ensureScreenReaderWarm,
@@ -43,6 +44,7 @@ const {
     refresh: refreshScreenReaderWarm,
 } = makeWarmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
     cachedScreenReaderValue = enabled;
+    screenReaderCacheWarmed = true;
 });
 ensureScreenReaderWarm();
 
@@ -76,6 +78,11 @@ function isScreenReaderEnabledSync(): boolean {
     return cachedScreenReaderValue;
 }
 
+// True only after the platform query has resolved with false; returns false while warm-up is in-flight so 'unknown' is treated as 'might be on'.
+function isScreenReaderKnownOff(): boolean {
+    return screenReaderCacheWarmed && !cachedScreenReaderValue;
+}
+
 let cachedReduceMotionValue = false;
 const reduceMotionSubscribers = new Set<() => void>();
 const {
@@ -96,6 +103,7 @@ let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null = 
 function resetForTests() {
     cachedScreenReaderValue = false;
     cachedReduceMotionValue = false;
+    screenReaderCacheWarmed = false;
     resetScreenReaderWarm();
     resetReduceMotionWarm();
     screenReaderSubscribers.clear();
@@ -192,4 +200,5 @@ export default {
     useAutoHitSlop,
     useReducedMotion,
     isScreenReaderEnabledSync,
+    isScreenReaderKnownOff,
 };

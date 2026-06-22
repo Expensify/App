@@ -30,31 +30,28 @@ const useAccessibilityFocus: UseAccessibilityFocus = ({didScreenTransitionEnd, i
         }
 
         // Release after the focus call so a same-tree sub-modal's INITIAL claim isn't blocked when no nav state change runs handleStateChange's resetCycle.
-        try {
-            const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-            for (const focusTarget of focusTargets) {
-                const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled') === 'true';
-                if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
-                    continue;
-                }
-
-                if (focusTarget === activeElement) {
-                    return;
-                }
-
-                const unmarkProgrammaticFocus = markProgrammaticFocus(focusTarget);
-                focusTarget.focus();
-
-                const focusedElement = document.activeElement;
-                if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
-                    return;
-                }
-
-                unmarkProgrammaticFocus();
+        const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+        for (const focusTarget of focusTargets) {
+            const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled') === 'true';
+            if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
+                continue;
             }
-        } finally {
-            resetCycle();
+
+            if (focusTarget === activeElement) {
+                break;
+            }
+
+            const unmarkProgrammaticFocus = markProgrammaticFocus(focusTarget);
+            focusTarget.focus();
+
+            const focusedElement = document.activeElement;
+            if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
+                break;
+            }
+
+            unmarkProgrammaticFocus();
         }
+        resetCycle();
     }, [didScreenTransitionEnd, isFocused, ref, shouldMoveAccessibilityFocus]);
 };
 
