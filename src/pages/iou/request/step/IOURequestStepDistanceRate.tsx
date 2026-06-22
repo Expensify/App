@@ -102,7 +102,7 @@ function IOURequestStepDistanceRate({
     const availablePaidPolicies = isEditingSplit ? getGroupPaidPolicies(allPolicies ?? {}) : [];
     const fallbackAvailablePolicy = isEditingSplit && !isP2PRate && !policyForTransaction && !policyByCustomUnitID && !policyByCustomUnitRateID ? availablePaidPolicies.at(0) : undefined;
     const fallbackMovingExpensesPolicy = isEditingSplit ? policyForMovingExpenses : undefined;
-    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackAvailablePolicy ?? fallbackMovingExpensesPolicy;
+    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackMovingExpensesPolicy ?? fallbackAvailablePolicy;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);

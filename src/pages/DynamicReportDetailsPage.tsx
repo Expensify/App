@@ -1,5 +1,6 @@
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
+import {createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -53,7 +54,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {getActivePoliciesWithExpenseChat, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
+import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
@@ -328,7 +329,9 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(currentUserPersonalDetails.login)}, [
+        currentUserPersonalDetails.login,
+    ]);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
@@ -496,8 +499,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             const actionableWhisperReportActionID = whisperAction?.reportActionID;
             const currentUserLocalCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
             const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
-            // Split expenses can only be submitted to a workspace, so hide the "Submit it to someone" option when the user isn't a member of any workspace.
-            const hasWorkspaceToSubmitTo = getActivePoliciesWithExpenseChat(allPolicies, currentUserPersonalDetails.login).length > 0;
+            // Hide the "Submit it to someone" option for self-DM split expenses when the user isn't a member of any workspace.
             if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
@@ -701,7 +703,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
         currentUserPersonalDetails.localCurrencyCode,
-        currentUserPersonalDetails.login,
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
@@ -717,7 +718,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         ownerBillingGracePeriodEnd,
         iouTransaction,
         iouOriginalTransaction,
-        allPolicies,
+        hasWorkspaceToSubmitTo,
         parentReport,
         delegateEmail,
         conciergeReportID,

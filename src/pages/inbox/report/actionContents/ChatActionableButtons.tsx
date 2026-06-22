@@ -1,3 +1,4 @@
+import {createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
@@ -13,7 +14,6 @@ import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
-import {getActivePoliciesWithExpenseChat} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getOriginalMessage,
@@ -61,7 +61,7 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login)}, [personalDetail.login]);
     const delegateAccountID = useDelegateAccountID();
 
     const actionableItemButtons = ((): ActionableItem[] => {
@@ -195,7 +195,6 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                 },
             });
             const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
-            const hasWorkspaceToSubmitTo = getActivePoliciesWithExpenseChat(allPolicies, personalDetail.login).length > 0;
             const options = !isSplitExpense || hasWorkspaceToSubmitTo ? [prepareTrackExpenseButton('submit', {isRestrictedToPreferredPolicy, preferredPolicyID})] : [];
 
             if (Permissions.canUseTrackFlows()) {

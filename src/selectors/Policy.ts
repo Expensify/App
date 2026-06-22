@@ -2,7 +2,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getActivePoliciesWithExpenseChat, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
@@ -71,6 +71,15 @@ const createCopySettingsEligibleTargetsSelector =
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
+
+/**
+ * Creates a selector returning only whether the user has any active paid policy with an expense chat,
+ * so subscribers don't re-render when anything else on the policy collection changes.
+ */
+const createHasWorkspaceToSubmitToSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        getActivePoliciesWithExpenseChat(policies, currentUserLogin).length > 0;
 
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
@@ -303,6 +312,7 @@ export {
     createCopySettingsEligibleTargetsSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
