@@ -35,7 +35,7 @@ Global reimbursement allows companies to send payments to employees in different
 
 **Note:** Each country has specific identity verification, compliance, and onboarding requirements. Use the guides above to ensure you're submitting the correct documentation.
 
-**Note:** Without Global Reimbursement, a Workspace that reimburses directly from a USD (Bancorp) business bank account can only pay out to USD deposit accounts. Enable Global Reimbursement to pay employees cross-border into deposit accounts in supported currencies.
+**Note:** Without Global Reimbursement, a Workspace that reimburses directly from a USD business bank account can only pay out to USD deposit accounts. Enable Global Reimbursement to pay employees cross-border into deposit accounts in supported currencies.
 
 ---
 

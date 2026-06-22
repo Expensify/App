@@ -97,7 +97,7 @@ For Canadian banks, ensure the account number matches the format required for yo
 
 The member's deposit account is in a different currency than the Workspace reimburses in, so the reimbursement can't be sent. Instead of bouncing, the report stays unpaid and the next step shows a message like *"Waiting for [member] to add a USD bank account."*
 
-This happens when a Workspace reimburses directly from a **USD (Bancorp)** business bank account but the member's only deposit account is in another currency (for example CAD). Direct USD reimbursement can only pay out to a USD deposit account.
+This happens when a Workspace reimburses directly from a **USD** business bank account but the member's only deposit account is in another currency (for example CAD). Direct USD reimbursement can only pay out to a USD deposit account.
 
 **How to fix it:** Choose one of the following:
 
