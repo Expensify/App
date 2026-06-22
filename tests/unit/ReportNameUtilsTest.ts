@@ -1319,7 +1319,7 @@ describe('ReportNameUtils', () => {
                     currency: CONST.CURRENCY.USD,
                     participantAccountIDs: [1, 2],
                 },
-            } as unknown as ReportAction;
+            } as ReportAction;
 
             const transaction: Transaction = {
                 transactionID,
@@ -1410,7 +1410,7 @@ describe('ReportNameUtils', () => {
                     currency: CONST.CURRENCY.USD,
                     participantAccountIDs: [1, 2],
                 },
-            } as unknown as ReportAction;
+            } as ReportAction;
 
             const reportActionsCollection: Record<string, ReportActions> = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
