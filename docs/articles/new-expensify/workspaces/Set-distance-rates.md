@@ -57,7 +57,7 @@ To prevent members from using a Distance rate, you can either disable it or dele
 2. Click **Distance rates**.
 3. Select each of rate you want to disable or delete. 
 4. Click **Selected**
-5. Choose **Distable rates** or **Delete rates**.
+5. Choose **Disable rates** or **Delete rates**.
 
 # FAQ
 
