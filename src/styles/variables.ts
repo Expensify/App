@@ -139,6 +139,7 @@ export default {
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
     domainTableActionColumnWidth: 64,
+    domainAdminsTableActionColumnWidth: 140,
     workspaceTableActionColumnWidth: 64,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
@@ -344,6 +345,7 @@ export default {
     searchTypeColumnWidth: 52,
     workspaceRoomsMembersColumnWidth: 80,
     workspaceRoomsActionsColumnWidth: 40,
+    domainGroupsTableMembersColumnWidth: 180,
 
     gbrTooltipShiftHorizontal: -14,
     gbrTooltipShiftVertical: -16,
