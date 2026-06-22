@@ -43,6 +43,8 @@ type CreateTrackExpenseParams = {
     reportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
+    // Personal details list is optional here because we only use/pass it for SHARE case
+    personalDetailsList?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};
