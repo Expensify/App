@@ -80,4 +80,3 @@ function MembersFilterButton<T extends string>({label, popoverLabel, shouldShowS
 }
 
 export default MembersFilterButton;
-export type {MembersFilterButtonProps};
