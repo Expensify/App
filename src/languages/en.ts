@@ -1718,6 +1718,13 @@ const translations = {
         },
         moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
+        submitReportTo: {
+            subtitle: 'Choose a workspace member or enter an email address for who should receive this submission.',
+            emailLabel: 'Email address',
+            workspaceMembers: 'Workspace members',
+            sendExpense: 'Send your expense to anyone',
+            sendExpenseSubtitle: 'Invite anyone to Expensify by using their email address or phone number.',
+        },
         changeApprover: {
             title: 'Change approver',
             header: (workflowSettingLink: string) =>
@@ -6900,8 +6907,25 @@ const translations = {
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
             workspaceNeeds: 'A workspace needs at least one enabled distance rate.',
+            commuterExclusions: {
+                title: 'Exclude commutes',
+                summaryDisabled: 'No commute exclusion',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
+                optionDisabledTitle: 'Do not exclude commutes',
+                optionDisabledHelp: 'No commute exclusion is applied.',
+                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
+                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
+                distanceLabel: 'Distance',
+                errors: {
+                    distanceMustBePositive: 'Distance must be greater than 0.',
+                },
+            },
             distance: 'Distance',
             centrallyManage: 'Centrally manage rates, track in miles or kilometers, and set a default category.',
+            emptyRates: {
+                title: 'No distance rates yet',
+                subtitle: 'Add a rate to reimburse mileage at custom rates.',
+            },
             rate: 'Rate',
             addRate: 'Add rate',
             findRate: 'Find rate',
@@ -7071,6 +7095,13 @@ const translations = {
                 description: 'Centrally configure who all members submit to by enabling approvals.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Approvals are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            approvalSubmitReport: {
+                title: 'Approve reports',
+                description:
+                    'Review, approve, and keep spending on track in one place. Approval Workflows help you control costs, enforce company policies, and reimburse your employees faster.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Approval Workflows are only available on the Collect plan, starting at <strong>${formattedPrice}</strong> per active member per month.</muted-text>`,
             },
             categories: {
                 title: 'Categories',
@@ -8029,6 +8060,22 @@ const translations = {
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
+        commuterExclusions: {
+            changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'mile' : 'miles';
+                } else {
+                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
+                }
+                return `set fixed distance exclusion to ${distance} ${unitLabel} per claim`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
+            disabled: 'disabled exclude commutes for distance rates',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `changed reimbursement method to "${newReimbursementChoice}" (previously "${oldReimbursementChoice}")`,
 
@@ -9744,6 +9791,9 @@ const translations = {
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
     },
     domain: {
