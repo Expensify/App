@@ -43,6 +43,7 @@ import {
     hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
+    isMergeHRCompleteSetupNeededSelector,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     shouldShowPolicy,
@@ -3386,6 +3387,54 @@ describe('PolicyUtils', () => {
         it('returns only Expensify emails when the employee list is undefined', () => {
             const result = getExcludedUsers(undefined);
             expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
+        });
+    });
+
+    describe('isMergeHRCompleteSetupNeededSelector', () => {
+        const mergeHRBase = {
+            lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE, errorMessage: undefined, errorFields: undefined},
+            data: {groups: [{id: 'g1', name: 'Engineering', employeeCount: 5}]},
+        };
+
+        it('returns false when policy is undefined', () => {
+            expect(isMergeHRCompleteSetupNeededSelector(undefined)).toBe(false);
+        });
+
+        it('returns false when policy has no merge_hris connection', () => {
+            const policy = createRandomPolicy(1);
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+        });
+
+        it('returns false when sync is not done', () => {
+            const policy = {
+                ...createRandomPolicy(2),
+                connections: {merge_hris: {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING, errorMessage: undefined, errorFields: undefined}}},
+            } as unknown as Policy;
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+        });
+
+        it('returns false when sync is done but there are no groups', () => {
+            const policy = {
+                ...createRandomPolicy(3),
+                connections: {merge_hris: {...mergeHRBase, data: {groups: []}}},
+            } as unknown as Policy;
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+        });
+
+        it('returns false when setup is already complete (groups configured)', () => {
+            const policy = {
+                ...createRandomPolicy(4),
+                connections: {merge_hris: {...mergeHRBase, config: {groups: [{id: 'g1'}]}}},
+            } as unknown as Policy;
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+        });
+
+        it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
+            const policy = {
+                ...createRandomPolicy(5),
+                connections: {merge_hris: mergeHRBase},
+            } as unknown as Policy;
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
     });
 });
