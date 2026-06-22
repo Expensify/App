@@ -28,13 +28,9 @@ function DynamicCardAuthenticationPage({route}: DynamicCardAuthenticationPagePro
         }
         verifySetupIntent(currentUserAccountID, true);
     };
-
     // Mirrors the original CardAuthenticationModal.onModalClose semantic:
     // user-driven close discards VERIFY_3DS_SUBSCRIPTION so the next mount
-    // of an entry screen is fresh. Order (clear before goBack) is defensive
-    // — even if isFocused were ever added back to the trigger hook's
-    // useEffect deps, batching both updates into a single commit would
-    // keep the parent's effect race-free.
+    // of an entry screen is fresh.
     const onClose = () => {
         clearPaymentCard3dsVerification();
         Navigation.goBack(backPath);
