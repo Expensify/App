@@ -557,15 +557,10 @@ function IOURequestStepDistanceOdometer({
             hasReadingChanges: startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current,
         });
 
-    const handleTabSwitchDiscard = async () => {
-        if (isEditingConfirmation) {
-            await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
-            backupHandledManually.current = true;
-        } else {
-            setMoneyRequestOdometerReading(transactionID, null, null, isTransactionDraft);
-            removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isTransactionDraft, true);
-            removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isTransactionDraft, true);
-        }
+    const handleTabSwitchDiscard = () => {
+        setMoneyRequestOdometerReading(transactionID, null, null, isTransactionDraft);
+        removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isTransactionDraft, true);
+        removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isTransactionDraft, true);
         resetOdometerLocalState();
         setFormError('');
     };
