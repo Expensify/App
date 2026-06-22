@@ -61,7 +61,6 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,
-                shouldHideOnDelete: false,
                 onClose: item.onClose,
             }}
         >
