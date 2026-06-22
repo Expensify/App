@@ -38,6 +38,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
 
@@ -126,7 +127,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
             }
             invitedEmailsToAccountIDs[login] = accountID;
         }
-        inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
         goBack();
     };
 
