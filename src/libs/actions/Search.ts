@@ -310,6 +310,16 @@ function handleActionButtonPress({
                 onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
+            {
+                const policyToUpgrade = policy ?? snapshotPolicy;
+                if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id && item.reportID) {
+                    const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
+                    const backTo = Navigation.getActiveRoute() || ROUTES.SEARCH_ROOT.route;
+
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, item.reportID));
+                    return;
+                }
+            }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -1296,7 +1306,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV},
         },
     ];
 
@@ -1304,7 +1314,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV},
         },
     ];
     const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
@@ -1335,14 +1345,14 @@ function queueExportSearchWithTemplate(
                   {
                       onyxMethod: Onyx.METHOD.SET,
                       key: onyxKey,
-                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
+                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV},
                   },
               ],
               failureData: [
                   {
                       onyxMethod: Onyx.METHOD.SET,
                       key: onyxKey,
-                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
+                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV},
                   },
               ],
           }

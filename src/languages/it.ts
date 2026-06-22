@@ -511,6 +511,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrizioni',
+        off: 'Disattivato',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -1065,6 +1066,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transazioni recenti • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Vedi altri ${count}`,
+        recentlyAddedSection: {
+            title: 'Aggiunti di recente',
+            viewAll: 'Visualizza tutte le spese',
+            emptyStateTitle: 'Nessuna spesa recente',
+            emptyStateMessage: 'Creane una o trascina qui una ricevuta',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1343,6 +1350,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Segna ${formattedAmount} come pagato` : `Segna come pagata`),
         confirmPaymentReceivedModalTitle: 'Conferma la ricezione del pagamento',
         receivedPayment: 'Pagamento ricevuto',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}pagamento ricevuto`,
         receivedPaymentConfirmation: 'Procedi solo se hai già ricevuto il pagamento al di fuori di Expensify.',
         confirmReceivedPayment: 'Sì, ho ricevuto il pagamento.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `pagato ${amount} con conto personale ${last4Digits}` : `Pagato con conto personale`),
@@ -4967,6 +4975,8 @@ ${amount} per ${merchant} - ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Azienda',
             autoSyncDescription: 'Expensify si sincronizzerà automaticamente con Certinia ogni giorno.',
             syncReimbursedReportsDescription:
                 'Con questa opzione abilitata, ogni volta che una fattura da pagare viene saldata in FFA, il relativo report Expensify sarà automaticamente contrassegnato come rimborsato.',
@@ -4979,6 +4989,13 @@ ${amount} per ${merchant} - ${date}`,
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'In corso',
                     [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Approvato',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Inviato',
+                },
+            },
+            reportExportStatus: {
+                label: 'Stato della nota spese',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Approvato',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Inviato',
                 },
             },
             exportDate: {
@@ -4994,8 +5011,13 @@ ${amount} per ${merchant} - ${date}`,
                 helperText: 'Le spese contrassegnate come rimborsabili verranno esportate come fatture passive intestate al dipendente.',
             },
             exportNonReimbursable: {label: 'Esporta le spese non rimborsabili come'},
+            expenseReports: 'Note spese',
+            exportReimbursableExpenseReports: {helperText: 'Le spese contrassegnate come rimborsabili verranno esportate come note spese intestate al dipendente.'},
+            exportNonReimbursableExpenseReports: {helperText: 'Le spese contrassegnate come non rimborsabili verranno esportate come note spese intestate al dipendente.'},
             noVendorsFound: 'Nessun fornitore trovato',
             noVendorsFoundDescription: 'Sincronizza di nuovo la connessione dopo che i fornitori sono stati aggiunti in Certinia.',
+            noCompaniesFound: 'Nessuna azienda trovata',
+            noCompaniesFoundDescription: 'Sincronizza di nuovo la connessione dopo che le aziende sono state aggiunte in Certinia.',
             prerequisites: {
                 title: 'Prima di connetterti',
                 installBundle: 'Per connessioni FFA',
@@ -6225,6 +6247,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 description: 'Seleziona le impostazioni da sovrascrivere nei tuoi workspace esistenti.',
                 accountingMismatch: ({part}: {part: string}) =>
                     `Puoi copiare ${part} solo se tutti gli spazi di lavoro usano lo stesso sistema di contabilità e la stessa connessione aziendale.`,
+                travelAddressMismatch: 'Puoi copiare i viaggi solo se ogni spazio di lavoro selezionato ha un indirizzo aziendale.',
             },
             confirmSettings: {
                 title: 'Assicuriamoci che sia tutto corretto.',
@@ -6721,8 +6744,20 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         distanceRates: {
             oopsNotSoFast: 'Ops! Non così in fretta...',
             workspaceNeeds: 'Uno spazio di lavoro necessita di almeno una tariffa distanza abilitata.',
+            commuterExclusions: {
+                title: 'Escludi spostamenti casa-lavoro',
+                summaryDisabled: 'Nessuna esclusione per il tragitto',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Escludi ${distance} ${unit} per rimborso`,
+                optionDisabledTitle: 'Non escludere gli spostamenti casa-lavoro',
+                optionDisabledHelp: 'Non è applicata alcuna esclusione per il tragitto casa-lavoro.',
+                optionFixedDistanceTitle: 'Escludi una distanza fissa per richiesta',
+                optionFixedDistanceHelp: 'Detrai la stessa distanza del tragitto casa-lavoro da ogni richiesta. Ideale per chi invia una richiesta per ogni giorno lavorativo.',
+                distanceLabel: 'Distanza',
+                errors: {distanceMustBePositive: 'La distanza deve essere maggiore di 0.'},
+            },
             distance: 'Distanza',
             centrallyManage: 'Gestisci centralmente le tariffe, monitora in miglia o chilometri e imposta una categoria predefinita.',
+            emptyRates: {title: 'Ancuna nessuna tariffa distanza', subtitle: 'Aggiungi una tariffa per rimborsare il chilometraggio a tariffe personalizzate.'},
             rate: 'Valuta',
             addRate: 'Aggiungi tariffa',
             findRate: 'Trova tariffa',
@@ -7028,6 +7063,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Le approvazioni sono disponibili nei piani Collect e Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Approva i report',
+                description:
+                    'Esamina, approva e mantieni le spese sotto controllo in un unico posto. I flussi di approvazione ti aiutano a controllare i costi, far rispettare le politiche aziendali e rimborsare più velocemente i tuoi dipendenti.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>I flussi di approvazione sono disponibili solo nel piano Collect, a partire da <strong>${formattedPrice}</strong> per membro attivo al mese.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Carte aziendali',
                 description: `Porta la tua carta aziendale in Expensify per ottenere importazione automatica, categorizzazione automatica, supporto per regole personalizzabili e riconciliazione integrata.`,
@@ -7077,7 +7119,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             },
             controlPolicyRoles: {
                 title: 'Ruoli dei criteri di controllo',
-                description: 'Usa ruoli specializzati come Revisore e Amministratore carte per concedere ai membri l’accesso solo a ciò di cui hanno bisogno.',
+                description: 'Concedi ai membri un accesso specifico assegnando ruoli come Revisore o Amministratore carte.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>I ruoli specializzati dello spazio di lavoro sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
@@ -7315,10 +7357,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 chooseCards: 'Scegli le carte',
                 saveRule: 'Salva regola',
                 allow: 'Consenti',
-                spendRuleSectionTitle: 'Regola di spesa',
-                restrictionType: 'Tipo di restrizione',
-                restrictionTypeHelpAllow: 'Le spese vengono approvate se corrispondono a qualsiasi venditore o categoria e non superano un importo massimo.',
-                restrictionTypeHelpBlock: 'Le transazioni vengono rifiutate se corrispondono a un esercente o a una categoria, oppure se superano un importo massimo.',
+                spendRuleSectionTitle: 'Regole di spesa',
                 addMerchant: 'Aggiungi esercente',
                 merchantContains: 'Il commerciante contiene',
                 merchantExactlyMatches: 'Il commerciante corrisponde esattamente',
@@ -7329,11 +7368,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 matchType: 'Tipo di corrispondenza',
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
-                spendCategory: 'Categoria di spesa',
                 maxAmount: 'Importo massimo',
                 maxAmountHelp: 'Qualsiasi addebito superiore a questo importo verrà rifiutato, indipendentemente dalle restrizioni sul commerciante e sulla categoria di spesa.',
-                currencyMismatchTitle: 'Valuta non corrispondente',
-                currencyMismatchPrompt: 'Per impostare un importo massimo, seleziona carte che si regolano nella stessa valuta.',
+                maxAmountCurrencyMismatchTitle: 'Valuta non corrispondente',
+                maxAmountCurrencyMismatchPrompt: 'Per impostare un importo massimo, seleziona carte che si regolano nella stessa valuta.',
                 reviewSelectedCards: 'Controlla le carte selezionate',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} altri` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Applica almeno una regola di spesa a una carta',
@@ -7396,6 +7434,26 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
+                restrictMerchants: 'Limita esercenti',
+                merchantTypes: 'Tipi di esercenti',
+                allowedMerchants: 'Esercenti consentiti',
+                allowedMerchantTypes: 'Tipi di esercenti consentiti',
+                blockedMerchants: 'Esercenti bloccati',
+                blockedMerchantTypes: 'Tipi di esercenti bloccati',
+                currencies: 'Valute',
+                permittedCurrencies: 'Valute consentite',
+                allCurrencies: 'Tutte le valute',
+                permittedCurrenciesSubtitle: 'Scegli se consentire tutte le valute o solo alcune specifiche',
+                settlementCurrencyPermittedSubtitle: 'La valuta di regolamento della carta è sempre consentita',
+                currenciesCurrencyMismatchTitle: 'Valuta non corrispondente',
+                currenciesCurrencyMismatchPrompt: 'Per impostare le valute preferite, seleziona le carte che vengono regolate nella stessa valuta.',
+                restrictMerchantsOffSubtitle: 'Gli addebiti sono approvati per le valute consentite che non superano un importo massimo',
+                restrictMerchantsAllowSubtitle:
+                    'Gli addebiti sono approvati per le valute consentite che non superano un importo massimo e quando l’esercente o il tipo di esercente corrisponde.',
+                restrictMerchantsBlockSubtitle:
+                    'Gli addebiti vengono approvati per le valute consentite che non superano un importo massimo oppure quando l’esercente o il tipo di esercente corrispondono.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Consentito ${shownCount > 1 ? 'valute' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} altri` : ''}`,
             },
             agentRules: {
                 title: 'Regole agente',
@@ -8000,6 +8058,22 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha aggiunto "${prohibitedExpense}" alle spese vietate`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
+        commuterExclusions: {
+            changedToFixedDistance: 'ha modificato l’esclusione dei tragitti casa-lavoro in una distanza fissa per rimborso',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'miglio' : 'miglia';
+                } else {
+                    unitLabel = isSingular ? 'chilometro' : 'chilometri';
+                }
+                return `imposta un'esclusione di distanza fissa di ${distance} ${unitLabel} per richiesta`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `ha modificato l’esclusione a distanza fissa a ${newDistance} ${unit} per richiesta (in precedenza ${oldDistance} ${unit})`,
+            disabled: 'esclusione delle tratte casa-lavoro per le tariffe a distanza disattivata',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `ha cambiato il metodo di rimborso in "${newReimbursementChoice}" (in precedenza "${oldReimbursementChoice}")`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} pre-approvazione delle richieste di adesione allo spazio di lavoro`,
@@ -9535,6 +9609,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             theresAProblemWithYourWallet: 'Si è verificato un problema con il tuo portafoglio',
             theresAProblemWithYourWalletTerms: 'C’è un problema con i termini del tuo portafoglio',
             aBankAccountIsLocked: 'Un conto bancario è bloccato',
+            completeHrSetup: 'Completa la configurazione HR',
         },
     },
     emptySearchView: {
@@ -9637,6 +9712,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
