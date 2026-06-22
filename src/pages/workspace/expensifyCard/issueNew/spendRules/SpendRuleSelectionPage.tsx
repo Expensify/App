@@ -46,7 +46,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
 
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const isLoadingIssueCardForm = isLoadingOnyxValue(issueCardFormMetadata);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION.path);
@@ -175,7 +175,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                                 buttonText={translate('common.save')}
                                 onSubmit={onSubmit}
                                 shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={effectiveLoading}
+                                isLoading={isLoading}
                                 isAlertVisible={shouldShowError}
                                 containerStyles={[!shouldShowError && styles.mt5]}
                                 message={translate('common.error.pleaseSelectOne')}

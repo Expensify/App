@@ -38,7 +38,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
     const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
     const formRef = useRef<ScrollView>(null);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
@@ -98,7 +98,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                                 containerStyles={submitButtonContainerStyles}
                                 enabledWhenOffline
                                 shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={effectiveLoading}
+                                isLoading={isLoading}
                             />
                         </>
                     )}

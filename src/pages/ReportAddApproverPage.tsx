@@ -43,7 +43,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
@@ -113,7 +113,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             isDisabled={!selectedApproverEmail}
             buttonText={translate('common.save')}
             shouldShowLoadingImmediatelyOnPress={false}
-            isLoading={effectiveLoading}
+            isLoading={isLoading}
             onSubmit={addApprover}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

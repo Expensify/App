@@ -61,7 +61,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     const [selectedCustomDate, setSelectedCustomDate] = useState<number | undefined>(defaultStatementPeriodEndDay);
     const [isChoosingCustomDate, setIsChoosingCustomDate] = useState(false);
     const [error, setError] = useState<string | undefined>(undefined);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const title = useMemo(
         () => (isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')),
@@ -183,7 +183,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                             onSubmit={submit}
                             enabledWhenOffline={enabledWhenOffline}
                             shouldShowLoadingImmediatelyOnPress={false}
-                            isLoading={effectiveLoading}
+                            isLoading={isLoading}
                         />
                     </FixedFooter>
                 </>

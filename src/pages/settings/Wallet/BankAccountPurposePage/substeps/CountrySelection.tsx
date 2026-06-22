@@ -51,7 +51,7 @@ function CountrySelection() {
 
     const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
     const [shouldShowError, setShouldShowError] = useState(false);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const onCountrySelected = (countryChecked: string) => {
         setShouldShowError(false);
@@ -81,7 +81,7 @@ function CountrySelection() {
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.next')}
                     shouldShowLoadingImmediatelyOnPress={false}
-                    isLoading={effectiveLoading}
+                    isLoading={isLoading}
                     onSubmit={onConfirm}
                     isAlertVisible={shouldShowError}
                     containerStyles={[!shouldShowError && styles.mt5]}

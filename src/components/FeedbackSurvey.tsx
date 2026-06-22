@@ -45,13 +45,13 @@ type FeedbackSurveyProps = {
     enabledWhenOffline?: boolean;
 };
 
-function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequired, isLoading: isOnyxLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [draft, draftResults] = useOnyx(`${formID}Draft`);
     const [reason, setReason] = useState<string | undefined>(draft?.reason);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading({isLoading});
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
     const isLoadingDraft = isLoadingOnyxValue(draftResults);
 
@@ -147,7 +147,7 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
                     enabledWhenOffline={enabledWhenOffline}
                     containerStyles={styles.mt3}
                     shouldShowLoadingImmediatelyOnPress={false}
-                    isLoading={effectiveLoading}
+                    isLoading={isLoading}
                 />
             </FixedFooter>
         </FormProvider>

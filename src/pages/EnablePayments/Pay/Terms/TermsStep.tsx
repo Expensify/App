@@ -46,7 +46,7 @@ function TermsStep(props: TermsStepProps) {
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading({isLoading: !!walletTerms?.isLoading});
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!walletTerms?.isLoading});
     const shouldShowError = error && (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement);
     const errorMessage = shouldShowError ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
@@ -99,7 +99,7 @@ function TermsStep(props: TermsStepProps) {
                     message={errorMessage}
                     isAlertVisible={shouldShowError || !!errorMessage}
                     shouldShowLoadingImmediatelyOnPress={false}
-                    isLoading={effectiveLoading}
+                    isLoading={isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
             </ScrollView>

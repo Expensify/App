@@ -59,7 +59,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
     const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
     const errorMessage = error.taskKey === taskKey ? error.message : '';
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
@@ -206,7 +206,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                             isAlertVisible={!!errorMessage}
                             message={errorMessage}
                             shouldShowLoadingImmediatelyOnPress={false}
-                            isLoading={effectiveLoading}
+                            isLoading={isLoading}
                             onSubmit={onSubmit}
                             enabledWhenOffline
                             buttonRef={confirmButtonRef}

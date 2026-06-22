@@ -66,7 +66,7 @@ function ReportCardLostPage({
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading({isLoading: formData?.isLoading});
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: formData?.isLoading});
 
     const physicalCard = cardList?.[cardID];
 
@@ -165,7 +165,7 @@ function ReportCardLostPage({
                                 onSubmit={handleSubmitSecondStep}
                                 message={translate('reportCardLostOrDamaged.addressError')}
                                 shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={effectiveLoading}
+                                isLoading={isLoading}
                                 buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
                             />
                         </View>

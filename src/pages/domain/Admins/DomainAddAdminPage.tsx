@@ -50,7 +50,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const didInvite = useRef<boolean>(false);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
 
@@ -123,7 +123,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             isAlertVisible={false}
             buttonText={translate('common.invite')}
             shouldShowLoadingImmediatelyOnPress={false}
-            isLoading={effectiveLoading}
+            isLoading={isLoading}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline

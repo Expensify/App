@@ -59,7 +59,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
         keyForList: card.cardID,
@@ -203,7 +203,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                                 containerStyles={[!shouldShowError && styles.mt5]}
                                 message={translate('common.error.pleaseSelectOne')}
                                 shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={effectiveLoading}
+                                isLoading={isLoading}
                             />
                         }
                     />

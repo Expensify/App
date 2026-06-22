@@ -131,7 +131,7 @@ function FormProvider({
     onSubmit,
     shouldTrimValues = true,
     allowHTML = false,
-    isLoading = false,
+    isLoading: isOnyxLoading = false,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
@@ -273,12 +273,12 @@ function FormProvider({
         [touchedInputs],
     );
 
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading({isLoading: !!formState?.isLoading || isLoading});
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!formState?.isLoading || isOnyxLoading});
 
     const submit = useDebounceNonReactive(
         useCallback(() => {
             // Return early if the form is already submitting to avoid duplicate submission
-            if (effectiveLoading) {
+            if (isLoading) {
                 return;
             }
 
@@ -316,7 +316,7 @@ function FormProvider({
                     onSubmit(trimmedStringValues);
                 }
             });
-        }, [enabledWhenOffline, effectiveLoading, inputValues, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit, startWithLoading]),
+        }, [enabledWhenOffline, isLoading, inputValues, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit, startWithLoading]),
         1000,
         {leading: true, trailing: false},
     );
@@ -541,7 +541,7 @@ function FormProvider({
                 onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
-                isLoading={effectiveLoading}
+                isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}

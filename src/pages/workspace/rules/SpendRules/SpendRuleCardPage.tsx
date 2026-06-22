@@ -95,7 +95,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<string[]>([]);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     useFocusEffect(
         useCallback(() => {
@@ -267,7 +267,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
                                 onSubmit={handleSave}
-                                isLoading={effectiveLoading}
+                                isLoading={isLoading}
                                 shouldShowLoadingImmediatelyOnPress={false}
                                 enabledWhenOffline
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}

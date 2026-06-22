@@ -69,7 +69,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const currentRuleID = ruleID ?? ROUTES.NEW;
     const isNewRule = currentRuleID === ROUTES.NEW;
@@ -405,7 +405,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         message={errorMessage}
                         isAlertVisible={isErrorVisible}
                         onSubmit={saveRule}
-                        isLoading={effectiveLoading}
+                        isLoading={isLoading}
                         shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}

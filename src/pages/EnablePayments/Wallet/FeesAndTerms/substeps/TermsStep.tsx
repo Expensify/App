@@ -38,7 +38,7 @@ function TermsStep({onNext}: SubStepProps) {
     const {translate} = useLocalize();
 
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading({isLoading: !!walletTerms?.isLoading});
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!walletTerms?.isLoading});
 
     const errorMessage = error ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
@@ -93,7 +93,7 @@ function TermsStep({onNext}: SubStepProps) {
                 message={errorMessage}
                 isAlertVisible={error || !!errorMessage}
                 shouldShowLoadingImmediatelyOnPress={false}
-                isLoading={effectiveLoading}
+                isLoading={isLoading}
                 containerStyles={[styles.mh0, styles.mv5]}
             />
         </View>

@@ -46,7 +46,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const formRef = useRef<ScrollView>(null);
     const {showConfirmModal} = useConfirmModal();
     const isDeleting = useRef(false);
-    const {isLoading: effectiveLoading, startWithLoading} = usePressLoading();
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const updateApprovalWorkflowCallback = () => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
@@ -214,7 +214,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 enabledWhenOffline
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EDIT_SAVE}
                                 shouldShowLoadingImmediatelyOnPress={false}
-                                isLoading={effectiveLoading}
+                                isLoading={isLoading}
                             />
                         </>
                     )}
