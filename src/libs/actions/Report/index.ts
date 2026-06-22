@@ -6473,11 +6473,19 @@ function deleteAppReport({
     if (reportActionID) {
         // Mirror the per-transaction delete path: mark the preview's message as deleted so `isDeletedAction` treats it as
         // removed. `pendingAction` alone isn't inspected by `isDeletedAction`, so without this the chat keeps surfacing a
-        // stale "Mark as done"/action badge in the LHN while the report is queued for deletion offline.
-        const deletedPreviewMessage = Array.isArray(parentReportAction?.message) ? cloneDeep(parentReportAction.message) : undefined;
-        const firstPreviewMessage = deletedPreviewMessage?.at(0);
-        if (firstPreviewMessage) {
-            firstPreviewMessage.deleted = DateUtils.getDBTime();
+        // stale "Mark as done"/action badge in the LHN while the report is queued for deletion offline. The message can be
+        // either the legacy array shape or the newer object shape, so handle both to match how `isDeletedAction` reads them.
+        const parentPreviewMessage = parentReportAction?.message;
+        let deletedPreviewMessage;
+        if (Array.isArray(parentPreviewMessage)) {
+            deletedPreviewMessage = cloneDeep(parentPreviewMessage);
+            const firstPreviewMessage = deletedPreviewMessage.at(0);
+            if (firstPreviewMessage) {
+                firstPreviewMessage.deleted = DateUtils.getDBTime();
+            }
+        } else if (parentPreviewMessage) {
+            deletedPreviewMessage = cloneDeep(parentPreviewMessage);
+            deletedPreviewMessage.deleted = DateUtils.getDBTime();
         }
 
         optimisticData.push({
