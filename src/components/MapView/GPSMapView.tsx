@@ -45,6 +45,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     const cameraRef = useRef<Mapbox.Camera>(null);
 
     const [foregroundLocationPermissionsGranted, setForegroundLocationPermissionsGranted] = useState<boolean | null>(null);
+
     // Request foreground location permissions if not granted yet to determine if we can use followUserLocation prop on the map camera
     useFocusEffect(() => {
         if (isOffline) {
