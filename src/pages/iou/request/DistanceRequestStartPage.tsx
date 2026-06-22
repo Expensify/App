@@ -50,16 +50,12 @@ function DistanceRequestStartPage({
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    // When every workspace the user belongs to has commuter exclusions configured, manual and odometer
-    // entry are disabled — the exclusion is computed off the mapped route, so the user must use the map tab.
-    const shouldHideManualAndOdometerTabs = useMemo(() => {
-        const policies = Object.values(allPolicies ?? {}).filter((p): p is NonNullable<typeof p> => !!p && !!p.id);
-        if (policies.length === 0) {
-            return false;
-        }
-        return policies.every((p) => !!p.commuterExclusions);
-    }, [allPolicies]);
+    const [shouldHideManualAndOdometerTabs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies) => {
+            const policies = Object.values(allPolicies ?? {}).filter((p) => !!p?.id && p.type !== CONST.POLICY.TYPE.PERSONAL);
+            return policies.length > 0 && policies.every((p) => !!p?.commuterExclusions);
+        },
+    });
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
