@@ -14,6 +14,8 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
+    isSubmitPolicy,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -154,6 +156,10 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -171,9 +177,14 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
+    const isSubmitWorkspace = isSubmitPolicy(policy);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
-    if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+    if (!isExpenseReport || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
         return false;
     }
 

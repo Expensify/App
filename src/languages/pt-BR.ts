@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Anexo',
         attachments: 'Anexos',
         center: 'Centralizar',
+        resetMapToNorth: 'Redefinir o mapa para o norte',
         from: 'De',
         to: 'Para',
         in: 'Em',
@@ -510,6 +511,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrições',
+        off: 'Desligado',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -1064,6 +1066,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Ver mais ${count}`,
+        recentlyAddedSection: {
+            title: 'Adicionados recentemente',
+            viewAll: 'Ver todas as despesas',
+            emptyStateTitle: 'Nenhuma despesa recente',
+            emptyStateMessage: 'Crie um ou arraste um recibo aqui',
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1342,6 +1350,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Marcar ${formattedAmount} como pago` : `Marcar como pago`),
         confirmPaymentReceivedModalTitle: 'Confirmar recebimento do pagamento',
         receivedPayment: 'Pagamento recebido',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}pagamento recebido`,
         receivedPaymentConfirmation: 'Prossiga apenas se você já tiver recebido o pagamento fora do Expensify.',
         confirmReceivedPayment: 'Sim, recebi o pagamento.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `pagou ${amount} com a conta pessoal ${last4Digits}` : `Pago com conta pessoal`),
@@ -1644,6 +1653,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover para relatório',
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
+        submitReportTo: {
+            subtitle: 'Escolha um membro do espaço de trabalho ou digite o e-mail de quem deve receber este envio.',
+            emailLabel: 'Endereço de e-mail',
+            workspaceMembers: 'Membros do workspace',
+            sendExpense: 'Envie sua despesa para qualquer pessoa',
+            sendExpenseSubtitle: 'Convide qualquer pessoa para o Expensify usando o endereço de e-mail ou número de telefone.',
+        },
         changeApprover: {
             title: 'Alterar aprovador',
             header: (workflowSettingLink: string) =>
@@ -1699,6 +1715,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
+        categoryDisabledAlert: {
+            title: 'Categoria desativada',
+            prompt: 'Ative as categorias no workspace para editar os detalhes da despesa ou excluir a categoria desta despesa.',
+            confirmText: 'Excluir categoria',
+        },
+        tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
     },
     transactionMerge: {
         listPage: {
@@ -3023,11 +3045,6 @@ ${amount} para ${merchant} - ${date}`,
         welcome: 'Bem-vindo!',
         welcomeSignOffTitleManageTeam: 'Quando você concluir as tarefas acima, poderemos explorar mais funcionalidades, como fluxos de aprovação e regras!',
         welcomeSignOffTitle: 'É ótimo conhecer você!',
-        explanationModal: {
-            title: 'Bem-vindo ao Expensify',
-            description: 'Um só app para gerenciar seus gastos empresariais e pessoais na velocidade de um chat. Experimente e conte para a gente o que achou. Muito mais vindo por aí!',
-            secondaryDescription: 'Para voltar para o Expensify Classic, basta tocar na sua foto de perfil > Ir para Expensify Classic.',
-        },
         getStarted: 'Começar',
         whatsYourName: 'Qual é o seu nome?',
         peopleYouMayKnow: 'Veja se sua equipe está no Expensify',
@@ -4941,6 +4958,8 @@ ${amount} para ${merchant} - ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Empresa',
             autoSyncDescription: 'O Expensify vai sincronizar automaticamente com a Certinia todos os dias.',
             syncReimbursedReportsDescription:
                 'Com essa opção ativada, sempre que uma Fatura a Pagar for paga no FFA, o relatório correspondente no Expensify será marcado automaticamente como reembolsado.',
@@ -4949,9 +4968,17 @@ ${amount} para ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Status da fatura a pagar',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Concluir',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Concluir',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Em andamento',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Aprovado',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Enviado',
+                },
+            },
+            reportExportStatus: {
+                label: 'Status do relatório de despesas',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Aprovado',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Enviado',
                 },
             },
             exportDate: {
@@ -4967,8 +4994,13 @@ ${amount} para ${merchant} - ${date}`,
                 helperText: 'Despesas marcadas como reembolsáveis serão exportadas como faturas a pagar emitidas em nome do funcionário.',
             },
             exportNonReimbursable: {label: 'Exportar despesas não reembolsáveis como'},
+            expenseReports: 'Relatórios de despesas',
+            exportReimbursableExpenseReports: {helperText: 'Despesas marcadas como reembolsáveis serão exportadas como relatórios de despesas emitidos em nome do funcionário.'},
+            exportNonReimbursableExpenseReports: {helperText: 'Despesas marcadas como não reembolsáveis serão exportadas como relatórios de despesas emitidos em nome do funcionário.'},
             noVendorsFound: 'Nenhum fornecedor encontrado',
             noVendorsFoundDescription: 'Sincronize a conexão novamente depois que os fornecedores forem adicionados no Certinia.',
+            noCompaniesFound: 'Nenhuma empresa encontrada',
+            noCompaniesFoundDescription: 'Sincronize a conexão novamente depois que as empresas forem adicionadas no Certinia.',
             prerequisites: {
                 title: 'Antes de conectar',
                 installBundle: 'Para conexões FFA',
@@ -6190,6 +6222,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Selecione os recursos para copiar',
                 description: 'Selecione as configurações que deseja sobrescrever nos seus espaços de trabalho existentes.',
                 accountingMismatch: ({part}: {part: string}) => `Você só pode copiar ${part} se todos os espaços de trabalho usarem o mesmo sistema contábil e a mesma conexão da empresa.`,
+                travelAddressMismatch: 'Você só pode copiar viagens se cada espaço de trabalho selecionado tiver um endereço da empresa.',
             },
             confirmSettings: {
                 title: 'Vamos garantir que está tudo certo.',
@@ -6285,6 +6318,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             admins: 'Admins do workspace',
             approvers: 'Aprovadores',
             auditors: 'Auditores',
+            editors: 'Editores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
             configureHRSync: (providerName: string) => `Configurar a sincronização do ${providerName}.`,
             syncWithHR: (providerName: string) => `Sincronizar com ${providerName}`,
@@ -6686,8 +6720,20 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         distanceRates: {
             oopsNotSoFast: 'Opa! Não tão rápido...',
             workspaceNeeds: 'Um workspace precisa de pelo menos uma taxa de distância ativada.',
+            commuterExclusions: {
+                title: 'Excluir deslocamentos para o trabalho',
+                summaryDisabled: 'Sem exclusão de deslocamento',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por solicitação`,
+                optionDisabledTitle: 'Não excluir deslocamentos de casa para o trabalho',
+                optionDisabledHelp: 'Nenhuma exclusão de deslocamento é aplicada.',
+                optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
+                optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
+                distanceLabel: 'Distância',
+                errors: {distanceMustBePositive: 'A distância deve ser maior que 0.'},
+            },
             distance: 'Distância',
             centrallyManage: 'Gerencie tarifas centralmente, acompanhe em milhas ou quilômetros e defina uma categoria padrão.',
+            emptyRates: {title: 'Ainda não há tarifas de distância', subtitle: 'Adicione uma tarifa para reembolsar quilometragem com taxas personalizadas.'},
             rate: 'Avaliar',
             addRate: 'Adicionar tarifa',
             findRate: 'Encontrar tarifa',
@@ -6821,11 +6867,9 @@ Se você quiser assumir a cobrança de toda a assinatura deles, peça para que a
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `Os seguintes relatórios já foram exportados para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            }: ExportAgainModalDescriptionParams) => `Os seguintes relatórios já foram exportados para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Tem certeza de que quer exportá-los novamente?
 
-${reportName}
-
-Tem certeza de que deseja exportá-los novamente?`,
+${reportName}`,
             confirmText: 'Sim, exportar novamente',
             cancelText: 'Cancelar',
         },
@@ -6994,6 +7038,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>As aprovações estão disponíveis nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Aprovar relatórios',
+                description:
+                    'Revise, aprove e mantenha os gastos sob controle em um só lugar. Fluxos de aprovação ajudam você a controlar custos, aplicar as políticas da empresa e reembolsar seus funcionários mais rápido.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Os fluxos de aprovação estão disponíveis apenas no plano Collect, a partir de <strong>${formattedPrice}</strong> por membro ativo por mês.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Cartões corporativos',
                 description: `Traga seu próprio cartão corporativo para o Expensify para obter importação automática, categorização automática, suporte a regras personalizáveis e reconciliação integrada.`,
@@ -7041,7 +7092,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             },
             controlPolicyRoles: {
                 title: 'Funções da política de controle',
-                description: 'Use funções especializadas como Auditor e Administrador de Cartão para conceder aos membros acesso apenas ao que precisam.',
+                description: 'Conceda acesso específico aos membros atribuindo funções como Auditor ou Administrador de Cartão.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Funções especializadas no espaço de trabalho estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
@@ -7209,6 +7260,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 saveAnyway: 'Salvar mesmo assim',
                 applyToExistingUnsubmittedExpenses: 'Aplicar às despesas existentes não enviadas',
                 findRule: 'Encontrar regra de comerciante',
+                expenseDefaultsTitle: 'Padrões de despesa',
+                expenseDefaultsSubtitle: 'Atualizar campos sem o responsável pelo envio fazer nada',
+                ifAnyExpenseMatches: 'Se alguma despesa corresponder:',
+                thenApplyFollowingDefaults: 'Em seguida, aplica os seguintes padrões:',
             },
             categoryRules: {
                 title: 'Regras de categoria',
@@ -7278,10 +7333,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 chooseCards: 'Escolher cartões',
                 saveRule: 'Salvar regra',
                 allow: 'Permitir',
-                spendRuleSectionTitle: 'Regra de gasto',
-                restrictionType: 'Tipo de restrição',
-                restrictionTypeHelpAllow: 'As cobranças são aprovadas se corresponderem a qualquer comerciante ou categoria e não excederem um valor máximo.',
-                restrictionTypeHelpBlock: 'As cobranças são recusadas se corresponderem a qualquer estabelecimento ou categoria, ou se excederem um valor máximo.',
+                spendRuleSectionTitle: 'Regras de gasto',
                 addMerchant: 'Adicionar comerciante',
                 merchantContains: 'Comerciante contém',
                 merchantExactlyMatches: 'Estabelecimento corresponde exatamente',
@@ -7292,11 +7344,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 matchType: 'Tipo de correspondência',
                 matchTypeContains: 'Contém',
                 matchTypeExact: 'Corresponde exatamente',
-                spendCategory: 'Categoria de gasto',
                 maxAmount: 'Valor máximo',
                 maxAmountHelp: 'Qualquer cobrança acima desse valor será recusada, independentemente das restrições de estabelecimento e categoria de gasto.',
-                currencyMismatchTitle: 'Incompatibilidade de moeda',
-                currencyMismatchPrompt: 'Para definir um valor máximo, selecione cartões que liquidem na mesma moeda.',
+                maxAmountCurrencyMismatchTitle: 'Moeda incompatível',
+                maxAmountCurrencyMismatchPrompt: 'Para definir um valor máximo, selecione cartões que sejam liquidados na mesma moeda.',
                 reviewSelectedCards: 'Revisar cartões selecionados',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} mais` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Aplicar pelo menos uma regra de gasto a um cartão',
@@ -7359,21 +7410,128 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueado' : 'Permitido'} ${shownCount > 1 ? 'categorias' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
+                defaultRuleSummary: 'Categorias incluindo serviços adultos, caixas eletrônicos, jogos de azar e...',
+                findRule: 'Encontrar regra',
+                defaultSection: 'Padrão',
+                customRulesSection: 'Regras personalizadas',
+                tableColumnType: 'Tipo',
+                tableColumnCard: 'Cartão',
+                tableColumnRule: 'Regra',
+                cardRulesUpsell: {
+                    title: 'Peça o Cartão Expensify e controle os gastos',
+                    subtitle:
+                        'Com o Cartão Expensify, você pode definir regras de gasto máximo, bloquear ou permitir determinados estabelecimentos ou tipos de compras. Você também ganha 2% de cashback.',
+                    cta: 'Obter o cartão',
+                },
+                restrictCardSpendTitle: 'Restringir gastos do cartão',
+                restrictCardSpendSubtitle: 'Bloqueie ou limite os gastos no ponto de venda.',
+                ifAnyCardMatches: 'Se algum cartão corresponder:',
+                thenDoThisAtPointOfSale: 'Depois faça isto no ponto de venda:',
+                setRestrictions: 'Definir restrições',
+                merchantRestrictions: 'Restrições de estabelecimento',
+                blockedMerchant: 'Comerciante bloqueado',
+                blockedMerchantTypes: 'Tipos de comerciantes bloqueados',
+                maxAmountAbove: ({amount}: {amount: string}) => `acima de ${amount}`,
+                restrictMerchants: 'Restringir comerciantes',
+                merchantTypes: 'Tipos de estabelecimento',
+                allowedMerchants: 'Comerciantes permitidos',
+                allowedMerchantTypes: 'Tipos de estabelecimentos permitidos',
+                blockedMerchants: 'Comerciantes bloqueados',
+                currencies: 'Moedas',
+                permittedCurrencies: 'Moedas permitidas',
+                allCurrencies: 'Todas as moedas',
+                permittedCurrenciesSubtitle: 'Escolha permitir todas as moedas ou apenas moedas específicas',
+                settlementCurrencyPermittedSubtitle: 'A moeda de liquidação do cartão é sempre permitida',
+                currenciesCurrencyMismatchTitle: 'Moeda incompatível',
+                currenciesCurrencyMismatchPrompt: 'Para definir moedas preferenciais, selecione cartões que sejam liquidados na mesma moeda.',
+                restrictMerchantsOffSubtitle: 'As cobranças são aprovadas para moedas permitidas que não excedam um valor máximo',
+                restrictMerchantsAllowSubtitle: 'Cobranças são aprovadas para moedas permitidas que não excedem um valor máximo, e o estabelecimento ou tipo de estabelecimento corresponde.',
+                restrictMerchantsBlockSubtitle:
+                    'As cobranças são aprovadas para moedas permitidas que não ultrapassem um valor máximo ou quando o comerciante ou o tipo de comerciante correspondem.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Permitido ${shownCount > 1 ? 'moedas' : 'moeda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
             },
             agentRules: {
-                title: 'Regras de Agente',
-                subtitle: 'Descreva regras flexíveis que rodam quando você precisa.',
-                addRule: 'Adicionar regra de Agente',
-                findRule: 'Encontrar regra de Agente',
+                title: 'Regras do agente',
+                subtitle: 'Defina regras para como os agentes de IA lidam com despesas neste workspace.',
+                addRule: 'Adicionar regra de agente',
+                findRule: 'Encontrar regra de agente',
                 addRuleTitle: 'Adicionar regra',
                 editRuleTitle: 'Editar regra',
                 deleteRule: 'Excluir regra',
                 deleteRuleConfirmation: 'Tem certeza de que quer excluir esta regra?',
-                describeRuleTitle: 'Descreva sua regra e a Concierge vai criá-la',
+                describeRuleTitle: 'Descreva a regra que seu agente de IA deve seguir',
                 disclaimer: 'Os agentes de IA podem cometer erros.',
                 agentCreatedTitle: 'O RuleBot foi adicionado ao seu espaço de trabalho!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.<br><br>Edite os detalhes do seu agente em <a href="${agentsRoute}">Conta &gt; Agentes</a>.</muted-text>`,
+            },
+            tabs: {general: 'Geral', cardRestrictions: 'Restrições do cartão', expenseDefaults: 'Padrões de despesa'},
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Excluir regra',
+                    other: 'Excluir regras',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Tem certeza de que quer excluir esta regra?',
+                    other: 'Tem certeza de que quer excluir estas regras?',
+                }),
+            },
+            generalTab: {
+                title: 'Regras básicas',
+                subtitle: 'Regras comuns para controlar gastos',
+                expensesOlderThan: 'Sinalizar despesas mais antigas que',
+                expensesAboveAmount: 'Sinalizar despesas acima do valor',
+                flagReceiptLineItems: 'Marcar itens da linha do recibo',
+                receiptRequirements: 'Exigir recibos',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Comum acima de ${regularAmount}, detalhado acima de ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Regular acima de ${regularAmount}, não exige detalhamento`;
+                    }
+                    if (itemizedAmount) {
+                        return `Não exigir recorrente, detalhado acima de ${itemizedAmount}`;
+                    }
+                    return 'Não exigir recibos';
+                },
+                requireFieldsForAllExpenses: 'Exigir campos para todas as despesas',
+                cashExpenses: 'Despesas em dinheiro',
+                cashExpensesReimbursableByDefault: 'Reembolsável por padrão',
+                cashExpensesNonReimbursableByDefault: 'Não reembolsável por padrão',
+                cashExpensesAlwaysReimbursable: 'Sempre reembolsável',
+                cashExpensesAlwaysNonReimbursable: 'Sempre não reembolsável',
+                billableExpenses: 'Despesas faturáveis',
+                billableExpensesBillable: 'Reembolsável em dinheiro e cartão de crédito',
+                billableExpensesNonBillable: 'Dinheiro e cartão de crédito não faturável',
+            },
+            requireReceipts: {
+                title: 'Exigir recibos',
+                description: 'Exigir recibos quando o gasto exceder este valor, a menos que haja uma regra de categoria em contrário.',
+                requireReceipt: 'Exigir recibo',
+                requireItemizedReceipt: 'Exigir recibo detalhado',
+                requireAboveAmount: 'Exigir valor acima',
+                saveRule: 'Salvar regra',
+                emptyAmountError: 'Informe um valor válido antes de salvar',
+            },
+            requireFields: {title: 'Exigir campos para todas as despesas', category: 'Categoria', tag: 'Etiqueta', save: 'Salvar regra'},
+            newRule: {
+                title: 'Nova regra',
+                subtitle: 'O que você quer fazer?',
+                restrictCardSpend: 'Restringir gastos do cartão',
+                restrictCardSpendDescription: 'Bloqueie ou limite gastos no ponto de venda',
+                applyExpenseDefaults: 'Aplicar padrões de despesa',
+                applyExpenseDefaultsDescription: 'Atualizar campos sem o responsável pelo envio fazer nada',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condição',
+                tableColumnRule: 'Regra',
+                findRule: 'Encontrar regra',
+                rename: 'Renomear',
+                update: 'Atualizar',
+                merchantIs: (merchant: string) => `O comerciante é "${merchant}"`,
             },
         },
         planTypePage: {
@@ -7952,6 +8110,22 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `adicionou "${prohibitedExpense}" às despesas proibidas`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removeu "${prohibitedExpense}" das despesas proibidas`,
+        commuterExclusions: {
+            changedToFixedDistance: 'alterou "excluir trajetos casa-trabalho" para uma distância fixa por solicitação',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'milha' : 'milhas';
+                } else {
+                    unitLabel = isSingular ? 'quilômetro' : 'quilômetros';
+                }
+                return `definir exclusão de distância fixa de ${distance} ${unitLabel} por solicitação`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `alterou a exclusão de distância fixa para ${newDistance} ${unit} por solicitação (antes ${oldDistance} ${unit})`,
+            disabled: 'excluiu deslocamentos diários para tarifas por distância',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `alterou o método de reembolso para "${newReimbursementChoice}" (antes "${oldReimbursementChoice}")`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} pré-aprovação de solicitações para entrar no workspace`,
@@ -9484,6 +9658,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             theresAProblemWithYourWallet: 'Há um problema com sua carteira',
             theresAProblemWithYourWalletTerms: 'Há um problema com os termos da sua carteira',
             aBankAccountIsLocked: 'Uma conta bancária está bloqueada',
+            completeHrSetup: 'Concluir configuração de RH',
         },
     },
     emptySearchView: {
@@ -9585,6 +9760,11 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
