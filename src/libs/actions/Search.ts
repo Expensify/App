@@ -310,6 +310,16 @@ function handleActionButtonPress({
                 onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
+            {
+                const policyToUpgrade = policy ?? snapshotPolicy;
+                if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id && item.reportID) {
+                    const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
+                    const backTo = Navigation.getActiveRoute() || ROUTES.SEARCH_ROOT.route;
+
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, item.reportID));
+                    return;
+                }
+            }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
