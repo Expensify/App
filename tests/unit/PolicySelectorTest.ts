@@ -1,7 +1,14 @@
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createAdminPoliciesSelector, createCopySettingsEligibleTargetsSelector, isAdminForPolicyByIDSelector, lastWorkspaceNumberSelector, policyNameSelector} from '@src/selectors/Policy';
+import {
+    createAdminPoliciesSelector,
+    createCopySettingsEligibleTargetsSelector,
+    createWorkspaceListPoliciesSelector,
+    isAdminForPolicyByIDSelector,
+    lastWorkspaceNumberSelector,
+    policyNameSelector,
+} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
 describe('lastWorkspaceNumberSelector', () => {
@@ -225,5 +232,162 @@ describe('createCopySettingsEligibleTargetsSelector', () => {
     it('returns empty arrays when policies is undefined', () => {
         const result = createCopySettingsEligibleTargetsSelector(adminLogin)(undefined);
         expect(result).toEqual({adminNonPersonal: [], corporateOnly: []});
+    });
+});
+
+describe('createWorkspaceListPoliciesSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+    const userLogin = 'user@example.com';
+
+    const makePolicy = (overrides: Partial<Policy>): Policy =>
+        ({
+            id: 'p1',
+            name: 'Test Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            ownerAccountID: 1,
+            avatarURL: 'https://img/avatar.png',
+            pendingAction: undefined,
+            errors: undefined,
+            ...overrides,
+        }) as Policy;
+
+    it('returns an empty array when policies is undefined', () => {
+        expect(createWorkspaceListPoliciesSelector(userLogin)(undefined)).toEqual([]);
+    });
+
+    it('returns an empty array when no policies pass the shouldShowPolicy filter', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.PERSONAL}),
+        };
+        expect(createWorkspaceListPoliciesSelector(userLogin)(policies)).toEqual([]);
+    });
+
+    it('excludes policies where both role and employeeList entry are absent', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({role: undefined, employeeList: {}}),
+        };
+        expect(createWorkspaceListPoliciesSelector(userLogin)(policies)).toEqual([]);
+    });
+
+    it('includes a team policy where the user has an explicit role field', () => {
+        const policy = makePolicy({id: 'p1', role: CONST.POLICY.ROLE.ADMIN});
+        const result = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
+        expect(result).toHaveLength(1);
+    });
+
+    it('projects only the expected fields onto each result item', () => {
+        const policy = makePolicy({
+            id: 'p1',
+            name: 'My WS',
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            ownerAccountID: 42,
+            avatarURL: 'https://img/ws.png',
+            pendingAction: undefined,
+            errors: undefined,
+        });
+        const [item] = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
+        expect(Object.keys(item ?? {})).toEqual([
+            'id',
+            'name',
+            'type',
+            'role',
+            'ownerAccountID',
+            'avatarURL',
+            'pendingAction',
+            'errors',
+            'isPendingDelete',
+            'isJoinRequestPending',
+            'nonMemberDetails',
+        ]);
+        expect(item?.id).toBe('p1');
+        expect(item?.name).toBe('My WS');
+        expect(item?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        expect(item?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+        expect(item?.ownerAccountID).toBe(42);
+        expect(item?.avatarURL).toBe('https://img/ws.png');
+    });
+
+    it('sets isPendingDelete=true for policies with a DELETE pendingAction', () => {
+        const policy = makePolicy({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        const [item] = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
+        expect(item?.isPendingDelete).toBe(true);
+    });
+
+    it('sets isPendingDelete=false for policies without a DELETE pendingAction', () => {
+        const policy = makePolicy({pendingAction: undefined});
+        const [item] = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
+        expect(item?.isPendingDelete).toBe(false);
+    });
+
+    it('still includes a pending-delete policy because shouldShowPendingDeletePolicy is always true', () => {
+        const policy = makePolicy({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        const result = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
+        expect(result).toHaveLength(1);
+    });
+
+    it('sets isJoinRequestPending=false and omits nonMemberDetails when isJoinRequestPending is false', () => {
+        const policy = makePolicy({isJoinRequestPending: false});
+        const [item] = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
+        expect(item?.isJoinRequestPending).toBe(false);
+        expect(item?.nonMemberDetails).toBeUndefined();
+    });
+
+    it('sets isJoinRequestPending=false when flag is true but policyDetailsForNonMembers is absent', () => {
+        const policy = makePolicy({isJoinRequestPending: true, policyDetailsForNonMembers: undefined});
+        const [item] = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
+        expect(item?.isJoinRequestPending).toBe(false);
+        expect(item?.nonMemberDetails).toBeUndefined();
+    });
+
+    it('populates nonMemberDetails from the first policyDetailsForNonMembers entry when join request is pending', () => {
+        const policy = {
+            isJoinRequestPending: true,
+            policyDetailsForNonMembers: {
+                nonMemberPolicyID123: {
+                    name: 'External WS',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    ownerAccountID: 99,
+                    avatar: 'https://img/ext.png',
+                },
+            },
+        } as unknown as Policy;
+        const result = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
+        expect(result).toHaveLength(1);
+        expect(result[0]?.isJoinRequestPending).toBe(true);
+        expect(result[0]?.nonMemberDetails).toEqual({
+            policyID: 'nonMemberPolicyID123',
+            name: 'External WS',
+            type: CONST.POLICY.TYPE.CORPORATE,
+            ownerAccountID: 99,
+            avatar: 'https://img/ext.png',
+        });
+    });
+
+    it('returns multiple policies sorted in insertion order', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', name: 'Alpha'}),
+            [`${P}p2`]: makePolicy({id: 'p2', name: 'Beta'}),
+            [`${P}p3`]: makePolicy({id: 'p3', name: 'Gamma'}),
+        };
+        const result = createWorkspaceListPoliciesSelector(userLogin)(policies);
+        expect(result.map((p) => p.id)).toEqual(['p1', 'p2', 'p3']);
+    });
+
+    it('filters out null values in the policy collection', () => {
+        const policies = {
+            [`${P}p1`]: null,
+            [`${P}p2`]: makePolicy({id: 'p2'}),
+        } as unknown as Record<string, Policy>;
+        const result = createWorkspaceListPoliciesSelector(userLogin)(policies);
+        expect(result).toHaveLength(1);
+        expect(result[0]?.id).toBe('p2');
+    });
+
+    it('handles undefined currentUserLogin by still including policies that have a role field', () => {
+        const policy = makePolicy({role: CONST.POLICY.ROLE.ADMIN});
+        const result = createWorkspaceListPoliciesSelector(undefined)({[`${P}p1`]: policy});
+        expect(result).toHaveLength(1);
     });
 });
