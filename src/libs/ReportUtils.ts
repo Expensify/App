@@ -8780,48 +8780,6 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | un
     return generateIsEmptyReport(report, isReportArchived);
 }
 
-type ReportEmptyStateSummary = Pick<
-    Report,
-    'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'pendingFields' | 'errors'
-> &
-    Pick<Report, 'reportID'>;
-
-function toReportEmptyStateSummary(report: Report | null | undefined): ReportEmptyStateSummary | undefined {
-    if (!report) {
-        return undefined;
-    }
-
-    return {
-        reportID: report.reportID,
-        policyID: report.policyID ?? undefined,
-        ownerAccountID: report.ownerAccountID ?? undefined,
-        type: report.type ?? undefined,
-        stateNum: report.stateNum ?? undefined,
-        statusNum: report.statusNum ?? undefined,
-        total: report.total ?? undefined,
-        nonReimbursableTotal: report.nonReimbursableTotal ?? undefined,
-        pendingAction: report.pendingAction ?? undefined,
-        pendingFields: report.pendingFields ?? undefined,
-        errors: report.errors ?? undefined,
-    };
-}
-
-function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | undefined): ReportEmptyStateSummary[] {
-    if (!reports) {
-        return [];
-    }
-
-    const result: ReportEmptyStateSummary[] = [];
-    for (const report of Object.values(reports)) {
-        const summary = toReportEmptyStateSummary(report);
-
-        if (summary) {
-            result.push(summary);
-        }
-    }
-    return result;
-}
-
 /**
  * Checks if there are any empty (no transactions) open expense reports for a specific policy and user.
  * An empty report is defined as having zero transactions.
@@ -8833,14 +8791,12 @@ function hasEmptyReportsForPolicy(
     reportIDsWithActiveTransactions: Record<string, boolean>,
     accountID?: number,
 ): boolean {
-    if (!accountID || !policyID) {
+    if (!accountID || !policyID || !reports) {
         return false;
     }
 
-    const summaries = getReportSummariesForEmptyCheck(reports);
-
-    return summaries.some((report) => {
-        if (!report.reportID || !report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
+    return Object.values(reports).some((report) => {
+        if (!report?.reportID || !report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
             return false;
         }
 
@@ -8870,15 +8826,14 @@ function getPolicyIDsWithEmptyReportsForAccount(
     accountID: number | undefined,
     reportsTransactionsParam: Record<string, Transaction[]>,
 ): Record<string, boolean> {
-    if (!accountID) {
+    if (!accountID || !reports) {
         return {};
     }
 
-    const summaries = getReportSummariesForEmptyCheck(reports);
     const policyLookup: Record<string, boolean> = {};
 
-    for (const report of summaries) {
-        if (!report.reportID || !report.policyID || report.ownerAccountID !== accountID) {
+    for (const report of Object.values(reports)) {
+        if (!report?.reportID || !report.policyID || report.ownerAccountID !== accountID) {
             continue;
         }
 
