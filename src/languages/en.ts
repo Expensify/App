@@ -7879,6 +7879,8 @@ const translations = {
                 under: 'under',
             },
             amountFilter: ({operator, amount}: {operator: string; amount: string}) => `amounts ${operator} ${amount}`,
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `currencies ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `currencies not in ${currencies}`,
             theCard: 'the card',
             multipleCards: ({count}: {count: number}) => ({
                 one: '1 card',

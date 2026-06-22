@@ -1,3 +1,4 @@
+import value from '*.jpg';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -46,6 +47,20 @@ function getSpendRuleAmountString(translate: LocalizedTranslate, amount: {operat
     }
     const operatorWord = getSpendRuleAmountOperatorWord(translate, amount.operator);
     return translate('workspaceActions.expensifyCardRule.amountFilter', {operator: operatorWord, amount: formatSpendRuleAmount(amount.value, currency)});
+}
+
+function getSpendRuleCurrencyString(translate: LocalizedTranslate, currency: {operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>; value: string[]}): string {
+    if (currency.value.length === 0) {
+        return '';
+    }
+
+    const currencyValues = currency.value.map((value) => `'${value}'`).join(', ');
+
+    if (currency.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+        return translate('workspaceActions.expensifyCardRule.blockedCurrencyFilters', {currencies: currencyValues});
+    }
+
+    return translate('workspaceActions.expensifyCardRule.allowedCurrencyFilters', {currencies: currencyValues});
 }
 
 function getSpendRuleCardsSummary(translate: LocalizedTranslate, cards: ReadonlyArray<{displayName?: string}> | undefined): string {
@@ -257,9 +272,11 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
         }
     }
 
-    console.log(currencies);
     for (const allowedCurrency of currencies) {
-        items.push(`'${allowedCurrency}`);
+        const formattedCurrency = getSpendRuleCurrencyString(translate, allowedCurrency);
+        if (formattedCurrency !== '') {
+            items.push(formattedCurrency);
+        }
     }
 
     const verb = getSpendRuleActionVerb(translate, action);
