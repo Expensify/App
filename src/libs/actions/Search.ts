@@ -332,7 +332,6 @@ function handleActionButtonPress({
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
-                activePolicy,
                 iouReportCurrentNextStepDeprecated,
                 delegateEmail,
             });
@@ -634,7 +633,6 @@ type GetApproveActionCallbackParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
-    activePolicy?: OnyxEntry<Policy>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     delegateEmail?: string;
 };
@@ -652,7 +650,6 @@ function getApproveActionCallback({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
-    activePolicy,
     iouReportCurrentNextStepDeprecated,
     delegateEmail,
 }: GetApproveActionCallbackParams) {
@@ -661,15 +658,14 @@ function getApproveActionCallback({
     }
 
     const reportPolicy = policy ?? snapshotPolicy;
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- using deprecated getAllTransactionViolations until #66512 migrates this call
     const hasViolations = hasViolationsReportUtils(item.reportID, getAllTransactionViolations(), currentUserAccountID, currentUserLogin ?? '');
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
 
     approveMoneyRequest({
         expenseReport: snapshotReport,
         expenseReportPolicy: reportPolicy,
-        policy: activePolicy,
+        policy: reportPolicy,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserLogin ?? '',
         hasViolations,

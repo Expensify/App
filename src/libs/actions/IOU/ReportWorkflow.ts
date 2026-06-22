@@ -86,25 +86,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import type {AdditionalPayOnyxData} from './PayMoneyRequest';
-
-function mergeAdditionalApproveOnyxData<
-    T extends {
-        optimisticData?: readonly unknown[];
-        successData?: readonly unknown[];
-        failureData?: readonly unknown[];
-    },
->(onyxData: T, additionalOnyxData?: AdditionalPayOnyxData): T {
-    if (!additionalOnyxData) {
-        return onyxData;
-    }
-
-    return {
-        ...onyxData,
-        optimisticData: [...(onyxData.optimisticData ?? []), ...(additionalOnyxData.optimisticData ?? [])],
-        successData: [...(onyxData.successData ?? []), ...(additionalOnyxData.successData ?? [])],
-        failureData: [...(onyxData.failureData ?? []), ...(additionalOnyxData.failureData ?? [])],
-    };
-}
+import {mergeAdditionalPayOnyxData} from './PayMoneyRequest';
 
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -806,7 +788,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (shouldPlaySuccessSound) {
         playSound(SOUNDS.SUCCESS);
     }
-    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, mergeAdditionalApproveOnyxData({optimisticData, successData, failureData}, additionalOnyxData));
+    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, mergeAdditionalPayOnyxData({optimisticData, successData, failureData}, additionalOnyxData));
     return optimisticHoldReportID;
 }
 

@@ -796,11 +796,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
             const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
             const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
+            const policyToUpgrade = reportPolicy;
+            const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
+            const wouldNavigateToRestricted =
+                !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: reportPolicy,
-                policy: activePolicy,
+                policy: reportPolicy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,
@@ -815,7 +819,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
             });
-            approvedReportCount += 1;
+
+            if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
+                approvedReportCount += 1;
+            }
         }
 
         if (approvedReportCount > 0) {
@@ -843,7 +850,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allNextSteps,
         allTransactionViolations,
         isBetaEnabled,
-        activePolicy,
         betas,
         delegateEmail,
         currentSearchKey,
