@@ -3,7 +3,6 @@ import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import {clearExportDownload} from '@libs/actions/Export';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type UseExportDownloadStatusModalReturn = {
@@ -15,14 +14,13 @@ type UseExportDownloadStatusModalReturn = {
 };
 
 /**
- * Encapsulates the shared wiring for the queued CSV export status modal (ExportDownloadStatusModal): it tracks the
+ * Encapsulates the shared wiring for the queued export status modal (ExportDownloadStatusModal): it tracks the
  * active export, renders the modal, and handles close/cleanup (no-op while still preparing, unless handed off to
  * Concierge). Used by every surface that triggers a tracked template export so the modal wiring lives in one place.
  *
  * @param onCleanup - Optional extra cleanup to run once the modal is dismissed (e.g. clearing the selection).
  */
 function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownloadStatusModalReturn {
-    const {translate} = useLocalize();
     const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
     const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`);
 
@@ -45,7 +43,6 @@ function useExportDownloadStatusModal(onCleanup?: () => void): UseExportDownload
             exportID={activeExportID}
             isVisible
             onClose={handleExportModalClose}
-            failedBody={translate('exportDownload.csvFailedBody')}
         />
     ) : null;
 
