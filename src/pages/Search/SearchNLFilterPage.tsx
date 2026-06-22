@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseExpenseFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 function SearchNLFilterPage() {
@@ -34,7 +35,7 @@ function SearchNLFilterPage() {
                 return;
             }
             if (result.success) {
-                Navigation.dismissModal({afterTransition: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: result.query}))});
+                Navigation.dismissModal({afterTransition: () => Navigation.navigate(result.searchURL as Route)});
             } else {
                 setErrorMessage(result.message);
             }

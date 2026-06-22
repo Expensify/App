@@ -688,12 +688,12 @@ function openSearchCardFiltersPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
-type ParseExpenseFiltersResult = {success: true; query: string; humanReadableSummary: string} | {success: false; message: string};
+type ParseExpenseFiltersResult = {success: true; searchURL: string; humanReadableSummary: string} | {success: false; message: string};
 
 function parseExpenseFilters(nlQuery: string, policyID?: string): Promise<ParseExpenseFiltersResult | undefined> {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS, {nlQuery, policyID}).then((response) => {
-        if (response?.success === true && response.query) {
-            return {success: true, query: response.query, humanReadableSummary: response.humanReadableSummary ?? ''} as const;
+        if (response?.success === true && response.searchURL) {
+            return {success: true, searchURL: response.searchURL, humanReadableSummary: response.humanReadableSummary ?? ''} as const;
         }
         return {success: false, message: response?.message ?? ''} as const;
     });

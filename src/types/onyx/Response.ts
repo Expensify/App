@@ -125,8 +125,8 @@ type Response<TKey extends OnyxKey> = {
     /** Whether the ParseExpenseFilters command successfully parsed the natural-language query */
     success?: boolean;
 
-    /** Parsed filter query string returned by ParseExpenseFilters on success */
-    query?: string;
+    /** Search URL returned by ParseExpenseFilters on success */
+    searchURL?: string;
 
     /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
     humanReadableSummary?: string;
