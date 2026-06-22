@@ -1289,4 +1289,147 @@ describe('ReportNameUtils', () => {
             expect(reportName).not.toBe('');
         });
     });
+
+    describe('computeReportName - Transaction thread with linkedTransaction', () => {
+        test('returns formatted expense name for transaction thread', () => {
+            const transactionID = '999';
+            const parentReportID = '100';
+            const parentReportActionID = '200';
+            const expenseReportID = '300';
+
+            const thread: Report = {
+                ...createWorkspaceThread(60),
+                parentReportID,
+                parentReportActionID,
+            };
+
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: parentReportActionID,
+                message: [{type: 'TEXT', text: 'test'}],
+                created: '2024-01-01 00:00:00',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transactionID,
+                    IOUReportID: expenseReportID,
+                    amount: 2500,
+                    currency: CONST.CURRENCY.USD,
+                    participantAccountIDs: [1, 2],
+                },
+            } as unknown as ReportAction;
+
+            const transaction: Transaction = {
+                transactionID,
+                reportID: expenseReportID,
+                merchant: 'Coffee Shop',
+                modifiedMerchant: '',
+                amount: -2500,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: ''},
+                created: '2024-01-01',
+                modifiedCreated: '',
+                modifiedCurrency: '',
+                originalAmount: 0,
+                originalCurrency: '',
+                tag: '',
+                category: '',
+                billable: false,
+                reimbursable: true,
+                cardID: 0,
+                bank: '',
+                hasEReceipt: false,
+                modifiedAmount: '',
+                receipt: {},
+                parentTransactionID: '',
+                status: CONST.TRANSACTION.STATUS.POSTED,
+            } as unknown as Transaction;
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
+                    [parentReportActionID]: parentAction,
+                },
+            };
+
+            const transactionsCollection: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const expenseReport: Report = {
+                ...createExpenseReport(300),
+                reportID: expenseReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reportsCollection: Record<string, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]: createRegularChat(100, [1, 2]),
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
+            };
+
+            const name = computeReportName(
+                thread,
+                reportsCollection,
+                emptyCollections.policies,
+                transactionsCollection,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+
+            expect(name).toContain('$25.00');
+            expect(name).toContain('Coffee Shop');
+        });
+
+        test('returns expense fallback when transaction is not in collection', () => {
+            const transactionID = '888';
+            const parentReportID = '101';
+            const parentReportActionID = '201';
+
+            const thread: Report = {
+                ...createWorkspaceThread(61),
+                parentReportID,
+                parentReportActionID,
+            };
+
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: parentReportActionID,
+                message: [{type: 'TEXT', text: 'test'}],
+                created: '2024-01-01 00:00:00',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: transactionID,
+                    IOUReportID: '301',
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    participantAccountIDs: [1, 2],
+                },
+            } as unknown as ReportAction;
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
+                    [parentReportActionID]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                {},
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'iou.expense'));
+        });
+    });
 });
