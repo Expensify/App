@@ -107,13 +107,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {cardRules} = useExpensifyCardRules(policyID);
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
     const attemptedCardSettingsFetchRef = useRef<Set<number>>(new Set());
-    const hasFetchedRulesRef = useRef(false);
-    const hadPendingCodingRulesRef = useRef(false);
 
     useEffect(() => {
         attemptedCardSettingsFetchRef.current.clear();
-        hasFetchedRulesRef.current = false;
-        hadPendingCodingRulesRef.current = false;
     }, [policyID]);
 
     useEffect(() => {
@@ -260,28 +256,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             });
     }, [isOffline, policy?.rules?.codingRules, policyID, translate]);
 
-    const hasPendingCodingRules = useMemo(
-        () => Object.values(policy?.rules?.codingRules ?? {}).some((rule) => !!rule?.pendingAction && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [policy?.rules?.codingRules],
-    );
+    const fetchRules = useCallback(() => {
+        openPolicyRulesPage(policyID);
+    }, [policyID]);
 
     useEffect(() => {
-        // Avoid refetching while optimistic create/update is in flight — a stale OpenPolicyRulesPage response can overwrite the new rule.
-        if (hasPendingCodingRules) {
-            hadPendingCodingRulesRef.current = true;
-            return;
-        }
-
-        const shouldFetchRules = !hasFetchedRulesRef.current || hadPendingCodingRulesRef.current;
-        hadPendingCodingRulesRef.current = false;
-
-        if (!shouldFetchRules) {
-            return;
-        }
-
-        hasFetchedRulesRef.current = true;
-        openPolicyRulesPage(policyID);
-    }, [hasPendingCodingRules, policyID]);
+        // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
+        fetchRules();
+    }, [fetchRules]);
 
     const selectedRuleKeys = useMemo(() => {
         if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
