@@ -1,4 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isGroupPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -30,7 +30,29 @@ function getSingleGroupPolicyID(policies: OnyxCollection<Policy>, login: string)
     return singlePolicyID;
 }
 
-export default function useDefaultExpensePolicy() {
+type ComputeInput = {
+    activePolicy: OnyxEntry<Policy>;
+    preferredPolicy: OnyxEntry<Policy>;
+    singleGroupPolicy: OnyxEntry<Policy>;
+    isRestrictedToPreferredPolicy: boolean;
+    login: string;
+};
+
+/**
+ * Pure priority resolver shared by the hook and the module-level mirror.
+ * Inputs are the three candidate policies already resolved by the caller.
+ */
+function computeDefaultExpensePolicy({activePolicy, preferredPolicy, singleGroupPolicy, isRestrictedToPreferredPolicy, login}: ComputeInput): OnyxEntry<Policy> {
+    if (isRestrictedToPreferredPolicy && isGroupPolicy(preferredPolicy) && isPolicyAccessible(preferredPolicy, login)) {
+        return preferredPolicy;
+    }
+    if (isGroupPolicy(activePolicy) && isPolicyAccessible(activePolicy, login)) {
+        return activePolicy;
+    }
+    return singleGroupPolicy;
+}
+
+function useDefaultExpensePolicy() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -45,13 +67,8 @@ export default function useDefaultExpensePolicy() {
     // Per-key lookup for the single group policy (only fires when that specific policy changes)
     const [singleGroupPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${singleGroupPolicyID}`);
 
-    if (isRestrictedToPreferredPolicy && isGroupPolicy(preferredPolicy) && isPolicyAccessible(preferredPolicy, login)) {
-        return preferredPolicy;
-    }
-
-    if (isGroupPolicy(activePolicy) && isPolicyAccessible(activePolicy, login)) {
-        return activePolicy;
-    }
-
-    return singleGroupPolicy;
+    return computeDefaultExpensePolicy({activePolicy, preferredPolicy, singleGroupPolicy, isRestrictedToPreferredPolicy, login});
 }
+
+export default useDefaultExpensePolicy;
+export {computeDefaultExpensePolicy, getSingleGroupPolicyID};

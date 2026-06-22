@@ -5,18 +5,24 @@ import useOnyx from './useOnyx';
 
 type PolicySelector = Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'>;
 
-const policySelector = (policy: OnyxEntry<Policy>): PolicySelector =>
-    (policy && {
+function computePersonalPolicy(policy: OnyxEntry<Policy>): PolicySelector | undefined {
+    if (!policy) {
+        return undefined;
+    }
+    return {
         id: policy.id,
         type: policy.type,
         autoReporting: policy.autoReporting,
         outputCurrency: policy.outputCurrency,
-    }) as PolicySelector;
+    };
+}
 
 function usePersonalPolicy() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {selector: policySelector});
+    const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {selector: computePersonalPolicy});
     return personalPolicy;
 }
 
 export default usePersonalPolicy;
+export {computePersonalPolicy};
+export type {PolicySelector};
