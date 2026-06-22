@@ -840,8 +840,8 @@ function computeChatThreadReportName(
     reports: OnyxCollection<Report>,
     currentUserLogin: string,
     transactions: OnyxCollection<Transaction>,
-    parentReportAction?: ReportAction ,
-    policyTags?: OnyxEntry<PolicyTagLists> ,
+    parentReportAction?: ReportAction,
+    policyTags?: OnyxEntry<PolicyTagLists>,
     policy?: OnyxEntry<Policy>,
 ): string | undefined {
     if (!isChatThread(report)) {
