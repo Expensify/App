@@ -42,7 +42,7 @@ type SidebarLinksProps = {
 function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {setStickyReportID} = useSidebarOrderedReportsActions();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
@@ -105,7 +105,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
                 {shouldShowEmptyLHN ? (
-                    <View style={[styles.flex1, styles.emptyLHNWrapper]}>
+                    <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>
                         <LHNEmptyState />
                     </View>
                 ) : (
