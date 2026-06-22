@@ -193,7 +193,7 @@ describe('ReportActionCompose Integration Tests', () => {
             expect(mockEditReportComment).toHaveBeenCalledTimes(1);
 
             const editReportCommentArgs = mockEditReportComment.mock.calls.at(0);
-            const videoAttributeCache = editReportCommentArgs?.[7];
+            const videoAttributeCache = editReportCommentArgs?.[8];
 
             expect(videoAttributeCache).toEqual(expect.any(Object));
             expect(videoAttributeCache?.[videoSource]).toEqual(expect.any(String));
