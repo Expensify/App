@@ -14,9 +14,13 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplitItemReportID, resolveSplitMileageRate, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
 
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when any transaction changes. This data should ONLY
-// be used for `initSplitExpense`
+// We read the whole transactions collection here only because `initSplitExpense` runs in the action
+// layer (not a component/hook), where `useOnyx` can't be called, and it doesn't affect UI rendering, so
+// connectWithoutView avoids re-rendering components when any transaction changes. This data should ONLY
+// be used for `initSplitExpense`.
+// Do NOT copy this pattern into components/hooks: use `useOnyx` (with a selector to narrow the data)
+// there so subscriptions stay scoped, the UI updates when the value changes, and they're torn down with
+// the component.
 let allTransactions: OnyxCollection<Transaction>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -24,9 +28,13 @@ Onyx.connectWithoutView({
     callback: (value) => (allTransactions = value),
 });
 
-// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
-// this avoids unnecessary re-rendering for components when any report changes. This data should ONLY
-// be used for `initSplitExpense`
+// We read the whole reports collection here only because `initSplitExpense` runs in the action layer
+// (not a component/hook), where `useOnyx` can't be called, and it doesn't affect UI rendering, so
+// connectWithoutView avoids re-rendering components when any report changes. This data should ONLY be
+// used for `initSplitExpense`.
+// Do NOT copy this pattern into components/hooks: use `useOnyx` (with a selector to narrow the data)
+// there so subscriptions stay scoped, the UI updates when the value changes, and they're torn down with
+// the component.
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,

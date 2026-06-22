@@ -1,7 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useSplitEffectivePolicy, {getSplitEffectivePolicy} from '@hooks/useSplitEffectivePolicy';
+import useSplitEffectivePolicy, {findSplitPolicyForCustomUnit, getSplitEffectivePolicy} from '@hooks/useSplitEffectivePolicy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
@@ -186,51 +186,69 @@ describe('useSplitEffectivePolicy', () => {
     });
 });
 
-describe('getSplitEffectivePolicy', () => {
+describe('findSplitPolicyForCustomUnit', () => {
     const customUnitPolicy = buildPolicyWithRate('cu-policy', 'unit-x', 'rate-x');
     const allPolicies: OnyxCollection<Policy> = {
         [`${ONYXKEYS.COLLECTION.POLICY}${customUnitPolicy.id}`]: customUnitPolicy,
     };
+
+    it('resolves the policy by customUnitID', () => {
+        const result = findSplitPolicyForCustomUnit(allPolicies, buildTransaction({customUnitID: 'unit-x'}));
+        expect(result?.id).toBe(customUnitPolicy.id);
+    });
+
+    it('resolves the policy by customUnitRateID when the customUnitID does not match', () => {
+        const result = findSplitPolicyForCustomUnit(allPolicies, buildTransaction({customUnitRateID: 'rate-x'}));
+        expect(result?.id).toBe(customUnitPolicy.id);
+    });
+
+    it('returns undefined for the P2P rate, skipping the customUnit lookups', () => {
+        const transaction = buildTransaction({customUnitID: 'unit-x', customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID});
+        expect(findSplitPolicyForCustomUnit(allPolicies, transaction)).toBeUndefined();
+    });
+
+    it('returns undefined when nothing matches', () => {
+        expect(findSplitPolicyForCustomUnit({}, buildTransaction({customUnitID: 'unit-x'}))).toBeUndefined();
+    });
+
+    it('prefers the draft transaction customUnit over the transaction customUnit', () => {
+        const transaction = buildTransaction({customUnitID: 'no-match'});
+        const draftTransaction = buildTransaction({customUnitID: 'unit-x'});
+        const result = findSplitPolicyForCustomUnit(allPolicies, transaction, draftTransaction);
+        expect(result?.id).toBe(customUnitPolicy.id);
+    });
+});
+
+describe('getSplitEffectivePolicy', () => {
+    const customUnitPolicy = buildPolicyWithRate('cu-policy', 'unit-x', 'rate-x');
     const fallbackPolicy: Policy = {...createRandomPolicy(1), id: 'fallback'};
 
     it('returns the report policy when it has an employee list', () => {
         const policy = buildPolicyWithRate('workspace-1', 'unit-a', 'rate-a', true);
-        const result = getSplitEffectivePolicy({policy, transaction: buildTransaction(), allPolicies, fallbackPolicy});
+        const result = getSplitEffectivePolicy({policy, transaction: buildTransaction(), policyForCustomUnit: undefined, fallbackPolicy});
         expect(result?.id).toBe(policy.id);
     });
 
     it('falls back to the search snapshot policy when the report policy has no employee list', () => {
         const policy = buildPolicyWithRate('workspace-1', 'unit-a', 'rate-a');
         const searchSnapshotPolicy = buildPolicyWithRate('snapshot-1', 'unit-a', 'rate-a', true);
-        const result = getSplitEffectivePolicy({policy, searchSnapshotPolicy, transaction: buildTransaction(), allPolicies, fallbackPolicy});
+        const result = getSplitEffectivePolicy({policy, searchSnapshotPolicy, transaction: buildTransaction(), policyForCustomUnit: undefined, fallbackPolicy});
         expect(result?.id).toBe(searchSnapshotPolicy.id);
     });
 
-    it('resolves the policy by customUnitID when there is no current policy', () => {
-        const result = getSplitEffectivePolicy({policy: undefined, transaction: buildTransaction({customUnitID: 'unit-x'}), allPolicies, fallbackPolicy});
+    it('returns the pre-resolved custom unit policy when there is no current policy', () => {
+        const result = getSplitEffectivePolicy({policy: undefined, transaction: buildTransaction({customUnitID: 'unit-x'}), policyForCustomUnit: customUnitPolicy, fallbackPolicy});
         expect(result?.id).toBe(customUnitPolicy.id);
     });
 
-    it('resolves the policy by customUnitRateID when the customUnitID does not match', () => {
-        const result = getSplitEffectivePolicy({policy: undefined, transaction: buildTransaction({customUnitRateID: 'rate-x'}), allPolicies, fallbackPolicy});
-        expect(result?.id).toBe(customUnitPolicy.id);
-    });
-
-    it('returns undefined for the P2P rate, skipping both the customUnit lookups and the fallback', () => {
+    it('returns undefined for the P2P rate, skipping the fallback', () => {
         const transaction = buildTransaction({customUnitID: 'unit-x', customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID});
-        const result = getSplitEffectivePolicy({policy: undefined, transaction, allPolicies, fallbackPolicy});
+        const result = getSplitEffectivePolicy({policy: undefined, transaction, policyForCustomUnit: undefined, fallbackPolicy});
         expect(result).toBeUndefined();
     });
 
     it('returns the fallback policy when nothing else resolves', () => {
-        const result = getSplitEffectivePolicy({policy: undefined, transaction: buildTransaction(), allPolicies: {}, fallbackPolicy});
+        const result = getSplitEffectivePolicy({policy: undefined, transaction: buildTransaction(), policyForCustomUnit: undefined, fallbackPolicy});
         expect(result?.id).toBe(fallbackPolicy.id);
-    });
-
-    it('prefers the draft transaction customUnit over the transaction customUnit', () => {
-        const transaction = buildTransaction({customUnitID: 'no-match'});
-        const draftTransaction = buildTransaction({customUnitID: 'unit-x'});
-        const result = getSplitEffectivePolicy({policy: undefined, transaction, draftTransaction, allPolicies, fallbackPolicy});
-        expect(result?.id).toBe(customUnitPolicy.id);
     });
 });
