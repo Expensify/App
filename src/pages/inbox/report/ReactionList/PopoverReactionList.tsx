@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -38,12 +38,8 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
     // contents) before the selector depends on it — otherwise the selector identity changes each render
     // and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
     const stableUserAccountIDs = useStableArrayReference(userAccountIDs);
-    const reactionUsersSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => multiPersonalDetailsSelector(isReady ? stableUserAccountIDs : getEmptyArray<number>())(personalDetailsList),
-        [isReady, stableUserAccountIDs],
-    );
     const [users = getEmptyArray<PersonalDetails>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: reactionUsersSelector,
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => multiPersonalDetailsSelector(isReady ? stableUserAccountIDs : getEmptyArray<number>())(personalDetailsList),
     });
 
     // Hide the list when all reactions are removed

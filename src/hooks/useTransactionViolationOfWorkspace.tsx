@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {extractCollectionItemID} from '@libs/CollectionUtils';
 import {isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
@@ -30,8 +29,9 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
     // ID array and have the selector depend on that — otherwise the selector identity changes each
     // render and defeats useOnyx's memoization, re-subscribing endlessly under the store-based engine.
     const transactionIDList = useStableArrayReference(Array.from(transactionIDSet).sort());
-    const transactionViolationSelector = useCallback(
-        (violations: OnyxCollection<TransactionViolations>) => {
+
+    const [transactionViolations, transactionViolationsResult] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (violations: OnyxCollection<TransactionViolations>) => {
             if (!violations) {
                 return {};
             }
@@ -52,11 +52,6 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
 
             return filteredViolations;
         },
-        [transactionIDList],
-    );
-
-    const [transactionViolations, transactionViolationsResult] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: transactionViolationSelector,
     });
 
     return {

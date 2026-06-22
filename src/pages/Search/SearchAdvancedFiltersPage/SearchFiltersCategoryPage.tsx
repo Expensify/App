@@ -31,8 +31,8 @@ function SearchFiltersCategoryPage() {
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
 
-    const availableNonPersonalPolicyCategoriesSelector = useCallback(
-        (policyCategories: OnyxCollection<PolicyCategories>) =>
+    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        selector: (policyCategories: OnyxCollection<PolicyCategories>) =>
             Object.fromEntries(
                 Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
                     if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
@@ -42,10 +42,6 @@ function SearchFiltersCategoryPage() {
                     return availableCategories.length > 0;
                 }),
             ),
-        [personalPolicyID],
-    );
-    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        selector: availableNonPersonalPolicyCategoriesSelector,
     });
 
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})

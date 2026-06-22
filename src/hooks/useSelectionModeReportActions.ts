@@ -1,7 +1,7 @@
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
-import {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -117,11 +117,9 @@ function useSelectionModeReportActions({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const submitterLoginSelector = useCallback(
-        (personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>) => personalDetailsLoginSelector(report?.ownerAccountID)(personalDetailsList),
-        [report?.ownerAccountID],
-    );
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: submitterLoginSelector});
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>) => personalDetailsLoginSelector(report?.ownerAccountID)(personalDetailsList),
+    });
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
 

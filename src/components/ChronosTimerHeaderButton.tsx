@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
@@ -40,15 +40,11 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
 
     const {accountID: currentUserAccountID, timezone: timezoneParam} = useCurrentUserPersonalDetails();
     const reportActionsOnyxKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as OnyxKey;
-    const timerStartTimeSelector = useCallback(
-        (reportActions: unknown): string | null => {
+    const [timerStartTime] = useOnyx<OnyxKey, string | null>(reportActionsOnyxKey, {
+        selector: (reportActions: unknown): string | null => {
             const sorted = getSortedReportActionsForDisplay(reportActions as OnyxEntry<ReportActions>, canPerformWriteAction, false, visibleReportActionsData, report.reportID);
             return getTimeOfChronosTimerRunningFromVisibleActions(sorted, currentUserAccountID);
         },
-        [canPerformWriteAction, visibleReportActionsData, report.reportID, currentUserAccountID],
-    );
-    const [timerStartTime] = useOnyx<OnyxKey, string | null>(reportActionsOnyxKey, {
-        selector: timerStartTimeSelector,
     });
 
     const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`, {

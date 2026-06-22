@@ -1,6 +1,6 @@
 import {policyTypeSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
@@ -479,8 +479,8 @@ function MoneyRequestView({
 
     // Trip rooms are the grandparent report, so check that first before scanning the collection.
     const grandparentReportID = parentReport?.parentReportID;
-    const tripRoomReportSelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => {
+    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports: OnyxCollection<OnyxTypes.Report>) => {
             if (!transactionTripID || !reports) {
                 return undefined;
             }
@@ -495,9 +495,7 @@ function MoneyRequestView({
                 name: getReportName(match, reportAttributes) || match.reportName,
             };
         },
-        [transactionTripID, grandparentReportID, reportAttributes],
-    );
-    const [tripRoomInfo] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
+    });
     const tripRoomReportID = tripRoomInfo?.reportID;
     const tripRoomName = tripRoomInfo?.name;
     const shouldShowTripRoomLink = !!tripRoomReportID && !!tripRoomName;

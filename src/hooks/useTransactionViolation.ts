@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
@@ -22,13 +21,10 @@ function useTransactionViolation(eligibleTransactionIDs?: Set<string>) {
     // ID array and have the selector depend on that — otherwise the selector identity changes each
     // render and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
     const eligibleTransactionIDList = useStableArrayReference(eligibleTransactionIDs ? Array.from(eligibleTransactionIDs).sort() : []);
-    const transactionViolationSelector = useCallback(
-        (violations: OnyxCollection<TransactionViolations>) => transactionViolationsSelector(violations, eligibleTransactionIDList.length ? new Set(eligibleTransactionIDList) : undefined),
-        [eligibleTransactionIDList],
-    );
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: transactionViolationSelector,
+        selector: (violations: OnyxCollection<TransactionViolations>) =>
+            transactionViolationsSelector(violations, eligibleTransactionIDList.length ? new Set(eligibleTransactionIDList) : undefined),
     });
 
     return transactionViolations;

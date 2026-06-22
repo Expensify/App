@@ -35,15 +35,8 @@ function DebugReportActionPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const getReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
-            return withDEWRoutedActionsObject(reportActions)?.[reportActionID];
-        },
-        [reportActionID],
-    );
-
     const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: getReportActionSelector,
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => withDEWRoutedActionsObject(reportActions)?.[reportActionID],
     });
     const transactionID = getLinkedTransactionID(reportAction);
 

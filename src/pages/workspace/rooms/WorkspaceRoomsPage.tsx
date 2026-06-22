@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {policyChatRoomsSelector} from '@selectors/Report';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -52,12 +52,8 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const archivedReportsIDSet = useArchivedReportsIDSet();
     const personalDetails = usePersonalDetails();
 
-    const policyChatRoomsReportsSelector = useCallback(
-        (reports: OnyxCollection<Report>) => policyChatRoomsSelector(policyID, archivedReportsIDSet)(reports),
-        [policyID, archivedReportsIDSet],
-    );
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: policyChatRoomsReportsSelector,
+        selector: (reports: OnyxCollection<Report>) => policyChatRoomsSelector(policyID, archivedReportsIDSet)(reports),
     });
 
     // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.
