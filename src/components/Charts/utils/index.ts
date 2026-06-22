@@ -474,14 +474,10 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     }
 
     const effectiveMin = rawDataMin > 0 ? 0 : rawDataMin;
-    if (effectiveMin === rawDataMax) {
-        // Flat domain (zero or all-negative): Victory expands by ±1 symmetrically.
-        return Array.from({length: tickCount}, (_, index) => effectiveMin + 1 - (index * 2) / (tickCount - 1));
-    }
 
-    const range = rawDataMax - effectiveMin;
-    const paddedMax = rawDataMax + range * (padTop / chartHeight);
-    const paddedMin = effectiveMin - range * (padBottom / chartHeight);
+    const isFlat = effectiveMin === rawDataMax;
+    const paddedMax = isFlat ? rawDataMax + 1 : rawDataMax + (rawDataMax - effectiveMin) * (padTop / chartHeight);
+    const paddedMin = isFlat ? effectiveMin - 1 : effectiveMin - (rawDataMax - effectiveMin) * (padBottom / chartHeight);
 
     // Inline D3 nice()+ticks() — the same algorithm Victory uses internally.
     const d3TickStep = (start: number, stop: number, count: number): number => {
@@ -510,7 +506,9 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     const tickStart = Math.ceil(niceMin / tickStep) * tickStep;
     const tickEnd = Math.floor(niceMax / tickStep) * tickStep;
     const stepCount = Math.round((tickEnd - tickStart) / tickStep);
-    return Array.from({length: stepCount + 1}, (_, i) => tickStart + i * tickStep);
+    const decimals = Math.max(0, -Math.floor(Math.log10(tickStep)));
+    const round = (v: number) => Math.round(v * 10 ** decimals) / 10 ** decimals;
+    return Array.from({length: stepCount + 1}, (_, i) => round(tickStart + i * tickStep));
 }
 
 /** Returns the pixel width needed for Y-axis labels given the data extremes. */

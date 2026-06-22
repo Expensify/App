@@ -738,8 +738,12 @@ const BAR_PAD_BOTTOM = 1;
 const CHART_HEIGHT = 250;
 
 describe('getNiceYAxisTicks', () => {
-    it('expands a flat series by ±1 to mirror victory-native equal-domain ticks', () => {
-        expect(getNiceYAxisTicks(-1, -1, 5)).toEqual([0, -0.5, -1, -1.5, -2]);
+    it('expands a flat series by ±1 and runs D3 nice/ticks so results are always nice values', () => {
+        expect(getNiceYAxisTicks(-1, -1, 5)).toEqual([-2, -1.5, -1, -0.5, 0]);
+    });
+
+    it('produces nice ticks even when the singular value is not itself nice', () => {
+        expect(getNiceYAxisTicks(-3.7, -3.7, 5)).toEqual([-4.5, -4, -3.5, -3]);
     });
 
     it('treats flat positive series as range [0, value] using bar chart padding', () => {
@@ -764,5 +768,9 @@ describe('getNiceYAxisTicks', () => {
 
     it('returns correct ticks for varied negative data with bar chart padding', () => {
         expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_HEIGHT)).toEqual([-100, -80, -60, -40, -20, 0]);
+    });
+
+    it('rounds intermediate ticks to eliminate floating-point noise', () => {
+        expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
     });
 });
