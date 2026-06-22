@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import AutoSubmitModal from '@components/AutoSubmitModal';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,24 +16,27 @@ function FeatureTrainingModalNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     return (
         <NoDropZone>
-            <View>
-                <Stack.Navigator
-                    screenOptions={{headerShown: false, animation: Animations.SLIDE_FROM_RIGHT, web: {transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC}}}
-                >
-                    <Stack.Screen
-                        name={SCREENS.FEATURE_TRAINING_ROOT}
-                        component={TrackTrainingPage}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT}
-                        component={ChangePolicyEducationalModal}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.AUTO_SUBMIT_ROOT}
-                        component={AutoSubmitModal}
-                    />
-                </Stack.Navigator>
-            </View>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    animation: Animations.SLIDE_FROM_RIGHT,
+                    web: {cardStyle: {backgroundColor: 'transparent'}, transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC},
+                    native: {contentStyle: {backgroundColor: 'transparent'}},
+                }}
+            >
+                <Stack.Screen
+                    name={SCREENS.FEATURE_TRAINING_ROOT}
+                    component={TrackTrainingPage}
+                />
+                <Stack.Screen
+                    name={SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT}
+                    component={ChangePolicyEducationalModal}
+                />
+                <Stack.Screen
+                    name={SCREENS.AUTO_SUBMIT_ROOT}
+                    component={AutoSubmitModal}
+                />
+            </Stack.Navigator>
         </NoDropZone>
     );
 }
