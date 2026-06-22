@@ -18,6 +18,7 @@ function resetUSDBankAccount(
     policyID: string | undefined,
     achAccount: ACHAccount | undefined,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+    policyOwner?: string,
 ) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
@@ -55,7 +56,7 @@ function resetUSDBankAccount(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    achAccount: null,
+                    achAccount: policyOwner ? {reimburser: policyOwner} : null,
                 },
             },
             {

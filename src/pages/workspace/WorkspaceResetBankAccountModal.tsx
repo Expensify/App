@@ -70,7 +70,7 @@ function WorkspaceResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID, lastPaymentMethod);
+            resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID, lastPaymentMethod, policy?.owner);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);
@@ -84,7 +84,7 @@ function WorkspaceResetBankAccountModal({
                 ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? CONST.POLICY.ID_FAKE, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, backTo}),
             );
         } else {
-            resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
+            resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod, policy?.owner);
 
             if (setShouldShowContinueSetupButton) {
                 setShouldShowContinueSetupButton(false);
