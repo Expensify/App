@@ -1,7 +1,7 @@
 import {format, setYear} from 'date-fns';
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, Keyboard, TextInput as RNTextInput, View} from 'react-native';
+import {Keyboard, TextInput as RNTextInput, View} from 'react-native';
 import type {TextInputKeyPressEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -175,9 +175,12 @@ function DatePicker({
     };
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            calculatePopoverPosition();
-        });
+        // Debounce so rapid resize/orientation changes collapse into a single measurement instead of
+        // recalculating the popover position on every intermediate dimension tick.
+        const debouncedCalculatePopoverPosition = debounce(calculatePopoverPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
+        debouncedCalculatePopoverPosition();
+
+        return () => debouncedCalculatePopoverPosition.cancel();
     }, [calculatePopoverPosition, windowWidth]);
 
     // Combined ref: updates textInputRef (needed for blur() in showDatePickerModal) and connects

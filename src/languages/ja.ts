@@ -1051,6 +1051,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
+        recentlyAddedSection: {
+            title: '最近追加されたもの',
+            viewAll: 'すべての経費を表示',
+            emptyStateTitle: '最近の経費はありません',
+            emptyStateMessage: '新規作成するか、レシートをここにドラッグしてください',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1634,6 +1640,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'レポートに移動',
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
+        submitReportTo: {
+            subtitle: 'この申請の受信者として、ワークスペースメンバーを選択するか、メールアドレスを入力してください。',
+            emailLabel: 'メールアドレス',
+            workspaceMembers: 'ワークスペースメンバー',
+            sendExpense: '経費を誰にでも送信できます',
+            sendExpenseSubtitle: 'メールアドレスまたは電話番号を使って、誰でも Expensify に招待できます。',
+        },
         changeApprover: {
             title: '承認者を変更',
             header: (workflowSettingLink: string) =>
@@ -6253,7 +6266,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 `このワークスペースから${memberName}を削除すると、技術連絡先はワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} は、対応が必要な未処理のレポートがあります。ワークスペースから削除する前に、必要な対応を完了するよう依頼してください。`,
-            members: 'メンバー',
+            allMembers: 'すべてのメンバー',
             admins: 'ワークスペース管理者',
             approvers: '承認者',
             auditors: '監査担当者',
@@ -6658,6 +6671,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         distanceRates: {
             oopsNotSoFast: 'おっと！ちょっと待って…',
             workspaceNeeds: 'ワークスペースには、少なくとも 1 つの有効な距離レートが必要です。',
+            commuterExclusions: {
+                title: '通勤を除外',
+                summaryDisabled: '通勤除外なし',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `申請ごとに ${distance} ${unit} を除外します`,
+                optionDisabledTitle: '通勤を除外しない',
+                optionDisabledHelp: '通勤除外は適用されていません。',
+                optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
+                optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
+                distanceLabel: '距離',
+                errors: {distanceMustBePositive: '距離は0より大きい値でなければなりません。'},
+            },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',
             rate: '評価',
@@ -7928,6 +7952,22 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
+        commuterExclusions: {
+            changedToFixedDistance: '通勤分の除外方法を、申請ごとの固定距離に変更しました',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'マイル' : 'マイル';
+                } else {
+                    unitLabel = isSingular ? 'キロメートル' : 'キロメートル';
+                }
+                return `1件の経費申請につき固定除外距離を${distance} ${unitLabel}に設定します`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `1件あたりの固定距離除外を${oldDistance} ${unit}から${newDistance} ${unit}に変更しました`,
+            disabled: '距離レートで通勤を除外する設定を無効にしました',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `精算方法を「${newReimbursementChoice}」（以前は「${oldReimbursementChoice}」）に変更しました`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} ワークスペース参加リクエストの事前承認`,
@@ -9437,6 +9477,7 @@ ${reportName}`,
             theresAProblemWithYourWallet: 'ウォレットに問題があります',
             theresAProblemWithYourWalletTerms: 'ウォレットの利用規約に問題があります',
             aBankAccountIsLocked: '銀行口座がロックされています',
+            completeHrSetup: '人事設定を完了する',
         },
     },
     emptySearchView: {
@@ -9539,6 +9580,10 @@ ${reportName}`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
@@ -9748,21 +9793,5 @@ ${reportName}`,
         negativeButton: 'そうでもありません',
     },
     monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
-    aiFeaturesPromoModal: {
-        subtitle: 'はじめての Concierge AI',
-        confirmText: '始めましょう！',
-        spendAnalysis: {
-            title: 'インタラクティブな支出分析',
-            description: `<muted-text>Concierge は毎月の支出インサイトを提示し、すべての数値の内訳を詳しく確認できるようにします。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">詳しく見る</a>。</muted-text>`,
-        },
-        expenseAssistant: {
-            title: '新しい経費アシスタントをご紹介します',
-            description: `<muted-text>アプリ内やメール、テキストメッセージでConciergeとチャットして、経費を作成・更新できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">詳しく見る</a>。</muted-text>`,
-        },
-        customAgents: {
-            title: '独自のエージェントを作成する',
-            description: `<muted-text>設定したルールに基づいて経費を確認、承認、振り分けるカスタムエージェントを作成できます。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">さらに詳しく</a>。</muted-text>`,
-        },
-    },
 };
 export default translations;

@@ -53,15 +53,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.AI_FEATURES_PROMO_MODAL.ROOT]: {
-                    path: ROUTES.AI_FEATURES_PROMO_MODAL,
-                    exact: true,
-                },
-            },
-        },
-
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
@@ -1066,6 +1057,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.route,
+                        },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
                         },
@@ -1159,6 +1153,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
                             path: ROUTES.WORKSPACE_CREATE_REPORT_FIELD.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path,
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
                         },
