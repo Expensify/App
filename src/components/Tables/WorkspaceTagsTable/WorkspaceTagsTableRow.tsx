@@ -82,7 +82,6 @@ export default function WorkspaceTagsTableRow({
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,
-                shouldHideOnDelete: false,
                 onClose: item.onClose,
             }}
         >
