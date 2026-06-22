@@ -94,7 +94,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
-            {isEmpty && emptyStateContent && <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View>}
+            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View>}
             {!isEmpty && (
                 <>
                     {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
