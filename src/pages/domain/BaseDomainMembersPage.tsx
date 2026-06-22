@@ -86,8 +86,8 @@ type BaseDomainMembersPageProps = {
     /** Weather long press should enable selection mode on mobile */
     turnOnSelectionModeOnLongPress?: boolean;
 
-    /** Optional accessory element to display next to the search bar (e.g., filter dropdown). When a function, receives shouldShowSearchBar for layout. */
-    searchBarAccessory?: React.ReactNode | ((shouldShowSearchBar: boolean) => React.ReactNode);
+    /** Optional accessory element to display next to the search bar (e.g., filter dropdown) */
+    searchBarAccessory?: React.ReactNode;
 
     /** Optional filter applied unconditionally before text search (e.g. group filter). */
     preFilter?: (item: MemberOption) => boolean;
@@ -215,7 +215,7 @@ function BaseDomainMembersPage({
     const shouldShowEmptySearchMessage = !!shouldShowSearchBar && inputValue.length !== 0 && filteredData.length === 0;
     // Show empty pre filter state only if we have data, filtered data is empty, but the search have not been used.
     const shouldShowEmptyPreFilterState = filteredData.length === 0 && data.length !== 0 && !!emptyStateTitle && inputValue.length === 0;
-    const searchBarAccessoryContent = typeof searchBarAccessory === 'function' ? searchBarAccessory(shouldShowSearchBar) : searchBarAccessory;
+    const searchBarAccessoryContent = searchBarAccessory;
     const shouldShowFilterRow = !!searchBarAccessoryContent || shouldShowSearchBar;
     const listHeaderContent = shouldShowFilterRow ? (
         <View style={styles.flexColumn}>

@@ -11,10 +11,8 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import MembersFilterButton from '@components/Search/FilterDropdowns/MembersFilterButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -698,16 +696,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // to preserve the same accessibility behavior without using SearchBar's default layout.
     useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowEmptySearchMessage, inputValue);
 
-    const rolePopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <MultiSelectPopup
-            label={translate('common.role')}
-            items={roleFilterOptions}
-            value={effectiveSelectedRoleFilters}
-            closeOverlay={closeOverlay}
-            onChange={handleRoleFilterChange}
-        />
-    );
-
     const selectedRoleFilterLabels = effectiveSelectedRoleFilters.map(({text}) => text).join(', ');
     const roleFilterDropdownLabel = `${translate('common.role')}: ${effectiveSelectedRoleFilters.length > 0 ? selectedRoleFilterLabels : translate('common.all')}`;
 
@@ -1036,8 +1024,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         {shouldShowRoleFilter && (
                             <MembersFilterButton
                                 label={roleFilterDropdownLabel}
-                                PopoverComponent={rolePopoverComponent}
+                                popoverLabel={translate('common.role')}
                                 shouldShowSearchBar={shouldShowSearchBar}
+                                items={roleFilterOptions}
+                                selectedItems={effectiveSelectedRoleFilters}
+                                onSelectionChange={handleRoleFilterChange}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.ROLE_FILTER_BUTTON}
                             />
                         )}

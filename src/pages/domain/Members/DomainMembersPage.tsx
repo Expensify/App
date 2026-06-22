@@ -11,9 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import MembersFilterButton from '@components/Search/FilterDropdowns/MembersFilterButton';
-import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
@@ -96,16 +94,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             translationKey: 'domain.members.membersFeatureList.enforce2FA',
         },
     ];
-
-    const groupPopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <MultiSelectPopup
-            label={translate('common.group')}
-            items={groupOptions}
-            value={effectiveSelectedGroups}
-            closeOverlay={closeOverlay}
-            onChange={handleGroupChange}
-        />
-    );
 
     const getGroupRightElement = (accountID: number) => {
         if (!groups) {
@@ -330,6 +318,20 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         );
     }
 
+    const shouldShowSearchBar = (memberIDs ?? []).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const groupFilterButton =
+        groupOptions.length > 0 ? (
+            <MembersFilterButton
+                label={dropdownLabel}
+                popoverLabel={translate('common.group')}
+                shouldShowSearchBar={shouldShowSearchBar}
+                items={groupOptions}
+                selectedItems={effectiveSelectedGroups}
+                onSelectionChange={handleGroupChange}
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.GROUP_FILTER_BUTTON}
+            />
+        ) : null;
+
     return (
         <>
             <BaseDomainMembersPage
@@ -348,16 +350,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 useSelectionModeHeader={selectionModeHeader}
                 getCustomRightElement={getGroupRightElement}
-                searchBarAccessory={(shouldShowSearchBar) =>
-                    groupOptions.length > 0 ? (
-                        <MembersFilterButton
-                            label={dropdownLabel}
-                            PopoverComponent={groupPopoverComponent}
-                            shouldShowSearchBar={shouldShowSearchBar}
-                            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.GROUP_FILTER_BUTTON}
-                        />
-                    ) : null
-                }
+                searchBarAccessory={groupFilterButton}
                 emptyStateTitle={translate('domain.members.emptyMembers.title')}
                 emptyStateSubtitle={translate('domain.members.emptyMembers.subtitle')}
                 turnOnSelectionModeOnLongPress
