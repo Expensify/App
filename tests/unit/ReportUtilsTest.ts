@@ -102,6 +102,7 @@ import {
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
     getParticipantsList,
+    getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     getPolicyName,
@@ -7346,6 +7347,88 @@ describe('ReportUtils', () => {
             expect(getWorkspaceNameUpdatedMessage(translateLocal, action as ReportAction)).toEqual(
                 'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
             );
+        });
+    });
+
+    describe('getPolicyChangeLogCopyMessage', () => {
+        const sourcePolicyID = 'sourcePolicy1';
+        const sourcePolicyName = 'Acme HQ Workspace';
+
+        function buildCopyAction(actionName: ReportAction['actionName'], originalMessage?: {sourcePolicyID?: string; quantity?: number}): ReportAction {
+            return {
+                actionName,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage,
+            } as unknown as ReportAction;
+        }
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`, {id: sourcePolicyID, name: sourcePolicyName});
+            await waitForBatchedUpdates();
+        });
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, `copied overview from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES, `copied members from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING, `copied accounting settings from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS, `copied receipt partner settings from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR, `copied HR settings from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING, `copied time tracking settings from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS, `copied workflows from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES, `copied rules from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES, `copied invoice settings from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL, `copied travel settings from ${sourcePolicyName}`],
+        ])('returns the non-counted message for %s', (actionName, expected) => {
+            const action = buildCopyAction(actionName, {sourcePolicyID});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(expected);
+        });
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS, 1, `copied 1 report field from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS, 3, `copied 3 report fields from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES, 1, `copied 1 category from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES, 5, `copied 5 categories from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS, 1, `copied 1 tag from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS, 2, `copied 2 tags from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES, 1, `copied 1 tax rate from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES, 4, `copied 4 tax rates from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES, 1, `copied 1 merchant rule from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES, 6, `copied 6 merchant rules from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE, 1, `copied 1 distance rate from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE, 7, `copied 7 distance rates from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM, 1, `copied 1 per diem rate from ${sourcePolicyName}`],
+            [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM, 8, `copied 8 per diem rates from ${sourcePolicyName}`],
+        ])('returns the counted message for %s with quantity %d', (actionName, quantity, expected) => {
+            const action = buildCopyAction(actionName, {sourcePolicyID, quantity});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(expected);
+        });
+
+        it('falls back to a count of 0 (plural form) when quantity is missing on a counted action', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES, {sourcePolicyID});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`copied 0 categories from ${sourcePolicyName}`);
+        });
+
+        it('uses an empty source policy name when the source policy is not in Onyx', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, {sourcePolicyID: 'unknownPolicy'});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe('copied overview from ');
+        });
+
+        it('uses an empty source policy name when sourcePolicyID is missing', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, {});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe('copied overview from ');
+        });
+
+        it('handles a missing original message (no sourcePolicyID, count defaults to 0)', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS);
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe('copied 0 tags from ');
+        });
+
+        it('returns an empty string for an action that is not a policy copy action', () => {
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {sourcePolicyID});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe('');
         });
     });
 

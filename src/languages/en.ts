@@ -8250,6 +8250,46 @@ const translations = {
         setMaxExpenseAge: (newValue: string) => `set max expense age to "${newValue}" days`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
+        policyCopy: {
+            overview: (sourcePolicyName: string) => `copied overview from ${sourcePolicyName}`,
+            employees: (sourcePolicyName: string) => `copied members from ${sourcePolicyName}`,
+            reportFields: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copied 1 report field from ${sourcePolicyName}`,
+                other: (count: number) => `copied ${count} report fields from ${sourcePolicyName}`,
+            }),
+            accounting: (sourcePolicyName: string) => `copied accounting settings from ${sourcePolicyName}`,
+            receiptPartners: (sourcePolicyName: string) => `copied receipt partner settings from ${sourcePolicyName}`,
+            hr: (sourcePolicyName: string) => `copied HR settings from ${sourcePolicyName}`,
+            categories: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copied 1 category from ${sourcePolicyName}`,
+                other: (count: number) => `copied ${count} categories from ${sourcePolicyName}`,
+            }),
+            tags: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copied 1 tag from ${sourcePolicyName}`,
+                other: (count: number) => `copied ${count} tags from ${sourcePolicyName}`,
+            }),
+            taxes: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copied 1 tax rate from ${sourcePolicyName}`,
+                other: (count: number) => `copied ${count} tax rates from ${sourcePolicyName}`,
+            }),
+            timeTracking: (sourcePolicyName: string) => `copied time tracking settings from ${sourcePolicyName}`,
+            workflows: (sourcePolicyName: string) => `copied workflows from ${sourcePolicyName}`,
+            rules: (sourcePolicyName: string) => `copied rules from ${sourcePolicyName}`,
+            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copied 1 merchant rule from ${sourcePolicyName}`,
+                other: (count: number) => `copied ${count} merchant rules from ${sourcePolicyName}`,
+            }),
+            distanceRates: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copied 1 distance rate from ${sourcePolicyName}`,
+                other: (count: number) => `copied ${count} distance rates from ${sourcePolicyName}`,
+            }),
+            perDiem: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copied 1 per diem rate from ${sourcePolicyName}`,
+                other: (count: number) => `copied ${count} per diem rates from ${sourcePolicyName}`,
+            }),
+            invoices: (sourcePolicyName: string) => `copied invoice settings from ${sourcePolicyName}`,
+            travel: (sourcePolicyName: string) => `copied travel settings from ${sourcePolicyName}`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

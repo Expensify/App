@@ -6889,6 +6889,70 @@ function getPolicyChangeMessage(translate: LocalizedTranslate, action: ReportAct
     return message;
 }
 
+function getPolicyChangeLogCopyMessage(translate: LocalizedTranslate, action: ReportAction) {
+    const PolicyChangeLogCopyOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW>) ?? {};
+    const {sourcePolicyID, quantity} = PolicyChangeLogCopyOriginalMessage;
+    const sourcePolicyName = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`]?.name ?? '';
+    const count = quantity ?? 0;
+    let message = '';
+    switch (action.actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW:
+            message = translate('workspaceActions.policyCopy.overview', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES:
+            message = translate('workspaceActions.policyCopy.employees', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS:
+            message = translate('workspaceActions.policyCopy.reportFields', {count, sourcePolicyName});
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING:
+            message = translate('workspaceActions.policyCopy.accounting', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS:
+            message = translate('workspaceActions.policyCopy.receiptPartners', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR:
+            message = translate('workspaceActions.policyCopy.hr', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES:
+            message = translate('workspaceActions.policyCopy.categories', {count, sourcePolicyName});
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS:
+            message = translate('workspaceActions.policyCopy.tags', {count, sourcePolicyName});
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES:
+            message = translate('workspaceActions.policyCopy.taxes', {count, sourcePolicyName});
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING:
+            message = translate('workspaceActions.policyCopy.timeTracking', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS:
+            message = translate('workspaceActions.policyCopy.workflows', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES:
+            message = translate('workspaceActions.policyCopy.rules', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES:
+            message = translate('workspaceActions.policyCopy.codingRules', {count, sourcePolicyName});
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE:
+            message = translate('workspaceActions.policyCopy.distanceRates', {count, sourcePolicyName});
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM:
+            message = translate('workspaceActions.policyCopy.perDiem', {count, sourcePolicyName});
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES:
+            message = translate('workspaceActions.policyCopy.invoices', sourcePolicyName);
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL:
+            message = translate('workspaceActions.policyCopy.travel', sourcePolicyName);
+            break;
+        default:
+            break;
+    }
+    return message;
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -13532,6 +13596,7 @@ export {
     getReportSubtitlePrefix,
     computeOptimisticReportName,
     getPolicyChangeMessage,
+    getPolicyChangeLogCopyMessage,
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,
     navigateToLinkedReportAction,
