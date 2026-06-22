@@ -509,6 +509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'アバター',
         editor: '編集者',
         restrictions: '制限',
+        off: 'オフ',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -1050,6 +1051,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
+        recentlyAddedSection: {
+            title: '最近追加されたもの',
+            viewAll: 'すべての経費を表示',
+            emptyStateTitle: '最近の経費はありません',
+            emptyStateMessage: '新規作成するか、レシートをここにドラッグしてください',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1328,6 +1335,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} を支払済みにする` : `支払い済みにする`),
         confirmPaymentReceivedModalTitle: '支払いを受領したことを確認',
         receivedPayment: '支払い受領済み',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}支払いを受け取りました`,
         receivedPaymentConfirmation: 'Expensify以外で支払いを受け取っている場合のみ続行してください。',
         confirmReceivedPayment: 'はい、支払いを受け取りました。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント（下4桁 ${last4Digits}）で ${amount} を支払いました` : `個人アカウントで支払い済み`),
@@ -1632,6 +1640,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'レポートに移動',
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
+        submitReportTo: {
+            subtitle: 'この申請の受信者として、ワークスペースメンバーを選択するか、メールアドレスを入力してください。',
+            emailLabel: 'メールアドレス',
+            workspaceMembers: 'ワークスペースメンバー',
+            sendExpense: '経費を誰にでも送信できます',
+            sendExpenseSubtitle: 'メールアドレスまたは電話番号を使って、誰でも Expensify に招待できます。',
+        },
         changeApprover: {
             title: '承認者を変更',
             header: (workflowSettingLink: string) =>
@@ -4918,6 +4933,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: '会社',
             autoSyncDescription: 'Expensify は毎日自動的に Certinia と同期します。',
             syncReimbursedReportsDescription: 'このオプションを有効にすると、FFA で買掛請求書が支払われるたびに、関連する Expensify レポートが自動的に精算済みとしてマークされます。',
             exportDescription: 'Expensify のデータを Certinia へエクスポートする方法を設定します。',
@@ -4931,6 +4948,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: '送信済み',
                 },
             },
+            reportExportStatus: {
+                label: '経費レポートステータス',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: '承認済み',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: '送信済み',
+                },
+            },
             exportDate: {
                 label: '支払予定請求書日',
                 values: {
@@ -4941,8 +4965,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             exportReimbursable: {label: '精算対象経費の書き出し形式', helperText: '払い戻し対象としてマークされた経費は、従業員宛ての未払請求書としてエクスポートされます。'},
             exportNonReimbursable: {label: '未払い精算の対象外経費を次の形式でエクスポートする'},
+            expenseReports: '経費レポート',
+            exportReimbursableExpenseReports: {helperText: '払い戻し対象としてマークされた経費は、従業員宛ての経費レポートとしてエクスポートされます。'},
+            exportNonReimbursableExpenseReports: {helperText: '払い戻し対象外としてマークされた経費は、従業員宛ての経費レポートとしてエクスポートされます。'},
             noVendorsFound: 'ベンダーが見つかりませんでした',
             noVendorsFoundDescription: 'Certinia にベンダーを追加した後に、もう一度接続の同期を行ってください。',
+            noCompaniesFound: '会社が見つかりませんでした',
+            noCompaniesFoundDescription: 'Certinia に会社を追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
                 installBundle: 'FFA 接続用',
@@ -6146,6 +6175,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'コピーする機能を選択します',
                 description: '既存のワークスペースで上書きする設定を選択します。',
                 accountingMismatch: ({part}: {part: string}) => `すべてのワークスペースが同じ会計システムと会社接続を使用している場合にのみ、${part} をコピーできます。`,
+                travelAddressMismatch: '出張をコピーできるのは、選択したすべてのワークスペースに会社の住所がある場合のみです。',
             },
             confirmSettings: {
                 title: 'すべて正しく表示されているか確認しましょう。',
@@ -6641,8 +6671,20 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         distanceRates: {
             oopsNotSoFast: 'おっと！ちょっと待って…',
             workspaceNeeds: 'ワークスペースには、少なくとも 1 つの有効な距離レートが必要です。',
+            commuterExclusions: {
+                title: '通勤を除外',
+                summaryDisabled: '通勤除外なし',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `申請ごとに ${distance} ${unit} を除外します`,
+                optionDisabledTitle: '通勤を除外しない',
+                optionDisabledHelp: '通勤除外は適用されていません。',
+                optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
+                optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
+                distanceLabel: '距離',
+                errors: {distanceMustBePositive: '距離は0より大きい値でなければなりません。'},
+            },
             distance: '距離',
             centrallyManage: '料金を一元管理し、マイルまたはキロメートルで追跡し、デフォルトのカテゴリを設定できます。',
+            emptyRates: {title: '距離レートはまだありません', subtitle: 'カスタムレートで走行距離を精算するためのレートを追加します。'},
             rate: '評価',
             addRate: 'レートを追加',
             findRate: 'レートを検索',
@@ -6944,6 +6986,13 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>承認機能は、Collect プランおよび Control プランで利用できます。料金は <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からです。</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'レポートを承認',
+                description:
+                    '申請の確認と承認、支出の管理をすべて一か所で行うことができます。承認ワークフローを使えば、コストの管理、社内ポリシーの順守、従業員への迅速な精算が可能になります。',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>承認ワークフローは、アクティブメンバー1人あたり月額<strong>${formattedPrice}</strong>からの Collect プランでのみご利用いただけます。</muted-text>`,
+            },
             companyCardSubmit: {
                 title: '会社カード',
                 description: `お使いの会社カードをExpensifyに連携して、自動取込、自動分類、カスタマイズ可能なルール設定、そして統合された照合機能を利用しましょう。`,
@@ -6990,7 +7039,7 @@ ${reportName}`,
             },
             controlPolicyRoles: {
                 title: 'コントロールポリシーのロール',
-                description: '監査人やカード管理者などの専用ロールを使って、メンバーが必要なものにだけアクセスできるようにします。',
+                description: '監査人やカード管理者などのロールを割り当てて、メンバーに特定のアクセス権を付与します。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>特別なワークスペースロールは Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> から、${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブメンバー1人あたり／月`}）。</muted-text>`,
             },
@@ -7225,9 +7274,6 @@ ${reportName}`,
                 saveRule: 'ルールを保存',
                 allow: '許可',
                 spendRuleSectionTitle: '支出ルール',
-                restrictionType: '制限タイプ',
-                restrictionTypeHelpAllow: 'いずれかの加盟店またはカテゴリに一致し、上限金額を超えない場合、請求は承認されます。',
-                restrictionTypeHelpBlock: '加盟店またはカテゴリに一致するか、上限金額を超えた請求は拒否されます。',
                 addMerchant: '取引先を追加',
                 merchantContains: '加盟店に次を含む',
                 merchantExactlyMatches: '完全一致する加盟店',
@@ -7238,11 +7284,10 @@ ${reportName}`,
                 matchType: 'マッチタイプ',
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
-                spendCategory: '支出カテゴリ',
                 maxAmount: '最大金額',
                 maxAmountHelp: '加盟店や支出カテゴリの制限にかかわらず、この金額を超えるすべての支払いは拒否されます。',
-                currencyMismatchTitle: '通貨の不一致',
-                currencyMismatchPrompt: '上限金額を設定するには、同じ通貨で清算されるカードを選択してください。',
+                maxAmountCurrencyMismatchTitle: '通貨の不一致',
+                maxAmountCurrencyMismatchPrompt: '上限金額を設定するには、同じ通貨で清算されるカードを選択してください。',
                 reviewSelectedCards: '選択したカードを確認',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}、ほか+${count}件` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: '少なくとも1つの支出ルールを1枚のカードに適用してください',
@@ -7305,6 +7350,24 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
+                restrictMerchants: '加盟店を制限する',
+                merchantTypes: '加盟店種別',
+                allowedMerchants: '許可された加盟店',
+                allowedMerchantTypes: '許可された加盟店の種類',
+                blockedMerchants: 'ブロックされた加盟店',
+                blockedMerchantTypes: 'ブロックされた加盟店タイプ',
+                currencies: '通貨',
+                permittedCurrencies: '許可されている通貨',
+                allCurrencies: 'すべての通貨',
+                permittedCurrenciesSubtitle: 'すべての通貨、または特定の通貨のみを許可するように選択します',
+                settlementCurrencyPermittedSubtitle: 'カードの決済通貨は常に許可されています',
+                currenciesCurrencyMismatchTitle: '通貨の不一致',
+                currenciesCurrencyMismatchPrompt: '希望する通貨を設定するには、同じ通貨で清算されるカードを選択してください。',
+                restrictMerchantsOffSubtitle: '許可された通貨で、最大金額を超えない請求のみが承認されます',
+                restrictMerchantsAllowSubtitle: '許可された通貨で、上限金額を超えず、加盟店または加盟店の種類が一致する場合に、チャージが承認されます。',
+                restrictMerchantsBlockSubtitle: '承認される支出は、許可された通貨で上限金額を超えないもの、または加盟店または加盟店の種類が条件に一致するものです。',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -7897,6 +7960,22 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
+        commuterExclusions: {
+            changedToFixedDistance: '通勤分の除外方法を、申請ごとの固定距離に変更しました',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'マイル' : 'マイル';
+                } else {
+                    unitLabel = isSingular ? 'キロメートル' : 'キロメートル';
+                }
+                return `1件の経費申請につき固定除外距離を${distance} ${unitLabel}に設定します`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `1件あたりの固定距離除外を${oldDistance} ${unit}から${newDistance} ${unit}に変更しました`,
+            disabled: '距離レートで通勤を除外する設定を無効にしました',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `精算方法を「${newReimbursementChoice}」（以前は「${oldReimbursementChoice}」）に変更しました`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} ワークスペース参加リクエストの事前承認`,
@@ -9406,6 +9485,7 @@ ${reportName}`,
             theresAProblemWithYourWallet: 'ウォレットに問題があります',
             theresAProblemWithYourWalletTerms: 'ウォレットの利用規約に問題があります',
             aBankAccountIsLocked: '銀行口座がロックされています',
+            completeHrSetup: '人事設定を完了する',
         },
     },
     emptySearchView: {
@@ -9508,6 +9588,10 @@ ${reportName}`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {

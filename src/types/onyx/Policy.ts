@@ -1393,7 +1393,7 @@ type FinancialForceExportDestination = ValueOf<typeof CONST.CERTINIA_EXPORT_DEST
 type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.COMPLETE | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
 
 /** Certinia export statuses that apply to PSA reports */
-type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
+type FinancialForceReportExportStatus = ValueOf<typeof CONST.CERTINIA_REPORT_EXPORT_STATUS>;
 
 /** Certinia PSA parent tag mapping mode */
 type FinancialForceParentTagMappingMode = ValueOf<typeof CONST.CERTINIA_PARENT_TAG_MAPPING>;
@@ -1470,7 +1470,7 @@ type FinancialForceExportConfig = {
     nonReimbursable?: FinancialForceExportDestination;
 
     /** Payable invoice / expense report export status. */
-    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
+    exportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | FinancialForceReportExportStatus;
 
     /** Date basis for export */
     exportDate?: ValueOf<typeof CONST.CERTINIA_EXPORT_DATE>;
@@ -1483,9 +1483,6 @@ type FinancialForceExportConfig = {
 
     /** PSA / SRP: company ID for export */
     companyID?: string;
-
-    /** PSA: report-level export status. */
-    reportExportStatus?: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS>;
 };
 
 /** Certinia auto-sync */
@@ -1805,6 +1802,18 @@ type ACHAccount = {
     /** Emails of users who have had the bank account shared with them */
     sharees?: string[];
 };
+
+/** Commuter exclusion configuration for a policy */
+type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** How commuter mileage is excluded - R2 will add 'homeAndOffice' */
+    method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
+
+    /** Distance subtracted from each claim when method is 'fixedDistance' */
+    fixedDistance?: number;
+
+    /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
+    fixedDistanceUnit?: string;
+}>;
 
 /** Prohibited expense types */
 type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -2358,6 +2367,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Settings for the Policy's prohibited expenses */
         prohibitedExpenses?: ProhibitedExpenses;
 
+        /** Commuter exclusion configuration applied to distance expenses on this workspace */
+        commuterExclusions?: CommuterExclusions;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -2515,6 +2527,7 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    CommuterExclusions,
     NetSuiteConnectionData,
     MergeHRConnectionConfig,
     GustoConnectionConfig,
