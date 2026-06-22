@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Pièce jointe',
         attachments: 'Pièces jointes',
         center: 'Centrer',
+        resetMapToNorth: 'Réorienter la carte vers le nord',
         from: 'De',
         to: 'À',
         in: 'Dans',
@@ -1663,6 +1664,13 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
+        submitReportTo: {
+            subtitle: 'Choisissez un membre de l’espace de travail ou saisissez une adresse e-mail de la personne qui doit recevoir cette soumission.',
+            emailLabel: 'Adresse e-mail',
+            workspaceMembers: 'Membres de l’espace de travail',
+            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+        },
         changeApprover: {
             title: 'Modifier l’approbateur',
             header: (workflowSettingLink: string) =>
@@ -6789,6 +6797,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
+            emptyRates: {title: 'Aucun taux de distance pour l’instant', subtitle: 'Ajoutez un taux pour rembourser le kilométrage à des taux personnalisés.'},
             rate: 'Taux',
             addRate: 'Ajouter un taux',
             findRate: 'Trouver le taux',
@@ -7097,6 +7106,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les validations sont disponibles avec les forfaits Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Approuver les notes de frais',
+                description:
+                    'Examinez, approuvez et gardez vos dépenses sous contrôle en un seul endroit. Les workflows d’approbation vous aident à maîtriser les coûts, à appliquer les politiques de votre entreprise et à rembourser vos employés plus rapidement.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Les workflows d’approbation sont uniquement disponibles avec l’offre Collect, à partir de <strong>${formattedPrice}</strong> par membre actif et par mois.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Cartes d’entreprise',
                 description: `Apportez votre propre carte professionnelle dans Expensify pour bénéficier de l’importation automatique, de la catégorisation automatique, de règles personnalisables et du rapprochement intégré.`,
@@ -7313,6 +7329,10 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 saveAnyway: 'Enregistrer quand même',
                 applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
                 findRule: 'Règle de recherche de commerçant',
+                expenseDefaultsTitle: 'Paramètres par défaut des dépenses',
+                expenseDefaultsSubtitle: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
+                ifAnyExpenseMatches: 'Si une dépense correspond :',
+                thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
             },
             categoryRules: {
                 title: 'Règles de catégorie',
@@ -7460,12 +7480,33 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqué' : 'Autorisé'} ${shownCount > 1 ? 'catégories' : 'catégorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
+                defaultRuleSummary: 'Catégories incluant les services pour adultes, les distributeurs automatiques, les jeux d’argent, et...',
+                findRule: 'Trouver une règle',
+                defaultSection: 'Par défaut',
+                customRulesSection: 'Règles personnalisées',
+                tableColumnType: 'Type',
+                tableColumnCard: 'Carte',
+                tableColumnRule: 'Règle',
+                cardRulesUpsell: {
+                    title: 'Obtenez la Carte Expensify et contrôlez les dépenses',
+                    subtitle:
+                        'Avec la Carte Expensify, vous pouvez définir des règles de dépense maximale, bloquer ou autoriser certains commerçants ou types d’achats. Vous bénéficiez aussi de 2 % de remise en espèces.',
+                    cta: 'Obtenir la carte',
+                },
+                restrictCardSpendTitle: 'Limiter les dépenses de la carte',
+                restrictCardSpendSubtitle: 'Bloquez ou limitez les dépenses au point de vente.',
+                ifAnyCardMatches: 'Si une carte correspond :',
+                thenDoThisAtPointOfSale: 'Ensuite, faites ceci au point de vente :',
+                setRestrictions: 'Définir des restrictions',
+                merchantRestrictions: 'Restrictions du commerçant',
+                blockedMerchant: 'Commerçant bloqué',
+                blockedMerchantTypes: 'Types de marchands bloqués',
+                maxAmountAbove: ({amount}: {amount: string}) => `au-dessus de ${amount}`,
                 restrictMerchants: 'Restreindre les marchands',
                 merchantTypes: 'Types de marchands',
                 allowedMerchants: 'Commerçants autorisés',
                 allowedMerchantTypes: 'Types de marchands autorisés',
                 blockedMerchants: 'Commerçants bloqués',
-                blockedMerchantTypes: 'Types de marchands bloqués',
                 currencies: 'Devises',
                 permittedCurrencies: 'Devises autorisées',
                 allCurrencies: 'Toutes les devises',
@@ -7495,6 +7536,73 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 agentCreatedTitle: 'RuleBot a été ajouté à votre espace de travail !',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
+            },
+            tabs: {general: 'Général', cardRestrictions: 'Restrictions de carte', expenseDefaults: 'Paramètres par défaut des dépenses'},
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Supprimer la règle',
+                    other: 'Supprimer les règles',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Voulez-vous vraiment supprimer cette règle ?',
+                    other: 'Voulez-vous vraiment supprimer ces règles ?',
+                }),
+            },
+            generalTab: {
+                title: 'Règles de base',
+                subtitle: 'Règles courantes pour contrôler les dépenses',
+                expensesOlderThan: 'Signaler les dépenses antérieures à',
+                expensesAboveAmount: 'Marquer les dépenses au-dessus d’un montant',
+                flagReceiptLineItems: 'Signaler les lignes de reçu',
+                receiptRequirements: 'Exiger des reçus',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Dépense simple au-dessus de ${regularAmount}, détaillée au-dessus de ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Tarif normal au-dessus de ${regularAmount}, ne pas exiger de ventilation`;
+                    }
+                    if (itemizedAmount) {
+                        return `Ne pas exiger de dépense standard, détailler au-delà de ${itemizedAmount}`;
+                    }
+                    return 'Ne pas exiger de reçus';
+                },
+                requireFieldsForAllExpenses: 'Rendre les champs obligatoires pour toutes les dépenses',
+                cashExpenses: 'Dépenses en espèces',
+                cashExpensesReimbursableByDefault: 'Remboursable par défaut',
+                cashExpensesNonReimbursableByDefault: 'Non remboursable par défaut',
+                cashExpensesAlwaysReimbursable: 'Toujours remboursable',
+                cashExpensesAlwaysNonReimbursable: 'Toujours non remboursable',
+                billableExpenses: 'Dépenses refacturables',
+                billableExpensesBillable: 'Dépenses en espèces et par carte bancaire facturables',
+                billableExpensesNonBillable: 'Espèces et carte de crédit non facturables',
+            },
+            requireReceipts: {
+                title: 'Exiger des reçus',
+                description: 'Exiger des reçus lorsque la dépense dépasse ce montant, sauf si une règle de catégorie le remplace.',
+                requireReceipt: 'Reçu obligatoire',
+                requireItemizedReceipt: 'Exiger un reçu détaillé',
+                requireAboveAmount: 'Exiger un montant supérieur',
+                saveRule: 'Enregistrer la règle',
+                emptyAmountError: 'Saisissez un montant valide avant d’enregistrer',
+            },
+            requireFields: {title: 'Rendre les champs obligatoires pour toutes les dépenses', category: 'Catégorie', tag: 'Tag', save: 'Enregistrer la règle'},
+            newRule: {
+                title: 'Nouvelle règle',
+                subtitle: 'Que voulez-vous faire ?',
+                restrictCardSpend: 'Limiter les dépenses de la carte',
+                restrictCardSpendDescription: 'Bloquer ou limiter les dépenses au point de vente',
+                applyExpenseDefaults: 'Appliquer les valeurs de dépense par défaut',
+                applyExpenseDefaultsDescription: 'Mettre à jour les champs sans que le déclarant ne fasse quoi que ce soit',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Règle',
+                findRule: 'Trouver une règle',
+                rename: 'Renommer',
+                update: 'Mettre à jour',
+                merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
             },
         },
         planTypePage: {
