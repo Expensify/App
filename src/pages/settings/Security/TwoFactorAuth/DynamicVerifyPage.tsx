@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
@@ -75,10 +74,8 @@ function DynamicVerifyPage() {
 
     const scrollViewRef = useRef<RNScrollView>(null);
     const handleInputFocus = useCallback(() => {
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                scrollViewRef.current?.scrollToEnd({animated: true});
-            });
+        requestAnimationFrame(() => {
+            scrollViewRef.current?.scrollToEnd({animated: true});
         });
     }, []);
 

@@ -21,7 +21,7 @@ type RootStackNavigatorActionType =
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-          payload: {route: Route; collapseTabToLeaf?: boolean};
+          payload: {route: Route};
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
@@ -80,7 +80,7 @@ type DismissModalActionType = RootStackNavigatorActionType & {
 
 type ReplaceFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-    payload: {route: Route; collapseTabToLeaf?: boolean};
+    payload: {route: Route};
 };
 
 type RemoveFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
