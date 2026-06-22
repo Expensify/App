@@ -41,6 +41,9 @@ type ToggleSettingOptionRowProps = {
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
 
+    /** When true with shouldPlaceSubtitleBelowSwitch, uses tighter title/subtitle spacing to match MenuItem rows */
+    shouldUseCompactSubtitleSpacing?: boolean;
+
     /** Whether or not the text should be escaped */
     shouldEscapeText?: boolean;
 
@@ -107,6 +110,7 @@ function ToggleSettingOptionRow({
     accordionStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
+    shouldUseCompactSubtitleSpacing = false,
     shouldEscapeText = undefined,
     shouldParseSubtitle = false,
     wrapperStyle,
@@ -152,11 +156,19 @@ function ToggleSettingOptionRow({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseSubtitle, subtitleHtml]);
 
+    const subtitleSpacingStyle = (() => {
+        if (!shouldPlaceSubtitleBelowSwitch) {
+            return {...styles.mt1, ...styles.mr5};
+        }
+
+        return shouldUseCompactSubtitleSpacing ? styles.mt1 : styles.mt3;
+    })();
+
     const subTitleView = useMemo(() => {
         if (typeof subtitle === 'string') {
             if (!!subtitle && shouldParseSubtitle) {
                 return (
-                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt3 : {...styles.mt1, ...styles.mr5}]}>
+                    <View style={[styles.flexRow, styles.renderHTML, subtitleSpacingStyle]}>
                         <RenderHTML html={processedSubtitle} />
                     </View>
                 );
@@ -169,7 +181,7 @@ function ToggleSettingOptionRow({
                 <Text
                     accessible={!areSubtitleAndSwitchAccessibilityLabelEqual}
                     aria-hidden={areSubtitleAndSwitchAccessibilityLabelEqual}
-                    style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt3 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}
+                    style={[styles.mutedNormalTextLabel, subtitleSpacingStyle, subtitleStyle]}
                 >
                     {subtitle}
                 </Text>
@@ -181,12 +193,9 @@ function ToggleSettingOptionRow({
         subtitle,
         shouldParseSubtitle,
         styles.mutedNormalTextLabel,
-        styles.mt1,
-        styles.mt3,
-        styles.mr5,
         styles.flexRow,
         styles.renderHTML,
-        shouldPlaceSubtitleBelowSwitch,
+        subtitleSpacingStyle,
         subtitleStyle,
         processedSubtitle,
         areSubtitleAndSwitchAccessibilityLabelEqual,
@@ -254,7 +263,14 @@ function ToggleSettingOptionRow({
                     />
                 )}
                 <View style={[styles.pRelative, styles.flex1]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && styles.h10]}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
+                        ]}
+                    >
                         <PressableWithoutFeedback
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             onPress={shouldMakeContentPressable ? onPress : undefined}
