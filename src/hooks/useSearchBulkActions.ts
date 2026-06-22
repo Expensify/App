@@ -12,7 +12,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
@@ -200,6 +200,12 @@ type ShouldShowBulkDuplicateParams = {
     typeExpenseReport: boolean;
     searchData: Record<string, unknown> | undefined;
 };
+
+function areIncludedSubmitPolicyTransactions(selectedTransactions: SelectedTransactions, selectedReports: SelectedReports[], allPolicies: OnyxCollection<Policy>): boolean {
+    return selectedReports.length > 0
+        ? selectedReports.some((report) => isSubmitPolicy(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
+        : Object.values(selectedTransactions).some((transaction) => isSubmitPolicy(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${transaction.policyID}`]));
+}
 
 function getAllTransactionsForDuplicate({
     selectedTransactionsKeys,
@@ -1622,10 +1628,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) =>
             selectedTransactions[id].reportID ? selectedReportIDs.includes(selectedTransactions[id].reportID) : true,
         );
+        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
+            !hasSubmitPolicyTransactions &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.canApprove)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
