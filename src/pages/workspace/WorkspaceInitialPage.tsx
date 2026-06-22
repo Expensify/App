@@ -161,6 +161,14 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
     const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress(connectionSyncProgress, policy), isPolicyAdmin(policy));
+    const getHRBrickRoadIndicator = () => {
+        if (hasHRError) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+        if (isMergeHRCompleteSetupNeeded(policy)) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+    };
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
@@ -292,8 +300,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.hr',
-                brickRoadIndicator:
-                    (hasHRError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined) ?? (isMergeHRCompleteSetupNeeded(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined),
+                brickRoadIndicator: getHRBrickRoadIndicator(),
                 icon: expensifyIcons.Users,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.HR,
