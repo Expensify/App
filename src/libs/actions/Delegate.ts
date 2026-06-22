@@ -239,7 +239,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    initializePusherForDelegateTransition();
+                    return initializePusherForDelegateTransition();
                 })
                 .then(() => {
                     confirmReadyToOpenApp();
@@ -342,7 +342,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    initializePusherForDelegateTransition();
+                    return initializePusherForDelegateTransition();
                 })
                 .then(() => {
                     Onyx.set(ONYXKEYS.CREDENTIALS, {
