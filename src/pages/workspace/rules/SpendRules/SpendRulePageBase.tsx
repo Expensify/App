@@ -13,6 +13,7 @@ import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -61,6 +62,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
+    const {isDevelopment} = useEnvironment();
+
     const {showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
     const domainAccountID = useDefaultFundID(policyID);
@@ -344,15 +347,17 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         onPress={chooseCards}
                     />
                     <Text style={[styles.textStrong, styles.ph5, styles.mt5, styles.pv2]}>{translate('workspace.rules.spendRules.spendRuleSectionTitle')}</Text>
-                    <MenuItemWithTopDescription
-                        titleStyle={styles.flex1}
-                        title={currenciesMenuTitle}
-                        description={translate('workspace.rules.spendRules.permittedCurrencies')}
-                        interactive={canWriteSpendRules}
-                        shouldShowRightIcon={canWriteSpendRules}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
-                        onPress={chooseCurrencies}
-                    />
+                    {isDevelopment && (
+                        <MenuItemWithTopDescription
+                            titleStyle={styles.flex1}
+                            title={currenciesMenuTitle}
+                            description={translate('workspace.rules.spendRules.permittedCurrencies')}
+                            interactive={canWriteSpendRules}
+                            shouldShowRightIcon={canWriteSpendRules}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
+                            onPress={chooseCurrencies}
+                        />
+                    )}
                     <MenuItemWithTopDescription
                         titleStyle={styles.flex1}
                         title={maxAmountMenuTitle}
