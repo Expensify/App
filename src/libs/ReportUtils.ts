@@ -13347,7 +13347,6 @@ export {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
-    isReportArchivedByID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,
