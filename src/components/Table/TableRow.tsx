@@ -162,6 +162,10 @@ export default function TableRow({
         }
 
         if (shouldUseNarrowLayout && isMobileSelectionEnabled && selectionEnabled) {
+            if (item.disabled) {
+                return;
+            }
+
             handleCheckboxPress(event);
             return;
         }
