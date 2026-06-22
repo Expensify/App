@@ -51,7 +51,7 @@ function tryMatchParametric(candidate: string, candidateSegmentCount: number, pa
 }
 
 /**
- * Strips the trailing tab segment from a path and retries matching against Phases 1–3.
+ * Strips the trailing tab segment from a path and retries matching.
  * Returns an empty array if stripping is not applicable.
  * Calls `findAllMatchingDynamicSuffixes` recursively with an empty map to prevent double-stripping.
  *

@@ -9,6 +9,7 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         DynamicScreen: {path: 'suffix-a'},
     },
     screensWithOnyxTabNavigator: new Set(),
+    dynamicTabPatternToTabPaths: new Map(),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
