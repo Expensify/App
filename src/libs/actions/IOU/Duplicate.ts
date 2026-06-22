@@ -632,6 +632,7 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
+    policyTagList,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -644,20 +645,10 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    policyTagList: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
-            const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
-            const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
-            const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
-            // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const policyTagList = getMoneyRequestPolicyTags({
-                existingIOUReport: params.existingIOUReport,
-                moneyRequestReportID,
-                parentChatReport: currentChatReport,
-                participant: participants.at(0) ?? {},
-            });
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
@@ -860,6 +851,18 @@ function duplicateExpenseTransaction({
         policyCategories: targetPolicyCategories ?? {},
     };
 
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
+    const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
+    // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policyTagList = getMoneyRequestPolicyTags({
+        existingIOUReport: params.existingIOUReport,
+        moneyRequestReportID,
+        parentChatReport: currentChatReport,
+        participant: participants.at(0) ?? {},
+    });
+
     return createExpenseByType({
         transactionType: getTransactionType(transaction),
         params,
@@ -872,6 +875,7 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
+        policyTagList,
     });
 }
 
@@ -1011,6 +1015,18 @@ function duplicateReport({
             shouldDeferAutoSubmit: !isLastExpense,
         };
 
+        const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
+        const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
+        const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
+        // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const policyTagList = getMoneyRequestPolicyTags({
+            existingIOUReport: params.existingIOUReport,
+            moneyRequestReportID,
+            parentChatReport: currentChatReport,
+            participant: participants.at(0) ?? {},
+        });
+
         const result = createExpenseByType({
             transactionType: getTransactionType(transaction),
             params,
@@ -1023,6 +1039,7 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
+            policyTagList,
         });
 
         if (result?.iouReport) {
