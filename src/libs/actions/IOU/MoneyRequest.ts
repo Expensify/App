@@ -27,6 +27,7 @@ import {
     getDistanceRateTaxUpdates,
     getIsFromGlobalCreate,
     isDistanceRequest,
+    isExpenseUnreported,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -873,7 +874,7 @@ function updateDistanceRateOnExpenseDateChange({
     const rateChanged = rateID !== currentRateID;
     setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateChanged);
 
-    if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, effectivePolicy, true)) {
+    if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(transaction), effectivePolicy, isDistanceRequest(transaction))) {
         const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
         const distanceUnit = mileageRates[rateID] ? DistanceRequestUtils.getDistanceUnit(transaction, mileageRates[rateID]) : transaction?.comment?.customUnit?.distanceUnit;
         const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, distanceUnit);
