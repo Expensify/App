@@ -6,6 +6,7 @@ import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
+import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
@@ -23,6 +24,11 @@ Onyx.init({
 });
 
 beforeEach(async () => {
+    // Network arms a module-level setInterval(processMainQueue) once ActiveClientManager is
+    // ready. Left running, it re-fires non-cancellable MainQueue requests (e.g. Log) into the
+    // next test — inflating global.fetch call counts — and is itself the open handle behind the
+    // "worker process failed to exit gracefully" leak. Clear it the same way NetworkTest does.
+    Network.clearProcessQueueInterval();
     await Onyx.clear();
     await waitForBatchedUpdates();
     // Explicitly reset PersistedRequests module state (knownRequestIDs, ongoingRequest,
@@ -66,7 +72,7 @@ describe('Middleware', () => {
             const result = await Request.processWithMiddleware({
                 command: 'GetTransactionsPending3DSReview',
                 data: {apiRequestType: 'makeRequestWithSideEffects'},
-                requestID: 1,
+                requestIndex: 1,
             });
 
             // Then the response should not be undefined — the caller may need the raw response for side effects
@@ -82,19 +88,20 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
-                    requestID: 2,
+                    requestIndex: 2,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
-                    requestID: 3,
+                    requestIndex: 3,
                 },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
             }
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -119,12 +126,12 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '1234'},
-                    requestID: 4,
+                    requestIndex: 4,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
-                    requestID: 5,
+                    requestIndex: 5,
                 },
             ];
             for (const request of requests) {
@@ -149,7 +156,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -169,17 +177,17 @@ describe('Middleware', () => {
                 {
                     command: 'RequestMoney',
                     data: {authToken: 'testToken'},
-                    requestID: 6,
+                    requestIndex: 6,
                 },
                 {
                     command: 'AddComment',
                     data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
-                    requestID: 7,
+                    requestIndex: 7,
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '2345', reportActionID: undefined, parentReportActionID: undefined},
-                    requestID: 8,
+                    requestIndex: 8,
                 },
             ];
             for (const request of requests) {
@@ -204,7 +212,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
@@ -235,7 +244,7 @@ describe('Middleware', () => {
                 {
                     command: 'MoveIOUReportToExistingPolicy',
                     data: {authToken: 'testToken', optimisticReportID: '1234'},
-                    requestID: 9,
+                    requestIndex: 9,
                 },
             ];
             for (const request of requests) {
@@ -260,7 +269,8 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
-            await waitForNetworkPromises();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/MoveIOUReportToExistingPolicy?', expect.anything());
@@ -292,12 +302,12 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
-                    requestID: 10,
+                    requestIndex: 10,
                 },
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: preexistingReportID},
-                    requestID: 11,
+                    requestIndex: 11,
                 },
             ];
             for (const request of requests) {
@@ -349,6 +359,7 @@ describe('Middleware', () => {
                 }));
 
             SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -413,7 +424,7 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678'},
-                    requestID: 12,
+                    requestIndex: 12,
                 },
             ];
             for (const request of requests) {
@@ -448,6 +459,7 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);

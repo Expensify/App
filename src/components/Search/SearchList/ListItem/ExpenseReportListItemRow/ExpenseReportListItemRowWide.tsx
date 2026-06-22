@@ -2,6 +2,7 @@ import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import {ReportSubmitToPopoverMeasurableAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
@@ -10,6 +11,7 @@ import TextCell from '@components/Search/SearchList/ListItem/TextCell';
 import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +28,7 @@ function ExpenseReportListItemRowWide({
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
+    chatReport,
     containerStyle,
     showTooltip,
     canSelectMultiple,
@@ -36,11 +39,14 @@ function ExpenseReportListItemRowWide({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
+    shouldDisableActionPointerEvents = false,
+    isMarkAsDone,
 }: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {isSelected} = useRowSelection(item.keyForList);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
@@ -97,7 +103,7 @@ function ExpenseReportListItemRowWide({
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
                     isPending={item.shouldShowStatusAsPending}
-                    isSelected={item.isSelected}
+                    isSelected={isSelected}
                 />
             </View>
         ),
@@ -188,17 +194,21 @@ function ExpenseReportListItemRowWide({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                <DeferredActionCell
-                    action={item.action}
-                    onButtonPress={onButtonPress}
-                    isSelected={item.isSelected}
-                    isLoading={isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
-                    hash={item.hash}
-                    amount={item.total}
-                    shouldDisablePointerEvents={isPendingDelete}
-                />
+                <ReportSubmitToPopoverMeasurableAnchor>
+                    <DeferredActionCell
+                        action={item.action}
+                        onButtonPress={onButtonPress}
+                        isSelected={isSelected}
+                        isLoading={isActionLoading}
+                        policyID={item.policyID}
+                        reportID={item.reportID}
+                        hash={item.hash}
+                        amount={item.total}
+                        chatReport={chatReport}
+                        isMarkAsDone={isMarkAsDone}
+                        shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
+                    />
+                </ReportSubmitToPopoverMeasurableAnchor>
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (

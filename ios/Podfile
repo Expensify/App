@@ -16,7 +16,8 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-platform :ios, min_ios_version_supported
+MIN_IOS_VERSION = '16.4'
+platform :ios, MIN_IOS_VERSION
 prepare_react_native_project!
 
 
@@ -123,4 +124,4 @@ target 'NotificationServiceExtension' do
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
-pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.68.3-xcframework.tar.gz'
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz'

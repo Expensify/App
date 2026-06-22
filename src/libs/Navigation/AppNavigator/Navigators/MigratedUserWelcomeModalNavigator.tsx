@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import MigratedUserWelcomeModal from '@components/MigratedUserWelcomeModal';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -11,14 +10,18 @@ const Stack = createPlatformStackNavigator<MigratedUserModalNavigatorParamList>(
 function MigratedUserWelcomeModalNavigator() {
     return (
         <NoDropZone>
-            <View>
-                <Stack.Navigator screenOptions={{headerShown: false}}>
-                    <Stack.Screen
-                        name={SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT}
-                        component={MigratedUserWelcomeModal}
-                    />
-                </Stack.Navigator>
-            </View>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    web: {cardStyle: {backgroundColor: 'transparent'}},
+                    native: {contentStyle: {backgroundColor: 'transparent'}},
+                }}
+            >
+                <Stack.Screen
+                    name={SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT}
+                    component={MigratedUserWelcomeModal}
+                />
+            </Stack.Navigator>
         </NoDropZone>
     );
 }

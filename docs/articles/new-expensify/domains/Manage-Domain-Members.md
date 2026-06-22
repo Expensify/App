@@ -41,7 +41,7 @@ If a member has multiple contact methods, the primary contact method takes prece
 
 ## How to manually invite a Domain Member
 
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Click **Domain Members**.
 4. Enter the member’s email address, then click **Invite**.
@@ -52,7 +52,7 @@ If a member has multiple contact methods, the primary contact method takes prece
 
 Domain Admins can close a member’s account when they leave the company.
 
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Click **Domain Members**.
 4. Select the member.
@@ -66,7 +66,7 @@ Domain Admins can close a member’s account when they leave the company.
 
 You can give any member permission to manage domain settings by promoting them to a Domain Admin.
 
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Open **Domain Admins**.
 4. Add the member’s email address or phone number.
@@ -77,7 +77,7 @@ Domain Admins can move a member from one domain group to another to change which
 
 **Note:** You must be a Workspace Admin for the target domain group's **Preferred Workspace**. See the FAQ below for details.
 
-1. Go to **Workspaces > Domains**.
+1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Click **Domain Members**.
 4. Select the member.

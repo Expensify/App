@@ -76,17 +76,19 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAProblemWithYourWalletTerms';
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return 'debug.indicatorStatus.aBankAccountIsLocked';
+        case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
+            return 'debug.indicatorStatus.completeHrSetup';
         default:
             return undefined;
     }
 }
 
-function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAccount: OnyxEntry<ReimbursementAccount>, policyIDWithErrors = ''): Route | undefined {
+function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAccount: OnyxEntry<ReimbursementAccount>, indicatorPolicyID = ''): Route | undefined {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR:
-            return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
-            return ROUTES.WORKSPACE_MEMBERS.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_MEMBERS.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return ROUTES.SETTINGS_CONTACT_METHODS.route;
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
@@ -94,7 +96,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
-            return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_INITIAL.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
             return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: reimbursementAccount?.achData?.policyID});
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
@@ -102,13 +104,15 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyIDWithErrors);
+            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return ROUTES.SETTINGS_WALLET;
+        case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
+            return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
         default:
             return undefined;
     }
@@ -127,7 +131,7 @@ function DebugTabView({selectedTab}: Props) {
     const {windowWidth} = useWindowDimensions();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
-    const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
+    const {status, indicatorColor, indicatorPolicyID} = useIndicatorStatus();
     const {orderedReportIDs, chatTabBrickRoad} = useSidebarOrderedReportsState();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -186,13 +190,13 @@ function DebugTabView({selectedTab}: Props) {
             }
         }
         if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
-            const route = getSettingsRoute(status, reimbursementAccount, policyIDWithErrors);
+            const route = getSettingsRoute(status, reimbursementAccount, indicatorPolicyID);
 
             if (route) {
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, indicatorPolicyID]);
 
     if (
         (shouldUseNarrowLayout && !isAtRoot) ||
@@ -203,13 +207,14 @@ function DebugTabView({selectedTab}: Props) {
         return null;
     }
 
-    let positionStyle: {bottom?: number; left: number; right?: number; width?: number};
+    let positionStyle: {bottom?: number; top?: number; left: number; right?: number; width?: number};
+    const verticalAnchor = selectedTab === NAVIGATION_TABS.SETTINGS && !shouldUseNarrowLayout ? {top: 0} : {bottom: 0};
     if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
-        positionStyle = {bottom: 0, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize};
+        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize};
     } else {
-        positionStyle = {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
+        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
     }
 
     // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent

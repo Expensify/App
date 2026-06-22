@@ -56,4 +56,3 @@ async function stitchTask({startImage, endImage, signal}: StitchTaskArgs): Promi
 }
 
 export default stitchTask;
-export type {StitchTaskArgs, StitchTaskResult};

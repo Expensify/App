@@ -116,6 +116,30 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
     });
 
+    it('returns invalidMerchant when merchant is not required but was explicitly set to an invalid value', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isMerchantRequired: false,
+                isMerchantFieldValid: false,
+                transaction: {transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: true} as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
+    });
+
+    it('returns null when merchant is not required and was not explicitly set', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isMerchantRequired: false,
+                isMerchantFieldValid: false,
+                transaction: {transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: false} as unknown as OnyxTypes.Transaction,
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns invalidCategoryLength when category exceeds max', () => {
         const longCategory = 'C'.repeat(CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH + 1);
         const {result} = renderHook(() => useConfirmationValidation({...baseParams, iouCategory: longCategory}));

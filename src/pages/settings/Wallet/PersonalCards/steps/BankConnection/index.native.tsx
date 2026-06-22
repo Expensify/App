@@ -12,8 +12,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getUAForWebView from '@libs/getUAForWebView';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
 import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
 import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
@@ -21,15 +19,9 @@ import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type BankConnectionProps = {
-    /** Route params for add new card flow */
-    route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_BANK_CONNECTION>;
-};
-
-function BankConnection({route}: BankConnectionProps) {
+function BankConnection() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -37,8 +29,7 @@ function BankConnection({route}: BankConnectionProps) {
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const selectedBank = addNewCard?.data?.selectedBank;
-    const {feed: bankNameFromRoute} = route?.params ?? {};
-    const bankName = bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank;
+    const bankName = addNewCard?.data?.plaidConnectedFeed ?? selectedBank;
     const plaidToken = addNewCard?.data?.publicToken;
     const isPlaid = !!plaidToken;
     const url = getPersonalCardBankConnection(bankName);

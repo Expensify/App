@@ -179,9 +179,10 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
     callback: (val) => {
-        if (!!val?.requestID && knownOngoingRequestIDs.has(val.requestID)) {
+        const requestIndex = val ? getClientRequestIndex(val) : undefined;
+        if (requestIndex != null && knownOngoingRequestIDs.has(requestIndex)) {
             Log.info('[PersistedRequests] Ignoring ongoingRequest that is an own-write', false, {
-                ongoingCommand: val.command,
+                ongoingCommand: val?.command,
             });
             return;
         }
@@ -259,10 +260,12 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
                 queueLength: getLength(),
             });
         })
-        .catch(() => {
-            Log.info('[PersistedRequests] ERROR: Failed to persist request to disk', false, {
+        .catch((error) => {
+            // Disk-write failure risks losing this request on a crash — alert as a storage emergency.
+            Log.alert('[PersistedRequests] ERROR: Failed to persist request to disk', {
                 command: requestToPersist.command,
                 queueLength: getLength(),
+                error,
             });
         });
 }
@@ -333,9 +336,18 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
     persistedRequests = persistedRequests.filter((_, index) => !indicesSet.has(index));
 
     // Update the persisted requests in storage or state as necessary
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests)).then(() => {
-        Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
-    });
+    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests))
+        .then(() => {
+            Log.info(`Multiple (${indices.length}) requests removed from the queue. Queue length is ${persistedRequests.length}`);
+        })
+        .catch((error) => {
+            // Swallow so the conflict promise resolves (in-memory queue is the source of truth); alert as a storage emergency.
+            Log.alert('[PersistedRequests] ERROR: Failed to persist request deletion to disk', {
+                indicesCount: indices.length,
+                queueLength: getLength(),
+                error,
+            });
+        });
 }
 
 function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>): Promise<void> {
@@ -348,7 +360,14 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     if (requestIndex != null) {
         knownRequestIDs.add(requestIndex);
     }
-    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests));
+    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)).catch((error) => {
+        // Swallow so the conflict promise resolves (in-memory queue is the source of truth); alert as a storage emergency.
+        Log.alert('[PersistedRequests] ERROR: Failed to persist updated request to disk', {
+            command: newRequest.command,
+            queueLength: getLength(),
+            error,
+        });
+    });
 }
 
 function shouldPersistOngoingRequest(request: AnyRequest | null): boolean {
@@ -367,8 +386,9 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest: sanitizeLogParams(ongoingRequest), newRequest: sanitizeLogParams(newRequest)});
     ongoingRequest = newRequest as AnyRequest;
 
-    if (newRequest.requestID) {
-        knownOngoingRequestIDs.add(newRequest.requestID);
+    const ongoingRequestIndex = getClientRequestIndex(newRequest);
+    if (ongoingRequestIndex != null) {
+        knownOngoingRequestIDs.add(ongoingRequestIndex);
     }
     if (shouldPersistOngoingRequest(ongoingRequest)) {
         trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest));
@@ -401,8 +421,9 @@ function processNextRequest(): AnyRequest | null {
 
     const nextRequest = persistedRequests.at(0) ?? null;
     ongoingRequest = nextRequest;
-    if (nextRequest?.requestID) {
-        knownOngoingRequestIDs.add(nextRequest.requestID);
+    const nextRequestIndex = nextRequest ? getClientRequestIndex(nextRequest) : undefined;
+    if (nextRequestIndex != null) {
+        knownOngoingRequestIDs.add(nextRequestIndex);
     }
 
     Log.info('[PersistedRequests] Setting new ongoingRequest', false, {
