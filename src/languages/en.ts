@@ -6774,6 +6774,7 @@ const translations = {
             alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            notSync: 'Not synced',
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
             authenticationError: (providerName: string) => `Couldn’t connect to ${providerName} due to incorrect credentials.`,
             reconnect: 'Reconnect',
