@@ -4,7 +4,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
@@ -104,8 +103,6 @@ function useReportSelectionActions({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {removeTransaction} = useSearchSelectionActions();
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
@@ -155,18 +152,7 @@ function useReportSelectionActions({
             return;
         }
 
-        if (isNewManualExpenseFlowEnabled) {
-            Navigation.goBack(backTo);
-            return;
-        }
-
-        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
-        // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
-        if (backTo) {
-            Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-        } else {
-            Navigation.navigate(iouConfirmationPageRoute);
-        }
+        Navigation.goBack(backTo);
     };
 
     const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
@@ -202,6 +188,7 @@ function useReportSelectionActions({
                         allTransactions,
                         policyTagList,
                         allTransactionViolation: transactionViolations,
+                        allReports,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -225,6 +212,7 @@ function useReportSelectionActions({
                 allTransactions,
                 policyTagList,
                 allTransactionViolation: transactionViolations,
+                allReports,
             });
             removeTransaction(transaction.transactionID);
         });

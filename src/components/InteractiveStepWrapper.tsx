@@ -116,6 +116,7 @@ function InteractiveStepWrapper({
                         <InteractiveStepSubHeader
                             startStepIndex={startStepIndex}
                             stepNames={stepNames}
+                            currentStepAccessibilityDescription={headerTitle}
                         />
                     </View>
                 )}
