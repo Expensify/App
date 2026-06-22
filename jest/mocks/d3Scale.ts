@@ -1,4 +1,5 @@
 /* eslint-disable */
+// @ts-nocheck
 /**
  * CJS-compatible mock of d3-scale for Jest.
  *
