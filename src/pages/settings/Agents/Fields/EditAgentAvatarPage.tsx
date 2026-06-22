@@ -2,9 +2,8 @@ import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Avatar from '@components/Avatar';
+import AvatarPageFooter from '@components/AvatarPageFooter';
 import Button from '@components/Button';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -211,23 +210,12 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                     </View>
                 </View>
             </ScrollView>
-            <FixedFooter style={styles.mtAuto}>
-                {!!errorData.validationError && (
-                    <DotIndicatorMessage
-                        style={styles.mv5}
-                        messages={{validationError: translate(errorData.validationError, errorData.phraseParam as never)}}
-                        type="error"
-                    />
-                )}
-                <Button
-                    large
-                    success
-                    text={translate('common.save')}
-                    isDisabled={!isDirty}
-                    onPress={handleSave}
-                    pressOnEnter
-                />
-            </FixedFooter>
+            <AvatarPageFooter
+                validationError={errorData.validationError}
+                phraseParam={errorData.phraseParam}
+                isDirty={isDirty}
+                onSave={handleSave}
+            />
         </ScreenWrapper>
     );
 }
