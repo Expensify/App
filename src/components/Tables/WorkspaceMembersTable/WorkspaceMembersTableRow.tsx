@@ -41,7 +41,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
     const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
-    const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${item.email} • ${roleLabel}`;
+    const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
         styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
