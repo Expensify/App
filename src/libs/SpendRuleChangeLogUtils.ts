@@ -241,6 +241,7 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
     const categories = message.categories ?? [];
     const amounts = message.amounts ?? [];
     const cards = message.cards ?? [];
+    const currencies = message.currencies ?? [];
 
     const items: string[] = [];
     for (const merchant of merchants) {
@@ -254,6 +255,11 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
         if (formattedAmount !== '') {
             items.push(formattedAmount);
         }
+    }
+
+    console.log(currencies);
+    for (const allowedCurrency of currencies) {
+        items.push(`'${allowedCurrency}`);
     }
 
     const verb = getSpendRuleActionVerb(translate, action);
