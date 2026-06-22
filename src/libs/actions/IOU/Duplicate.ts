@@ -756,12 +756,24 @@ function duplicateExpenseTransaction({
     currentUser,
     currentUserLocalCurrency,
 }: DuplicateExpenseTransactionParams) {
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(targetReport);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(targetReport?.chatReportID) : targetReport;
+    const moneyRequestReportID = isMoneyRequestReport ? targetReport?.reportID : '';
+    const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUser.accountID);
+
+    // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policyTagList = getMoneyRequestPolicyTags({
+        existingIOUReport,
+        moneyRequestReportID,
+        parentChatReport: currentChatReport,
+        participant: participants.at(0) ?? {},
+    });
     if (!transaction) {
         return;
     }
     const {accountID: currentUserAccountID, email: currentUserLogin = ''} = currentUser;
 
-    const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUserAccountID);
     const transactionDetails = getTransactionDetails(transaction);
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
@@ -850,18 +862,6 @@ function duplicateExpenseTransaction({
         policyTagList: targetPolicyTags,
         policyCategories: targetPolicyCategories ?? {},
     };
-
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
-    const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
-    // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTagList = getMoneyRequestPolicyTags({
-        existingIOUReport: params.existingIOUReport,
-        moneyRequestReportID,
-        parentChatReport: currentChatReport,
-        participant: participants.at(0) ?? {},
-    });
 
     return createExpenseByType({
         transactionType: getTransactionType(transaction),
