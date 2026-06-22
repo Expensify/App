@@ -1,6 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAddWorkspaceWorkEmailForm from '@hooks/useAddWorkspaceWorkEmailForm';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setContactMethodAsDefault} from '@libs/actions/User';
 import {getFeedInfo} from '@libs/CardFeedUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
-import {addErrorMessage, getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
@@ -28,8 +28,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {updateSelectedFeed} from '@userActions/Card';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
-import {clearErrorFields, clearErrors, setErrorFields} from '@userActions/FormActions';
-import {AddWorkspaceWorkEmail} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,17 +39,6 @@ import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceCompanyCardAddWorkEmailPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL>;
-
-function getShouldValidateWorkspaceWorkEmail(response: Awaited<ReturnType<typeof AddWorkspaceWorkEmail>>) {
-    const onboardingUpdate = response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING);
-    const onboardingValues = onboardingUpdate?.value;
-
-    if (!onboardingValues || typeof onboardingValues !== 'object' || !('shouldValidate' in onboardingValues) || typeof onboardingValues.shouldValidate !== 'boolean') {
-        return undefined;
-    }
-
-    return onboardingValues.shouldValidate;
-}
 
 function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWorkEmailPageProps) {
     const {policyID, feed} = route.params;
@@ -66,35 +53,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     const styles = useThemeStyles();
 
     const {inputCallbackRef} = useAutoFocusInput();
-
-    useFocusEffect(
-        useCallback(() => {
-            clearErrors(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM);
-            clearErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM);
-        }, []),
-    );
-
-    const setAddWorkEmailError = (errorMessage: string) => {
-        setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
-            [INPUT_IDS.EMAIL]: getMicroSecondOnyxErrorWithMessage(errorMessage),
-        });
-    };
-
-    const getAddWorkEmailErrorMessage = (response: Awaited<ReturnType<typeof AddWorkspaceWorkEmail>>, submittedEmail: string) => {
-        if (response?.message?.includes(CONST.MERGE_ACCOUNT_2FA_ERROR)) {
-            return translate('onboarding.workEmail2FAError');
-        }
-
-        if (response?.message?.includes(CONST.MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR)) {
-            return translate('onboarding.singleSignOnError');
-        }
-
-        if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
-            return translate('onboarding.mergeBlockScreen.workAccountClosedSubtitle');
-        }
-
-        return translate('onboarding.mergeBlockScreen.subtitle', submittedEmail);
-    };
+    const {setAddWorkEmailError, submitAddWorkspaceWorkEmail} = useAddWorkspaceWorkEmailForm();
 
     const linkWorkspaceCompanyCardFeed = () => {
         if (!feedInfo) {
@@ -130,29 +89,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
             setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
             linkWorkspaceCompanyCardFeed();
         } else {
-            AddWorkspaceWorkEmail(submittedEmail)
-                .then((response) => {
-                    if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
-                        setAddWorkEmailError(getAddWorkEmailErrorMessage(response, submittedEmail));
-                        return;
-                    }
-
-                    const shouldValidate = getShouldValidateWorkspaceWorkEmail(response);
-                    if (shouldValidate) {
-                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
-                        return;
-                    }
-
-                    if (shouldValidate === false) {
-                        linkWorkspaceCompanyCardFeed();
-                        return;
-                    }
-
-                    setAddWorkEmailError(translate('common.genericErrorMessage'));
-                })
-                .catch(() => {
-                    setAddWorkEmailError(translate('common.genericErrorMessage'));
-                });
+            submitAddWorkspaceWorkEmail(submittedEmail, ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed), linkWorkspaceCompanyCardFeed);
         }
     };
 
