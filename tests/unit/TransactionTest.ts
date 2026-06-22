@@ -804,6 +804,7 @@ describe('Transaction', () => {
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
+            await loadReports();
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -870,6 +871,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`]: secondTransaction,
             };
+            await loadReports();
             changeTransactionsReport({
                 transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
