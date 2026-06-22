@@ -20,6 +20,7 @@ jest.mock('@libs/Navigation/linkingConfig', () => ({
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     screensWithOnyxTabNavigator: new Set(),
+    dynamicTabPatternToTabPaths: new Map(),
 }));
 
 jest.mock('@src/ROUTES', () => ({

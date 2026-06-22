@@ -19,7 +19,7 @@ describe('collectScreensWithTabNavigator', () => {
 
         const result = collectScreensWithTabNavigator(screens);
 
-        expect(result.size).toBe(0);
+        expect(result.screensWithTabNavigator.size).toBe(0);
     });
 
     it('should collect a screen that has both path and screens', () => {
@@ -29,7 +29,7 @@ describe('collectScreensWithTabNavigator', () => {
 
         const result = collectScreensWithTabNavigator(screens);
 
-        expect(result).toEqual(new Set(['TabScreen']));
+        expect(result.screensWithTabNavigator).toEqual(new Set(['TabScreen']));
     });
 
     it('should exclude navigator names even if they have both path and screens', () => {
@@ -40,7 +40,7 @@ describe('collectScreensWithTabNavigator', () => {
 
         const result = collectScreensWithTabNavigator(screens);
 
-        expect(result.size).toBe(0);
+        expect(result.screensWithTabNavigator.size).toBe(0);
     });
 
     it('should collect a nested tab screen inside a navigator', () => {
@@ -54,7 +54,7 @@ describe('collectScreensWithTabNavigator', () => {
 
         const result = collectScreensWithTabNavigator(screens);
 
-        expect(result).toEqual(new Set(['NestedTabScreen']));
+        expect(result.screensWithTabNavigator).toEqual(new Set(['NestedTabScreen']));
     });
 
     it('should collect tab screens at all depth levels in a 3-level structure', () => {
@@ -73,7 +73,7 @@ describe('collectScreensWithTabNavigator', () => {
 
         const result = collectScreensWithTabNavigator(screens);
 
-        expect(result).toEqual(new Set(['Level1Tab', 'Level3Tab']));
+        expect(result.screensWithTabNavigator).toEqual(new Set(['Level1Tab', 'Level3Tab']));
     });
 
     it('should collect only matching screens from a mixed config', () => {
@@ -88,6 +88,6 @@ describe('collectScreensWithTabNavigator', () => {
 
         const result = collectScreensWithTabNavigator(screens);
 
-        expect(result).toEqual(new Set(['ValidTab', 'AnotherTab']));
+        expect(result.screensWithTabNavigator).toEqual(new Set(['ValidTab', 'AnotherTab']));
     });
 });

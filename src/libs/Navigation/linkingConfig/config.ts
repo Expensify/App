@@ -981,12 +981,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             screens: {
                                 [CONST.TAB.RECEIPT_PARTNERS.ALL]: {
                                     path: CONST.TAB.RECEIPT_PARTNERS.ALL,
+                                    exact: true,
                                 },
                                 [CONST.TAB.RECEIPT_PARTNERS.LINKED]: {
                                     path: CONST.TAB.RECEIPT_PARTNERS.LINKED,
+                                    exact: true,
                                 },
                                 [CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING]: {
                                     path: CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING,
+                                    exact: true,
                                 },
                             },
                         },
