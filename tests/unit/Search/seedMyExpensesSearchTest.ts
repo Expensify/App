@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {seedMyExpensesSearch} from '@libs/actions/Search';
-import {isDualRoleUser} from '@libs/PolicyUtils';
+import {isSubmitterAndApprover} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,19 +37,19 @@ function makeFreePolicy(overrides: Partial<Policy> = {}): Policy {
 }
 
 // ---------------------------------------------------------------------------
-// isDualRoleUser
+// isSubmitterAndApprover
 // ---------------------------------------------------------------------------
 
-describe('isDualRoleUser', () => {
+describe('isSubmitterAndApprover', () => {
     it('returns false for null/undefined policies', () => {
-        expect(isDualRoleUser(null, USER_EMAIL)).toBe(false);
-        expect(isDualRoleUser(undefined, USER_EMAIL)).toBe(false);
+        expect(isSubmitterAndApprover(null, USER_EMAIL)).toBe(false);
+        expect(isSubmitterAndApprover(undefined, USER_EMAIL)).toBe(false);
     });
 
     it('returns false for undefined/empty email', () => {
         const policies = {p1: makePaidPolicy()};
-        expect(isDualRoleUser(policies, undefined)).toBe(false);
-        expect(isDualRoleUser(policies, '')).toBe(false);
+        expect(isSubmitterAndApprover(policies, undefined)).toBe(false);
+        expect(isSubmitterAndApprover(policies, '')).toBe(false);
     });
 
     it('returns true for a user who submits on one policy and approves on another', () => {
@@ -68,7 +68,7 @@ describe('isDualRoleUser', () => {
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isDualRoleUser({submitPolicy, approvePolicy}, USER_EMAIL)).toBe(true);
+        expect(isSubmitterAndApprover({submitPolicy, approvePolicy}, USER_EMAIL)).toBe(true);
     });
 
     it('returns true when the user is both submitter and approver on the same paid policy', () => {
@@ -80,7 +80,7 @@ describe('isDualRoleUser', () => {
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isDualRoleUser({dualPolicy: policy}, USER_EMAIL)).toBe(true);
+        expect(isSubmitterAndApprover({dualPolicy: policy}, USER_EMAIL)).toBe(true);
     });
 
     it('returns false for a submit-only user (no one submits to them)', () => {
@@ -91,7 +91,7 @@ describe('isDualRoleUser', () => {
                 [USER_EMAIL]: {email: USER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: APPROVER_EMAIL},
             },
         });
-        expect(isDualRoleUser({submitOnly: policy}, USER_EMAIL)).toBe(false);
+        expect(isSubmitterAndApprover({submitOnly: policy}, USER_EMAIL)).toBe(false);
     });
 
     it('returns false for an approve-only user (admin role, not role=user anywhere)', () => {
@@ -103,7 +103,7 @@ describe('isDualRoleUser', () => {
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isDualRoleUser({approveOnly: policy}, USER_EMAIL)).toBe(false);
+        expect(isSubmitterAndApprover({approveOnly: policy}, USER_EMAIL)).toBe(false);
     });
 
     it('returns false when the approver policy has OPTIONAL approval mode (no approval flow)', () => {
@@ -120,11 +120,11 @@ describe('isDualRoleUser', () => {
                 [PEER_EMAIL]: {email: PEER_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: USER_EMAIL},
             },
         });
-        expect(isDualRoleUser({submitPolicy, optionalApprovePolicy}, USER_EMAIL)).toBe(false);
+        expect(isSubmitterAndApprover({submitPolicy, optionalApprovePolicy}, USER_EMAIL)).toBe(false);
     });
 
     it('returns false for an empty policy collection', () => {
-        expect(isDualRoleUser({}, USER_EMAIL)).toBe(false);
+        expect(isSubmitterAndApprover({}, USER_EMAIL)).toBe(false);
     });
 });
 

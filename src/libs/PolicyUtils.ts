@@ -1309,7 +1309,7 @@ function hasApprovalFlow(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /** Returns true when the user is both a submitter (role "user") in at least one policy and an approver on at least one paid policy with a non-optional approval flow. */
-function isDualRoleUser(policies: OnyxCollection<Policy> | null | undefined, currentUserEmail: string | undefined): boolean {
+function isSubmitterAndApprover(policies: OnyxCollection<Policy> | null | undefined, currentUserEmail: string | undefined): boolean {
     if (!policies || !currentUserEmail) {
         return false;
     }
@@ -2587,7 +2587,7 @@ export {
     isPolicyPayer,
     arePaymentsEnabled,
     hasApprovalFlow,
-    isDualRoleUser,
+    isSubmitterAndApprover,
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
