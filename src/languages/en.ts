@@ -6776,7 +6776,7 @@ const translations = {
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             notSync: 'Not synced',
             syncError: (providerName: string) => `Can't connect to ${providerName}`,
-            authenticationError: (providerName: string) => `Couldn’t connect to ${providerName} due to incorrect credentials.`,
+            authenticationError: (providerName: string) => `Can't connect to ${providerName} due to an expired connection.`,
             reconnect: 'Reconnect',
             reconnectLink: 'Reconnect.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
