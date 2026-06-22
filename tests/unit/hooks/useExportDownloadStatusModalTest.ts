@@ -63,6 +63,25 @@ describe('useExportDownloadStatusModal', () => {
         expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 
+    it('keeps the export NVP intact when sending via Concierge', () => {
+        mockExportDownload = {state: CONST.EXPORT_DOWNLOAD.STATE.READY, shouldSendFromConcierge: true};
+        const onCleanup = jest.fn();
+        const {result} = renderHook(() => useExportDownloadStatusModal(onCleanup));
+
+        act(() => {
+            result.current.trackExport('export-1');
+        });
+        const modal: ReactElement<ExportDownloadStatusModalProps> | null = result.current.exportDownloadStatusModal;
+
+        act(() => {
+            modal?.props.onClose();
+        });
+
+        expect(mockClearExportDownload).not.toHaveBeenCalled();
+        expect(onCleanup).toHaveBeenCalled();
+        expect(result.current.exportDownloadStatusModal).toBeNull();
+    });
+
     it('keeps the modal open and skips cleanup while the export is still preparing', () => {
         mockExportDownload = {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING};
         const onCleanup = jest.fn();
