@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +15,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
-import type { CommuterExclusionData } from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 type DistanceRequestControllerProps = {
     transactionID: string | undefined;
@@ -221,11 +221,10 @@ function DistanceRequestController({
         */
         setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
-        // When commuter exclusion applies, show the reimbursable distance in the merchant text
-        const displayDistance = commuterExclusionData ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES) : distance;
+        // When commuter exclusion applies, getDistanceMerchant shows the reimbursable distance in the merchant text
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(
             hasRoute,
-            displayDistance,
+            distance,
             unit,
             rate ?? 0,
             currency ?? CONST.CURRENCY.USD,
@@ -233,6 +232,7 @@ function DistanceRequestController({
             toLocaleDigit,
             getCurrencySymbol,
             isManualDistanceRequest,
+            commuterExclusionData,
         );
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
     }, [

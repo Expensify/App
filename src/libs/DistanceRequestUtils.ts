@@ -273,6 +273,7 @@ function getDistanceForDisplayLabel(distanceInMeters: number, unit: Unit): strin
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
+ * @param commuterExclusionData When provided, the reimbursable distance (after the commuter exclusion) is shown instead of the full route distance.
  * @returns A string that describes the distance traveled and the rate used for expense calculation
  */
 function getDistanceMerchant(
@@ -285,6 +286,7 @@ function getDistanceMerchant(
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isZeroDistanceAllowed?: boolean,
+    commuterExclusionData?: CommuterExclusionData,
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
@@ -294,7 +296,7 @@ function getDistanceMerchant(
         return '';
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed, commuterExclusionData);
     const ratePerUnit = getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;

@@ -2106,9 +2106,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         const distanceUnit = transaction.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
         const distanceRate = transaction.comment?.customUnit?.defaultP2PRate ?? 0;
 
-        const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance ?? 0, distanceUnit);
-        if (commuterExclusionBreakdown) {
-            const {commuterExclusion, reimbursableDistance} = commuterExclusionBreakdown;
+        const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance ?? 0, distanceUnit);
+        if (commuterExclusionData) {
+            const {commuterExclusion, reimbursableDistance} = commuterExclusionData;
             // Use the canonical distance-amount calc so the optimistic amount rounds the same way the server does.
             const reimbursableDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reimbursableDistance, distanceUnit);
             const modifiedRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, distanceUnit, distanceRate);
