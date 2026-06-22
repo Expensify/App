@@ -2,9 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -140,8 +139,6 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     const showMoreFields = compactControls?.showMoreFields ?? false;
     const setShowMoreFields = compactControls?.setShowMoreFields ?? noopSetShowMoreFields;
@@ -158,19 +155,20 @@ function MoneyRequestConfirmationListFooter({
             isReadOnly={isReadOnly}
             didConfirm={didConfirm}
             isEditingSplitBill={isEditingSplitBill}
-            isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             isPolicyExpenseChat={isPolicyExpenseChat}
+            isDistanceRequest={expenseMode.isDistance}
+            isPerDiemRequest={expenseMode.isPerDiem}
+            isTimeRequest={expenseMode.isTime}
+            isTypeInvoice={expenseMode.isInvoice}
+            isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
+            isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
+            isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>
                     <InvoiceSenderSection selectedParticipants={selectedParticipants} />
-                    <DistanceMapSection
-                        isDistanceRequest={expenseMode.isDistance}
-                        isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
-                        isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
-                    />
+                    <DistanceMapSection />
                     <PerDiemSection
-                        isPerDiemRequest={expenseMode.isPerDiem}
                         policy={policy}
                         shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                         formError={errorState.formError}
@@ -179,10 +177,6 @@ function MoneyRequestConfirmationListFooter({
 
                 <ReceiptSection
                     policy={policy}
-                    isPerDiemRequest={expenseMode.isPerDiem}
-                    isDistanceRequest={expenseMode.isDistance}
-                    isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
-                    isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
                     isReceiptEditable={receiptOptions.isReceiptEditable ?? false}
                     shouldDisplayReceipt={receiptOptions.shouldDisplayReceipt}
                     isLoadingReceipt={receiptOptions.isLoadingReceipt ?? false}
@@ -203,8 +197,6 @@ function MoneyRequestConfirmationListFooter({
                     policy={policy}
                     policyTags={policyTags}
                     selectedParticipants={selectedParticipants}
-                    expenseMode={expenseMode}
-                    distanceFlags={distanceFlags}
                     distanceData={distanceData}
                     amountDisplay={amountDisplay}
                     requiredFlags={requiredFlags}

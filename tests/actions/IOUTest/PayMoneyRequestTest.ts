@@ -207,7 +207,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                                         (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => isMoneyRequestAction(reportAction),
                                     );
                                     expect(createIOUAction).toBeTruthy();
-                                    expect(createIOUAction && getOriginalMessage(createIOUAction)?.IOUReportID).toBe(iouReport?.reportID);
+                                    expect(createIOUAction?.reportID).toBe(iouReport?.reportID);
 
                                     resolve();
                                 },
@@ -250,6 +250,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        chatReportActions: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -456,6 +457,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        chatReportActions: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -618,6 +620,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        chatReportActions: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -671,6 +674,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -788,6 +792,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(partialPayChatReport),
+                        chatReportActions: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -885,6 +890,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                chatReportActions: undefined,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -922,6 +928,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyTrueTour,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -972,6 +979,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyFalseTour,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1055,12 +1063,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 reportID: outstandingReport.reportID,
             };
 
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+            const mockChatReportActions = {
                 [reportPreview1.reportActionID]: reportPreview1,
                 [reportPreview2.reportActionID]: reportPreview2,
-            });
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, mockChatReportActions);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, reimbursedReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, outstandingReport);
@@ -1068,7 +1077,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, undefined, currentUserAccountID, currentUserEmail);
+            markReportPaymentReceived(chatReport, reimbursedReport, undefined, currentUserAccountID, currentUserEmail, mockChatReportActions);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1137,6 +1146,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: pastDate,
                 policy,
                 chatReportPolicy: policy,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1203,6 +1213,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: pastDate,
                 policy: expensePolicy,
                 chatReportPolicy: workspacePolicy,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1259,6 +1270,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: futureGraceEnd,
                 chatReportPolicy: workspacePolicy,
                 policy: workspacePolicy,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1295,6 +1307,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyAmountZero,
+                chatReportActions: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1417,6 +1430,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        chatReportActions: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1784,6 +1798,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    chatReportActions: undefined,
                 });
             }
             await waitForBatchedUpdates();
