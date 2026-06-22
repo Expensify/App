@@ -128,7 +128,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [parentChatReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID)}`);
     const [chatReportActions] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? snapshotReport?.parentReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy} = useReportPaymentContext({
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, delegateEmail} = useReportPaymentContext({
         reportID: transactionItem.reportID,
         chatReportPolicyID: parentChatReport?.policyID,
     });
@@ -216,6 +216,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: currentSearchResults?.data,
             chatReportActions,
+            delegateEmail,
         });
     };
 

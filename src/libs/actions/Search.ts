@@ -61,7 +61,6 @@ import {
 import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -138,7 +137,7 @@ function getPolicyFromSearchSnapshot(policyID: string | undefined, searchData: S
     }
 
     const snapshotPolicy = searchData?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    // Prefer live policy data for payment so bank account details are current; fall back to the search snapshot.
+    // Prefer live policy data so workspace settings are current; fall back to the search snapshot.
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? snapshotPolicy;
 }
 
@@ -219,6 +218,7 @@ type HandleActionButtonPressParams = {
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     searchData?: SearchResultDataType;
     chatReportActions: OnyxEntry<ReportActions>;
+    delegateEmail?: string;
 };
 
 function handleActionButtonPress({
@@ -253,6 +253,7 @@ function handleActionButtonPress({
     iouReportCurrentNextStepDeprecated,
     searchData,
     chatReportActions,
+    delegateEmail,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -318,16 +319,6 @@ function handleActionButtonPress({
                 onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
-            {
-                const policyToUpgrade = policy ?? snapshotPolicy;
-                if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id && item.reportID) {
-                    const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
-                    const backTo = Navigation.getActiveRoute() || ROUTES.SEARCH_ROOT.route;
-
-                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, item.reportID));
-                    return;
-                }
-            }
             getApproveActionCallback({
                 hash,
                 item,
@@ -343,6 +334,7 @@ function handleActionButtonPress({
                 amountOwed,
                 activePolicy,
                 iouReportCurrentNextStepDeprecated,
+                delegateEmail,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -644,6 +636,7 @@ type GetApproveActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     activePolicy?: OnyxEntry<Policy>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
+    delegateEmail?: string;
 };
 
 function getApproveActionCallback({
@@ -661,12 +654,15 @@ function getApproveActionCallback({
     amountOwed,
     activePolicy,
     iouReportCurrentNextStepDeprecated,
+    delegateEmail,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
     }
 
-    const reportPolicy = snapshotPolicy ?? policy;
+    const reportPolicy = policy ?? snapshotPolicy;
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const hasViolations = hasViolationsReportUtils(item.reportID, getAllTransactionViolations(), currentUserAccountID, currentUserLogin ?? '');
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
 
@@ -683,7 +679,7 @@ function getApproveActionCallback({
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        delegateEmail: undefined,
+        delegateEmail,
         full: true,
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
     });
