@@ -1,5 +1,5 @@
 ---
-title: Create agent rules
+title: Create Agent Rules
 description: Create AI-powered workspace rules using natural-language instructions to automate report reviews, routing, approvals, and other actions.
 keywords: [agent rules, RuleBot, AI rules, automated approvals, report routing, workspace automation, approval automation]
 internalScope: Audience is Workspace Admins. Covers creating, managing, and understanding agent rules and how RuleBot enforces them. Does not cover Custom Agent management, personal AI features, or Concierge AI.
