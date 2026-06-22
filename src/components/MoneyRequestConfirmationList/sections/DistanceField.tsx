@@ -29,10 +29,6 @@ type DistanceFieldProps = {
     commuterExclusionData?: CommuterExclusionData;
 };
 
-function formatDistance(distanceValue: number, distanceUnit: Unit): string {
-    return `${distanceValue.toFixed(2)} ${distanceUnit}`;
-}
-
 function DistanceField({
     hasRoute,
     distance,
@@ -59,8 +55,9 @@ function DistanceField({
     let furtherDetailsComponent;
 
     if (commuterExclusionData) {
+        const displayUnit = unit ?? commuterExclusionData.distanceUnit;
         const originalDistance = commuterExclusionData.reimbursableDistance + commuterExclusionData.commuterExclusion;
-        const originalDistanceFormatted = formatDistance(originalDistance, commuterExclusionData.distanceUnit);
+        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(originalDistance, displayUnit, translate);
         descriptionLabel = `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
         furtherDetailsComponent = (
             <DistanceWithCommuterExclusion

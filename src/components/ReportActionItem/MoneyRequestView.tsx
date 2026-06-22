@@ -1,6 +1,6 @@
 import {policyTypeSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
@@ -553,7 +553,7 @@ function MoneyRequestView({
 
     if (commuterExclusionBreakdown) {
         const {commuterExclusion, reimbursableDistance} = commuterExclusionBreakdown;
-        const originalDistanceFormatted = `${(reimbursableDistance + commuterExclusion).toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${distanceUnitValue}`;
+        const originalDistanceFormatted = DistanceRequestUtils.getFormattedDistanceInUnits(reimbursableDistance + commuterExclusion, distanceUnitValue, translate);
         distanceToDisplayDescription = `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
         distanceToDisplaySubtitle = (
             <DistanceWithCommuterExclusion

@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
@@ -14,7 +15,6 @@ import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
-import { CommuterExclusionData } from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -147,6 +147,27 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
 }
 
 /**
+ * Formats a distance that is already expressed in display units (mi/km) into a localized string (e.g. "12.34 miles").
+ *
+ * @param distanceInUnits Distance already converted to the display unit
+ * @param unit Unit that should be used to display the distance
+ * @param translate Translate function
+ * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
+ */
+function getFormattedDistanceInUnits(distanceInUnits: number, unit: Unit, translate: LocaleContextProps['translate'], useShortFormUnit?: boolean): string {
+    const roundedDistance = distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
+    if (useShortFormUnit) {
+        return `${roundedDistance} ${unit}`;
+    }
+
+    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
+    const unitString = roundedDistance === '1' ? singularDistanceUnit : distanceUnit;
+
+    return `${roundedDistance} ${unitString}`;
+}
+
+/**
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
  * @param currency The currency associated with the rate
@@ -238,16 +259,7 @@ function getDistanceForDisplay(
         return '';
     }
 
-    const distanceInUnits = getRoundedDistanceInUnits(distanceToDisplayInMeters, displayUnit);
-    if (useShortFormUnit) {
-        return `${distanceInUnits} ${displayUnit}`;
-    }
-
-    const distanceUnit = displayUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
-    const singularDistanceUnit = displayUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
-
-    return `${distanceInUnits} ${unitString}`;
+    return getFormattedDistanceInUnits(convertDistanceUnit(distanceToDisplayInMeters, displayUnit), displayUnit, translate, useShortFormUnit);
 }
 
 function getDistanceForDisplayLabel(distanceInMeters: number, unit: Unit): string {
@@ -381,7 +393,7 @@ function getCommuterExclusionBreakdown(
     return {
         commuterExclusion,
         reimbursableDistance: reimbursableDistance ?? Math.max(0, quantityInUnit - commuterExclusion),
-        distanceUnit: distanceUnit,
+        distanceUnit,
     };
 }
 
@@ -736,6 +748,7 @@ export default {
     getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
+    getFormattedDistanceInUnits,
     getRoundedDistanceInUnits,
     getRateForP2P,
     getCustomUnitRateID,
