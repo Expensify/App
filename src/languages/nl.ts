@@ -509,6 +509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beperkingen',
+        off: 'Uit',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -1062,6 +1063,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,
+        recentlyAddedSection: {
+            title: 'Recent toegevoegd',
+            viewAll: 'Alle uitgaven bekijken',
+            emptyStateTitle: 'Geen recente uitgaven',
+            emptyStateMessage: 'Maak er een aan of sleep hier een bonnetje naartoe',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1645,6 +1652,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
+        submitReportTo: {
+            subtitle: 'Kies een werkruimtelid of voer het e-mailadres in van degene die deze inzending moet ontvangen.',
+            emailLabel: 'E-mailadres',
+            workspaceMembers: 'Werkruimteleden',
+            sendExpense: 'Stuur je uitgave naar iedereen',
+            sendExpenseSubtitle: 'Nodig iedereen uit voor Expensify met hun e-mailadres of telefoonnummer.',
+        },
         changeApprover: {
             title: 'Goedkeurder wijzigen',
             header: (workflowSettingLink: string) =>
@@ -7025,6 +7039,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Goedkeuringen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Rapporten goedkeuren',
+                description:
+                    'Beoordeel, keur goed en bewaak alle uitgaven op één plek. Goedkeuringsworkflows helpen je kosten te beheersen, bedrijfsbeleid te handhaven en je medewerkers sneller terug te betalen.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Goedkeuringsworkflows zijn alleen beschikbaar in het Collect-abonnement, vanaf <strong>${formattedPrice}</strong> per actieve deelnemer per maand.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Bedrijfskaarten',
                 description: `Neem je eigen bedrijfskaart mee naar Expensify voor automatische import, automatische categorisatie, ondersteuning voor aangepaste regels en geïntegreerde afstemming.`,
@@ -7072,7 +7093,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
             controlPolicyRoles: {
                 title: 'Beleidsrollen controleren',
-                description: 'Gebruik gespecialiseerde rollen zoals Auditor en Kaartbeheerder om leden alleen toegang te geven tot wat ze nodig hebben.',
+                description: 'Geef leden specifieke toegang door rollen zoals Auditor of Kaartbeheerder toe te wijzen.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
@@ -7308,10 +7329,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 chooseCards: 'Kaarten kiezen',
                 saveRule: 'Regel opslaan',
                 allow: 'Toestaan',
-                spendRuleSectionTitle: 'Bestedingsregel',
-                restrictionType: 'Restrictietype',
-                restrictionTypeHelpAllow: 'Kosten worden goedgekeurd als ze overeenkomen met een handelaar of categorie en een maximumbedrag niet overschrijden.',
-                restrictionTypeHelpBlock: 'Betalingen worden geweigerd als ze overeenkomen met een handelaar of categorie, of een maximumbedrag overschrijden.',
+                spendRuleSectionTitle: 'Bestedingsregels',
                 addMerchant: 'Handelaar toevoegen',
                 merchantContains: 'Handelaar bevat',
                 merchantExactlyMatches: 'Handelaar komt exact overeen',
@@ -7322,11 +7340,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 matchType: 'Overeenkomsttype',
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
-                spendCategory: 'Uitgavencategorie',
                 maxAmount: 'Maximumbedrag',
                 maxAmountHelp: 'Elke betaling boven dit bedrag wordt geweigerd, ongeacht beperkingen voor handelaar en uitgavencategorie.',
-                currencyMismatchTitle: 'Valutamismatch',
-                currencyMismatchPrompt: 'Om een maximumbedrag in te stellen, selecteer je kaarten die in dezelfde valuta worden vereffend.',
+                maxAmountCurrencyMismatchTitle: 'Valutaverschil',
+                maxAmountCurrencyMismatchPrompt: 'Om een maximumbedrag in te stellen, selecteer kaarten die in dezelfde valuta worden verrekend.',
                 reviewSelectedCards: 'Geselecteerde kaarten bekijken',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} meer` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Pas minstens één bestedingsregel toe op één kaart',
@@ -7389,6 +7406,26 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
+                restrictMerchants: 'Handelaars beperken',
+                merchantTypes: 'Handelaarstypen',
+                allowedMerchants: 'Toegestane handelaren',
+                allowedMerchantTypes: 'Toegestane merchanttypen',
+                blockedMerchants: 'Geblokkeerde handelaren',
+                blockedMerchantTypes: 'Geblokkeerde winkeltype',
+                currencies: 'Valuta’s',
+                permittedCurrencies: 'Toegestane valuta',
+                allCurrencies: 'Alle valuta',
+                permittedCurrenciesSubtitle: 'Kies om alle of specifieke valuta toe te staan',
+                settlementCurrencyPermittedSubtitle: 'De afrekeningsvaluta van de kaart is altijd toegestaan',
+                currenciesCurrencyMismatchTitle: 'Valutaverschil',
+                currenciesCurrencyMismatchPrompt: 'Om voorkeursvaluta in te stellen, selecteer je kaarten die in dezelfde valuta worden afgerekend.',
+                restrictMerchantsOffSubtitle: "Kosten worden goedgekeurd voor toegestane valuta's die een maximumbedrag niet overschrijden",
+                restrictMerchantsAllowSubtitle:
+                    'Kosten worden goedgekeurd voor toegestane valuta’s die een maximumbedrag niet overschrijden, en wanneer de handelaar of het handelaarstype overeenkomt.',
+                restrictMerchantsBlockSubtitle:
+                    'Kosten worden goedgekeurd voor toegestane valuta’s die een maximumbedrag niet overschrijden, of wanneer de handelaar of het handelaarstype overeenkomt.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Toegestaan ${shownCount > 1 ? 'valuta’s' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
             },
             agentRules: {
                 title: 'Agentregels',
@@ -9536,6 +9573,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             theresAProblemWithYourWallet: 'Er is een probleem met je wallet',
             theresAProblemWithYourWalletTerms: 'Er is een probleem met de voorwaarden van je wallet',
             aBankAccountIsLocked: 'Een bankrekening is geblokkeerd',
+            completeHrSetup: 'HR-configuratie voltooien',
         },
     },
     emptySearchView: {
@@ -9638,6 +9676,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
@@ -9851,21 +9893,5 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         negativeButton: 'Niet echt',
     },
     monthPickerPage: {month: 'Maand', selectMonth: 'Selecteer een maand'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Nieuw bij Concierge AI',
-        confirmText: 'Laten we gaan!',
-        spendAnalysis: {
-            title: 'Interactieve uitgavenanalyse',
-            description: `<muted-text>Concierge toont maandelijkse uitgaveninzichten en laat je inzoomen op de details achter elk getal. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Meer informatie</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Maak kennis met je nieuwe declaratie-assistent',
-            description: `<muted-text>Chat met Concierge om uitgaven aan te maken en bij te werken, rechtstreeks in de app of via e-mail of sms. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Meer informatie</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Bouw je eigen agents',
-            description: `<muted-text>Maak aangepaste agents om uitgaven te beoordelen, goed te keuren en door te sturen op basis van regels die jij instelt. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Meer informatie</a>.</muted-text>`,
-        },
-    },
 };
 export default translations;

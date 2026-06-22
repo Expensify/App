@@ -508,6 +508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Restrições',
+        off: 'Desligado',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -1062,6 +1063,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Ver mais ${count}`,
+        recentlyAddedSection: {
+            title: 'Adicionados recentemente',
+            viewAll: 'Ver todas as despesas',
+            emptyStateTitle: 'Nenhuma despesa recente',
+            emptyStateMessage: 'Crie um ou arraste um recibo aqui',
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1643,6 +1650,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover para relatório',
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
+        submitReportTo: {
+            subtitle: 'Escolha um membro do espaço de trabalho ou digite o e-mail de quem deve receber este envio.',
+            emailLabel: 'Endereço de e-mail',
+            workspaceMembers: 'Membros do workspace',
+            sendExpense: 'Envie sua despesa para qualquer pessoa',
+            sendExpenseSubtitle: 'Convide qualquer pessoa para o Expensify usando o endereço de e-mail ou número de telefone.',
+        },
         changeApprover: {
             title: 'Alterar aprovador',
             header: (workflowSettingLink: string) =>
@@ -7020,6 +7034,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>As aprovações estão disponíveis nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Aprovar relatórios',
+                description:
+                    'Revise, aprove e mantenha os gastos sob controle em um só lugar. Fluxos de aprovação ajudam você a controlar custos, aplicar as políticas da empresa e reembolsar seus funcionários mais rápido.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Os fluxos de aprovação estão disponíveis apenas no plano Collect, a partir de <strong>${formattedPrice}</strong> por membro ativo por mês.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Cartões corporativos',
                 description: `Traga seu próprio cartão corporativo para o Expensify para obter importação automática, categorização automática, suporte a regras personalizáveis e reconciliação integrada.`,
@@ -7067,7 +7088,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             },
             controlPolicyRoles: {
                 title: 'Funções da política de controle',
-                description: 'Use funções especializadas como Auditor e Administrador de Cartão para conceder aos membros acesso apenas ao que precisam.',
+                description: 'Conceda acesso específico aos membros atribuindo funções como Auditor ou Administrador de Cartão.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Funções especializadas no espaço de trabalho estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
@@ -7304,10 +7325,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 chooseCards: 'Escolher cartões',
                 saveRule: 'Salvar regra',
                 allow: 'Permitir',
-                spendRuleSectionTitle: 'Regra de gasto',
-                restrictionType: 'Tipo de restrição',
-                restrictionTypeHelpAllow: 'As cobranças são aprovadas se corresponderem a qualquer comerciante ou categoria e não excederem um valor máximo.',
-                restrictionTypeHelpBlock: 'As cobranças são recusadas se corresponderem a qualquer estabelecimento ou categoria, ou se excederem um valor máximo.',
+                spendRuleSectionTitle: 'Regras de gasto',
                 addMerchant: 'Adicionar comerciante',
                 merchantContains: 'Comerciante contém',
                 merchantExactlyMatches: 'Estabelecimento corresponde exatamente',
@@ -7318,11 +7336,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 matchType: 'Tipo de correspondência',
                 matchTypeContains: 'Contém',
                 matchTypeExact: 'Corresponde exatamente',
-                spendCategory: 'Categoria de gasto',
                 maxAmount: 'Valor máximo',
                 maxAmountHelp: 'Qualquer cobrança acima desse valor será recusada, independentemente das restrições de estabelecimento e categoria de gasto.',
-                currencyMismatchTitle: 'Incompatibilidade de moeda',
-                currencyMismatchPrompt: 'Para definir um valor máximo, selecione cartões que liquidem na mesma moeda.',
+                maxAmountCurrencyMismatchTitle: 'Moeda incompatível',
+                maxAmountCurrencyMismatchPrompt: 'Para definir um valor máximo, selecione cartões que sejam liquidados na mesma moeda.',
                 reviewSelectedCards: 'Revisar cartões selecionados',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} mais` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Aplicar pelo menos uma regra de gasto a um cartão',
@@ -7385,6 +7402,25 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueado' : 'Permitido'} ${shownCount > 1 ? 'categorias' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
+                restrictMerchants: 'Restringir comerciantes',
+                merchantTypes: 'Tipos de estabelecimento',
+                allowedMerchants: 'Comerciantes permitidos',
+                allowedMerchantTypes: 'Tipos de estabelecimentos permitidos',
+                blockedMerchants: 'Comerciantes bloqueados',
+                blockedMerchantTypes: 'Tipos de estabelecimentos bloqueados',
+                currencies: 'Moedas',
+                permittedCurrencies: 'Moedas permitidas',
+                allCurrencies: 'Todas as moedas',
+                permittedCurrenciesSubtitle: 'Escolha permitir todas as moedas ou apenas moedas específicas',
+                settlementCurrencyPermittedSubtitle: 'A moeda de liquidação do cartão é sempre permitida',
+                currenciesCurrencyMismatchTitle: 'Moeda incompatível',
+                currenciesCurrencyMismatchPrompt: 'Para definir moedas preferenciais, selecione cartões que sejam liquidados na mesma moeda.',
+                restrictMerchantsOffSubtitle: 'As cobranças são aprovadas para moedas permitidas que não excedam um valor máximo',
+                restrictMerchantsAllowSubtitle: 'Cobranças são aprovadas para moedas permitidas que não excedem um valor máximo, e o estabelecimento ou tipo de estabelecimento corresponde.',
+                restrictMerchantsBlockSubtitle:
+                    'As cobranças são aprovadas para moedas permitidas que não ultrapassem um valor máximo ou quando o comerciante ou o tipo de comerciante correspondem.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Permitido ${shownCount > 1 ? 'moedas' : 'moeda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
             },
             agentRules: {
                 title: 'Regras do agente',
@@ -9526,6 +9562,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             theresAProblemWithYourWallet: 'Há um problema com sua carteira',
             theresAProblemWithYourWalletTerms: 'Há um problema com os termos da sua carteira',
             aBankAccountIsLocked: 'Uma conta bancária está bloqueada',
+            completeHrSetup: 'Concluir configuração de RH',
         },
     },
     emptySearchView: {
@@ -9628,6 +9665,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
@@ -9841,21 +9882,5 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         negativeButton: 'Na verdade, não',
     },
     monthPickerPage: {month: 'Mês', selectMonth: 'Selecione um mês por favor'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Novo no Concierge AI',
-        confirmText: 'Vamos lá!',
-        spendAnalysis: {
-            title: 'Análise interativa de gastos',
-            description: `<muted-text>O Concierge apresenta insights mensais de gastos e permite que você aprofunde nos detalhes por trás de cada número. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Saiba mais</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Conheça seu novo assistente de despesas',
-            description: `<muted-text>Converse com o Concierge para criar e atualizar despesas, direto no app ou por e-mail ou SMS. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Saiba mais</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Crie seus próprios agentes',
-            description: `<muted-text>Crie agentes personalizados para revisar, aprovar e direcionar despesas com base nas regras que você definir. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Saiba mais</a>.</muted-text>`,
-        },
-    },
 };
 export default translations;

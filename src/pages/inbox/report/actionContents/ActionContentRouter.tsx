@@ -36,6 +36,7 @@ import {
     isCardIssuedAction,
     isCreatedTaskReportAction,
     isIOURequestReportAction,
+    isMemberChangeAction,
     isMoneyRequestAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
@@ -58,6 +59,7 @@ import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
+import MemberChangeContent from './MemberChangeContent';
 import MentionWhisperContent from './MentionWhisperContent';
 import ModifiedExpenseContent from './ModifiedExpenseContent';
 import PaymentContent from './PaymentContent';
@@ -66,6 +68,7 @@ import ReceiptScanFailedContent from './ReceiptScanFailedContent';
 import ReimbursedContent from './ReimbursedContent';
 import ReimbursementDeQueuedContent from './ReimbursementDeQueuedContent';
 import ReimbursementQueuedContent from './ReimbursementQueuedContent';
+import RemovedFromApprovalChainContent from './RemovedFromApprovalChainContent';
 import ReportMentionWhisperContent from './ReportMentionWhisperContent';
 import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
 
@@ -302,6 +305,12 @@ function ActionContentRouter({
             );
         }
         return <ReportActionItemBasicMessage message={getForwardedReportActionMessage(action, translate)} />;
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
+        return <RemovedFromApprovalChainContent action={action} />;
+    }
+    if (isMemberChangeAction(action)) {
+        return <MemberChangeContent action={action} />;
     }
     if (isHandledPolicyChangeLogAction(action)) {
         return (

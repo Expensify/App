@@ -510,6 +510,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beschränkungen',
+        off: 'Aus',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -1063,6 +1064,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `${count} weitere anzeigen`,
+        recentlyAddedSection: {
+            title: 'Kürzlich hinzugefügt',
+            viewAll: 'Alle Ausgaben anzeigen',
+            emptyStateTitle: 'Keine aktuellen Ausgaben',
+            emptyStateMessage: 'Erstellen Sie eine oder ziehen Sie eine Quittung hierher',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1650,6 +1657,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
+        submitReportTo: {
+            subtitle: 'Wählen Sie ein Arbeitsbereichsmitglied aus oder geben Sie die E-Mail-Adresse der Person ein, die diese Einreichung erhalten soll.',
+            emailLabel: 'E-Mail-Adresse',
+            workspaceMembers: 'Workspace-Mitglieder',
+            sendExpense: 'Senden Sie Ihre Ausgabe an jede beliebige Person',
+            sendExpenseSubtitle: 'Laden Sie jede beliebige Person zu Expensify ein, indem Sie ihre E-Mail-Adresse oder Telefonnummer verwenden.',
+        },
         changeApprover: {
             title: 'Genehmigende Person ändern',
             header: (workflowSettingLink: string) =>
@@ -7064,6 +7078,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Genehmigungen sind in den Collect- und Control-Tarifen verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Berichte genehmigen',
+                description:
+                    'Prüfen, genehmigen und Ausgaben an einem Ort im Blick behalten. Genehmigungs-Workflows helfen Ihnen, Kosten zu kontrollieren, Unternehmensrichtlinien durchzusetzen und Ihre Mitarbeitenden schneller zu erstatten.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Genehmigungs-Workflows sind nur im Collect-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> pro aktivem Mitglied und Monat.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Firmenkarten',
                 description: `Bringe deine eigene Firmenkarte zu Expensify, um automatische Importe, automatische Kategorisierung, anpassbare Regeln und integrierte Abstimmung zu erhalten.`,
@@ -7112,7 +7133,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             },
             controlPolicyRoles: {
                 title: 'Rollen für Richtliniensteuerung',
-                description: 'Verwenden Sie spezialisierte Rollen wie Auditor und Karten-Admin, um Mitgliedern nur den Zugriff zu gewähren, den sie benötigen.',
+                description: 'Gewähren Sie Mitgliedern gezielten Zugriff, indem Sie Rollen wie Prüfer oder Kartenadministrator zuweisen.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
@@ -7349,10 +7370,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 chooseCards: 'Karten auswählen',
                 saveRule: 'Regel speichern',
                 allow: 'Erlauben',
-                spendRuleSectionTitle: 'Ausgabenregel',
-                restrictionType: 'Beschränkungstyp',
-                restrictionTypeHelpAllow: 'Ausgaben werden genehmigt, wenn sie einem beliebigen Händler oder einer Kategorie entsprechen und einen Höchstbetrag nicht überschreiten.',
-                restrictionTypeHelpBlock: 'Buchungen werden abgelehnt, wenn sie mit einem Händler oder einer Kategorie übereinstimmen oder einen Höchstbetrag überschreiten.',
+                spendRuleSectionTitle: 'Ausgabelimits',
                 addMerchant: 'Händler hinzufügen',
                 merchantContains: 'Händler enthält',
                 merchantExactlyMatches: 'Händler stimmt exakt überein',
@@ -7363,11 +7381,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 matchType: 'Übereinstimmungstyp',
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Stimmt genau überein',
-                spendCategory: 'Ausgabenkategorie',
                 maxAmount: 'Maximalbetrag',
                 maxAmountHelp: 'Jede Belastung über diesem Betrag wird abgelehnt, unabhängig von Händler- und Ausgabenkategoriebeschränkungen.',
-                currencyMismatchTitle: 'Währungsinkonsistenz',
-                currencyMismatchPrompt: 'Um einen Höchstbetrag festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
+                maxAmountCurrencyMismatchTitle: 'Währungsabweichung',
+                maxAmountCurrencyMismatchPrompt: 'Um einen Maximalbetrag festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
                 reviewSelectedCards: 'Ausgewählte Karten prüfen',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} weitere` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Wenden Sie mindestens eine Ausgabenregel auf eine Karte an',
@@ -7430,6 +7447,26 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
+                restrictMerchants: 'Händler einschränken',
+                merchantTypes: 'Händlerarten',
+                allowedMerchants: 'Zugelassene Händler',
+                allowedMerchantTypes: 'Zulässige Händlerarten',
+                blockedMerchants: 'Blockierte Händler',
+                blockedMerchantTypes: 'Gesperrte Händlerarten',
+                currencies: 'Währungen',
+                permittedCurrencies: 'Zulässige Währungen',
+                allCurrencies: 'Alle Währungen',
+                permittedCurrenciesSubtitle: 'Wählen Sie, ob alle oder nur bestimmte Währungen zulässig sind',
+                settlementCurrencyPermittedSubtitle: 'Die Kartenabrechnungswährung ist immer zulässig',
+                currenciesCurrencyMismatchTitle: 'Währungsabweichung',
+                currenciesCurrencyMismatchPrompt: 'Um bevorzugte Währungen festzulegen, wählen Sie Karten aus, die in derselben Währung abgerechnet werden.',
+                restrictMerchantsOffSubtitle: 'Belastungen werden für zulässige Währungen genehmigt, die einen Höchstbetrag nicht überschreiten',
+                restrictMerchantsAllowSubtitle:
+                    'Ausgaben werden genehmigt für zulässige Währungen, die einen Höchstbetrag nicht überschreiten und bei denen das Unternehmen oder der Unternehmenstyp übereinstimmt.',
+                restrictMerchantsBlockSubtitle:
+                    'Gebühren werden genehmigt, wenn sie in zulässigen Währungen erfolgen und einen Höchstbetrag nicht überschreiten oder wenn das Geschäft bzw. die Geschäftsart übereinstimmt.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Erlaubt ${shownCount > 1 ? 'Währungen' : 'Währung'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
             },
             agentRules: {
                 title: 'Agentenregeln',
@@ -9582,6 +9619,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             theresAProblemWithYourWallet: 'Es gibt ein Problem mit deinem Wallet',
             theresAProblemWithYourWalletTerms: 'Es gibt ein Problem mit deinen Wallet-Bedingungen',
             aBankAccountIsLocked: 'Ein Bankkonto ist gesperrt',
+            completeHrSetup: 'HR-Einrichtung abschließen',
         },
     },
     emptySearchView: {
@@ -9684,6 +9722,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
@@ -9898,21 +9940,5 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         negativeButton: 'Nicht wirklich',
     },
     monthPickerPage: {month: 'Monat', selectMonth: 'Bitte wählen Sie einen Monat aus'},
-    aiFeaturesPromoModal: {
-        subtitle: 'Neu bei Concierge AI',
-        confirmText: 'Los geht’s!',
-        spendAnalysis: {
-            title: 'Interaktive Ausgabenanalyse',
-            description: `<muted-text>Concierge zeigt monatliche Ausgabenanalysen an und ermöglicht es Ihnen, die Details hinter jeder Zahl genauer zu betrachten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.SPEND_ANALYSIS}">Mehr erfahren</a>.</muted-text>`,
-        },
-        expenseAssistant: {
-            title: 'Lernen Sie Ihre neue Spesenassistenz kennen',
-            description: `<muted-text>Chatten Sie mit Concierge, um Ausgaben direkt in der App oder per E-Mail oder SMS zu erstellen und zu aktualisieren. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.EXPENSE_ASSISTANT}">Mehr erfahren</a>.</muted-text>`,
-        },
-        customAgents: {
-            title: 'Erstellen Sie Ihre eigenen Agenten',
-            description: `<muted-text>Erstellen Sie benutzerdefinierte Agenten, die Ausgaben anhand Ihrer Regeln prüfen, genehmigen und weiterleiten. <a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">Mehr erfahren</a>.</muted-text>`,
-        },
-    },
 };
 export default translations;
