@@ -549,6 +549,7 @@ describe('ReportNameUtils', () => {
                 report: thread,
                 reports: emptyCollections.reports,
                 policies: emptyCollections.policies,
+                transactions: {},
                 personalDetailsList: participantsPersonalDetails,
                 reportActions: reportActionsCollection,
                 currentUserAccountID,

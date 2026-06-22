@@ -12927,7 +12927,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction: undefined,
-                transactions: [transaction],
+                linkedTransaction: transaction,
                 report: mockTransactionReport,
             });
 
@@ -12947,7 +12947,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction: undefined,
-                transactions: [transaction],
+                linkedTransaction: transaction,
                 report: mockTransactionReport,
             });
 
@@ -12963,6 +12963,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction,
+                linkedTransaction: undefined,
                 report: mockTransactionReport,
             });
 
@@ -12977,6 +12978,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction,
+                linkedTransaction: undefined,
                 report: mockTransactionReport,
             });
 
@@ -12995,7 +12997,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction: undefined,
-                transactions: [transaction],
+                linkedTransaction: transaction,
                 report: mockTransactionReport,
             });
 
