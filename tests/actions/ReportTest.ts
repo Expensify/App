@@ -7605,8 +7605,7 @@ describe('actions/Report', () => {
             const result = Report.getGuidedSetupDataForOpenReport(introSelected);
 
             expect(result).toBeDefined();
-            const guidedSetupData = JSON.parse(result?.guidedSetupData ?? '[]') as Array<{type: string; task?: string}>;
-            expect(guidedSetupData.some((item) => item.type === 'task' && item.task === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS)).toBe(true);
+            expect(result?.guidedSetupData).toContain(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
             expect(result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING)).toBeUndefined();
         });
 
