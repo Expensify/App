@@ -140,12 +140,12 @@ function AnimatedSettlementButton({
     };
 
     useEffect(() => {
-        if (!isAnimationRunning || (isDEWApproval && !isDEWApprovalComplete)) {
+        if (!isAnimationRunning || (isApprovedAnimationRunning && isDEWApproval && !isDEWApprovalComplete)) {
             return;
         }
         const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY);
         return () => clearTimeout(timer);
-    }, [isAnimationRunning, isDEWApprovalComplete, isDEWApproval]);
+    }, [isAnimationRunning, isDEWApprovalComplete, isDEWApproval, isApprovedAnimationRunning]);
 
     useEffect(() => {
         if (!isDEWApprovalFailed) {
