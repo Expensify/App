@@ -146,11 +146,13 @@ function getSearchSnapshotUpdates({
 
 function getRecalculatedDistanceRateIDForExpenseDate({
     transaction,
+    transactionThreadReport,
     parentReport,
     policy,
     expenseDate,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     expenseDate: string;
@@ -159,7 +161,10 @@ function getRecalculatedDistanceRateIDForExpenseDate({
         return undefined;
     }
 
-    if (!isExpenseReport(parentReport)) {
+    const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
+    const isWorkspaceDistanceExpense = isExpenseReport(parentReport);
+
+    if (!isWorkspaceDistanceExpense && !isTrackExpense) {
         return undefined;
     }
 
@@ -183,7 +188,8 @@ function getRecalculatedDistanceRateIDForExpenseDate({
 
     const newRateID = DistanceRequestUtils.getCustomUnitRateID({
         reportID: parentReport?.reportID,
-        isPolicyExpenseChat: true,
+        isPolicyExpenseChat: isWorkspaceDistanceExpense,
+        isTrackDistanceExpense: isTrackExpense,
         policy,
         expenseDate,
     });
@@ -225,8 +231,9 @@ function updateMoneyRequestDate({
     const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
     const newRateID = getRecalculatedDistanceRateIDForExpenseDate({
         transaction,
+        transactionThreadReport,
         parentReport,
-        policy,
+        policy: effectivePolicy,
         expenseDate: value,
     });
     const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
