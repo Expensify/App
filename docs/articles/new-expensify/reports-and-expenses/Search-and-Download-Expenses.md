@@ -32,7 +32,7 @@ Expensify offers flexible options to search and export expenses and reports in v
 
 After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, click **Download file**. You can also click **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
 
-> **Note:** Report-level templates only appear if you select full reports (i.e., all expenses in the report).
+**Note:** Report-level templates only appear if you select full reports.
 
 ## Mobile
 
@@ -45,7 +45,7 @@ After you choose a template, a status window appears while your file is prepared
 
 After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, tap **Download file**. You can also tap **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
 
-> **Note:** Report-level templates only appear when full reports are selected.
+**Note:** Report-level templates only appear when full reports are selected.
 
 # Export grouped expenses
 
