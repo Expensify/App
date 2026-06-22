@@ -8057,8 +8057,8 @@ const translations = {
         commuterExclusions: {
             changedToFixedDistance: 'changed exclude commutes to a fixed distance per claim',
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `set fixed distance exclusion to ${formattedDistance} per claim`,
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `changed fixed distance exclusion to ${newDistance} ${unit} per claim (previously ${oldDistance} ${unit})`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `changed fixed distance exclusion to ${formattedNewDistance} per claim (previously ${formattedOldDistance})`,
             disabled: 'disabled exclude commutes for distance rates',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>

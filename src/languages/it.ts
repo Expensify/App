@@ -8059,8 +8059,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         commuterExclusions: {
             changedToFixedDistance: 'ha modificato l’esclusione dei tragitti casa-lavoro in una distanza fissa per rimborso',
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `imposta un'esclusione di distanza fissa di ${formattedDistance} per richiesta`,
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `ha modificato l’esclusione a distanza fissa a ${newDistance} ${unit} per richiesta (in precedenza ${oldDistance} ${unit})`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `ha modificato l’esclusione a distanza fissa a ${formattedNewDistance} per richiesta (in precedenza ${formattedOldDistance})`,
             disabled: 'esclusione delle tratte casa-lavoro per le tariffe a distanza disattivata',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>

@@ -4218,28 +4218,22 @@ function getUpdatedCommuterExclusionsMessage(translate: LocalizedTranslate, repo
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS)) {
         return getReportActionText(reportAction);
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const updatedField = originalMessage?.updatedField;
+    const {newValue, unit, oldValue, updatedField} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS>) ?? {};
 
-    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD) {
-        const newMethod = originalMessage?.newValue;
-        if (newMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
-            return translate('workspaceActions.commuterExclusions.changedToFixedDistance');
-        }
+    if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD && newValue === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+        return translate('workspaceActions.commuterExclusions.changedToFixedDistance');
     }
 
     if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE) {
-        const newValue = typeof originalMessage?.newValue === 'number' ? originalMessage.newValue : Number(originalMessage?.newValue ?? 0);
-        const unit = originalMessage?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+        const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+        const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(Number(newValue ?? 0), distanceUnit, translate);
 
-        if (originalMessage?.oldValue == null) {
-            const unitLabel = DistanceRequestUtils.getDistanceUnitLabel(newValue, unit, translate);
-            const formattedDistance = `${newValue} ${unitLabel}`;
+        if (!oldValue) {
             return translate('workspaceActions.commuterExclusions.setFixedDistance', {formattedDistance});
         }
 
-        const oldValue = typeof originalMessage.oldValue === 'number' ? originalMessage.oldValue : Number(originalMessage.oldValue);
-        return translate('workspaceActions.commuterExclusions.changedFixedDistance', {newDistance: newValue, oldDistance: oldValue, unit});
+        const formattedOldDistance = DistanceRequestUtils.getFormattedDistanceInUnits(Number(oldValue ?? 0), distanceUnit, translate);
+        return translate('workspaceActions.commuterExclusions.changedFixedDistance', {formattedOldDistance, formattedNewDistance: formattedDistance});
     }
 
     if (updatedField === CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED) {

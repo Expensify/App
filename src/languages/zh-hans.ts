@@ -7808,8 +7808,8 @@ ${reportName}`,
         commuterExclusions: {
             changedToFixedDistance: '已将“排除通勤”更改为“按每次报销固定距离”',
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `将每次报销的固定排除距离设置为 ${formattedDistance}`,
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `已将固定距离排除调整为每笔报销 ${newDistance} ${unit}（之前为 ${oldDistance} ${unit}）`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `已将固定距离排除调整为每笔报销 ${formattedNewDistance}（之前为 ${formattedOldDistance}）`,
             disabled: '已停用“排除通勤距离费率”',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) => `将报销方式更改为“${newReimbursementChoice}”（原为“${oldReimbursementChoice}”）`,

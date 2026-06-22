@@ -7962,8 +7962,8 @@ ${reportName}`,
         commuterExclusions: {
             changedToFixedDistance: '通勤分の除外方法を、申請ごとの固定距離に変更しました',
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `1件の経費申請につき固定除外距離を${formattedDistance}に設定します`,
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `1件あたりの固定距離除外を${oldDistance} ${unit}から${newDistance} ${unit}に変更しました`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `1件あたりの固定距離除外を${formattedOldDistance}から${formattedNewDistance}に変更しました`,
             disabled: '距離レートで通勤を除外する設定を無効にしました',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>

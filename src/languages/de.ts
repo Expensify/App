@@ -8070,8 +8070,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         commuterExclusions: {
             changedToFixedDistance: 'hat das Ausschließen von Pendelstrecken in eine feste Entfernung pro Antrag geändert',
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `feste Distanz von ${formattedDistance} pro Antrag ausschließen`,
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `feste Entfernungsausschlussgrenze auf ${newDistance} ${unit} pro Antrag geändert (zuvor ${oldDistance} ${unit})`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `feste Entfernungsausschlussgrenze auf ${formattedNewDistance} pro Antrag geändert (zuvor ${formattedOldDistance})`,
             disabled: 'Ausschluss von Pendelstrecken für Distanzsätze deaktiviert',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>

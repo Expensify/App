@@ -8019,8 +8019,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         commuterExclusions: {
             changedToFixedDistance: 'zmienił wykluczanie dojazdów na stały dystans na zgłoszenie',
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ustaw stałe wykluczenie dystansu na ${formattedDistance} na zgłoszenie`,
-            changedFixedDistance: ({formattedDistance, oldDistance}: {formattedDistance: string; oldDistance: string}) =>
-                `zmienił stałe wykluczenie dystansu na ${formattedDistance} na zgłoszenie (wcześniej ${oldDistance})`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `zmienił stałe wykluczenie dystansu na ${formattedNewDistance} na zgłoszenie (wcześniej ${formattedOldDistance})`,
             disabled: 'wyłączono wykluczanie dojazdów dla stawek za odległość',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>

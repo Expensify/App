@@ -7796,8 +7796,8 @@ ${amount} para ${merchant} - ${date}`,
         commuterExclusions: {
             changedToFixedDistance: 'cambió la exclusión de trayectos al trabajo a una distancia fija por reclamación',
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `establecer exclusión de distancia fija en ${formattedDistance} por reclamación`,
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `cambió la exclusión de distancia fija a ${newDistance} ${unit} por reclamación (previamente ${oldDistance} ${unit})`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `cambió la exclusión de distancia fija a ${formattedNewDistance} por reclamación (previamente ${formattedOldDistance})`,
             disabled: 'desactivó la opción de excluir desplazamientos para las tarifas por distancia',
         },
         updatedReimbursementChoice: (newReimbursementChoice, oldReimbursementChoice) =>

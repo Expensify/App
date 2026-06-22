@@ -8016,18 +8016,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removeu "${prohibitedExpense}" das despesas proibidas`,
         commuterExclusions: {
             changedToFixedDistance: 'alterou "excluir trajetos casa-trabalho" para uma distância fixa por solicitação',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'milha' : 'milhas';
-                } else {
-                    unitLabel = isSingular ? 'quilômetro' : 'quilômetros';
-                }
-                return `definir exclusão de distância fixa de ${distance} ${unitLabel} por solicitação`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `alterou a exclusão de distância fixa para ${newDistance} ${unit} por solicitação (antes ${oldDistance} ${unit})`,
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `definir exclusão de distância fixa de ${formattedDistance} por solicitação`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `alterou a exclusão de distância fixa para ${formattedNewDistance} por solicitação (antes ${formattedOldDistance})`,
             disabled: 'excluiu deslocamentos diários para tarifas por distância',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>

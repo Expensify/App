@@ -8026,9 +8026,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
         commuterExclusions: {
             changedToFixedDistance: 'heeft ‘woon-werkverkeer uitsluiten’ gewijzigd naar een vaste afstand per declaratie',
-            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `stel vaste afstandsuitsluiting in op ${formattedDistance} per declaratie`;
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `heeft de vaste afstandsuitsluiting gewijzigd naar ${formattedDistance} per declaratie (voorheen ${oldDistance} ${unit})`,
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `stel vaste afstandsuitsluiting in op ${formattedDistance} per declaratie`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `heeft de vaste afstandsuitsluiting gewijzigd naar ${formattedNewDistance} per declaratie (voorheen ${formattedOldDistance})`,
             disabled: 'uitschakelen woon-werkverkeer uitsluiten voor afstandstarieven',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>

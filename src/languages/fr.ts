@@ -8103,8 +8103,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         commuterExclusions: {
             changedToFixedDistance: 'a modifié l’exclusion des trajets domicile-travail en une distance fixe par demande',
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `définir l’exclusion de distance fixe à ${formattedDistance} par demande`,
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `a modifié l’exclusion de distance fixe à ${newDistance} ${unit} par demande (auparavant ${oldDistance} ${unit})`,
+            changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
+                `a modifié l’exclusion de distance fixe à ${formattedNewDistance} par demande (auparavant ${formattedOldDistance})`,
             disabled: 'désactivé exclure les trajets domicile-travail pour les taux de distance',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
