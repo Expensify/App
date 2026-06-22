@@ -1949,7 +1949,7 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if the report is an expense report, a group policy, a self-DM, or the iouType is create, and the iouType is not split or invoice.
  */
-function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string, participants?: Participant[], isNewManualExpenseFlow = false) {
+function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string, participants?: Participant[]) {
     const isSelfDMReport = isSelfDMOrSelfDMThread(report);
 
     const isUserInRecipients = participants?.some((participant) => !participant.isSender && !participant.isPolicyExpenseChat && participant.accountID);
@@ -1957,7 +1957,7 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
 
     const isExpenseReportType = isExpenseReport(report);
     const isGroupPolicyType = isGroupPolicyPolicyUtils(policy);
-    const isCreatingNewIOU = iouType === CONST.IOU.TYPE.CREATE && !(isNewManualExpenseFlow && isUserInRecipients);
+    const isCreatingNewIOU = iouType === CONST.IOU.TYPE.CREATE && !isUserInRecipients;
     const supportsNegativeAmounts = isExpenseReportType || isGroupPolicyType || isSelfDMReport || isCreatingNewIOU || isFirstTimeCreatingReport;
 
     const isExcludedType = iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.INVOICE;
@@ -2413,7 +2413,13 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
  * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
  * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
  */
-function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, excludeReportID?: string, archivedReportsIDSet?: ArchivedReportsIDSet): OnyxEntry<Report> {
+function findLastAccessedReport(
+    ignoreDomainRooms: boolean,
+    openOnAdminRoom = false,
+    excludeReportID?: string,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+): OnyxEntry<Report> {
+    const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
     let reportsValues = Object.values(deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
@@ -2450,7 +2456,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     reportsValues =
         reportsValues.filter((report) => {
             const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`;
-            const isArchived = archivedReportsIDSet ? archivedReportsIDSet.has(reportNameValuePairsKey) : isArchivedReport(allReportNameValuePair?.[reportNameValuePairsKey]);
+            const isArchived = isArchivedReport(reportNameValuePairsCollection?.[reportNameValuePairsKey]);
             return !isSystemChat(report) && !isArchived;
         }) ?? [];
 
@@ -8774,48 +8780,6 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | un
     return generateIsEmptyReport(report, isReportArchived);
 }
 
-type ReportEmptyStateSummary = Pick<
-    Report,
-    'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'pendingFields' | 'errors'
-> &
-    Pick<Report, 'reportID'>;
-
-function toReportEmptyStateSummary(report: Report | null | undefined): ReportEmptyStateSummary | undefined {
-    if (!report) {
-        return undefined;
-    }
-
-    return {
-        reportID: report.reportID,
-        policyID: report.policyID ?? undefined,
-        ownerAccountID: report.ownerAccountID ?? undefined,
-        type: report.type ?? undefined,
-        stateNum: report.stateNum ?? undefined,
-        statusNum: report.statusNum ?? undefined,
-        total: report.total ?? undefined,
-        nonReimbursableTotal: report.nonReimbursableTotal ?? undefined,
-        pendingAction: report.pendingAction ?? undefined,
-        pendingFields: report.pendingFields ?? undefined,
-        errors: report.errors ?? undefined,
-    };
-}
-
-function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | undefined): ReportEmptyStateSummary[] {
-    if (!reports) {
-        return [];
-    }
-
-    const result: ReportEmptyStateSummary[] = [];
-    for (const report of Object.values(reports)) {
-        const summary = toReportEmptyStateSummary(report);
-
-        if (summary) {
-            result.push(summary);
-        }
-    }
-    return result;
-}
-
 /**
  * Checks if there are any empty (no transactions) open expense reports for a specific policy and user.
  * An empty report is defined as having zero transactions.
@@ -8827,14 +8791,12 @@ function hasEmptyReportsForPolicy(
     reportIDsWithActiveTransactions: Record<string, boolean>,
     accountID?: number,
 ): boolean {
-    if (!accountID || !policyID) {
+    if (!accountID || !policyID || !reports) {
         return false;
     }
 
-    const summaries = getReportSummariesForEmptyCheck(reports);
-
-    return summaries.some((report) => {
-        if (!report.reportID || !report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
+    return Object.values(reports).some((report) => {
+        if (!report?.reportID || !report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
             return false;
         }
 
@@ -8864,15 +8826,14 @@ function getPolicyIDsWithEmptyReportsForAccount(
     accountID: number | undefined,
     reportsTransactionsParam: Record<string, Transaction[]>,
 ): Record<string, boolean> {
-    if (!accountID) {
+    if (!accountID || !reports) {
         return {};
     }
 
-    const summaries = getReportSummariesForEmptyCheck(reports);
     const policyLookup: Record<string, boolean> = {};
 
-    for (const report of summaries) {
-        if (!report.reportID || !report.policyID || report.ownerAccountID !== accountID) {
+    for (const report of Object.values(reports)) {
+        if (!report?.reportID || !report.policyID || report.ownerAccountID !== accountID) {
             continue;
         }
 
@@ -13386,7 +13347,6 @@ export {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
-    isReportArchivedByID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,

@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import type {Unit} from '@src/types/onyx/Policy';
 
 type Coordinate = [number, number];
@@ -39,6 +40,28 @@ type MapViewProps = {
     shouldDisplayCurrentLocation?: boolean;
 };
 
+type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState'> & {
+    // Whether the GPS trip is active
+    isTrackingGPS: boolean;
+
+    // List of coordinates which together forms a direction.
+    directionCoordinates: Coordinate[][];
+};
+
+type GPSDirectionProps = {
+    // Whether the GPS trip is active
+    isTrackingGPS: boolean;
+
+    // Last location of the user
+    lastLocation: {longitude: number; latitude: number} | undefined;
+
+    // List of coordinates which together forms a direction.
+    directionCoordinates: Coordinate[][];
+
+    // ID of the layer to place the line layer below
+    belowLayerID?: string;
+};
+
 type DirectionProps = {
     // Coordinates of points that constitute the direction
     coordinates: Coordinate[] | Coordinate[][];
@@ -73,6 +96,7 @@ type WayPoint = {
     id: string;
     coordinate: Coordinate;
     markerComponent: () => ReactNode;
+    markerType?: MapMarkerType;
 };
 
 // Represents a handle to interact with a map view.
@@ -83,4 +107,4 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};
+export type {WayPoint, MapViewProps, GPSMapViewProps, DirectionProps, PendingMapViewProps, Coordinate, GPSDirectionProps};

@@ -888,6 +888,10 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
+    WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
+        path: 'initial-list-value',
+        entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -2468,9 +2472,10 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string, upgradePlanType?: string) => {
-            const baseRoute = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
-            return getUrlWithBackToParam(upgradePlanType ? (`${baseRoute}?upgradePlanType=${upgradePlanType}` as const) : baseRoute, backTo);
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string) => {
+            const base = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
+            const urlWithParams = reportID || upgradePlanType ? getUrlWithParams(base, {reportID, upgradePlanType}) : base;
+            return getUrlWithBackToParam(urlWithParams, backTo);
         },
     },
     WORKSPACE_DOWNGRADE: {
@@ -3129,6 +3134,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/itemized-receipt-required-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/itemized-receipt-required-amount` as const,
     },
+    RULES_REQUIRE_RECEIPTS: {
+        route: 'workspaces/:policyID/rules/require-receipts',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-receipts` as const,
+    },
+    RULES_REQUIRE_FIELDS: {
+        route: 'workspaces/:policyID/rules/require-fields',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields` as const,
+    },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,
@@ -3152,6 +3165,10 @@ const ROUTES = {
     RULES_CUSTOM: {
         route: 'workspaces/:policyID/overview/policy',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/policy` as const,
+    },
+    RULES_NEW: {
+        route: 'workspaces/:policyID/rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/new` as const,
     },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
@@ -4093,13 +4110,21 @@ const ROUTES = {
         route: 'domain/:domainAccountID/saml',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
     },
-    DOMAIN_VERIFY: {
-        route: 'domain/:domainAccountID/verify',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verify` as const,
+    DOMAIN_SAML_VERIFY: {
+        route: 'domain/:domainAccountID/saml/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verify` as const,
     },
-    DOMAIN_VERIFIED: {
-        route: 'domain/:domainAccountID/verified',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verified` as const,
+    DOMAIN_SAML_VERIFIED: {
+        route: 'domain/:domainAccountID/saml/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verified` as const,
+    },
+    DOMAIN_MEMBERS_VERIFY: {
+        route: 'domain/:domainAccountID/members/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verify` as const,
+    },
+    DOMAIN_MEMBERS_VERIFIED: {
+        route: 'domain/:domainAccountID/members/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verified` as const,
     },
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',

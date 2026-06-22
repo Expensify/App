@@ -76,6 +76,7 @@ import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentMagicWand from '@assets/images/document-magic-wand.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
@@ -203,6 +204,7 @@ import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
+import ReceiptCheck from '@assets/images/receipt-check.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
@@ -273,6 +275,7 @@ import Zoom from '@assets/images/zoom.svg';
 // These icons are React components because they have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
+import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocationPuck';
 import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
 import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
 import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
@@ -340,6 +343,7 @@ const Expensicons = {
     CreditCardWithPlaneHourglass,
     CircleSlash,
     Document,
+    DocumentMagicWand,
     DocumentMerge,
     DocumentPlus,
     DotIndicator,
@@ -409,6 +413,7 @@ const Expensicons = {
     MakeAdmin,
     Map,
     MapCurrentLocation,
+    MapCurrentLocationPuck,
     MapStartWaypoint,
     MapStopWaypoint,
     MapWaypoint,
@@ -449,6 +454,7 @@ const Expensicons = {
     QuestionMark,
     TreasureChest,
     Receipt,
+    ReceiptCheck,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
     ReceiptScan,
