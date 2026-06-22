@@ -10,6 +10,7 @@ import {getAmount, getCreated, getCurrency, getMerchant} from '@libs/Transaction
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /** A single expense row surfaced by the Recently added slot. */
 type RecentlyAddedExpense = {
@@ -38,6 +39,9 @@ type RecentlyAddedExpense = {
      */
     threadReportID?: string;
 
+    /** Pending action for locally-created expenses not yet synced, so the row can render the offline pending treatment */
+    pendingAction?: PendingAction;
+
     /** The full transaction, used to render the receipt thumbnail */
     transaction: Transaction;
 };
@@ -48,6 +52,11 @@ type RecentlyAddedExpense = {
  *
  * Expenses come from the user's expense Search snapshot rather than the `transactions_` collection, which holds
  * only on-demand data and may be missing most expenses.
+ *
+ * The Search snapshot is only refreshed by an online API call, so a just-created expense (e.g. one added while
+ * offline) is absent from it until the next successful search. To keep the slot reflecting optimistic data, any
+ * locally-created expense still pending sync (`pendingAction === ADD`) is merged in and deduped against the
+ * snapshot by `transactionID`. This mirrors how other transaction lists surface offline-pending rows.
  */
 function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     const {accountID} = useCurrentUserPersonalDetails();
@@ -83,6 +92,16 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         return map;
     }, [localTransactions]);
 
+    // Expenses created locally but not yet synced (e.g. added while offline) are absent from the snapshot, so they're
+    // merged in below. A local optimistic ADD always belongs to the current user, so a `reportID` is the only requirement.
+    const localPendingTransactions = useMemo(
+        () =>
+            Object.values(localTransactions ?? {}).filter(
+                (transaction): transaction is Transaction & {reportID: string} => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !!transaction?.reportID,
+            ),
+        [localTransactions],
+    );
+
     const fireSearch = useEffectEvent(() => {
         if (isOffline || !queryJSON) {
             return;
@@ -108,10 +127,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     const snapshotData = searchResults?.data;
 
     const transactions = useMemo(() => {
-        const data = snapshotData;
-        if (!data) {
-            return [];
-        }
+        const data = snapshotData ?? {};
 
         const reportOwnerByReportID = new Map<string, number | undefined>();
         const snapshotTransactions: Transaction[] = [];
@@ -149,12 +165,16 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             return ownerAccountID === undefined || ownerAccountID === accountID;
         });
 
+        // Merge in locally-pending expenses, skipping any already in the snapshot so a row never appears twice.
+        const snapshotTransactionIDs = new Set(snapshotTransactions.map((transaction) => transaction.transactionID));
+        const combined = [...filtered, ...localPendingTransactions.filter((transaction) => !snapshotTransactionIDs.has(transaction.transactionID))];
+
         // Recency key: prefer the local `inserted` timestamp (full precision, present for recently added expenses),
         // then any snapshot `inserted`, then fall back to the expense date. Newest first.
         const getRecencyKey = (transaction: Transaction & {reportID: string}) =>
             insertedByTransactionID.get(transaction.transactionID) ?? transaction.inserted ?? getCreated(transaction) ?? '';
 
-        return filtered
+        return combined
             .sort((firstTransaction, secondTransaction) => {
                 const firstKey = getRecencyKey(firstTransaction);
                 const secondKey = getRecencyKey(secondTransaction);
@@ -172,9 +192,10 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 amount: getAmount(transaction),
                 currency: getCurrency(transaction),
                 threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
+                pendingAction: transaction.pendingAction,
                 transaction,
             }));
-    }, [snapshotData, accountID, insertedByTransactionID]);
+    }, [snapshotData, accountID, insertedByTransactionID, localPendingTransactions]);
 
     return {transactions};
 }

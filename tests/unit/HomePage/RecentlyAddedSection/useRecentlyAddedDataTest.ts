@@ -98,6 +98,15 @@ function setupSnapshot(transactions: Transaction[], reports: Report[]) {
     onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {data};
 }
 
+/** Seeds the local `transactions_` collection (mirrors what optimistic expense creation writes to Onyx). */
+function setupLocalTransactions(transactions: Transaction[]) {
+    const collection: Record<string, Transaction> = {};
+    for (const transaction of transactions) {
+        collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+    }
+    onyxData[ONYXKEYS.COLLECTION.TRANSACTION] = collection;
+}
+
 function resultTransactionIDs(transactions: Transaction[]): string[] {
     return transactions.map((t) => t.transactionID);
 }
@@ -205,6 +214,45 @@ describe('useRecentlyAddedData — unreported expenses', () => {
         const {result} = renderHook(() => useRecentlyAddedData());
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['unreported', 'reported']);
+    });
+});
+
+describe('useRecentlyAddedData — locally pending (offline-created) expenses', () => {
+    it('surfaces a locally-pending expense that has not yet reached the snapshot', () => {
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'pending', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        // The pending expense is newer, so it ranks ahead of the synced one.
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['pending', 'synced']);
+    });
+
+    it('exposes the pending action so the row can render the offline pending treatment', () => {
+        setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'pending', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    });
+
+    it('does not duplicate an expense present in both the snapshot and the local collection', () => {
+        setupSnapshot([makeTransaction({transactionID: 'shared', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'shared', inserted: '2026-06-01 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['shared']);
+    });
+
+    it('ignores local transactions that are not pending creation (on-demand data is not a source of expenses)', () => {
+        setupSnapshot([makeTransaction({transactionID: 'synced', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalTransactions([makeTransaction({transactionID: 'onDemand', inserted: '2026-06-09 10:00:00'})]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['synced']);
     });
 });
 
