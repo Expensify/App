@@ -22,15 +22,6 @@ function dismissOnly(runAfterDismiss: () => void) {
     });
 }
 
-function setDismissOnlyPendingActionForCurrentRoute(reportID?: string) {
-    if (isSearchTopmostFullScreenRoute()) {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-        return;
-    }
-
-    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-}
-
 // Flush ordering: The DISMISS_MODAL deferred-write channel is flushed by
 // ReportScreen.useFlushDeferredWriteOnFocus (on focus gain) or TransitionTracker (wide layout
 // fallback). createTransaction (via runAfterDismiss) calls deferOrExecuteWrite
@@ -40,7 +31,7 @@ function setDismissOnlyPendingActionForCurrentRoute(reportID?: string) {
 // Both orderings are correct. The 5s safety timeout in deferredLayoutWrite covers
 // edge cases where neither trigger fires (e.g. ReportScreen never mounts).
 function dismissNarrowWithReport(reportID: string, runAfterDismiss: () => void) {
-    setDismissOnlyPendingActionForCurrentRoute(reportID);
+    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
     Navigation.dismissModalWithReport({reportID}, undefined, {
         onBeforeNavigate: (willOpenReport) => {
             if (willOpenReport) {
@@ -48,7 +39,7 @@ function dismissNarrowWithReport(reportID: string, runAfterDismiss: () => void) 
                 return;
             }
 
-            setDismissOnlyPendingActionForCurrentRoute(reportID);
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
         },
     });
     TransitionTracker.runAfterTransitions({
@@ -134,6 +125,11 @@ function dismissWideToNewSearchType(searchType: SearchDataTypes, runAfterDismiss
  */
 function executeDismissModalStrategy(destinationReportID: string | undefined, runAfterDismiss: () => void) {
     if (!destinationReportID) {
+        dismissOnly(runAfterDismiss);
+        return;
+    }
+
+    if (isSearchTopmostFullScreenRoute()) {
         dismissOnly(runAfterDismiss);
         return;
     }

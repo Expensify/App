@@ -174,6 +174,18 @@ describe('submitDismissStrategies', () => {
             expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({callback: runAfterDismiss, waitForUpcomingTransition: true}));
         });
 
+        it('uses dismissOnly when Search is the topmost full-screen route', () => {
+            mockGetIsNarrowLayout.mockReturnValue(true);
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+
+            executeDismissModalStrategy('report-1', runAfterDismiss);
+
+            expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+            expect(setPendingSubmitFollowUpAction).not.toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
+            expect(Navigation.dismissModal).toHaveBeenCalled();
+            expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
+        });
+
         it('calls dismissWideToSameReport when current report matches destination on wide layout', () => {
             mockGetIsNarrowLayout.mockReturnValue(false);
             mockGetTopmostReportParams.mockReturnValue({reportID: 'report-1'});
@@ -255,20 +267,6 @@ describe('submitDismissStrategies', () => {
                 opts?.onBeforeNavigate(false);
 
                 expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
-            });
-
-            it('clears reportID for dismiss-only Search returns', () => {
-                mockGetIsNarrowLayout.mockReturnValue(true);
-                mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
-
-                executeDismissModalStrategy('report-1', runAfterDismiss);
-
-                const opts = jest.mocked(Navigation.dismissModalWithReport).mock.calls.at(0)?.[2];
-                jest.mocked(setPendingSubmitFollowUpAction).mockClear();
-                opts?.onBeforeNavigate?.(false);
-
-                expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-                expect(setPendingSubmitFollowUpAction).not.toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
             });
         });
     });
