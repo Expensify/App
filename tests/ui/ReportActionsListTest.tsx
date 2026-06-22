@@ -2,6 +2,7 @@
 import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -17,6 +18,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import ReportActionsSkeletonGuard from '@pages/inbox/report/ReportActionsSkeletonGuard';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -97,9 +99,11 @@ jest.mock('@hooks/usePrevious', () => jest.fn());
 
 const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
 
-// We mount the real hook-driven body and observe what it feeds the list via InvertedFlashList's `data`.
-// The heavy scroll/marker hooks have their own unit tests, so they are stubbed here to isolate the
-// body's visibility/skeleton logic — the actual subject of these tests.
+// We mount the public ReportActionsList (the skeleton guard + its content) and observe what the content
+// feeds the list via InvertedFlashList's `data`. The heavy scroll/marker hooks have their own unit tests,
+// so they are stubbed here to isolate the skeleton logic. Because the guard only mounts the content when
+// the skeleton is not showing, these stubs double as a probe for dormancy: while a skeleton renders the
+// content is never mounted, so useMarkAsRead/useReportActionsScroll are never called.
 jest.mock('@components/FlashList/InvertedFlashList', () => jest.fn(() => null));
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
 jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
@@ -134,9 +138,14 @@ const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/re
 /** Returns the report actions the body fed into the (mocked) inverted list on its latest render. */
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
 
+const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
+const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
+const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
+
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
 }));
+jest.mock('@libs/telemetry/markOpenReportEnd', () => jest.fn());
 
 const mockReport: OnyxTypes.Report = {
     reportID: '123',
@@ -291,6 +300,10 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            // The guard does not mount the content while the skeleton shows, so the UI-close hooks never
+            // run and cannot consume unread state or open a new-action subscription.
+            expect(mockUseMarkAsRead).not.toHaveBeenCalled();
+            expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
         });
 
         it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isLoadingApp is false and isOffline is false)', () => {
@@ -323,6 +336,9 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            // The list is visible, so the guard mounts the content and the UI-close hooks run.
+            expect(mockUseMarkAsRead).toHaveBeenCalled();
+            expect(mockUseReportActionsScroll).toHaveBeenCalled();
         });
 
         it('should not show skeleton when shouldShowSkeletonForAppLoad is false (isLoadingApp is true and isOffline is true)', () => {
@@ -387,6 +403,57 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+        });
+    });
+
+    describe('Open-report telemetry', () => {
+        it('fires markOpenReportEnd with warm:false while the initial skeleton shows', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+
+            mockUseOnyx.mockImplementation((key: string) => {
+                if (key === ONYXKEYS.IS_LOADING_APP) {
+                    return [true, {status: 'loaded'}];
+                }
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+                    return [false, {status: 'loaded'}];
+                }
+                if (key.includes('reportLoadingState')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
+                if (key.includes('reportActions')) {
+                    return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
+                }
+                if (key.includes('report')) {
+                    return [undefined, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            // Empty report actions so the app-load skeleton renders.
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+            });
+
+            renderReportActionsList();
+
+            // The guard owns this mark now (it used to live in the body); it must still fire while the
+            // initial skeleton shows, otherwise the open-report span regresses.
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+        });
+
+        it('does not fire the warm:false mark once content is visible', () => {
+            // Default mocks render the list (no skeleton). warm:false is gated on the initial skeleton, so
+            // it must not fire here; warm:true comes from the list layout, not this path.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+
+            renderReportActionsList();
+
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport, {warm: false});
         });
     });
 
@@ -790,6 +857,129 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
 
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            // The concierge-hidden-history skeleton shows while the report is otherwise "ready"; the content
+            // is still not mounted, so the UI-close hooks never run here either.
+            expect(mockUseMarkAsRead).not.toHaveBeenCalled();
+            expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Skeleton guard latch', () => {
+        // We render the guard directly (not via the ReportActionsList wrapper) so rerender() actually
+        // re-runs it. The wrapper's JSX is React-Compiler-memoized, so re-rendering it with an unchanged
+        // reportID returns the same guard element and React bails before the guard re-evaluates.
+        // The stub child only proves the guard keeps returning its children; that the real content's hooks
+        // and scroll state survive the transient (not just that *something* renders) rests on manual QA.
+        const renderGuard = () =>
+            render(
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <View testID="latch-content" />
+                </ReportActionsSkeletonGuard>,
+            );
+
+        it('keeps the content mounted once shown even if a skeleton condition flips back true mid-session', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            // isLoadingApp drives the app-load skeleton; flip it true after content has rendered.
+            let isLoadingApp = false;
+            mockUseOnyx.mockImplementation((key: string) => {
+                if (key === ONYXKEYS.IS_LOADING_APP) {
+                    return [isLoadingApp, {status: 'loaded'}];
+                }
+                if (key.includes('reportLoadingState')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
+                if (key.includes('reportActions')) {
+                    return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+            });
+
+            // Control (non-vacuity): a fresh mount with isLoadingApp true DOES show the skeleton, proving the
+            // trigger below is skeleton-inducing.
+            isLoadingApp = true;
+            const control = renderGuard();
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            expect(screen.queryByTestId('latch-content')).toBeNull();
+            control.unmount();
+
+            // First render with isLoadingApp false: the guard renders the content.
+            isLoadingApp = false;
+            const {rerender} = renderGuard();
+            expect(screen.getByTestId('latch-content')).toBeTruthy();
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+
+            // isLoadingApp flips back true mid-session. Without the latch the guard would unmount the content
+            // and show the skeleton again; the latch must keep the content mounted.
+            isLoadingApp = true;
+            rerender(
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <View testID="latch-content" />
+                </ReportActionsSkeletonGuard>,
+            );
+
+            expect(screen.getByTestId('latch-content')).toBeTruthy();
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+        });
+
+        it('keeps the content mounted when the derived-value-timing skeleton flips true mid-session', () => {
+            // This covers the derived-timing return specifically (the transient empty visible-actions set
+            // that originally motivated the latch), which the isLoadingApp case above does not exercise.
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseOnyx.mockImplementation((key: string) => {
+                if (key === ONYXKEYS.IS_LOADING_APP) {
+                    return [false, {status: 'loaded'}];
+                }
+                if (key.includes('reportLoadingState')) {
+                    return [{isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true}, {status: 'loaded'}];
+                }
+                if (key.includes('reportActions')) {
+                    return [[], {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [mockReport, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            // Control (non-vacuity): empty visible actions on a fresh mount DOES show the derived-timing skeleton.
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [],
+            });
+            const control = renderGuard();
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            expect(screen.queryByTestId('latch-content')).toBeNull();
+            control.unmount();
+
+            // First render with actions present: the guard renders the content.
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+            });
+            const {rerender} = renderGuard();
+            expect(screen.getByTestId('latch-content')).toBeTruthy();
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+
+            // Visible actions transiently empty out (derived-timing skeleton condition). The latch must hold.
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [],
+            });
+            rerender(
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <View testID="latch-content" />
+                </ReportActionsSkeletonGuard>,
+            );
+
+            expect(screen.getByTestId('latch-content')).toBeTruthy();
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         });
     });
 });

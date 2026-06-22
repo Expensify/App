@@ -1,36 +1,24 @@
-import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
-import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useEnvironment from '@hooks/useEnvironment';
-import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
-import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
-import useParentReportAction from '@hooks/useParentReportAction';
-import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
-import useReportActionsPagination from '@hooks/useReportActionsPagination';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
-import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
@@ -42,7 +30,6 @@ import {
     isTransactionThread,
 } from '@libs/ReportActionsUtils';
 import {
-    canUserPerformWriteAction,
     chatIncludesChronosWithID,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -50,27 +37,23 @@ import {
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
-    isReportTransactionThread as isReportTransactionThreadUtil,
     isTaskReport,
-    isUnread,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
-import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
+import {useReportActionsDataContext} from './ReportActionsDataContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
+import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 
 type ReportActionsListProps = {
@@ -95,56 +78,43 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
-function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
+/**
+ * Renders the report-actions list. Reads its data from `ReportActionsDataContext` and holds the
+ * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
+ * mounts it only once content is ready, so those hooks never run while a skeleton shows.
+ */
+function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isProduction} = useEnvironment();
 
-    const {isOffline} = useNetworkWithOfflineStatus();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportActionIDFromRoute = route?.params?.reportActionID;
-
-    // Side effects that must run whenever the chat list is shown.
-    useCopySelectionHelper();
-    usePendingConciergeResponse(reportID);
-
-    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-
+    const data = useReportActionsDataContext();
     const {
-        reportActions,
-        allReportActions,
-        allReportActionIDs,
-        hasOlderActions,
+        isOffline,
+        reportActionIDFromRoute,
+        report,
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        transactionThreadReportID,
         transactionThreadReport,
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
-        reportPreviewAction,
-    } = useReportActionsPagination(reportID, reportActionIDFromRoute);
-
-    const parentReportAction = useParentReportAction(report);
-
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
-    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
-    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
-
-    const {currentReportID} = useCurrentReportIDState();
-    const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
-    const {startSession, setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
-    const isReportTransactionThread = isReportTransactionThreadUtil(report);
-
-    const isReportArchived = useReportIsArchived(reportID);
-    const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
-
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-
-    const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
+        parentReportAction,
+        hasOnceLoadedReportActions,
+        sessionStartTime,
+        isReportArchived,
+        loadOlderChats,
+        loadNewerChats,
+        sortedReportActions,
+        sortedVisibleReportActions,
+        isConciergeHiddenHistory,
+        showFullHistory,
+        hasPreviousMessages,
+        handleShowPreviousMessages,
+    } = data;
 
     const didLayout = useRef(false);
 
@@ -152,78 +122,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         didLayout.current = false;
     }, [reportID]);
 
-    useEffect(() => {
-        // When we linked to message - we do not need to wait for initial actions - they already exists
-        if (!reportActionIDFromRoute || !isOffline) {
-            return;
-        }
-        updateLoadingInitialReportAction(report?.reportID ?? reportID);
-    }, [isOffline, report?.reportID, reportID, reportActionIDFromRoute]);
-
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
     const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
-
-    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
-        reportID,
-        reportActions,
-        allReportActionIDs,
-        transactionThreadReportID,
-        hasOlderActions,
-        hasNewerActions,
-        newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
-    });
-
-    const {
-        sortedReportActions,
-        sortedVisibleReportActions,
-        isConciergeMainDM,
-        isConciergeHiddenHistory,
-        showConciergeSidePanelWelcome,
-        showFullHistory,
-        hasPreviousMessages,
-        handleShowPreviousMessages,
-    } = useReportActionsVisibility({
-        reportID,
-        reportActions,
-        allReportActions,
-        canPerformWriteAction,
-        hasOlderActions,
-        loadOlderChats,
-        mainDMSessionStartTime: sessionStartTime,
-        conciergeShowFullHistory: conciergeShowFullHistory || !!reportActionIDFromRoute || !!report?.hasOutstandingChildTask,
-        setConciergeShowFullHistory,
-        conciergeHadMessagesAtSessionStart,
-        setConciergeHadMessagesAtSessionStart,
-    });
-
-    // hasOnceLoadedReportActions is RAM-only and resets to falsy on a page
-    // refresh, but cached report actions persist in Onyx. Gating the session
-    // start on it alone would leave sessionStartTime null until openReport
-    // returns, during which filterActions collapses the cached history down to
-    // just the synthetic CREATED action (an almost-empty chat flash). Start the
-    // session as soon as cached actions exist so messages render immediately on
-    // refresh, matching the skeleton-suppression gate below.
-    const canStartConciergeSession = !!hasOnceLoadedReportActions || allReportActions.length > 0;
-
-    useLayoutEffect(() => {
-        if (!isConciergeMainDM || !canStartConciergeSession) {
-            return;
-        }
-        startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession is stable; captured values at mount only
-    }, [isConciergeMainDM, startSession, canStartConciergeSession]);
-
-    // On native the component stays mounted in the navigation stack, so the
-    // effect above never re-fires (its isConciergeMainDM dep is always true).
-    // Re-trigger startSession when the globally-focused report matches this
-    // report so the session age check runs after navigating away and back.
-    useLayoutEffect(() => {
-        if (!isConciergeMainDM || !canStartConciergeSession || currentReportID !== reportID) {
-            return;
-        }
-        startSession(oldestUnreadReportAction ? report?.lastReadTime : undefined);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to currentReportID returning to this report
-    }, [currentReportID, reportID, isConciergeMainDM, canStartConciergeSession, startSession]);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -540,11 +440,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         isTrackIntentUser,
     });
 
-    const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
-    const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
-    const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
-    const isMissingReportActions = sortedVisibleReportActions.length === 0;
-
     /**
      * Runs when the FlatList finishes laying out
      */
@@ -561,55 +456,11 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         }
     };
 
-    const shouldShowSkeletonForInitialLoad = !!isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
-
-    const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
-
-    // Show skeleton for the Concierge chat (side panel or main DM) until report
-    // data has been loaded at least once. Before the first openReport response,
-    // hasOlderActions is unreliable, so we can't determine whether to show the
-    // greeting or onboarding messages. The skeleton avoids flashing wrong content.
-    // hasOnceLoadedReportActions is RAM-only and resets on a page refresh, but
-    // cached report actions persist in Onyx. For the main DM, render those cached
-    // actions immediately (matching production) instead of flashing a skeleton on
-    // every refresh; the side panel always opens fresh so it keeps gating on
-    // hasOnceLoadedReportActions only. allReportActions excludes the synthetic
-    // CREATED action that is always injected for Concierge, so it is empty only on
-    // a genuinely cold load with no cached history.
-    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !(isConciergeMainDM && allReportActions.length > 0) && !isOffline;
-
-    const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
-
-    useEffect(() => {
-        if (!shouldShowInitialSkeleton || !report) {
-            return;
-        }
-        markOpenReportEnd(report, {warm: false});
-    }, [report, shouldShowInitialSkeleton]);
-
-    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
-
-    // When opening an unread report, it is very likely that the message we will open to is not the latest,
-    // which is the only one we will have in cache.
-    const isInitiallyLoadingReport = isReportUnread && !!reportLoadingState?.isLoadingInitialReportActions && reportActions.length <= 1;
-
-    // Same for unread messages, we need to wait for the results from the OpenReport API call
-    // if the oldest unread report action is not available yet. Only applies during the *first* load
-    // for this report: after `hasOnceLoadedReportActions` is set, a later "mark as unread" must not
-    // bring back this loading gate (we are not re-opening the report from a cold cache).
-    const isUnreadMessagePageLoadingInitially = !reportActionIDFromRoute && isReportUnread && !oldestUnreadReportAction && !hasOnceLoadedReportActions;
-
-    // Once all the above conditions are met, we can consider the report ready.
-    const isReportLoading = isInitiallyLoadingReport || isUnreadMessagePageLoadingInitially;
-    const isReportReady = isOffline || !isReportLoading;
-
-    if (isLoadingOnyxValue(reportResult) || !report || !isReportReady || shouldShowInitialSkeleton) {
+    // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
+    // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
+    // is cleared mid-session while the latch keeps the content mounted.
+    if (!report) {
         return <ReportActionsSkeletonView />;
-    }
-
-    const hasDerivedValueTimingIssue = reportActions.length > 0 && isMissingReportActions;
-    if ((hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) && !showConciergeSidePanelWelcome) {
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
     return (
@@ -676,4 +527,21 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     );
 }
 
-export default memo(ReportActionsList);
+const MemoizedReportActionsListContent = memo(ReportActionsListContent);
+
+/**
+ * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
+ * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
+ */
+function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
+    return (
+        <ReportActionsSkeletonGuard reportID={reportID}>
+            <MemoizedReportActionsListContent
+                reportID={reportID}
+                onLayout={onLayout}
+            />
+        </ReportActionsSkeletonGuard>
+    );
+}
+
+export default ReportActionsList;
