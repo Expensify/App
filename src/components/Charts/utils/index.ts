@@ -430,10 +430,9 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
-/** Returns the pixel width needed for Y-axis labels given the data extremes. */
+/** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
-    rawDataMax: number,
-    rawDataMin: number,
+    data: ChartDataPoint[],
     tickCount: number,
     formatValue: (value: number) => string,
     fontMgr: SkTypefaceFontProvider,
@@ -442,6 +441,9 @@ function getYAxisLabelWidth(
     padBottom = 0,
     chartHeight = CHART_CONTENT_MIN_HEIGHT,
 ): number {
+    const totals = data.map((p) => p.total);
+    const rawDataMax = totals.length ? Math.max(...totals) : 0;
+    const rawDataMin = totals.length ? Math.min(...totals) : 0;
     return Math.max(0, ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, padTop, padBottom, chartHeight).map((tick) => measureTextWidth(formatValue(tick), fontMgr, fontSize)));
 }
 

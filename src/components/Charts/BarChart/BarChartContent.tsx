@@ -20,9 +20,8 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
-    useYAxisLabelWidth,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -227,18 +226,18 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const allTotals = data.map((p) => p.total);
-    const yAxisLabelWidth = useYAxisLabelWidth(
-        allTotals.length ? Math.max(...allTotals) : 0,
-        allTotals.length ? Math.min(...allTotals) : 0,
-        VictoryTheme.axis.tickCount,
-        formatValue,
-        fontMgr,
-        variables.iconSizeExtraSmall,
-        BASE_DOMAIN_PADDING.top,
-        BASE_DOMAIN_PADDING.bottom,
-        CHART_CONTENT_MIN_HEIGHT,
-    );
+    const yAxisLabelWidth = fontMgr
+        ? getYAxisLabelWidth(
+              data,
+              VictoryTheme.axis.tickCount,
+              formatValue,
+              fontMgr,
+              variables.iconSizeExtraSmall,
+              BASE_DOMAIN_PADDING.top,
+              BASE_DOMAIN_PADDING.bottom,
+              CHART_CONTENT_MIN_HEIGHT,
+          )
+        : 0;
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontMgr) {
