@@ -1155,6 +1155,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
                             path: ROUTES.WORKSPACE_CREATE_REPORT_FIELD.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path,
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
                         },
@@ -1244,6 +1245,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT]: {
                             path: ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS]: {
+                            path: ROUTES.RULES_REQUIRE_RECEIPTS.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS]: {
+                            path: ROUTES.RULES_REQUIRE_FIELDS.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
                             path: ROUTES.RULES_MAX_EXPENSE_AMOUNT.route,
                         },
@@ -1282,6 +1289,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
                             path: ROUTES.RULES_PROHIBITED_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_NEW]: {
+                            path: ROUTES.RULES_NEW.route,
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
                             path: ROUTES.RULES_MERCHANT_NEW.route,
@@ -1379,14 +1389,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
                             path: ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.route,
                         },
-                        [SCREENS.DOMAIN.VERIFY]: {
-                            path: ROUTES.DOMAIN_VERIFY.route,
+                        [SCREENS.DOMAIN.SAML_VERIFY]: {
+                            path: ROUTES.DOMAIN_SAML_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.SAML_VERIFIED]: {
+                            path: ROUTES.DOMAIN_SAML_VERIFIED.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBERS_VERIFY]: {
+                            path: ROUTES.DOMAIN_MEMBERS_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBERS_VERIFIED]: {
+                            path: ROUTES.DOMAIN_MEMBERS_VERIFIED.route,
                         },
                         [SCREENS.DOMAIN.ADD_ADMIN]: {
                             path: ROUTES.DOMAIN_ADD_ADMIN.route,
-                        },
-                        [SCREENS.DOMAIN.VERIFIED]: {
-                            path: ROUTES.DOMAIN_VERIFIED.route,
                         },
                         [SCREENS.DOMAIN.ADMIN_DETAILS]: {
                             path: ROUTES.DOMAIN_ADMIN_DETAILS.route,

@@ -1041,6 +1041,7 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
     },
     BUTTON_STATES: {
@@ -5977,6 +5978,12 @@ const CONST = {
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
+        RULES_TAB_TYPE: 'rulesTabType',
+        RULES: {
+            GENERAL: 'general',
+            CARD_RESTRICTIONS: 'cardRestrictions',
+            EXPENSE_DEFAULTS: 'expenseDefaults',
+        },
         SPLIT: {
             AMOUNT: 'amount',
             PERCENTAGE: 'percentage',
@@ -7574,6 +7581,14 @@ const CONST = {
                 description: 'workspace.upgrade.approvalSubmit.description' as const,
                 icon: 'AdvancedApprovalsSquare',
             },
+            approvalSubmitReport: {
+                id: 'approvalSubmitReport' as const,
+                alias: 'approval-submit-report',
+                name: 'Approve reports',
+                title: 'workspace.upgrade.approvalSubmitReport.title' as const,
+                description: 'workspace.upgrade.approvalSubmitReport.description' as const,
+                icon: 'Approval',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
@@ -8569,6 +8584,11 @@ const CONST = {
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
                 AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
+                NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
+                REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
+                REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
+                FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
@@ -8909,6 +8929,7 @@ const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id,
