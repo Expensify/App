@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -75,9 +75,9 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const reservationDetails = useMemo(() => getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex)), [icons, tripReservations, sequenceIndex]);
     const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = reservationDetails;
     const travelerEmail = reservation?.travelerPersonalInfo?.email;
-    const travelerPersonalDetailsSelector = useCallback((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail), [travelerEmail]);
-
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: travelerPersonalDetailsSelector});
+    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail),
+    });
 
     return (
         <ScreenWrapper

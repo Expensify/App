@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -90,11 +90,9 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
 
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector});
 
-    const doesLastReportActionExistSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>) => makeDoesLastReportActionExistSelector(lastReportRouteReportActionID)(reportActions),
-        [lastReportRouteReportActionID],
-    );
-    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector});
+    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>) => makeDoesLastReportActionExistSelector(lastReportRouteReportActionID)(reportActions),
+    });
 
     const navigateToChats = () => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {

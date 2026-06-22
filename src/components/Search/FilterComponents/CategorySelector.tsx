@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
@@ -26,8 +26,8 @@ function CategorySelector({value = [], policyIDs = [], selectionListTextInputSty
         return {text: category, value: category};
     });
 
-    const availableNonPersonalPolicyCategoriesSelector = useCallback(
-        (policyCategories: OnyxCollection<PolicyCategories>) =>
+    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        selector: (policyCategories: OnyxCollection<PolicyCategories>) =>
             Object.fromEntries(
                 Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
                     if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
@@ -37,11 +37,6 @@ function CategorySelector({value = [], policyIDs = [], selectionListTextInputSty
                     return availableCategories.length > 0;
                 }),
             ),
-        [personalPolicyID],
-    );
-
-    const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        selector: availableNonPersonalPolicyCategoriesSelector,
     });
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
         .filter((key) => policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))

@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -33,8 +32,9 @@ function useParticipantsPolicies(participants: ParticipantWithPolicyID[]): Recor
     // recreate the selector every render — which would defeat useOnyx's selector memoization and cause
     // it to re-subscribe each render (never settling under the store-based engine).
     const policyIDs = useStableArrayReference(participants.map((participant) => participant.policyID));
-    const policiesSelector = useCallback((allPolicies: OnyxCollection<Policy>) => getPoliciesSelector(policyIDs)(allPolicies), [policyIDs]);
-    const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
+    const [participantsPolicies = getEmptyObject<Record<string, Policy>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies: OnyxCollection<Policy>) => getPoliciesSelector(policyIDs)(allPolicies),
+    });
 
     return participantsPolicies;
 }

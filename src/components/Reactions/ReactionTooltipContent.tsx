@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -50,12 +50,8 @@ function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserA
     // contents) before the selector depends on it — otherwise the selector identity changes each render
     // and defeats useOnyx's memoization (re-subscribing endlessly under the store-based engine).
     const stableAccountIDs = useStableArrayReference(accountIDs);
-    const namesStringSelector = useCallback(
-        (personalDetails: OnyxEntry<PersonalDetailsList>) => userNamesStringSelector(stableAccountIDs, currentUserAccountID, translate)(personalDetails),
-        [stableAccountIDs, currentUserAccountID, translate],
-    );
     const [namesString] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: namesStringSelector,
+        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => userNamesStringSelector(stableAccountIDs, currentUserAccountID, translate)(personalDetails),
     });
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 

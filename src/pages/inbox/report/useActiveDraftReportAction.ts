@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import useOnyx from '@hooks/useOnyx';
@@ -141,8 +140,8 @@ function useActiveDraftReportAction({reportID, effectiveTransactionThreadReportI
             ? undefined
             : effectiveTransactionThreadReportID;
 
-    const scopedReportActionsSelector = useCallback(
-        (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
             if (!allReportActions) {
                 return {};
             }
@@ -166,14 +165,10 @@ function useActiveDraftReportAction({reportID, effectiveTransactionThreadReportI
 
             return scopedReportActionsSlice;
         },
-        [ancestors, reportID, transactionThreadReportID],
-    );
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: scopedReportActionsSelector,
     });
 
-    const scopedReportActionsDraftsSelector = useCallback(
-        (allDrafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>) => {
+    const [reportActionsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
+        selector: (allDrafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>) => {
             if (!allDrafts) {
                 return {};
             }
@@ -202,10 +197,6 @@ function useActiveDraftReportAction({reportID, effectiveTransactionThreadReportI
 
             return scopedDraftsSlice;
         },
-        [ancestors, reportActions, reportID, transactionThreadReportID],
-    );
-    const [reportActionsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
-        selector: scopedReportActionsDraftsSelector,
     });
 
     return computeResolvedActiveDraftEdit({ancestors, reportActions, reportActionsDrafts, reportID, transactionThreadReportID});

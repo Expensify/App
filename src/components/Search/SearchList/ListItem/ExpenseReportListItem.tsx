@@ -205,8 +205,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // identity every render and re-subscribes endlessly under the store-based engine (the `dependencies`
     // 3rd arg this used to rely on was removed from useOnyx).
     const snapshotTransactionIDs = useStableArrayReference((reportItem.transactions ?? []).map((transaction) => transaction.transactionID));
-    const liveViolationsSelector = useMemo(() => transactionViolationsByIDsSelector(snapshotTransactionIDs), [snapshotTransactionIDs]);
-    const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: liveViolationsSelector});
+    const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(snapshotTransactionIDs)});
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
         reportID: reportItem.reportID,
         chatReportPolicyID: chatReport?.policyID,

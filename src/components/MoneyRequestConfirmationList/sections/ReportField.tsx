@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
@@ -51,11 +51,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     const reportAttributes = useReportAttributes();
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const outstandingReportsForPolicySelector = useCallback(
-        (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) => createOutstandingReportsForPolicySelector(policyID)(derived),
-        [policyID],
-    );
-    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: outstandingReportsForPolicySelector});
+    const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
+        selector: (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) => createOutstandingReportsForPolicySelector(policyID)(derived),
+    });
     const archivedReportsIDSet = useArchivedReportsIDSet();
 
     // Self-resolved narrow slice of the transaction; replaces the previously prop-drilled `transaction` object.

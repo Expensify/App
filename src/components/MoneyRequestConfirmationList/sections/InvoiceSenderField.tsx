@@ -1,5 +1,5 @@
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
@@ -59,11 +59,9 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
     // defeat useOnyx's memoization (re-subscribing endlessly under the store-based engine).
     const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
     // canSendInvoice needs the full policy collection to check all admin workspaces
-    const canUpdateSenderWorkspaceSelector = useCallback(
-        (policies: OnyxCollection<OnyxTypes.Policy>) => createCanUpdateSenderWorkspaceSelector(isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate)(policies),
-        [isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate],
-    );
-    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: canUpdateSenderWorkspaceSelector});
+    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => createCanUpdateSenderWorkspaceSelector(isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate)(policies),
+    });
 
     return (
         <MenuItem
