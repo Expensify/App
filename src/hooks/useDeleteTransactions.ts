@@ -17,6 +17,7 @@ import {
     getChildTransactions,
     getOriginalTransactionWithSplitInfo,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isSplitChildTransaction,
     shouldRedirectDeleteToSplitExpenseEdit,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -188,11 +189,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
                     const transactionCurrentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
                     const isMovedExpenseSplitChild =
-                        !isExpenseSplit &&
-                        !!originalTransactionID &&
-                        transaction?.comment?.source === CONST.IOU.TYPE.SPLIT &&
-                        !originalTransaction?.comment?.splits &&
-                        transactionCurrentReport?.type === CONST.REPORT.TYPE.IOU;
+                        !isExpenseSplit && !!originalTransactionID && isSplitChildTransaction(transaction) && !originalTransaction?.comment?.splits && isIOUReport(transactionCurrentReport);
 
                     if ((isExpenseSplit || isMovedExpenseSplitChild) && originalTransactionID) {
                         acc.splitTransactionsByOriginalTransactionID[originalTransactionID] ??= [];
