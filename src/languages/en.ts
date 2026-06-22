@@ -80,6 +80,7 @@ const translations = {
         attachment: 'Attachment',
         attachments: 'Attachments',
         center: 'Center',
+        resetMapToNorth: 'Reset map to north',
         from: 'From',
         to: 'To',
         in: 'In',
