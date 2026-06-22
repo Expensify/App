@@ -1057,6 +1057,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.route,
+                        },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.route,
                         },
@@ -1150,6 +1153,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
                             path: ROUTES.WORKSPACE_CREATE_REPORT_FIELD.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path,
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
                         },
@@ -1374,14 +1378,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
                             path: ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.route,
                         },
-                        [SCREENS.DOMAIN.VERIFY]: {
-                            path: ROUTES.DOMAIN_VERIFY.route,
+                        [SCREENS.DOMAIN.SAML_VERIFY]: {
+                            path: ROUTES.DOMAIN_SAML_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.SAML_VERIFIED]: {
+                            path: ROUTES.DOMAIN_SAML_VERIFIED.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBERS_VERIFY]: {
+                            path: ROUTES.DOMAIN_MEMBERS_VERIFY.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBERS_VERIFIED]: {
+                            path: ROUTES.DOMAIN_MEMBERS_VERIFIED.route,
                         },
                         [SCREENS.DOMAIN.ADD_ADMIN]: {
                             path: ROUTES.DOMAIN_ADD_ADMIN.route,
-                        },
-                        [SCREENS.DOMAIN.VERIFIED]: {
-                            path: ROUTES.DOMAIN_VERIFIED.route,
                         },
                         [SCREENS.DOMAIN.ADMIN_DETAILS]: {
                             path: ROUTES.DOMAIN_ADMIN_DETAILS.route,

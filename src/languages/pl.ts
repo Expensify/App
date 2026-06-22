@@ -1065,6 +1065,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Ostatnie transakcje • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Zobacz jeszcze ${count}`,
+        recentlyAddedSection: {
+            title: 'Ostatnio dodane',
+            viewAll: 'Wyświetl wszystkie wydatki',
+            emptyStateTitle: 'Brak ostatnich wydatków',
+            emptyStateMessage: 'Utwórz jeden lub przeciągnij tu paragon',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -1645,6 +1651,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
+        submitReportTo: {
+            subtitle: 'Wybierz członka przestrzeni roboczej lub wpisz adres e‑mail osoby, która powinna otrzymać to zgłoszenie.',
+            emailLabel: 'Adres e-mail',
+            workspaceMembers: 'Członkowie przestrzeni roboczej',
+            sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
+            sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
+        },
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
             header: (workflowSettingLink: string) =>
@@ -6706,6 +6719,17 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         distanceRates: {
             oopsNotSoFast: 'Ups! Nie tak szybko...',
             workspaceNeeds: 'Miejsce pracy musi mieć włączoną co najmniej jedną stawkę za dystans.',
+            commuterExclusions: {
+                title: 'Wyklucz dojazdy',
+                summaryDisabled: 'Bez wykluczenia dojazdów',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Wyklucz ${distance} ${unit} na zgłoszenie`,
+                optionDisabledTitle: 'Nie wykluczaj dojazdów',
+                optionDisabledHelp: 'Nie zastosowano wyłączenia dojazdów.',
+                optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
+                optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
+                distanceLabel: 'Dystans',
+                errors: {distanceMustBePositive: 'Dystans musi być większy niż 0.'},
+            },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
             rate: 'Oceń',
@@ -7013,6 +7037,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 description: 'Skonfiguruj centralnie, do kogo wszyscy członkowie składają raporty, włączając zatwierdzanie.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Zatwierdzanie jest dostępne w planach Collect i Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka za miesiąc.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            approvalSubmitReport: {
+                title: 'Zatwierdzaj raporty',
+                description:
+                    'Przeglądaj, zatwierdzaj i kontroluj wydatki w jednym miejscu. Procesy akceptacji pomagają kontrolować koszty, egzekwować zasady firmowe i szybciej zwracać pracownikom wydatki.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Przepływy zatwierdzania są dostępne tylko w planie Collect, zaczynającym się od <strong>${formattedPrice}</strong> za aktywnego członka miesięcznie.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Firmowe karty',
@@ -7988,6 +8019,22 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
+        commuterExclusions: {
+            changedToFixedDistance: 'zmienił wykluczanie dojazdów na stały dystans na zgłoszenie',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'mile' : 'mile';
+                } else {
+                    unitLabel = isSingular ? 'kilometr' : 'kilometry';
+                }
+                return `ustaw stałe wykluczenie dystansu na ${distance} ${unitLabel} na zgłoszenie`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `zmienił stałe wykluczenie dystansu na ${newDistance} ${unit} na zgłoszenie (wcześniej ${oldDistance} ${unit})`,
+            disabled: 'wyłączono wykluczanie dojazdów dla stawek za odległość',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `zmieniono metodę zwrotu kosztów na „${newReimbursementChoice}” (wcześniej „${oldReimbursementChoice}”)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wstępna akceptacja próśb o dołączenie do przestrzeni workspace`,
@@ -9617,6 +9664,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
