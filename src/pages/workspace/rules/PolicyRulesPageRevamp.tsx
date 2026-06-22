@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -130,7 +130,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
     }, [areCardsEnabled, defaultFundID, expensifyCardSettings?.hasOnceLoaded, expensifyCardSettings?.isLoading, policyID]);
 
-    const showBuiltInProtectionModal = useCallback(() => {
+    const showBuiltInProtectionModal = () => {
         showConfirmModal({
             image: illustrations.ExpensifyCardProtectionIllustration,
             imageStyles: [styles.w100],
@@ -145,177 +145,156 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             confirmText: translate('common.buttonConfirm'),
             innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
         });
-    }, [showConfirmModal, illustrations.ExpensifyCardProtectionIllustration, styles, translate, shouldUseNarrowLayout, StyleUtils]);
+    };
 
-    const spendRulesTableData: SpendRuleTableItem[] = useMemo(() => {
-        const blockLabel = translate('workspace.rules.spendRules.block');
-
-        const defaultRule: SpendRuleTableItem = {
-            keyForList: DEFAULT_SPEND_RULE_ID,
-            ruleID: DEFAULT_SPEND_RULE_ID,
-            isDefault: true,
-            isBlock: true,
-            disabled: true,
-            actionLabel: blockLabel,
-            cardSummary: translate('workspace.rules.spendRules.defaultRuleDescription'),
-            ruleSummary: translate('workspace.rules.spendRules.defaultRuleSummary'),
-            searchTokens: [],
-            action: showBuiltInProtectionModal,
+    const blockLabel = translate('workspace.rules.spendRules.block');
+    const defaultSpendRule: SpendRuleTableItem = {
+        keyForList: DEFAULT_SPEND_RULE_ID,
+        ruleID: DEFAULT_SPEND_RULE_ID,
+        isDefault: true,
+        isBlock: true,
+        disabled: true,
+        actionLabel: blockLabel,
+        cardSummary: translate('workspace.rules.spendRules.defaultRuleDescription'),
+        ruleSummary: translate('workspace.rules.spendRules.defaultRuleSummary'),
+        searchTokens: [],
+        action: showBuiltInProtectionModal,
+    };
+    const customSpendRules: SpendRuleTableItem[] = cardRules.map((rule) => {
+        const ruleSummary = rule.summaryParts.map((part) => part.text).join(', ');
+        return {
+            keyForList: rule.ruleID,
+            ruleID: rule.ruleID,
+            isDefault: false,
+            isBlock: rule.isBlock,
+            actionLabel: rule.isBlock ? blockLabel : translate('workspace.rules.spendRules.allow'),
+            cardSummary: rule.cardSummary,
+            ruleSummary,
+            searchTokens: rule.searchTokens,
+            pendingAction: rule.pendingAction,
+            disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            action: () => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID)),
         };
+    });
+    const spendRulesTableData: SpendRuleTableItem[] = [defaultSpendRule, ...customSpendRules];
 
-        const customRules: SpendRuleTableItem[] = cardRules.map((rule) => {
-            const ruleSummary = rule.summaryParts.map((part) => part.text).join(', ');
-            return {
-                keyForList: rule.ruleID,
-                ruleID: rule.ruleID,
-                isDefault: false,
-                isBlock: rule.isBlock,
-                actionLabel: rule.isBlock ? blockLabel : translate('workspace.rules.spendRules.allow'),
-                cardSummary: rule.cardSummary,
-                ruleSummary,
-                searchTokens: rule.searchTokens,
-                pendingAction: rule.pendingAction,
-                disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                action: () => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID)),
-            };
-        });
+    const codingRules = policy?.rules?.codingRules;
+    const fieldLabels = {
+        category: translate('common.category').toLowerCase(),
+        tag: translate('common.tag').toLowerCase(),
+        description: translate('common.description').toLowerCase(),
+        tax: translate('common.tax').toLowerCase(),
+    };
+    const expenseDefaultsTableData: ExpenseDefaultTableItem[] = isEmptyObject(codingRules)
+        ? []
+        : Object.entries(codingRules)
+              .filter(([, rule]) => !!rule && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+              .map(([ruleID, rule]: [string, CodingRule]) => {
+                  const merchantName = rule.filters?.right ?? '';
+                  const hasOnlyMerchantRename =
+                      !!rule.merchant && !rule.category && !rule.tag && !rule.comment && !rule.tax?.field_id_TAX?.value && rule.reimbursable === undefined && rule.billable === undefined;
+                  const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
-        return [defaultRule, ...customRules];
-    }, [cardRules, policyID, translate, showBuiltInProtectionModal]);
+                  const actions: string[] = [];
+                  if (rule.merchant) {
+                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', rule.merchant));
+                  }
+                  if (rule.category) {
+                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.category, getDecodedCategoryName(rule.category)));
+                  }
+                  if (rule.tag) {
+                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
+                  }
+                  if (rule.comment) {
+                      const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
+                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, commentMarkdown));
+                  }
+                  if (rule.tax?.field_id_TAX?.value) {
+                      actions.push(
+                          translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`),
+                      );
+                  }
+                  if (rule.reimbursable !== undefined) {
+                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
+                  }
+                  if (rule.billable !== undefined) {
+                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
+                  }
+                  const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
 
-    const expenseDefaultsTableData: ExpenseDefaultTableItem[] = useMemo(() => {
-        const codingRules = policy?.rules?.codingRules;
-        if (isEmptyObject(codingRules)) {
-            return [];
-        }
-
-        const fieldLabels = {
-            category: translate('common.category').toLowerCase(),
-            tag: translate('common.tag').toLowerCase(),
-            description: translate('common.description').toLowerCase(),
-            tax: translate('common.tax').toLowerCase(),
-        };
-
-        return Object.entries(codingRules)
-            .filter(([, rule]) => !!rule && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
-            .map(([ruleID, rule]: [string, CodingRule]) => {
-                const merchantName = rule.filters?.right ?? '';
-                const hasOnlyMerchantRename =
-                    !!rule.merchant && !rule.category && !rule.tag && !rule.comment && !rule.tax?.field_id_TAX?.value && rule.reimbursable === undefined && rule.billable === undefined;
-                const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
-
-                const actions: string[] = [];
-                if (rule.merchant) {
-                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', rule.merchant));
-                }
-                if (rule.category) {
-                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.category, getDecodedCategoryName(rule.category)));
-                }
-                if (rule.tag) {
-                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
-                }
-                if (rule.comment) {
-                    const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
-                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, commentMarkdown));
-                }
-                if (rule.tax?.field_id_TAX?.value) {
-                    actions.push(
-                        translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`),
-                    );
-                }
-                if (rule.reimbursable !== undefined) {
-                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
-                }
-                if (rule.billable !== undefined) {
-                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
-                }
-                const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
-
-                return {
-                    keyForList: ruleID,
-                    ruleID,
-                    isRename: hasOnlyMerchantRename,
-                    typeLabel,
-                    conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
-                    ruleDescription,
-                    searchTokens: [merchantName, ruleDescription],
-                    pendingAction: rule.pendingAction,
-                    errors: rule.errors,
-                    onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
-                    disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    action: () => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
-                };
-            })
-            .sort((a, b) => {
-                const ruleA = codingRules[a.ruleID];
-                const ruleB = codingRules[b.ruleID];
-                if (ruleA?.created && ruleB?.created) {
-                    return ruleA.created < ruleB.created ? 1 : -1;
-                }
-                return 0;
-            });
-    }, [isOffline, policy?.rules?.codingRules, policyID, translate]);
-
-    const fetchRules = useCallback(() => {
-        openPolicyRulesPage(policyID);
-    }, [policyID]);
+                  return {
+                      keyForList: ruleID,
+                      ruleID,
+                      isRename: hasOnlyMerchantRename,
+                      typeLabel,
+                      conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
+                      ruleDescription,
+                      searchTokens: [merchantName, ruleDescription],
+                      pendingAction: rule.pendingAction,
+                      errors: rule.errors,
+                      onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
+                      disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      action: () => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
+                  };
+              })
+              .sort((a, b) => {
+                  const ruleA = codingRules[a.ruleID];
+                  const ruleB = codingRules[b.ruleID];
+                  if (ruleA?.created && ruleB?.created) {
+                      return ruleA.created < ruleB.created ? 1 : -1;
+                  }
+                  return 0;
+              });
 
     useEffect(() => {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
-        fetchRules();
-    }, [fetchRules]);
+        openPolicyRulesPage(policyID);
+    }, [policyID]);
 
-    const selectedRuleKeys = useMemo(() => {
-        if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
-            return selectedSpendRuleKeys;
-        }
-        if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
-            return selectedExpenseDefaultKeys;
-        }
-        return [];
-    }, [activeTab, selectedExpenseDefaultKeys, selectedSpendRuleKeys]);
+    let selectedRuleKeys: string[];
+    if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
+        selectedRuleKeys = selectedSpendRuleKeys;
+    } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
+        selectedRuleKeys = selectedExpenseDefaultKeys;
+    } else {
+        selectedRuleKeys = [];
+    }
     const hasSelectedRules = selectedRuleKeys.length > 0;
     const isTableTab = activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
     const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
 
-    const clearTableSelection = useCallback(() => {
+    const clearTableSelection = () => {
         if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
             setSelectedSpendRuleKeys([]);
         } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
             setSelectedExpenseDefaultKeys([]);
         }
         turnOffMobileSelectionMode();
-    }, [activeTab]);
+    };
 
-    const handleSpendRuleSelectionChange = useCallback(
-        (selectedRowKeys: string[]) => {
-            const selectableKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-            setSelectedSpendRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
-        },
-        [spendRulesTableData],
-    );
+    const handleSpendRuleSelectionChange = (selectedRowKeys: string[]) => {
+        const selectableKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+        setSelectedSpendRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
+    };
 
-    const handleExpenseDefaultSelectionChange = useCallback(
-        (selectedRowKeys: string[]) => {
-            const selectableKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-            setSelectedExpenseDefaultKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
-        },
-        [expenseDefaultsTableData],
-    );
+    const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => {
+        const selectableKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+        setSelectedExpenseDefaultKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
+    };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         if (isMobileSelectionModeEnabled) {
             clearTableSelection();
             return;
         }
 
         Navigation.goBack();
-    }, [clearTableSelection, isMobileSelectionModeEnabled]);
+    };
 
-    const deleteSelectedSpendRules = useCallback(() => {
+    const deleteSelectedSpendRules = () => {
         if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
             return;
         }
@@ -333,9 +312,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             deleteExpensifyCardRule(defaultFundID, ruleID, existingRule);
         }
         clearTableSelection();
-    }, [clearTableSelection, defaultFundID, expensifyCardSettings?.cardRules, selectedSpendRuleKeys]);
+    };
 
-    const deleteSelectedExpenseDefaults = useCallback(() => {
+    const deleteSelectedExpenseDefaults = () => {
         if (!policy) {
             return;
         }
@@ -344,9 +323,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             deletePolicyCodingRule(policy, ruleID);
         }
         clearTableSelection();
-    }, [clearTableSelection, policy, selectedExpenseDefaultKeys]);
+    };
 
-    const getBulkActionsButtonOptions = useCallback((): Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> => {
+    const getBulkActionsButtonOptions = (): Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> => {
         return [
             {
                 icon: icons.Trashcan,
@@ -374,7 +353,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 },
             },
         ];
-    }, [activeTab, deleteSelectedExpenseDefaults, deleteSelectedSpendRules, icons.Trashcan, selectedRuleKeys.length, showConfirmModal, translate]);
+    };
 
     const tabs: TabSelectorBaseItem[] = [
         {
@@ -436,43 +415,40 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const headerButtons = getHeaderContent();
 
-    const handleGetExpensifyCardPress = useCallback(() => {
+    const handleGetExpensifyCardPress = () => {
         if (!canWriteMoreFeatures) {
             showMoreFeaturesReadOnlyModal();
             return;
         }
 
         enableExpensifyCard(policyID, true, true);
-    }, [canWriteMoreFeatures, policyID, showMoreFeaturesReadOnlyModal]);
+    };
 
-    const cardRulesEmptyState = useMemo(
-        () => (
-            <ScrollView
-                style={[styles.flex1, styles.mnh0]}
-                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                addBottomSafeAreaPadding
-            >
-                <GenericEmptyStateComponent
-                    headerMedia={illustrations.ExpensifyCardCoins}
-                    headerStyles={styles.emptyStateCardIllustrationContainer}
-                    headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
-                    title={translate('workspace.rules.spendRules.cardRulesUpsell.title')}
-                    subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
-                    subtitleStyles={[styles.textLabel, styles.textSupporting]}
-                    minModalHeight={0}
-                    containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
-                    buttons={[
-                        {
-                            buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
-                            buttonAction: handleGetExpensifyCardPress,
-                            success: true,
-                            isDisabled: !canWriteMoreFeatures,
-                        },
-                    ]}
-                />
-            </ScrollView>
-        ),
-        [StyleUtils, canWriteMoreFeatures, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, shouldUseNarrowLayout, styles, translate],
+    const cardRulesEmptyState = (
+        <ScrollView
+            style={[styles.flex1, styles.mnh0]}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            addBottomSafeAreaPadding
+        >
+            <GenericEmptyStateComponent
+                headerMedia={illustrations.ExpensifyCardCoins}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
+                title={translate('workspace.rules.spendRules.cardRulesUpsell.title')}
+                subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
+                subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                minModalHeight={0}
+                containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                buttons={[
+                    {
+                        buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
+                        buttonAction: handleGetExpensifyCardPress,
+                        success: true,
+                        isDisabled: !canWriteMoreFeatures,
+                    },
+                ]}
+            />
+        </ScrollView>
     );
 
     const renderTabContent = () => {
