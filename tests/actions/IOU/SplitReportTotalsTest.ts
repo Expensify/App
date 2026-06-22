@@ -8,6 +8,7 @@ import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -871,6 +872,30 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — the list navigates away before any highlight could render
+            expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
+        });
+
+        it('skips registration when splitting from the Search/Spend page', async () => {
+            // Given the user is on the Search (Spend > Expenses) page, where the expense report is never opened
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const params = buildBaseParams({
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split from the Search page
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then nothing is registered — the report is never mounted, so the flags would never be cleared
+            // and would incorrectly highlight rows when the report is later opened from the Inbox.
             expect(addPendingNewTransactionIDs).not.toHaveBeenCalled();
         });
     });

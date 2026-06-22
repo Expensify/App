@@ -1895,19 +1895,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    // Register newly created split transaction IDs so they briefly highlight in the expense list.
-    // We skip existing transactions (already in allChildTransactions), reverse splits (no new transactions are created),
-    // and the last-transaction case (the report navigates away before the highlight renders).
-    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
-        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
-        for (const splitExpense of splitExpenses) {
-            if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
-                continue;
-            }
-            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
-        }
-    }
-
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
@@ -1942,6 +1929,21 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         });
 
         return;
+    }
+
+    // Register newly created split transaction IDs so they briefly highlight in the expense list.
+    // This only runs on the path that opens the expense report (dismissModalWithReport), so the highlight
+    // flags are consumed and cleared on mount. We skip existing transactions (already in allChildTransactions)
+    // and reverse splits (no new transactions are created). The Search/Spend page and last-transaction cases
+    // return earlier above, so they never pollute REPORT_METADATA with flags that would never be cleared.
+    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
+        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+        for (const splitExpense of splitExpenses) {
+            if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
+                continue;
+            }
+            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
+        }
     }
 
     if (isTracking()) {
