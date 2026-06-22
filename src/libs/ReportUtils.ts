@@ -1782,6 +1782,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: bool
 
 /**
  * Check if personal detail of accountID is empty or optimistic data
+ * TODO: Remove this function once allPersonalDetails module-level variable is removed (https://github.com/Expensify/App/issues/66413)
  */
 function isOptimisticPersonalDetail(accountID: number): boolean {
     return isEmptyObject(allPersonalDetails?.[accountID]) || !!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail;
@@ -2341,15 +2342,12 @@ function pushTransactionViolationsOnyxData(
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
-function shouldDisableDetailPage(report: OnyxEntry<Report>): boolean {
+function shouldDisableDetailPage(report: OnyxEntry<Report>, isParticipantOptimistic: boolean): boolean {
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (isOneOnOneChat(report)) {
-        const participantAccountIDs = Object.keys(report?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
-        return isOptimisticPersonalDetail(participantAccountIDs.at(0) ?? -1);
+        return isParticipantOptimistic;
     }
     return false;
 }
