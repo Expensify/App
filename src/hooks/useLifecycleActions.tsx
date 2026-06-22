@@ -157,7 +157,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE, skipAnimation ? undefined : () => startApprovedAnimation());
             return;
         }
-        if (!skipAnimation) {
+        if (!skipAnimation && !isSubmitPolicy(policy)) {
             startApprovedAnimation();
         }
         approveMoneyRequest({
