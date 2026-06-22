@@ -16,10 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
-type UserSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
-    onChange: (options: string[]) => void;
-};
+type UserSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);

@@ -62,6 +62,7 @@ import {getAllReports, getMoneyRequestPolicyTags, getPolicyTagsData} from './ind
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './MoneyRequestBuilder';
+import {addPendingNewTransactionIDs} from './PendingNewTransactions';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
@@ -1892,6 +1893,21 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         params?.searchContext?.clearSelectedTransactions?.(true);
     }
 
+    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+
+    // Register newly created split transaction IDs so they briefly highlight in the expense list.
+    // We skip existing transactions (already in allChildTransactions), reverse splits (no new transactions are created),
+    // and the last-transaction case (the report navigates away before the highlight renders).
+    if (params.expenseReport?.reportID && !isReverseSplitOperation && !isLastTransactionInReport) {
+        const existingChildTransactionIDs = new Set(allChildTransactions.map((tx) => tx?.transactionID).filter(Boolean));
+        for (const splitExpense of splitExpenses) {
+            if (!splitExpense.transactionID || existingChildTransactionIDs.has(splitExpense.transactionID)) {
+                continue;
+            }
+            addPendingNewTransactionIDs(targetReportID, splitExpense.transactionID);
+        }
+    }
+
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         if (!isSelfDMSplit) {
             Navigation.navigateBackToLastSuperWideRHPScreen();
@@ -1927,8 +1943,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
         return;
     }
-
-    const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
     if (isTracking()) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);

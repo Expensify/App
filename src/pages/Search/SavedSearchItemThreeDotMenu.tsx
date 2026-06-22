@@ -1,5 +1,6 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
+import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
@@ -19,7 +20,26 @@ type SavedSearchItemThreeDotMenuProps = {
 
 function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip, isCopied}: SavedSearchItemThreeDotMenuProps) {
     const styles = useThemeStyles();
+    const {endPeek} = useSearchSidebarCollapse();
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
+
+    const menuItemsWithPeekCleanup = useMemo(
+        () =>
+            menuItems.map((item) => {
+                if (item.shouldCloseModalOnSelect === false) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+                    onSelected: () => {
+                        endPeek();
+                        item.onSelected?.();
+                    },
+                };
+            }),
+        [endPeek, menuItems],
+    );
 
     useEffect(() => {
         if (!isCopied) {
@@ -35,7 +55,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
         <View style={[styles.searchTypeMenuAccessoryBox, isDisabledItem && styles.pointerEventsNone]}>
             <ThreeDotsMenu
                 shouldSelfPosition
-                menuItems={menuItems}
+                menuItems={menuItemsWithPeekCleanup}
                 renderProductTrainingTooltipContent={renderTooltipContent}
                 shouldShowProductTrainingTooltip={shouldRenderTooltip}
                 anchorAlignment={{
