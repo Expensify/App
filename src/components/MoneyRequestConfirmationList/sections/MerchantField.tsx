@@ -19,7 +19,6 @@ import useTransactionSelector from './useTransactionSelector';
 
 type MerchantFieldProps = {
     isMerchantRequired: boolean | undefined;
-    isNewManualExpenseFlowEnabled: boolean;
     isReadOnly: boolean;
     didConfirm: boolean;
     shouldDisplayFieldError: boolean;
@@ -31,19 +30,7 @@ type MerchantFieldProps = {
     reportActionID: string | undefined;
 };
 
-function MerchantField({
-    isMerchantRequired,
-    isNewManualExpenseFlowEnabled,
-    isReadOnly,
-    didConfirm,
-    shouldDisplayFieldError,
-    formError,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: MerchantFieldProps) {
+function MerchantField({isMerchantRequired, isReadOnly, didConfirm, shouldDisplayFieldError, formError, transactionID, action, iouType, reportID, reportActionID}: MerchantFieldProps) {
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -53,8 +40,7 @@ function MerchantField({
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
     const merchantValue = merchantState?.merchant ?? '';
-    const displayMerchantValue = isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
-    const isMerchantEmpty = !displayMerchantValue;
+    const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 
     // Determine if the merchant error should be displayed
@@ -69,7 +55,7 @@ function MerchantField({
             return translate('iou.error.invalidMerchant');
         }
 
-        if (shouldDisplayFieldError && isMerchantRequired && isMerchantEmpty) {
+        if (shouldDisplayFieldError && isMerchantRequired && !displayMerchantValue) {
             return translate('common.error.fieldRequired');
         }
 
@@ -102,7 +88,7 @@ function MerchantField({
         setMoneyRequestMerchant(transactionID, newMerchant, true, transactionHasReceipt);
     };
 
-    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
+    if (!isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
@@ -120,7 +106,7 @@ function MerchantField({
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
-            title={isMerchantEmpty ? '' : displayMerchantValue}
+            title={displayMerchantValue}
             description={translate('common.merchant')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}

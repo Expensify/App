@@ -1,4 +1,4 @@
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {OnyxValue} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +57,36 @@ describe('onboardingSelectors', () => {
         it('Should return false if onboarding NVP contains only signupQualifier', () => {
             const onboarding = {signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB} as OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;
             expect(hasSeenTourSelector(onboarding)).toBe(false);
+        });
+    });
+    describe('isTrackIntentUserSelector', () => {
+        it('Should return true for PERSONAL_SPEND choice', () => {
+            const introSelected = {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND} as OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>;
+            expect(isTrackIntentUserSelector(introSelected)).toBe(true);
+        });
+
+        it('Should return true for TRACK_BUSINESS choice', () => {
+            const introSelected = {choice: CONST.ONBOARDING_CHOICES.TRACK_BUSINESS} as OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>;
+            expect(isTrackIntentUserSelector(introSelected)).toBe(true);
+        });
+
+        it('Should return true for TRACK_PERSONAL choice', () => {
+            const introSelected = {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL} as OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>;
+            expect(isTrackIntentUserSelector(introSelected)).toBe(true);
+        });
+
+        it('Should return false for MANAGE_TEAM choice', () => {
+            const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM} as OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>;
+            expect(isTrackIntentUserSelector(introSelected)).toBe(false);
+        });
+
+        it('Should return false for undefined introSelected', () => {
+            expect(isTrackIntentUserSelector(undefined)).toBe(false);
+        });
+
+        it('Should return false when choice is undefined', () => {
+            const introSelected = {} as OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>;
+            expect(isTrackIntentUserSelector(introSelected)).toBe(false);
         });
     });
 });

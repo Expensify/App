@@ -69,7 +69,7 @@ const FAKE_ACCOUNT_ID = 1;
 const FAKE_UNREPORTED_REPORT_ID = CONST.REPORT.UNREPORTED_REPORT_ID;
 
 const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction) => {
-    // ConfirmationFieldList reads transaction from Onyx; seed it so child fields receive the same value the test sets up.
+    // The footer's sections + fields self-resolve the transaction from Onyx; seed it so they receive the value the test sets up.
     await act(async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
     });
@@ -79,7 +79,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         transactionID: transaction.transactionID,
         reportID: '123',
         reportActionID: '',
-        transaction,
+        isScanRequest: false,
         policyID: FAKE_POLICY_ID,
         policy: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
         policyTags: {},

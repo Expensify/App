@@ -8,7 +8,7 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
-import {isPaidGroupPolicy} from './PolicyUtils';
+import {isGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {generateReportID, getChatByParticipants, isProcessingReport, isReportOutstanding, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
@@ -316,7 +316,7 @@ function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy
     return (
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.CREATE) &&
         !isPerDiemRequest &&
-        (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy))
+        (!isMovingTransactionFromTrackExpense(action) || isGroupPolicy(policy))
     );
 }
 
@@ -422,7 +422,7 @@ function calculateDefaultReimbursable({
     const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
     const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
-    return (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+    return (isPolicyExpenseChat && isGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
 }
 
 function getInitialPerDiemTargetReport(
@@ -513,6 +513,14 @@ function resolveReportForMoneyRequest({
     return routeReport;
 }
 
+/**
+ * Check whether a money-request participant represents a P2P chat (i.e. another user, not a
+ * policy-expense chat and not a self DM).
+ */
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean; isSelfDM?: boolean} | undefined): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && !participant.isSelfDM);
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -531,6 +539,7 @@ export {
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
+    isParticipantP2P,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
 };

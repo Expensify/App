@@ -12,8 +12,8 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
@@ -65,16 +65,20 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {
     canEditWorkspaceSettings,
+    canMemberWrite,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyApprover,
+    isSubmitPolicy,
+    shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -114,8 +118,10 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ALL: 'all',
     ADMINS: 'admins',
+    CARD_ADMINS: 'cardAdmins',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
+    EDITORS: 'editors',
 } as const;
 
 type WorkspaceMemberFilterValue = ValueOf<typeof WORKSPACE_MEMBER_FILTER_VALUES>;
@@ -161,6 +167,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isPolicyAdmin = canEditWorkspaceSettings(policy);
+    // Group policies (Collect/Control + Submit) allow member management.
+    const canManageMembers = isGroupPolicy(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
@@ -214,7 +222,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
         return translate('workspace.people.removeMembersPrompt', {
             count: selectedEmployees.length,
-            memberName: formatPhoneNumber(newGetPersonalDetailsByIDs([firstSelectedEmployeeAccountID], personalDetails).at(0)?.displayName ?? ''),
+            memberName: formatPhoneNumber(getPersonalDetailsByID(firstSelectedEmployeeAccountID, personalDetails)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
     /**
@@ -376,7 +384,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
+            if (!isPolicyAdmin || !canManageMembers) {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
                 return;
             }
@@ -385,7 +393,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
             });
         },
-        [isPolicyAdmin, policy, policyID, route.params.policyID],
+        [isPolicyAdmin, canManageMembers, policyID, route.params.policyID],
     );
 
     /**
@@ -410,10 +418,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
+    const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
     const filteredMembers = useMemo(() => {
+        const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
         const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
 
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
@@ -432,10 +442,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            if (isExpensifyTeam(details?.login ?? details?.displayName)) {
-                if (policyOwner && currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
-                    continue;
-                }
+            if (shouldFilter && isExpensifyTeam(details?.login ?? details?.displayName)) {
+                continue;
             }
 
             result.push({email, policyEmployee, accountID, details});
@@ -456,10 +464,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             let roleBadgeText = '';
             if (policy?.owner === details.login) {
                 roleBadgeText = translate('common.owner');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN) {
-                roleBadgeText = translate('common.admin');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
-                roleBadgeText = translate('common.auditor');
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN || policyEmployee.role === CONST.POLICY.ROLE.AUDITOR || policyEmployee.role === CONST.POLICY.ROLE.CARD_ADMIN) {
+                roleBadgeText = translate('workspace.common.roleName', policyEmployee.role);
+            } else if (policyEmployee.role === CONST.POLICY.ROLE.EDITOR) {
+                roleBadgeText = translate('common.editor');
             }
             const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
             const memberEmail = formatPhoneNumber(details?.login ?? '');
@@ -558,16 +566,40 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
     const roleFilterOptions: WorkspaceMemberFilterOption[] = [
         {text: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
-        {text: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
+
         {text: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
     ];
 
+    if (!isSubmitPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.admins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+        });
+    }
+
     if (isControlPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.cardAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
+        });
+
         roleFilterOptions.push({
             text: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
     }
+
+    if (isSubmitPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.editors'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.EDITORS,
+        });
+    }
+
+    // Fall back to "All" when the selected role is no longer an available option (e.g. after the
+    // workspace type changes and removes that role from the dropdown). Deriving this from the current
+    // options keeps the filter in sync without storing a copy or mutating state during render.
+    const effectiveRoleFilter = selectedRoleFilter && roleFilterOptions.some((option) => option.value === selectedRoleFilter.value) ? selectedRoleFilter : null;
 
     const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
         setSelectedEmployees([]);
@@ -581,19 +613,23 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     };
 
     const rolePreFilter = (member: MemberOption) => {
-        if (!selectedRoleFilter) {
+        if (!effectiveRoleFilter) {
             return true;
         }
 
         const employee = policy?.employeeList?.[member.login];
 
-        switch (selectedRoleFilter.value) {
+        switch (effectiveRoleFilter.value) {
             case WORKSPACE_MEMBER_FILTER_VALUES.ADMINS:
                 return member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
             case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
                 return isPolicyApprover(policy, member.login);
+            case WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS:
+                return employee?.role === CONST.POLICY.ROLE.CARD_ADMIN;
             case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
                 return employee?.role === CONST.POLICY.ROLE.AUDITOR;
+            case WORKSPACE_MEMBER_FILTER_VALUES.EDITORS:
+                return employee?.role === CONST.POLICY.ROLE.EDITOR;
             default:
                 return true;
         }
@@ -651,7 +687,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
     const hasNoDisplayedMembers = displayedFilteredData.length === 0;
     const shouldShowRoleFilter = data.length > 0;
-    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && !!selectedRoleFilter && inputValue.length === 0 && hasNoDisplayedMembers;
+    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && !!effectiveRoleFilter && inputValue.length === 0 && hasNoDisplayedMembers;
     const shouldShowEmptySearchMessage = !shouldShowRoleFilterEmptyState && hasNoDisplayedMembers;
     const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
 
@@ -664,7 +700,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         <SingleSelectPopup
             label={translate('common.role')}
             items={roleFilterOptions}
-            value={selectedRoleFilter ?? roleFilterOptions.at(0)}
+            value={effectiveRoleFilter ?? roleFilterOptions.at(0)}
             closeOverlay={closeOverlay}
             onChange={handleRoleFilterChange}
             defaultValue={roleFilterOptions.at(0)?.value}
@@ -674,7 +710,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const roleFilterDropdown = shouldShowRoleFilter ? (
         <DropdownButton
-            label={selectedRoleFilter?.text ?? translate('workspace.people.allMembers')}
+            label={effectiveRoleFilter?.text ?? translate('workspace.people.allMembers')}
             value={null}
             PopoverComponent={rolePopoverComponent}
             innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
@@ -823,8 +859,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             icon: icons.UserEye,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
+        const cardAdminOption = {
+            text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
+            icon: icons.MakeAdmin,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.CARD_ADMIN),
+        };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
+        const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
         const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -834,12 +877,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(memberOption);
         }
 
-        if (hasAtLeastOneNonAdminRole) {
+        if (hasAtLeastOneNonAdminRole && canAssignElevatedRoles) {
             options.push(adminOption);
         }
 
-        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer) {
+        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
             options.push(auditorOption);
+        }
+
+        if (hasAtLeastOneNonCardAdminRole && isControlPolicy(policy) && !hasAtLeastOnePayer && canAssignElevatedRoles) {
+            options.push(cardAdminOption);
         }
 
         return options;

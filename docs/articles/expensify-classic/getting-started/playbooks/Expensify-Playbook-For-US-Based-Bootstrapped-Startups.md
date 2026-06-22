@@ -77,5 +77,5 @@ Congratulations! Your Expensify setup is complete. If you need assistance:
 
 - Message Concierge support anytime! 
 - Email concierge@expensify.com.
-- Upgrade to a Collect or Control Workspace to be assigned a dedicated Setup Specialist.
+- Upgrade to a Collect or Control Workspace to be assigned a dedicated Account Executive.
 

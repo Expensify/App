@@ -10,12 +10,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
-import {calculateAmount} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
-import {isParticipantP2P} from '@pages/iou/request/step/IOURequestStepAmount';
+import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
@@ -34,7 +34,6 @@ type AmountFieldProps = {
     distanceRateCurrency: string;
     iouCurrencyCode: string | undefined;
     isDistanceRequest: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
     shouldShowTimeRequestFields: boolean;
@@ -58,7 +57,6 @@ function AmountField({
     distanceRateCurrency,
     iouCurrencyCode,
     isDistanceRequest,
-    isNewManualExpenseFlowEnabled,
     didConfirm,
     isReadOnly,
     shouldShowTimeRequestFields,
@@ -92,11 +90,10 @@ function AmountField({
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
-    const firstParticipant = transactionSlice?.participants?.at(0);
-    const isP2P = isNewManualExpenseFlowEnabled
-        ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
-        : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired';
+    const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
+    // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
+    // amount itself is the missing value.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -108,21 +105,20 @@ function AmountField({
 
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
     const decimals = getCurrencyDecimals(effectiveCurrency);
-    // In the new manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
+    // In the manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
     // real value. This avoids showing "$0.00" as a pre-filled default. Scan and other non-manual flows populate
     // amount programmatically and never set isAmountSet.
-    const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
-    // (visible → hidden) so the amount input gains focus once the user selects a participant in the new manual
-    // expense flow. The setTimeout defers focus past the RHP entry / picker close animation so the input reliably
-    // receives focus.
+    // (visible → hidden) so the amount input gains focus once the user selects a participant. The setTimeout defers
+    // focus past the RHP entry / picker close animation so the input reliably receives focus.
     useEffect(() => {
-        if (!autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
+        if (!autoFocus || isAmountFieldDisabled || isParticipantPickerVisible) {
             return;
         }
 
@@ -134,7 +130,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
+    }, [autoFocus, isAmountFieldDisabled, isParticipantPickerVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -237,6 +233,16 @@ function AmountField({
 
         buildAndSaveSplitShares(updatedAmount, value);
         persistMainDraftTotal(updatedAmount, value);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const taxCode = value !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, updatedAmount, getCurrencyDecimals(value)));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
     };
 
     const handleAmountChange = (newAmount: string) => {
@@ -262,6 +268,18 @@ function AmountField({
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);
         persistMainDraftTotal(parsedAmount, effectiveCurrency);
+
+        if (isMovingTransactionFromTrackExpense(action)) {
+            const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(newAmount));
+            const defaultTaxCode = effectiveCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+            const taxCode = getTaxCode(transactionForHandlers) || defaultTaxCode;
+            if (taxCode) {
+                setMoneyRequestTaxRate(transactionID, taxCode);
+                const taxPercentage = getTaxValue(policy, transactionForHandlers, taxCode) ?? '';
+                const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, amountInSmallestCurrencyUnits, decimals));
+                setMoneyRequestTaxAmount(transactionID, taxAmount);
+            }
+        }
     };
 
     return (
@@ -273,7 +291,7 @@ function AmountField({
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
             />
-            {isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
+            {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
                         ref={amountInputRef}

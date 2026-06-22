@@ -219,6 +219,7 @@ describe('actions/Transaction', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -280,6 +281,7 @@ describe('actions/Transaction', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                allReports: undefined,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
