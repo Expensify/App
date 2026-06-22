@@ -1426,6 +1426,26 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: true,
+        textTranslateKey: 'reportActionContextMenu.copyAgentZeroRequestID',
+        icon: 'Copy',
+        successTextTranslateKey: 'reportActionContextMenu.copied',
+        successIcon: 'Checkmark',
+        shouldShow: ({type, reportAction, isProduction}) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            !isProduction &&
+            !!(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && getOriginalMessage(reportAction)?.agentZeroRequestID),
+        onPress: (closePopover, {reportAction}) => {
+            const agentZeroRequestID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.agentZeroRequestID : undefined;
+            if (agentZeroRequestID) {
+                Clipboard.setString(agentZeroRequestID);
+            }
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
+        getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_AGENT_ZERO_REQUEST_ID,
+    },
+    {
+        isAnonymousAction: true,
         textTranslateKey: 'debug.debug',
         icon: 'Bug',
         shouldShow: ({type, isDebugModeEnabled}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!isDebugModeEnabled,

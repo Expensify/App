@@ -8177,6 +8177,7 @@ const CONST = {
             FLAG_AS_OFFENSIVE: 'ContextMenu-FlagAsOffensive',
             DOWNLOAD: 'ContextMenu-Download',
             COPY_ONYX_DATA: 'ContextMenu-CopyOnyxData',
+            COPY_AGENT_ZERO_REQUEST_ID: 'ContextMenu-CopyAgentZeroRequestID',
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
