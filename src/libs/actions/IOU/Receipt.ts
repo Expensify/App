@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -188,6 +189,9 @@ function replaceReceipt({
     if (!file) {
         return;
     }
+
+    const receiptTraceId = mintAndStampReceiptTraceId(file);
+    logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
 
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
