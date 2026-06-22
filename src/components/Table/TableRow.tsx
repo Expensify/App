@@ -47,6 +47,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
 
     /** Attributes for when the client is offline and there is an error related to the table row */
     offlineWithFeedback?: OfflineWithFeedbackProps;
+
+    /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
+    checkboxReplacementElement?: React.ReactNode;
 };
 
 export default function TableRow({
@@ -62,6 +65,7 @@ export default function TableRow({
     LoadingComponent,
     onPress,
     offlineWithFeedback,
+    checkboxReplacementElement,
     ...props
 }: TableRowProps) {
     useSkeletonSpan('TableRowSkeleton', skeletonReasonAttributes);
@@ -168,7 +172,7 @@ export default function TableRow({
     };
 
     const handleRowLongPress = () => {
-        if (isDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive || item.isSelectionDisabled) {
+        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive || item.isSelectionDisabled) {
             return;
         }
 
@@ -209,17 +213,18 @@ export default function TableRow({
                             </View>
                         ) : (
                             <View style={tableRowContentStyles}>
-                                {!!isSelectionCheckboxVisible && (
-                                    <Checkbox
-                                        shouldStopMouseDownPropagation
-                                        containerStyle={styles.m0}
-                                        style={styles.flex1}
-                                        isChecked={!!item.selected}
-                                        accessibilityLabel={translate('common.select')}
-                                        disabled={!!item.disabled || !!item.isSelectionDisabled}
-                                        onPress={(event) => handleCheckboxPress(event)}
-                                    />
-                                )}
+                                {!!isSelectionCheckboxVisible &&
+                                    (checkboxReplacementElement ?? (
+                                        <Checkbox
+                                            shouldStopMouseDownPropagation
+                                            containerStyle={styles.m0}
+                                            style={styles.flex1}
+                                            isChecked={!!item.selected}
+                                            disabled={!!item.disabled || !!item.isSelectionDisabled}
+                                            accessibilityLabel={translate('common.select')}
+                                            onPress={(event) => handleCheckboxPress(event)}
+                                        />
+                                    ))}
                                 {renderChildren(state)}
                             </View>
                         )}
