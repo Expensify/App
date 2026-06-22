@@ -6105,6 +6105,15 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
     fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+/**
+ * Validates a Submit-via-PDF secure access link. On success the backend adds the viewer to the workspace, shares the
+ * report with them, and sets them as the report manager; the report then loads normally. On failure the viewer keeps
+ * no access and falls through to the standard "Hmm… not there" 404 (handled by ReportNotFoundGuard).
+ */
+function joinReportViaSecureLink(reportID: string, secureKey: string) {
+    API.write(WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK, {reportID, secureKey});
+}
+
 async function exportReportToPDF({reportID}: ExportReportPDFParams) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME>> = [
         {
@@ -7855,6 +7864,7 @@ export {
     exportReportToCSV,
     exportReportToPDF,
     exportToIntegration,
+    joinReportViaSecureLink,
     flagComment,
     getMostRecentReportID,
     getNewerActions,
