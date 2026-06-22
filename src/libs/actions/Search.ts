@@ -709,7 +709,7 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
         },
     ];
 
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
 }
 
 function deleteSavedSearch(hash: number) {
