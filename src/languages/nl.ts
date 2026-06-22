@@ -7039,6 +7039,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Goedkeuringen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Rapporten goedkeuren',
+                description:
+                    'Beoordeel, keur goed en bewaak alle uitgaven op één plek. Goedkeuringsworkflows helpen je kosten te beheersen, bedrijfsbeleid te handhaven en je medewerkers sneller terug te betalen.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Goedkeuringsworkflows zijn alleen beschikbaar in het Collect-abonnement, vanaf <strong>${formattedPrice}</strong> per actieve deelnemer per maand.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Bedrijfskaarten',
                 description: `Neem je eigen bedrijfskaart mee naar Expensify voor automatische import, automatische categorisatie, ondersteuning voor aangepaste regels en geïntegreerde afstemming.`,

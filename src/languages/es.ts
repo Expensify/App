@@ -6880,6 +6880,13 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las aprobaciones están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Aprobar informes',
+                description:
+                    'Revisa, aprueba y mantén los gastos bajo control en un solo lugar. Los flujos de aprobación te ayudan a controlar los costes, hacer cumplir las políticas de la empresa y reembolsar a tus empleados más rápido.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Los flujos de aprobación solo están disponibles en el plan Recopilar, desde <strong>${formattedPrice}</strong> por miembro activo al mes.</muted-text>`,
+            },
             categories: {
                 title: 'Categorías',
                 description: 'Las categorías te permiten rastrear y organizar gastos. Usa nuestras categorías predeterminadas o añade las tuyas propias.',

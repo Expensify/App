@@ -7061,6 +7061,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Le approvazioni sono disponibili nei piani Collect e Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Approva i report',
+                description:
+                    'Esamina, approva e mantieni le spese sotto controllo in un unico posto. I flussi di approvazione ti aiutano a controllare i costi, far rispettare le politiche aziendali e rimborsare più velocemente i tuoi dipendenti.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>I flussi di approvazione sono disponibili solo nel piano Collect, a partire da <strong>${formattedPrice}</strong> per membro attivo al mese.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Carte aziendali',
                 description: `Porta la tua carta aziendale in Expensify per ottenere importazione automatica, categorizzazione automatica, supporto per regole personalizzabili e riconciliazione integrata.`,
