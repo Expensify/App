@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: '附件',
         attachments: '附件',
         center: '居中',
+        resetMapToNorth: '将地图重置为正北',
         from: '来自',
         to: '到',
         in: '在',
@@ -1029,6 +1030,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天内已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
+        recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1600,6 +1602,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
+        submitReportTo: {
+            subtitle: '选择一个工作区成员，或输入应接收此提交的收件人邮箱地址。',
+            emailLabel: '电子邮箱地址',
+            workspaceMembers: '工作区成员',
+            sendExpense: '将你的报销发送给任何人',
+            sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
+        },
         changeApprover: {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
@@ -6135,7 +6144,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其技术联系人替换为工作区所有者 ${workspaceOwner}。`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName} 还有一份待处理报告需要处理。请在将其从工作区中移除之前，先让 TA 完成所需操作。`,
-            members: '成员',
+            allMembers: '所有成员',
             admins: '工作区管理员',
             approvers: '审批人',
             auditors: '审计员',
@@ -6536,8 +6545,20 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         distanceRates: {
             oopsNotSoFast: '哎呀！先别急……',
             workspaceNeeds: '一个工作区至少需要一个已启用的距离费率。',
+            commuterExclusions: {
+                title: '排除通勤',
+                summaryDisabled: '不排除通勤',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `每次报销排除 ${distance} ${unit}`,
+                optionDisabledTitle: '不要排除通勤',
+                optionDisabledHelp: '未应用通勤排除规则。',
+                optionFixedDistanceTitle: '为每笔报销排除固定距离',
+                optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
+                distanceLabel: '距离',
+                errors: {distanceMustBePositive: '距离必须大于 0。'},
+            },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
+            emptyRates: {title: '尚未设置里程费率', subtitle: '添加里程报销费率，以自定义报销标准。'},
             rate: '评分',
             addRate: '添加费率',
             findRate: '查找费率',
@@ -6834,6 +6855,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>审批功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: '审批报销报告',
+                description: '在同一位置审阅、批准并掌控支出进度。审批流程帮助你控制成本、执行公司政策，并更快报销员工费用。',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>审批工作流仅适用于 Collect 方案，起价为每位活跃成员每月 <strong>${formattedPrice}</strong>。</muted-text>`,
+            },
             companyCardSubmit: {
                 title: '公司卡枚',
                 description: `将你自己的公司卡片连接到 Expensify，可享受自动导入、自动分类、自定义规则支持以及集成对账功能。`,
@@ -7038,6 +7065,10 @@ ${reportName}`,
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
                 findRule: '查找商户规则',
+                expenseDefaultsTitle: '报销默认设置',
+                expenseDefaultsSubtitle: '在提交人无须执行任何操作的情况下更新字段',
+                ifAnyExpenseMatches: '如果任一报销符合以下条件：',
+                thenApplyFollowingDefaults: '然后应用以下默认设置：',
             },
             categoryRules: {
                 title: '类别规则',
@@ -7182,12 +7213,32 @@ ${reportName}`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
+                defaultRuleSummary: '包括成人服务、ATM、赌博等在内的类别',
+                findRule: '查找规则',
+                defaultSection: '默认',
+                customRulesSection: '自定义规则',
+                tableColumnType: '类型',
+                tableColumnCard: '卡',
+                tableColumnRule: '规则',
+                cardRulesUpsell: {
+                    title: '申请 Expensify 卡并管控支出',
+                    subtitle: '使用 Expensify 卡，您可以设置最高消费额度规则，屏蔽或允许特定商户或购买类型。您还可以获得 2% 的现金返还。',
+                    cta: '获取此卡',
+                },
+                restrictCardSpendTitle: '限制卡片支出',
+                restrictCardSpendSubtitle: '在销售点阻止或限制消费。',
+                ifAnyCardMatches: '如果任何卡片符合条件：',
+                thenDoThisAtPointOfSale: '然后在销售点执行以下操作：',
+                setRestrictions: '设置限制',
+                merchantRestrictions: '商户限制',
+                blockedMerchant: '已屏蔽商家',
+                blockedMerchantTypes: '已屏蔽商户类型',
+                maxAmountAbove: ({amount}: {amount: string}) => `高于 ${amount}`,
                 restrictMerchants: '限制商家',
                 merchantTypes: '商户类型',
                 allowedMerchants: '允许的商户',
                 allowedMerchantTypes: '允许的商户类型',
                 blockedMerchants: '已屏蔽商户',
-                blockedMerchantTypes: '已屏蔽商户类型',
                 currencies: '货币',
                 permittedCurrencies: '允许的货币',
                 allCurrencies: '所有货币',
@@ -7215,6 +7266,73 @@ ${reportName}`,
                 agentCreatedTitle: 'RuleBot 已添加到你的工作区!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
+            },
+            tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置'},
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: '删除规则',
+                    other: '删除规则',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: '确定要删除此规则吗？',
+                    other: '确定要删除这些规则吗？',
+                }),
+            },
+            generalTab: {
+                title: '基本规则',
+                subtitle: '控制支出的通用规则',
+                expensesOlderThan: '标记早于此时间的报销费用',
+                expensesAboveAmount: '标记超出金额的报销',
+                flagReceiptLineItems: '标记报销单明细行',
+                receiptRequirements: '要求提供收据',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `常规高于 ${regularAmount}，分项高于 ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `常规费用高于 ${regularAmount}，不要求逐项明细`;
+                    }
+                    if (itemizedAmount) {
+                        return `不要求普通报销，若逐项报销金额高于 ${itemizedAmount}`;
+                    }
+                    return '不要求收据';
+                },
+                requireFieldsForAllExpenses: '对所有报销设置必填字段',
+                cashExpenses: '现金费用',
+                cashExpensesReimbursableByDefault: '默认可报销',
+                cashExpensesNonReimbursableByDefault: '默认不予报销',
+                cashExpensesAlwaysReimbursable: '始终可报销',
+                cashExpensesAlwaysNonReimbursable: '始终不予报销',
+                billableExpenses: '可计费报销费用',
+                billableExpensesBillable: '可计费的现金和信用卡',
+                billableExpensesNonBillable: '现金和信用卡非可计费',
+            },
+            requireReceipts: {
+                title: '要求提供收据',
+                description: '当支出超过此金额时要求提供收据，除非被类别规则覆盖。',
+                requireReceipt: '要求收据',
+                requireItemizedReceipt: '要求提供明细收据',
+                requireAboveAmount: '要求高于此金额',
+                saveRule: '保存规则',
+                emptyAmountError: '在保存之前请输入有效金额',
+            },
+            requireFields: {title: '对所有报销设置必填字段', category: '类别', tag: '标签', save: '保存规则'},
+            newRule: {
+                title: '新规则',
+                subtitle: '你想要做什么？',
+                restrictCardSpend: '限制卡片支出',
+                restrictCardSpendDescription: '在销售点阻止或限制支出',
+                applyExpenseDefaults: '应用报销默认设置',
+                applyExpenseDefaultsDescription: '在提交人无须执行任何操作的情况下更新字段',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: '类型',
+                tableColumnCondition: '条件',
+                tableColumnRule: '规则',
+                findRule: '查找规则',
+                rename: '重命名',
+                update: '更新',
+                merchantIs: (merchant: string) => `商户为“${merchant}”`,
             },
         },
         planTypePage: {
@@ -7780,6 +7898,22 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
+        commuterExclusions: {
+            changedToFixedDistance: '已将“排除通勤”更改为“按每次报销固定距离”',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? '英里' : '英里';
+                } else {
+                    unitLabel = isSingular ? '公里' : '千米';
+                }
+                return `将每次报销的固定排除距离设置为 ${distance} ${unitLabel}`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `已将固定距离排除调整为每笔报销 ${newDistance} ${unit}（之前为 ${oldDistance} ${unit}）`,
+            disabled: '已停用“排除通勤距离费率”',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) => `将报销方式更改为“${newReimbursementChoice}”（原为“${oldReimbursementChoice}”）`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 预先批准加入工作区的请求`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `将自定义报表名称公式更改为“${newDefaultTitle}”（之前为“${oldDefaultTitle}”）`,
@@ -9261,6 +9395,7 @@ ${reportName}`,
             theresAProblemWithYourWallet: '您的钱包出现问题',
             theresAProblemWithYourWalletTerms: '您的钱包条款存在问题',
             aBankAccountIsLocked: '银行账户已锁定',
+            completeHrSetup: '完成人力资源设置',
         },
     },
     emptySearchView: {
@@ -9362,6 +9497,10 @@ ${reportName}`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
