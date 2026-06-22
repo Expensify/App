@@ -14,6 +14,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
+    isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {
@@ -176,9 +177,14 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
+    const isSubmitWorkspace = isSubmitPolicy(policy);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
-    if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+    if (!isExpenseReport || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
         return false;
     }
 

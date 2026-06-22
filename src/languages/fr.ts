@@ -7104,6 +7104,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les validations sont disponibles avec les forfaits Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Approuver les notes de frais',
+                description:
+                    'Examinez, approuvez et gardez vos dépenses sous contrôle en un seul endroit. Les workflows d’approbation vous aident à maîtriser les coûts, à appliquer les politiques de votre entreprise et à rembourser vos employés plus rapidement.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Les workflows d’approbation sont uniquement disponibles avec l’offre Collect, à partir de <strong>${formattedPrice}</strong> par membre actif et par mois.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Cartes d’entreprise',
                 description: `Apportez votre propre carte professionnelle dans Expensify pour bénéficier de l’importation automatique, de la catégorisation automatique, de règles personnalisables et du rapprochement intégré.`,
