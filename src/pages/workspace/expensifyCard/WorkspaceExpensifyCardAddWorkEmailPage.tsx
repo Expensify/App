@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -24,7 +25,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
-import {setErrorFields} from '@userActions/FormActions';
+import {clearErrorFields, clearErrors, setErrorFields} from '@userActions/FormActions';
 import {AddWorkspaceWorkEmail} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -58,6 +59,13 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
     const styles = useThemeStyles();
 
     const {inputCallbackRef} = useAutoFocusInput();
+
+    useFocusEffect(
+        useCallback(() => {
+            clearErrors(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM);
+            clearErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM);
+        }, []),
+    );
 
     const setAddWorkEmailError = (errorMessage: string) => {
         setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
