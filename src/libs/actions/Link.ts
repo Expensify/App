@@ -265,7 +265,13 @@ function openReportFromDeepLink(
         }
     } else {
         // FIX #82013: not a signed-out public-room deeplink — make sure no stale pending reportID lingers.
-        Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID, null);
+        // BUT keep it for an anonymous user: this function re-runs after the anonymous session is established
+        // (at which point isAuthenticated is true for the anonymous account), and clearing the key then would strip
+        // the signal the navigator and OnboardingGuard rely on to keep the deeplinked public room focused, letting
+        // the app fall back to the last-accessed/Concierge report. The key is cleared once a real account signs in.
+        if (!isAnonymousUser()) {
+            Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID, null);
+        }
         // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
         doneCheckingPublicRoom();
     }

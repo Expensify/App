@@ -15,7 +15,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Account, Onboarding} from '@src/types/onyx';
+import type {Account, Onboarding, Session} from '@src/types/onyx';
 import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -27,6 +27,7 @@ type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
  */
 let onboarding: OnyxEntry<Onboarding>;
 let account: OnyxEntry<Account>;
+let session: OnyxEntry<Session>;
 let tryNewDot: {isHybridAppOnboardingCompleted: boolean | undefined; hasBeenAddedToNudgeMigration: boolean} | undefined;
 let hybridApp: {isSingleNewDotEntry?: boolean} | undefined;
 let onboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
@@ -46,6 +47,13 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        session = value;
     },
 });
 
@@ -172,6 +180,12 @@ const OnboardingGuard: NavigationGuard = {
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
+        // FIX #82013: Onboarding can only be completed by a real, authenticated account. A signed-out user (no auth
+        // token, e.g. right after signOut while a public-room deeplink is resolving) or an anonymous user (a public-room
+        // deeplink viewer) must never be redirected into the onboarding flow. Without this, a stale
+        // `hasCompletedGuidedSetupFlow: false` left over from a previous session pushes the signed-out/anonymous deeplink
+        // user through onboarding → navigateAfterOnboarding → Concierge, overriding the public room they opened.
+        const isOnboardableUser = !!session?.authToken && session.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
@@ -193,7 +207,8 @@ const OnboardingGuard: NavigationGuard = {
             isInvitedOrGroupMember ||
             isSingleEntry ||
             isFirstTimeHybridAppTransition ||
-            isNavigatingWithReplace;
+            isNavigatingWithReplace ||
+            !isOnboardableUser;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
@@ -221,6 +236,7 @@ const OnboardingGuard: NavigationGuard = {
             isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
+            isOnboardableUser,
         });
 
         return {
