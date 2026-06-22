@@ -2693,6 +2693,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+            backgroundColor: theme.appBG,
         },
 
         reportSearchHeaderBar: {
