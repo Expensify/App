@@ -110,6 +110,24 @@ describe('Accessibility warm cache — AppState refresh', () => {
         expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
     });
 
+    it('isScreenReaderKnownOff returns false during a resume refresh (warmed flag invalidates until the new value resolves)', async () => {
+        mockScreenReaderValue = false;
+        const Accessibility = loadModule();
+        await flushPromises();
+        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(true);
+
+        // Background → active begins the async refresh; user enabled SR while backgrounded but the bridge hasn't replied yet.
+        mockScreenReaderValue = true;
+        emitAppState('background');
+        emitAppState('active');
+        // Synchronously after the AppState callback fires, warmed must already be invalidated.
+        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+
+        await flushPromises();
+        // Refresh resolved with true — still not known-off.
+        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+    });
+
     it('re-fetches the reduce-motion value on background→active transition', async () => {
         mockReduceMotionValue = false;
         loadModule();

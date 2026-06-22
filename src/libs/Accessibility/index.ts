@@ -12,11 +12,19 @@ type HitSlop = {x: number; y: number};
  * Subscribers `.then()` it to catch the boot-race — the platform listener only fires on toggles, never on the initial state.
  * `refresh()` invalidates the memo and re-warms; used on AppState resume to recover from toggles that fire while no JS listener was active.
  */
-function makeWarmCache<T>(label: string, fetch: () => Promise<T>, apply: (value: T) => void): {ensure: () => Promise<void>; reset: () => void; refresh: () => Promise<void>} {
+function makeWarmCache<T>(
+    label: string,
+    fetch: () => Promise<T>,
+    apply: (value: T) => void,
+): {ensure: () => Promise<void>; reset: () => void; refresh: () => Promise<void>; isWarm: () => boolean} {
     let warm: Promise<void> | null = null;
+    let warmed = false;
     const ensure = () => {
         warm ??= fetch()
-            .then(apply)
+            .then((value) => {
+                warmed = true;
+                apply(value);
+            })
             .catch((error: unknown) => {
                 Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
                 warm = null;
@@ -25,26 +33,29 @@ function makeWarmCache<T>(label: string, fetch: () => Promise<T>, apply: (value:
     };
     return {
         ensure,
+        // reset/refresh invalidate warmed so any in-flight refresh (cold start or AppState resume) is treated as unknown until the new value resolves.
         reset: () => {
             warm = null;
+            warmed = false;
         },
         refresh: () => {
             warm = null;
+            warmed = false;
             return ensure();
         },
+        isWarm: () => warmed,
     };
 }
 
 let cachedScreenReaderValue = false;
-let screenReaderCacheWarmed = false;
 const screenReaderSubscribers = new Set<() => void>();
 const {
     ensure: ensureScreenReaderWarm,
     reset: resetScreenReaderWarm,
     refresh: refreshScreenReaderWarm,
+    isWarm: isScreenReaderCacheWarm,
 } = makeWarmCache('screen-reader', isScreenReaderEnabled, (enabled) => {
     cachedScreenReaderValue = enabled;
-    screenReaderCacheWarmed = true;
 });
 ensureScreenReaderWarm();
 
@@ -78,9 +89,9 @@ function isScreenReaderEnabledSync(): boolean {
     return cachedScreenReaderValue;
 }
 
-// True only after the platform query has resolved with false; returns false while warm-up is in-flight so 'unknown' is treated as 'might be on'.
+// True only after the platform query has resolved with false; returns false while warm-up is in-flight (cold start OR AppState resume) so 'unknown' is treated as 'might be on'.
 function isScreenReaderKnownOff(): boolean {
-    return screenReaderCacheWarmed && !cachedScreenReaderValue;
+    return isScreenReaderCacheWarm() && !cachedScreenReaderValue;
 }
 
 let cachedReduceMotionValue = false;
@@ -103,7 +114,6 @@ let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null = 
 function resetForTests() {
     cachedScreenReaderValue = false;
     cachedReduceMotionValue = false;
-    screenReaderCacheWarmed = false;
     resetScreenReaderWarm();
     resetReduceMotionWarm();
     screenReaderSubscribers.clear();
