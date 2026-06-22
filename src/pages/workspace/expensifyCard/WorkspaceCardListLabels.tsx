@@ -1,15 +1,12 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
@@ -25,15 +22,13 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
-    const [isCashBackExpanded, setIsCashBackExpanded] = useState(false);
+    const defaultFundID = useDefaultFundID(policyID);
+
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
+    const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
 
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
-    const shouldShowCashBack = !isUkEuCurrencySupported;
-
     if (!isLessThanMediumScreen) {
         return (
             <View style={[styles.flexRow, styles.mt5, styles.mh5, styles.pr4]}>
@@ -45,7 +40,7 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
                 />
-                {shouldShowCashBack && (
+                {!isUkEuCurrencySupported && (
                     <WorkspaceCardsListLabel
                         type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
                         value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
@@ -54,10 +49,28 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
             </View>
         );
     }
-
-    return (
-        <View style={[styles.flexColumn, styles.mt5, styles.mh5]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+    return shouldShowSettlementButtonOrDate ? (
+        <View style={[styles.flexColumn, styles.mt5, styles.mh5, styles.pr4]}>
+            <WorkspaceCardsListLabel
+                type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
+                value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
+            />
+            <View style={[styles.flexRow, !isLessThanMediumScreen ? styles.flex2 : styles.mt5]}>
+                <WorkspaceCardsListLabel
+                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
+                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
+                />
+                {!isUkEuCurrencySupported && (
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
+                    />
+                )}
+            </View>
+        </View>
+    ) : (
+        <View style={[styles.flexColumn, styles.mt5, styles.mh5, styles.pr4]}>
+            <View style={[styles.flexRow, isLessThanMediumScreen && styles.mb5]}>
                 <WorkspaceCardsListLabel
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
@@ -66,28 +79,11 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
                 />
-                {shouldShowCashBack && (
-                    <PressableWithFeedback
-                        onPress={() => setIsCashBackExpanded(!isCashBackExpanded)}
-                        style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter]}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('workspace.expensifyCard.earnedCashback')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_CARDS_LIST.INFO_BUTTON}
-                    >
-                        <Icon
-                            src={isCashBackExpanded ? icons.UpArrow : icons.DownArrow}
-                            fill={theme.icon}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                        />
-                    </PressableWithFeedback>
-                )}
             </View>
-            {shouldShowCashBack && isCashBackExpanded && (
+            {!isUkEuCurrencySupported && (
                 <WorkspaceCardsListLabel
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                    style={styles.mt3}
                 />
             )}
         </View>
