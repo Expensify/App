@@ -158,11 +158,6 @@ jest.mock('@hooks/useCurrencyList', () => ({
     }),
 }));
 
-jest.mock('@hooks/useAllPolicyExpenseChatReportActions', () => ({
-    __esModule: true,
-    default: () => undefined,
-}));
-
 jest.mock('@hooks/useUndeleteTransactions', () => ({
     __esModule: true,
     default: () => jest.fn(),

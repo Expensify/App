@@ -10,8 +10,8 @@ import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import * as API from '@libs/API';
-import {waitForWrites} from '@libs/API';
+import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
+import {makeRequestWithSideEffects, read, waitForWrites, write} from '@libs/API';
 import type {
     ExportSearchItemsToCSVParams,
     ExportSearchWithTemplateParams,
@@ -34,12 +34,21 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
-import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
+import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
+import {
+    getAccountIDForSubmitManagerEmail,
+    getSubmitReportManagerAccountID,
+    getSubmitToAccountID,
+    getValidConnectedIntegration,
+    isDelayedSubmissionEnabled,
+    isSubmitPolicy,
+} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
     generateReportID,
+    getApprovalChain,
     getParsedComment,
     getReportOrDraftReport,
     getReportTransactions,
@@ -70,6 +79,7 @@ import type {
     Policy,
     Report,
     ReportAction,
+    ReportActions,
     ReportNextStepDeprecated,
     Transaction,
 } from '@src/types/onyx';
@@ -194,6 +204,10 @@ type HandleActionButtonPressParams = {
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
+    openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
+    shouldDisableSearchSubmitPress?: boolean;
+    /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
+    consumeIgnoreNextSearchSubmitPress?: () => boolean;
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
@@ -204,6 +218,7 @@ type HandleActionButtonPressParams = {
     chatReportPolicy?: OnyxEntry<Policy>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     searchData?: SearchResultDataType;
+    chatReportActions: OnyxEntry<ReportActions>;
 };
 
 function handleActionButtonPress({
@@ -225,6 +240,9 @@ function handleActionButtonPress({
     amountOwed,
     onUndelete,
     currentUserAccountID,
+    openReportSubmitToPopover,
+    shouldDisableSearchSubmitPress,
+    consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
     betas,
@@ -234,6 +252,7 @@ function handleActionButtonPress({
     chatReportPolicy,
     iouReportCurrentNextStepDeprecated,
     searchData,
+    chatReportActions,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -283,6 +302,7 @@ function handleActionButtonPress({
                 amountOwed,
                 policy,
                 searchData,
+                chatReportActions,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -297,6 +317,16 @@ function handleActionButtonPress({
             if (hasHeldExpense) {
                 onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
+            }
+            {
+                const policyToUpgrade = policy ?? snapshotPolicy;
+                if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id && item.reportID) {
+                    const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
+                    const backTo = Navigation.getActiveRoute() || ROUTES.SEARCH_ROOT.route;
+
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, item.reportID));
+                    return;
+                }
             }
             getApproveActionCallback({
                 hash,
@@ -316,6 +346,9 @@ function handleActionButtonPress({
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
+            if (shouldDisableSearchSubmitPress || consumeIgnoreNextSearchSubmitPress?.()) {
+                return;
+            }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
@@ -324,7 +357,16 @@ function handleActionButtonPress({
                 onPendingCardTransactionsBlock?.();
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
+            const policyForSubmit = policy ?? snapshotPolicy;
+            if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
+                openReportSubmitToPopover({
+                    onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
+                        submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey, managerEmail, managerAccountID);
+                    },
+                });
+                return;
+            }
+            submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -510,6 +552,7 @@ type GetPayActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
+    chatReportActions: OnyxEntry<ReportActions>;
 };
 
 function getPayActionCallback({
@@ -535,6 +578,7 @@ function getPayActionCallback({
     amountOwed,
     policy,
     searchData,
+    chatReportActions,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -581,6 +625,7 @@ function getPayActionCallback({
         ownerBillingGracePeriodEnd,
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
+        chatReportActions,
     });
 }
 
@@ -744,7 +789,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             },
         },
     ];
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
 function deleteSavedSearch(hash: number) {
@@ -780,7 +825,7 @@ function deleteSavedSearch(hash: number) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
@@ -792,7 +837,7 @@ function openSearchPage(params?: OpenSearchPageParams) {
         },
     ];
 
-    API.read(
+    read(
         READ_COMMANDS.OPEN_SEARCH_PAGE,
         {
             includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
@@ -811,7 +856,7 @@ function openSearchCardFiltersPage() {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -831,7 +876,7 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
         },
     ];
 
-    API.write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
+    write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
 }
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
@@ -921,8 +966,7 @@ function search({
     }
 
     const startRequest = () =>
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
                 if (shouldUpdateLastSearchParams) {
                     const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
@@ -966,8 +1010,9 @@ function search({
     return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
 }
 
-function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
+function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey, managerEmail?: string, managerAccountID?: number) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
+    const firstPolicy = policy.at(0);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -1010,15 +1055,25 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
         },
     ];
 
+    const trimmedManagerEmail = managerEmail?.trim();
+    const submitToAccountID = getSubmitToAccountID(firstPolicy, firstReport);
+    const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport).at(0));
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport);
+    const resolvedManagerAccountID = trimmedManagerEmail
+        ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID)
+        : (submitReportManagerAccountID ?? (submitToAccountID > 0 ? submitToAccountID : firstReport.managerID));
+
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: getSubmitReportManagerAccountID(policy.at(0), firstReport),
+        managerAccountID: resolvedManagerAccountID,
         reportActionID: rand64(),
+        ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };
 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.
     // In the meantime, we'll call SubmitReport which works for a single expense only, so not bulk actions are possible.
-    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, currentSearchKey?: SearchKey) {
@@ -1118,7 +1173,7 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
         optimisticReportActions: JSON.stringify(optimisticReportActions),
     } satisfies ReportExportParams;
 
-    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, successData, failureData, finallyData});
+    write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, successData, failureData, finallyData});
 }
 
 function rejectMoneyRequestInBulk(
@@ -1160,7 +1215,7 @@ function rejectMoneyRequestInBulk(
         }
     }
 
-    API.write(
+    write(
         WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
         {
             reportID,
@@ -1321,7 +1376,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV},
         },
     ];
 
@@ -1329,7 +1384,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         {
             onyxMethod: Onyx.METHOD.SET,
             key: onyxKey,
-            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV},
         },
     ];
     const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, {
@@ -1342,7 +1397,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {optimisticData, failureData});
+    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {optimisticData, failureData});
 
     return exportID;
 }
@@ -1360,14 +1415,14 @@ function queueExportSearchWithTemplate(
                   {
                       onyxMethod: Onyx.METHOD.SET,
                       key: onyxKey,
-                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING},
+                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV},
                   },
               ],
               failureData: [
                   {
                       onyxMethod: Onyx.METHOD.SET,
                       key: onyxKey,
-                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED},
+                      value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED, exportType: CONST.EXPORT_DOWNLOAD.TYPE.CSV},
                   },
               ],
           }
@@ -1383,7 +1438,7 @@ function queueExportSearchWithTemplate(
         ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
+    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
 
     return exportID;
 }
