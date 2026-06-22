@@ -1,10 +1,11 @@
 import React, {useId} from 'react';
-import {G, Path, Svg} from 'react-native-svg';
+import {Circle, G, Path, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
 import CONST from '@src/CONST';
 import MapMarkerShadowFilter from './MapMarkerShadowFilter';
 
-function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
+// MapCurrentLocation icon with geometry adjusted to work correctly with the Mapbox LocationPuck component
+function MapCurrentLocationPuck({width = 48, height = 48}: SvgProps) {
     const filterId = useId();
     return (
         <Svg
@@ -19,19 +20,21 @@ function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
                 height="48"
             />
             <G filter={`url(#${filterId})`}>
-                <Path
+                <Circle
+                    cx="24"
+                    cy="24"
+                    r="12"
                     fill={CONST.MAP_CURRENT_LOCATION_FILL_COLOR}
-                    d="M36 20c0 6.627-5.373 12-12 12s-12-5.373-12-12S17.373 8 24 8s12 5.373 12 12"
                 />
                 <Path
                     fill="#fcfbf9"
                     fillRule="evenodd"
                     clipRule="evenodd"
-                    d="M24 8c6.627 0 12 5.373 12 12s-5.373 12-12 12-12-5.373-12-12S17.373 8 24 8m0 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18"
+                    d="M24 12c6.627 0 12 5.373 12 12s-5.373 12-12 12-12-5.373-12-12S17.373 12 24 12m0 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18"
                 />
             </G>
         </Svg>
     );
 }
 
-export default MapCurrentLocation;
+export default MapCurrentLocationPuck;
