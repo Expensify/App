@@ -1305,7 +1305,7 @@ function exportSearchItemsToCSV(
         formData,
         CONST.NETWORK.METHOD.POST,
         onDownloadFailed,
-        false,
+        undefined,
         false,
     );
 }
