@@ -205,9 +205,9 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             });
 
             if (hasDeleteWorkspaceExpensifyCardsError) {
-                closeModal();
                 showDeleteWorkspaceErrorModal();
             } else if (isOffline) {
+                closeModal();
                 onDeleteComplete?.();
                 onDismiss();
             }
