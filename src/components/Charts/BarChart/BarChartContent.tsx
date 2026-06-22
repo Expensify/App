@@ -29,6 +29,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
+import HorizontalBarChartContent from './HorizontalBarChartContent';
 
 /** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
  * We need bottom: 1 for proper display of the bottom label
@@ -89,16 +90,18 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     const measurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
 
-    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
-        data,
-        fontMgr,
-        fontSize: variables.iconSizeExtraSmall,
-        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
-        labelAreaWidth: barAreaWidth,
-        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
-        measurements,
-    });
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth, shouldUseHorizontalBarChart} =
+        useChartLabelLayout({
+            data,
+            fontMgr,
+            fontSize: variables.iconSizeExtraSmall,
+            tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
+            labelAreaWidth: barAreaWidth,
+            firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
+            lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
+            measurements,
+            fallbackToHorizontalBar: true,
+        });
 
     const {formatValue} = useChartLabelFormats({
         data,
@@ -251,6 +254,19 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     if (data.length === 0) {
         return null;
+    }
+
+    if (shouldUseHorizontalBarChart) {
+        return (
+            <HorizontalBarChartContent
+                data={data}
+                isLoading={isLoading}
+                yAxisUnit={yAxisUnit}
+                yAxisUnitPosition={yAxisUnitPosition}
+                useSingleColor={useSingleColor}
+                onBarPress={onBarPress}
+            />
+        );
     }
 
     return (
