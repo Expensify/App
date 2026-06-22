@@ -302,12 +302,13 @@ describe('AgentRulesSection', () => {
 
     describe('RuleBot enforcement row', () => {
         const rule = {r1: {ruleID: 'r1', prompt: 'p', title: 'T', created: '2026-01-01 00:00:00'}};
+        const RULE_BOT_ACCOUNT_ID = 777;
 
         it('renders the RuleBot pill with the agent stored on the policy', () => {
             mockPersonalDetails = {
-                777: {accountID: 777, displayName: 'RuleBot', login: 'agent_777@expensify.ai', avatar: 'https://example.com/rulebot.png'},
+                [RULE_BOT_ACCOUNT_ID]: {accountID: RULE_BOT_ACCOUNT_ID, displayName: 'RuleBot', login: 'agent_777@expensify.ai', avatar: 'https://example.com/rulebot.png'},
             };
-            setPolicyAgentRules(rule, 777);
+            setPolicyAgentRules(rule, RULE_BOT_ACCOUNT_ID);
 
             render(
                 <AgentRulesSection
@@ -319,13 +320,13 @@ describe('AgentRulesSection', () => {
 
             expect(mockedUserPill).toHaveBeenCalledTimes(1);
             expect(mockedUserPill.mock.calls.at(0)?.at(0)).toEqual(
-                expect.objectContaining({accountID: 777, displayName: 'RuleBot', email: 'agent_777@expensify.ai', avatar: 'https://example.com/rulebot.png'}),
+                expect.objectContaining({accountID: RULE_BOT_ACCOUNT_ID, displayName: 'RuleBot', email: 'agent_777@expensify.ai', avatar: 'https://example.com/rulebot.png'}),
             );
         });
 
         it('falls back to the localized RuleBot name when personal details are missing', () => {
             mockPersonalDetails = {};
-            setPolicyAgentRules(rule, 777);
+            setPolicyAgentRules(rule, RULE_BOT_ACCOUNT_ID);
 
             render(
                 <AgentRulesSection
