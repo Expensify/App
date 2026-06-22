@@ -50,6 +50,7 @@ function parseCSVDate(input: string): string | null {
         if (isValid(date) && !Number.isNaN(date.getTime())) {
             return format(date, CONST.DATE.FNS_FORMAT_STRING);
         }
+
         // Also try format parsing on the shortened input
         for (const dateFormat of CSV_DATE_FORMATS) {
             const parsedDate = parse(shortInput, dateFormat, new Date());
