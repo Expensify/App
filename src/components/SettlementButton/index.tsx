@@ -203,7 +203,6 @@ function SettlementButton({
             }
 
             if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                console.log('---- herereeee');
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                 return true;
             }
