@@ -4088,6 +4088,7 @@ const translations = {
         regulationRequiresUsToVerifyTheIdentity: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
         companyOwner: 'Business owner',
         enterLegalFirstAndLastName: "What's the owner's legal name?",
+        legalNameSubtitle: "Please enter the owner's full legal name as it appears on their ID.",
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         enterTheDateOfBirthOfTheOwner: "What's the owner's date of birth?",

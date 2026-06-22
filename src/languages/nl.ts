@@ -3983,6 +3983,7 @@ ${amount} voor ${merchant} - ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'Volgens de regelgeving moeten we de identiteit verifiëren van elke persoon die meer dan 25% van het bedrijf bezit.',
         companyOwner: 'Eigenaar van een bedrijf',
         enterLegalFirstAndLastName: 'Wat is de wettelijke naam van de eigenaar?',
+        legalNameSubtitle: 'Voer de volledige wettelijke naam van de eigenaar in zoals deze op diens identiteitsbewijs staat.',
         legalFirstName: 'Juridische voornaam',
         legalLastName: 'Wettelijke achternaam',
         enterTheDateOfBirthOfTheOwner: 'Wat is de geboortedatum van de eigenaar?',
@@ -9683,7 +9684,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

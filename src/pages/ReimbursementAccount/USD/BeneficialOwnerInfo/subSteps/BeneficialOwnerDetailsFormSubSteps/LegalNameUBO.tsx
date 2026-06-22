@@ -40,7 +40,7 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('beneficialOwnerInfoStep.enterLegalFirstAndLastName')}
-            formSubtitle={translate('personalInfoStep.legalNameSubtitle')}
+            formSubtitle={translate('beneficialOwnerInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             firstNameInputID={firstNameInputID}

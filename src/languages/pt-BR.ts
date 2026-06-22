@@ -3972,6 +3972,7 @@ ${amount} para ${merchant} - ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'A regulamentação exige que verifiquemos a identidade de qualquer pessoa física que possua mais de 25% do negócio.',
         companyOwner: 'Proprietário(a) de empresa',
         enterLegalFirstAndLastName: 'Qual é o nome legal do proprietário?',
+        legalNameSubtitle: 'Digite o nome legal completo do proprietário como aparece no documento de identidade dele.',
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
         enterTheDateOfBirthOfTheOwner: 'Qual é a data de nascimento do proprietário?',
@@ -9672,7 +9673,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

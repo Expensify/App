@@ -3881,6 +3881,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         regulationRequiresUsToVerifyTheIdentity: '法规要求我们核实任何持有该企业超过 25% 股权的个人身份。',
         companyOwner: '企业所有者',
         enterLegalFirstAndLastName: '业主的法定姓名是什么？',
+        legalNameSubtitle: '請輸入所有者身分證件上顯示的法定全名。',
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
         enterTheDateOfBirthOfTheOwner: '所有者的出生日期是什么？',
@@ -9411,7 +9412,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
