@@ -380,4 +380,4 @@ export {
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
 };
-export type {ReusablePolicyConnectionName, CopySettingsEligibleTargets, WorkspaceListPolicy};
+export type {ReusablePolicyConnectionName, CopySettingsEligibleTargets};
