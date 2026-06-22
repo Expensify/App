@@ -232,6 +232,7 @@ function SearchTransactionsChangeReport() {
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+        const reportsForCall = destinationReport?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`]: destinationReport, ...reports} : reports;
         changeTransactionsReport({
             transactionIDs: selectedTransactionsKeys,
             isASAPSubmitBetaEnabled,
@@ -244,7 +245,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             policyTagList,
             allTransactionViolation: transactionViolations,
-            reports,
+            reports: reportsForCall,
         });
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
