@@ -8856,6 +8856,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         error: {
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
+            mapOrGpsDistanceRequired: {
+                title: 'Karten- oder GPS-Entfernung erforderlich',
+                description: 'Dieser Workspace erfordert entweder kartenbasierte oder GPS-verfolgte Entfernungsspesen.',
+            },
         },
         odometer: {
             startReading: 'Mit dem Lesen beginnen',
@@ -9716,7 +9720,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

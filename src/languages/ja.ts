@@ -8734,6 +8734,10 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
+            mapOrGpsDistanceRequired: {
+                title: '地図または GPS の距離が必要です',
+                description: 'このワークスペースでは、地図ベースまたは GPS 追跡による距離経費のいずれかが必要です。',
+            },
         },
         odometer: {
             startReading: '読み始める',
@@ -9581,7 +9585,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

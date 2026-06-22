@@ -9097,6 +9097,10 @@ ${amount} para ${merchant} - ${date}`,
         },
         error: {
             selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual',
+            mapOrGpsDistanceRequired: {
+                title: 'Se requiere distancia por mapa o GPS',
+                description: 'Este espacio de trabajo requiere gastos de distancia basados en mapa o rastreados por GPS.',
+            },
         },
         odometer: {
             startReading: 'Lectura inicial',

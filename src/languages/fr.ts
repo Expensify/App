@@ -8890,6 +8890,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
+            mapOrGpsDistanceRequired: {
+                title: 'Distance carte ou GPS requise',
+                description: 'Cet espace de travail requiert des dépenses de distance soit basées sur une carte, soit suivies par GPS.',
+            },
         },
         odometer: {
             startReading: 'Commencer la lecture',
@@ -9748,7 +9752,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

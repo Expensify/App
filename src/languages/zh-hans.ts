@@ -8559,6 +8559,10 @@ ${reportName}`,
         },
         error: {
             selectSuggestedAddress: '请选择一个推荐地址或使用当前位置',
+            mapOrGpsDistanceRequired: {
+                title: '需要地图或 GPS 距离',
+                description: '此工作区要求使用基于地图或 GPS 轨迹的里程报销。',
+            },
         },
         odometer: {
             startReading: '开始阅读',
@@ -9398,7 +9402,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

@@ -8804,6 +8804,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
+            mapOrGpsDistanceRequired: {
+                title: 'Wymagana odległość z mapy lub GPS',
+                description: 'Toje miejsce pracy wymaga wydatków za przejazdy obliczanych na podstawie mapy lub śledzonych za pomocą GPS.',
+            },
         },
         odometer: {
             startReading: 'Zacznij czytać',
@@ -9655,7 +9659,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
