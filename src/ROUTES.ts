@@ -186,9 +186,6 @@ const DYNAMIC_ROUTES = {
     },
     AVATAR_CROP: {
         path: 'avatar-crop',
-        // Limited to the screens that render an editable avatar (via `useAvatarCrop`/`AvatarWithImagePicker`).
-        // Using `'*'` would let this static suffix claim any URL ending in `avatar-crop` (e.g. a category or
-        // tag a user named "avatar-crop"), making those user-created items inaccessible via URL/navigation.
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.AVATAR,
             SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,

@@ -17,7 +17,7 @@ function AvatarCropPage() {
     const isLoadingDraft = isLoadingOnyxValue(draftMetadata);
     // Valid only for a draft started in this session. A refreshed/restored crop screen keeps the persisted
     // draft but its opener (and the in-memory token) is gone, so a save here could never be consumed.
-    const isLiveCrop = !!draft?.imageUri && isActiveCropToken(draft.token);
+    const isLiveCrop = !!draft?.uri && isActiveCropToken(draft.token);
 
     // Dismiss when there's nothing to crop, or when this is a refreshed/restored crop with no live opener.
     useEffect(() => {
@@ -35,7 +35,7 @@ function AvatarCropPage() {
         [],
     );
 
-    if (isLoadingDraft || !draft?.imageUri || !isActiveCropToken(draft.token)) {
+    if (isLoadingDraft || !draft?.uri || !isActiveCropToken(draft.token)) {
         return (
             <FullScreenLoadingIndicator
                 shouldUseGoBackButton
@@ -52,9 +52,9 @@ function AvatarCropPage() {
 
     return (
         <AvatarCropView
-            imageUri={draft.imageUri}
-            imageName={draft.imageName}
-            imageType={draft.imageType}
+            imageUri={draft.uri}
+            imageName={draft.name}
+            imageType={draft.type}
             maskImage={draft.maskType === 'square' ? icons.ImageCropSquareMask : undefined}
             buttonLabel={draft.buttonLabelKey ? translate(draft.buttonLabelKey) : undefined}
             onSave={onSave}
@@ -62,7 +62,5 @@ function AvatarCropPage() {
         />
     );
 }
-
-AvatarCropPage.displayName = 'AvatarCropPage';
 
 export default AvatarCropPage;

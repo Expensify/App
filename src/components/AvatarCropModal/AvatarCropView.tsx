@@ -338,16 +338,16 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
 
     return (
         <ScreenWrapper
-            style={[styles.pb0]}
+            style={styles.pb0}
             includeSafeAreaPaddingBottom
             shouldEnableKeyboardAvoidingView={false}
-            testID="AvatarCropModal"
+            testID="AvatarCropView"
         >
             <HeaderWithBackButton
                 title={translate('avatarCropModal.title')}
                 onBackButtonPress={onClose}
             />
-            <Text style={[styles.mh5]}>{translate('avatarCropModal.description')}</Text>
+            <Text style={styles.mh5}>{translate('avatarCropModal.description')}</Text>
             <View
                 style={[styles.flex1, styles.m5, styles.alignSelfStretch]}
                 onLayout={initializeImageContainer}
@@ -356,7 +356,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
                     {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                     {!isImageInitialized || !isImageContainerInitialized ? (
                         <ActivityIndicator
-                            style={[styles.flex1]}
+                            style={styles.flex1}
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             reasonAttributes={reasonAttributes}
                         />
@@ -420,7 +420,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
             </View>
             <Button
                 success
-                style={[styles.m5]}
+                style={styles.m5}
                 onPress={cropAndSaveImage}
                 pressOnEnter
                 large
