@@ -35,7 +35,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists, isGroupPolicyByType} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -81,7 +81,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
-    const hasAnyPaidWorkspace = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}).length > 0, [allPolicies]);
+    const hasAnyPaidWorkspace = hasAnyPaidPolicy(allPolicies ?? {});
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
 

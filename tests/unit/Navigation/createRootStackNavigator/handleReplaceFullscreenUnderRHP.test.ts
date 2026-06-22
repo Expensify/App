@@ -160,14 +160,16 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         expect(listKey).toBeUndefined();
     });
 
-    it('remounts the WORKSPACE_NAVIGATOR with a fresh key so it mounts the [list, split] cleanly instead of an incremental update that flashes (#90985)', () => {
+    it('remounts the WORKSPACE_NAVIGATOR by dropping its key so it mounts the [list, split] cleanly instead of an incremental update that flashes (#90985)', () => {
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
         // makeExistingState gives the workspace navigator route the key 'workspace-nav-key'.
         const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST, undefined, undefined, 'list-key')], 0);
         const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
 
+        // The focused tab route is marked for remount by dropping its key; TabRouter.getRehydratedState()
+        // then assigns a fresh key, so react-native-screens remounts the navigator instead of doing an
+        // incremental update that flashes. The stale key must not survive.
         const {navigatorKey} = getWorkspaceNavInnerRoutes(result);
-        expect(navigatorKey).toBeDefined();
         expect(navigatorKey).not.toBe('workspace-nav-key');
     });
 
