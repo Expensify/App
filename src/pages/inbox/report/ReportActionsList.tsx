@@ -1,9 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
@@ -197,8 +196,6 @@ function ReportActionsList({
 
     const linkedReportActionID = route?.params?.reportActionID;
 
-    const hasHeaderRendered = useRef(false);
-
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => scrollOffsetRef.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
@@ -325,11 +322,6 @@ function ReportActionsList({
 
     const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
 
-    // Same-screen report switches reuse this instance; per-report one-shot flags must not leak across reports.
-    useEffect(() => {
-        hasHeaderRendered.current = false;
-    }, [report.reportID]);
-
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
@@ -439,26 +431,17 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML],
         [draftMessageHTML, draftReportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const canShowHeader = isOffline || hasHeaderRendered.current;
-
-    const listHeaderComponent = useMemo(() => {
-        // In case of an error we want to display the header no matter what.
-        if (!canShowHeader) {
-            hasHeaderRendered.current = true;
-
-            // Empty spacer so FlashList wraps a header and ListHeaderComponentStyle (flex: 1) applies —
-            // the wrapper sits at the visual bottom of the inverted list and pins items to the visual top.
-            return shouldBeAlignedToTop ? <View /> : null;
-        }
-
-        return (
+    // ListBoundaryLoader self-renders nothing outside its loading/error states, so the header is always safe to render.
+    const listHeaderComponent = useMemo(
+        () => (
             <ReportActionsListHeader
                 reportID={report.reportID}
                 onRetry={() => loadNewerChats(true)}
                 hasActiveDraft={hasActiveDraft}
             />
-        );
-    }, [canShowHeader, hasActiveDraft, report.reportID, loadNewerChats, shouldBeAlignedToTop]);
+        ),
+        [hasActiveDraft, report.reportID, loadNewerChats],
+    );
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
