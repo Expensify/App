@@ -56,6 +56,7 @@ describe('useChartLabelLayout', () => {
             firstLabelMaxWidth: Infinity,
             lastLabelMaxWidth: Infinity,
             ellipsisWidth: 0,
+            shouldUseHorizontalBarChart: false,
         };
 
         it('returns defaults when fontMgr is null', () => {
@@ -108,6 +109,20 @@ describe('useChartLabelLayout', () => {
         it('picks 90° when labels overflow at all rotations', () => {
             // tickSpacing=20: 0° fails (46>20), 45° fails (29.7+4=33.7>20)
             const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 20, labelAreaWidth: 400});
+            expect(result.current.labelRotation).toBe(90);
+            expect(result.current.shouldUseHorizontalBarChart).toBe(false);
+        });
+
+        it('prefers horizontal bar chart over 90° when fallbackToHorizontalBar is enabled', () => {
+            const {result} = renderLayout({
+                data: makeData('AAAAAA', 'BBBBBB'),
+                fontMgr: mockFontMgr,
+                fontSize: FONT_SIZE,
+                tickSpacing: 20,
+                labelAreaWidth: 400,
+                fallbackToHorizontalBar: true,
+            });
+            expect(result.current.shouldUseHorizontalBarChart).toBe(true);
             expect(result.current.labelRotation).toBe(90);
         });
     });
