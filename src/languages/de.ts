@@ -8069,16 +8069,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
         commuterExclusions: {
             changedToFixedDistance: 'hat das Ausschließen von Pendelstrecken in eine feste Entfernung pro Antrag geändert',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'Meile' : 'Meilen';
-                } else {
-                    unitLabel = isSingular ? 'Kilometer' : 'Kilometer';
-                }
-                return `feste Distanz von ${distance} ${unitLabel} pro Antrag ausschließen`;
-            },
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `feste Distanz von ${formattedDistance} pro Antrag ausschließen`,
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
                 `feste Entfernungsausschlussgrenze auf ${newDistance} ${unit} pro Antrag geändert (zuvor ${oldDistance} ${unit})`,
             disabled: 'Ausschluss von Pendelstrecken für Distanzsätze deaktiviert',

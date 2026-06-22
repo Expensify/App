@@ -8058,16 +8058,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
         commuterExclusions: {
             changedToFixedDistance: 'ha modificato l’esclusione dei tragitti casa-lavoro in una distanza fissa per rimborso',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'miglio' : 'miglia';
-                } else {
-                    unitLabel = isSingular ? 'chilometro' : 'chilometri';
-                }
-                return `imposta un'esclusione di distanza fissa di ${distance} ${unitLabel} per richiesta`;
-            },
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `imposta un'esclusione di distanza fissa di ${formattedDistance} per richiesta`,
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
                 `ha modificato l’esclusione a distanza fissa a ${newDistance} ${unit} per richiesta (in precedenza ${oldDistance} ${unit})`,
             disabled: 'esclusione delle tratte casa-lavoro per le tariffe a distanza disattivata',

@@ -7807,16 +7807,7 @@ ${reportName}`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
         commuterExclusions: {
             changedToFixedDistance: '已将“排除通勤”更改为“按每次报销固定距离”',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? '英里' : '英里';
-                } else {
-                    unitLabel = isSingular ? '公里' : '千米';
-                }
-                return `将每次报销的固定排除距离设置为 ${distance} ${unitLabel}`;
-            },
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `将每次报销的固定排除距离设置为 ${formattedDistance}`,
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
                 `已将固定距离排除调整为每笔报销 ${newDistance} ${unit}（之前为 ${oldDistance} ${unit}）`,
             disabled: '已停用“排除通勤距离费率”',

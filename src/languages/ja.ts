@@ -7961,16 +7961,7 @@ ${reportName}`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         commuterExclusions: {
             changedToFixedDistance: '通勤分の除外方法を、申請ごとの固定距離に変更しました',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'マイル' : 'マイル';
-                } else {
-                    unitLabel = isSingular ? 'キロメートル' : 'キロメートル';
-                }
-                return `1件の経費申請につき固定除外距離を${distance} ${unitLabel}に設定します`;
-            },
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `1件の経費申請につき固定除外距離を${formattedDistance}に設定します`,
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
                 `1件あたりの固定距離除外を${oldDistance} ${unit}から${newDistance} ${unit}に変更しました`,
             disabled: '距離レートで通勤を除外する設定を無効にしました',

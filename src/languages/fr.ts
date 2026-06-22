@@ -8102,16 +8102,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
         commuterExclusions: {
             changedToFixedDistance: 'a modifié l’exclusion des trajets domicile-travail en une distance fixe par demande',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'miles';
-                } else {
-                    unitLabel = isSingular ? 'kilomètre' : 'kilomètres';
-                }
-                return `définir l’exclusion de distance fixe à ${distance} ${unitLabel} par demande`;
-            },
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `définir l’exclusion de distance fixe à ${formattedDistance} par demande`,
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
                 `a modifié l’exclusion de distance fixe à ${newDistance} ${unit} par demande (auparavant ${oldDistance} ${unit})`,
             disabled: 'désactivé exclure les trajets domicile-travail pour les taux de distance',

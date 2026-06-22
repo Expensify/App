@@ -8018,18 +8018,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
         commuterExclusions: {
             changedToFixedDistance: 'zmienił wykluczanie dojazdów na stały dystans na zgłoszenie',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mile' : 'mile';
-                } else {
-                    unitLabel = isSingular ? 'kilometr' : 'kilometry';
-                }
-                return `ustaw stałe wykluczenie dystansu na ${distance} ${unitLabel} na zgłoszenie`;
-            },
-            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `zmienił stałe wykluczenie dystansu na ${newDistance} ${unit} na zgłoszenie (wcześniej ${oldDistance} ${unit})`,
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ustaw stałe wykluczenie dystansu na ${formattedDistance} na zgłoszenie`,
+            changedFixedDistance: ({formattedDistance, oldDistance}: {formattedDistance: string; oldDistance: string}) =>
+                `zmienił stałe wykluczenie dystansu na ${formattedDistance} na zgłoszenie (wcześniej ${oldDistance})`,
             disabled: 'wyłączono wykluczanie dojazdów dla stawek za odległość',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>

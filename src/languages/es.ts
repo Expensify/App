@@ -7795,16 +7795,7 @@ ${amount} para ${merchant} - ${date}`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
         commuterExclusions: {
             changedToFixedDistance: 'cambió la exclusión de trayectos al trabajo a una distancia fija por reclamación',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'milla' : 'millas';
-                } else {
-                    unitLabel = isSingular ? 'kilómetro' : 'kilómetros';
-                }
-                return `establecer exclusión de distancia fija en ${distance} ${unitLabel} por reclamación`;
-            },
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `establecer exclusión de distancia fija en ${formattedDistance} por reclamación`,
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
                 `cambió la exclusión de distancia fija a ${newDistance} ${unit} por reclamación (previamente ${oldDistance} ${unit})`,
             disabled: 'desactivó la opción de excluir desplazamientos para las tarifas por distancia',

@@ -8026,18 +8026,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
         commuterExclusions: {
             changedToFixedDistance: 'heeft ‘woon-werkverkeer uitsluiten’ gewijzigd naar een vaste afstand per declaratie',
-            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
-                const isSingular = distance === 1;
-                let unitLabel: string;
-                if (unit === 'mi') {
-                    unitLabel = isSingular ? 'mijl' : 'mijlen';
-                } else {
-                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
-                }
-                return `stel vaste afstandsuitsluiting in op ${distance} ${unitLabel} per declaratie`;
-            },
+            setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `stel vaste afstandsuitsluiting in op ${formattedDistance} per declaratie`;
             changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
-                `heeft de vaste afstandsuitsluiting gewijzigd naar ${newDistance} ${unit} per declaratie (voorheen ${oldDistance} ${unit})`,
+                `heeft de vaste afstandsuitsluiting gewijzigd naar ${formattedDistance} per declaratie (voorheen ${oldDistance} ${unit})`,
             disabled: 'uitschakelen woon-werkverkeer uitsluiten voor afstandstarieven',
         },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
