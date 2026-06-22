@@ -1663,6 +1663,13 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
+        submitReportTo: {
+            subtitle: 'Choisissez un membre de l’espace de travail ou saisissez une adresse e-mail de la personne qui doit recevoir cette soumission.',
+            emailLabel: 'Adresse e-mail',
+            workspaceMembers: 'Membres de l’espace de travail',
+            sendExpense: 'Envoyez votre dépense à n’importe qui',
+            sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
+        },
         changeApprover: {
             title: 'Modifier l’approbateur',
             header: (workflowSettingLink: string) =>
@@ -6776,8 +6783,20 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         distanceRates: {
             oopsNotSoFast: 'Oups ! Pas si vite...',
             workspaceNeeds: 'Un espace de travail doit avoir au moins un taux de distance activé.',
+            commuterExclusions: {
+                title: 'Exclure les trajets domicile-travail',
+                summaryDisabled: 'Pas d’exclusion du trajet domicile-travail',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclure ${distance} ${unit} par demande`,
+                optionDisabledTitle: 'Ne pas exclure les trajets domicile-travail',
+                optionDisabledHelp: 'Aucune exclusion de trajet domicile-travail n’est appliquée.',
+                optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
+                optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
+                distanceLabel: 'Distance',
+                errors: {distanceMustBePositive: 'La distance doit être supérieure à 0.'},
+            },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
+            emptyRates: {title: 'Aucun taux de distance pour l’instant', subtitle: 'Ajoutez un taux pour rembourser le kilométrage à des taux personnalisés.'},
             rate: 'Taux',
             addRate: 'Ajouter un taux',
             findRate: 'Trouver le taux',
@@ -7085,6 +7104,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 description: 'Configurez de manière centralisée à qui tous les membres soumettent en activant les approbations.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les validations sont disponibles avec les forfaits Collect et Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            approvalSubmitReport: {
+                title: 'Approuver les notes de frais',
+                description:
+                    'Examinez, approuvez et gardez vos dépenses sous contrôle en un seul endroit. Les workflows d’approbation vous aident à maîtriser les coûts, à appliquer les politiques de votre entreprise et à rembourser vos employés plus rapidement.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Les workflows d’approbation sont uniquement disponibles avec l’offre Collect, à partir de <strong>${formattedPrice}</strong> par membre actif et par mois.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Cartes d’entreprise',
@@ -8075,6 +8101,22 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
+        commuterExclusions: {
+            changedToFixedDistance: 'a modifié l’exclusion des trajets domicile-travail en une distance fixe par demande',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'mile' : 'miles';
+                } else {
+                    unitLabel = isSingular ? 'kilomètre' : 'kilomètres';
+                }
+                return `définir l’exclusion de distance fixe à ${distance} ${unitLabel} par demande`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `a modifié l’exclusion de distance fixe à ${newDistance} ${unit} par demande (auparavant ${oldDistance} ${unit})`,
+            disabled: 'désactivé exclure les trajets domicile-travail pour les taux de distance',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `a modifié le mode de remboursement en « ${newReimbursementChoice} » (auparavant « ${oldReimbursementChoice} »)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} pré-approbation des demandes de rejoindre l’espace de travail`,
@@ -9713,6 +9755,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
