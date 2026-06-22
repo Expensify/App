@@ -2,6 +2,13 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
+/**
+ * Gates the RHP slide-out while a workspace screen is revealed beneath it during workspace creation.
+ * On narrow layout the revealed screen needs a frame to lay out before the RHP slides away; otherwise
+ * the slide-out runs over a blank screen. These helpers open a synthetic transition that holds the
+ * slide-out until WorkspaceInitialPage reports its first layout.
+ */
+
 // Tracks the synthetic transition opened by beginRevealUnderRHP. Closed by notifyRevealUnderRHPReady
 // from WorkspaceInitialPage's first onLayout. Auto-expires after MAX_TRANSITION_DURATION_MS.
 let pendingRevealReadinessHandle: TransitionHandle | null = null;

@@ -202,12 +202,11 @@ function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialSt
 }
 
 function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined, focusedTargetTab: NavigationPartialRoute): TabRouteForReplacement {
-    // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
-    // it starts with a different screen, so back navigation from the new screen
-    // lands on the sidebar. When the existing tab doesn't have nested
-    // routes (e.g. cold-start through a deep link that opens straight into a modal),
-    // fall back to the split navigator's default sidebar route so there is still
-    // something to pop back to.
+    // Prepend a back-target route beneath the incoming screen when the incoming state starts with a
+    // different screen, so back navigation lands somewhere sensible: the existing sidebar/root route
+    // (e.g. Inbox) for most tabs, or WORKSPACES_LIST for the workspace navigator. When the existing tab
+    // doesn't have nested routes (e.g. cold-start through a deep link that opens straight into a modal),
+    // fall back to the split navigator's default sidebar route so there is still something to pop back to.
     let mergedNestedState = focusedTargetTab.state;
     const existingNestedRoutes = (existingTabRoute?.state as PartialState<NavigationState> | undefined)?.routes;
     const newNestedRoutes = focusedTargetTab.state?.routes;
