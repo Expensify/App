@@ -4,41 +4,15 @@ import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
-import type {TableData} from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-
-type WorkspaceTagTableRowData = TableData & {
-    value: string;
-    name: string;
-    orderWeight?: number;
-    enabled: boolean;
-    required?: boolean;
-    glCode?: string;
-    tagCount?: number;
-    approverAvatar?: AvatarSource;
-    approverAccountID?: number;
-    approverDisplayName?: string;
-    disabled?: boolean;
-    errors?: OnyxCommon.Errors;
-    pendingAction?: OnyxCommon.PendingAction;
-    isLocked: boolean;
-    isSwitchDisabled?: boolean;
-    showEnabledSwitch: boolean;
-    showRequiredSwitch: boolean;
-    action: () => void;
-    onToggleEnabled?: (enabled: boolean) => void;
-    onToggleRequired?: (required: boolean) => void;
-    onClose: () => void;
-};
+import type {WorkspaceTagTableRowData} from '.';
 
 type WorkspaceTagsTableRowProps = {
     /** Data about the tag or tag list */
@@ -114,23 +88,21 @@ export default function WorkspaceTagsTableRow({
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, shouldUseNarrowTableLayout && styles.gap1]}>
-                        <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
-                            <TextWithTooltip
-                                shouldShowTooltip
+                    <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
+                        <TextWithTooltip
+                            shouldShowTooltip
+                            numberOfLines={1}
+                            text={item.name}
+                            style={styles.optionDisplayName}
+                        />
+                        {shouldUseNarrowTableLayout && !!tagCountSubtitle && (
+                            <Text
                                 numberOfLines={1}
-                                text={item.name}
-                                style={styles.optionDisplayName}
-                            />
-                            {shouldUseNarrowTableLayout && !!tagCountSubtitle && (
-                                <Text
-                                    numberOfLines={1}
-                                    style={styles.textLabelSupporting}
-                                >
-                                    {tagCountSubtitle}
-                                </Text>
-                            )}
-                        </View>
+                                style={styles.textLabelSupporting}
+                            >
+                                {tagCountSubtitle}
+                            </Text>
+                        )}
                     </View>
 
                     {!shouldUseNarrowTableLayout && shouldShowGLCodeColumn && (
@@ -195,5 +167,3 @@ export default function WorkspaceTagsTableRow({
         </Table.Row>
     );
 }
-
-export type {WorkspaceTagTableRowData};

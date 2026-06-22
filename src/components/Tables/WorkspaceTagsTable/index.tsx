@@ -1,17 +1,42 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceTagsTableRow from './WorkspaceTagsTableRow';
-import type {WorkspaceTagTableRowData} from './WorkspaceTagsTableRow';
 
 type WorkspaceTagTableColumnKey = 'name' | 'glCode' | 'approver' | 'tagCount' | 'enabled' | 'required' | 'actions';
+
+type WorkspaceTagTableRowData = TableData & {
+    value: string;
+    name: string;
+    orderWeight?: number;
+    enabled: boolean;
+    required?: boolean;
+    glCode?: string;
+    tagCount?: number;
+    approverAvatar?: AvatarSource;
+    approverAccountID?: number;
+    approverDisplayName?: string;
+    disabled?: boolean;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
+    isLocked: boolean;
+    isSwitchDisabled?: boolean;
+    showEnabledSwitch: boolean;
+    showRequiredSwitch: boolean;
+    action: () => void;
+    onToggleEnabled?: (enabled: boolean) => void;
+    onToggleRequired?: (required: boolean) => void;
+    onClose: () => void;
+};
 
 type WorkspaceTagsTableProps = {
     tags: WorkspaceTagTableRowData[];
