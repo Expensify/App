@@ -1136,6 +1136,8 @@ const ONYXKEYS = {
         RULES_REQUIRED_RECEIPT_AMOUNT_FORM_DRAFT: 'rulesRequiredReceiptAmountFormDraft',
         RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM: 'rulesRequiredItemizedReceiptAmountForm',
         RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM_DRAFT: 'rulesRequiredItemizedReceiptAmountFormDraft',
+        RULES_REQUIRE_RECEIPTS_FORM: 'rulesRequireReceiptsForm',
+        RULES_REQUIRE_RECEIPTS_FORM_DRAFT: 'rulesRequireReceiptsFormDraft',
         RULES_MAX_EXPENSE_AMOUNT_FORM: 'rulesMaxExpenseAmountForm',
         RULES_MAX_EXPENSE_AMOUNT_FORM_DRAFT: 'rulesMaxExpenseAmountFormDraft',
         RULES_MAX_EXPENSE_AGE_FORM: 'rulesMaxExpenseAgeForm',
@@ -1311,6 +1313,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM]: FormTypes.RulesAutoPayReportsUnderModalForm;
     [ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM]: FormTypes.RulesRequiredReceiptAmountForm;
     [ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM]: FormTypes.RulesRequiredItemizedReceiptAmountForm;
+    [ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM]: FormTypes.RulesRequireReceiptsForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM]: FormTypes.RulesMaxExpenseAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
     [ONYXKEYS.FORMS.RULES_CUSTOM_FORM]: FormTypes.RulesCustomForm;
