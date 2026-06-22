@@ -40,6 +40,8 @@ You can create an expense by scanning a receipt, entering details manually, or t
 4. Add details like description, category, tags, and tax.
 5. Click **Create expense**.
 
+**Note:** To enter or edit the **Merchant**, **Date**, or **Amount** before creating the expense, click **Show more** on the confirmation screen to reveal those fields. If you fill in any of them, all three become required.
+
 **Other SmartScan methods:**
 
 - Forward your digital receipts to [receipts@expensify.com](mailto:receipts@expensify.com).
@@ -52,10 +54,10 @@ You can create an expense by scanning a receipt, entering details manually, or t
 ## How to manually create a cash expense
 
 1. Click the **➕ Create** button.
-2. Select **Create Expense** then **Manual**.
-3. Enter the amount and currency, then click **Next**.
-4. Choose a workspace or an individual.
-5. Add details like description, category, tags, tax, and set whether the expense is reimbursable or billable.
+2. Select **Create expense**, then select the **Manual** tab.
+3. In the **To** field, choose a workspace or an individual.
+4. Enter the **Amount** and currency.
+5. Add details like **Merchant**, **Description**, **Category**, and **Date**, and set whether the expense is **Reimbursable** or billable.
 6. Click **Create expense**.
 
 ---
