@@ -20,11 +20,8 @@ function SuccessReportCardLost({cardID, isFromDomainCardDetail = false}: {cardID
             illustration={illustrations.CardReplacementSuccess}
             shouldShowButton
             onButtonPress={() => {
-                // Reporting a card lost deletes the original card and issues a replacement with a new cardID. The RHP stack still
-                // holds the card route for the now-deleted original card that the flow was launched from. Going back with
-                // compareParams: false collapses the flow onto that existing card route and replaces its cardID with the
-                // replacement card, leaving the user on a single valid card route whose back button returns to where the flow
-                // started (OldDot when launched from the top-level DomainCard route) instead of a stale/NotFound route.
+                // Going back with compareParams: false collapses the flow onto the deleted card route and
+                // replaces its cardID with the replacement card instead of a stale/NotFound route.
                 const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
                 Navigation.goBack(cardDetailRoute, {compareParams: false});
             }}

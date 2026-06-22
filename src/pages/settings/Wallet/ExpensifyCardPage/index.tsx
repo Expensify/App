@@ -277,12 +277,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    // The card data is loaded by the OpenApp request. We show the loading indicator instead of the NotFoundPage while the card
-    // could still arrive: before the app has loaded for the first time (hasLoadedApp), while an OpenApp/reconnect is in flight
-    // (isLoadingApp), or while CARD_LIST is still hydrating. hasLoadedApp is a one-shot flag that never resets, so on a warm app
-    // it can't represent a later OpenApp that brings in a card missing from CARD_LIST (e.g. a freshly issued replacement card or
-    // a card deep-linked from OldDot); isLoadingApp covers those in-flight refreshes so the NotFoundPage doesn't flash before
-    // the card lands. Once all of these settle and the card is still absent, the NotFoundPage is the correct terminal state.
+    // Show the loading indicator instead of the NotFoundPage while the card could still arrive: Before the app has loaded for the first time (hasLoadedApp),
+    // while an OpenApp/reconnect is in flight (isLoadingApp), or while CARD_LIST is still hydrating.
     const isLoadingCardData = !currentCard && (!hasLoadedApp || !!isLoadingApp || isLoadingOnyxValue(cardListResult));
 
     if (isLoadingCardData) {

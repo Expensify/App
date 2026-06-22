@@ -59,8 +59,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
         }
 
         // Collapse the activate flow back onto the existing card route instead of pushing a new one, so the user is not left
-        // with a duplicate card details screen and a stale route to back through. The card route is the top-level DomainCard
-        // route when the flow was deep-linked from OldDot, otherwise the Settings wallet card route.
+        // with a duplicate card details screen and a stale route to back through.
         const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
         Navigation.goBack(cardDetailRoute, {compareParams: false});
     }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state, isFromDomainCardDetail]);
