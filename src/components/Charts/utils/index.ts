@@ -411,59 +411,6 @@ function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, ha
     return cursorX >= targetX - padding && cursorX <= targetX + padding && cursorY >= yMin90 && cursorY <= yMax90;
 }
 
-/**
- * Computes the D3 nice step size for a given range and tick count.
- * Mirrors D3's tickStep logic (1 / 2 / 5 / 10 multiples of the magnitude).
- */
-function getNiceStep(range: number, tickCount: number): number {
-    const intervals = tickCount - 1;
-    const roughStep = range / intervals;
-    const magnitude = 10 ** Math.floor(Math.log10(roughStep));
-    const normalized = roughStep / magnitude;
-    // D3 nice steps: 1, 2, 5, 10 (powers of 10)
-    if (normalized >= 5) {
-        return 5 * magnitude;
-    }
-    if (normalized >= 2) {
-        return 2 * magnitude;
-    }
-    return magnitude;
-}
-
-/**
- * Predicts the highest Y-axis tick value that Victory-native will generate.
- *
- * Victory (via D3) applies a "nice" algorithm that rounds the domain upper bound up
- * to the next clean tick step. Pass rawMin when negative values are present so that
- * the step is computed from the full range (rawMax − rawMin) rather than rawMax alone.
- */
-function getNiceUpperBound(rawMax: number, tickCount: number, rawMin = 0): number {
-    const range = rawMax - rawMin;
-    if (range <= 0 || tickCount <= 1) {
-        return rawMax;
-    }
-    const niceStep = getNiceStep(range, tickCount);
-    return Math.ceil(rawMax / niceStep) * niceStep;
-}
-
-/**
- * Predicts the lowest Y-axis tick value that Victory-native will generate.
- *
- * Mirrors D3's nice algorithm for the lower domain bound: floors rawMin to the
- * nearest nice step derived from the full range (rawMax − rawMin).
- */
-function getNiceLowerBound(rawMin: number, tickCount: number, rawMax = 0): number {
-    if (rawMin >= 0) {
-        return rawMin;
-    }
-    const range = rawMax - rawMin;
-    if (range <= 0 || tickCount <= 1) {
-        return rawMin;
-    }
-    const niceStep = getNiceStep(range, tickCount);
-    return Math.floor(rawMin / niceStep) * niceStep;
-}
-
 /** Predicts Y-axis tick values that victory-native will generate from the data extremes. */
 function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: number, padTop = 0, padBottom = 0, chartHeight = CHART_CONTENT_MIN_HEIGHT): number[] {
     if (tickCount <= 0) {
@@ -548,8 +495,6 @@ export {
     edgeMaxLabelWidth,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
-    getNiceUpperBound,
-    getNiceLowerBound,
     getNiceYAxisTicks,
     getYAxisLabelWidth,
 };

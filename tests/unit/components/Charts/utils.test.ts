@@ -7,8 +7,6 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
-    getNiceLowerBound,
-    getNiceUpperBound,
     getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -665,70 +663,6 @@ describe('calculateMinDomainPadding', () => {
         const withoutPadding = calculateMinDomainPadding(400, 5, 0);
         const withPadding = calculateMinDomainPadding(400, 5, 0.3);
         expect(withPadding).toBeLessThan(withoutPadding);
-    });
-});
-
-describe('getNiceUpperBound', () => {
-    it('returns rawMax unchanged when range is zero', () => {
-        expect(getNiceUpperBound(0, 5)).toBe(0);
-        expect(getNiceUpperBound(100, 5, 100)).toBe(100);
-    });
-
-    it('returns rawMax unchanged when tickCount <= 1', () => {
-        expect(getNiceUpperBound(100, 1)).toBe(100);
-        expect(getNiceUpperBound(90, 0)).toBe(90);
-    });
-
-    it('rounds up to next step boundary when rawMax is already on a step', () => {
-        // range=100, step=20 → ceil(100/20)*20=100
-        expect(getNiceUpperBound(100, 5)).toBe(100);
-    });
-
-    it('rounds up when rawMax falls between step boundaries', () => {
-        // range=90, step=20 → ceil(90/20)*20=ceil(4.5)*20=5*20=100
-        expect(getNiceUpperBound(90, 5)).toBe(100);
-    });
-
-    it('scales correctly for larger values', () => {
-        // range=1000, step=200 → ceil(1000/200)*200=1000
-        expect(getNiceUpperBound(1000, 5)).toBe(1000);
-        // range=900, step=200 → ceil(900/200)*200=ceil(4.5)*200=1000
-        expect(getNiceUpperBound(900, 5)).toBe(1000);
-    });
-
-    it('uses rawMin to compute the range when negative values are present', () => {
-        // rawMax=100, rawMin=-100 → range=200, roughStep=50, magnitude=10, normalized=5 → step=50
-        // ceil(100/50)*50=100
-        expect(getNiceUpperBound(100, 5, -100)).toBe(100);
-    });
-});
-
-describe('getNiceLowerBound', () => {
-    it('returns rawMin unchanged for non-negative values', () => {
-        expect(getNiceLowerBound(0, 5)).toBe(0);
-        expect(getNiceLowerBound(10, 5)).toBe(10);
-        expect(getNiceLowerBound(100, 5)).toBe(100);
-    });
-
-    it('returns rawMin unchanged when range is zero or tickCount <= 1', () => {
-        expect(getNiceLowerBound(-100, 1, 0)).toBe(-100);
-        expect(getNiceLowerBound(-100, 5, -100)).toBe(-100);
-    });
-
-    it('returns rawMin unchanged when rawMin is already on a step boundary', () => {
-        // range=100, step=20 → floor(-100/20)*20=-5*20=-100
-        expect(getNiceLowerBound(-100, 5, 0)).toBe(-100);
-    });
-
-    it('rounds down when rawMin falls between step boundaries', () => {
-        // range=90, step=20 → floor(-90/20)*20=floor(-4.5)*20=-5*20=-100
-        expect(getNiceLowerBound(-90, 5, 0)).toBe(-100);
-    });
-
-    it('uses rawMax to compute the range for mixed positive/negative data', () => {
-        // rawMin=-50, rawMax=100 → range=150, roughStep=37.5, magnitude=10, normalized=3.75 >= 2 → step=20
-        // floor(-50/20)*20=floor(-2.5)*20=-3*20=-60
-        expect(getNiceLowerBound(-50, 5, 100)).toBe(-60);
     });
 });
 
