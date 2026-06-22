@@ -7322,6 +7322,65 @@ const translations = {
             goToSubscription: 'Go to Subscription',
         },
         rules: {
+            tabs: {
+                general: 'General',
+                cardRestrictions: 'Card restrictions',
+                expenseDefaults: 'Expense defaults',
+            },
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Delete rule',
+                    other: 'Delete rules',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Are you sure you want to delete this rule?',
+                    other: 'Are you sure you want to delete these rules?',
+                }),
+            },
+            generalTab: {
+                title: 'Basic rules',
+                subtitle: 'Common rules to control spend',
+                expensesOlderThan: 'Flag expenses older than',
+                expensesAboveAmount: 'Flag expenses above amount',
+                flagReceiptLineItems: 'Flag receipt line items',
+                receiptRequirements: 'Require receipts',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Regular above ${regularAmount}, itemized above ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Regular above ${regularAmount}, don't require itemized`;
+                    }
+                    if (itemizedAmount) {
+                        return `Don't require regular, itemized above ${itemizedAmount}`;
+                    }
+                    return "Don't require receipts";
+                },
+                requireFieldsForAllExpenses: 'Require fields for all expenses',
+                cashExpenses: 'Cash expenses',
+                cashExpensesReimbursableByDefault: 'Reimbursable by default',
+                cashExpensesNonReimbursableByDefault: 'Non-reimbursable by default',
+                cashExpensesAlwaysReimbursable: 'Always reimbursable',
+                cashExpensesAlwaysNonReimbursable: 'Always non-reimbursable',
+                billableExpenses: 'Billable expenses',
+                billableExpensesBillable: 'Cash and credit card billable',
+                billableExpensesNonBillable: 'Cash and credit card non-billable',
+            },
+            requireReceipts: {
+                title: 'Require receipts',
+                description: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
+                requireReceipt: 'Require receipt',
+                requireItemizedReceipt: 'Require itemized receipt',
+                requireAboveAmount: 'Require above amount',
+                emptyAmountError: 'Enter a valid amount before saving',
+                saveRule: 'Save rule',
+            },
+            requireFields: {
+                title: 'Require fields for all expenses',
+                category: 'Category',
+                tag: 'Tag',
+                save: 'Save rule',
+            },
             individualExpenseRules: {
                 title: 'Expenses',
                 subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
@@ -7432,6 +7491,27 @@ const translations = {
                 duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
+                expenseDefaultsTitle: 'Expense defaults',
+                expenseDefaultsSubtitle: 'Update fields without submitter doing anything',
+                ifAnyExpenseMatches: 'If any expense matches:',
+                thenApplyFollowingDefaults: 'Then apply the following defaults:',
+            },
+            newRule: {
+                title: 'New rule',
+                subtitle: 'What do you want to do?',
+                restrictCardSpend: 'Restrict card spend',
+                restrictCardSpendDescription: 'Block or limit spend at the point of sale',
+                applyExpenseDefaults: 'Apply expense defaults',
+                applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Rule',
+                findRule: 'Find rule',
+                rename: 'Rename',
+                update: 'Update',
+                merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
             },
             categoryRules: {
                 title: 'Category rules',
@@ -7483,12 +7563,34 @@ const translations = {
                 defaultRuleDescription: 'All cards',
                 block: 'Block',
                 defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
+                defaultRuleSummary: 'Categories including adult services, ATMs, gambling, and...',
+                findRule: 'Find rule',
+                defaultSection: 'Default',
+                customRulesSection: 'Custom rules',
+                tableColumnType: 'Type',
+                tableColumnCard: 'Card',
+                tableColumnRule: 'Rule',
+                cardRulesUpsell: {
+                    title: 'Get the Expensify Card and control spend',
+                    subtitle: 'With the Expensify Card you can set rules for max spend, block or allow certain merchants or types of purchases. You also get 2% cash back.',
+                    cta: 'Get the card',
+                },
                 builtInProtectionModal: {
                     title: 'Expensify Cards offer built-in protection - always',
                     description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
                 },
                 addSpendRule: 'Add spend rule',
                 editRuleTitle: 'Edit rule',
+                restrictCardSpendTitle: 'Restrict card spend',
+                restrictCardSpendSubtitle: 'Block or limit spend at the point of sale.',
+                ifAnyCardMatches: 'If any card matches:',
+                thenDoThisAtPointOfSale: 'Then do this at the point of sale:',
+                permittedCurrencies: 'Permitted currencies',
+                setRestrictions: 'Set restrictions',
+                merchantRestrictions: 'Merchant restrictions',
+                blockedMerchant: 'Blocked merchant',
+                blockedMerchantTypes: 'Blocked merchant types',
+                maxAmountAbove: ({amount}: {amount: string}) => `above ${amount}`,
                 cardPageTitle: 'Card',
                 cardsSectionTitle: 'Cards',
                 chooseCards: 'Choose cards',
@@ -7513,7 +7615,6 @@ const translations = {
                 allowedMerchants: 'Allowed merchants',
                 allowedMerchantTypes: 'Allowed merchant types',
                 blockedMerchants: 'Blocked merchants',
-                blockedMerchantTypes: 'Blocked merchant types',
                 maxAmountHelp: 'Any charge over this amount will be declined, regardless of merchant and spend category restrictions.',
                 maxAmountCurrencyMismatchTitle: 'Currency mismatch',
                 maxAmountCurrencyMismatchPrompt: 'To set a max amount, select cards that settle in the same currency.',
@@ -7560,7 +7661,6 @@ const translations = {
                 categories: 'Categories',
                 merchants: 'Merchants',
                 currencies: 'Currencies',
-                permittedCurrencies: 'Permitted currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
                 noCardsIssuedTitle: 'No Expensify Cards issued',

@@ -76,6 +76,7 @@ import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentMagicWand from '@assets/images/document-magic-wand.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
@@ -203,6 +204,7 @@ import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
+import ReceiptCheck from '@assets/images/receipt-check.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
@@ -340,6 +342,7 @@ const Expensicons = {
     CreditCardWithPlaneHourglass,
     CircleSlash,
     Document,
+    DocumentMagicWand,
     DocumentMerge,
     DocumentPlus,
     DotIndicator,
@@ -449,6 +452,7 @@ const Expensicons = {
     QuestionMark,
     TreasureChest,
     Receipt,
+    ReceiptCheck,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
     ReceiptScan,
