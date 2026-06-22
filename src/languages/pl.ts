@@ -9647,7 +9647,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
-        currentView: 'Eksportuj bieżący widok',
+        currentView: 'Bieżący widok',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

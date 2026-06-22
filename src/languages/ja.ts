@@ -9573,7 +9573,7 @@ ${reportName}`,
         expenseLevelExport: 'すべてのデータ - 経費レベル',
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
-        currentView: '現在のビューをエクスポート',
+        currentView: '現在のビュー',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
