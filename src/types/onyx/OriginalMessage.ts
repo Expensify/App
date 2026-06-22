@@ -821,6 +821,12 @@ type OriginalMessageSpendRuleChangeLog = {
     /** Previous spend rule action when the rule's restriction type was updated */
     oldAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
 
+    /** Currencies included in the spend rule */
+    currencies?: string[];
+
+    /** Old currencies included in the spend rule */
+    oldCurrencies?: string[];
+
     /** Merchants included in a spend rule */
     merchants?: string[];
 
