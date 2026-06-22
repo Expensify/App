@@ -122,7 +122,7 @@ describe('navigateAfterOnboarding', () => {
     });
 
     it('should pass reportNameValuePairs when looking up last accessed report', () => {
-        const reportNameValuePairs = {report_1: {private_isArchived: '2024-02-01 04:56:47.233'}};
+        const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: {private_isArchived: '2024-02-01 04:56:47.233'}};
         mockFindLastAccessedReport.mockReturnValue(undefined);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
