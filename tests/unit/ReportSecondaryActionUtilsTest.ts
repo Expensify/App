@@ -850,7 +850,7 @@ describe('getSecondaryAction', () => {
     it('does not include APPROVE option when submitter is the manager on a Submit workspace even with duplicate violations', async () => {
         const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_SUBMITTER';
         const report = {
-            ...createExpenseReport(REPORT_ID),
+            ...createExpenseReport(Number(REPORT_ID)),
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             managerID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -894,7 +894,7 @@ describe('getSecondaryAction', () => {
     it('includes APPROVE option when a different user is the manager on a Submit workspace with duplicate violations', async () => {
         const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_APPROVER';
         const report = {
-            ...createExpenseReport(REPORT_ID),
+            ...createExpenseReport(Number(REPORT_ID)),
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             managerID: APPROVER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
