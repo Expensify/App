@@ -91,20 +91,19 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
 
-    const {focusedIndex, setFocusedIndex, setFocusedIndexFromRowFocus, setFocusedIndexWithoutScrollOnChange, suppressNextFocusScroll, isKeyboardNavigating, setHasKeyBeenPressed} =
-        useSelectionListKeyboardFocus({
-            initialFocusedIndex,
-            maxIndex: flattenedData.length - 1,
-            disabledIndexes,
-            isActive: isScreenFocused && itemsCount > 0,
-            isFocused: isScreenFocused,
-            shouldScrollToFocusedIndex,
-            shouldDebounceScrolling,
-            scrollToIndex,
-            debouncedScrollToIndex,
-            announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
-            setShouldDisableHoverStyle,
-        });
+    const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
+        initialFocusedIndex,
+        maxIndex: flattenedData.length - 1,
+        disabledIndexes,
+        isActive: isScreenFocused && itemsCount > 0,
+        isFocused: isScreenFocused,
+        shouldScrollToFocusedIndex,
+        shouldDebounceScrolling,
+        scrollToIndex,
+        debouncedScrollToIndex,
+        announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
+        setShouldDisableHoverStyle,
+    });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
 
@@ -155,9 +154,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
-        if (!shouldScroll) {
-            suppressNextFocusScroll();
-        }
         setFocusedIndex(index);
         if (shouldScroll) {
             scrollToIndex(index);
