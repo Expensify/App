@@ -30,7 +30,6 @@ import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {hasAccountingConnections, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getTransactionDetails, isReportInGroupPolicy, isSelfDM} from '@libs/ReportUtils';
