@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1322,6 +1323,7 @@ describe('ReportNameUtils', () => {
             } as ReportAction;
 
             const transaction: Transaction = {
+                ...createRandomTransaction(1),
                 transactionID,
                 reportID: expenseReportID,
                 merchant: 'Coffee Shop',
@@ -1329,23 +1331,7 @@ describe('ReportNameUtils', () => {
                 amount: -2500,
                 currency: CONST.CURRENCY.USD,
                 comment: {comment: ''},
-                created: '2024-01-01',
-                modifiedCreated: '',
-                modifiedCurrency: '',
-                originalAmount: 0,
-                originalCurrency: '',
-                tag: '',
-                category: '',
-                billable: false,
-                reimbursable: true,
-                cardID: 0,
-                bank: '',
-                hasEReceipt: false,
-                modifiedAmount: '',
-                receipt: {},
-                parentTransactionID: '',
-                status: CONST.TRANSACTION.STATUS.POSTED,
-            } as unknown as Transaction;
+            };
 
             const reportActionsCollection: Record<string, ReportActions> = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
