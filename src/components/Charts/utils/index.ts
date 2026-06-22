@@ -1,5 +1,6 @@
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import {scaleLinear} from 'd3-scale';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {
     CHART_CONTENT_MIN_HEIGHT,
@@ -422,40 +423,11 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 
     const effectiveMin = rawDataMin > 0 ? 0 : rawDataMin;
 
-    const isFlat = effectiveMin === rawDataMax;
-    const paddedMax = isFlat ? rawDataMax + 1 : rawDataMax + (rawDataMax - effectiveMin) * (padTop / chartHeight);
-    const paddedMin = isFlat ? effectiveMin - 1 : effectiveMin - (rawDataMax - effectiveMin) * (padBottom / chartHeight);
+    const range = rawDataMax - effectiveMin;
+    const [paddedMin, paddedMax] =
+        effectiveMin === rawDataMax ? [effectiveMin - 1, rawDataMax + 1] : [effectiveMin - range * (padBottom / chartHeight), rawDataMax + range * (padTop / chartHeight)];
 
-    // Inline D3 nice()+ticks() — the same algorithm Victory uses internally.
-    const d3TickStep = (start: number, stop: number, count: number): number => {
-        const step0 = Math.abs(stop - start) / Math.max(0, count);
-        const power = Math.floor(Math.log(step0) / Math.LN10);
-        const magnitude = 10 ** power;
-        const error = step0 / magnitude;
-        let factor = 1;
-        if (error >= Math.sqrt(50)) {
-            factor = 10;
-        } else if (error >= Math.sqrt(10)) {
-            factor = 5;
-        } else if (error >= Math.sqrt(2)) {
-            factor = 2;
-        }
-        return magnitude * factor;
-    };
-
-    // nice() rounds domain bounds outward to the nearest multiple of the nice step (count=10).
-    const niceStep = d3TickStep(paddedMin, paddedMax, 10);
-    const niceMin = Math.floor(paddedMin / niceStep) * niceStep;
-    const niceMax = Math.ceil(paddedMax / niceStep) * niceStep;
-
-    // ticks() picks a step for the tick grid and aligns to multiples of that step.
-    const tickStep = d3TickStep(niceMin, niceMax, tickCount);
-    const tickStart = Math.ceil(niceMin / tickStep) * tickStep;
-    const tickEnd = Math.floor(niceMax / tickStep) * tickStep;
-    const stepCount = Math.round((tickEnd - tickStart) / tickStep);
-    const decimals = Math.max(0, -Math.floor(Math.log10(tickStep)));
-    const round = (v: number) => Math.round(v * 10 ** decimals) / 10 ** decimals;
-    return Array.from({length: stepCount + 1}, (_, i) => round(tickStart + i * tickStep));
+    return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
 /** Returns the pixel width needed for Y-axis labels given the data extremes. */
