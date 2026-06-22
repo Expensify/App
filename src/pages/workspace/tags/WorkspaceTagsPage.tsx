@@ -62,6 +62,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
     getConnectedIntegration,
+    getCountOfEnabledTagsOfList,
     getCurrentConnectionName,
     getTagApproverRule,
     getTagLists,
@@ -300,11 +301,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => {
+        const firstTagList = policyTagLists.at(0);
+        const enabledTagsCount = getCountOfEnabledTagsOfList(firstTagList?.tags);
+        const isLastEnabledTagLocked = !!firstTagList?.required && enabledTagsCount === 1;
+
+        return Object.values(firstTagList?.tags ?? {}).map((tag) => {
             const approverEmail = shouldShowApproverColumn ? (getTagApproverRule(policy, tag.name)?.approver ?? '') : '';
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
             const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
+            const isLastEnabledTagAndEnabled = isLastEnabledTagLocked && tag.enabled;
 
             return {
                 value: tag.name,
@@ -353,7 +359,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 disabledAction={withReadOnlyFallback()}
                                 accessibilityLabel={translate('workspace.tags.enableTag')}
                                 onToggle={(newValue: boolean) => {
-                                    if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                                    if (isLastEnabledTagAndEnabled) {
                                         showConfirmModal({
                                             title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
                                             prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
@@ -364,7 +370,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     }
                                     updateWorkspaceTagEnabled(newValue, tag.name);
                                 }}
-                                showLockIcon={!canWriteTags || isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                                showLockIcon={!canWriteTags || isLastEnabledTagAndEnabled}
                             />
                         </View>
                     </>
@@ -375,7 +381,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         disabledAction={withReadOnlyFallback()}
                         accessibilityLabel={translate('workspace.tags.enableTag')}
                         onToggle={(newValue: boolean) => {
-                            if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                            if (isLastEnabledTagAndEnabled) {
                                 showConfirmModal({
                                     title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
                                     prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
@@ -386,7 +392,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             }
                             updateWorkspaceTagEnabled(newValue, tag.name);
                         }}
-                        showLockIcon={!canWriteTags || isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                        showLockIcon={!canWriteTags || isLastEnabledTagAndEnabled}
                     />
                 ),
             };

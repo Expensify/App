@@ -7,7 +7,9 @@ import ActionCell from '.';
 import type {ActionCellProps} from '.';
 import actionTranslationsMap from './actionTranslationsMap';
 
-function DeferredActionCell(actionCellProps: ActionCellProps) {
+type DeferredActionCellProps = ActionCellProps & {isMarkAsDone?: boolean};
+
+function DeferredActionCell(actionCellProps: DeferredActionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldRender = useDeferredValue(true, false);
@@ -16,7 +18,12 @@ function DeferredActionCell(actionCellProps: ActionCellProps) {
         const action = actionCellProps.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
         const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
         const isSuccess = !shouldUseViewAction && action !== CONST.SEARCH.ACTION_TYPES.UNDELETE;
-        const text = shouldUseViewAction ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
+        let text: string;
+        if (shouldUseViewAction) {
+            text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
+        } else {
+            text = actionCellProps.isMarkAsDone ? translate('common.done') : translate(actionTranslationsMap[action]);
+        }
 
         return (
             <Button

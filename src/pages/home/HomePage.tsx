@@ -21,6 +21,7 @@ import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
+import RecentlyAddedSection from './RecentlyAddedSection';
 import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
@@ -92,6 +93,7 @@ function HomePage() {
                                     <GettingStartedSection />
                                     <ForYouSection />
                                     <UpcomingTravelSection />
+                                    <RecentlyAddedSection />
                                     <YourSpendSection />
                                     <SpendOverTimeSection />
                                     <DiscoverSection />
@@ -99,17 +101,24 @@ function HomePage() {
                                 </>
                             ) : (
                                 <>
-                                    <View style={styles.homePageLeftColumn}>
+                                    <View
+                                        testID="homePageLeftColumn"
+                                        style={styles.homePageLeftColumn}
+                                    >
                                         <TimeSensitiveSection />
                                         <ForYouSection />
+                                        <RecentlyAddedSection />
                                         <SpendOverTimeSection />
-                                        <DiscoverSection />
                                     </View>
-                                    <View style={styles.homePageRightColumn}>
+                                    <View
+                                        testID="homePageRightColumn"
+                                        style={styles.homePageRightColumn}
+                                    >
                                         <FreeTrialSection />
                                         <GettingStartedSection />
                                         <UpcomingTravelSection />
                                         <YourSpendSection />
+                                        <DiscoverSection />
                                         <AnnouncementSection />
                                     </View>
                                 </>

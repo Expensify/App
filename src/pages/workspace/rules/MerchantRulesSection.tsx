@@ -20,6 +20,7 @@ import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
+import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
@@ -167,6 +168,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                                 <OfflineWithFeedback
                                     pendingAction={rule.pendingAction}
                                     errors={rule.errors}
+                                    onClose={() => clearPolicyCodingRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription
                                         description={matchDescription}

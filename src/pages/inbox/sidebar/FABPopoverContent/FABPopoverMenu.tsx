@@ -9,7 +9,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import {isSafari} from '@libs/Browser';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import CONST from '@src/CONST';
 import {FABMenuContext} from './FABMenuContext';
 
@@ -82,10 +81,10 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         onItemSelected();
         if (options?.shouldCallAfterModalHide && !isSafari()) {
             close(() => {
-                navigateAfterInteraction(onSelected);
+                onSelected();
             });
         } else {
-            navigateAfterInteraction(onSelected);
+            onSelected();
         }
         setFocusedIndex(-1);
     };

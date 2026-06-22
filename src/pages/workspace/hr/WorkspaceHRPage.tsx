@@ -124,6 +124,7 @@ function WorkspaceHRPage({
                     <ConnectToHRFlow
                         key={activeHRFlow.key}
                         setupLink={activeHRFlow.setupLink}
+                        onDone={() => setActiveHRFlow(undefined)}
                     />
                 )}
                 <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>

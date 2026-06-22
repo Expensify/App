@@ -38,6 +38,9 @@ type HeaderProps = {
 
     /** Whether this is the screen-level header (registers dialog label and focus). Only HeaderWithBackButton should set this. */
     isScreenHeader?: boolean;
+
+    /** Whether to skip focus of the first interactive element inside the header after the RHP transition for screen reader announcement.  */
+    shouldSkipFocusAfterTransition?: boolean;
 };
 
 function Header({
@@ -50,11 +53,12 @@ function Header({
     subTitleLink = '',
     numberOfTitleLines = 2,
     isScreenHeader = false,
+    shouldSkipFocusAfterTransition = false,
 }: HeaderProps) {
     const styles = useThemeStyles();
     const {isTransitionReady, claimInitialFocus, containerRef} = useDialogLabelRegistration(isScreenHeader ? title : '');
 
-    useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus);
+    useDialogContainerFocus(containerRef, isTransitionReady, claimInitialFocus, shouldSkipFocusAfterTransition);
 
     const renderedSubtitle = useMemo(
         () => (

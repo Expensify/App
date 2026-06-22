@@ -141,6 +141,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 styles.textUnderlinePositionUnder,
                 styles.textDecorationSkipInkNone,
                 isChildOfTaskTitle && styles.taskTitleMenuItem,
+                styles.dInlineFlex,
                 hoverStyle,
             ]}
             key={key}
@@ -148,6 +149,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             onPress={onLinkPress}
             {...bind}
             linkHasImage={linkHasImage}
+            isChildOfTaskTitle={isChildOfTaskTitle}
         >
             <TNodeChildrenRenderer
                 tnode={tnode}
@@ -166,6 +168,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                                     textDecorationLineStyle,
                                     styles.textUnderlinePositionUnder,
                                     styles.textDecorationSkipInkNone,
+                                    styles.dInlineFlex,
                                     hoverStyle,
                                 ]}
                             >

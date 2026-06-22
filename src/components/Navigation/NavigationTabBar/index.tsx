@@ -35,6 +35,7 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import getLastRoute from './getLastRoute';
+import InboxTabButton from './InboxTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
@@ -361,23 +362,10 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
                     />
                 </PressableWithFeedback>
-                <PressableWithFeedback
-                    onPress={navigateToChats}
-                    role={CONST.ROLE.TAB}
-                    accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
-                    accessibilityState={inboxAccessibilityState}
-                    wrapperStyle={styles.flex1}
-                    style={styles.navigationTabBarItem}
-                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
-                >
-                    <TabBarItem
-                        icon={expensifyIcons.Inbox}
-                        label={translate('common.inbox')}
-                        isSelected={selectedTab === NAVIGATION_TABS.INBOX}
-                        statusIndicatorColor={inboxStatusIndicatorColor}
-                        numberOfLines={1}
-                    />
-                </PressableWithFeedback>
+                <InboxTabButton
+                    selectedTab={selectedTab}
+                    isWideLayout={false}
+                />
                 <SearchTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}

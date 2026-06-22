@@ -25,9 +25,11 @@ import {
     getDefaultTaxCode,
     getDistanceInMeters,
     getIsFromGlobalCreate,
+    isDistanceRequest,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import {getDefaultP2PMileageRate} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOURequestType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -81,6 +83,7 @@ type CreateTransactionParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
+    currentUserLocalCurrency: string | undefined;
 };
 
 function createTransaction({
@@ -108,6 +111,7 @@ function createTransaction({
     recentWaypoints,
     optimisticTransactionIDs,
     optimisticChatReportID,
+    currentUserLocalCurrency,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -154,6 +158,7 @@ function createTransaction({
                 isSelfTourViewed,
                 optimisticChatReportID,
                 optimisticTransactionID,
+                currentUserLocalCurrency,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -307,7 +312,14 @@ function initMoneyRequest({
     ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat,
+                isTrackDistanceExpense,
+                policy,
+                lastSelectedDistanceRates,
+                expenseDate: created,
+            });
             comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
@@ -396,6 +408,10 @@ function startMoneyRequest(
     isFromFloatingActionButton?: boolean,
 ) {
     const sourceRoute = Navigation.getActiveRoute();
+    // Only the split flow exposes a Distance tab from here, so prefetch the default P2P mileage rate solely for splits to avoid an unnecessary read on other flows.
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        getDefaultP2PMileageRate();
+    }
     startSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE, {
         name: '/money-request-create',
         op: CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,
@@ -437,6 +453,7 @@ function startDistanceRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
+    getDefaultP2PMileageRate();
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
         Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
@@ -599,7 +616,7 @@ function setMoneyRequestTimeCount(transactionID: string, count: number, isDraft:
  * if passed transaction previously had it to make sure that transaction does not have inconsistent
  * states (for example distanceUnit not matching distance unit of the new customUnitRateID)
  */
-function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>) {
+function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, rateAutoUpdated = false) {
     const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     let newDistanceUnit: Unit | undefined;
@@ -636,6 +653,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
                 ...(!isFakeP2PRate && {defaultP2PRate: null}),
                 distanceUnit: newDistanceUnit,
                 quantity: newQuantity,
+                rateAutoUpdated,
             },
         },
     });
@@ -717,6 +735,7 @@ function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<Transaction>,
                 ...(!!policy && {defaultP2PRate: null}),
                 ...(newDistanceUnit && {distanceUnit: newDistanceUnit}),
                 ...(newDistance && {quantity: newDistance}),
+                rateAutoUpdated: false,
             },
         },
     });
@@ -799,6 +818,58 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
 }
 
+function clearMoneyRequestRateAutoUpdated(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                rateAutoUpdated: false,
+            },
+        },
+    });
+}
+
+/**
+ * Recalculates the distance rate when the expense date changes during expense creation.
+ * Sets rateAutoUpdated when the selected rate changes so the confirmation page can show the educational tooltip.
+ */
+function updateDistanceRateOnExpenseDateChange({
+    transactionID,
+    transaction,
+    newCreated,
+    reportID,
+    isPolicyExpenseChat,
+    isTrackExpense,
+    policy,
+    policyForTrackExpense,
+    lastSelectedDistanceRates,
+}: {
+    transactionID: string;
+    transaction: OnyxEntry<Transaction>;
+    newCreated: string;
+    reportID: string;
+    isPolicyExpenseChat: boolean;
+    isTrackExpense: boolean;
+    policy: OnyxEntry<Policy>;
+    policyForTrackExpense: OnyxEntry<Policy>;
+    lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
+}) {
+    if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
+        return;
+    }
+
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
+    const rateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID,
+        isPolicyExpenseChat,
+        policy: effectivePolicy,
+        lastSelectedDistanceRates,
+        isTrackDistanceExpense: isTrackExpense,
+        expenseDate: newCreated,
+    });
+    const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    setCustomUnitRateID(transactionID, rateID, transaction, effectivePolicy, rateID !== currentRateID);
+}
+
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
 }
@@ -825,6 +896,8 @@ export {
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     setCustomUnitRateID,
+    updateDistanceRateOnExpenseDateChange,
+    clearMoneyRequestRateAutoUpdated,
     setGPSTransactionDraftData,
     resetDraftTransactionsCustomUnit,
     setCustomUnitID,

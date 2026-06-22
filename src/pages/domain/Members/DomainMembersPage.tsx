@@ -11,8 +11,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -333,7 +333,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                                 ctaText={translate('domain.verifyDomain.title')}
                                 ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
                                 onCtaPress={() => {
-                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
+                                    Navigation.navigate(ROUTES.DOMAIN_MEMBERS_VERIFY.getRoute(domainAccountID));
                                 }}
                                 illustrationBackgroundColor={colors.ice800}
                                 illustration={illustrations.LaptopWithMembers}

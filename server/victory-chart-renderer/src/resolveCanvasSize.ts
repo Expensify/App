@@ -1,5 +1,5 @@
 import type {TNode} from 'react-native-render-html';
-import parseAttribute from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import type CanvasSize from './types/CanvasSize';
 
 const DEFAULT_WIDTH = 600;
@@ -15,8 +15,8 @@ function isPositiveDimension(value: unknown): value is number {
 
 function hasPositionedOverlay(tnode: TNode): boolean {
     if (tnode.tagName === 'victorylabel' || tnode.tagName === 'victorylegend') {
-        const x = parseAttribute<number>(tnode.attributes.x);
-        const y = parseAttribute<number>(tnode.attributes.y);
+        const x = parseAttributeAsNumber(tnode.attributes.x);
+        const y = parseAttributeAsNumber(tnode.attributes.y);
 
         if (isFiniteCoordinate(x) || isFiniteCoordinate(y)) {
             return true;
@@ -27,8 +27,8 @@ function hasPositionedOverlay(tnode: TNode): boolean {
 }
 
 function resolveCanvasSize(tnode: TNode): CanvasSize {
-    const rawWidth = parseAttribute<number>(tnode.attributes.width);
-    const rawHeight = parseAttribute<number>(tnode.attributes.height);
+    const rawWidth = parseAttributeAsNumber(tnode.attributes.width);
+    const rawHeight = parseAttributeAsNumber(tnode.attributes.height);
     const hasWidth = rawWidth !== undefined;
     const hasHeight = rawHeight !== undefined;
     const widthIsValid = isPositiveDimension(rawWidth);

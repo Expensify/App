@@ -972,6 +972,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'groupCurrency':
         case 'transactionType':
         case 'transactionThreadReportID':
+        case 'mcc':
         case 'withdrawalID':
             return validateString(value);
         case 'created':
@@ -1068,6 +1069,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     defaultP2PRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     distanceUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    rateAutoUpdated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStartImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1113,6 +1115,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     cardID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     status: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     hasEReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    mcc: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     mccGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedMCCGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,

@@ -9,9 +9,11 @@ import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import {createOptionList} from '@libs/OptionsListUtils';
+import Navigation from '@navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -418,6 +420,47 @@ describe('SearchAutocompleteList', () => {
             expect(relevantOrder.indexOf('Bob Report')).toBeLessThan(relevantOrder.indexOf('Charlie Report'));
             // NewServer should appear after the local results (in the server section)
             expect(relevantOrder.indexOf('Charlie Report')).toBeLessThan(relevantOrder.indexOf('NewServer Report'));
+        });
+
+        // Regression test for https://github.com/Expensify/App/issues/93009: after the two-section switcher was
+        // introduced, the first matched chat was no longer highlighted because the highlight focused a fixed flat
+        // index that now lands on the "Recent chats" section header row instead of the first result. As a result
+        // pressing Enter ran a text search instead of opening the chat. The fix focuses the header-aware index of
+        // the first result.
+        it('should focus the first matched chat so submitting opens it instead of running a search', async () => {
+            const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            // Wait for the first recent chat row (not just the header) to render so the highlight has a target.
+            await waitFor(() => {
+                expect(screen.getByText('Recent chats')).toBeTruthy();
+                expect(screen.getByText('Alice Report')).toBeTruthy();
+            });
+
+            // Type a query that matches the first recent chat ("Alice Report") as a whole word.
+            // The header-aware highlight effect should move focus onto that result row, not a section header.
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'Alice');
+            await flushAllUpdates();
+
+            // Submitting (Enter) should open the focused chat rather than run a text search. The highlight effect
+            // runs asynchronously, so poll the submit until focus settles on the result. With the bug present the
+            // first row is never highlighted, so submit always runs a text search and this never becomes true.
+            await waitFor(() => {
+                fireEvent(textInput, 'submitEditing');
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('101'));
+            });
         });
     });
 });
