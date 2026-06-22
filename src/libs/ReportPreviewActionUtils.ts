@@ -9,7 +9,6 @@ import {
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isPreferredExporter,
-    isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {hasPendingDEWApprove} from './ReportActionsUtils';
@@ -76,9 +75,7 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
 
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
-    // Submit workspaces (submit2026) hide approvals in the UI but always submit to an approver internally,
-    // so the manager must still be able to approve (which triggers the upgrade flow).
-    const isApprovalEnabled = isSubmitPolicy(policy) || (!!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
