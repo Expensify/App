@@ -218,9 +218,10 @@ function prepareToCleanUpMoneyRequest(
     }
 
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
+    const previewAmount = getReimbursableTotal(updatedIOUReport) + (updatedIOUReport?.nonReimbursableTotal ?? 0);
     const messageText = Localize.translateLocal(
         hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount',
-        convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
+        convertToDisplayString(previewAmount, updatedIOUReport?.currency),
         getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
     );
 
