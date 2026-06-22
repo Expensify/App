@@ -367,13 +367,9 @@ function MoneyRequestReportTransactionList({
         return ids;
     }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, policy, reportActionsMap]);
 
-    const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions].sort((a, b) => {
-            // Scanning transactions stay pinned to the top regardless of the selected sort column or direction
-            const scanningComparison = compareScanningPriority(a, b);
-            if (scanningComparison !== 0) {
-                return scanningComparison;
-            }
+    // Column/RBR ordering shared by the ungrouped (None) list and the grouped (Category/Tag) layouts.
+    const compareTransactionsByColumn = useCallback(
+        (a: OnyxTypes.Transaction, b: OnyxTypes.Transaction) => {
             // When on default sort (Date/ASC), prioritize RBR-flagged transactions
             if (rbrTransactionIDs) {
                 const aHasRBR = rbrTransactionIDs.has(a.transactionID);
@@ -390,10 +386,27 @@ function MoneyRequestReportTransactionList({
                 localeCompare,
                 true,
             );
+        },
+        [rbrTransactionIDs, sortBy, sortOrder, report, policy, policyCategories, localeCompare],
+    );
+
+    const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
+        return [...transactions].sort((a, b) => {
+            // Scanning transactions stay pinned to the top of the ungrouped (None) list regardless of the sort column or direction
+            const scanningComparison = compareScanningPriority(a, b);
+            if (scanningComparison !== 0) {
+                return scanningComparison;
+            }
+            return compareTransactionsByColumn(a, b);
         });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, rbrTransactionIDs]);
+    }, [transactions, compareTransactionsByColumn]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
+
+    // Grouped layouts (Category/Tag) follow the normal column order, so a scanning expense stays in its section in its
+    // usual position instead of being pinned to the top. Only the ungrouped (None) list pins scanning (see above).
+    const transactionsForGrouping = useMemo(() => [...transactions].sort(compareTransactionsByColumn), [transactions, compareTransactionsByColumn]);
+    const resolvedTransactionsForGrouping = useMemo(() => resolveTransactionCardFields(transactionsForGrouping, cardList, translate), [transactionsForGrouping, cardList, translate]);
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
@@ -469,13 +482,13 @@ function MoneyRequestReportTransactionList({
             return [];
         }
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
-            return groupTransactionsByTag(resolvedTransactions, report, localeCompare);
+            return groupTransactionsByTag(resolvedTransactionsForGrouping, report, localeCompare);
         }
-        return groupTransactionsByCategory(resolvedTransactions, report, localeCompare);
+        return groupTransactionsByCategory(resolvedTransactionsForGrouping, report, localeCompare);
         // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
         // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
+    }, [resolvedTransactionsForGrouping, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldGroupTransactions || groupedTransactions.length === 0) {
