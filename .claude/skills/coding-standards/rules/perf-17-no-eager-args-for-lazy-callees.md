@@ -28,18 +28,26 @@ const [initialReportID] = useState(() => findLastAccessedReport(ignoreDomainRoom
 
 ### Review Metadata
 
-Flag when ALL hold:
+Flag when ALL of these are true:
 
 - An expensive value is produced at component scope: `useOnyx` on a `COLLECTION.*` key, a collection iteration, or a `new Set`/`new Map`/`Object.fromEntries` over a collection.
 - Its only use is being passed as an argument (or sitting in a callback's dep array to be forwarded).
 - The consumer runs lazily, not every render: a `useCallback`/event handler, `useFocusEffect`, an uncommon-path `useEffect` (guarded branch, one-time/`[]` setup, infrequent trigger), or a `useState(() => ...)` initializer.
 - AND either: the callee can source the data itself (module-scoped/`connectWithoutView`/optional-param-with-fallback), OR it uses the value only behind a condition that usually short-circuits.
 
-DO NOT flag when:
+**DO NOT flag if:**
 
 - The value is also read during render (needed eagerly regardless).
 - The source is cheap (primitive, single-item key, small static object).
 - The callee is pure, runs on the common path, and has no other way to get the data.
 - A common-path `useEffect` legitimately consumes it whenever deps change.
 
-Search hints: `useOnyx\(ONYXKEYS\.COLLECTION\.`, `useState\(\(\) =>`, `useFocusEffect`, `useEffect`, `useCallback`, `new Set\(`, `new Map\(`, `Object\.fromEntries`
+**Search Patterns** (hints for reviewers):
+- `useOnyx\(ONYXKEYS\.COLLECTION\.`
+- `useState\(\(\) =>`
+- `useFocusEffect`
+- `useEffect`
+- `useCallback`
+- `new Set\(`
+- `new Map\(`
+- `Object\.fromEntries`
