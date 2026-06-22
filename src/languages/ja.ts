@@ -8754,6 +8754,12 @@ ${reportName}`,
             snapPhotoStart: '<muted-text-label>移動を<strong>開始</strong>するときに、走行距離計の写真を撮影してください。</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>走行の<strong>終了時</strong>に、オドメーターの写真を撮影してください。</muted-text-label>',
         },
+        commuterExclusion: {
+            original: 'オリジナル',
+            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `${formattedDistance} を削除しました`,
+            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
+                `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>に基づき、${formattedDistance} を削除しました。`,
+        },
     },
     gps: {
         error: {

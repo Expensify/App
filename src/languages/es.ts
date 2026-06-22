@@ -9117,6 +9117,12 @@ ${amount} para ${merchant} - ${date}`,
             snapPhotoStart: '<muted-text-label>Haz una foto de tu odómetro al <strong>inicio</strong> de tu viaje.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Haz una foto de tu odómetro al <strong>final</strong> de tu viaje.</muted-text-label>',
         },
+        commuterExclusion: {
+            original: 'Original',
+            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Eliminó ${formattedDistance}`,
+            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
+                `Se eliminaron ${formattedDistance} según la <a href="${workspaceDistanceSettingsLink}">configuración de distancia del espacio de trabajo</a>.`,
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',

@@ -8876,6 +8876,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             snapPhotoStart: '<muted-text-label>Machen Sie zu <strong>Beginn</strong> Ihrer Fahrt ein Foto von Ihrem Kilometerzähler.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Machen Sie ein Foto von Ihrem Kilometerzähler am <strong>Ende</strong> Ihrer Fahrt.</muted-text-label>',
         },
+        commuterExclusion: {
+            original: 'Original',
+            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `${formattedDistance} entfernt`,
+            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
+                `${formattedDistance} basierend auf den <a href="${workspaceDistanceSettingsLink}">Entfernungseinstellungen des Arbeitsbereichs</a> entfernt.`,
+        },
     },
     gps: {
         error: {

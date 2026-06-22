@@ -8865,6 +8865,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             snapPhotoStart: "<muted-text-label>Scatta una foto del contachilometri all'<strong>inizio</strong> del viaggio.</muted-text-label>",
             snapPhotoEnd: '<muted-text-label>Scatta una foto del contachilometri alla <strong>fine</strong> del viaggio.</muted-text-label>',
         },
+        commuterExclusion: {
+            original: 'Originale',
+            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `Rimossi ${formattedDistance}`,
+            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
+                `Rimossi ${formattedDistance} in base alle <a href="${workspaceDistanceSettingsLink}">impostazioni della distanza dello spazio di lavoro</a>.`,
+        },
     },
     gps: {
         error: {

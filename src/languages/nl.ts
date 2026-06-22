@@ -8832,6 +8832,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             snapPhotoStart: '<muted-text-label>Maak een foto van je kilometerteller aan het <strong>begin</strong> van je rit.</muted-text-label>',
             snapPhotoEnd: '<muted-text-label>Maak een foto van je kilometerteller aan het <strong>einde</strong> van je rit.</muted-text-label>',
         },
+        commuterExclusion: {
+            original: 'Origineel',
+            removedCommuterDistance: ({formattedDistance}: {formattedDistance: string}) => `${formattedDistance} verwijderd`,
+            systemMessage: ({formattedDistance, workspaceDistanceSettingsLink}: {formattedDistance: string; workspaceDistanceSettingsLink: string}) =>
+                `${formattedDistance} verwijderd op basis van <a href="${workspaceDistanceSettingsLink}">werkruimte-instellingen voor afstand</a>.`,
+        },
     },
     gps: {
         error: {
