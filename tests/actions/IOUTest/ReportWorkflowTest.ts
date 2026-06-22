@@ -2766,6 +2766,24 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
+
+        it('does not invoke onApproved when redirecting to workspace upgrade', () => {
+            const onApproved = jest.fn();
+            const expenseReport = createSubmittedExpenseReport();
+
+            approveMoneyRequest({...createApproveMoneyRequestParams(expenseReport, submitPolicy), onApproved});
+
+            expect(onApproved).not.toHaveBeenCalled();
+        });
+
+        it('invokes onApproved when approving on a non-Submit workspace', () => {
+            const onApproved = jest.fn();
+            const expenseReport = createSubmittedExpenseReport(teamPolicyID);
+
+            approveMoneyRequest({...createApproveMoneyRequestParams(expenseReport, teamPolicy), onApproved});
+
+            expect(onApproved).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('approveMoneyRequest with take control', () => {
