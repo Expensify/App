@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
-import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
+import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, LoadTest, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
@@ -12,7 +12,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
-import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+import {getAll, getOngoingRequest, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
@@ -197,6 +197,38 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
 }
 
 /**
+ * Read the `updateIDFrom` coverage marker off untyped reconnect params via `in`-narrowing (no cast),
+ * so the incoming request carries the same value the resolver reads. Returns it raw. The resolver's
+ * `reconnectCoverageFrom` owns the single place that interprets it as a coverage number.
+ */
+function readUpdateIDFrom(params: unknown): unknown {
+    if (typeof params === 'object' && params !== null && 'updateIDFrom' in params) {
+        return params.updateIDFrom;
+    }
+    return undefined;
+}
+
+/**
+ * Writes a reconnect-family command (OpenApp / ReconnectApp) while collapsing it against any reconnect
+ * already in flight or queued. Unlike writeWithNoDuplicatesConflictAction, the resolver also consults the
+ * ongoing request and decides by coverage (how far back a reconnect refetches), so a redundant reconnect is
+ * dropped while a wider one runs after. getOngoingRequest() is read inside the resolver closure so both
+ * evaluation passes (prepareRequest's read-only optimistic-data check and the authoritative push) agree.
+ */
+function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData<TKey> = {},
+): Promise<void | Response<TKey>> {
+    const incomingRequest: AnyRequest = {command, data: {updateIDFrom: readUpdateIDFrom(apiCommandParameters)}};
+    const conflictResolver = {
+        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveReconnectDuplicationConflictAction(persistedRequests, getOngoingRequest(), incomingRequest),
+    };
+
+    return write(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
  * This function is used to write data to the API while ensuring that there are no conflicts with enabling policy features.
  * If a conflict is found, it resolves the conflict by deleting the duplicated request.
  */
@@ -316,4 +348,13 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     }
 }
 
-export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts, waitForWrites};
+export {
+    write,
+    makeRequestWithSideEffects,
+    read,
+    paginate,
+    writeWithNoDuplicatesConflictAction,
+    writeWithNoDuplicatesReconnectConflictAction,
+    writeWithNoDuplicatesEnableFeatureConflicts,
+    waitForWrites,
+};

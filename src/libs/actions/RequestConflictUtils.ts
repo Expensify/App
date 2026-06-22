@@ -120,6 +120,68 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
     };
 }
 
+const reconnectFamilyCommands = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP]);
+
+function isReconnectFamilyRequest(request: AnyRequest | null | undefined): request is AnyRequest {
+    return !!request && reconnectFamilyCommands.has(request.command);
+}
+
+function isOpenAppRequest(request: AnyRequest): boolean {
+    return request.command === WRITE_COMMANDS.OPEN_APP;
+}
+
+/**
+ * How far back a reconnect refetches: a lower number means more coverage. OpenApp and a full
+ * ReconnectApp refetch everything (0); an incremental ReconnectApp covers only from its
+ * `updateIDFrom` onward. Mirrors the `!updateIDFrom` "is full reconnect" notion in App.ts.
+ */
+function reconnectCoverageFrom(request: AnyRequest): number {
+    const updateIDFrom = request.data?.updateIDFrom;
+    return typeof updateIDFrom === 'number' ? updateIDFrom : 0;
+}
+
+/**
+ * Duplicate-conflict resolver for the reconnect family (OpenApp / ReconnectApp). Unlike the generic
+ * resolver it also consults the in-flight (`ongoingRequest`) request, and decides by coverage rather
+ * than by command name: an incoming reconnect already covered by one in flight or queued is dropped
+ * (`noAction`), while a wider one is pushed to run after. This closes the in-flight dedup gap the
+ * generic resolver leaves open (it scans the waiting queue only) and is the durable convergence point
+ * for the reconnect family. Preserve and extend it in the SequentialQueue refactor; do not delete it.
+ *
+ * A live request covers the incoming one when it refetches at least as far back, with one asymmetry:
+ * an incoming OpenApp alone owns IS_LOADING_APP / HAS_LOADED_APP, which a plain reconnect never sets,
+ * so it is only covered by another OpenApp, never by a reconnect.
+ */
+function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, incomingRequest: AnyRequest): ConflictActionData {
+    const incomingCoverage = reconnectCoverageFrom(incomingRequest);
+    const incomingIsOpenApp = isOpenAppRequest(incomingRequest);
+    const liveReconnects = [ongoingRequest, ...persistedRequests].filter(isReconnectFamilyRequest);
+
+    const isCovered = liveReconnects.some((live) => {
+        if (reconnectCoverageFrom(live) > incomingCoverage) {
+            return false;
+        }
+        if (incomingIsOpenApp && !isOpenAppRequest(live)) {
+            return false;
+        }
+        return true;
+    });
+
+    if (isCovered) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'push',
+        },
+    };
+}
+
 function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, reportActionID: string, originalReportID: string): ConflictActionData {
     const commentIndicesToDelete: number[] = [];
     const commentCouldBeThread: Record<string, number> = {};
@@ -280,6 +342,7 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: 
 export {
     resolveDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
+    resolveReconnectDuplicationConflictAction,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,

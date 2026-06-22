@@ -466,7 +466,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     return getPolicyParamsForOpenOrReconnect()
         .then((policyParams: PolicyParamsForOpenOrReconnect) => {
             const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-            return API.writeWithNoDuplicatesConflictAction(
+            return API.writeWithNoDuplicatesReconnectConflictAction(
                 WRITE_COMMANDS.OPEN_APP,
                 params,
                 getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
@@ -522,7 +522,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
                 }
 
                 const isFullReconnect = !updateIDFrom;
-                return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
+                return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
             })
             .finally(() => {
                 if (!bootsplashSpan) {

@@ -7,9 +7,11 @@ import {
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
     resolveOpenReportDuplicationConflictAction,
+    resolveReconnectDuplicationConflictAction,
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
+import type {AnyRequest} from '@src/types/onyx/Request';
 
 describe('RequestConflictUtils', () => {
     it.each([['OpenApp'], ['ReconnectApp']])('resolveDuplicationConflictAction when %s do not exist in the queue should push %i', (command) => {
@@ -226,6 +228,44 @@ describe('RequestConflictUtils', () => {
 
             const result = resolveDetachReceiptConflicts(persistedRequests, {transactionID: '1'} as never);
             expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}});
+        });
+    });
+
+    describe('resolveReconnectDuplicationConflictAction', () => {
+        const openApp = (): AnyRequest => ({command: WRITE_COMMANDS.OPEN_APP});
+        const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
+        const incrementalReconnect = (updateIDFrom: number): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP, data: {updateIDFrom}});
+
+        // The live reconnect-family request that is in flight or queued vs the incoming one, and whether
+        // the incoming one is redundant (dropped via noAction) or wider/distinct (pushed to run after).
+        it.each([
+            ['full', 'full', 'noAction', fullReconnect(), fullReconnect()],
+            ['full', 'incremental', 'noAction', fullReconnect(), incrementalReconnect(500)],
+            ['incremental(500)', 'incremental(600)', 'noAction', incrementalReconnect(500), incrementalReconnect(600)],
+            ['incremental(500)', 'incremental(500)', 'noAction', incrementalReconnect(500), incrementalReconnect(500)],
+            ['incremental(500)', 'full', 'push', incrementalReconnect(500), fullReconnect()],
+            ['incremental(500)', 'incremental(400)', 'push', incrementalReconnect(500), incrementalReconnect(400)],
+            ['OpenApp', 'incremental', 'noAction', openApp(), incrementalReconnect(500)],
+            ['OpenApp', 'OpenApp', 'noAction', openApp(), openApp()],
+            ['incremental', 'OpenApp', 'push', incrementalReconnect(500), openApp()],
+        ])('live %s vs incoming %s -> %s', (_live, _incoming, expected, live: AnyRequest, incoming: AnyRequest) => {
+            // Decided against the in-flight (ongoing) request.
+            expect(resolveReconnectDuplicationConflictAction([], live, incoming)).toEqual({conflictAction: {type: expected}});
+            // And identically against a waiting-queue request, since the resolver treats both as "live".
+            expect(resolveReconnectDuplicationConflictAction([live], null, incoming)).toEqual({conflictAction: {type: expected}});
+        });
+
+        it('pushes when no reconnect-family request is live', () => {
+            expect(resolveReconnectDuplicationConflictAction([], null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
+            expect(resolveReconnectDuplicationConflictAction([], null, openApp())).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('ignores unrelated commands in the queue when deciding coverage', () => {
+            const persistedRequests: AnyRequest[] = [{command: 'AddComment'}, {command: 'OpenReport', data: {reportID: '1'}}];
+            // No reconnect-family request is live, so an incoming reconnect is pushed.
+            expect(resolveReconnectDuplicationConflictAction(persistedRequests, null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
+            // A queued full reconnect alongside unrelated commands still covers an incoming incremental one.
+            expect(resolveReconnectDuplicationConflictAction([...persistedRequests, fullReconnect()], null, incrementalReconnect(500))).toEqual({conflictAction: {type: 'noAction'}});
         });
     });
 });

@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import {confirmReadyToOpenApp, openApp} from '@libs/actions/App';
 import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullReconnect';
-import {writeWithNoDuplicatesConflictAction} from '@libs/API';
+import {writeWithNoDuplicatesReconnectConflictAction} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import '@libs/subscribeToFullReconnect';
@@ -12,7 +12,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@libs/API');
 jest.mock('@libs/Log');
 
-const mockWriteCommand = jest.mocked(writeWithNoDuplicatesConflictAction);
+const mockWriteCommand = jest.mocked(writeWithNoDuplicatesReconnectConflictAction);
 
 // The case under test: this device's clock is behind the server, so the server cutoff is ahead of "now".
 const CLIENT_NOW = '2026-06-12 10:00:00.000';
@@ -22,7 +22,7 @@ const NEWER_SERVER_CUTOFF = '2026-06-12 10:10:00.000';
 // Ordered log of two things: when we record the completion time (via the Onyx subscription below) and
 // when a reconnect request is sent (via the API mock). Lets tests assert we record before we request.
 let events: Array<{type: 'completion' | 'request'; value: string}> = [];
-let capturedOnyxData: Array<NonNullable<Parameters<typeof writeWithNoDuplicatesConflictAction>[2]>> = [];
+let capturedOnyxData: Array<NonNullable<Parameters<typeof writeWithNoDuplicatesReconnectConflictAction>[2]>> = [];
 Onyx.connectWithoutView({
     key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
     callback: (value) => {
