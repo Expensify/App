@@ -49,7 +49,12 @@ function CopyPolicySettingsUpgradePage() {
     const isDataLoaded = !isLoadingOnyxValue(copyPolicySettingsMetadata, policiesMetadata) && areAllTargetPoliciesResolved;
 
     const controlOnlyFeatures = formatList(
-        getControlOnlySelectedParts(targetPolicies, parts).map((part) => translate(FEATURE_ROWS.find((row) => row.part === part)?.labelKey ?? 'workspace.common.rules')),
+        getControlOnlySelectedParts(targetPolicies, parts)
+            .map((part) => {
+                const labelKey = FEATURE_ROWS.find((row) => row.part === part)?.labelKey;
+                return labelKey ? translate(labelKey) : undefined;
+            })
+            .filter((label): label is string => label !== undefined),
     );
 
     // Track that the user requested the upgrade and remember the names captured at request time (the
