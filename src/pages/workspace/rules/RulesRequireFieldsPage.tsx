@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -49,6 +49,21 @@ function RulesRequireFieldsPage({
 
     const [categoryRequired, setCategoryRequired] = useState(initialCategoryRequired);
     const [tagRequired, setTagRequired] = useState(initialTagRequired);
+    const syncedPolicyIDRef = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+        syncedPolicyIDRef.current = undefined;
+    }, [policyID]);
+
+    useEffect(() => {
+        if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
+            return;
+        }
+
+        syncedPolicyIDRef.current = policy.id;
+        setCategoryRequired(!!policy.requiresCategory);
+        setTagRequired(!!policy.requiresTag);
+    }, [policy?.id, policy?.isLoading, policy?.requiresCategory, policy?.requiresTag]);
 
     const hasChanges = useMemo(
         () => categoryRequired !== initialCategoryRequired || tagRequired !== initialTagRequired,

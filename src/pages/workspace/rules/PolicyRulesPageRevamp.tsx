@@ -86,6 +86,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -454,8 +455,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const headerButtons = getHeaderContent();
 
     const handleGetExpensifyCardPress = useCallback(() => {
+        if (!canWriteMoreFeatures) {
+            showMoreFeaturesReadOnlyModal();
+            return;
+        }
+
         enableExpensifyCard(policyID, true, true);
-    }, [policyID]);
+    }, [canWriteMoreFeatures, policyID, showMoreFeaturesReadOnlyModal]);
 
     const cardRulesEmptyState = useMemo(
         () => (
@@ -478,12 +484,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                             buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
                             buttonAction: handleGetExpensifyCardPress,
                             success: true,
+                            isDisabled: !canWriteMoreFeatures,
                         },
                     ]}
                 />
             </ScrollView>
         ),
-        [StyleUtils, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, shouldUseNarrowLayout, styles, translate],
+        [StyleUtils, canWriteMoreFeatures, handleGetExpensifyCardPress, illustrations.ExpensifyCardCoins, shouldUseNarrowLayout, styles, translate],
     );
 
     const renderTabContent = () => {

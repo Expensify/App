@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -61,6 +61,20 @@ function RulesProhibitedDefaultPage({
 
     const initialProhibitedExpenses = useMemo(() => getProhibitedExpensesState(policy?.prohibitedExpenses), [policy?.prohibitedExpenses]);
     const [draftProhibitedExpenses, setDraftProhibitedExpenses] = useState(initialProhibitedExpenses);
+    const syncedPolicyIDRef = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+        syncedPolicyIDRef.current = undefined;
+    }, [policyID]);
+
+    useEffect(() => {
+        if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
+            return;
+        }
+
+        syncedPolicyIDRef.current = policy.id;
+        setDraftProhibitedExpenses(getProhibitedExpensesState(policy.prohibitedExpenses));
+    }, [policy?.id, policy?.isLoading, policy?.prohibitedExpenses]);
 
     const hasChanges = useMemo(
         () => PROHIBITED_EXPENSE_KEYS.some((key) => draftProhibitedExpenses[key] !== initialProhibitedExpenses[key]),

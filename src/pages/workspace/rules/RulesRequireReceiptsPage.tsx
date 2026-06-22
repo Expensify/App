@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
@@ -60,6 +60,21 @@ function RulesRequireReceiptsPage({
 
     const [receiptEnabled, setReceiptEnabled] = useState(initialReceiptEnabled);
     const [itemizedEnabled, setItemizedEnabled] = useState(initialItemizedEnabled);
+    const syncedPolicyIDRef = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+        syncedPolicyIDRef.current = undefined;
+    }, [policyID]);
+
+    useEffect(() => {
+        if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
+            return;
+        }
+
+        syncedPolicyIDRef.current = policy.id;
+        setReceiptEnabled(isAmountEnabled(policy.maxExpenseAmountNoReceipt));
+        setItemizedEnabled(isAmountEnabled(policy.maxExpenseAmountNoItemizedReceipt));
+    }, [policy?.id, policy?.isLoading, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> => {
