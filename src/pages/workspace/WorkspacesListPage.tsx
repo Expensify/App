@@ -69,17 +69,13 @@ function WorkspacesListPage() {
 
     // Narrow subscription keeping the owner name/avatar columns reactive without re-rendering the page
     // when anything else in the personal details list changes.
-    const ownerAccountIDs: number[] = [];
-    {
-        const uniqueOwnerAccountIDs = new Set<number>();
-        for (const policy of workspaceListPolicies ?? []) {
-            const ownerAccountID = policy.isJoinRequestPending && policy.nonMemberDetails ? policy.nonMemberDetails.ownerAccountID : policy.ownerAccountID;
-            if (ownerAccountID) {
-                uniqueOwnerAccountIDs.add(ownerAccountID);
-            }
-        }
-        ownerAccountIDs.push(...uniqueOwnerAccountIDs);
-    }
+    const ownerAccountIDs = [
+        ...new Set(
+            (workspaceListPolicies ?? [])
+                .map((policy) => (policy.isJoinRequestPending && policy.nonMemberDetails ? policy.nonMemberDetails.ownerAccountID : policy.ownerAccountID))
+                .filter((id): id is number => id !== undefined),
+        ),
+    ];
     const [ownerDisplayDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: createDisplayDetailsByAccountIDsSelector(ownerAccountIDs)}, [workspaceListPolicies]);
 
     const navigateToWorkspace = (policyID: string, event?: ModifiedMouseEvent) => {
