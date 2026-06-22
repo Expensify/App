@@ -628,7 +628,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             trackExport(exportID);
         },
-        [selectedReports, selectedTransactions, isOffline, areAllMatchingItemsSelected, currentSearchResults?.data, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
+        [
+            selectedReports,
+            selectedTransactions,
+            isOffline,
+            areAllMatchingItemsSelected,
+            currentSearchResults?.data,
+            queryJSON,
+            selectedTransactionReportIDs,
+            selectedTransactionsKeys,
+            trackExport,
+        ],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -745,6 +755,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hash,
             currentSearchResults?.data,
             getCSVExportParameters,
+            trackExport,
         ],
     );
 
@@ -2111,6 +2122,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isProduction,
         shouldOpenSplitExpenseEditFlowOnDelete,
         styles.textWrap,
+        trackExport,
+        allReportsShouldMarkAsDone,
+        noReportsShouldMarkAsDone,
+        queryJSON?.groupBy,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
