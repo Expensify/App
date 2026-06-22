@@ -48,6 +48,8 @@ type DeleteTransactionsResult =
           deletedTransactionThreadReportIDs: string[];
       };
 
+type TransactionWithAction = {transactionID: string; action?: ReportAction; transaction?: Transaction};
+
 function redistributeRemainingPerDiemSplitExpenses(splitExpenses: SplitExpense[], total: number, currency: string): SplitExpense[] {
     const lastSplitIndex = splitExpenses.length - 1;
 
@@ -201,8 +203,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return acc;
                 },
                 {splitTransactionsByOriginalTransactionID: {}, nonSplitTransactions: []} as {
-                    splitTransactionsByOriginalTransactionID: Record<string, Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>>;
-                    nonSplitTransactions: Array<{transactionID: string; action?: ReportAction; transaction?: Transaction}>;
+                    splitTransactionsByOriginalTransactionID: Record<string, TransactionWithAction[]>;
+                    nonSplitTransactions: TransactionWithAction[];
                 },
             );
 
