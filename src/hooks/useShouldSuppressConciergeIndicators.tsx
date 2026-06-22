@@ -1,8 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {isCreatedAction} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
@@ -21,6 +22,8 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
 
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
     const isConciergeChat = reportID === conciergeReportID;
     const sessionStartTime = isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
 
@@ -28,7 +31,7 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
         if (!actions || !sessionStartTime) {
             return false;
         }
-        return Object.values(actions).some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
+        return Object.values(actions).some((action) => isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime));
     };
     const [hasSessionActivity] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: hasSessionActivitySelector,

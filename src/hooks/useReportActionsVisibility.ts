@@ -1,5 +1,5 @@
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,7 +70,11 @@ function useReportActionsVisibility({
 
     const hasUserSentMessage =
         isConciergeHiddenHistory && sessionStartTime
-            ? allReportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime)
+            ? allReportActions.some(
+                  (action) =>
+                      !isCreatedAction(action) &&
+                      (isCurrentUserPendingAddAction(action, currentUserAccountID) || (action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime)),
+              )
             : false;
 
     const {transactions: reportTransactions, isLoaded: areTransactionsLoaded} = useTransactionsAndViolationsForReport(reportID);

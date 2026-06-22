@@ -1,7 +1,7 @@
 import {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {isCreatedAction} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -124,7 +124,11 @@ function useConciergeSidePanelReportActions({
             return undefined;
         }
         return reportActions.reduce<string | undefined>((earliest, action) => {
-            if (isCreatedAction(action) || action.created < sessionStartTime || action.actorAccountID !== currentUserAccountID) {
+            const isCurrentSessionUserMessage =
+                !isCreatedAction(action) &&
+                action.actorAccountID === currentUserAccountID &&
+                (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime);
+            if (!isCurrentSessionUserMessage) {
                 return earliest;
             }
             return !earliest || action.created < earliest ? action.created : earliest;
@@ -142,9 +146,11 @@ function useConciergeSidePanelReportActions({
             if (!firstUserMessageCreated) {
                 return false;
             }
-            return isCreatedAction(action) || (action.created >= sessionStartTime && action.created >= firstUserMessageCreated);
+            return (
+                isCreatedAction(action) || isCurrentUserPendingAddAction(action, currentUserAccountID) || (action.created >= sessionStartTime && action.created >= firstUserMessageCreated)
+            );
         },
-        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated],
+        [sessionStartTime, isConciergeMainDM, firstUserMessageCreated, currentUserAccountID],
     );
 
     const filterActions = useCallback(
