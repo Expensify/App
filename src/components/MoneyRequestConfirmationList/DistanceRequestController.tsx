@@ -14,11 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
-
-type CommuterExclusionBreakdown = {
-    commuterExclusion: number;
-    reimbursableDistance: number;
-} | null;
+import type { CommuterExclusionData } from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 type DistanceRequestControllerProps = {
     transactionID: string | undefined;
@@ -46,7 +42,7 @@ type DistanceRequestControllerProps = {
     selectedParticipantsProp: Participant[];
     setFormError: (error: TranslationPaths | '') => void;
     clearFormErrors: (errors: string[]) => void;
-    commuterExclusionBreakdown: CommuterExclusionBreakdown;
+    commuterExclusionData?: CommuterExclusionData;
 };
 
 /**
@@ -80,7 +76,7 @@ function DistanceRequestController({
     selectedParticipantsProp,
     setFormError,
     clearFormErrors,
-    commuterExclusionBreakdown,
+    commuterExclusionData,
 }: DistanceRequestControllerProps) {
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -226,7 +222,7 @@ function DistanceRequestController({
         setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
         // When commuter exclusion applies, show the reimbursable distance in the merchant text
-        const displayDistance = commuterExclusionBreakdown ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionBreakdown.reimbursableDistance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES) : distance;
+        const displayDistance = commuterExclusionData ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES) : distance;
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(
             hasRoute,
             displayDistance,
@@ -254,7 +250,7 @@ function DistanceRequestController({
         isReadOnly,
         getCurrencySymbol,
         isManualDistanceRequest,
-        commuterExclusionBreakdown,
+        commuterExclusionData,
     ]);
 
     return null;

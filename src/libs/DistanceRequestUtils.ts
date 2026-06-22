@@ -14,6 +14,7 @@ import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
+import { CommuterExclusionData } from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -225,7 +226,7 @@ function getDistanceForDisplay(
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
     isZeroDistanceAllowed?: boolean,
-    commuterExclusionData?: {reimbursableDistance: number; distanceUnit: Unit} | null,
+    commuterExclusionData?: CommuterExclusionData,
 ): string {
     const displayUnit = unit ?? commuterExclusionData?.distanceUnit;
     if (!hasRoute || !displayUnit) {
