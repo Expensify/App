@@ -8,6 +8,8 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
         getDefaultMileageRate: () => undefined,
         getRate: () => ({rate: 0.5, unit: 'mi', currency: 'USD'}),
         getDistanceRequestAmount: (distance: number, _unit: string, rate: number): number => Math.round(distance * rate * 100),
+        getCommuterExclusionData: () => null,
+        convertToDistanceInMeters: (distance: number): number => distance,
     },
 }));
 
