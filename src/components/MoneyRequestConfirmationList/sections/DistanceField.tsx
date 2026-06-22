@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import DistanceWithCommuterExclusion from '@components/DistanceWithCommuterExclusion';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {CommuterExclusionData} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
@@ -53,37 +53,22 @@ function DistanceField({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // When commuter exclusion applies, compute the original distance and format the description/title
-    const {descriptionLabel, displayTitle, furtherDetailsComponent} = useMemo(() => {
-        const baseDescription = translate('common.distance');
-        const baseTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
+    // When commuter exclusion applies, the title shows the reimbursable distance and the description shows the original
+    const displayTitle = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest, commuterExclusionData);
+    let descriptionLabel = translate('common.distance');
+    let furtherDetailsComponent;
 
-        if (!commuterExclusionData) {
-            return {
-                descriptionLabel: baseDescription,
-                displayTitle: baseTitle,
-                furtherDetailsComponent: undefined,
-            };
-        }
-
-        // Use commuterExclusionData.distanceUnit as fallback when unit prop is undefined
-        // Calculate original distance (reimbursable + commuter exclusion)
+    if (commuterExclusionData) {
         const originalDistance = commuterExclusionData.reimbursableDistance + commuterExclusionData.commuterExclusion;
         const originalDistanceFormatted = formatDistance(originalDistance, commuterExclusionData.distanceUnit);
-
-        const reimbursableTitle = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, undefined, isManualDistanceRequest, commuterExclusionData);
-
-        return {
-            descriptionLabel: `${baseDescription} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`,
-            displayTitle: reimbursableTitle,
-            furtherDetailsComponent: (
-                <DistanceWithCommuterExclusion
-                    commuterExclusion={commuterExclusionData.commuterExclusion}
-                    distanceUnit={commuterExclusionData.distanceUnit}
-                />
-            ),
-        };
-    }, [translate, hasRoute, distance, unit, rate, isManualDistanceRequest, commuterExclusionData]);
+        descriptionLabel = `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
+        furtherDetailsComponent = (
+            <DistanceWithCommuterExclusion
+                commuterExclusion={commuterExclusionData.commuterExclusion}
+                distanceUnit={commuterExclusionData.distanceUnit}
+            />
+        );
+    }
 
     return (
         <MenuItemWithTopDescription
