@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
@@ -28,6 +29,7 @@ function MigratedUserWelcomeModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
@@ -59,6 +61,14 @@ function MigratedUserWelcomeModal() {
 
     const handleClose = () => Navigation.goBack();
 
+    const illustrationProps = isReduceMotionEnabled
+        ? {image: illustrations.PlanetWithMobileApp}
+        : {
+              videoURL: '',
+              animation: LottieAnimations.WorkspacePlanet,
+              animationStyle: [styles.emptyWorkspaceIllustrationStyle],
+          };
+
     const onHelp = () => {
         Log.info('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
         const adminUrl = shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_MIGRATED_MOBILE : CONST.STORYLANE.ADMIN_MIGRATED;
@@ -74,9 +84,7 @@ function MigratedUserWelcomeModal() {
             contentStyle={[styles.pt0, styles.pb0]}
         >
             <FeatureTrainingContent
-                videoURL=""
-                animation={LottieAnimations.WorkspacePlanet}
-                animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
+                {...illustrationProps}
                 title={translate('migratedUserWelcomeModal.title')}
                 description={translate('migratedUserWelcomeModal.subtitle')}
                 confirmText={translate('migratedUserWelcomeModal.confirmText')}
