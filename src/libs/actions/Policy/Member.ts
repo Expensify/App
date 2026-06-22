@@ -29,7 +29,17 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {
+    ImportedSpreadsheetMemberData,
+    InvitedEmailsToAccountIDs,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployee,
+    PolicyOwnershipChangeChecks,
+    Report,
+    ReportAction,
+    ReportActions,
+} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
@@ -809,6 +819,7 @@ function buildAddMembersToWorkspaceOnyxData(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
@@ -825,7 +836,7 @@ function buildAddMembersToWorkspaceOnyxData(
     // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
     const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
 
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs, personalDetailsList);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
@@ -945,6 +956,7 @@ function addMembersToWorkspace(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
@@ -961,6 +973,7 @@ function addMembersToWorkspace(
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
+        personalDetailsList,
         currentUser,
         approverEmail,
         undefined,

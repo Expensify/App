@@ -283,6 +283,7 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
+    POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
@@ -493,6 +494,15 @@ const CONST = {
             READY: 'ready',
             FAILED: 'failed',
         },
+        TYPE: {
+            CSV: 'csv',
+            PDF: 'pdf',
+        },
+    },
+
+    SECURE_DOWNLOAD_TYPE: {
+        CSV_EXPORT: 'csvexport',
+        PDF_REPORT: 'pdfreport',
     },
 
     EXPORT_LABELS: {
@@ -1031,6 +1041,8 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        RULES_REVAMP: 'rulesRevamp',
+        COMMUTER_EXCLUSIONS: 'commuterExclusions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1790,6 +1802,7 @@ const CONST = {
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
+                    UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -3900,6 +3913,10 @@ const CONST = {
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
         },
+        THREE_DOT_MENU_ACTION: {
+            LEAVE: 'leave',
+            TRANSFER_OWNERSHIP: 'transferOwnership',
+        },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
@@ -4081,6 +4098,15 @@ const CONST = {
             ADULT_ENTERTAINMENT: 'adultEntertainment',
             GIFT_CARD: 'giftCard',
             HANDWRITTEN_RECEIPT: 'handwrittenReceipt',
+        },
+        COMMUTER_EXCLUSION_METHOD: {
+            FIXED_DISTANCE: 'fixedDistance',
+            // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
+        },
+        COMMUTER_EXCLUSION_TYPE: {
+            METHOD: 'method',
+            FIXED_DISTANCE: 'fixedDistance',
+            DISABLED: 'disabled',
         },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},
@@ -4793,6 +4819,11 @@ const CONST = {
         },
     },
     SPEND_RULES: {
+        BADGE_VARIANTS: {
+            SUCCESS: 'success',
+            ERROR: 'error',
+            NEUTRAL: 'neutral',
+        },
         CATEGORIES: {
             AIRLINES: 'airlines',
             ALCOHOL_AND_BARS: 'alcoholAndBars',
@@ -4824,6 +4855,7 @@ const CONST = {
                 MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
                 CATEGORIES: 'categories',
                 MAX_AMOUNT: 'maxAmount',
+                CURRENCIES: 'currencies',
             },
         },
         ACTION: {
@@ -5945,6 +5977,12 @@ const CONST = {
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
+        RULES_TAB_TYPE: 'rulesTabType',
+        RULES: {
+            GENERAL: 'general',
+            CARD_RESTRICTIONS: 'cardRestrictions',
+            EXPENSE_DEFAULTS: 'expenseDefaults',
+        },
         SPLIT: {
             AMOUNT: 'amount',
             PERCENTAGE: 'percentage',
@@ -7252,7 +7290,6 @@ const CONST = {
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
         SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
-        SCREENS.AI_FEATURES_PROMO_MODAL.ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
         ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),
@@ -7543,6 +7580,14 @@ const CONST = {
                 description: 'workspace.upgrade.approvalSubmit.description' as const,
                 icon: 'AdvancedApprovalsSquare',
             },
+            approvalSubmitReport: {
+                id: 'approvalSubmitReport' as const,
+                alias: 'approval-submit-report',
+                name: 'Approve reports',
+                title: 'workspace.upgrade.approvalSubmitReport.title' as const,
+                description: 'workspace.upgrade.approvalSubmitReport.description' as const,
+                icon: 'Approval',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
@@ -7646,6 +7691,7 @@ const CONST = {
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
+        HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
     },
 
     DEBUG: {
@@ -7770,14 +7816,6 @@ const CONST = {
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
-
-    AI_FEATURES_PROMO_MODAL: 'aiFeaturesPromoModal',
-
-    AI_FEATURES_PROMO_LEARN_MORE_URLS: {
-        SPEND_ANALYSIS: 'https://help.expensify.com/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend',
-        EXPENSE_ASSISTANT: 'https://help.expensify.com/articles/new-expensify/concierge-ai/Expense-Assistant',
-        BUILD_AGENTS: 'https://help.expensify.com/articles/new-expensify/ai-agents/Create-Agent-Rules',
-    },
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     SELECTION_BUTTON_TEST_ID: 'selection-button-',
@@ -8537,6 +8575,7 @@ const CONST = {
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
                 MERCHANT_RULE_DELETE: 'WorkspaceRules-MerchantRuleDelete',
                 CATEGORY_SELECTOR: 'WorkspaceRules-CategorySelector',
+                CURRENCY_SELECTOR: 'WorkspaceRules-CurrencySelector',
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
@@ -8544,6 +8583,11 @@ const CONST = {
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
                 AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
+                NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
+                REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
+                REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
+                FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
@@ -8787,8 +8831,12 @@ const CONST = {
             BACKDROP: 'MfaOverlay-Backdrop',
         },
         DOMAIN: {
+            ADMINS: {
+                ROW: 'DomainAdmins-Row',
+            },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
+                ROW: 'DomainGroups-Row',
             },
         },
     },
@@ -8880,6 +8928,7 @@ const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id,
