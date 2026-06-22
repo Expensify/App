@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import {canIOUBePaid as canIOUBePaidAction} from './actions/IOU/ReportWorkflow';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getSubmitToAccountID,
@@ -481,6 +482,9 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
+    const isExported = isExportedUtil(reportActions, report);
+    const hasExportError = hasExportErrorUtil(reportActions, report);
+    const didExportFail = !isExported && hasExportError;
     const isPayActionWithAllExpensesHeld =
         isPrimaryPayAction({
             report,
@@ -521,18 +525,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     if (
-        isPrimaryPayAction({
-            report,
-            reportTransactions,
-            currentUserAccountID,
-            currentUserLogin,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            isChatReportArchived,
-            invoiceReceiverPolicy,
-            reportActions,
-        }) &&
+        canIOUBePaidAction(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, reportTransactions, false, reportNameValuePairs, invoiceReceiverPolicy) &&
+        !didExportFail &&
         !allExpensesHeld
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;

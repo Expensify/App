@@ -2867,23 +2867,25 @@ function isPayer(
             return false;
         }
 
+        const reimburserEmail = policy?.achAccount?.reimburser ?? (isManualReimbursement ? policy?.owner : '');
+
         // No designated reimburser means any workspace admin can pay.
-        if (!policy?.achAccount?.reimburser) {
+        if (!reimburserEmail) {
             return isAdmin;
         }
 
-        const isReimburser = currentUserEmailParam === policy.achAccount.reimburser;
+        const isReimburser = currentUserEmailParam === reimburserEmail;
 
         // If using auto reimbursement, then the reimburser can pay, or an admin with access to the business bank account.
         if (isAutoReimbursement) {
-            const bankAccountID = policy.achAccount.bankAccountID;
+            const bankAccountID = policy?.achAccount?.bankAccountID;
             const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
             const hasAccessToBankAccount = currentUserEmailParam && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParam) : false;
 
             return isReimburser || (isAdmin && hasAccessToBankAccount);
         }
 
-        // If using manual reimbursement, then only the designated reimburser can pay.
+        // If using manual reimbursement, only the designated reimburser can pay.
         return isReimburser;
     }
 
@@ -3078,7 +3080,8 @@ function hasOutstandingChildRequest(
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         const invoiceReceiverPolicy = getPolicy(invoiceReceiverPolicyID);
         return (
-            canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserEmailParam, currentUserAccountIDParam, transactions, undefined, undefined, invoiceReceiverPolicy) ||
+            (isPayer(currentUserAccountIDParam, currentUserEmailParam, iouReport, bankAccountList, policy, false) &&
+                canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserEmailParam, currentUserAccountIDParam, transactions, undefined, undefined, invoiceReceiverPolicy)) ||
             canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountIDParam, transactions) ||
             canSubmitAndIsAwaitingForCurrentUser(
                 iouReport,

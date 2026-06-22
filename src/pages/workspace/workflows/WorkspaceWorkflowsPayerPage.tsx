@@ -205,8 +205,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
 
-        // In manual reimbursement mode there's no bank account to share
-        if (isManualReimbursement) {
+        if (isManualReimbursement || !bankAccountID) {
             onButtonPress();
             return;
         }
