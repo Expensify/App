@@ -598,6 +598,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         setSelectedRoleFilters(items);
     };
 
+    // If selected roles become unavailable when the workspace type changes, remove them from state
+    // so they don't automatically reapply if the workspace type changes back later while the Workspace Members screen is still mounted.
+    useEffect(() => {
+        if (selectedRoleFilters.length === 0) {
+            return;
+        }
+        const validRoleFilters = selectedRoleFilters.filter((selectedFilter) => roleFilterOptions.some((option) => option.value === selectedFilter.value));
+        if (validRoleFilters.length !== selectedRoleFilters.length) {
+            setSelectedRoleFilters(validRoleFilters);
+        }
+    }, [roleFilterOptions, selectedRoleFilters]);
+
     const effectiveSelectedRoleFilters = selectedRoleFilters
         .map((selectedFilter) => roleFilterOptions.find((option) => option.value === selectedFilter.value))
         .filter((option): option is WorkspaceMemberFilterOption => !!option);
