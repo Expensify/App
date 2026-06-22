@@ -263,14 +263,7 @@ function ToggleSettingOptionRow({
                     />
                 )}
                 <View style={[styles.pRelative, styles.flex1]}>
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.justifyContentBetween,
-                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
-                        ]}
-                    >
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10]}>
                         <PressableWithoutFeedback
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             onPress={shouldMakeContentPressable ? onPress : undefined}
