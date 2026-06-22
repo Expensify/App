@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import cardScarf from '@assets/images/card-scarf.svg';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
@@ -63,6 +64,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -94,6 +96,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const cardList = useNonPersonalCardList();
+    const [, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -271,6 +276,27 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
+
+    // Show the loading indicator instead of the NotFoundPage while the card could still arrive: Before the app has loaded for the first time (hasLoadedApp),
+    // while an OpenApp/reconnect is in flight (isLoadingApp), or while CARD_LIST is still hydrating.
+    const isLoadingCardData = !currentCard && (!hasLoadedApp || !!isLoadingApp || isLoadingOnyxValue(cardListResult));
+
+    if (isLoadingCardData) {
+        return (
+            <ScreenWrapper testID="ExpensifyCardPage">
+                <HeaderWithBackButton
+                    title={pageTitle}
+                    onBackButtonPress={() => Navigation.closeRHPFlow()}
+                />
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'ExpensifyCardPage', isOffline, hasLoadedApp: !!hasLoadedApp, isLoadingApp: !!isLoadingApp}}
+                    />
+                </View>
+            </ScreenWrapper>
+        );
+    }
 
     if (!currentCard) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -606,7 +632,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         showLockedAccountModal();
                                                         return;
                                                     }
-                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                                    Navigation.navigate(
+                                                        ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(
+                                                            String(currentPhysicalCard?.cardID),
+                                                            route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+                                                        ),
+                                                    );
                                                 }}
                                             />
                                         )}
@@ -638,7 +669,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     success
                     large
                     style={[styles.w100, styles.p5]}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID)))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID), route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL))
+                    }
                     text={translate('activateCardPage.activatePhysicalCard')}
                 />
             )}
