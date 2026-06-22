@@ -2137,16 +2137,23 @@ function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * True when Xero is connected. Xero has no export-destination enum (bank-transactions is the only
- * non-reimbursable mode), so connection presence is sufficient — mirrors `Xero::hasVendorFeature`
- * on the PHP side. This is the *eligibility* predicate used by `hasVendorFeature`, NOT the source
- * predicate — on dual-connected workspaces QBO/Intacct precedence still applies in
- * `getMatchingVendors`. Use `isXeroActiveMatchingSource` when the question is "is Xero the
- * integration whose vendors are actually being shown to the user?" (e.g. for the Supplier/Vendor
- * label flip in the expense row, picker, and modified-expense fragments).
+ * True when Xero is connected AND the connection is configured. Xero has no export-destination
+ * enum (bank-transactions is the only non-reimbursable mode), so `config.isConfigured` is the
+ * configuration gate — mirrors `Xero::hasVendorFeature` on the PHP side. The `isConfigured` check
+ * matters because Integration-Server clears that flag during a Xero tenant switch while the old
+ * tenant's `data.contacts` lingers until the next sync repopulates it; without the gate the
+ * Supplier picker would render stale contacts from the previous tenant and a user-pick during
+ * that window would persist a now-invalid `comment.vendor.externalID` that flips inactive the
+ * moment the new sync completes.
+ *
+ * This is the *eligibility* predicate used by `hasVendorFeature`, NOT the source predicate — on
+ * dual-connected workspaces QBO/Intacct precedence still applies in `getMatchingVendors`. Use
+ * `isXeroActiveMatchingSource` when the question is "is Xero the integration whose vendors are
+ * actually being shown to the user?" (e.g. for the Supplier/Vendor label flip in the expense row,
+ * picker, and modified-expense fragments).
  */
 function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO];
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config?.isConfigured;
 }
 
 /**

@@ -2259,7 +2259,7 @@ describe('getViolationsOnyxData', () => {
                     requiresCategory: false,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                            config: {},
+                            config: {isConfigured: true},
                             data: contacts === XERO_CONTACTS_UNSYNCED ? {} : {contacts},
                         },
                     },

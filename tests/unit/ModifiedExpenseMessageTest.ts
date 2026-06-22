@@ -2286,6 +2286,7 @@ describe('ModifiedExpenseMessage', () => {
                     isPolicyExpenseChatEnabled: true,
                     connections: {
                         xero: {
+                            config: {isConfigured: true},
                             data: {
                                 contacts: {
                                     xcAcme: {id: 'xcAcme', name: 'Acme Xero', email: 'acme@example.com'},

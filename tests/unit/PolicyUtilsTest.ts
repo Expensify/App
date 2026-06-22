@@ -3117,12 +3117,13 @@ describe('PolicyUtils', () => {
         const XERO_CONTACTS_UNSYNCED = Symbol('XERO_CONTACTS_UNSYNCED');
         const buildXeroPolicy = (
             contacts: Record<string, {id: string; name: string; email: string}> | typeof XERO_CONTACTS_UNSYNCED = {xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}},
+            {isConfigured = true}: {isConfigured?: boolean} = {},
         ): Policy =>
             ({
                 ...createRandomPolicy(0),
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                        config: {},
+                        config: {isConfigured},
                         data: contacts === XERO_CONTACTS_UNSYNCED ? {} : {contacts},
                     },
                 } as unknown as Connections,
@@ -3141,15 +3142,23 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), true)).toBe(true);
             });
 
-            it('returns true when beta is enabled and Xero is connected (R4) — no export-destination enum on Xero', () => {
+            it('returns true when beta is enabled and Xero is connected with isConfigured=true (R4) — no export-destination enum on Xero', () => {
                 expect(hasVendorFeature(buildXeroPolicy(), true)).toBe(true);
             });
 
-            it('returns true when beta is enabled and Xero is connected but contacts have not synced yet — feature gate is connection-based, not data-based', () => {
+            it('returns true when beta is enabled and Xero is configured but contacts have not synced yet — config-based gate, not data-based', () => {
                 // The matcher itself short-circuits when contacts is undefined (see
                 // ViolationsUtils' inactiveVendor guardrail); hasVendorFeature stays true so the
                 // App still surfaces the UI surfaces (picker, default-supplier row).
                 expect(hasVendorFeature(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), true)).toBe(true);
+            });
+
+            it('returns false when Xero is connected but isConfigured=false (mid-tenant-switch) — mirrors `Xero::hasVendorFeature` PHP gate', () => {
+                // Integration-Server clears `isConfigured` during a Xero tenant switch while the
+                // old tenant's `data.contacts` lingers until the next sync. The PHP-side matcher
+                // is gated off in this window; the App must mirror so the picker doesn't show
+                // stale contacts and the user can't pin a now-invalid externalID.
+                expect(hasVendorFeature(buildXeroPolicy(undefined, {isConfigured: false}), true)).toBe(false);
             });
 
             it('returns false when beta is disabled, even with Credit Card export configured', () => {
