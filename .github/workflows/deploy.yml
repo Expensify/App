@@ -1009,6 +1009,7 @@ jobs:
       ${{ always()
           && needs.prep.outputs.DEPLOY_ENV == 'production'
           && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    continue-on-error: true
     timeout-minutes: 10
     outputs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
@@ -1037,6 +1038,7 @@ jobs:
       ${{ always()
           && needs.prep.outputs.DEPLOY_ENV == 'production'
           && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    continue-on-error: true
     timeout-minutes: 10
     outputs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
