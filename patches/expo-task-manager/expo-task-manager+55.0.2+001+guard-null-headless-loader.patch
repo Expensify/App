@@ -2,7 +2,7 @@ diff --git a/node_modules/expo-task-manager/android/src/main/java/expo/modules/t
 index 97a662b..e5a009e 100644
 --- a/node_modules/expo-task-manager/android/src/main/java/expo/modules/taskManager/TaskService.java
 +++ b/node_modules/expo-task-manager/android/src/main/java/expo/modules/taskManager/TaskService.java
-@@ -405,7 +405,21 @@ public class TaskService implements SingletonModule, TaskServiceInterface {
+@@ -405,7 +405,19 @@ public class TaskService implements SingletonModule, TaskServiceInterface {
      mTasksAndEventsRepository.putEventForAppScopeKey(appScopeKey, body);
  
      try {
@@ -15,9 +15,7 @@ index 97a662b..e5a009e 100644
 +        // null loader crashes the OS-level JobService callback with a NullPointerException,
 +        // so drop the queued event and let the job finish cleanly instead.
 +        Log.e(TAG, "Cannot execute background task '" + task.getName() + "': headless app loader is unavailable (context released). Dropping queued event.");
-+        sEvents.remove(appScopeKey);
 +        mTasksAndEventsRepository.removeEvents(appScopeKey);
-+        sTaskCallbacks.remove(eventId);
 +        return;
 +      }
 +

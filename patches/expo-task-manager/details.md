@@ -20,9 +20,8 @@
 
     Patch: align with upstream PR #46449 — null-guard `getAppLoader()` in both
     `executeTask()` and `getAppLoader()` (including `mContextRef` itself). When the
-    headless loader is unavailable, drop the queued event and return so JobService
-    finishes without crashing. Also remove stale entries from `sEvents` and
-    `sTaskCallbacks`.
+    headless loader is unavailable, drop the queued event from `mTasksAndEventsRepository`
+    and return so JobService finishes without crashing.
     ```
 
 - Upstream PR/issue: https://github.com/expo/expo/pull/46449
