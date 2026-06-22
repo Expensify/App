@@ -7,6 +7,7 @@ import {
     isAnyHRReadOnlyWorkflowMode,
     isMergeHRCompleteSetupNeeded,
     isMergeHRConnected,
+    shouldShowHRConnectionError,
 } from '@libs/HRUtils';
 import {getApprovalModeLabel, getHRCards, getHRCardState} from '@pages/workspace/hr/utils';
 import type {HRCardDescriptor} from '@pages/workspace/hr/utils';
@@ -395,6 +396,90 @@ describe('HRUtils', () => {
                 },
             } as Policy;
             expect(isMergeHRCompleteSetupNeeded(policy)).toBe(true);
+        });
+    });
+
+    describe('shouldShowHRConnectionError', () => {
+        it('returns false when user is not an admin', () => {
+            const policy = makePolicy({
+                connections: {gusto: {config: {}, data: {}, lastSync: {isSuccessful: false, errorDate: new Date().toISOString()}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, false, false)).toBe(false);
+        });
+
+        it('returns false for undefined policy', () => {
+            expect(shouldShowHRConnectionError(undefined, false, true)).toBe(false);
+        });
+
+        it('returns false when no HR provider is connected', () => {
+            expect(shouldShowHRConnectionError(makePolicy(), false, true)).toBe(false);
+        });
+
+        it('returns true when Merge HR has an authentication error', () => {
+            const policy = makePolicy({
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+                connections: {merge_hris: {config: {integration: 'workday'}, data: {}, lastSync: {isAuthenticationError: true}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(true);
+        });
+
+        it('returns true when Merge HR sync status is FAILED', () => {
+            const policy = makePolicy({
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+                connections: {merge_hris: {config: {integration: 'workday'}, data: {}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(true);
+        });
+
+        it('returns false when Merge HR sync status is DONE', () => {
+            const policy = makePolicy({
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+                connections: {merge_hris: {config: {integration: 'workday'}, data: {}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(false);
+        });
+
+        it('returns false when Merge HR sync status is SYNCING', () => {
+            const policy = makePolicy({
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- merge_hris is a valid key
+                connections: {merge_hris: {config: {integration: 'workday'}, data: {}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(false);
+        });
+
+        it('returns true when Gusto sync has failed with an error date', () => {
+            const policy = makePolicy({
+                connections: {gusto: {config: {}, data: {}, lastSync: {isSuccessful: false, errorDate: new Date().toISOString()}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(true);
+        });
+
+        it('returns false when Gusto sync is in progress', () => {
+            const policy = makePolicy({
+                connections: {gusto: {config: {}, data: {}, lastSync: {isSuccessful: false, errorDate: new Date().toISOString()}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, true, true)).toBe(false);
+        });
+
+        it('returns false for Gusto when last sync was successful', () => {
+            const policy = makePolicy({
+                connections: {gusto: {config: {}, data: {}, lastSync: {isSuccessful: true}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(false);
+        });
+
+        it('returns true when Zenefits sync has failed with an error date', () => {
+            const policy = makePolicy({
+                connections: {zenefits: {config: {}, data: {}, lastSync: {isSuccessful: false, errorDate: new Date().toISOString()}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, false, true)).toBe(true);
+        });
+
+        it('returns false when Zenefits sync is in progress', () => {
+            const policy = makePolicy({
+                connections: {zenefits: {config: {}, data: {}, lastSync: {isSuccessful: false, errorDate: new Date().toISOString()}}} as Policy['connections'],
+            });
+            expect(shouldShowHRConnectionError(policy, true, true)).toBe(false);
         });
     });
 });
