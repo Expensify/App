@@ -31,7 +31,7 @@ function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string,
-    archivedReportsIdSet: ArchivedReportsIDSet,
+    archivedReportsIDSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -46,7 +46,7 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, archivedReportsIdSet);
+    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, archivedReportsIDSet);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
@@ -62,7 +62,7 @@ function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string,
-    archivedReportsIdSet: ArchivedReportsIDSet,
+    archivedReportsIDSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -89,7 +89,7 @@ function navigateAfterOnboarding(
         isSmallScreenWidth,
         canUseDefaultRooms,
         conciergeReportID,
-        archivedReportsIdSet,
+        archivedReportsIDSet,
         onboardingPolicyID,
         onboardingAdminsChatReportID,
         shouldPreventOpenAdminRoom,
@@ -106,7 +106,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string,
-    archivedReportsIdSet: ArchivedReportsIDSet,
+    archivedReportsIDSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -118,7 +118,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             canUseDefaultRooms,
             conciergeReportID,
-            archivedReportsIdSet,
+            archivedReportsIDSet,
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,

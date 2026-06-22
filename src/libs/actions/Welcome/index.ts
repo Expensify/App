@@ -56,6 +56,10 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
+function setOnboardingPersonalTrackGoal(value: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL, value);
+}
+
 function setOnboardingErrorMessage(value: TranslationPaths | null) {
     Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, value);
 }
@@ -117,7 +121,7 @@ function completeHybridAppOnboarding() {
             return;
         }
 
-        // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
+        // No matter what the response is, we want to mark the onboarding as completed.
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
         HybridAppModule.completeOnboarding({status: true});
     });
@@ -218,6 +222,7 @@ export {
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
+    setOnboardingPersonalTrackGoal,
     setOnboardingTestDriveModalDismissed,
     addWorkEmailFormError,
     clearWorkEmailFormErrors,

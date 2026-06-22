@@ -1,5 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -11,6 +9,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -813,17 +812,18 @@ function sendInvoice({
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
 
     if (shouldHandleNavigation) {
+        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         handleNavigateAfterExpenseCreate({
             activeReportID: invoiceRoom.reportID,
             transactionID,
             isFromGlobalCreate,
             isInvoice: true,
         });
+    } else {
+        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 
     notifyNewAction(invoiceRoom.reportID, undefined, true);

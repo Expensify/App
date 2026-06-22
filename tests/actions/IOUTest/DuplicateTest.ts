@@ -138,14 +138,14 @@ describe('actions/Duplicate', () => {
             {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
 
-        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string, IOUReportID?: string): ReportAction => ({
+        const createMockIouAction = (transactionID: string, reportActionID: string, childReportID: string, reportID?: string): ReportAction => ({
             reportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '2024-01-01 12:00:00',
+            reportID,
             originalMessage: {
                 IOUTransactionID: transactionID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                IOUReportID,
             } as OriginalMessageIOU,
             message: [{type: 'TEXT', text: 'Test IOU message'}],
             childReportID,
@@ -204,7 +204,16 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was updated
@@ -285,7 +294,12 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with empty duplicate list
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: []},
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was still updated
@@ -336,7 +350,15 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates without expense report
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: [],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: [],
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify function completed without errors
@@ -539,7 +561,16 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
@@ -639,7 +670,15 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with transactionThreadReportID
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify the optimistic transaction thread report was created
@@ -660,6 +699,101 @@ describe('actions/Duplicate', () => {
                             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThreadReportID}`,
                         }),
                     ]),
+                }),
+            );
+        });
+
+        it('should handle cross-report duplicates by cleaning up IOU actions and totals in each source report', async () => {
+            // Given: Duplicate transactions in different reports
+            const keptReportID = 'reportA';
+            const crossReportID = 'reportB';
+            const mainTransactionID = 'mainTx';
+            const crossReportDuplicateID = 'crossDupTx';
+            const childReportIDMain = 'childMain';
+            const childReportIDCross = 'childCross';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, keptReportID, 100);
+            const crossDuplicateTransaction = createMockTransaction(crossReportDuplicateID, crossReportID, 100);
+
+            const keptReport = createMockReport(keptReportID, 200);
+            const crossReport = createMockReport(crossReportID, 200);
+
+            const mainViolations = createMockViolations();
+            const crossDuplicateViolations = createMockViolations();
+
+            const mainIouAction = createMockIouAction(mainTransactionID, 'actionMain', childReportIDMain);
+            const crossIouAction = createMockIouAction(crossReportDuplicateID, 'actionCross', childReportIDCross);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`, crossDuplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${keptReportID}`, keptReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${crossReportID}`, crossReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`, crossDuplicateViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptReportID}`, {
+                actionMain: mainIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${crossReportID}`, {
+                actionCross: crossIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDMain}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`, {});
+            await waitForBatchedUpdates();
+
+            const mergeParams: MergeDuplicatesParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [crossReportDuplicateID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID: keptReportID,
+            };
+
+            // When: Call mergeDuplicates with cross-report duplicates
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then: cross-report IOU action was soft-deleted
+            const crossReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${crossReportID}`);
+            expect(getOriginalMessage(crossReportActions?.actionCross)).toHaveProperty('deleted');
+
+            // Then: kept report total was NOT decremented (kept transaction stays)
+            const updatedKeptReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${keptReportID}`);
+            expect(updatedKeptReport?.total).toBe(200);
+
+            // Then: cross-report total WAS decremented
+            const updatedCrossReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${crossReportID}`);
+            expect(updatedCrossReport?.total).toBe(100); // 200 - 100 = 100
+
+            // Then: duplicate transaction was removed
+            const removedDuplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`);
+            expect(removedDuplicate).toBeFalsy();
+
+            // Then: Verify API was called with correct parameters
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [crossReportDuplicateID],
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([]),
+                    failureData: expect.arrayContaining([]),
                 }),
             );
         });
@@ -783,7 +917,14 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was updated
@@ -875,7 +1016,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates with undefined transactionID
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({...resolveParams, allTransactionViolations: {}});
             await waitForBatchedUpdates();
 
             // Then: Verify API was not called
@@ -918,7 +1059,10 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates with empty duplicate list
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations},
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was still updated
@@ -975,7 +1119,13 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates without IOU actions
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify function completed without errors
@@ -1054,7 +1204,13 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates with cross-report duplicates
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: The cross-report duplicate transaction should be put on hold
@@ -1174,6 +1330,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1237,6 +1394,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1292,6 +1450,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1340,6 +1499,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1388,6 +1548,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1439,6 +1600,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1500,6 +1662,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1546,6 +1709,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1585,6 +1749,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1627,6 +1792,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1675,6 +1841,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1739,6 +1906,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints: [],
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1803,6 +1971,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1851,6 +2020,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1910,6 +2080,7 @@ describe('actions/Duplicate', () => {
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1993,6 +2164,7 @@ describe('actions/Duplicate', () => {
                         transactionThreadReportIDMap: {
                             [transaction2.transactionID]: 'transactionThread-2',
                         },
+                        allTransactionViolations: {},
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2648,6 +2820,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();

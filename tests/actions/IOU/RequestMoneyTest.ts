@@ -6,7 +6,8 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {deleteReport, notifyNewAction} from '@libs/actions/Report';
+import {notifyNewAction} from '@libs/actions/Report';
+import deleteReport from '@libs/actions/Report/DeleteReport';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -295,8 +296,8 @@ describe('actions/IOU', () => {
                                     // The CREATED action should not be created after the IOU action
                                     expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
-                                    // The IOUReportID should be correct
-                                    expect(originalMessage?.IOUReportID).toBe(iouReportID);
+                                    // The action's reportID should be the IOU report
+                                    expect(iouAction?.reportID).toBe(iouReportID);
 
                                     // The comment should be included in the IOU action
                                     expect(originalMessage?.comment).toBe(comment);
@@ -527,8 +528,8 @@ describe('actions/IOU', () => {
                                     // The CREATED action should not be created after the IOU action
                                     expect(Date.parse(iouCreatedAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
-                                    // The IOUReportID should be correct
-                                    expect(originalMessage?.IOUReportID).toBe(iouReportID);
+                                    // The action's reportID should be the IOU report
+                                    expect(iouAction?.reportID).toBe(iouReportID);
 
                                     // The comment should be included in the IOU action
                                     expect(originalMessage?.comment).toBe(comment);
@@ -655,13 +656,13 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 total: existingTransaction.amount,
             };
-            const iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+            const iouAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
                 reportActionID: rand64(),
+                reportID: iouReportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: RORY_ACCOUNT_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: iouReportID,
                     IOUTransactionID: existingTransaction.transactionID,
                     amount: existingTransaction.amount,
                     currency: CONST.CURRENCY.USD,
@@ -756,8 +757,8 @@ describe('actions/IOU', () => {
 
                                     const newOriginalMessage = newIOUAction ? getOriginalMessage(newIOUAction) : null;
 
-                                    // The IOUReportID should be correct
-                                    expect(getOriginalMessage(iouAction)?.IOUReportID).toBe(iouReportID);
+                                    // The action's reportID should be the IOU report
+                                    expect(iouAction.reportID).toBe(iouReportID);
 
                                     // The comment should be included in the IOU action
                                     expect(newOriginalMessage?.comment).toBe(comment);
@@ -940,8 +941,8 @@ describe('actions/IOU', () => {
                                         // The CREATED action should not be created after the IOU action
                                         expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
 
-                                        // The IOUReportID should be correct
-                                        expect(originalMessage?.IOUReportID).toBe(iouReportID);
+                                        // The action's reportID should be the IOU report
+                                        expect(iouAction?.reportID).toBe(iouReportID);
 
                                         // The comment should be included in the IOU action
                                         expect(originalMessage?.comment).toBe(comment);
@@ -1284,6 +1285,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1351,6 +1353,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1874,6 +1877,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2648,6 +2652,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                currentUserLocalCurrency: undefined,
             });
 
             await waitForBatchedUpdates();
