@@ -53,7 +53,9 @@ If you don’t see the option to **Switch to Expensify Classic**, it may have be
 
 New Expensify is the next generation of the Expensify experience—built for real-time collaboration. It combines chat and financial tools in one place, so you can scan receipts, split bills, pay teammates, and track distance—all inside a conversation.
 
-Expensify Classic focuses on traditional business workflows like expense reporting, corporate card management, and approvals.
+## What is the difference between **Go back just once** and **Switch to Classic**?
+
+**Go back just once** takes you to Expensify Classic temporarily. The next time you visit Expensify, you'll be redirected back to New Expensify automatically. **Switch to Classic** permanently switches you to Expensify Classic until you choose to return to New Expensify.
 
 ## Will Expensify Classic be removed?
 
