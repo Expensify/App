@@ -16,7 +16,17 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
+import {
+    arePaymentsEnabled,
+    getAccountIDForSubmitManagerEmail,
+    getSubmitReportManagerAccountID,
+    getSubmitToAccountID,
+    hasDynamicExternalWorkflow,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isSubmitAndClose,
+} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -28,6 +38,7 @@ import {
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
+    getApprovalChain,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getReportOrDraftReport,
@@ -105,6 +116,9 @@ type SubmitReportFunctionParams = {
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    managerEmail?: string;
+    /** When provided (e.g. from the submit-to popover selection), used for optimistic managerID before falling back to email resolution. */
+    managerAccountID?: number;
 };
 
 function canApproveIOU(
@@ -114,7 +128,8 @@ function canApproveIOU(
     currentUserAccountID: number,
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
-    // Only expense reports can be approved
+    // TODO: Submit workspaces should show the APPROVE button and redirect to an upgrade modal instead of hiding it.
+    // This will be addressed as part of the Wave 3 "Upgrade on Approval" feature.
     if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
         return false;
     }
@@ -216,6 +231,8 @@ function canIOUBePaid(
         return true;
     }
 
+    // TODO: Submit workspaces should show the PAY button and redirect to an upgrade modal instead of hiding it.
+    // This will be addressed as part of the Wave 3 "Upgrade on Pay" feature.
     if (isExpenseReport(iouReport) && !isPaidGroupPolicy(policy)) {
         return false;
     }
@@ -1297,6 +1314,8 @@ function submitReport({
     onSubmitted,
     ownerBillingGracePeriodEnd,
     delegateEmail,
+    managerEmail,
+    managerAccountID: managerAccountIDFromPopover,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1309,7 +1328,16 @@ function submitReport({
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    const managerID = getSubmitReportManagerAccountID(policy, expenseReport);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
+    const approvalChain = getApprovalChain(policy, expenseReport);
+    const managerIDFromChain = getKnownAccountIDByLogin(approvalChain.at(0));
+    const trimmedManagerEmail = managerEmail?.trim();
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList) : undefined;
+    const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport);
+    const managerID = trimmedManagerEmail
+        ? (resolvedManagerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID)
+        : (submitReportManagerAccountID ?? (submitToAccountID > 0 ? submitToAccountID : expenseReport.managerID));
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
@@ -1530,7 +1558,7 @@ function submitReport({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
             value: {
-                pendingExpenseAction: null,
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED,
             },
         });
     }
@@ -1558,6 +1586,11 @@ function submitReport({
         reportID: expenseReport.reportID,
         managerAccountID: managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(trimmedManagerEmail
+            ? {
+                  managerEmail: trimmedManagerEmail,
+              }
+            : {}),
     };
 
     onSubmitted?.();
@@ -1791,6 +1824,13 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
+function clearPendingExpenseAction(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingExpenseAction: null});
+}
+
 export {
     addReportApprover,
     approveMoneyRequest,
@@ -1800,6 +1840,7 @@ export {
     canIOUBePaid,
     canSubmitReport,
     canUnapproveIOU,
+    clearPendingExpenseAction,
     getBadgeFromIOUReport,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
