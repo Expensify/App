@@ -1,13 +1,11 @@
 import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/routers';
 import {config, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
+import type {State} from '@libs/Navigation/types';
 import type {Screen} from '@src/SCREENS';
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
-
-type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
 
 function isScreen(name: string): name is Screen {
     return name in normalizedConfigs;
@@ -73,19 +71,12 @@ function buildSuffixFromPattern(pattern: string, params: Record<string, unknown>
  * Pops the deepest focused route from a navigation state tree.
  * Returns the reduced state, or undefined if the tree becomes empty.
  *
- * Screens listed in `isLeaf` are treated as atomic leaves - the function will
- * not recurse into their nested state (e.g. tab navigators), so the entire
- * screen is removed as a unit rather than popping an individual tab.
- *
  * @param state - The navigation state tree to pop from
- * @param isLeaf - Optional guard: return true for screen names that should be
- *                 treated as leaves (not recursed into). Used to prevent drilling
- *                 into tab navigators hosted by dynamic screens.
  * @returns The reduced state, or undefined if the tree becomes empty
  *
  * @private - Internal helper. Do not export or use outside this file.
  */
-function popFocusedRoute(state: State, isLeaf?: (name: string) => boolean): State | undefined {
+function popFocusedRoute(state: State): State | undefined {
     const index = state.index ?? state.routes.length - 1;
     const focusedRoute = state.routes[index];
 
@@ -95,9 +86,9 @@ function popFocusedRoute(state: State, isLeaf?: (name: string) => boolean): Stat
     }
 
     // the focused route has nested state - try to pop from deeper levels first,
-    // unless it is a leaf screen (e.g. a tab-hosting dynamic screen).
-    if (focusedRoute.state && !isLeaf?.(focusedRoute.name ?? '')) {
-        const nestedResult = popFocusedRoute(focusedRoute.state as State, isLeaf);
+    // unless it hosts an OnyxTabNavigator (treat it as a leaf).
+    if (focusedRoute.state && !screensWithOnyxTabNavigator.has(focusedRoute.name ?? '')) {
+        const nestedResult = popFocusedRoute(focusedRoute.state as State);
 
         // A deeper route was successfully popped - rebuild the current level with the updated nested state.
         if (nestedResult) {
@@ -121,10 +112,6 @@ function popFocusedRoute(state: State, isLeaf?: (name: string) => boolean): Stat
 /**
  * Builds a URL path for a dynamic route screen.
  * Recursively peels off dynamic suffixes and resolves the base path underneath.
- *
- * When the focused dynamic screen hosts a tab navigator (i.e. it is in
- * `screensWithOnyxTabNavigator`), the focused tab's path segment is appended
- * to the dynamic suffix before the base path is resolved.
  *
  * @param state - The navigation state tree to build the path from
  * @returns The resolved path for the focused dynamic route screen
@@ -155,7 +142,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
         }
     }
 
-    const reducedState = popFocusedRoute(state, (name) => screensWithOnyxTabNavigator.has(name));
+    const reducedState = popFocusedRoute(state);
 
     if (!reducedState) {
         return `/${actualSuffix}`;
