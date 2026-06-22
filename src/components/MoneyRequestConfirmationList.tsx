@@ -258,17 +258,29 @@ function MoneyRequestConfirmationList({
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const prevSubRates = usePrevious(subRates);
 
-    const {defaultRate, mileageRate, unit, rate, currency, prevCurrency, distance, shouldCalculateDistanceAmount, hasRoute, isDistanceRequestWithPendingRoute, distanceRequestAmount, commuterExclusionData} =
-        useDistanceRequestState({
-            transaction,
-            policy,
-            policyID,
-            policyForMovingExpenses,
-            isMovingTransactionFromTrackExpense,
-            isDistanceRequest,
-            iouAmount,
-            iouCurrencyCode,
-        });
+    const {
+        defaultRate,
+        mileageRate,
+        unit,
+        rate,
+        currency,
+        prevCurrency,
+        distance,
+        shouldCalculateDistanceAmount,
+        hasRoute,
+        isDistanceRequestWithPendingRoute,
+        distanceRequestAmount,
+        commuterExclusionData,
+    } = useDistanceRequestState({
+        transaction,
+        policy,
+        policyID,
+        policyForMovingExpenses,
+        isMovingTransactionFromTrackExpense,
+        isDistanceRequest,
+        iouAmount,
+        iouCurrencyCode,
+    });
 
     const shouldShowRateAutoUpdatedTooltip =
         isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
@@ -600,7 +612,7 @@ function MoneyRequestConfirmationList({
                 currentUserAccountID={currentUserPersonalDetails.accountID}
                 setFormError={setFormError}
                 clearFormErrors={clearFormErrors}
-                commuterExclusionBreakdown={commuterExclusionBreakdown}
+                commuterExclusionData={commuterExclusionData}
             />
             <SplitBillController
                 transaction={transaction}

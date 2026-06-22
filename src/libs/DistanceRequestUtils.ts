@@ -355,7 +355,7 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
  * @param distanceUnit - The display unit (mi/km) the breakdown is expressed in
  * @returns The commuter exclusion and reimbursable distance, or null when no exclusion applies
  */
-function getCommuterExclusionBreakdown(
+function getCommuterExclusionData(
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     distanceInMeters: number,
@@ -742,7 +742,7 @@ export default {
     getDefaultMileageRate,
     getDistanceMerchant,
     getDistanceRequestAmount,
-    getCommuterExclusionBreakdown,
+    getCommuterExclusionData,
     getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,

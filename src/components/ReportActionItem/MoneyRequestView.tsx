@@ -546,7 +546,7 @@ function MoneyRequestView({
     );
 
     const distanceUnitValue = transaction?.comment?.customUnit?.distanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, distance, distanceUnitValue);
+    const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionData(transaction, policy, distance, distanceUnitValue);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest, commuterExclusionBreakdown);
     let distanceToDisplayDescription = translate('common.distance');
     let distanceToDisplaySubtitle;
