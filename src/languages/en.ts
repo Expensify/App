@@ -8911,8 +8911,10 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
-            manualOdometerNotAllowedWithExclusion:
-                'This workspace excludes part of your distance from reimbursement, so manual and odometer entry are disabled. Use the map to enter your route.',
+            mapOrGpsDistanceRequired: {
+                title: 'Map or GPS distance required',
+                description: 'This workspace requires either map-based or GPS-tracked distance expenses.',
+            },
         },
         commuterExclusion: {
             original: 'Original',

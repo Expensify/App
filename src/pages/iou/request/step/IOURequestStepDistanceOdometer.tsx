@@ -13,11 +13,12 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -79,6 +80,8 @@ function IOURequestStepDistanceOdometer({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
     const {translate, fromLocaleDigit, numberFormat} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const illustrations = useMemoizedLazyIllustrations(['HouseMoney']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -451,7 +454,17 @@ function IOURequestStepDistanceOdometer({
         // Workspaces with commuter exclusions configured require map-based distance entry, since the
         // exclusion is computed off the mapped route. Block odometer entry for these workspaces.
         if (policy?.commuterExclusions) {
-            setFormError(translate('distance.error.manualOdometerNotAllowedWithExclusion'));
+            showConfirmModal({
+                title: translate('distance.error.mapOrGpsDistanceRequired.title'),
+                titleStyles: styles.textHeadline,
+                prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
+                promptStyles: styles.textSupporting,
+                confirmText: translate('common.buttonConfirm'),
+                shouldUseSuccessStyleForConfirm: true,
+                shouldShowCancelButton: false,
+                shouldShowDismissIcon: true,
+                image: illustrations.HouseMoney,
+            });
             return;
         }
 
