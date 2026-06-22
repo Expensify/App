@@ -192,6 +192,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 textInputOptions={{
                     value: inputValue,
                     label: translate('common.search'),
+                    headerMessage: inputValue.trim() && filteredCurrencyItems.length === 0 ? translate('common.noResultsFound') : undefined,
                     onChangeText: setInputValue,
                 }}
                 style={{
