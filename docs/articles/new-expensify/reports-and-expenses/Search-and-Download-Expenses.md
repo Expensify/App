@@ -23,17 +23,19 @@ Expensify offers flexible options to search and export expenses and reports in v
 1. In the navigation tabs on the left, select **Spend**.
 2. Choose **Expenses** or **Reports**.
 3. Select the expenses or reports you want to export, or **Select all**.
-4. Click **Selected**. 
+4. Click **Selected**.
 5. Select **Export** from the dropdown.
 6. Choose an export template.
 
-A **Preparing download** window appears while your file is generated, and the file downloads automatically to your device when it’s ready. If you’d rather not wait, select **Send me the file when it's ready**, and Concierge will message you the file in chat.
+What happens next depends on how you selected the items:
+- **If you used Select all to select every matching item:** A **Preparing download** window appears while your file is generated, and the file downloads automatically to your device when it’s ready. If you’d rather not wait, select **Send me the file when it's ready**, and Concierge will message you the file in chat.
+- **If you selected specific expenses or reports:** The file downloads to your device immediately, without the **Preparing download** window.
 
 ## Mobile
 
-1. In the navigation tabs at the bottom, tap **Spend**.
-2. In the menu at the top, choose **Expenses** or **Reports**.
-3. Long-press any expense or report, then tap **Select**. 
+1. In the navigation tabs on the bottom, tap **Spend**.
+2. Choose **Expenses** or **Reports**.
+3. Long-press any expense or report, then tap **Select**.
 4. Select the expenses or reports you want to export, or tap **Select all**.
 5. Tap **Selected**, then choose **Export**.
 6. Choose an export template.
@@ -42,7 +44,7 @@ A **Preparing download** window appears while your file is generated, and the fi
 
 When you group expenses on the **Spend** page, you can export the grouped results and the exported file keeps each group intact.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Spend** > **Expenses**.
+1. In the navigation tabs (on the left on web, and on the bottom on mobile), select **Spend** > **Expenses**.
 2. Click **Display**, then select **Group by** and choose how to group your expenses (for example, **Category**, **Merchant**, **Tag**, or **Card**).
 3. Click **Apply**.
 4. Check the box next to the groups you want to export, or use the top checkbox to select all.
@@ -95,9 +97,9 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 ## How do I receive my export?
 
-After you select a template, a **Preparing download** window appears while Expensify generates your file:
-- The file downloads automatically to your device when it’s ready.
-- To receive it in chat instead, select **Send me the file when it's ready**, and Concierge will message you the file.
+It depends on how you selected the items:
+- **Selected all matching items:** A **Preparing download** window appears while Expensify generates your file. The file downloads automatically when it’s ready, or select **Send me the file when it's ready** to have Concierge message it to you in chat instead.
+- **Selected specific expenses or reports:** The file downloads to your device immediately, without the **Preparing download** window.
 
 ## Can I export expenses or reports in bulk?
 
