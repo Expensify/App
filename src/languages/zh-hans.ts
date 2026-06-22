@@ -6557,6 +6557,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
+            emptyRates: {title: '尚未设置里程费率', subtitle: '添加里程报销费率，以自定义报销标准。'},
             rate: '评分',
             addRate: '添加费率',
             findRate: '查找费率',
@@ -6852,6 +6853,12 @@ ${reportName}`,
                 description: '启用审批功能，以集中配置所有成员向谁提交。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>审批功能适用于 Collect 和 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            approvalSubmitReport: {
+                title: '审批报销报告',
+                description: '在同一位置审阅、批准并掌控支出进度。审批流程帮助你控制成本、执行公司政策，并更快报销员工费用。',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>审批工作流仅适用于 Collect 方案，起价为每位活跃成员每月 <strong>${formattedPrice}</strong>。</muted-text>`,
             },
             companyCardSubmit: {
                 title: '公司卡枚',

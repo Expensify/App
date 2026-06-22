@@ -4,7 +4,7 @@ import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
-import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {SharedValue} from 'react-native-reanimated';
@@ -6112,6 +6112,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.MONOSPACE,
             ...wordBreak.breakWord,
         },
+        copyableTextFieldMinHeight: {
+            minHeight: variables.componentSizeNormal + 32,
+        },
+
         copyableTextFieldButton: {
             width: 28,
             height: 28,
@@ -6611,6 +6615,27 @@ const dynamicStyles = (theme: ThemeColors) =>
             height: 180,
             maxWidth: '100%',
         }),
+
+        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            }) as const,
+
+        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                // No default height - the card hugs its content (children must have intrinsic height)
+                height,
+                maxHeight: '100%' as const,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden' as const,
+                backgroundColor: theme.componentBG,
+            };
+        },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
