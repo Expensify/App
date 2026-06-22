@@ -139,6 +139,17 @@ function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: S
     };
 }
 
+type SpendRuleCurrency = {operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>; value: string[]};
+type SpendRuleCurrencyDiff = {added: SpendRuleCurrency[]; removed: SpendRuleCurrency[]};
+
+function computeSpendRuleCurrencyDiff(oldCurrencies: SpendRuleCurrency[], newCurrencies: SpendRuleCurrency[]): SpendRuleCurrencyDiff {
+    const oldSet = new Set(oldCurrencies.map((c) => `${c.operator}-${c.value.sort().join(',')}`));
+    const newSet = new Set(newCurrencies.map((c) => `${c.operator}-${c.value.sort().join(',')}`));
+    const added = newCurrencies.filter((c) => !oldSet.has(`${c.operator}-${c.value.sort().join(',')}`));
+    const removed = oldCurrencies.filter((c) => !newSet.has(`${c.operator}-${c.value.sort().join(',')}`));
+    return {added, removed};
+}
+
 type SpendRuleCard = {cardID?: CardID; displayName?: string};
 type SpendRuleCardDiff = {added: SpendRuleCard[]; removed: SpendRuleCard[]};
 
@@ -358,17 +369,21 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     const newAmounts = message.amounts ?? [];
     const oldCards = message.oldCards ?? [];
     const newCards = message.cards ?? [];
+    const newCurrencies = message.currencies ?? [];
+    const oldCurrencies = message.oldCurrencies ?? [];
 
     const merchantDiff = computeSpendRuleStringDiff(oldMerchants, newMerchants);
     const categoryDiff = computeSpendRuleStringDiff(oldCategories, newCategories);
     const amountDiff = computeSpendRuleAmountDiff(oldAmounts, newAmounts);
     const cardDiff = computeSpendRuleCardDiff(oldCards, newCards);
+    const currencyDiff = computeSpendRuleCurrencyDiff(oldCurrencies, newCurrencies);
 
     const merchantsChanged = merchantDiff.added.length > 0 || merchantDiff.removed.length > 0;
     const categoriesChanged = categoryDiff.added.length > 0 || categoryDiff.removed.length > 0;
     const amountsChanged = amountDiff.added.length > 0 || amountDiff.removed.length > 0;
     const cardsChanged = cardDiff.added.length > 0 || cardDiff.removed.length > 0;
-    const filtersAndCardsUnchanged = !merchantsChanged && !categoriesChanged && !amountsChanged && !cardsChanged;
+    const currenciesChanged = currencyDiff.added.length > 0 || currencyDiff.removed.length > 0;
+    const filtersAndCardsUnchanged = !merchantsChanged && !categoriesChanged && !amountsChanged && !cardsChanged && !currenciesChanged;
 
     const newCardsSummary = getSpendRuleCardsSummary(translate, newCards);
 
@@ -380,7 +395,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
         });
     }
 
-    if (cardsChanged && !merchantsChanged && !categoriesChanged && !amountsChanged && !actionChanged) {
+    if (cardsChanged && !merchantsChanged && !categoriesChanged && !amountsChanged && !actionChanged && !currenciesChanged) {
         if (cardDiff.added.length > 0 && cardDiff.removed.length === 0) {
             return translate('workspaceActions.expensifyCardRule.update.appliedToAdditionalCards', {count: cardDiff.added.length});
         }
