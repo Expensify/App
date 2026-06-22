@@ -5332,7 +5332,15 @@ function getDisplayValue(
         return formValue?.map((option) => translate(`common.${option}`)).join(', ');
     }
 
-    if (key === FILTER_KEYS.FROM || key === FILTER_KEYS.TO || key === FILTER_KEYS.ATTENDEE || key === FILTER_KEYS.ASSIGNEE || key === FILTER_KEYS.TAX_RATE || key === FILTER_KEYS.IN) {
+    if (
+        key === FILTER_KEYS.FROM ||
+        key === FILTER_KEYS.TO ||
+        key === FILTER_KEYS.ATTENDEE ||
+        key === FILTER_KEYS.ASSIGNEE ||
+        key === FILTER_KEYS.TAX_RATE ||
+        key === FILTER_KEYS.IN ||
+        key === FILTER_KEYS.BANK_ACCOUNT
+    ) {
         return form[key];
     }
 
