@@ -421,6 +421,43 @@ describe('handleStateChange — backward', () => {
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 
+    it('cancels a pending restore when a subsequent backward supersedes it before its transition flushes (rapid double-back)', () => {
+        const viewB = fakeView('open-B-button');
+        const viewC = fakeView('open-C-button');
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        notifyPressedTrigger(fakeRef(viewB));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+        notifyPressedTrigger(fakeRef(viewC));
+        handleStateChange(
+            stackState(2, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+                {key: 'C', name: 'C'},
+            ]),
+        );
+
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+        expect(mockTtQueue.at(-1)?.cancelled).toBe(false);
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        expect(mockTtQueue.at(0)?.cancelled).toBe(true);
+
+        flushTransitions();
+        expect(mockFireFocusEvent).toHaveBeenCalledTimes(1);
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(viewB);
+    });
+
     it('warm-up race — back navigation while SR cache is not yet resolved still restores (resume / cold start)', () => {
         mockScreenReaderEnabled = false;
         mockScreenReaderCacheWarmed = false;

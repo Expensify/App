@@ -142,11 +142,12 @@ function applySkippedRestore(restoreKey: string): void {
 }
 
 function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
+    // Cancel first so a stale prior restore can't fire on the prior route after the user moved on (rapid double-back).
+    cancelPendingRestore();
     // Known-off bails (sendAccessibilityEvent has no consumer); unknown proceeds so the warm-up window doesn't drop the first restore.
     if (Accessibility.isScreenReaderKnownOff() || !triggerMap.has(routeKey)) {
         return;
     }
-    cancelPendingRestore();
     let cancelled = false;
     let refocusHandle: {cancel: () => void} | null = null;
     let rafHandle: number | null = null;
