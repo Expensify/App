@@ -2,7 +2,6 @@ import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import Text from './Text';
 
@@ -18,9 +17,7 @@ function DistanceWithCommuterExclusion({commuterExclusion, distanceUnit}: Distan
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const unitLabel = DistanceRequestUtils.getDistanceUnitLabel(commuterExclusion, distanceUnit, translate);
-    const commuterLabel = translate('common.commuter');
-    const formattedDistance = `${commuterExclusion.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${commuterLabel} ${unitLabel}`;
+    const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(commuterExclusion, distanceUnit, translate, false, true);
 
     return <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate('distance.commuterExclusion.removedCommuterDistance', {formattedDistance})}</Text>;
 }

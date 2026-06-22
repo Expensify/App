@@ -153,18 +153,16 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param unit Unit that should be used to display the distance
  * @param translate Translate function
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
+ * @param isCommuterDistance If true, the commuter label is inserted before the unit (e.g. "12.34 commuter miles").
  */
-function getFormattedDistanceInUnits(distanceInUnits: number, unit: Unit, translate: LocaleContextProps['translate'], useShortFormUnit?: boolean): string {
+function getFormattedDistanceInUnits(distanceInUnits: number, unit: Unit, translate: LocaleContextProps['translate'], useShortFormUnit?: boolean, isCommuterDistance?: boolean): string {
     const roundedDistance = distanceInUnits.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
-    if (useShortFormUnit) {
-        return `${roundedDistance} ${unit}`;
+    const unitLabel = useShortFormUnit ? unit : getDistanceUnitLabel(distanceInUnits, unit, translate);
+    if (isCommuterDistance) {
+        return `${roundedDistance} ${translate('common.commuter')} ${unitLabel}`;
     }
 
-    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
-    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const unitString = roundedDistance === '1' ? singularDistanceUnit : distanceUnit;
-
-    return `${roundedDistance} ${unitString}`;
+    return `${roundedDistance} ${unitLabel}`;
 }
 
 /**

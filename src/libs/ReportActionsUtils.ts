@@ -4691,12 +4691,10 @@ function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: On
 }
 
 function getCommuterExclusionMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>, policyID?: string): string {
-    const {distance, unit} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION>) ?? {distance: '0', unit: ''};
+    const {distance, unit} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION>) ?? {distance: '0', unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
     const distanceValue = Number(distance ?? 0);
-    const unitValue = String(unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
-    const unitLabel = DistanceRequestUtils.getDistanceUnitLabel(distanceValue, unitValue, translate);
-    const commuterLabel = translate('common.commuter');
-    const formattedDistance = `${distanceValue.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${commuterLabel} ${unitLabel}`;
+    const unitValue = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const formattedDistance = DistanceRequestUtils.getFormattedDistanceInUnits(distanceValue, unitValue, translate, false, true);
 
     const workspaceDistanceSettingsLink = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID)}` : '';
 
