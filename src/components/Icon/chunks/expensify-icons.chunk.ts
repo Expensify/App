@@ -207,6 +207,7 @@ import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
+import ReceiptSearch from '@assets/images/receipt-search.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
@@ -451,6 +452,7 @@ const Expensicons = {
     ReceiptPlaceholderPlus,
     ReceiptPlus,
     ReceiptScan,
+    ReceiptSearch,
     ReceiptSlash,
     RemoveMembers,
     ReportCopy,

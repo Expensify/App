@@ -138,6 +138,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         /** Optional initial column to sort by on mount. */
         initialSortColumn?: ColumnKey;
 
+        /** Optional column to force-sort by when the table switches to narrow layout. The wide-layout sorting is restored when leaving narrow layout. */
+        narrowLayoutSortColumn?: ColumnKey;
+
         /** Optional initial search string to apply on mount. */
         initialSearchString?: string;
 
