@@ -46,18 +46,6 @@ Expensify provides two ways to export reports:
 
 ---
 
-# FAQ
-
-## Which accounting packages support indirect integration with Expensify?
-
-Expensify offers pre-configured flat-file integrations for the following accounting platforms:
-
-- **Sage**
-- **Microsoft Dynamics**
-- **MYOB**
-- **Oracle**
-- **SAP**
-
 ## How to create a custom export for unsupported accounting software
 
 If your accounting software supports CSV imports but isn't listed above, you can create a saved search that matches the format required by your accounting software.
@@ -70,4 +58,19 @@ If your accounting software supports CSV imports but isn't listed above, you can
 4. Click **Save** and enter a name for the saved search, such as "Accounting Software Export".
 
 After creating the saved search, open it and select **Export current view** to download a CSV file that you can upload into your accounting software. [Learn how to export data to CSV](/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses#export-as-csv).
+
+
+---
+
+# FAQ
+
+## Which accounting packages support indirect integration with Expensify?
+
+Expensify offers pre-configured flat-file integrations for the following accounting platforms:
+
+- **Sage**
+- **Microsoft Dynamics**
+- **MYOB**
+- **Oracle**
+- **SAP**
 
