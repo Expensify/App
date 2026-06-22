@@ -61,7 +61,8 @@ function AnimatedSettlementButton({
     // would prematurely complete/abort and skip the loading state.
     const [hasEnteredPending, setHasEnteredPending] = useState(false);
 
-    if (isDEWApproval && isApprovedAnimationRunning && pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.APPROVE && !hasEnteredPending) {
+    const isDEWApprovalAnimation = isDEWApproval && isApprovedAnimationRunning;
+    if (isDEWApprovalAnimation && pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.APPROVE && !hasEnteredPending) {
         setHasEnteredPending(true);
     } else if (!isApprovedAnimationRunning && hasEnteredPending) {
         setHasEnteredPending(false);
@@ -70,9 +71,9 @@ function AnimatedSettlementButton({
     // For a DEW approval the optimistic animation starts immediately, but the report only reaches the approved state
     // once the backend confirms. It is complete only after it entered the pending state,and the pending action is cleared
     // (null) while DEW approval hasn't failed. Until then keep it loading.
-    const isDEWApprovalComplete = !!isDEWApproval && isApprovedAnimationRunning && hasEnteredPending && !pendingExpenseAction && !hasActiveDEWApproveFailed;
-    const isDEWApprovalLoading = !!isDEWApproval && isApprovedAnimationRunning && !isDEWApprovalComplete;
-    const isDEWApprovalFailed = !!isDEWApproval && isApprovedAnimationRunning && hasEnteredPending && !pendingExpenseAction && hasActiveDEWApproveFailed;
+    const isDEWApprovalComplete = !!isDEWApprovalAnimation && hasEnteredPending && !pendingExpenseAction && !hasActiveDEWApproveFailed;
+    const isDEWApprovalLoading = !!isDEWApprovalAnimation && !isDEWApprovalComplete;
+    const isDEWApprovalFailed = !!isDEWApprovalAnimation && hasEnteredPending && !pendingExpenseAction && hasActiveDEWApproveFailed;
 
     const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
     const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
@@ -140,12 +141,12 @@ function AnimatedSettlementButton({
     };
 
     useEffect(() => {
-        if (!isAnimationRunning || (isApprovedAnimationRunning && isDEWApproval && !isDEWApprovalComplete)) {
+        if (!isAnimationRunning || (isDEWApprovalAnimation && !isDEWApprovalComplete)) {
             return;
         }
         const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY);
         return () => clearTimeout(timer);
-    }, [isAnimationRunning, isDEWApprovalComplete, isDEWApproval, isApprovedAnimationRunning]);
+    }, [isAnimationRunning, isDEWApprovalComplete, isDEWApprovalAnimation]);
 
     useEffect(() => {
         if (!isDEWApprovalFailed) {
