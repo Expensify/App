@@ -57,15 +57,18 @@ const PARTS_TO_POLICY_FIELDS = {
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'invoice'],
-    travel: ['isTravelEnabled', 'travelSettings'],
+    // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
+    // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
+    // and must not be copied — each target is re-provisioned with its own entity by the backend.
+    travel: ['isTravelEnabled'],
     timeTracking: [],
     receiptPartners: [],
 } as const satisfies Record<Part, ReadonlyArray<keyof Policy>>;
 
 type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
 
-function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): void {
-    Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
+function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): Promise<void> {
+    return Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
 }
 
 function clearCopyPolicySettings(): void {
@@ -156,6 +159,27 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
 }
 
 /**
+ * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
+ * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
+ * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
+ * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
+ * target's existing travelSettings (like setWorkspaceTravelSettings) means a target that is not yet
+ * provisioned gets only {autoAddTripName} with no fabricated identity fields, so it is not treated
+ * as provisioned.
+ */
+function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
+    const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
+    if (sourceAutoAddTripName === undefined) {
+        return undefined;
+    }
+
+    // A target that is not yet provisioned has no travelSettings, so the spread yields just
+    // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
+    // provision time), so leaving them out here keeps the target from looking provisioned.
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
+}
+
+/**
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
  * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
@@ -229,6 +253,7 @@ function buildCopyPolicySettingsData(
     const isTimeTrackingSelected = parts.includes('timeTracking');
     const isReceiptPartnersSelected = parts.includes('receiptPartners');
     const isCodingRulesSelected = parts.includes('codingRules');
+    const isTravelSelected = parts.includes('travel');
     const timeTrackingPendingFields = isTimeTrackingSelected
         ? {
               isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -265,6 +290,7 @@ function buildCopyPolicySettingsData(
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
+        const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
         const codingRulesPatch = isCodingRulesSelected
             ? {
@@ -293,6 +319,7 @@ function buildCopyPolicySettingsData(
                           },
                       }
                     : {}),
+                ...(travelSettingsPatch ?? {}),
                 ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
                 ...codingRulesPatch,
                 pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
