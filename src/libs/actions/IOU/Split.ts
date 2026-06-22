@@ -2106,13 +2106,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         const distanceUnit = transaction.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
         const distanceRate = transaction.comment?.customUnit?.defaultP2PRate ?? 0;
 
-        // Route-based requests don't have a `quantity` until the route resolves, so fall back to converting the
-        // route distance (in meters) into display units to preview the exclusion immediately on creation.
-        let quantityInUnit = transaction.comment?.customUnit?.quantity ?? 0;
-        if (quantityInUnit <= 0 && distance && distance > 0) {
-            quantityInUnit = DistanceRequestUtils.convertDistanceUnit(distance, distanceUnit);
-        }
-        const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, quantityInUnit);
+        const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, distance ?? 0, distanceUnit);
         if (commuterExclusionBreakdown) {
             const {commuterExclusion, reimbursableDistance} = commuterExclusionBreakdown;
             // Use the canonical distance-amount calc so the optimistic amount rounds the same way the server does.

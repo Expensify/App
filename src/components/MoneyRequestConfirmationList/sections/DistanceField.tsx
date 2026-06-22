@@ -67,15 +67,11 @@ function DistanceField({
         }
 
         // Use commuterExclusionData.distanceUnit as fallback when unit prop is undefined
-        const displayUnit = unit ?? commuterExclusionData.distanceUnit;
-
         // Calculate original distance (reimbursable + commuter exclusion)
         const originalDistance = commuterExclusionData.reimbursableDistance + commuterExclusionData.commuterExclusion;
         const originalDistanceFormatted = formatDistance(originalDistance, commuterExclusionData.distanceUnit);
 
-        // Use reimbursable distance in meters for the display (includes rate formatting)
-        const reimbursableDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, commuterExclusionData.distanceUnit);
-        const reimbursableTitle = DistanceRequestUtils.getDistanceForDisplay(true, reimbursableDistanceInMeters, displayUnit, rate, translate, undefined, isManualDistanceRequest);
+        const reimbursableTitle = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, undefined, isManualDistanceRequest, commuterExclusionData);
 
         return {
             descriptionLabel: `${baseDescription} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`,

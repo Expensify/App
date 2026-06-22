@@ -544,56 +544,24 @@ function MoneyRequestView({
         getCurrencySymbol,
         isOffline,
     );
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
 
-    // Extract primitive values from customUnit to avoid React Compiler mutable reference issues
-    const customUnitCommuterExclusion = transaction?.comment?.customUnit?.commuterExclusion;
-    const customUnitReimbursableDistance = transaction?.comment?.customUnit?.reimbursableDistance;
-    const customUnitDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
-    const customUnitQuantity = transaction?.comment?.customUnit?.quantity;
+    const distanceUnitValue = transaction?.comment?.customUnit?.distanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, distance, distanceUnitValue);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest, commuterExclusionBreakdown);
+    let distanceToDisplayDescription = translate('common.distance');
+    let distanceToDisplaySubtitle;
 
-    // Compute commuter exclusion display data for the distance field
-    const commuterExclusionDisplayData = useMemo(() => {
-        const distanceUnitValue = customUnitDistanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-
-        let commuterExclusion = customUnitCommuterExclusion;
-        let reimbursableDistanceValue = customUnitReimbursableDistance;
-
-        // If commuter exclusion isn't stored in transaction, compute it from policy
-        if ((commuterExclusion === undefined || commuterExclusion === null) && policy?.commuterExclusions) {
-            // Get quantity from transaction or compute from distance
-            let quantityInUnit = customUnitQuantity ?? 0;
-            if (quantityInUnit <= 0 && distance > 0) {
-                quantityInUnit = DistanceRequestUtils.convertDistanceUnit(distance, distanceUnitValue);
-            }
-
-            const breakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, quantityInUnit);
-            if (breakdown) {
-                commuterExclusion = breakdown.commuterExclusion;
-                reimbursableDistanceValue = breakdown.reimbursableDistance;
-            }
-        }
-
-        if (!commuterExclusion || commuterExclusion <= 0 || !reimbursableDistanceValue || !distanceUnitValue) {
-            return null;
-        }
-
-        const formatDistanceValue = (value: number, unitValue: string) => `${value.toFixed(2)} ${unitValue}`;
-        const originalDistance = reimbursableDistanceValue + commuterExclusion;
-        const originalDistanceFormatted = formatDistanceValue(originalDistance, distanceUnitValue);
-        const reimbursableFormatted = formatDistanceValue(reimbursableDistanceValue, distanceUnitValue);
-
-        return {
-            description: `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`,
-            title: reimbursableFormatted,
-            furtherDetailsComponent: (
-                <DistanceWithCommuterExclusion
-                    commuterExclusion={commuterExclusion}
-                    distanceUnit={distanceUnitValue}
-                />
-            ),
-        };
-    }, [customUnitCommuterExclusion, customUnitReimbursableDistance, customUnitDistanceUnit, customUnitQuantity, unit, policy, transaction, distance, translate]);
+    if (commuterExclusionBreakdown) {
+        const {commuterExclusion, reimbursableDistance} = commuterExclusionBreakdown;
+        const originalDistanceFormatted = `${(reimbursableDistance + commuterExclusion).toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${distanceUnitValue}`;
+        distanceToDisplayDescription = `${translate('common.distance')} ${CONST.DOT_SEPARATOR} ${translate('distance.commuterExclusion.original')}: ${originalDistanceFormatted}`;
+        distanceToDisplaySubtitle = (
+            <DistanceWithCommuterExclusion
+                commuterExclusion={commuterExclusion}
+                distanceUnit={distanceUnitValue}
+            />
+        );
+    }
 
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
@@ -889,9 +857,9 @@ function MoneyRequestView({
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <MenuItemWithTopDescription
-                    description={commuterExclusionDisplayData?.description ?? translate('common.distance')}
-                    title={commuterExclusionDisplayData?.title ?? distanceToDisplay}
-                    furtherDetailsComponent={commuterExclusionDisplayData?.furtherDetailsComponent}
+                    description={distanceToDisplayDescription}
+                    title={distanceToDisplay}
+                    furtherDetailsComponent={distanceToDisplaySubtitle}
                     numberOfLinesTitle={2}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
