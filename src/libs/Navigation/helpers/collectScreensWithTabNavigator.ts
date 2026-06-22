@@ -56,5 +56,5 @@ function collectScreensWithTabNavigator(
     return result;
 }
 
-export type {ScreenConfigEntry, CollectResult};
+export type {ScreenConfigEntry};
 export default collectScreensWithTabNavigator;
