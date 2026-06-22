@@ -1,6 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import type {AppActionsMock} from '@libs/actions/__mocks__/App';
+import * as AppImport from '@libs/actions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
 import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
@@ -9,8 +11,6 @@ import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/u
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import {isPaused as isSequentialQueuePaused, isRunning as isSequentialQueueRunning} from '@libs/Network/SequentialQueue';
-import type * as AppMockImport from '@userActions/__mocks__/App';
-import * as AppImport from '@userActions/App';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,17 +18,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
 jest.mock('@userActions/OnyxUpdates');
-// OnyxUpdateManager imports App through mixed aliases, so both aliases need to share the same mock instance.
-jest.mock('@userActions/App', () => {
-    // Store the typed mock in a local variable to avoid returning an unsafe `any` from the mock factory.
-    const mockApp = jest.requireActual<typeof AppMockImport>('@userActions/__mocks__/App');
-    return mockApp;
-});
-jest.mock('@libs/actions/App', () => {
-    // Store the typed mock in a local variable to avoid returning an unsafe `any` from the mock factory.
-    const mockApp = jest.requireActual<typeof AppMockImport>('@userActions/__mocks__/App');
-    return mockApp;
-});
+jest.mock('@userActions/App');
 jest.mock('@userActions/OnyxUpdateManager/utils');
 jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates', () => {
     const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@userActions/OnyxUpdateManager/utils/applyUpdates');
@@ -52,7 +42,7 @@ const TEST_USER_ACCOUNT_ID = 1;
 const REPORT_ID = 'testReport1';
 const ONYX_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
 
-const App = AppImport as AppMockImport.AppActionsMock<typeof ONYX_KEY>;
+const App = AppImport as AppActionsMock<typeof ONYX_KEY>;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
@@ -263,12 +253,16 @@ describe('actions/OnyxUpdateManager', () => {
             // While the fetching of missing updates and the validation and application of the deferred updates is running,
             // the SequentialQueue should be paused.
             expect(isSequentialQueuePaused()).toBeTruthy();
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
         };
 
         const assertAfterSecondGetMissingOnyxUpdates = () => {
             // The SequentialQueue should still be paused.
             expect(isSequentialQueuePaused()).toBeTruthy();
             expect(isSequentialQueueRunning()).toBeFalsy();
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
         };
 
         let firstCallFinished = false;
@@ -292,8 +286,6 @@ describe('actions/OnyxUpdateManager', () => {
             // It must not necessarily be running, because it might not have been flushed yet.
             expect(isSequentialQueuePaused()).toBeFalsy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
-            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
-            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
         });
     });
 });
