@@ -14,6 +14,7 @@ import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
+import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
@@ -685,10 +686,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 return;
             }
 
-            // Keep the RHP slide-out, but wait for the revealed workspace split (whose enter animation is
-            // suppressed to avoid flashing WORKSPACES_LIST) to lay out before sliding, so it never reveals a
-            // white/stale frame (#90985).
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {waitForRevealReadiness: true});
+            WorkspaceCreationReveal.beginRevealUnderRHP();
+            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }

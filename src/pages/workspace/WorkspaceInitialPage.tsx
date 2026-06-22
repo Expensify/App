@@ -33,6 +33,7 @@ import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/acti
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
+import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -477,19 +478,19 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         });
     }, [canAccessRoute, shouldShowNotFoundPage]);
 
-    // When this page is revealed from under the RHP during workspace creation (#90985), the dismiss is held
-    // until the page has painted, reported here from the first non-empty layout of the actual content. The
-    // signal is taken from the rendered menu (not the navigator container, which lays out at full height before
-    // this lazy page mounts) and deferred one frame so paint completes before the RHP slides away — otherwise
-    // the not-yet-painted page reveals WORKSPACES_LIST beneath it. notifyRevealUnderRHPReady is a no-op unless a
-    // reveal is pending, so this costs nothing on normal navigation.
+    // When this page is revealed from under the RHP during workspace creation (#90985), the RHP
+    // slide-out is held until the page has painted. Signal readiness from the first non-empty layout
+    // of the actual content (not the navigator container, which lays out at full height before this
+    // lazy page mounts) and defer one frame so paint completes before the RHP slides away.
+    // notifyRevealUnderRHPReady is a no-op unless a reveal is pending, so this costs nothing on
+    // normal navigation.
     const hasReportedRevealReadinessRef = useRef(false);
     const handleRevealContentLayout = (event: LayoutChangeEvent) => {
         if (hasReportedRevealReadinessRef.current || event.nativeEvent.layout.height === 0) {
             return;
         }
         hasReportedRevealReadinessRef.current = true;
-        requestAnimationFrame(() => Navigation.notifyRevealUnderRHPReady());
+        requestAnimationFrame(() => WorkspaceCreationReveal.notifyRevealUnderRHPReady());
     };
 
     return (

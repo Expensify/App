@@ -214,35 +214,24 @@ function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined,
     const existingFirstRoute = existingNestedRoutes?.at(0);
     const newFirstRoute = newNestedRoutes?.at(0);
     const defaultSidebarRouteName = getSidebarRouteName(existingTabRoute?.name ?? focusedTargetTab.name);
-    let sidebarRoute: NavigationPartialRoute | undefined;
+    // The route prepended beneath the incoming screen so back navigation has a target. For most tabs this is
+    // the sidebar/root route; for WORKSPACE_NAVIGATOR it is WORKSPACES_LIST (a list screen, not a sidebar).
+    let backTargetRoute: NavigationPartialRoute | undefined;
     if (focusedTargetTab.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
-        // Always seed a FRESH (keyless) WORKSPACES_LIST sidebar so it mounts born-non-top, even when the
-        // user backed into the list and it is the mounted, visible top. Reusing the existing list's key would
-        // make react-native-screens reorder it top->non-top during the reveal and flash it (#90985). A keyless
-        // route is never the active top, so there is no reorder to flash; it gets a fresh key on rehydration.
-        // The list's params (e.g. backTo) are carried over so the back target survives; only the key is dropped.
-        // The prepend below is a no-op when the incoming state already starts with WORKSPACES_LIST, so it stays
-        // idempotent.
+        // Always seed a FRESH (keyless) WORKSPACES_LIST so it mounts born-non-top, even when the
+        // user backed into the list and it is the mounted, visible top. Reusing the existing list's key
+        // makes react-native-screens reorder it top->non-top during the reveal and flash it (#90985). A
+        // keyless route is never the active top, so there is no reorder to flash; it gets a fresh key on
+        // rehydration. The list's params (e.g. backTo) are carried over so the back target survives.
+        // The prepend below is a no-op when the incoming state already starts with WORKSPACES_LIST.
         const existingListParams = existingFirstRoute?.name === SCREENS.WORKSPACES_LIST ? existingFirstRoute.params : undefined;
-        sidebarRoute = {name: SCREENS.WORKSPACES_LIST, ...(existingListParams ? {params: existingListParams} : {})};
+        backTargetRoute = {name: SCREENS.WORKSPACES_LIST, ...(existingListParams ? {params: existingListParams} : {})};
     } else {
-        sidebarRoute = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
+        backTargetRoute = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
     }
-    if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
-        const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
+    if (backTargetRoute && newFirstRoute && backTargetRoute.name !== newFirstRoute.name) {
+        const prependedRoutes = [backTargetRoute, ...(newNestedRoutes ?? [])];
         mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
-    }
-
-    if (focusedTargetTab.name === NAVIGATORS.WORKSPACE_NAVIGATOR && mergedNestedState?.routes) {
-        // Flag the revealed split so WorkspaceNavigator skips its enter animation. Otherwise the
-        // split slides in over the seeded WORKSPACES_LIST when the RHP dismisses and the list
-        // flashes for the slide duration (#90985). gestureEnabled stays on for iOS swipe-back (#93003).
-        mergedNestedState = {
-            ...mergedNestedState,
-            routes: mergedNestedState.routes.map((nestedRoute) =>
-                nestedRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...nestedRoute, params: {...nestedRoute.params, noEnterAnimation: true}} : nestedRoute,
-            ),
-        };
     }
 
     if (!existingTabRoute) {

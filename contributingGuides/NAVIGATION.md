@@ -1408,65 +1408,6 @@ const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, str
 > [!NOTE]
 > For dynamic routes, the screen underneath is determined by the base path (the path without the dynamic suffix).
 
-## Revealing a newly created screen from under the RHP
-
-When you create an entity from an RHP and want to land on its fullscreen page **without the previous screen flashing** during the RHP dismiss (e.g. the workspace creation flow, see [#90985](https://github.com/Expensify/App/issues/90985)), mount the destination *under* the RHP and dismiss the RHP to reveal it — instead of dismissing first and navigating afterwards.
-
-> [!NOTE]
-> This recipe targets **single-step RHP flows** — the RHP shows a single screen (e.g. the workspace confirmation page) and confirming dismisses the whole RHP in one step to reveal the destination. It is not designed for multi-step RHP flows.
-
-Call this from your action once the optimistic data is written:
-
-```ts
-// `waitForRevealReadiness: true` keeps the RHP slide-out, but holds it until the revealed destination has
-// laid out, so the slide never exposes a white/stale frame at its leading edge (the destination's own enter
-// animation is suppressed below, so there is otherwise no transition for the dismiss to wait on).
-Navigation.revealRouteBeforeDismissingModal(routeToNavigate, {waitForRevealReadiness: true});
-```
-
-> [!NOTE]
-> `waitForRevealReadiness` is honored only on a small-width layout (`getIsSmallScreenWidth()`) — the same condition under which the destination carries `noEnterAnimation`. On a wide layout (including native tablets) it is a no-op and the RHP dismisses as usual.
-
-This dispatches `REPLACE_FULLSCREEN_UNDER_RHP` (mounts the destination beneath the RHP) and then `DISMISS_MODAL`. Three more things are needed on the destination side to make the reveal clean:
-
-**1. Keep a back-stack screen so swipe-back still works.** `handleReplaceFullscreenUnderRHP` seeds the target tab navigator with its list/sidebar screen beneath the new split (e.g. `[WORKSPACES_LIST, WORKSPACE_SPLIT_NAVIGATOR]`). Seed a **fresh** route (no reused key) so it mounts "born non-top" — reusing an already-focused screen's key makes react-native-screens detach/re-attach the top screen and flash it during the reveal. This seeding is currently hardcoded for `WORKSPACE_NAVIGATOR` inside `handleReplaceFullscreenUnderRHP`, so adopting the recipe for a new entity also requires adding a branch there (not just wiring up `getRevealScreenOptions`).
-
-**2. Skip the destination's enter animation.** The handler flags the revealed leaf route with `noEnterAnimation`, and every navigator level that animates on the way in reads it via the shared helper:
-
-```ts
-import getRevealScreenOptions from '@libs/Navigation/AppNavigator/getRevealScreenOptions';
-import type {RevealableUnderRHPParams} from '@libs/Navigation/AppNavigator/getRevealScreenOptions';
-
-// In the navigator's param list, intersect the revealed screen's params with RevealableUnderRHPParams:
-//   [NAVIGATORS.X_SPLIT_NAVIGATOR]: NavigatorScreenParams<...> & RevealableUnderRHPParams;
-
-<Stack.Screen
-    name={NAVIGATORS.X_SPLIT_NAVIGATOR}
-    options={({route}) => getRevealScreenOptions(route.params, baseScreenOptions)}
-    component={...}
-/>
-```
-
-`getRevealScreenOptions` returns `baseScreenOptions` with `animation: 'none'` when `noEnterAnimation` is set, while preserving `gestureEnabled` so iOS swipe-back keeps working. Apply it on **every** navigator level that animates while being revealed (for the workspace flow that is both `WorkspaceNavigator`'s split screen and `WorkspaceSplitNavigator`'s sidebar screen).
-
-**3. Report when the revealed screen has painted.** Because step 2 sets `animation: 'none'`, the destination fires no navigation transition for the RHP dismiss to wait on, so `waitForRevealReadiness` opens a synthetic transition that you must close once the destination has painted. Call `Navigation.notifyRevealUnderRHPReady()` from the first non-empty `onLayout` of the destination's **visible content** — not the navigator container, which lays out at full height before the lazy page mounts and would release the dismiss too early (flashing the screen beneath). Guard it to fire once (`onLayout` also runs on later layout passes) and defer one frame so paint completes before the slide. See `WorkspaceInitialPage`:
-
-```tsx
-const hasReportedRevealReadinessRef = useRef(false);
-const handleRevealContentLayout = (event: LayoutChangeEvent) => {
-    if (hasReportedRevealReadinessRef.current || event.nativeEvent.layout.height === 0) {
-        return;
-    }
-    hasReportedRevealReadinessRef.current = true;
-    requestAnimationFrame(() => Navigation.notifyRevealUnderRHPReady());
-};
-// <View style={contentStyle} onLayout={handleRevealContentLayout}> ... rendered menu/content ... </View>
-```
-
-`notifyRevealUnderRHPReady` is a no-op unless a reveal is pending, so it costs nothing on normal navigation. The synthetic transition also auto-expires after `MAX_TRANSITION_DURATION_MS`, so a missing or late readiness signal can never wedge the dismiss.
-
-Optionally show a spinner on the button that triggers the flow to cover the brief reveal delay (the workspace flow shows one on Confirm until this page unmounts with the RHP).
-
 ## Performance solutions
 
 Navigation-related performance improvements have been implemented in the following files:

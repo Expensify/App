@@ -108,13 +108,10 @@ function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> 
     const tabState = tabRoute?.state as NavigationState | undefined;
     const workspaceNav = tabState?.routes.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
     const workspaceNavState = workspaceNav?.state as NavigationState | undefined;
-    const split = workspaceNavState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
-    const splitNoEnterAnimation = (split?.params as {noEnterAnimation?: boolean} | undefined)?.noEnterAnimation;
     const list = workspaceNavState?.routes?.find((r) => r.name === SCREENS.WORKSPACES_LIST);
     return {
         names: workspaceNavState?.routes?.map((r) => r.name),
         index: workspaceNavState?.index,
-        splitNoEnterAnimation,
         listKey: list?.key,
         listParams: list?.params,
         navigatorKey: workspaceNav?.key,
@@ -127,11 +124,9 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(), CONFIG_OPTIONS, stackRouter);
 
         expect(result).not.toBeNull();
-        const {names, index, splitNoEnterAnimation} = getWorkspaceNavInnerRoutes(result);
+        const {names, index} = getWorkspaceNavInnerRoutes(result);
         expect(names).toEqual([SCREENS.WORKSPACES_LIST, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]);
         expect(index).toBe(1);
-        // The revealed split must skip its enter animation so it doesn't slide in over WORKSPACES_LIST (#90985).
-        expect(splitNoEnterAnimation).toBe(true);
         // RHP stays on top of the root stack so its dismiss animation can reveal the new workspace.
         expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
@@ -204,13 +199,9 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         mockStubbedParsedState = makeParsedState(INCOMING_WITH_LIST);
         const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(), CONFIG_OPTIONS, stackRouter);
 
-        const {names, index, splitNoEnterAnimation} = getWorkspaceNavInnerRoutes(result);
+        const {names, index} = getWorkspaceNavInnerRoutes(result);
         expect(names).toEqual([SCREENS.WORKSPACES_LIST, NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]);
         expect(index).toBe(1);
-        // noEnterAnimation is set even though no list is prepended on this path (the prepend branch is
-        // skipped because the incoming first route is already WORKSPACES_LIST), so the reveal still skips
-        // the split's enter animation (#90985).
-        expect(splitNoEnterAnimation).toBe(true);
     });
 
     it('returns null (no-op) when there is no modal on top of the stack', () => {

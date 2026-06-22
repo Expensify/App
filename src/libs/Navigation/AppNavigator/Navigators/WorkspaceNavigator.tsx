@@ -7,7 +7,6 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TabNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import createWorkspaceNavigator from '@navigation/AppNavigator/createWorkspaceNavigator';
-import getRevealScreenOptions from '@navigation/AppNavigator/getRevealScreenOptions';
 import DomainsListPage from '@pages/domain/DomainsListPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -40,10 +39,7 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<TabNavigatorParamL
             />
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                // When the split is pre-inserted under an RHP (workspace creation reveal), skip its enter
-                // animation so it doesn't slide in over WORKSPACES_LIST and flash the list (#90985). Keep
-                // gestureEnabled so iOS swipe-back to the list still works (#93003).
-                options={({route: splitRoute}) => getRevealScreenOptions(splitRoute.params, splitNavigatorOptions)}
+                options={splitNavigatorOptions}
                 component={WorkspaceSplitNavigator}
             />
             <Stack.Screen

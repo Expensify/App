@@ -33,10 +33,10 @@ function WorkspaceConfirmationPage() {
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
-    // On a narrow layout the new workspace is mounted under this RHP and revealed when the modal dismisses
-    // (via revealRouteBeforeDismissingModal in createWorkspaceWithPolicyDraftAndNavigateToIt). The reveal waits
-    // for the new screen to lay out before sliding the RHP out, so we show a spinner on the Confirm button as
-    // immediate feedback. It clears when this page unmounts together with the RHP.
+    // On narrow layout the new workspace is mounted under this RHP and revealed when the modal
+    // dismisses (via revealRouteBeforeDismissingModal). The reveal waits for the new screen to lay
+    // out before sliding the RHP out, so we show a spinner on the Confirm button as immediate
+    // feedback. It clears when this page unmounts together with the RHP.
     const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {

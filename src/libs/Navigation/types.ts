@@ -18,7 +18,6 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type {RevealableUnderRHPParams} from './AppNavigator/getRevealScreenOptions';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -2955,9 +2954,7 @@ type WorkspaceNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.DOMAINS_LIST]: undefined;
-    // `noEnterAnimation` is set when the split is pre-inserted under an RHP (workspace creation reveal),
-    // so WorkspaceNavigator can skip its enter animation and avoid flashing WORKSPACES_LIST (#90985).
-    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList> & RevealableUnderRHPParams;
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
 };
 
