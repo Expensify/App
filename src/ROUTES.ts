@@ -3146,6 +3146,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/itemized-receipt-required-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/itemized-receipt-required-amount` as const,
     },
+    RULES_REQUIRE_RECEIPTS: {
+        route: 'workspaces/:policyID/rules/require-receipts',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-receipts` as const,
+    },
+    RULES_REQUIRE_FIELDS: {
+        route: 'workspaces/:policyID/rules/require-fields',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields` as const,
+    },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,
@@ -3169,6 +3177,10 @@ const ROUTES = {
     RULES_CUSTOM: {
         route: 'workspaces/:policyID/overview/policy',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/policy` as const,
+    },
+    RULES_NEW: {
+        route: 'workspaces/:policyID/rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/new` as const,
     },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
@@ -4094,13 +4106,21 @@ const ROUTES = {
         route: 'domain/:domainAccountID/saml',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
     },
-    DOMAIN_VERIFY: {
-        route: 'domain/:domainAccountID/verify',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verify` as const,
+    DOMAIN_SAML_VERIFY: {
+        route: 'domain/:domainAccountID/saml/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verify` as const,
     },
-    DOMAIN_VERIFIED: {
-        route: 'domain/:domainAccountID/verified',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verified` as const,
+    DOMAIN_SAML_VERIFIED: {
+        route: 'domain/:domainAccountID/saml/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verified` as const,
+    },
+    DOMAIN_MEMBERS_VERIFY: {
+        route: 'domain/:domainAccountID/members/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verify` as const,
+    },
+    DOMAIN_MEMBERS_VERIFIED: {
+        route: 'domain/:domainAccountID/members/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verified` as const,
     },
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',

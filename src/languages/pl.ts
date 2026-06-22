@@ -6729,6 +6729,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',
+            emptyRates: {title: 'Brak stawek za dystans', subtitle: 'Dodaj stawkę do zwrotu kosztów przejechanych kilometrów według niestandardowych stawek.'},
             rate: 'Oceń',
             addRate: 'Dodaj stawkę',
             findRate: 'Znajdź kurs',
@@ -7254,6 +7255,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 saveAnyway: 'Zapisz mimo to',
                 applyToExistingUnsubmittedExpenses: 'Zastosuj do istniejących niewysłanych wydatków',
                 findRule: 'Znajdź regułę sprzedawcy',
+                expenseDefaultsTitle: 'Domyślne ustawienia wydatków',
+                expenseDefaultsSubtitle: 'Aktualizuj pola bez wymagania działania od osoby zgłaszającej',
+                ifAnyExpenseMatches: 'Jeśli którykolwiek wydatek pasuje:',
+                thenApplyFollowingDefaults: 'Następnie zastosuj następujące domyślne ustawienia:',
             },
             categoryRules: {
                 title: 'Reguły kategorii',
@@ -7400,12 +7405,33 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Zablokowane' : 'Dozwolone'} ${shownCount > 1 ? 'kategorie' : 'kategoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
+                defaultRuleSummary: 'Kategorie obejmujące usługi dla dorosłych, bankomaty, hazard i...',
+                findRule: 'Znajdź regułę',
+                defaultSection: 'Domyślne',
+                customRulesSection: 'Własne zasady',
+                tableColumnType: 'Typ',
+                tableColumnCard: 'Karta',
+                tableColumnRule: 'Zasada',
+                cardRulesUpsell: {
+                    title: 'Zdobądź Kartę Expensify i kontroluj wydatki',
+                    subtitle:
+                        'Dzięki Karcie Expensify możesz ustawiać limity wydatków, blokować lub zezwalać na określonych sprzedawców lub typy zakupów. Dostajesz też 2% zwrotu w gotówce.',
+                    cta: 'Zamów kartę',
+                },
+                restrictCardSpendTitle: 'Ogranicz wydatki kartą',
+                restrictCardSpendSubtitle: 'Zablokuj lub ogranicz wydatki w punkcie sprzedaży.',
+                ifAnyCardMatches: 'Jeśli któraś karta pasuje:',
+                thenDoThisAtPointOfSale: 'Następnie zrób to przy kasie:',
+                setRestrictions: 'Ustaw ograniczenia',
+                merchantRestrictions: 'Ograniczenia u sprzedawców',
+                blockedMerchant: 'Zablokowany sprzedawca',
+                blockedMerchantTypes: 'Zablokowane typy sprzedawców',
+                maxAmountAbove: ({amount}: {amount: string}) => `powyżej ${amount}`,
                 restrictMerchants: 'Ograniczaj sprzedawców',
                 merchantTypes: 'Typy sprzedawców',
                 allowedMerchants: 'Dozwoleni sprzedawcy',
                 allowedMerchantTypes: 'Dozwolone typy sprzedawców',
                 blockedMerchants: 'Zablokowani sprzedawcy',
-                blockedMerchantTypes: 'Zablokowane typy sprzedawców',
                 currencies: 'Waluty',
                 permittedCurrencies: 'Dozwolone waluty',
                 allCurrencies: 'Wszystkie waluty',
@@ -7434,6 +7460,73 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 agentCreatedTitle: 'RuleBot został dodany do Twojego obszaru roboczego!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Aby egzekwować Twoje reguły agenta, utworzyliśmy dla Ciebie agenta i dodaliśmy go jako administratora do Twojego obszaru roboczego.<br><br>Edytuj dane swojego agenta w sekcji <a href="${agentsRoute}">Konto &gt; Agenci</a>.</muted-text>`,
+            },
+            tabs: {general: 'Ogólne', cardRestrictions: 'Ograniczenia karty', expenseDefaults: 'Domyślne ustawienia wydatków'},
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Usuń regułę',
+                    other: 'Usuń reguły',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Na pewno chcesz usunąć tę regułę?',
+                    other: 'Na pewno chcesz usunąć te reguły?',
+                }),
+            },
+            generalTab: {
+                title: 'Podstawowe zasady',
+                subtitle: 'Wspólne zasady kontroli wydatków',
+                expensesOlderThan: 'Oznacz wydatki starsze niż',
+                expensesAboveAmount: 'Oznaczaj wydatki powyżej kwoty',
+                flagReceiptLineItems: 'Oznacz pozycje na paragonie',
+                receiptRequirements: 'Wymagaj paragonów',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Zwykłe powyżej ${regularAmount}, z wyszczególnieniem powyżej ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Zwykłe powyżej ${regularAmount}, nie wymagają wyszczególnienia`;
+                    }
+                    if (itemizedAmount) {
+                        return `Nie wymagaj zwykłego, wyszczególnionego powyżej ${itemizedAmount}`;
+                    }
+                    return 'Nie wymagaj paragonów';
+                },
+                requireFieldsForAllExpenses: 'Wymagaj pól dla wszystkich wydatków',
+                cashExpenses: 'Wydatki gotówkowe',
+                cashExpensesReimbursableByDefault: 'Domyślnie podlega zwrotowi',
+                cashExpensesNonReimbursableByDefault: 'Domyślnie nierozliczany',
+                cashExpensesAlwaysReimbursable: 'Zawsze podlegające zwrotowi',
+                cashExpensesAlwaysNonReimbursable: 'Zawsze bez zwrotu kosztów',
+                billableExpenses: 'Fakturowalne wydatki',
+                billableExpensesBillable: 'Gotówkowe i kartowe, do refakturowania',
+                billableExpensesNonBillable: 'Gotówka i karta kredytowa niefakturowane',
+            },
+            requireReceipts: {
+                title: 'Wymagaj paragonów',
+                description: 'Wymagaj paragonów, gdy wydatek przekracza tę kwotę, chyba że zastąpi to reguła kategorii.',
+                requireReceipt: 'Wymagaj paragonu',
+                requireItemizedReceipt: 'Wymagaj wyszczególnionego paragonu',
+                requireAboveAmount: 'Wymagaj kwoty powyżej tej',
+                saveRule: 'Zapisz regułę',
+                emptyAmountError: 'Wpisz prawidłową kwotę przed zapisaniem',
+            },
+            requireFields: {title: 'Wymagaj pól dla wszystkich wydatków', category: 'Kategoria', tag: 'Tag', save: 'Zapisz regułę'},
+            newRule: {
+                title: 'Nowa reguła',
+                subtitle: 'Co chcesz zrobić?',
+                restrictCardSpend: 'Ogranicz wydatki kartą',
+                restrictCardSpendDescription: 'Blokuj lub ograniczaj wydatki w punkcie sprzedaży',
+                applyExpenseDefaults: 'Zastosuj domyślne ustawienia wydatków',
+                applyExpenseDefaultsDescription: 'Aktualizuj pola bez wymagania działania od osoby zgłaszającej',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Typ',
+                tableColumnCondition: 'Warunek',
+                tableColumnRule: 'Zasada',
+                findRule: 'Znajdź regułę',
+                rename: 'Zmień nazwę',
+                update: 'Zaktualizuj',
+                merchantIs: (merchant: string) => `Sprzedawca to „${merchant}”`,
             },
         },
         planTypePage: {
