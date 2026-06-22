@@ -12,7 +12,7 @@ type UsePressLoadingReturn = {
     /** True while the button press is pending or the external loading flag is set, so the spinner stays visible. */
     isLoading: boolean;
     /** Call instead of a bare press handler to show the spinner immediately on press. */
-    startWithLoading: (runAfterPaint: () => void) => void;
+    startWithLoading: (runAfterPaint: () => void) => Promise<void>;
 };
 
 /**
@@ -32,16 +32,17 @@ function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadi
         setIsPressed(false);
     }
     // Defer the work by one macrotask so React can commit isPressed and paint the spinner before the consumer code that may block the JS thread runs.
-    const startWithLoading = (runAfterPaint: () => void) => {
+    const startWithLoading = async (runAfterPaint: () => void) => {
         setIsPressed(true);
-        setTimeout(() => {
-            try {
-                runAfterPaint();
-            } catch (error) {
-                setIsPressed(false);
-                throw error;
-            }
-        }, 0);
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+        try {
+            runAfterPaint();
+        } catch (error) {
+            setIsPressed(false);
+            throw error;
+        }
     };
 
     useFocusEffect(
