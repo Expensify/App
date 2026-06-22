@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
@@ -155,12 +156,17 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         !shouldDeferHeavySearchWork && searchResults !== undefined && isDataLoaded && !!searchDataWithOptimisticTransaction && !(validGroupBy && (isChat || isTask));
 
     // Stage 1: base sections from the (optimistically augmented) snapshot.
-    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = ((): {
+    // Memoized explicitly: React Compiler caches the inline callbacks of these projection stages but NOT
+    // the getSections/getSortedSections/getColumnsToShow call results themselves, so without useMemo each
+    // stage returns a fresh array every render. An unstable `data` reference drives
+    // useStableOptimisticSortedData's setState effect into an infinite render loop during the
+    // optimistic-create flow ("Maximum update depth exceeded").
+    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo<{
         baseFilteredData: SearchListItem[];
         filteredDataLength: number;
         allDataLength: number;
         hasDeletedTransaction: boolean;
-    } => {
+    }>(() => {
         if (!shouldComputeSections || !searchDataWithOptimisticTransaction) {
             return {
                 baseFilteredData: EMPTY_DATA,
@@ -202,18 +208,45 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             allDataLength: allLength,
             hasDeletedTransaction: hasDeletedTransactionFromSections,
         };
-    })();
+    }, [
+        shouldComputeSections,
+        searchDataWithOptimisticTransaction,
+        type,
+        accountID,
+        email,
+        translate,
+        formatPhoneNumber,
+        bankAccountList,
+        validGroupBy,
+        exportReportActions,
+        currentSearchKey,
+        archivedReportsIDSet,
+        queryJSON,
+        isActionLoadingSet,
+        cardFeeds,
+        personalAndWorkspaceCards,
+        nonPersonalAndWorkspaceCards,
+        isOffline,
+        customCardNames,
+        conciergeReportID,
+        onyxPersonalDetailsList,
+        isAttendeesEnabledForMovingPolicy,
+        convertToDisplayString,
+        reportAttributesDerivedValue,
+        optimisticTransactionID,
+    ]);
 
     // Stage 2: for grouped views, fetch each group's sub-snapshot and enrich it with its transactions.
     // validGroupBy guarantees these are group containers (chat/task are guarded out above).
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- guarded by validGroupBy
     const groupItems = validGroupBy ? (baseFilteredData as TransactionGroupListItemType[]) : EMPTY_GROUP_ITEMS;
-    const groupByTransactionHashes = validGroupBy
-        ? groupItems.map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue)
-        : EMPTY_HASHES;
+    const groupByTransactionHashes = useMemo(
+        () => (validGroupBy ? groupItems.map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue) : EMPTY_HASHES),
+        [validGroupBy, groupItems],
+    );
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
 
-    const filteredData = ((): SearchData => {
+    const filteredData = useMemo<SearchData>(() => {
         if (!validGroupBy || isExpenseReportType) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- snapshot rows are a SearchData subset
             return baseFilteredData as SearchData;
@@ -242,11 +275,26 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 transactions: groupTransactions as TransactionListItemType[],
             };
         });
-    })();
+    }, [
+        validGroupBy,
+        isExpenseReportType,
+        baseFilteredData,
+        groupItems,
+        groupByTransactionSnapshots,
+        accountID,
+        email,
+        bankAccountList,
+        translate,
+        formatPhoneNumber,
+        isActionLoadingSet,
+        cardFeeds,
+        conciergeReportID,
+        convertToDisplayString,
+    ]);
 
     // Stage 3: sort the (enriched) data, then stamp the post-create highlight on each row. getSortedSections
     // accepts the full section union; our SearchListItem[] is a compatible subset of that input.
-    const chartData = ((): SearchListItem[] => {
+    const chartData = useMemo<SearchListItem[]>(() => {
         if (!shouldComputeSections) {
             return EMPTY_DATA;
         }
@@ -280,12 +328,30 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
 
             return {...item, shouldAnimateInHighlight, hash};
         });
-    })();
+    }, [
+        shouldComputeSections,
+        type,
+        status,
+        filteredData,
+        localeCompare,
+        translate,
+        sortBy,
+        sortOrder,
+        validGroupBy,
+        policyCategories,
+        policyForMovingExpensesID,
+        isChat,
+        newSearchResultKeys,
+        hash,
+    ]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap for up to
     // OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
+    // Not memoized: unlike the data chain above, `columns` is not part of the render loop, and its
+    // reference is already stabilized downstream by `columnsToShow` in <Search> (which preserves the
+    // previous array when contents are equal). The compiler leaves this fresh per render, which is fine.
     const columns = ((): SearchColumnType[] => {
         if (!searchResults?.data) {
             return EMPTY_COLUMNS;

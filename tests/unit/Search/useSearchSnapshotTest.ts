@@ -18,13 +18,16 @@ jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
     default: () => ({isOffline: false}),
 }));
+// Stable object so the returned helpers keep their identity across renders, mirroring the real
+// useLocalize. The referential-stability test below relies on these not being a memo dependency churn.
+const mockLocalizeValue = {
+    localeCompare: (a: string, b: string) => a.localeCompare(b),
+    formatPhoneNumber: (phone: string) => phone,
+    translate: (key: string) => key,
+};
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({
-        localeCompare: (a: string, b: string) => a.localeCompare(b),
-        formatPhoneNumber: (phone: string) => phone,
-        translate: (key: string) => key,
-    }),
+    default: () => mockLocalizeValue,
 }));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -397,5 +400,36 @@ describe('useSearchSnapshot', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(mockGetSortedSections.mock.calls.at(-1)?.[0]).toBe(type);
         }
+    });
+
+    it('keeps the projected data referentially stable across re-renders with unchanged inputs', () => {
+        // Regression guard for the "Maximum update depth exceeded" crash: the projection stages used to be
+        // bare IIFEs, which React Compiler does not memoize (it only caches the inline .map callbacks), so
+        // they allocated a fresh array every render. An unstable `data` reference drove
+        // useStableOptimisticSortedData's setState effect into an infinite loop on the optimistic-create
+        // path. The stages must be memoized so the reference only changes when inputs change.
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        mockGetSections.mockReturnValue([[{transactionID: '1'}], 1, false]);
+        mockGetSortedSections.mockReturnValue([{transactionID: '1', keyForList: '1'}]);
+
+        // Stable props captured from closure so the re-render below passes identical inputs.
+        const props = {
+            queryJSON: makeQueryJSON(),
+            searchResults,
+            newSearchResultKeys: undefined,
+            transactions: undefined,
+            reportActions: undefined,
+        };
+
+        const {result, rerender} = renderHook(() => useSearchSnapshot(props));
+
+        const firstChartData = result.current.chartData;
+        const firstData = result.current.data;
+
+        rerender({});
+
+        expect(result.current.chartData).toBe(firstChartData);
+        expect(result.current.data).toBe(firstData);
     });
 });
