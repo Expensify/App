@@ -1,5 +1,6 @@
 import navigationRef from '@libs/Navigation/navigationRef';
 
+// Slice of navigation state consumed by useSyncExternalStore to detect guard presence and route-count changes.
 type ModalGuardSnapshot = {
     guardPresent: boolean;
     routesLength: number;

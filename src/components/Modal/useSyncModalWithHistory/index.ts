@@ -4,7 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import {EMPTY_MODAL_GUARD_SNAPSHOT_KEY, getModalGuardSnapshotKey, parseModalGuardSnapshotKey} from './modalGuardSnapshot';
-import reduceModalGuardState, {getModalGuardEventFromSnapshotChange} from './modalGuardState';
+import reduceModalGuardState, {getModalGuardEventFromSnapshotChange, MODAL_GUARD_EFFECT, MODAL_GUARD_STATE} from './modalGuardState';
 import type {ModalGuardState} from './modalGuardState';
 
 type UseSyncModalWithHistoryParams = {
@@ -34,7 +34,7 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
     const modalId = useId();
     const sentinel = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}`;
 
-    const guardStateRef = useRef<ModalGuardState>('closed');
+    const guardStateRef = useRef<ModalGuardState>(MODAL_GUARD_STATE.CLOSED);
 
     const onCloseEvent = useEffectEvent(() => {
         onClose?.();
@@ -49,6 +49,9 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
         () => getModalGuardSnapshotKey(sentinel),
         () => EMPTY_MODAL_GUARD_SNAPSHOT_KEY,
     );
+    // We can't use usePrevious here because we need to imperatively reset this ref mid-effect
+    // (to sync up when shouldHandleNavigationBack is false, so no stale transition fires when
+    // the flag toggles back on). usePrevious only updates after render and is read-only to callers.
     const prevSnapshotKeyRef = useRef(snapshotKey);
 
     // Add the guard entry on open / remove it on close.
@@ -58,7 +61,7 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
         }
 
         if (isVisible) {
-            guardStateRef.current = 'open';
+            guardStateRef.current = MODAL_GUARD_STATE.OPEN;
             Navigation.isNavigationReady().then(() => {
                 navigationRef.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY,
@@ -66,10 +69,10 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
                 });
             });
             return () => {
-                if (guardStateRef.current !== 'open') {
+                if (guardStateRef.current !== MODAL_GUARD_STATE.OPEN) {
                     return;
                 }
-                guardStateRef.current = 'closed';
+                guardStateRef.current = MODAL_GUARD_STATE.CLOSED;
                 navigationRef.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_MODAL_WITH_HISTORY,
                     payload: {isVisible: false, modalId},
@@ -77,10 +80,10 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
             };
         }
 
-        if (guardStateRef.current !== 'open') {
+        if (guardStateRef.current !== MODAL_GUARD_STATE.OPEN) {
             return;
         }
-        guardStateRef.current = 'closingByDispatch';
+        guardStateRef.current = MODAL_GUARD_STATE.CLOSING_BY_DISPATCH;
         // Defer (microtask via isNavigationReady) so any forward navigation fired from the same close
         // handler is dispatched first; the router then consumes our sentinel during that push and this
         // toggle(false) becomes a no-op, avoiding an extra browser back().
@@ -115,9 +118,9 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
         const {state, effect} = reduceModalGuardState(guardStateRef.current, event, isVisible);
         guardStateRef.current = state;
 
-        if (effect === 'onClose') {
+        if (effect === MODAL_GUARD_EFFECT.ON_CLOSE) {
             onCloseEvent();
-        } else if (effect === 'onOpen') {
+        } else if (effect === MODAL_GUARD_EFFECT.ON_OPEN) {
             onOpenEvent();
         }
     }, [snapshotKey, isVisible, shouldHandleNavigationBack]);
