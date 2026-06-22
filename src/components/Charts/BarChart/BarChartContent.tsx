@@ -215,8 +215,8 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                     chartBoundsBottom={chartBoundsBottom}
                 />
                 <ChartYAxisLabels
-                    yTicks={args.yTicks}
-                    yScale={args.yScale}
+                    ticks={args.yTicks}
+                    tickScale={args.yScale}
                     chartBounds={args.chartBounds}
                     fontSize={variables.iconSizeExtraSmall}
                     fontMgr={fontMgr}

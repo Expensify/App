@@ -57,6 +57,9 @@ type UseChartInteractionsProps = {
 
     /** Optional shared value containing the y-axis zero position */
     yZero?: SharedValue<number>;
+
+    /** When true, resolve the active index from cursor Y against pointOY instead of cursor X against pointOX */
+    matchIndexByY?: boolean;
 };
 
 /**
@@ -107,7 +110,7 @@ function findClosestPoint(xValues: number[], targetX: number): number {
  * Uses react native gesture handler gestures directly — no dependency on Victory's actionsRef/handleTouch.
  * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
-function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, resolveLabelTouchX, chartBottom, yZero}: UseChartInteractionsProps) {
+function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, resolveLabelTouchX, chartBottom, yZero, matchIndexByY = false}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState} = useChartInteractionState();
 
@@ -187,10 +190,11 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
                 chartInteractionState.cursor.x.set(e.x);
                 chartInteractionState.cursor.y.set(e.y);
                 const bottom = chartBottom?.get() ?? e.y;
-                const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
                 const ox = pointOX.get();
                 const oy = pointOY.get();
-                const idx = findClosestPoint(ox, touchX);
+                const lookupValues = matchIndexByY ? oy : ox;
+                const lookupCoord = matchIndexByY ? e.y : e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
+                const idx = findClosestPoint(lookupValues, lookupCoord);
                 if (idx >= 0) {
                     chartInteractionState.matchedIndex.set(idx);
                     chartInteractionState.x.position.set(ox.at(idx) ?? 0);
@@ -208,10 +212,11 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
                 // preventing it from jumping to a different point during continuous movement.
                 if (!isCursorOverTarget.get()) {
                     const bottom = chartBottom?.get() ?? e.y;
-                    const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
                     const ox = pointOX.get();
                     const oy = pointOY.get();
-                    const idx = findClosestPoint(ox, touchX);
+                    const lookupValues = matchIndexByY ? oy : ox;
+                    const lookupCoord = matchIndexByY ? e.y : e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
+                    const idx = findClosestPoint(lookupValues, lookupCoord);
                     if (idx >= 0) {
                         chartInteractionState.matchedIndex.set(idx);
                         chartInteractionState.x.position.set(ox.at(idx) ?? 0);
@@ -238,7 +243,9 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
             chartInteractionState.cursor.y.set(e.y);
             const ox = pointOX.get();
             const oy = pointOY.get();
-            const idx = findClosestPoint(ox, e.x);
+            const lookupValues = matchIndexByY ? oy : ox;
+            const lookupCoord = matchIndexByY ? e.y : e.x;
+            const idx = findClosestPoint(lookupValues, lookupCoord);
             if (idx < 0) {
                 return;
             }
@@ -268,13 +275,22 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
      * compose them into their own useAnimatedStyle.
      */
     const initialTooltipPosition = useDerivedValue(() => {
+        const targetX = chartInteractionState.x.position.get();
         const targetY = chartInteractionState.y.y.position.get();
+
+        if (matchIndexByY) {
+            return {
+                x: targetX + TOOLTIP_BAR_GAP,
+                y: targetY,
+            };
+        }
+
         const currentYZero = yZero?.get() ?? targetY;
         // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, currentYZero);
 
         return {
-            x: chartInteractionState.x.position.get(),
+            x: targetX,
             y: barTopY - TOOLTIP_BAR_GAP,
         };
     });

@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -6,10 +6,11 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 import {CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartBottomValueLabels from '@components/Charts/components/ChartBottomValueLabels';
 import ChartCategoryYAxisLabels from '@components/Charts/components/ChartCategoryYAxisLabels';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
+import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import HorizontalBarSeries from '@components/Charts/components/HorizontalBarSeries';
+import BAR_INNER_PADDING, {HORIZONTAL_CHART_TOP_PADDING, HORIZONTAL_ROW_HEIGHT} from '@components/Charts/barChartConstants';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {
     useChartFontManager,
@@ -26,7 +27,6 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import variables from '@styles/variables';
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
-const HORIZONTAL_ROW_HEIGHT = 28;
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 16};
 
 type HorizontalBarChartContentProps = CartesianChartProps & {
@@ -43,14 +43,10 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
     const defaultBarColor = VictoryTheme.colors.default;
     const fontSize = variables.iconSizeExtraSmall;
 
-    const chartData = useMemo(
-        () =>
-            data.map((point, index) => ({
-                x: point.total,
-                y: index,
-            })),
-        [data],
-    );
+    const chartData = data.map((point, index) => ({
+        x: point.total,
+        y: index,
+    }));
 
     const valueAxisDomain = useDynamicYDomain(data);
     const chartDomain = {
@@ -64,19 +60,16 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
         unitPosition: yAxisUnitPosition,
     });
 
-    const categoryLabelWidth = useMemo(() => {
-        if (!fontMgr || data.length === 0) {
-            return 0;
-        }
-
-        return Math.max(
-            ...data.map((point, index) => {
-                const labelWidth = measurements.labelWidths.at(index) ?? 0;
-                const truncated = truncateLabel(point.label, labelWidth, MAX_Y_AXIS_LABEL_WIDTH, measurements.ellipsisWidth);
-                return measureTextWidth(truncated, fontMgr, fontSize);
-            }),
-        );
-    }, [data, fontMgr, fontSize, measurements.ellipsisWidth, measurements.labelWidths]);
+    const categoryLabelWidth =
+        !fontMgr || data.length === 0
+            ? 0
+            : Math.max(
+                  ...data.map((point, index) => {
+                      const labelWidth = measurements.labelWidths.at(index) ?? 0;
+                      const truncated = truncateLabel(point.label, labelWidth, MAX_Y_AXIS_LABEL_WIDTH, measurements.ellipsisWidth);
+                      return measureTextWidth(truncated, fontMgr, fontSize);
+                  }),
+              );
 
     const lineMetrics = fontMgr ? getFontLineMetrics(fontMgr, fontSize) : {ascent: 0, descent: 0};
     const valueAxisLabelHeight = lineMetrics.ascent + lineMetrics.descent;
@@ -87,7 +80,7 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
         ...VictoryTheme.axis.padding,
         left: categoryLabelWidth + VictoryTheme.axis.labelGap + GLYPH_PADDING,
         bottom: valueAxisLabelHeight + VictoryTheme.axis.labelGap + VictoryTheme.axis.padding.bottom,
-        top: VictoryTheme.axis.padding.top + 8,
+        top: VictoryTheme.axis.padding.top + HORIZONTAL_CHART_TOP_PADDING,
     };
 
     const barHeight = useSharedValue(0);
@@ -108,8 +101,8 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
     };
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
-        const rowHeight = (bounds.top - bounds.bottom) / Math.max(1, data.length);
-        barHeight.set(rowHeight * (1 - 0.25));
+        const rowHeight = (bounds.bottom - bounds.top) / Math.max(1, data.length);
+        barHeight.set(rowHeight * (1 - BAR_INNER_PADDING));
         setBoundsLeft(bounds.left);
     };
 
@@ -133,6 +126,7 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
+        matchIndexByY: true,
     });
 
     const handleScaleChange = (scaleX: Scale, scaleY: Scale) => {
@@ -161,9 +155,10 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
                 yScale={args.yScale}
                 labelRightX={boundsLeft > 0 ? boundsLeft : args.chartBounds.left}
             />
-            <ChartBottomValueLabels
-                xTicks={args.xTicks}
-                xScale={args.xScale}
+            <ChartYAxisLabels
+                placement="bottom"
+                ticks={args.xTicks}
+                tickScale={args.xScale}
                 chartBoundsBottom={args.chartBounds.bottom}
                 fontSize={fontSize}
                 fontMgr={fontMgr}
