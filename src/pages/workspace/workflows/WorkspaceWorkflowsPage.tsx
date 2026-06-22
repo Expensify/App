@@ -335,10 +335,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         setWorkflowSearchInput('');
     }, [filteredApprovalWorkflows.length, setWorkflowSearchInput]);
 
+    // Collapse back to the paginated view once the list shrinks to a single batch, so a later regrowth above the batch shows "Load more" again.
+    // Adjusting during render (vs. an effect) is React's recommended pattern for resetting state when data changes and avoids a cascading re-render.
+    if (isWorkflowListExpanded && searchFilteredWorkflows.length <= CONST.WORKFLOW_APPROVALS_INITIAL_BATCH) {
+        setIsWorkflowListExpanded(false);
+    }
+
     // Searching reveals every match, so pagination is bypassed while a query is active. Pressing "Load more" reveals all remaining workflows at once.
     // Trim before deciding so a whitespace-only input doesn't drop pagination while searchFilteredWorkflows is still unfiltered.
     const isSearchingWorkflows = workflowSearchInput.trim().length > 0;
-    const displayedWorkflows = isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
+    // Memoize so a stable reference reaches the optionItems memo below; otherwise the slice() allocates a new array each render and defeats it.
+    const displayedWorkflows = useMemo(
+        () => (isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH)),
+        [isWorkflowListExpanded, isSearchingWorkflows, searchFilteredWorkflows],
+    );
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
