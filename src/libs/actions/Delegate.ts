@@ -24,6 +24,7 @@ import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
+import initializePusher from './initializePusher';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
@@ -131,6 +132,24 @@ type IsConnectedAsDelegateParams = WithDelegatedAccess;
 // Connect as delegate
 type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID;
 
+function initializePusherForDelegateTransition(): Promise<void> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.SESSION,
+            callback: (nextSession) => {
+                if (nextSession?.accountID === undefined) {
+                    return;
+                }
+
+                const nextAccountID = nextSession.accountID;
+
+                Onyx.disconnect(connection);
+                initializePusher(nextAccountID, nextSession.email ?? '').finally(resolve);
+            },
+        });
+    });
+}
+
 /**
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
@@ -218,6 +237,9 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
+                })
+                .then(() => {
+                    initializePusherForDelegateTransition();
                 })
                 .then(() => {
                     confirmReadyToOpenApp();
@@ -318,6 +340,9 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
                     Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
+                })
+                .then(() => {
+                    initializePusherForDelegateTransition();
                 })
                 .then(() => {
                     Onyx.set(ONYXKEYS.CREDENTIALS, {
