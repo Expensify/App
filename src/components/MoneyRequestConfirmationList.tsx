@@ -258,7 +258,7 @@ function MoneyRequestConfirmationList({
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const prevSubRates = usePrevious(subRates);
 
-    const {defaultRate, mileageRate, unit, rate, currency, prevCurrency, distance, shouldCalculateDistanceAmount, hasRoute, isDistanceRequestWithPendingRoute, distanceRequestAmount, commuterExclusionBreakdown} =
+    const {defaultRate, mileageRate, unit, rate, currency, prevCurrency, distance, shouldCalculateDistanceAmount, hasRoute, isDistanceRequestWithPendingRoute, distanceRequestAmount, commuterExclusionData} =
         useDistanceRequestState({
             transaction,
             policy,
@@ -272,22 +272,6 @@ function MoneyRequestConfirmationList({
 
     const shouldShowRateAutoUpdatedTooltip =
         isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
-
-    // Build commuter exclusion data for the distance breakdown display from the hook's computed breakdown
-    const commuterExclusionData = useMemo(() => {
-        if (!commuterExclusionBreakdown) {
-            return null;
-        }
-
-        // Use the same fallback as useDistanceRequestState for consistent unit handling
-        const distanceUnitValue = transaction?.comment?.customUnit?.distanceUnit ?? unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-
-        return {
-            commuterExclusion: commuterExclusionBreakdown.commuterExclusion,
-            reimbursableDistance: commuterExclusionBreakdown.reimbursableDistance,
-            distanceUnit: distanceUnitValue,
-        };
-    }, [commuterExclusionBreakdown, transaction?.comment?.customUnit?.distanceUnit, unit]);
 
     const shouldShowCategories = isTrackExpense
         ? !policy || shouldSelectPolicy || !!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {}))

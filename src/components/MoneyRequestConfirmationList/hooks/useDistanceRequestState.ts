@@ -98,8 +98,8 @@ function useDistanceRequestState({
 
     // When a commuter exclusion applies, the reimbursable amount is based on the distance remaining after the exclusion.
     const amountUnit = unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const commuterExclusionBreakdown = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, distance, amountUnit);
-    const reimbursableDistanceInMeters = commuterExclusionBreakdown ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionBreakdown.reimbursableDistance, amountUnit) : distance;
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionBreakdown(transaction, policy, distance, amountUnit);
+    const reimbursableDistanceInMeters = commuterExclusionData ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, amountUnit) : distance;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, amountUnit, rate ?? 0);
 
@@ -123,7 +123,7 @@ function useDistanceRequestState({
         hasRoute,
         isDistanceRequestWithPendingRoute,
         distanceRequestAmount,
-        commuterExclusionBreakdown,
+        commuterExclusionData,
     };
 }
 
