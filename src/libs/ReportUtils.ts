@@ -154,9 +154,9 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
-    isPolicyMemberWithoutPendingDelete,
     isPolicyOwner,
     isSubmitAndClose,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
     shouldShowPolicy,
 } from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -164,6 +164,7 @@ import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
+    getElsewherePaymentReportActionMessage,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
@@ -417,10 +418,11 @@ type BuildOptimisticIOUReportActionParams = {
     reportActionID?: string;
     // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountIDParam?: number;
+    isSubmitterMarkedPaymentReceived?: boolean;
 };
 
 type OptimisticIOUReportAction = Pick<
-    ReportAction,
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
     | 'actionName'
     | 'actorAccountID'
     | 'automatic'
@@ -1774,6 +1776,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: bool
 
 /**
  * Check if personal detail of accountID is empty or optimistic data
+ * TODO: Remove this function once allPersonalDetails module-level variable is removed (https://github.com/Expensify/App/issues/66413)
  */
 function isOptimisticPersonalDetail(accountID: number): boolean {
     return isEmptyObject(allPersonalDetails?.[accountID]) || !!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail;
@@ -1795,6 +1798,25 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
  */
 function isThread(report: OnyxInputOrEntry<Report>): report is Thread {
     return !!(report?.parentReportID && report?.parentReportActionID);
+}
+
+/**
+ * Returns reportActions filtered to only policy expense chat reports (non-thread).
+ */
+function getAllPolicyExpenseChatReportActions(reports: OnyxCollection<Report>, reportActions: OnyxCollection<ReportActions>) {
+    const filteredReportActions: Record<string, ReportActions> = {};
+    for (const report of Object.values(reports ?? {})) {
+        if (!report?.reportID || !isPolicyExpenseChat(report) || isThread(report)) {
+            continue;
+        }
+        const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`;
+        const actions = reportActions?.[key];
+        if (actions) {
+            filteredReportActions[key] = actions;
+        }
+    }
+
+    return filteredReportActions;
 }
 
 /**
@@ -2314,15 +2336,12 @@ function pushTransactionViolationsOnyxData(
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
-function shouldDisableDetailPage(report: OnyxEntry<Report>): boolean {
+function shouldDisableDetailPage(report: OnyxEntry<Report>, isParticipantOptimistic: boolean): boolean {
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report)) {
         return false;
     }
     if (isOneOnOneChat(report)) {
-        const participantAccountIDs = Object.keys(report?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
-        return isOptimisticPersonalDetail(participantAccountIDs.at(0) ?? -1);
+        return isParticipantOptimistic;
     }
     return false;
 }
@@ -2817,23 +2836,10 @@ function isPayer(
     reportPolicy?: OnyxInputOrEntry<Policy>,
     onlyShowPayElsewhere = false,
 ) {
-    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
+    const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
 
-    // If the report belongs to a workspace, verify the user is still a member
-    // When a user leaves a workspace, they may no longer have access to the policy data,
-    // or the policy.role/employeeList may be stale
-    // Skip this check for IOU reports (personal 1:1 expenses) since they can inherit a policyID
-    // from the chat report but the payer may not be a member of that workspace
-    if (!isIOUReport(iouReport) && iouReport?.policyID && iouReport.policyID !== CONST.POLICY.ID_FAKE) {
-        // No policy data means user likely left the workspace
-        if (!policy) {
-            return false;
-        }
-        // For paid group policies, verify membership via employeeList (only when loaded)
-        // employeeList may be lazily loaded/partial, so only check if it's present
-        if (isPaidGroupPolicy(iouReport) && !isEmptyObject(policy?.employeeList) && !isPolicyMemberWithoutPendingDelete(currentUserEmailParam, policy)) {
-            return false;
-        }
+    if (!policy && !isIOUReport(iouReport) && iouReport?.policyID && iouReport.policyID !== CONST.POLICY.ID_FAKE) {
+        return false;
     }
 
     const policyType = policy?.type;
@@ -4882,7 +4888,10 @@ function canEditMoneyRequest(
         return true;
     }
 
-    const moneyRequestReportID = reportAction?.reportID;
+    // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+    // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+    // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
+    const moneyRequestReportID = reportAction?.reportID ?? originalMessage?.IOUReportID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 
     if (!moneyRequestReportID) {
@@ -5099,7 +5108,10 @@ function canEditFieldOfMoneyRequest({
         return true;
     }
 
-    const iouReportID = reportAction?.reportID;
+    // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+    // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+    // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
+    const iouReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
     const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
@@ -5248,7 +5260,10 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
     // but that bypass should not allow the "Edit expense" action on finalized reports.
     if (isMoneyRequestAction(reportAction)) {
-        const moneyRequestReportID = reportAction?.reportID;
+        // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
+        // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
+        // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882. See https://github.com/Expensify/App/issues/93882.
+        const moneyRequestReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
         if (moneyRequestReportID) {
             const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
             if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {
@@ -5689,7 +5704,7 @@ function getReportPreviewMessage(params: GetReportPreviewMessageBaseParams & {is
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
         }
         if (translatePhraseKey === 'iou.paidElsewhere') {
-            return translateLocal(translatePhraseKey, {payer: payerDisplayName ?? undefined});
+            return getElsewherePaymentReportActionMessage(translateLocal, originalMessage, payerDisplayName ?? undefined);
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
             return translateLocal(translatePhraseKey, formattedAmount, payerDisplayName ?? '');
@@ -7000,6 +7015,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         bankAccountID,
         reportActionID,
         delegateAccountIDParam,
+        isSubmitterMarkedPaymentReceived,
     } = params;
 
     const actionReportID = iouReportID || generateReportID();
@@ -7032,6 +7048,10 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             delete originalMessage.IOUTransactionID;
             delete originalMessage.comment;
             originalMessage.paymentType = paymentType;
+        }
+
+        if (isSubmitterMarkedPaymentReceived) {
+            originalMessage.isSubmitterMarkedPaymentReceived = true;
         }
     }
 
@@ -10563,7 +10583,7 @@ function getIOUReportActionDisplayMessage(
             return translate(translationKey, '', last4Digits);
         }
         if (translationKey === 'iou.paidElsewhere') {
-            return translate(translationKey);
+            return getElsewherePaymentReportActionMessage(translate, originalMessage);
         }
         if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
             return translate(translationKey, '');
@@ -10991,7 +11011,13 @@ function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy>): boolean {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = reportPolicy ?? getPolicy(report?.policyID);
-    const isOwner = (approverAccountID ?? deprecatedCurrentUserAccountID) === report?.ownerAccountID;
+    const accountID = approverAccountID ?? deprecatedCurrentUserAccountID;
+    const isOwner = accountID === report?.ownerAccountID;
+
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report?.ownerAccountID, accountID ?? CONST.DEFAULT_NUMBER_ID)) {
+        return false;
+    }
+
     return !(policy?.preventSelfApproval && isOwner);
 }
 
@@ -13173,6 +13199,7 @@ function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackInten
 
 export {
     areAllRequestsBeingSmartScanned,
+    getAllPolicyExpenseChatReportActions,
     buildConciergeGreetingReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,

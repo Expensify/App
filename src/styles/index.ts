@@ -622,6 +622,14 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeH1,
         },
 
+        exportDownloadTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeLarge,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
         textWhite: {
             color: theme.textLight,
         },
