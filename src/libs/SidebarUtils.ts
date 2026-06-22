@@ -34,6 +34,7 @@ import {
     shouldShowLastActorDisplayName,
 } from './OptionsListUtils';
 import Parser from './Parser';
+import {getPersonalDetailsByID} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -136,6 +137,7 @@ import {
     isActionOfType,
     isCardIssuedAction,
     isInviteOrRemovedAction,
+    isLeavePolicyAction,
     isOldDotReportAction,
     isRenamedAction,
     isTagModificationAction,
@@ -976,6 +978,7 @@ function getOptionData({
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
             report,
+            personalDetails,
             lastActorDetails,
             movedFromReport,
             movedToReport,
@@ -1167,8 +1170,8 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogDefaultReimbursableMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
             result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(translate, lastAction);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
-            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, true);
+        } else if (isLeavePolicyAction(lastAction)) {
+            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, getPersonalDetailsByID(lastAction.actorAccountID, personalDetails), true);
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction && isOldDotReportAction(lastAction)) {
