@@ -6686,6 +6686,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             distance: 'Distancia',
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
+            emptyRates: {title: 'Aún no hay tasas de distancia', subtitle: 'Añade una tasa para reembolsar kilometraje con tasas personalizadas.'},
             rate: 'Tasa',
             addRate: 'Agregar tasa',
             findRate: 'Encontrar tasa',
@@ -6879,6 +6880,13 @@ ${amount} para ${merchant} - ${date}`,
                 description: 'Configura de forma centralizada a quién envían todos los miembros sus gastos al activar las aprobaciones.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las aprobaciones están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            approvalSubmitReport: {
+                title: 'Aprobar informes',
+                description:
+                    'Revisa, aprueba y mantén los gastos bajo control en un solo lugar. Los flujos de aprobación te ayudan a controlar los costes, hacer cumplir las políticas de la empresa y reembolsar a tus empleados más rápido.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Los flujos de aprobación solo están disponibles en el plan Recopilar, desde <strong>${formattedPrice}</strong> por miembro activo al mes.</muted-text>`,
             },
             categories: {
                 title: 'Categorías',

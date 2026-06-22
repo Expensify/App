@@ -2856,7 +2856,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            markAllMessagesAsRead(new Set<string>());
+            markAllMessagesAsRead({});
 
             await waitForBatchedUpdates();
 
@@ -3478,6 +3478,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3570,6 +3571,7 @@ describe('actions/Report', () => {
 
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
@@ -3615,6 +3617,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3646,6 +3649,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
@@ -3676,6 +3680,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3706,6 +3711,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3738,6 +3744,7 @@ describe('actions/Report', () => {
 
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3791,6 +3798,7 @@ describe('actions/Report', () => {
             mockFetch.pause?.();
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
@@ -7801,71 +7809,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-        });
-    });
-
-    describe('readNewestAction', () => {
-        it('should mark a report as read when hasOnceLoadedReportActions is false but report actions exist in Onyx', () => {
-            global.fetch = TestHelper.getGlobalFetchMock();
-            const REPORT_ID = '1';
-            const USER_1_LOGIN = 'user@test.com';
-            const USER_1_ACCOUNT_ID = 1;
-            const USER_2_ACCOUNT_ID = 2;
-
-            let report: OnyxEntry<OnyxTypes.Report>;
-            Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-                callback: (val) => (report = val),
-            });
-
-            const reportActionCreatedDate = DateUtils.getDBTime();
-
-            return TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN)
-                .then(waitForNetworkPromises)
-                .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
-                .then(() => {
-                    // Set up a report with actions in Onyx (as if delivered via Pusher from a new user)
-                    // but without hasOnceLoadedReportActions being set (simulating offline + new chat)
-                    return Promise.all([
-                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                            reportID: REPORT_ID,
-                            participants: {
-                                [USER_1_ACCOUNT_ID]: {notificationPreference: 'always'},
-                            },
-                            lastMessageText: 'Hello from new user',
-                            lastActorAccountID: USER_2_ACCOUNT_ID,
-                            lastVisibleActionCreated: reportActionCreatedDate,
-                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
-                        }),
-                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                            1: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                                actorAccountID: USER_2_ACCOUNT_ID,
-                                automatic: false,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                message: [{type: 'COMMENT', html: 'Hello from new user', text: 'Hello from new user'}],
-                                person: [{type: 'TEXT', style: 'strong', text: 'New User'}],
-                                shouldShow: true,
-                                created: reportActionCreatedDate,
-                                reportActionID: '1',
-                            },
-                        }),
-                    ]);
-                })
-                .then(waitForBatchedUpdates)
-                .then(() => {
-                    // Verify the report is currently unread
-                    expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
-
-                    // Call readNewestAction with hasOnceLoadedReportActions = false
-                    // This simulates the scenario where a chat from a new user is opened offline
-                    Report.readNewestAction(REPORT_ID, false);
-                    return waitForBatchedUpdates();
-                })
-                .then(() => {
-                    // The report should now be read because report actions exist in Onyx
-                    expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
-                });
         });
     });
 

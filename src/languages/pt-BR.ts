@@ -6730,6 +6730,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             distance: 'Distância',
             centrallyManage: 'Gerencie tarifas centralmente, acompanhe em milhas ou quilômetros e defina uma categoria padrão.',
+            emptyRates: {title: 'Ainda não há tarifas de distância', subtitle: 'Adicione uma tarifa para reembolsar quilometragem com taxas personalizadas.'},
             rate: 'Avaliar',
             addRate: 'Adicionar tarifa',
             findRate: 'Encontrar tarifa',
@@ -7033,6 +7034,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 description: 'Configure centralmente para quem todos os membros enviam relatórios ativando as aprovações.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>As aprovações estão disponíveis nos planos Collect e Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            approvalSubmitReport: {
+                title: 'Aprovar relatórios',
+                description:
+                    'Revise, aprove e mantenha os gastos sob controle em um só lugar. Fluxos de aprovação ajudam você a controlar custos, aplicar as políticas da empresa e reembolsar seus funcionários mais rápido.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Os fluxos de aprovação estão disponíveis apenas no plano Collect, a partir de <strong>${formattedPrice}</strong> por membro ativo por mês.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Cartões corporativos',

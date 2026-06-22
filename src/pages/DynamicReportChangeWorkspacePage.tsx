@@ -117,6 +117,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 report,
                 parentReport,
                 policy,
+                personalDetails: {[report.ownerAccountID]: {accountID: report.ownerAccountID}},
                 currentUser: {
                     accountID: currentUserPersonalDetails.accountID,
                     displayName: currentUserPersonalDetails.displayName,
