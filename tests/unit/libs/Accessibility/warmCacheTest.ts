@@ -11,11 +11,20 @@ const appStateListeners: AppStateChangeListener[] = [];
 let mockScreenReaderValue = false;
 let mockReduceMotionValue = false;
 let mockReduceMotionFetchCount = 0;
+let mockScreenReaderDeferred = false;
+const mockScreenReaderResolvers: Array<(value: boolean) => void> = [];
 
 jest.mock('@libs/Log');
 jest.mock('@libs/Accessibility/isScreenReaderEnabled', () => ({
     __esModule: true,
-    default: () => Promise.resolve(mockScreenReaderValue),
+    default: () => {
+        if (mockScreenReaderDeferred) {
+            return new Promise<boolean>((resolve) => {
+                mockScreenReaderResolvers.push(resolve);
+            });
+        }
+        return Promise.resolve(mockScreenReaderValue);
+    },
 }));
 
 jest.mock('react-native', () => ({
@@ -44,6 +53,8 @@ beforeEach(() => {
     mockScreenReaderValue = false;
     mockReduceMotionValue = false;
     mockReduceMotionFetchCount = 0;
+    mockScreenReaderDeferred = false;
+    mockScreenReaderResolvers.length = 0;
 });
 
 function loadModule(): AccessibilityModule {
@@ -107,6 +118,28 @@ describe('Accessibility warm cache — AppState refresh', () => {
         mockScreenReaderValue = true;
         const Accessibility = loadModule();
         await flushPromises();
+        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+    });
+
+    it('discards a superseded in-flight warm fetch on out-of-order resolution (newer value wins)', async () => {
+        mockScreenReaderDeferred = true;
+        const Accessibility = loadModule();
+        expect(mockScreenReaderResolvers).toHaveLength(1);
+
+        emitAppState('background');
+        emitAppState('active');
+        expect(mockScreenReaderResolvers).toHaveLength(2);
+
+        // Refresh (#2) resolves first with SR enabled.
+        mockScreenReaderResolvers[1](true);
+        await flushPromises();
+        expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(true);
+        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+
+        // The superseded initial fetch (#1) resolves later with the obsolete value — must NOT overwrite the refresh result.
+        mockScreenReaderResolvers[0](false);
+        await flushPromises();
+        expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(true);
         expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
     });
 

@@ -400,7 +400,7 @@ describe('handleStateChange — backward', () => {
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
 
-    it('back navigation skips the restore work when the screen reader is known off, even when a trigger was captured', () => {
+    it('back navigation skips the restore work AND consumes the trigger when the screen reader is known off', () => {
         const view = fakeView('display-name');
         notifyPressedTrigger(fakeRef(view));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
@@ -410,6 +410,7 @@ describe('handleStateChange — backward', () => {
                 {key: 'display-name-page', name: 'DisplayName'},
             ]),
         );
+        expect(getTriggerMapSizeForTests()).toBe(1);
 
         mockScreenReaderEnabled = false;
         mockScreenReaderCacheWarmed = true;
@@ -419,6 +420,7 @@ describe('handleStateChange — backward', () => {
         expect(mockTtQueue).toHaveLength(0);
         expect(mockLogWarn).not.toHaveBeenCalled();
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
+        expect(getTriggerMapSizeForTests()).toBe(0);
     });
 
     it('cancels a pending restore when a subsequent backward supersedes it before its transition flushes (rapid double-back)', () => {

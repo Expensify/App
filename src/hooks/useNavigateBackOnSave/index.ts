@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import type {Route} from '@src/ROUTES';
@@ -14,13 +14,13 @@ function useNavigateBackOnSave(
 ): {navigateBack: () => void; armNavigateBack: () => void} {
     const shouldNavigateAfterSaveRef = useRef(false);
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
+    };
 
-    const armNavigateBack = useCallback(() => {
+    const armNavigateBack = () => {
         shouldNavigateAfterSaveRef.current = true;
-    }, []);
+    };
 
     useEffect(() => {
         if (!isSaved || !shouldNavigateAfterSaveRef.current) {

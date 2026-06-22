@@ -19,28 +19,41 @@ function makeWarmCache<T>(
 ): {ensure: () => Promise<void>; reset: () => void; refresh: () => Promise<void>; isWarm: () => boolean} {
     let warm: Promise<void> | null = null;
     let warmed = false;
+    let generation = 0;
     const ensure = () => {
-        warm ??= fetch()
+        if (warm) {
+            return warm;
+        }
+        // Capture at fetch start; a reset/refresh bumps generation, so a superseded resolve sees a mismatch and discards its value.
+        const myGeneration = generation;
+        warm = fetch()
             .then((value) => {
+                if (myGeneration !== generation) {
+                    return;
+                }
                 warmed = true;
                 apply(value);
             })
             .catch((error: unknown) => {
                 Log.warn(`[Accessibility] Failed to warm ${label} cache`, {error});
-                warm = null;
+                if (myGeneration === generation) {
+                    warm = null;
+                }
             });
         return warm;
     };
     return {
         ensure,
-        // reset/refresh invalidate warmed so any in-flight refresh (cold start or AppState resume) is treated as unknown until the new value resolves.
+        // Bump generation so a superseded in-flight fetch can't overwrite the latest value; clear warmed so the warm-up window is treated as unknown.
         reset: () => {
             warm = null;
             warmed = false;
+            generation += 1;
         },
         refresh: () => {
             warm = null;
             warmed = false;
+            generation += 1;
             return ensure();
         },
         isWarm: () => warmed,
