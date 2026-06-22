@@ -37,6 +37,7 @@ const baseParams: Params = {
     isLoadingSelectedTab: false,
     hasVerifiedBlobs: true,
     odometerDraft: undefined,
+    userHasUnsavedTypingRef: {current: false},
 };
 
 describe('useOdometerReadingsState', () => {
@@ -53,6 +54,40 @@ describe('useOdometerReadingsState', () => {
         expect(result.current.formError).toBe('');
         expect(result.current.startReadingRef.current).toBe('100');
         expect(result.current.endReadingRef.current).toBe('250');
+    });
+
+    // After mount the transaction changes elsewhere (e.g. an edit saved from the confirmation step) while nothing is
+    // being typed here. The reconcile effect re-syncs the inputs AND slides the baseline so leaving won't flag it as unsaved.
+    it('on an external transaction change (not typing), re-syncs readings and slides the baseline', () => {
+        const {result, rerender} = renderHook((params: Params) => useOdometerReadingsState(params), {initialProps: baseParams});
+
+        expect(result.current.startReading).toBe('100');
+        expect(result.current.initialStartReadingRef.current).toBe('100');
+
+        rerender({...baseParams, currentTransaction: buildOdometerTransaction({odometerStart: 120, odometerEnd: 300})});
+
+        expect(result.current.startReading).toBe('120');
+        expect(result.current.endReading).toBe('300');
+        // Baseline slides with the external change, so the discard diff stays clean
+        expect(result.current.initialStartReadingRef.current).toBe('120');
+        expect(result.current.initialEndReadingRef.current).toBe('300');
+    });
+
+    // The same external change while the user is mid-typing must NOT clobber their input or move the baseline.
+    it('does not re-sync or slide the baseline on an external change while the user is typing', () => {
+        const typingRef = {current: false};
+        const {result, rerender} = renderHook((params: Params) => useOdometerReadingsState(params), {
+            initialProps: {...baseParams, userHasUnsavedTypingRef: typingRef},
+        });
+
+        act(() => {
+            typingRef.current = true;
+        });
+
+        rerender({...baseParams, userHasUnsavedTypingRef: typingRef, currentTransaction: buildOdometerTransaction({odometerStart: 120, odometerEnd: 300})});
+
+        expect(result.current.startReading).toBe('100');
+        expect(result.current.initialStartReadingRef.current).toBe('100');
     });
 
     it('captures initial baseline refs once blobs are verified and no draft is pending', () => {

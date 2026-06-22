@@ -58,8 +58,6 @@ import useOdometerImageHandlers from './IOURequestStepDistance/hooks/useOdometer
 import useOdometerNavigation from './IOURequestStepDistance/hooks/useOdometerNavigation';
 import useOdometerReadingsState from './IOURequestStepDistance/hooks/useOdometerReadingsState';
 import useOdometerTransactionBackup from './IOURequestStepDistance/hooks/useOdometerTransactionBackup';
-import type {OdometerResyncState} from './IOURequestStepDistance/odometerResync';
-import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from './IOURequestStepDistance/odometerResync';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -180,7 +178,7 @@ function IOURequestStepDistanceOdometer({
         initialEndImageRef,
         resetOdometerLocalState,
         hasInitializedRefs,
-    } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft});
+    } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft, userHasUnsavedTypingRef});
 
     useEffect(() => {
         resetOdometerLocalStateRef.current = resetOdometerLocalState;
@@ -198,63 +196,6 @@ function IOURequestStepDistanceOdometer({
         didSaveEditingConfirmationRef,
         backupHandledManuallyRef: backupHandledManually,
     });
-
-    // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
-    // This updates the current state, but NOT the initial refs (those are set only once on mount)
-    useEffect(() => {
-        const currentStart = currentTransaction?.comment?.odometerStart;
-        const currentEnd = currentTransaction?.comment?.odometerEnd;
-        const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
-        const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
-
-        const resyncState: OdometerResyncState = {
-            transactionStartValue: startValue,
-            transactionEndValue: endValue,
-            localStartValue: startReadingRef.current,
-            localEndValue: endReadingRef.current,
-            transactionStartImageUri: getOdometerImageIdentity(currentTransaction?.comment?.odometerStartImage),
-            transactionEndImageUri: getOdometerImageIdentity(currentTransaction?.comment?.odometerEndImage),
-            baselineStartImageUri: getOdometerImageIdentity(initialStartImageRef.current),
-            baselineEndImageUri: getOdometerImageIdentity(initialEndImageRef.current),
-            hasTransactionData: (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined),
-            hasLocalState: !!(startReadingRef.current || endReadingRef.current),
-            hasInitialized: hasInitializedRefs.current,
-            isUserTyping: userHasUnsavedTypingRef.current,
-            isEditing,
-        };
-
-        const isExternalResync = isExternalOdometerResync(resyncState);
-
-        // Sync the local readings up from the transaction (but never clobber in-progress typing)
-        if (shouldInitializeOdometerFromTransaction(resyncState, isExternalResync) && (startValue || endValue)) {
-            setStartReading(startValue);
-            setEndReading(endValue);
-            startReadingRef.current = startValue;
-            endReadingRef.current = endValue;
-        }
-
-        // Slide the readings baseline on a non-user change (draft hydration, external save) so leaving doesn't flag it as unsaved.
-        // Images aren't slid: their re-mint-invariant diff already ignores re-mints, and sliding would absorb a genuine swap.
-        if (isExternalResync) {
-            initialStartReadingRef.current = startValue;
-            initialEndReadingRef.current = endValue;
-        }
-    }, [
-        currentTransaction?.comment?.odometerStart,
-        currentTransaction?.comment?.odometerEnd,
-        currentTransaction?.comment?.odometerStartImage,
-        currentTransaction?.comment?.odometerEndImage,
-        isEditing,
-        setStartReading,
-        setEndReading,
-        startReadingRef,
-        endReadingRef,
-        initialStartReadingRef,
-        initialEndReadingRef,
-        initialStartImageRef,
-        initialEndImageRef,
-        hasInitializedRefs,
-    ]);
 
     const navigateToNextStep = useOdometerNavigation({
         iouType,
