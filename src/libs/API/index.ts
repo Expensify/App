@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
-import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {readUpdateIDFrom, resolveDuplicationConflictAction, resolveEnableFeatureConflicts, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, LoadTest, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
@@ -194,18 +194,6 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
     };
 
     return write(command, apiCommandParameters, onyxData, conflictResolver);
-}
-
-/**
- * Read the `updateIDFrom` coverage marker off untyped reconnect params via `in`-narrowing (no cast),
- * so the incoming request carries the same value the resolver reads. Returns it raw. The resolver's
- * `reconnectCoverageFrom` owns the single place that interprets it as a coverage number.
- */
-function readUpdateIDFrom(params: unknown): unknown {
-    if (typeof params === 'object' && params !== null && 'updateIDFrom' in params) {
-        return params.updateIDFrom;
-    }
-    return undefined;
 }
 
 /**

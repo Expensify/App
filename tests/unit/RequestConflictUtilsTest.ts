@@ -246,7 +246,9 @@ describe('RequestConflictUtils', () => {
             ['incremental(500)', 'full', 'push', incrementalReconnect(500), fullReconnect()],
             ['incremental(500)', 'incremental(400)', 'push', incrementalReconnect(500), incrementalReconnect(400)],
             ['OpenApp', 'incremental', 'noAction', openApp(), incrementalReconnect(500)],
-            ['OpenApp', 'OpenApp', 'noAction', openApp(), openApp()],
+            // An incoming OpenApp is never dropped: its successData carries caller-specific writes
+            // coverage can't see (see resolveReconnectDuplicationConflictAction), so this case pushes.
+            ['OpenApp', 'OpenApp', 'push', openApp(), openApp()],
             ['incremental', 'OpenApp', 'push', incrementalReconnect(500), openApp()],
         ])('live %s vs incoming %s -> %s', (_live, _incoming, expected, live: AnyRequest, incoming: AnyRequest) => {
             // Decided against the in-flight (ongoing) request.

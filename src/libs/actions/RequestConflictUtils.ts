@@ -120,14 +120,24 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
     };
 }
 
-const reconnectFamilyCommands = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP]);
-
 function isReconnectFamilyRequest(request: AnyRequest | null | undefined): request is AnyRequest {
-    return !!request && reconnectFamilyCommands.has(request.command);
+    return !!request && (request.command === WRITE_COMMANDS.OPEN_APP || request.command === WRITE_COMMANDS.RECONNECT_APP);
 }
 
 function isOpenAppRequest(request: AnyRequest): boolean {
     return request.command === WRITE_COMMANDS.OPEN_APP;
+}
+
+/**
+ * Read the `updateIDFrom` coverage marker off untyped reconnect params via `in`-narrowing (no cast),
+ * so the incoming request the API builds carries the same value the resolver reads. Returns it raw;
+ * `reconnectCoverageFrom` below is the single place that interprets it as a coverage number.
+ */
+function readUpdateIDFrom(params: unknown): unknown {
+    if (typeof params === 'object' && params !== null && 'updateIDFrom' in params) {
+        return params.updateIDFrom;
+    }
+    return undefined;
 }
 
 /**
@@ -148,24 +158,24 @@ function reconnectCoverageFrom(request: AnyRequest): number {
  * generic resolver leaves open (it scans the waiting queue only) and is the durable convergence point
  * for the reconnect family. Preserve and extend it in the SequentialQueue refactor; do not delete it.
  *
- * A live request covers the incoming one when it refetches at least as far back, with one asymmetry:
- * an incoming OpenApp alone owns IS_LOADING_APP / HAS_LOADED_APP, which a plain reconnect never sets,
- * so it is only covered by another OpenApp, never by a reconnect.
+ * Two asymmetries:
+ * - An incoming OpenApp is never dropped. Its `successData` can carry caller-specific preservation
+ *   writes that coverage cannot see (coverage only measures how far back the server refetch reaches),
+ *   so collapsing one OpenApp onto another could silently drop them.
+ * - A live OpenApp covers an incoming ReconnectApp, since it refetches everything. A reconnect that
+ *   lands while an OpenApp is live is still dropped.
  */
 function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, incomingRequest: AnyRequest): ConflictActionData {
-    const incomingCoverage = reconnectCoverageFrom(incomingRequest);
-    const incomingIsOpenApp = isOpenAppRequest(incomingRequest);
-    const liveReconnects = [ongoingRequest, ...persistedRequests].filter(isReconnectFamilyRequest);
+    if (isOpenAppRequest(incomingRequest)) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
 
-    const isCovered = liveReconnects.some((live) => {
-        if (reconnectCoverageFrom(live) > incomingCoverage) {
-            return false;
-        }
-        if (incomingIsOpenApp && !isOpenAppRequest(live)) {
-            return false;
-        }
-        return true;
-    });
+    const incomingCoverage = reconnectCoverageFrom(incomingRequest);
+    const isCovered = [ongoingRequest, ...persistedRequests].some((live) => isReconnectFamilyRequest(live) && reconnectCoverageFrom(live) <= incomingCoverage);
 
     if (isCovered) {
         return {
@@ -343,6 +353,7 @@ export {
     resolveDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
+    readUpdateIDFrom,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,

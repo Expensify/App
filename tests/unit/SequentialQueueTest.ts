@@ -517,7 +517,7 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('ReconnectApp');
 
-            // OpenApp alone owns IS_LOADING_APP / HAS_LOADED_APP, so a reconnect can never cover it.
+            // An incoming OpenApp is never dropped: its successData carries preservation writes coverage can't see.
             await SequentialQueue.push(makeReconnectRequest({command: 'OpenApp'}));
 
             expect(getLength()).toBe(2);
