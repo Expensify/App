@@ -51,7 +51,7 @@ On mobile:
 1. Forward the receipt email to [receipts@expensify.com](mailto:receipts@expensify.com).
 2. Include the account owner's email address in the subject line.
 
-The receipt is automatically routed to the account owner's account.
+The receipt is automatically Smartcanned to the account owner's Expensify account.
 
 ## What happens after you switch to a Copilot account
 
@@ -70,11 +70,11 @@ When acting as a Copilot:
 
 ## Can I access multiple accounts as a Copilot?
 
-Yes. If multiple members grant you Copilot access, you can switch between those accounts from your account switcher.
+Yes. If multiple members grant you Copilot access, you can switch between those accounts. 
 
 ## How do I know I'm acting as a Copilot?
 
-A dual-avatar indicator appears in the bottom-left corner when you're viewing another member's account as a Copilot.
+An airplane icon indicator appears over your profile image when you're viewing another member's account as a Copilot.
 
 ## Why can't I perform certain actions?
 
