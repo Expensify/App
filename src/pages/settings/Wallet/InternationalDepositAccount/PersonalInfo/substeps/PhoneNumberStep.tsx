@@ -4,7 +4,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalBankAccountDetailsFormSubmit from '@hooks/usePersonalBankAccountDetailsFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getFieldRequiredErrors, isValidNANPPhone, isValidPhoneNumber} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -14,7 +14,7 @@ import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
 
-type PhoneNumberStepProps = SubStepProps & {
+type PhoneNumberStepProps = SubPageProps & {
     /** Whether to delay auto-focusing the input to avoid conflicts with navigation animations */
     shouldDelayAutoFocus?: boolean;
 

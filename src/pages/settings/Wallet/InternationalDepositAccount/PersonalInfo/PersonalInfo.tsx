@@ -1,15 +1,19 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@navigation/Navigation';
 import {addPersonalBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import LegalName from './substeps/LegalNameStep';
@@ -18,9 +22,16 @@ import PhoneNumber from './substeps/PhoneNumberStep';
 import PlaidBankAccount from './substeps/PlaidBankAccountStep';
 import getSkippedStepsPersonalInfo from './utils/getSkippedStepsPersonalInfo';
 
-const bodyContentInfoSet: Array<React.ComponentType<SubStepProps>> = [LegalName, Address, PhoneNumber, Confirmation];
-const bodyContentWithPlaid: Array<React.ComponentType<SubStepProps>> = [PlaidBankAccount, ...bodyContentInfoSet];
-const bodyContentWithManualSetup: Array<React.ComponentType<SubStepProps>> = [ManualBankAccountDetails, ...bodyContentInfoSet];
+const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
+
+const infoPages = [
+    {pageName: SUB_PAGE_NAMES.LEGAL_NAME, component: LegalName},
+    {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
+    {pageName: SUB_PAGE_NAMES.PHONE_NUMBER, component: PhoneNumber},
+    {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
+];
+const pagesWithPlaid = [{pageName: SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT, component: PlaidBankAccount}, ...infoPages];
+const pagesWithManualSetup = [{pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS, component: ManualBankAccountDetails}, ...infoPages];
 
 const DEFAULT_OBJECT = {};
 const ACCOUNT_OWNERSHIP_ERROR_SUBSTRING = 'account ownership';
@@ -62,32 +73,33 @@ function PersonalInfoPage() {
         addPersonalBankAccount(accountData, personalPolicyID);
     };
 
-    const skipSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
+    const pages = isManual ? pagesWithManualSetup : pagesWithPlaid;
+    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails)
+        .map((index) => pages.at(index)?.pageName)
+        .filter((pageName): pageName is NonNullable<typeof pageName> => !!pageName);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        moveTo,
-        screenIndex,
-        goToTheLastStep,
-    } = useSubStep({
-        bodyContent: isManual ? bodyContentWithManualSetup : bodyContentWithPlaid,
-        skipSteps,
+    // This flow is rendered by two screens, so the substep URL must be built for whichever route is currently active.
+    const route = useRoute();
+    const buildRoute = (pageName: string, action?: 'edit') =>
+        route.name === SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT ? ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(pageName, action) : ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(pageName, action);
+
+    const {CurrentPage, isEditing, nextPage, prevPage, moveTo, pageIndex, isRedirecting} = useSubPage<SubPageProps>({
+        pages,
+        skipPages,
         onFinished: submitBankAccountForm,
+        buildRoute,
     });
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
+            moveTo(pages.length - 1, false);
             return;
         }
-        if (screenIndex === 0) {
+        if (pageIndex === 0) {
             Navigation.goBack();
             return;
         }
-        prevScreen();
+        prevPage();
     };
 
     useEffect(() => {
@@ -102,15 +114,19 @@ function PersonalInfoPage() {
         };
     }, [error]);
 
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'PersonalInfoPage', isRedirecting}} />;
+    }
+
     return (
         <InteractiveStepWrapper
             wrapperID={PersonalInfoPage.displayName}
             headerTitle={translate('bankAccount.addBankAccount')}
             handleBackButtonPress={handleBackButtonPress}
         >
-            <SubStep
+            <CurrentPage
                 isEditing={isEditing}
-                onNext={nextScreen}
+                onNext={nextPage}
                 onMove={moveTo}
             />
         </InteractiveStepWrapper>
