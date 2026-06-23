@@ -163,13 +163,8 @@ describe('BaseVacationDelegateSelectionComponent', () => {
         expect(selectionListProps?.initialScrollIndex).toBe(0);
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
         expect(selectionListProps?.sections.flatMap((section) => section.data).filter((item) => item.login === mockDelegateDetails.login)).toHaveLength(1);
-        expect(mockedUsePersonalDetailSearchSelector).toHaveBeenCalledWith(
-            expect.objectContaining({
-                excludeLogins: expect.not.objectContaining({
-                    [mockDelegateDetails.login]: true,
-                }),
-            }),
-        );
+        const searchSelectorConfig = mockedUsePersonalDetailSearchSelector.mock.calls.at(0)?.at(0);
+        expect(searchSelectorConfig?.excludeLogins?.[mockDelegateDetails.login]).not.toBe(true);
     });
 
     it('keeps the initial delegate pinned while the live selected delegate changes in place', () => {
