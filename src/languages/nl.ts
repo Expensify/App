@@ -8244,6 +8244,46 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         customUnitRateDateRangeFrom: (date: string) => `vanaf ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `tot ${date}`,
         customUnitRateDateRangeAllDates: () => `voor alle data`,
+        policyCopy: {
+            overview: (sourcePolicyName: string) => `overzicht gekopieerd van ${sourcePolicyName}`,
+            employees: (sourcePolicyName: string) => `leden gekopieerd van ${sourcePolicyName}`,
+            reportFields: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 rapportveld gekopieerd van ${sourcePolicyName}`,
+                other: (count: number) => `${count} rapportvelden gekopieerd van ${sourcePolicyName}`,
+            }),
+            accounting: (sourcePolicyName: string) => `boekhoudinstellingen gekopieerd van ${sourcePolicyName}`,
+            receiptPartners: (sourcePolicyName: string) => `instelling bonpartner gekopieerd van ${sourcePolicyName}`,
+            hr: (sourcePolicyName: string) => `HR-instellingen gekopieerd van ${sourcePolicyName}`,
+            categories: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 categorie gekopieerd van ${sourcePolicyName}`,
+                other: (count: number) => `${count} categorieën gekopieerd van ${sourcePolicyName}`,
+            }),
+            tags: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 label gekopieerd van ${sourcePolicyName}`,
+                other: (count: number) => `${count} tags gekopieerd van ${sourcePolicyName}`,
+            }),
+            taxes: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 belastingtarief gekopieerd van ${sourcePolicyName}`,
+                other: (count: number) => `heeft ${count} btw-tarieven gekopieerd van ${sourcePolicyName}`,
+            }),
+            timeTracking: (sourcePolicyName: string) => `tijdregistratie-instellingen gekopieerd van ${sourcePolicyName}`,
+            workflows: (sourcePolicyName: string) => `gekopieerde workflows van ${sourcePolicyName}`,
+            rules: (sourcePolicyName: string) => `regels gekopieerd van ${sourcePolicyName}`,
+            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 leveranciersregel gekopieerd van ${sourcePolicyName}`,
+                other: (count: number) => `heeft ${count} leveranciersregels gekopieerd van ${sourcePolicyName}`,
+            }),
+            distanceRates: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 kilometervergoeding gekopieerd van ${sourcePolicyName}`,
+                other: (count: number) => `heeft ${count} kilometertarieven gekopieerd van ${sourcePolicyName}`,
+            }),
+            perDiem: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 dagvergoeding gekopieerd uit ${sourcePolicyName}`,
+                other: (count: number) => `${count} dagvergoedingen gekopieerd van ${sourcePolicyName}`,
+            }),
+            invoices: (sourcePolicyName: string) => `factuurinstellingen gekopieerd van ${sourcePolicyName}`,
+            travel: (sourcePolicyName: string) => `reiskosteninstellingen gekopieerd van ${sourcePolicyName}`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -9773,7 +9813,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

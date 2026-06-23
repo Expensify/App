@@ -8178,6 +8178,46 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `${date} から`,
         customUnitRateDateRangeUntilEnd: (date: string) => `${date}まで`,
         customUnitRateDateRangeAllDates: () => `すべての日付に対して`,
+        policyCopy: {
+            overview: (sourcePolicyName: string) => `${sourcePolicyName} から概要をコピーしました`,
+            employees: (sourcePolicyName: string) => `${sourcePolicyName} からメンバーをコピーしました`,
+            reportFields: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `${sourcePolicyName} からレポート項目を 1 件コピーしました`,
+                other: (count: number) => `${sourcePolicyName} からレポート項目を ${count} 件コピーしました`,
+            }),
+            accounting: (sourcePolicyName: string) => `${sourcePolicyName} から会計設定をコピーしました`,
+            receiptPartners: (sourcePolicyName: string) => `${sourcePolicyName} から領収書パートナー設定をコピーしました`,
+            hr: (sourcePolicyName: string) => `${sourcePolicyName} から人事設定をコピーしました`,
+            categories: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `${sourcePolicyName} からカテゴリを 1 件コピーしました`,
+                other: (count: number) => `${sourcePolicyName} から ${count} 件のカテゴリをコピーしました`,
+            }),
+            tags: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `${sourcePolicyName} からタグを 1 件コピーしました`,
+                other: (count: number) => `${sourcePolicyName} から ${count} 個のタグをコピーしました`,
+            }),
+            taxes: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `${sourcePolicyName} から税率を 1 件コピーしました`,
+                other: (count: number) => `${sourcePolicyName} から税率を ${count} 件コピーしました`,
+            }),
+            timeTracking: (sourcePolicyName: string) => `${sourcePolicyName} からタイムトラッキング設定をコピーしました`,
+            workflows: (sourcePolicyName: string) => `${sourcePolicyName} からワークフローをコピーしました`,
+            rules: (sourcePolicyName: string) => `${sourcePolicyName} からルールをコピーしました`,
+            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `${sourcePolicyName} から取引先ルールを 1 件コピーしました`,
+                other: (count: number) => `${sourcePolicyName} から ${count} 件の取引先ルールをコピーしました`,
+            }),
+            distanceRates: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `${sourcePolicyName} から距離レートを1件コピーしました`,
+                other: (count: number) => `${sourcePolicyName} から距離レートを ${count} 件コピーしました`,
+            }),
+            perDiem: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `${sourcePolicyName} から日当レートを1件コピーしました`,
+                other: (count: number) => `${sourcePolicyName} から日当レートを ${count} 件コピーしました`,
+            }),
+            invoices: (sourcePolicyName: string) => `${sourcePolicyName} から請求書の設定をコピーしました`,
+            travel: (sourcePolicyName: string) => `${sourcePolicyName} から出張設定をコピーしました`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -9684,7 +9724,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

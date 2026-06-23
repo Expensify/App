@@ -8235,6 +8235,46 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         customUnitRateDateRangeFrom: (date: string) => `de ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `até ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas as datas`,
+        policyCopy: {
+            overview: (sourcePolicyName: string) => `visão geral copiada de ${sourcePolicyName}`,
+            employees: (sourcePolicyName: string) => `copiou membros de ${sourcePolicyName}`,
+            reportFields: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copiou 1 campo de relatório de ${sourcePolicyName}`,
+                other: (count: number) => `copiou ${count} campos de relatório de ${sourcePolicyName}`,
+            }),
+            accounting: (sourcePolicyName: string) => `configurações de contabilidade copiadas de ${sourcePolicyName}`,
+            receiptPartners: (sourcePolicyName: string) => `configurações de parceiro de recibos copiadas de ${sourcePolicyName}`,
+            hr: (sourcePolicyName: string) => `copiou as configurações de RH de ${sourcePolicyName}`,
+            categories: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copiou 1 categoria de ${sourcePolicyName}`,
+                other: (count: number) => `copiou ${count} categorias de ${sourcePolicyName}`,
+            }),
+            tags: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copiou 1 etiqueta de ${sourcePolicyName}`,
+                other: (count: number) => `copiou ${count} tags de ${sourcePolicyName}`,
+            }),
+            taxes: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copiou 1 alíquota de imposto de ${sourcePolicyName}`,
+                other: (count: number) => `copiou ${count} taxas de imposto de ${sourcePolicyName}`,
+            }),
+            timeTracking: (sourcePolicyName: string) => `copiou as configurações de controle de horas de ${sourcePolicyName}`,
+            workflows: (sourcePolicyName: string) => `fluxos de trabalho copiados de ${sourcePolicyName}`,
+            rules: (sourcePolicyName: string) => `regras copiadas de ${sourcePolicyName}`,
+            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copiou 1 regra de comerciante de ${sourcePolicyName}`,
+                other: (count: number) => `copiou ${count} regras de comerciante de ${sourcePolicyName}`,
+            }),
+            distanceRates: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copiou 1 taxa de distância de ${sourcePolicyName}`,
+                other: (count: number) => `copiou ${count} taxas de distância de ${sourcePolicyName}`,
+            }),
+            perDiem: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copiou 1 tarifa de diária de ${sourcePolicyName}`,
+                other: (count: number) => `copiou ${count} taxas de diária de ${sourcePolicyName}`,
+            }),
+            invoices: (sourcePolicyName: string) => `configurações de fatura copiadas de ${sourcePolicyName}`,
+            travel: (sourcePolicyName: string) => `configurações de viagem copiadas de ${sourcePolicyName}`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -9762,7 +9802,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

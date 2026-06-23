@@ -8077,6 +8077,46 @@ ${amount} para ${merchant} - ${date}`,
         customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
+        policyCopy: {
+            overview: (sourcePolicyName: string) => `copió la descripción general de ${sourcePolicyName}`,
+            employees: (sourcePolicyName: string) => `copió miembros de ${sourcePolicyName}`,
+            reportFields: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `se copió 1 campo de informe desde ${sourcePolicyName}`,
+                other: (count: number) => `copió ${count} campos de informe de ${sourcePolicyName}`,
+            }),
+            accounting: (sourcePolicyName: string) => `copió la configuración de contabilidad de ${sourcePolicyName}`,
+            receiptPartners: (sourcePolicyName: string) => `copió la configuración de socios de recibos de ${sourcePolicyName}`,
+            hr: (sourcePolicyName: string) => `copió la configuración de RR. HH. de ${sourcePolicyName}`,
+            categories: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copió 1 categoría de ${sourcePolicyName}`,
+                other: (count: number) => `copió ${count} categorías de ${sourcePolicyName}`,
+            }),
+            tags: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `se copió 1 etiqueta de ${sourcePolicyName}`,
+                other: (count: number) => `copió ${count} etiquetas de ${sourcePolicyName}`,
+            }),
+            taxes: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `se copió 1 tasa de impuestos de ${sourcePolicyName}`,
+                other: (count: number) => `copió ${count} tasas de impuestos de ${sourcePolicyName}`,
+            }),
+            timeTracking: (sourcePolicyName: string) => `copió la configuración de registro de tiempo de ${sourcePolicyName}`,
+            workflows: (sourcePolicyName: string) => `copió los flujos de trabajo de ${sourcePolicyName}`,
+            rules: (sourcePolicyName: string) => `reglas copiadas de ${sourcePolicyName}`,
+            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copió 1 regla de comercio de ${sourcePolicyName}`,
+                other: (count: number) => `copió ${count} reglas de comercio de ${sourcePolicyName}`,
+            }),
+            distanceRates: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `se copió 1 tarifa de distancia de ${sourcePolicyName}`,
+                other: (count: number) => `copió ${count} tarifas por distancia de ${sourcePolicyName}`,
+            }),
+            perDiem: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `copió 1 Per diem Tasa de ${sourcePolicyName}`,
+                other: (count: number) => `copió ${count} tasas de per diem de ${sourcePolicyName}`,
+            }),
+            invoices: (sourcePolicyName: string) => `copió la configuración de facturas de ${sourcePolicyName}`,
+            travel: (sourcePolicyName: string) => `copió la configuración de viaje de ${sourcePolicyName}`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

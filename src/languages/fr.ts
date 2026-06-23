@@ -8322,6 +8322,46 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateDateRangeFrom: (date: string) => `à partir du ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `jusqu’au ${date}`,
         customUnitRateDateRangeAllDates: () => `pour toutes les dates`,
+        policyCopy: {
+            overview: (sourcePolicyName: string) => `aperçu copié depuis ${sourcePolicyName}`,
+            employees: (sourcePolicyName: string) => `a copié les membres depuis ${sourcePolicyName}`,
+            reportFields: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 champ de note de frais copié depuis ${sourcePolicyName}`,
+                other: (count: number) => `${count} champs de note de frais copiés depuis ${sourcePolicyName}`,
+            }),
+            accounting: (sourcePolicyName: string) => `paramètres comptables copiés depuis ${sourcePolicyName}`,
+            receiptPartners: (sourcePolicyName: string) => `a copié les paramètres de reçu partenaire depuis ${sourcePolicyName}`,
+            hr: (sourcePolicyName: string) => `paramètres RH copiés depuis ${sourcePolicyName}`,
+            categories: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 catégorie copiée depuis ${sourcePolicyName}`,
+                other: (count: number) => `${count} catégories copiées depuis ${sourcePolicyName}`,
+            }),
+            tags: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 tag copié depuis ${sourcePolicyName}`,
+                other: (count: number) => `${count} tags copiés depuis ${sourcePolicyName}`,
+            }),
+            taxes: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 taux de taxe copié depuis ${sourcePolicyName}`,
+                other: (count: number) => `a copié ${count} taux de taxe depuis ${sourcePolicyName}`,
+            }),
+            timeTracking: (sourcePolicyName: string) => `paramètres de suivi du temps copiés depuis ${sourcePolicyName}`,
+            workflows: (sourcePolicyName: string) => `workflows copiés depuis ${sourcePolicyName}`,
+            rules: (sourcePolicyName: string) => `règles copiées depuis ${sourcePolicyName}`,
+            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 règle de commerçant copiée depuis ${sourcePolicyName}`,
+                other: (count: number) => `a copié ${count} règles de commerçant depuis ${sourcePolicyName}`,
+            }),
+            distanceRates: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `1 taux de distance copié depuis ${sourcePolicyName}`,
+                other: (count: number) => `${count} taux de distance copiés depuis ${sourcePolicyName}`,
+            }),
+            perDiem: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `a copié 1 taux de per diem depuis ${sourcePolicyName}`,
+                other: (count: number) => `a copié ${count} taux journaliers de ${sourcePolicyName}`,
+            }),
+            invoices: (sourcePolicyName: string) => `paramètres de facturation copiés depuis ${sourcePolicyName}`,
+            travel: (sourcePolicyName: string) => `paramètres de déplacement copiés depuis ${sourcePolicyName}`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -9851,7 +9891,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

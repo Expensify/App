@@ -8237,6 +8237,46 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateDateRangeFrom: (date: string) => `od ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `do ${date}`,
         customUnitRateDateRangeAllDates: () => `dla wszystkich dat`,
+        policyCopy: {
+            overview: (sourcePolicyName: string) => `skopiowano podsumowanie z ${sourcePolicyName}`,
+            employees: (sourcePolicyName: string) => `skopiowano członków z ${sourcePolicyName}`,
+            reportFields: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `skopiowano 1 pole raportu z ${sourcePolicyName}`,
+                other: (count: number) => `skopiowano ${count} pola raportu z ${sourcePolicyName}`,
+            }),
+            accounting: (sourcePolicyName: string) => `skopiowano ustawienia księgowe z ${sourcePolicyName}`,
+            receiptPartners: (sourcePolicyName: string) => `skopiowano ustawienia partnera paragonów z ${sourcePolicyName}`,
+            hr: (sourcePolicyName: string) => `skopiowano ustawienia HR z ${sourcePolicyName}`,
+            categories: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `skopiowano 1 kategorię z ${sourcePolicyName}`,
+                other: (count: number) => `skopiowano ${count} kategorie z ${sourcePolicyName}`,
+            }),
+            tags: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `skopiowano 1 znacznik z ${sourcePolicyName}`,
+                other: (count: number) => `skopiowano ${count} tagów z ${sourcePolicyName}`,
+            }),
+            taxes: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `skopiowano 1 stawkę podatku z ${sourcePolicyName}`,
+                other: (count: number) => `skopiowano ${count} stawki podatkowe z ${sourcePolicyName}`,
+            }),
+            timeTracking: (sourcePolicyName: string) => `skopiowano ustawienia śledzenia czasu z ${sourcePolicyName}`,
+            workflows: (sourcePolicyName: string) => `skopiowano schematy pracy z ${sourcePolicyName}`,
+            rules: (sourcePolicyName: string) => `skopiowano zasady z ${sourcePolicyName}`,
+            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `skopiowano 1 regułę sprzedawcy z ${sourcePolicyName}`,
+                other: (count: number) => `skopiowano ${count} reguł sprzedawcy z ${sourcePolicyName}`,
+            }),
+            distanceRates: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `skopiowano 1 stawkę za dystans z ${sourcePolicyName}`,
+                other: (count: number) => `skopiowano ${count} stawki za przejazd z ${sourcePolicyName}`,
+            }),
+            perDiem: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                one: `skopiowano 1 stawkę ryczałtową z ${sourcePolicyName}`,
+                other: (count: number) => `skopiowano ${count} stawki diet z ${sourcePolicyName}`,
+            }),
+            invoices: (sourcePolicyName: string) => `skopiowano ustawienia faktur z ${sourcePolicyName}`,
+            travel: (sourcePolicyName: string) => `skopiowano ustawienia podróży z ${sourcePolicyName}`,
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -9758,7 +9798,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
