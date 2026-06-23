@@ -117,6 +117,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
 
         const reportOwnerByReportID = new Map<string, number | undefined>();
         const reportTypeByReportID = new Map<string, string | undefined>();
+        const reportChatTypeByReportID = new Map<string, string | undefined>();
         const snapshotTransactions: Transaction[] = [];
         const snapshotReportActions: ReportAction[] = [];
         // Snapshot data is a keyed record where the key prefix determines the value type.
@@ -132,6 +133,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 if (report?.reportID) {
                     reportOwnerByReportID.set(report.reportID, report.ownerAccountID);
                     reportTypeByReportID.set(report.reportID, report.type);
+                    reportChatTypeByReportID.set(report.reportID, report.chatType);
                 }
                 continue;
             }
@@ -170,14 +172,20 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             .slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT)
             .map((transaction) => {
                 const reportType = reportTypeByReportID.get(transaction.reportID);
+                const isFromExpenseReport = reportType === CONST.REPORT.TYPE.EXPENSE;
+                // Self-DM and unreported (tracked) expenses support signed amounts like expense reports, so their
+                // sign must be preserved too. Without this, a self-DM credit/refund is collapsed to its absolute
+                // value and loses its negative sign.
+                const isFromTrackedExpense =
+                    transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || reportChatTypeByReportID.get(transaction.reportID) === CONST.REPORT.CHAT_TYPE.SELF_DM;
                 return {
                     transactionID: transaction.transactionID,
                     reportID: transaction.reportID,
                     created: getCreated(transaction),
                     merchant: getMerchantName(transaction, translate),
-                    // Expense-report transactions are stored with an inverted sign, so the displayed amount must be
-                    // negated when the parent report is an expense report (mirrors the Search transaction list).
-                    amount: getAmount(transaction, reportType === CONST.REPORT.TYPE.EXPENSE),
+                    // Expense-report, self-DM, and tracked transactions are stored with an inverted sign, so the
+                    // displayed amount must be negated for them (mirrors the Search transaction list).
+                    amount: getAmount(transaction, isFromExpenseReport, isFromTrackedExpense),
                     currency: getCurrency(transaction),
                     threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
                     transaction,
