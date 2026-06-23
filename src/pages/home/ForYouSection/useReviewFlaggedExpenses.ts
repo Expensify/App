@@ -1,10 +1,14 @@
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {EMPTY_FLAGGED_EXPENSES_REVIEW, flaggedExpensesReviewSelector} from '@src/selectors/Todos';
+import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
+import type TransactionViolations from '@src/types/onyx/TransactionViolation';
 
 type ReviewFlaggedExpenses = {
     /** Number of flagged expenses awaiting review, used to decide whether to render the review row */
@@ -14,24 +18,137 @@ type ReviewFlaggedExpenses = {
     reviewExpenses: () => void;
 };
 
+/** A transaction that should surface in the "Review X expenses" row, paired with its parent report. */
+type FlaggedExpense = {
+    /** ID of the flagged transaction */
+    transactionID: string;
+    /** ID of the parent expense report */
+    reportID: string;
+};
+
 /**
- * Encapsulates the data plumbing for the "Review X expenses" row in the For You section: it reads the
- * flagged-expenses review summary plus the first flagged expense's report, report actions, and transaction,
- * and exposes a bound handler that navigates to the transaction thread (single-expense RHP + review carousel).
+ * Returns true when this report is an OPEN/OPEN expense report owned by the current user.
+ *
+ * `currentUserAccountID` is required. Callers should pass `session?.accountID ?? CONST.DEFAULT_NUMBER_ID`
+ * so that the ownership check fails closed when the session is not yet populated (no real ownerAccountID is 0).
+ */
+function isCurrentUserOpenExpenseReport(report: Report | null | undefined, currentUserAccountID: number): boolean {
+    if (!report) {
+        return false;
+    }
+    if (report.type !== CONST.REPORT.TYPE.EXPENSE) {
+        return false;
+    }
+    if (report.ownerAccountID !== currentUserAccountID) {
+        return false;
+    }
+    return report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+}
+
+/** Returns true when at least one visible violation should surface in the "Review X expenses" row. */
+function hasReviewableViolation(violations: TransactionViolations | null | undefined): boolean {
+    if (!violations || violations.length === 0) {
+        return false;
+    }
+
+    return violations.some((violation) => {
+        if (!violation) {
+            return false;
+        }
+        if (violation.showInReview === false) {
+            return false;
+        }
+        if (violation.name === CONST.REPORT_VIOLATIONS.FIELD_REQUIRED) {
+            return false;
+        }
+        if (violation.type === CONST.VIOLATION_TYPES.NOTICE || violation.type === CONST.VIOLATION_TYPES.WARNING) {
+            return violation.showInReview === true;
+        }
+        return true;
+    });
+}
+
+/**
+ * Scans the current user's OPEN expense reports for transactions that have at least one reviewable violation.
+ *
+ * This used to be the `flaggedExpenses` Onyx derived value, which recomputed app-wide on every change to the
+ * report/transaction/violation/policy collections. It now lives in the only consumer (ForYouSection) so the
+ * work runs solely while Home is mounted.
+ */
+function getFlaggedExpenses(
+    allReports: OnyxCollection<Report>,
+    allTransactions: OnyxCollection<Transaction>,
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
+    allPolicies: OnyxCollection<Policy>,
+    session: OnyxEntry<Session>,
+): FlaggedExpense[] {
+    if (!allReports || !allTransactions) {
+        return [];
+    }
+
+    const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const currentUserEmail = session?.email ?? '';
+    const flaggedExpenses: FlaggedExpense[] = [];
+
+    for (const transactionKey of Object.keys(allTransactions)) {
+        const transaction = allTransactions[transactionKey];
+        if (!transaction?.transactionID || !transaction.reportID) {
+            continue;
+        }
+
+        const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        if (!isCurrentUserOpenExpenseReport(report, currentUserAccountID)) {
+            continue;
+        }
+
+        const violations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+        if (!violations || violations.length === 0) {
+            continue;
+        }
+
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const visibleViolations = getVisibleTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
+        if (!hasReviewableViolation(visibleViolations)) {
+            continue;
+        }
+
+        flaggedExpenses.push({transactionID: transaction.transactionID, reportID: transaction.reportID});
+    }
+
+    return flaggedExpenses;
+}
+
+/**
+ * Encapsulates the data plumbing for the "Review X expenses" row in the For You section: it scans the current
+ * user's OPEN expense reports for flagged transactions, then reads the first flagged expense's report, report
+ * actions, and transaction, and exposes a bound handler that navigates to the transaction thread
+ * (single-expense RHP + review carousel).
  */
 function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
-    const [review = EMPTY_FLAGGED_EXPENSES_REVIEW] = useOnyx(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {selector: flaggedExpensesReviewSelector});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+
+    const flaggedExpenses = useMemo(
+        () => getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session),
+        [allReports, allTransactions, allTransactionViolations, allPolicies, session],
+    );
+
+    const firstFlaggedExpense = flaggedExpenses.at(0);
+    const firstReportID = firstFlaggedExpense?.reportID;
+    const firstTransactionID = firstFlaggedExpense?.transactionID;
 
     // Load the first flagged expense's parent report, its actions, and the transaction itself so the shared
     // navigation hook can resolve (or optimistically create) the transaction thread.
-    const [firstFlaggedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(review.firstReportID)}`);
-    const [firstFlaggedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(review.firstReportID)}`);
-    const [firstFlaggedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(review.firstTransactionID)}`);
+    const [firstFlaggedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(firstReportID)}`);
+    const [firstFlaggedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(firstReportID)}`);
+    const [firstFlaggedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(firstTransactionID)}`);
 
     const navigateToTransactionThread = useNavigateToTransactionThread();
 
     const reviewExpenses = useCallback(() => {
-        const {firstTransactionID, firstReportID, transactionIDs} = review;
         if (!firstTransactionID || !firstReportID) {
             return;
         }
@@ -40,12 +157,13 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
             reportActions: Object.values(firstFlaggedReportActions ?? {}),
             report: firstFlaggedReport,
             transaction: firstFlaggedTransaction,
-            siblingTransactionIDs: transactionIDs,
+            siblingTransactionIDs: flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID),
             backTo: ROUTES.HOME,
         });
-    }, [review, firstFlaggedReportActions, firstFlaggedReport, firstFlaggedTransaction, navigateToTransactionThread]);
+    }, [firstTransactionID, firstReportID, flaggedExpenses, firstFlaggedReportActions, firstFlaggedReport, firstFlaggedTransaction, navigateToTransactionThread]);
 
-    return {count: review.count, reviewExpenses};
+    return {count: flaggedExpenses.length, reviewExpenses};
 }
 
 export default useReviewFlaggedExpenses;
+export {getFlaggedExpenses};

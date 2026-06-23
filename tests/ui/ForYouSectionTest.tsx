@@ -7,7 +7,8 @@ import ForYouSection from '@pages/home/ForYouSection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {FlaggedExpensesDerivedValue, TodosDerivedValue} from '@src/types/onyx';
+import type {TodosDerivedValue, TransactionViolations} from '@src/types/onyx';
+import {createMockReport} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -82,7 +83,30 @@ const BASE_TODOS: TodosDerivedValue = {
     transactionsByReportID: {},
 };
 
-const EMPTY_FLAGGED_EXPENSES: FlaggedExpensesDerivedValue = {flaggedExpenses: []};
+/**
+ * Seeds the Onyx collections the ForYouSection hook scans so that each provided transaction surfaces as a
+ * flagged expense: an OPEN/OPEN expense report owned by the current user, a transaction on it, and a
+ * reviewable (MISSING_CATEGORY) violation. Mirrors the data shape exercised in FlaggedExpensesTest.
+ */
+async function seedFlaggedExpenses(...expenses: Array<{transactionID: string; reportID: string}>) {
+    const violations: TransactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}];
+    await Promise.all(
+        expenses.flatMap(({transactionID, reportID}) => [
+            Onyx.set(
+                `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                createMockReport({
+                    reportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                }),
+            ),
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {transactionID, reportID, amount: 100, currency: 'USD', created: '2024-01-01', merchant: 'Test Merchant'}),
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations),
+        ]),
+    );
+}
 
 function renderForYouSection() {
     return render(<ForYouSection />);
@@ -134,7 +158,6 @@ describe('ForYouSection', () => {
         it('renders EmptyState when there are no todos', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -152,7 +175,6 @@ describe('ForYouSection', () => {
                     ...BASE_TODOS,
                     reportsToSubmit: [{reportID: '1'} as TodosDerivedValue['reportsToSubmit'][number]],
                 });
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -165,9 +187,7 @@ describe('ForYouSection', () => {
         it('renders with the count-1 string when exactly one expense is flagged', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                    flaggedExpenses: [{transactionID: 't1', reportID: 'r1'}],
-                });
+                await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -180,13 +200,7 @@ describe('ForYouSection', () => {
         it('renders with the count-N string when multiple expenses are flagged', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                    flaggedExpenses: [
-                        {transactionID: 't1', reportID: 'r1'},
-                        {transactionID: 't2', reportID: 'r2'},
-                        {transactionID: 't3', reportID: 'r3'},
-                    ],
-                });
+                await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'}, {transactionID: 't3', reportID: 'r3'});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -205,9 +219,7 @@ describe('ForYouSection', () => {
                     reportsToPay: [{reportID: 'p1'} as TodosDerivedValue['reportsToPay'][number]],
                     reportsToExport: [{reportID: 'e1'} as TodosDerivedValue['reportsToExport'][number]],
                 });
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                    flaggedExpenses: [{transactionID: 't1', reportID: 'r1'}],
-                });
+                await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -233,9 +245,7 @@ describe('ForYouSection', () => {
         it('exposes a Begin CTA and uses the ReceiptSearch icon asset', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                    flaggedExpenses: [{transactionID: 't1', reportID: 'r1'}],
-                });
+                await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -255,13 +265,7 @@ describe('ForYouSection', () => {
         it('delegates to useNavigateToTransactionThread with the first flagged expense and all sibling transaction IDs', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                    flaggedExpenses: [
-                        {transactionID: 't1', reportID: 'r1'},
-                        {transactionID: 't2', reportID: 'r2'},
-                    ],
-                });
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}r1`, {reportID: 'r1'});
+                await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}r1`, {
                     action1: {
                         reportActionID: 'action1',
@@ -270,7 +274,6 @@ describe('ForYouSection', () => {
                         message: {IOUTransactionID: 't1'},
                     },
                 });
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t1`, {transactionID: 't1', reportID: 'r1'});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -294,24 +297,29 @@ describe('ForYouSection', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        it('does not call the hook when there is no flagged transaction or report', async () => {
+        it('does not render the review row or navigate when a violated transaction is not on a current-user OPEN expense report', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
-                // count > 0 keeps the row rendered, but the first transaction/report are missing
-                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, {
-                    flaggedExpenses: [{transactionID: '', reportID: ''}],
-                });
+                // Submitted (not OPEN) report: the transaction has a violation but must not be flagged.
+                await Onyx.set(
+                    `${ONYXKEYS.COLLECTION.REPORT}r1`,
+                    createMockReport({
+                        reportID: 'r1',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        ownerAccountID: ACCOUNT_ID,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    }),
+                );
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}t1`, {transactionID: 't1', reportID: 'r1'});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}t1`, [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}]);
             });
             await waitForBatchedUpdatesWithAct();
 
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            const beginButton = screen.queryByText('Begin');
-            if (beginButton) {
-                fireEvent.press(beginButton);
-            }
-
+            expect(screen.queryByText(/homePage\.forYouSection\.reviewExpenses/)).not.toBeOnTheScreen();
             expect(mockNavigateToTransactionThread).not.toHaveBeenCalled();
         });
     });
