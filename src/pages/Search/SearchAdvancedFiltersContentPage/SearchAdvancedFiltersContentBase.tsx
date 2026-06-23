@@ -95,7 +95,8 @@ function SearchAdvancedFiltersContentBase() {
             validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
             validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
             validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL
         ) {
             return CONFIRM_BUTTON_HEIGHT;
         }
