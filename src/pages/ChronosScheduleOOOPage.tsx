@@ -1,5 +1,5 @@
 import {addDays, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import DatePicker from '@components/DatePicker';
@@ -7,6 +7,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -103,6 +104,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [durationAmount, setDurationAmount] = useState('');
+    const durationAmountRef = useRef<NumberWithSymbolFormRef | null>(null);
     const ancestors = useAncestors(report);
 
     const durationUnitItems = useMemo(
@@ -166,6 +168,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             }
             setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
             setDurationAmount(String(days));
+            durationAmountRef.current?.updateNumber(String(days));
         },
         [startDate],
     );
@@ -288,6 +291,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         onValueChange={(value) => handleDurationAmountChange(value as string)}
                         onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
                         isCurrencyPressable
+                        numberFormRef={durationAmountRef}
                     />
                     <ValueSelectorModal
                         isVisible={isDurationUnitModalVisible}
