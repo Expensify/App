@@ -15,6 +15,7 @@ import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
+import {requestPusherReinitialize} from '@libs/requestPusherReinitialize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +25,6 @@ import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
-import initializePusher from './initializePusher';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
@@ -60,23 +60,6 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 function clearOnyxForDelegateTransition(): Promise<void> {
     return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {
         [ONYXKEYS.IS_LOADING_APP]: true,
-    });
-}
-function initializePusherForDelegateTransition(): Promise<void> {
-    return new Promise((resolve) => {
-        const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.SESSION,
-            callback: (nextSession) => {
-                if (nextSession?.accountID === undefined) {
-                    return;
-                }
-
-                const nextAccountID = nextSession.accountID;
-
-                Onyx.disconnect(connection);
-                initializePusher(nextAccountID, nextSession.email ?? '').finally(resolve);
-            },
-        });
     });
 }
 
@@ -240,7 +223,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 .then(() => {
                     confirmReadyToOpenApp();
                     return openApp()
-                        .then(() => initializePusherForDelegateTransition())
+                        .then(() => requestPusherReinitialize())
                         .then(() => {
                             if (!CONFIG.IS_HYBRID_APP || !policyID) {
                                 return true;
@@ -348,7 +331,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
                     openApp()
-                        .then(() => initializePusherForDelegateTransition())
+                        .then(() => requestPusherReinitialize())
                         .then(() => {
                             if (!CONFIG.IS_HYBRID_APP) {
                                 return;
