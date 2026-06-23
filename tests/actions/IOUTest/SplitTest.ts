@@ -1260,6 +1260,7 @@ describe('split expense', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -1766,6 +1767,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -1886,6 +1888,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2018,6 +2021,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2185,6 +2189,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2249,6 +2254,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2411,6 +2417,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2522,6 +2529,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -2694,6 +2702,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: reportID1,
@@ -2829,6 +2838,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: reportID2,
@@ -3014,6 +3024,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3192,6 +3203,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3384,6 +3396,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3599,6 +3612,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3782,6 +3796,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3915,6 +3930,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -4046,6 +4062,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -4222,6 +4239,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -4288,6 +4306,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
@@ -4545,6 +4564,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
@@ -4654,6 +4674,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports2,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
@@ -4725,6 +4746,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
@@ -4788,6 +4810,7 @@ describe('updateSplitTransactions', () => {
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
