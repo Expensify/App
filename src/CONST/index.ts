@@ -1033,7 +1033,6 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
-        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
@@ -1392,7 +1391,7 @@ const CONST = {
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
-    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings',
+    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
@@ -5286,6 +5285,8 @@ const CONST = {
         WAYPOINT: {width: 40, height: 40},
     },
 
+    MAP_VIEW_COMPASS_SIZE: {width: 44, height: 44},
+
     QUICK_REACTIONS: [
         {
             name: '+1',
@@ -6074,6 +6075,7 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        GPS_ROUTE_ANIMATION_DURATION_MS: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,
     },
     ONYX_UPDATE_TYPES: {
@@ -8374,6 +8376,9 @@ const CONST = {
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
         },
+        MAP_VIEW: {
+            COMPASS: 'compass',
+        },
         MONEY_REQUEST: {
             AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
             AMOUNT_PAY_BUTTON: 'MoneyRequest-AmountPayButton',
@@ -8876,6 +8881,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'Connect Expensify to ChatGPT, Claude, Cursor',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
+                publishedDate: '2026-06-08',
+            },
+            {
                 title: 'Policy upload, card freeze, and bulk editing',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
@@ -8886,12 +8897,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
                 publishedDate: '2026-05-21',
-            },
-            {
-                title: 'Expensify and Playroll Partner to Eliminate Compliance Complexity',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
-                publishedDate: '2026-05-19',
             },
         ],
     },
@@ -8914,7 +8919,11 @@ const CONST = {
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
         ROUTE_BORDER: 'route-border',
+        WAYPOINTS_SOURCE: 'waypoints-source',
+        WAYPOINTS: 'waypoints',
     },
+
+    MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',
 
     PARTNER_ID: {
         EXPENSIFY: 1,

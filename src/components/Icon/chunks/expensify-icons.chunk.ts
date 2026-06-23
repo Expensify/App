@@ -63,6 +63,7 @@ import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
+import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
@@ -275,6 +276,7 @@ import Zoom from '@assets/images/zoom.svg';
 // These icons are React components because they have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
+import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocationPuck';
 import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
 import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
 import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
@@ -412,6 +414,7 @@ const Expensicons = {
     MakeAdmin,
     Map,
     MapCurrentLocation,
+    MapCurrentLocationPuck,
     MapStartWaypoint,
     MapStopWaypoint,
     MapWaypoint,
@@ -557,6 +560,7 @@ const Expensicons = {
     LuggageWithLinesPlus,
     TreasureChestGreenWithSparkle,
     UserShield,
+    Compass,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons
