@@ -10,6 +10,7 @@ import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches, getSuggestedSearchesVisibility, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy, Report} from '@src/types/onyx';
@@ -129,7 +130,7 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
 }
 
 function useYourSpendData(): UseYourSpendDataReturn {
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, email} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
@@ -361,9 +362,20 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
+    // The `cardFeedsByPolicy` and `defaultExpensifyCard` params are not passed
+    // because they have no effect on the `TODO_SEARCH_KEYS` (and we are only interested in `TODO_SEARCH_KEYS`)
+    const suggestedSearchesVisibility = getSuggestedSearchesVisibility(email, {}, policies, undefined).visibility;
+    const suggestedSearches = getSuggestedSearches(accountID);
+
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = `${isApprovalApplicable ? 1 : 0}${isPaymentApplicable ? 1 : 0}|${paidGroupPolicyIDs.join(',')}|${outstandingReportsSignature ?? ''}`;
+    const applicabilityKey = [
+        isApprovalApplicable ? 1 : 0,
+        isPaymentApplicable ? 1 : 0,
+        paidGroupPolicyIDs.join(','),
+        outstandingReportsSignature ?? '',
+        [...TODO_SEARCH_KEYS].map((k) => (suggestedSearchesVisibility[k] ? 1 : 0)).join(''),
+    ].join('|');
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
@@ -406,6 +418,25 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 shouldUpdateLastSearchParams: false,
             });
         }
+        for (const searchKey of TODO_SEARCH_KEYS) {
+            const isVisible = suggestedSearchesVisibility[searchKey];
+            if (!isVisible) {
+                continue;
+            }
+            const queryJSON = suggestedSearches[searchKey].searchQueryJSON;
+            if (!queryJSON) {
+                continue;
+            }
+            search({
+                queryJSON,
+                searchKey,
+                offset: 0,
+                isOffline,
+                isLoading: false,
+                shouldCalculateTotals: false,
+                shouldUpdateLastSearchParams: false,
+            });
+        }
     });
 
     useEffect(() => {
@@ -413,7 +444,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
             return;
         }
         fireSearches();
-    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey]);
+    }, [isFocused, isOffline, displayableCardIDsKey, applicabilityKey, accountID]);
 
     return {
         approvalRowState,
