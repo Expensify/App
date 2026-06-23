@@ -7,9 +7,7 @@ import {MAX_INITIAL_FOCUS_FRAMES} from '@libs/focusReturnTimings';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import type UseScreenInitialFocus from './types';
 
-/*
- * Off-screen Pressables (Growls, pre-animation drawers) pass attribute checks; geometry rules them out.
- */
+/** Geometry guard for off-screen Pressables (Growls, pre-animation drawers) that pass attribute checks. */
 function isOnScreen(el: HTMLElement): boolean {
     const rect = el.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
@@ -24,9 +22,8 @@ function isOnScreen(el: HTMLElement): boolean {
     return true;
 }
 
-/*
- * Mobile-web counterpart to `useDialogContainerFocus` (RHP-only): focuses `node` once after `didScreenTransitionEnd`.
- * Takes the attached node (not a ref) so late attachment — skeleton → real header, Suspense — re-runs the effect.
+/**
+ * Mobile-web focus on `node` once after `didScreenTransitionEnd`. Takes a node (not a ref) so late attachment re-runs the effect.
  * Hover-capable devices gate on Tab (WCAG 2.4.7); touch-primary devices bypass.
  */
 const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {

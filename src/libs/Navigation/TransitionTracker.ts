@@ -3,6 +3,8 @@ import CONST from '@src/CONST';
 
 type TransitionHandle = symbol;
 
+type TransitionKind = 'navigation' | 'other';
+
 type CancelHandle = {cancel: () => void};
 
 type RunAfterTransitionsOptions = {
@@ -12,11 +14,12 @@ type RunAfterTransitionsOptions = {
     /** If true, the callback fires synchronously regardless of any active transitions. Defaults to false. */
     runImmediately?: boolean;
 
-    /** Wait for a transition before running the callback — the next one to start if none is active yet, else the active one to end. Defaults to false. */
+    /** Wait for a navigation transition before running the callback — the next one to start if none is active yet, else the active one to end. Defaults to false. */
     waitForUpcomingTransition?: boolean;
 };
 
-const activeTransitions = new Map<TransitionHandle, ReturnType<typeof setTimeout>>();
+const activeTransitions = new Map<TransitionHandle, {timeout: ReturnType<typeof setTimeout>; kind: TransitionKind}>();
+let activeNavigationCount = 0;
 
 let pendingCallbacks: Array<() => void | Promise<void>> = [];
 
@@ -61,25 +64,33 @@ function decrementAndFlush(): void {
  * Increments the active transition count and returns a handle that must be passed to {@link endTransition}.
  * Multiple overlapping transitions are tracked independently.
  * Each transition automatically ends after {@link CONST.MAX_TRANSITION_DURATION_MS} as a safety net.
+ * Pass `'navigation'` for screen transitions; default `'other'` covers keyboard / modal / layout and doesn't signal `waitForUpcomingTransition`.
  */
-function startTransition(): TransitionHandle {
+function startTransition(kind: TransitionKind = 'other'): TransitionHandle {
     const handle: TransitionHandle = Symbol('transition');
 
-    const resolve = nextTransitionStartResolve;
-    if (resolve) {
-        nextTransitionStartResolve = null;
-        promiseForNextTransitionStart = new Promise<void>((r) => {
-            nextTransitionStartResolve = r;
-        });
-        resolve();
+    if (kind === 'navigation') {
+        const resolve = nextTransitionStartResolve;
+        if (resolve) {
+            nextTransitionStartResolve = null;
+            promiseForNextTransitionStart = new Promise<void>((r) => {
+                nextTransitionStartResolve = r;
+            });
+            resolve();
+        }
+        activeNavigationCount += 1;
     }
 
     const timeout = setTimeout(() => {
+        const entry = activeTransitions.get(handle);
         activeTransitions.delete(handle);
+        if (entry?.kind === 'navigation') {
+            activeNavigationCount -= 1;
+        }
         decrementAndFlush();
     }, CONST.MAX_TRANSITION_DURATION_MS);
 
-    activeTransitions.set(handle, timeout);
+    activeTransitions.set(handle, {timeout, kind});
 
     return handle;
 }
@@ -91,13 +102,16 @@ function startTransition(): TransitionHandle {
  * If the handle is unknown (already ended or already expired via safety timeout), this is a no-op.
  */
 function endTransition(handle: TransitionHandle): void {
-    const timeout = activeTransitions.get(handle);
-    if (timeout === undefined) {
+    const entry = activeTransitions.get(handle);
+    if (!entry) {
         return;
     }
 
-    clearTimeout(timeout);
+    clearTimeout(entry.timeout);
     activeTransitions.delete(handle);
+    if (entry.kind === 'navigation') {
+        activeNavigationCount -= 1;
+    }
     decrementAndFlush();
 }
 
@@ -112,8 +126,8 @@ function endTransition(handle: TransitionHandle): void {
  * @returns A handle with a `cancel` method to prevent the callback from firing.
  */
 function runAfterTransitions({callback, runImmediately = false, waitForUpcomingTransition = false}: RunAfterTransitionsOptions): CancelHandle {
-    // If a transition is already active (web fires transitionStart before the navigation state event), wait for it to end rather than a next start that never comes — which would hit the timeout.
-    if (waitForUpcomingTransition && activeTransitions.size === 0) {
+    // If a navigation transition is already active (web fires transitionStart before the navigation state event), wait for it to end rather than a next start that never comes. Non-nav transitions are excluded — their end could flush callbacks before the nav transition starts.
+    if (waitForUpcomingTransition && activeNavigationCount === 0) {
         let cancelled = false;
         let innerHandle: CancelHandle | null = null;
 

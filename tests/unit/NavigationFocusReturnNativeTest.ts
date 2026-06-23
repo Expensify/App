@@ -336,7 +336,6 @@ describe('handleStateChange — backward', () => {
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
         flushTransitions();
 
-        // Deeplink-style forward (no fresh trigger) + back: the skipped entry must not resurface.
         handleStateChange(
             stackState(1, [
                 {key: 'profile', name: 'Profile'},
@@ -365,7 +364,6 @@ describe('handleStateChange — backward', () => {
     });
 
     it('does NOT call sendAccessibilityEvent when the captured ref has been nulled (Pressable unmounted)', () => {
-        // The ref's `.current` going null is the ref-pass-through analog of a detached view.
         const detachedRef = fakeRef(null);
         notifyPressedTrigger(detachedRef);
         const prev = stackState(0, [{key: 'profile', name: 'Profile'}]);
@@ -489,11 +487,9 @@ describe('handleStateChange — backward', () => {
             ]),
         );
 
-        // User presses Back on B (stages the back-button ref), then navigates back.
         notifyPressedTrigger(fakeRef(fakeView('back-button')), 'Back');
         handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
 
-        // A press-less forward within the TTL must capture nothing — the Back press was consumed by the backward nav.
         handleStateChange(
             stackState(1, [
                 {key: 'A', name: 'A'},
@@ -633,11 +629,9 @@ describe('PUSH_PARAMS — same-route param change', () => {
     it('clears the staged press on a PUSH_PARAMS backward so a later press-less forward cannot reuse it', () => {
         handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
 
-        // User presses Back/Save (stages the ref), then a PUSH_PARAMS back reverts params.
         notifyPressedTrigger(fakeRef(fakeView('back-button')), 'Back');
         notifyPushParamsBackward('A', {q: 'old'});
 
-        // A press-less forward within the TTL must capture nothing.
         handleStateChange(
             stackState(1, [
                 {key: 'A', name: 'A'},
@@ -758,7 +752,6 @@ describe('pressable registry — identifier-based fallback', () => {
         handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
         flushTransitions();
 
-        // Two frames pass with the registry still empty — a single-frame retry would already have dropped the entry.
         jest.advanceTimersByTime(20);
         jest.advanceTimersByTime(20);
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
@@ -834,7 +827,6 @@ describe('pressable registry — identifier-based fallback', () => {
             ]),
         );
 
-        // Screen detaches (captured ref nulled), then remounts with several rows sharing the same "Edit" label.
         detachedRef.current = null;
         registerPressable('A', 'Edit', fakeRef(fakeView('row-1-edit')));
         registerPressable('A', 'Edit', fakeRef(fakeView('row-2-edit')));
@@ -843,7 +835,6 @@ describe('pressable registry — identifier-based fallback', () => {
         flushTransitions();
         jest.advanceTimersByTime(200);
 
-        // Ambiguous identifier → focus nothing rather than an arbitrary row; the entry is dropped after the budget.
         expect(mockFireFocusEvent).not.toHaveBeenCalled();
         expect(getTriggerMapSizeForTests()).toBe(0);
     });
@@ -860,7 +851,6 @@ describe('pressable registry — identifier-based fallback', () => {
             ]),
         );
 
-        // Captured ref dies, dual-header layout registers two back buttons under one route.
         detachedRef.current = null;
         const liveView = fakeView('backButton-1');
         registerPressable('A', 'backButton', fakeRef(liveView));

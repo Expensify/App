@@ -41,8 +41,7 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
     }
 }
 
-// Recorded unconditionally so first-press registrations aren't dropped during the SR-cache cold-start window; captureTriggerForRoute
-// still gates on SR so non-SR users do no work past this write. performance.now is monotonic — Date.now would corrupt the TTL on clock jumps.
+// Recorded unconditionally so cold-start presses survive the warm-up window. performance.now is monotonic — Date.now would corrupt the TTL on clock jumps.
 function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: string): void {
     lastPressedTriggerRef = ref;
     lastPressedTriggerIdentifier = identifier ?? null;
@@ -157,7 +156,7 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
     let rafHandle: number | null = null;
     let handle: {cancel: () => void} | null = null;
 
-    // Assign pendingRestore before runAfterTransitions: with waitForUpcomingTransition false the callback can fire synchronously, so a re-entrant cancel must already see this handle to abort the just-scheduled rAF retry.
+    // Assign pendingRestore before runAfterTransitions: the callback can fire synchronously, so a re-entrant cancel must see this handle to abort the rAF retry.
     pendingRestore = {
         cancel: () => {
             cancelled = true;

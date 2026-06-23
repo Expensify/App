@@ -80,7 +80,6 @@ describe('Accessibility warm cache — AppState refresh', () => {
         await flushPromises();
         expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(false);
 
-        // OS toggle happens while the app is backgrounded — no `screenReaderChanged` event reaches us.
         mockScreenReaderValue = true;
         emitAppState('background');
         emitAppState('active');
@@ -107,10 +106,8 @@ describe('Accessibility warm cache — AppState refresh', () => {
     it('isScreenReaderKnownOff returns false before warm resolves and true only after a false-resolution', async () => {
         mockScreenReaderValue = false;
         const Accessibility = loadModule();
-        // Synchronously after module load the warm promise has not resolved — unknown state must not report known-off.
         expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
         await flushPromises();
-        // Warm resolved with false — now known-off.
         expect(Accessibility.default.isScreenReaderKnownOff()).toBe(true);
     });
 
@@ -149,15 +146,12 @@ describe('Accessibility warm cache — AppState refresh', () => {
         await flushPromises();
         expect(Accessibility.default.isScreenReaderKnownOff()).toBe(true);
 
-        // Background → active begins the async refresh; user enabled SR while backgrounded but the bridge hasn't replied yet.
         mockScreenReaderValue = true;
         emitAppState('background');
         emitAppState('active');
-        // Synchronously after the AppState callback fires, warmed must already be invalidated.
         expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
 
         await flushPromises();
-        // Refresh resolved with true — still not known-off.
         expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
     });
 

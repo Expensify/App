@@ -1529,7 +1529,6 @@ describe('handleStateChange integration', () => {
             handleStateChange(onA);
             flushTransitions();
 
-            // No fresh capture between the skipped revert and the next back: the entry must be gone, no stale replay.
             const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onAB);
             trigger.blur();
@@ -1753,17 +1752,14 @@ describe('PUSH_PARAMS notifications', () => {
             fireFocusIn(trigger);
             notifyPushParamsForward('search-x', {q: 'foo'});
 
-            // Param re-render unmounts the captured row before the backward restore runs.
             trigger.remove();
 
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'foo'});
 
-            // First attempt is detached — the entry must be preserved, not dropped.
             flushTransitions();
             expect(spy).not.toHaveBeenCalled();
 
-            // Row remounts; the retry budget recovers focus instead of giving up on the first miss.
             document.body.appendChild(trigger);
             jest.runAllTimers();
             expect(spy).toHaveBeenCalled();

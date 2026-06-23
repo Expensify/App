@@ -23,7 +23,7 @@ function ScreenLayout({
 
     useLayoutEffect(() => {
         const transitionStartListener = navigation.addListener('transitionStart', () => {
-            transitionHandleRef.current = TransitionTracker.startTransition();
+            transitionHandleRef.current = TransitionTracker.startTransition('navigation');
         });
         const transitionEndListener = navigation.addListener('transitionEnd', () => {
             if (!transitionHandleRef.current) {

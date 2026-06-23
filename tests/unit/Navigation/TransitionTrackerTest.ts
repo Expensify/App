@@ -73,11 +73,11 @@ describe('TransitionTracker', () => {
             jest.useRealTimers();
         });
 
-        it('waitForUpcomingTransition queues callback after next transition starts and runs it after transition ends', async () => {
+        it('waitForUpcomingTransition queues callback after next navigation transition starts and runs it after transition ends', async () => {
             const callback = jest.fn();
             TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
             expect(callback).not.toHaveBeenCalled();
-            const handle = TransitionTracker.startTransition();
+            const handle = TransitionTracker.startTransition('navigation');
             // Two ticks: one for promiseForNextTransitionStart, one for Promise.race wrapper
             await Promise.resolve();
             await Promise.resolve();
@@ -87,12 +87,33 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
 
-        it('waitForUpcomingTransition waits for an already-active transition to end (web order: transitionStart before the call) instead of a phantom next start', () => {
+        it('waitForUpcomingTransition waits for an already-active navigation transition to end (web order: transitionStart before the call) instead of a phantom next start', () => {
             const callback = jest.fn();
-            const handle = TransitionTracker.startTransition();
+            const handle = TransitionTracker.startTransition('navigation');
             TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
             expect(callback).not.toHaveBeenCalled();
             TransitionTracker.endTransition(handle);
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
+        it('waitForUpcomingTransition ignores non-navigation transitions and waits for an upcoming navigation start (keyboard / modal concurrent with back-nav)', async () => {
+            const callback = jest.fn();
+            // Keyboard or modal animation is active when the back-nav fires its scheduleRestore.
+            const otherHandle = TransitionTracker.startTransition();
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+
+            // The non-nav transition ends before the nav transition has even started — callback must NOT fire yet.
+            TransitionTracker.endTransition(otherHandle);
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+
+            // Nav transition starts, then ends — only now does the callback fire.
+            const navHandle = TransitionTracker.startTransition('navigation');
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(navHandle);
             expect(callback).toHaveBeenCalledTimes(1);
             drainTransitions();
         });
@@ -111,7 +132,7 @@ describe('TransitionTracker', () => {
         it('cancel prevents waitForUpcomingTransition callback from running after transition starts', () => {
             const callback = jest.fn();
             const cancelHandle = TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
-            const transitionHandle = TransitionTracker.startTransition();
+            const transitionHandle = TransitionTracker.startTransition('navigation');
             cancelHandle.cancel();
             TransitionTracker.endTransition(transitionHandle);
             expect(callback).not.toHaveBeenCalled();
@@ -122,7 +143,7 @@ describe('TransitionTracker', () => {
             const callback = jest.fn();
             const cancelHandle = TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
             cancelHandle.cancel();
-            const transitionHandle = TransitionTracker.startTransition();
+            const transitionHandle = TransitionTracker.startTransition('navigation');
             TransitionTracker.endTransition(transitionHandle);
             expect(callback).not.toHaveBeenCalled();
             drainTransitions();
