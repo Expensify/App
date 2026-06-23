@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import WidgetContainer from '@components/WidgetContainer';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -57,6 +58,7 @@ function RecentlyAddedSection() {
     const {calculatePopoverPosition} = usePopoverPosition();
     const {markReportIDAsExpense} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isAnonymousUser = useIsAnonymousUser();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isOverflowMenuVisible, setIsOverflowMenuVisible] = useState(false);
@@ -108,6 +110,12 @@ function RecentlyAddedSection() {
             }),
         );
     };
+
+    // Guests (anonymous users) viewing a public room have no expenses of their own, so the section is hidden
+    // entirely rather than showing the empty state.
+    if (isAnonymousUser) {
+        return null;
+    }
 
     const overflowMenu = hasExpenses ? (
         <>
