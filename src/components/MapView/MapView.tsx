@@ -1,10 +1,12 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
 import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
@@ -24,6 +26,7 @@ import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
 import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
+import useAccessToken from './useAccessToken';
 import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
 
@@ -42,6 +45,7 @@ function MapView({
     unit,
     ref,
     shouldDisplayCurrentLocation = true,
+    shouldDisplayCompass = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -51,14 +55,14 @@ function MapView({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation', 'Compass']);
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
     const currentPosition = userLocation ?? initialLocation;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
-    const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
+    const isAccessTokenSet = useAccessToken({accessToken});
 
     const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
 
@@ -176,15 +180,6 @@ function MapView({
         setIsIdle(false);
     }, [isOffline]);
 
-    useEffect(() => {
-        setAccessToken(accessToken).then((token) => {
-            if (!token) {
-                return;
-            }
-            setIsAccessTokenSet(true);
-        });
-    }, [accessToken]);
-
     const setMapIdle = (e: MapState) => {
         if (e.gestures.isGestureActive) {
             return;
@@ -194,6 +189,25 @@ function MapView({
             onMapReady();
         }
     };
+
+    const mapHeading = useSharedValue(0);
+
+    const onCameraChanged = (e: MapState) => {
+        mapHeading.set(e.properties.heading ?? 0);
+    };
+
+    // Rotate the compass needle opposite to the map's bearing so it keeps pointing to true north.
+    const compassAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{rotate: `${-mapHeading.get()}deg`}],
+    }));
+
+    const resetMapToNorth = () => {
+        cameraRef.current?.setCamera({
+            heading: 0,
+            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+        });
+    };
+
     const centerMap = useCallback(() => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
@@ -262,14 +276,14 @@ function MapView({
                 style={{flex: 1}}
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
+                onCameraChanged={onCameraChanged}
                 onTouchStart={() => setUserInteractedWithMap(true)}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
                 scaleBarEnabled={false}
                 // We use scaleBarPosition with top: -32 to hide the scale bar on iOS because scaleBarEnabled={false} not work on iOS
                 scaleBarPosition={{...styles.tn8, left: 0}}
-                compassEnabled
-                compassPosition={{...styles.l2, ...styles.t5}}
+                compassEnabled={false}
                 logoPosition={{...styles.l2, ...styles.b2}}
                 {...responder.panHandlers}
             >
@@ -338,6 +352,24 @@ function MapView({
                     </MarkerView>
                 )}
             </Mapbox.MapView>
+            {interactive && shouldDisplayCompass && (
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.l0, {zIndex: 1}]}>
+                    <PressableWithoutFeedback
+                        onPress={resetMapToNorth}
+                        accessibilityLabel={translate('common.resetMapToNorth')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.COMPASS}
+                    >
+                        <Animated.View style={compassAnimatedStyle}>
+                            <ImageSVG
+                                src={expensifyIcons.Compass}
+                                width={CONST.MAP_VIEW_COMPASS_SIZE.width}
+                                height={CONST.MAP_VIEW_COMPASS_SIZE.height}
+                            />
+                        </Animated.View>
+                    </PressableWithoutFeedback>
+                </View>
+            )}
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
                     <Button
