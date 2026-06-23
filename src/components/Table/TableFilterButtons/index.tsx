@@ -4,7 +4,6 @@ import {FlatList, View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useTableContext} from '@components/Table/TableContext';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import buildFilterItems from './buildFilterItems';
@@ -68,7 +67,6 @@ type TableFilterButtonsProps = ViewProps & {
  */
 function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButtonsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {
         filterConfig: filterConfigs,
         activeFilters: filters,
@@ -79,7 +77,7 @@ function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButton
         updateFilter({key, value});
     };
 
-    const filterItems = buildFilterItems(filterConfigs, filters, setFilter, translate('search.filtersHeader'));
+    const filterItems = buildFilterItems(filterConfigs, filters, setFilter);
 
     if (filterItems.length === 0) {
         return null;
@@ -92,7 +90,7 @@ function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButton
                 data={filterItems}
                 keyExtractor={(item) => item.key}
                 renderItem={({item}) => <FilterItemRenderer item={item} />}
-                contentContainerStyle={[styles.flexRow, styles.gap2, styles.w100, contentContainerStyle]}
+                contentContainerStyle={[styles.flexRow, styles.gap2, styles.alignItemsCenter, contentContainerStyle]}
                 showsHorizontalScrollIndicator={false}
                 CellRendererComponent={CellRendererComponent}
             />

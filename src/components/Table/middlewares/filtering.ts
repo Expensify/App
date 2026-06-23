@@ -9,7 +9,7 @@ import type {Middleware, MiddlewareHookResult} from './types';
  * @template FilterKey - The type of filter keys.
  */
 type FilterConfigEntry = {
-    showLabel?: boolean;
+    label: string;
     filterType?: 'multi-select' | 'single-select';
     options: Array<{label: string; value: string}>;
     default?: string;

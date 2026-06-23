@@ -200,7 +200,8 @@ export default function WorkspaceMembersTable({
     };
 
     const filterConfig: FilterConfig = {
-        status: {
+        role: {
+            label: translate('common.role'),
             filterType: 'multi-select',
             options: [
                 {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
@@ -210,25 +211,25 @@ export default function WorkspaceMembersTable({
     };
 
     if (isControlPolicy(policy)) {
-        filterConfig.status.options.push({
+        filterConfig.role.options.push({
             label: translate('workspace.people.cardAdmins'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS,
         });
 
-        filterConfig.status.options.push({
+        filterConfig.role.options.push({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
         });
     }
 
     if (isSubmitPolicy(policy)) {
-        filterConfig.status.options.push({
+        filterConfig.role.options.push({
             label: translate('workspace.people.editors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.EDITORS,
         });
     }
 
-    filterConfig.status.options.push({
+    filterConfig.role.options.push({
         label: translate('workspace.people.members'),
         value: WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS,
     });
@@ -262,14 +263,14 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5]}>
-                <Table.FilterButtons />
+            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
                 {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
                     <Table.SearchBar
                         label={translate('workspace.people.findMember')}
-                        style={[styles.mb0, styles.mh0]}
+                        style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
                     />
                 )}
+                <Table.FilterButtons />
             </View>
 
             <Table.Header />
