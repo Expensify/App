@@ -1,3 +1,4 @@
+import type * as NativeNavigation from '@react-navigation/native';
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -18,6 +19,17 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     isActiveRoute: jest.fn(() => false),
 }));
+
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
+    const react = jest.requireActual<typeof React>('react');
+    return {
+        ...actualNav,
+        useFocusEffect: (effect: React.EffectCallback) => {
+            react.useEffect(effect, [effect]);
+        },
+    };
+});
 
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
 
@@ -64,7 +76,9 @@ describe('withAgentAccessDenied', () => {
 
         await waitFor(() => {
             expect(screen.queryByTestId('protected-content')).toBeNull();
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.getRoute());
+            // forceReplace ensures we REPLACE the stale guarded route instead of PUSHing Profile on top of it,
+            // which would otherwise trap the user in a Profile <-> Profile loop on back navigation.
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.getRoute(), {forceReplace: true});
         });
     });
 
