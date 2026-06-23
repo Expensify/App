@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,8 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseExpenseFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 function SearchNLFilterPage() {
@@ -21,6 +21,7 @@ function SearchNLFilterPage() {
     const [nlQuery, setNlQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const {currentDraftFilters} = useContext(SearchAdvancedFiltersContext);
 
     const handleSubmit = () => {
         const trimmedQuery = nlQuery.trim();
@@ -29,13 +30,15 @@ function SearchNLFilterPage() {
         }
         setIsLoading(true);
         setErrorMessage('');
-        parseExpenseFilters(trimmedQuery).then((result) => {
+        parseExpenseFilters(trimmedQuery, currentDraftFilters.policyID).then((result) => {
             setIsLoading(false);
             if (!result) {
                 return;
             }
             if (result.success) {
-                Navigation.dismissModal({afterTransition: () => Navigation.navigate(result.searchURL as Route)});
+                const searchQuery = new URL(result.searchURL).searchParams.get('q') ?? '';
+                const route = ROUTES.SEARCH_ROOT.getRoute({query: searchQuery});
+                Navigation.dismissModal({afterTransition: () => Navigation.navigate(route)});
             } else {
                 setErrorMessage(result.message);
             }
