@@ -8,10 +8,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseExpenseFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SearchNLFilterPage() {
@@ -22,6 +24,7 @@ function SearchNLFilterPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const {currentSearchQueryJSON} = useSearchQueryContext();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const handleSubmit = () => {
         const trimmedQuery = nlQuery.trim();
@@ -30,7 +33,8 @@ function SearchNLFilterPage() {
         }
         setIsLoading(true);
         setErrorMessage('');
-        const policyID = Array.isArray(currentSearchQueryJSON?.policyID) ? currentSearchQueryJSON.policyID.at(0) : currentSearchQueryJSON?.policyID;
+        const queryPolicyID = Array.isArray(currentSearchQueryJSON?.policyID) ? currentSearchQueryJSON.policyID.at(0) : currentSearchQueryJSON?.policyID;
+        const policyID = queryPolicyID ?? activePolicyID;
         parseExpenseFilters(trimmedQuery, policyID).then((result) => {
             setIsLoading(false);
             if (!result) {
