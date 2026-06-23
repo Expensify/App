@@ -31,6 +31,18 @@ const STALE_HEARTBEAT_MS = 5 * 60 * 1000;
 
 const BYTES_PER_MB = 1024 * 1024;
 
+const MS_PER_MINUTE = 60 * 1000;
+
+// A stale heartbeat alone cannot tell a crash apart from a tab that was merely suspended (laptop sleep,
+// paused background timers). Before reporting, give a possibly-suspended owner this long to prove it is
+// still alive by resuming and announcing liveness or refreshing its heartbeat.
+const LIVENESS_GRACE_MS = 10 * 1000;
+
+// How recently a session must have announced itself over the liveness channel to still count as alive.
+const LIVENESS_FRESHNESS_MS = 2 * 60 * 1000;
+
+const LIVENESS_CHANNEL_NAME = 'crashDiagnosticsLiveness';
+
 type HeapSample = {
     /** Epoch ms */
     timestamp: number;
@@ -52,10 +64,20 @@ type SessionRecord = {
     samples: HeapSample[];
 };
 
+/** Cross-tab liveness protocol: a tab pings when deciding whether a peer crashed; live peers answer. */
+type LivenessMessage = {type: 'ping'} | {type: 'alive'; id: string};
+
 let sessionRecord: SessionRecord | undefined;
 let sampleIntervalID: ReturnType<typeof setInterval> | undefined;
 let reportsCount: number | null = null;
 let reportsConnection: ReturnType<typeof Onyx.connectWithoutView> | undefined;
+let livenessChannel: BroadcastChannel | undefined;
+
+// Sessions that announced liveness over the channel, keyed by session id -> last-seen epoch ms
+const sessionsLastSeenAlive = new Map<string, number>();
+
+// In-flight "is this session really dead?" checks, keyed by session id -> grace timeout handle
+const pendingDeadChecks = new Map<string, ReturnType<typeof setTimeout>>();
 
 function markCleanExit() {
     markExitState(true);
@@ -119,6 +141,50 @@ function getActiveRouteSafe(): string {
     }
 }
 
+function isBroadcastChannelAvailable(): boolean {
+    return typeof BroadcastChannel !== 'undefined';
+}
+
+function isLivenessMessage(value: unknown): value is LivenessMessage {
+    return typeof value === 'object' && value !== null && 'type' in value && (value.type === 'ping' || value.type === 'alive');
+}
+
+function announceLiveness() {
+    if (!livenessChannel || !sessionRecord) {
+        return;
+    }
+    const message: LivenessMessage = {type: 'alive', id: sessionRecord.id};
+    livenessChannel.postMessage(message);
+}
+
+function requestLiveness() {
+    if (!livenessChannel) {
+        return;
+    }
+    const message: LivenessMessage = {type: 'ping'};
+    livenessChannel.postMessage(message);
+}
+
+function handleLivenessMessage(event: MessageEvent) {
+    const data: unknown = event.data;
+    if (!isLivenessMessage(data)) {
+        return;
+    }
+    if (data.type === 'ping') {
+        // Another tab is deciding whether we crashed — prove we are alive
+        announceLiveness();
+        return;
+    }
+    if (data.id !== sessionRecord?.id) {
+        sessionsLastSeenAlive.set(data.id, Date.now());
+    }
+}
+
+function isSessionRecentlyAlive(sessionID: string): boolean {
+    const lastSeen = sessionsLastSeenAlive.get(sessionID);
+    return lastSeen !== undefined && Date.now() - lastSeen < LIVENESS_FRESHNESS_MS;
+}
+
 function bytesToMB(bytes: number | null | undefined): number | null {
     return bytes && bytes > 0 ? Math.round(bytes / BYTES_PER_MB) : null;
 }
@@ -152,6 +218,7 @@ function heartbeat() {
             sessionRecord.lastHeartbeat = Date.now();
             sessionRecord.cleanExit = false;
             persistSessionRecord();
+            announceLiveness();
             reapDeadSessions();
         })
         .catch(() => {
@@ -172,7 +239,7 @@ function reportAbnormalExit(record: SessionRecord) {
             sessionID: record.id,
             sessionStartedAt: new Date(record.startedAt).toISOString(),
             lastHeartbeatAt: new Date(record.lastHeartbeat).toISOString(),
-            sessionDurationMinutes: Math.round((record.lastHeartbeat - record.startedAt) / 60000),
+            sessionDurationMinutes: Math.round((record.lastHeartbeat - record.startedAt) / MS_PER_MINUTE),
             lastUsedJSHeapSizeMB: lastSample?.usedJSHeapSizeMB,
             lastTotalJSHeapSizeMB: lastSample?.totalJSHeapSizeMB,
             jsHeapSizeLimitMB: lastSample?.jsHeapSizeLimitMB,
@@ -183,8 +250,9 @@ function reportAbnormalExit(record: SessionRecord) {
 }
 
 /**
- * Removes finished session records and reports sessions that stopped sending heart beats without a clean exit.
- * Runs on startup and on every heartbeat, so a surviving tab can also report a crashed one.
+ * Removes finished session records and confirms-then-reports sessions that stopped sending heartbeats
+ * without a clean exit. Runs on startup and on every heartbeat, so a surviving tab can also report a
+ * crashed one.
  */
 function reapDeadSessions() {
     let storageKeys: string[];
@@ -203,12 +271,45 @@ function reapDeadSessions() {
             window.localStorage.removeItem(storageKey);
             continue;
         }
-        // Not cleanly exited — could be another live tab, so only report once the heartbeat is stale
+        // Heartbeat is stale, but that alone cannot tell a crash apart from a suspended-but-alive tab.
+        // Confirm the session is really gone before reporting it as a crash.
         if (Date.now() - record.lastHeartbeat > STALE_HEARTBEAT_MS) {
-            reportAbnormalExit(record);
-            window.localStorage.removeItem(storageKey);
+            confirmDeadThenReport(storageKey, record.id);
         }
     }
+}
+
+/**
+ * A stale heartbeat is ambiguous: the owner may have crashed, or may just be suspended (laptop sleep,
+ * paused background timers without a `freeze` event). Ask any owner to prove liveness, then re-check after
+ * a grace period and only report if it stayed silent and never refreshed its record. This is what stops a
+ * suspended live tab from being misreported as a crash.
+ */
+function confirmDeadThenReport(storageKey: string, sessionID: string) {
+    if (pendingDeadChecks.has(sessionID)) {
+        return;
+    }
+    requestLiveness();
+    const timeoutID = setTimeout(() => {
+        pendingDeadChecks.delete(sessionID);
+        const record = readSessionRecord(storageKey);
+        if (!record) {
+            // Already reaped by another tab or cleared
+            return;
+        }
+        if (record.cleanExit) {
+            window.localStorage.removeItem(storageKey);
+            return;
+        }
+        // Owner came back within the grace period — announced liveness or refreshed its heartbeat — so it
+        // was suspended, not crashed.
+        if (isSessionRecentlyAlive(sessionID) || Date.now() - record.lastHeartbeat <= STALE_HEARTBEAT_MS) {
+            return;
+        }
+        reportAbnormalExit(record);
+        window.localStorage.removeItem(storageKey);
+    }, LIVENESS_GRACE_MS);
+    pendingDeadChecks.set(sessionID, timeoutID);
 }
 
 function reportDiscardedTab() {
@@ -229,7 +330,6 @@ function initializeCrashDiagnostics() {
     }
 
     reportDiscardedTab();
-    reapDeadSessions();
 
     sessionRecord = {
         id: Str.guid(),
@@ -238,6 +338,14 @@ function initializeCrashDiagnostics() {
         cleanExit: false,
         samples: [],
     };
+
+    // A cross-tab channel lets a live-but-suspended tab prove it is alive when another tab is about to
+    // report it as crashed, and lets this tab answer the same question for its peers.
+    if (isBroadcastChannelAvailable()) {
+        livenessChannel = new BroadcastChannel(LIVENESS_CHANNEL_NAME);
+        livenessChannel.addEventListener('message', handleLivenessMessage);
+        announceLiveness();
+    }
 
     reportsConnection = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.REPORT,
@@ -256,6 +364,9 @@ function initializeCrashDiagnostics() {
     document.addEventListener('freeze', markCleanExit);
     document.addEventListener('resume', markActive);
 
+    // Report any previous session that ended abnormally now that our own record and liveness channel exist
+    reapDeadSessions();
+
     heartbeat();
     sampleIntervalID = setInterval(heartbeat, SAMPLE_INTERVAL_MS);
 }
@@ -264,6 +375,16 @@ function cleanupCrashDiagnostics() {
     if (sampleIntervalID) {
         clearInterval(sampleIntervalID);
         sampleIntervalID = undefined;
+    }
+    for (const timeoutID of pendingDeadChecks.values()) {
+        clearTimeout(timeoutID);
+    }
+    pendingDeadChecks.clear();
+    sessionsLastSeenAlive.clear();
+    if (livenessChannel) {
+        livenessChannel.removeEventListener('message', handleLivenessMessage);
+        livenessChannel.close();
+        livenessChannel = undefined;
     }
     if (reportsConnection) {
         Onyx.disconnect(reportsConnection);
