@@ -5654,6 +5654,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
@@ -5665,6 +5666,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
@@ -5814,6 +5816,10 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
 
+            if (transaction.posted) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.POSTED] = true;
+            }
+
             // Show both TAX_RATE and TAX_AMOUNT when the transaction has a meaningful tax signal.
             // Use truthy checks so default/no-tax values (0, null, '', undefined) don't trigger
             // false positives — buildOptimisticTransaction seeds taxAmount: 0 on every new draft,
@@ -5843,6 +5849,7 @@ function getColumnsToShow({
             if (hasExchangeRate) {
                 if (isExpenseReportView) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
+                    columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 } else {
                     columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 }
