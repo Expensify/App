@@ -11,6 +11,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -21,7 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantOptions, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -30,7 +31,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {generateReportID, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {generateReportID, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getDistanceInMeters} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -104,7 +105,7 @@ function IOURequestStepDistanceManual({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
+    const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
@@ -178,6 +179,17 @@ function IOURequestStepDistanceManual({
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
+
+    const participants = getMoneyRequestParticipantOptions(currentUserAccountIDParam, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived, reportDraft);
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+
+    const policyTagList = useMoneyRequestPolicyTags({
+        moneyRequestReportID,
+        parentChatReportPolicyID: currentChatReport?.policyID,
+        participantReportID: participants.at(0)?.reportID,
+    });
 
     const navigateToNextPage = (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
@@ -266,6 +278,7 @@ function IOURequestStepDistanceManual({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            policyTagList,
         });
     };
 
