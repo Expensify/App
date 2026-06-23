@@ -1,0 +1,118 @@
+import {act, renderHook} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
+import useReviewFlaggedExpenses from '@pages/home/ForYouSection/useReviewFlaggedExpenses';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {createMockReport} from '../../utils/ReportTestUtils';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+
+const mockNavigateToTransactionThread = jest.fn();
+jest.mock('@hooks/useNavigateToTransactionThread', () => jest.fn(() => mockNavigateToTransactionThread));
+
+const ACCOUNT_ID = 1;
+
+/**
+ * Seeds the Onyx collections the hook scans so each provided transaction surfaces as a flagged expense:
+ * an OPEN/OPEN expense report owned by the current user, a transaction on it, and a MISSING_CATEGORY violation.
+ */
+async function seedFlaggedExpenses(...expenses: Array<{transactionID: string; reportID: string}>) {
+    await Promise.all(
+        expenses.flatMap(({transactionID, reportID}) => [
+            Onyx.set(
+                `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                createMockReport({
+                    reportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                }),
+            ),
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {transactionID, reportID, amount: 100, currency: 'USD', created: '2024-01-01', merchant: 'Test Merchant'}),
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY}]),
+        ]),
+    );
+}
+
+describe('useReviewFlaggedExpenses', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'test@example.com'});
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('returns count 0 and a no-op handler when nothing is flagged', async () => {
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.count).toBe(0);
+
+        act(() => {
+            result.current.reviewExpenses();
+        });
+
+        expect(mockNavigateToTransactionThread).not.toHaveBeenCalled();
+    });
+
+    it('returns the aggregated count across multiple flagged expenses', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'}, {transactionID: 't3', reportID: 'r3'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.count).toBe(3);
+    });
+
+    it('navigates to the first flagged expense thread with every flagged transaction ID as siblings', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}r1`, {
+                action1: {
+                    reportActionID: 'action1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    childReportID: 'thread-r1',
+                    message: {IOUTransactionID: 't1'},
+                },
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.count).toBe(2);
+
+        act(() => {
+            result.current.reviewExpenses();
+        });
+
+        expect(mockNavigateToTransactionThread).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToTransactionThread).toHaveBeenCalledWith(
+            expect.objectContaining({
+                transactionID: 't1',
+                report: expect.objectContaining({reportID: 'r1'}),
+                transaction: expect.objectContaining({transactionID: 't1'}),
+                reportActions: expect.arrayContaining([expect.objectContaining({reportActionID: 'action1', childReportID: 'thread-r1'})]),
+                siblingTransactionIDs: ['t1', 't2'],
+                backTo: ROUTES.HOME,
+            }),
+        );
+    });
+});

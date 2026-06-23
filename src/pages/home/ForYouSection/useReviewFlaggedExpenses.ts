@@ -1,4 +1,3 @@
-import {useCallback, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useOnyx from '@hooks/useOnyx';
@@ -68,13 +67,7 @@ function hasReviewableViolation(violations: TransactionViolations | null | undef
     });
 }
 
-/**
- * Scans the current user's OPEN expense reports for transactions that have at least one reviewable violation.
- *
- * This used to be the `flaggedExpenses` Onyx derived value, which recomputed app-wide on every change to the
- * report/transaction/violation/policy collections. It now lives in the only consumer (ForYouSection) so the
- * work runs solely while Home is mounted.
- */
+/** Scans the current user's OPEN expense reports for transactions that have at least one reviewable violation. */
 function getFlaggedExpenses(
     allReports: OnyxCollection<Report>,
     allTransactions: OnyxCollection<Transaction>,
@@ -131,10 +124,7 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const flaggedExpenses = useMemo(
-        () => getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session),
-        [allReports, allTransactions, allTransactionViolations, allPolicies, session],
-    );
+    const flaggedExpenses = getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session);
 
     const firstFlaggedExpense = flaggedExpenses.at(0);
     const firstReportID = firstFlaggedExpense?.reportID;
@@ -148,7 +138,7 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
 
     const navigateToTransactionThread = useNavigateToTransactionThread();
 
-    const reviewExpenses = useCallback(() => {
+    const reviewExpenses = () => {
         if (!firstTransactionID || !firstReportID) {
             return;
         }
@@ -160,7 +150,7 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
             siblingTransactionIDs: flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID),
             backTo: ROUTES.HOME,
         });
-    }, [firstTransactionID, firstReportID, flaggedExpenses, firstFlaggedReportActions, firstFlaggedReport, firstFlaggedTransaction, navigateToTransactionThread]);
+    };
 
     return {count: flaggedExpenses.length, reviewExpenses};
 }
