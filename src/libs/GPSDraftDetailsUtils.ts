@@ -221,10 +221,6 @@ function getFirstGpsPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoin
     return gpsDraftDetails?.gpsPoints?.at(0)?.at(0);
 }
 
-function getLastGpsPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint | undefined {
-    return gpsDraftDetails?.gpsPoints?.at(-1)?.at(-1);
-}
-
 function calculateTrimmedEndPoint(gpsPoints: GPSPoint[][], targetDistanceMeters: number): TrimmedGPSPoint | null {
     let cumulativeDistance = 0;
 
@@ -298,7 +294,6 @@ export {
     getTotalGpsTripPointsInLastSegment,
     getGpsPoints,
     getFirstGpsPoint,
-    getLastGpsPoint,
     getTrimmedGpsTrip,
     calculateTrimmedEndPoint,
     getEffectiveDistance,

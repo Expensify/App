@@ -10,6 +10,4 @@ function MapMarkerIcon({markerType}: MapMarkerIconProps) {
     return getMapMarkerIconComponent(markerType);
 }
 
-export type {MapMarkerIconProps};
-
 export default MapMarkerIcon;
