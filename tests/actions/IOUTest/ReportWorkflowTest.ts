@@ -2021,6 +2021,20 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
         });
 
+        const getOptimisticReportAction = (reportID: string) => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const optimisticData = calls.flatMap((call) => {
+                const [, , onyxData] = call as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> | undefined];
+                return onyxData?.optimisticData ?? [];
+            });
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            return Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+        };
+
         it('submitReport includes delegateAccountID when delegateEmail is provided', () => {
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
@@ -2044,16 +2058,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: DELEGATE_EMAIL,
             });
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
-
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
-            expect(reportActionsUpdate).toBeDefined();
-
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            expect(getOptimisticReportAction(expenseReport.reportID)?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('submitReport sets delegateAccountID to undefined when delegateEmail is undefined', () => {
@@ -2079,16 +2084,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
             });
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
-
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
-            expect(reportActionsUpdate).toBeDefined();
-
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBeUndefined();
+            expect(getOptimisticReportAction(expenseReport.reportID)?.delegateAccountID).toBeUndefined();
         });
 
         it('unapproveExpenseReport includes delegateAccountID when delegateEmail is provided', () => {
@@ -2102,16 +2098,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             unapproveExpenseReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
-
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
-            expect(reportActionsUpdate).toBeDefined();
-
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            expect(getOptimisticReportAction(expenseReport.reportID)?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('retractReport includes delegateAccountID when delegateEmail is provided', () => {
@@ -2128,16 +2115,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             retractReport(expenseReport, chatReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL);
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
-
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
-            expect(reportActionsUpdate).toBeDefined();
-
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            expect(getOptimisticReportAction(expenseReport.reportID)?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('approveMoneyRequest includes delegateAccountID when delegateEmail is provided', () => {
@@ -2164,16 +2142,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: DELEGATE_EMAIL,
             });
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
-
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
-            expect(reportActionsUpdate).toBeDefined();
-
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            expect(getOptimisticReportAction(expenseReport.reportID)?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('approveMoneyRequest sets delegateAccountID to undefined when delegateEmail is undefined', () => {
@@ -2200,16 +2169,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
             });
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
-            const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
-            const optimisticData = onyxData.optimisticData ?? [];
-
-            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
-            expect(reportActionsUpdate).toBeDefined();
-
-            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
-            expect(reportAction?.delegateAccountID).toBeUndefined();
+            expect(getOptimisticReportAction(expenseReport.reportID)?.delegateAccountID).toBeUndefined();
         });
     });
 
