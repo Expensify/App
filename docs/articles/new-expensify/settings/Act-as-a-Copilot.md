@@ -52,7 +52,7 @@ Once removed, you can no longer access that account unless the account owner gra
 1. Forward the receipt email to [receipts@expensify.com](mailto:receipts@expensify.com).
 2. Include the account owner's email address in the subject line.
 
-The receipt is automatically routed to the account owner's account.
+The receipt is automatically SmartScanned to the account owner's Expensify account.
 
 ## What happens after you switch to a Copilot account
 
@@ -63,7 +63,7 @@ When acting as a Copilot:
  - Some actions may be unavailable if you've been granted Limited Access.
  - You can return to your own account at any time by switching accounts again.
 
-**Important:** If you're acting as a Copilot, both you and the account owner count as active members when you perform billable activity in the account.
+**Note:** If you're acting as a Copilot, both you and the account owner count as active members when you perform billable activity in the account.
     
 # FAQ
 
