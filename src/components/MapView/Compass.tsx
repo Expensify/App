@@ -30,7 +30,7 @@ function Compass({interactive, shouldDisplayCompass, cameraRef, mapHeading}: Com
     }
 
     return (
-        <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.l0, {zIndex: 1}]}>
+        <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.l0, styles.zIndex1]}>
             <PressableWithoutFeedback
                 onPress={resetMapToNorth}
                 accessibilityLabel={translate('common.resetMapToNorth')}

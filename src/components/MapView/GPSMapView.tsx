@@ -309,7 +309,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
                 cameraRef={cameraRef}
                 mapHeading={mapHeading}
             />
-            <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+            <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                 <Button
                     onPress={centerMap}
                     iconFill={theme.icon}

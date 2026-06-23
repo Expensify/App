@@ -326,7 +326,7 @@ function MapView({
                         key="distance-label"
                         allowOverlap
                     >
-                        <View style={{zIndex: 1}}>
+                        <View style={styles.zIndex1}>
                             <ToggleDistanceUnitButton
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel="distance-label"
@@ -347,7 +347,7 @@ function MapView({
                 mapHeading={mapHeading}
             />
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}
