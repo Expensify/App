@@ -928,6 +928,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
                   key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
                   value: {
                       isLoading: false,
+                      hasOnceLoaded: true,
                   },
               },
           ]
@@ -989,6 +990,7 @@ function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, f
                     cardFeedsStatus: {
                         [feed]: {
                             isLoading: false,
+                            hasOnceLoaded: true,
                         },
                     },
                 },

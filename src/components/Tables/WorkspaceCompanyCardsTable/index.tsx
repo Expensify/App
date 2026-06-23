@@ -102,7 +102,8 @@ function WorkspaceCompanyCardsTable({
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
-    const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
+    const workspaceFeedsStatus = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID];
+    const areWorkspaceCardFeedsLoading = !!workspaceFeedsStatus?.isLoading && !workspaceFeedsStatus?.hasOnceLoaded;
     // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
     const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
     const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
@@ -129,11 +130,16 @@ function WorkspaceCompanyCardsTable({
     const hasCards = (companyCardEntries ?? []).length > 0;
     // When the last feed is removed, card data already implies no feed (isNoFeed); lastSelectedFeed Onyx metadata can still report loading after optimistic clear.
     const isLoadingFeed =
-        !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) || !!selectedFeedStatus?.isLoading);
+        !hasCards &&
+        ((!feedName && isInitiallyLoadingFeeds) ||
+            !isPolicyLoaded ||
+            (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) ||
+            (!!selectedFeedStatus?.isLoading && !selectedFeedStatus?.hasOnceLoaded));
     const isLoadingCards = !hasCards ? isLoadingOnyxValue(cardListMetadata) : false;
     const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
 
     const isLoading = isLoadingPage || isLoadingFeed;
+
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
