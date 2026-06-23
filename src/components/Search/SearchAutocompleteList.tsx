@@ -172,6 +172,7 @@ function SearchAutocompleteList({
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [searchResultReportIDs] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -385,8 +386,16 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
+        // When the server has returned a tier-ranked order for this search, display results in that order
+        // instead of the client-side kind/recency order. Reports absent from the list sort to the end.
+        if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
+            const rankOf = (option: OptionData) => (option.reportID === undefined ? Number.MAX_SAFE_INTEGER : (rankByReportID.get(option.reportID) ?? Number.MAX_SAFE_INTEGER));
+            reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
+        }
+
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [autocompleteQueryValue, searchOptions, searchResultReportIDs]);
 
     // Locked rank map (keyForList -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
@@ -504,8 +513,17 @@ function SearchAutocompleteList({
                     customHeader: skeletonHeader,
                 });
             }
+        } else if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            // The server returned a tier-ranked order for this query (already applied to recentReportsOptions),
+            // so render a single list in that order rather than splitting into local/server sections — splitting
+            // would group local matches separately and break the global tier ordering.
+            if (nextStyledRecentReports.length > 0 || !isLoadingOptions) {
+                pushSection({title: translate('search.serverResults'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
+            } else {
+                pushSection({title: undefined, data: [], sectionIndex: sectionIndex++, customHeader: skeletonHeader});
+            }
         } else {
-            // Active search: split rows into local (frozen order) and server sections.
+            // Active search without a server order yet: split rows into local (frozen order) and server sections.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             for (const item of nextStyledRecentReports) {
@@ -568,6 +586,7 @@ function SearchAutocompleteList({
         recentSearchesData,
         searchOptions,
         searchQueryItems,
+        searchResultReportIDs,
         styles,
         translate,
         isLoadingOptions,
