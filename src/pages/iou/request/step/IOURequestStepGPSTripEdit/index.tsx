@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
-import type {Coordinate, MapViewHandle} from '@components/MapView/MapViewTypes';
+import type {Coordinate} from '@components/MapView/MapViewTypes';
 import Text from '@components/Text';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
