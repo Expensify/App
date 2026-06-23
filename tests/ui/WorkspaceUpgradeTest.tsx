@@ -162,6 +162,46 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdates();
     });
 
+    it('should refetch the report after upgrading via the Approve report flow so the next step is no longer stale', async () => {
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
+        const reportID = '987654321';
+
+        // Given a Submit workspace (with the Submit 2026 beta) that has a submitted expense report awaiting approval
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+        });
+
+        // And the upgrade page is opened for the "Approve report" flow with the report to approve
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+            policyID: policy.id,
+            featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias,
+            reportID,
+        });
+
+        // When the workspace is upgraded by clicking on the Upgrade button
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+        await waitForIdle();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then UpgradeSubmit should target the Collect (Team) plan and pass the report to approve
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.TEAM, reportID});
+
+        // And once the upgrade succeeds, the report is refetched (OpenReport) so the stale next step refreshes
+        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {reportID});
+
+        unmount();
+        await waitForBatchedUpdates();
+    });
+
     it('should render the Collect plan title and Team pricing when upgradePlanType is team', async () => {
         const policy: Policy = LHNTestUtils.getFakePolicy();
 
