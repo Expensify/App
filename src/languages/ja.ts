@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: '添付ファイル',
         attachments: '添付ファイル',
         center: '中央',
+        resetMapToNorth: '地図を北向きに戻す',
         from: '差出人',
         to: '宛先',
         in: '内',
@@ -314,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: '表示を減らす',
         plusMore: ({count}: {count: number}) => `+${count}件`,
         merchant: '加盟店',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Google で ${merchant} を検索します`,
         change: '変更',
         category: 'カテゴリ',
         vendor: 'ベンダー',
@@ -3343,9 +3346,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `[テストドライブ](${testDriveURL})を試す` : '試してみる'),
             embeddedDemoIframeTitle: '試用ドライブ',
-            employeeFakeReceipt: {
-                description: '私の試乗の領収書！',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: '返金を受け取るのは、メッセージを送るくらい簡単です。基本を確認しましょう。',
@@ -4381,7 +4381,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
-            deleteOpenExpensifyCardsError: 'あなたの会社にはまだ有効なExpensifyカードがあります。',
+            deleteOpenExpensifyCardsError: '御社にはまだ Expensify カードが残っています。削除するには、<concierge-link>Concierge までお問い合わせください</concierge-link>。',
             outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
@@ -9636,18 +9636,6 @@ ${reportName}`,
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: '2分間のテストドライブを試す',
-        },
-        modal: {
-            title: 'まずはお試しください',
-            description: '短時間のプロダクトツアーで、すぐに使いこなせるようになりましょう。',
-            confirmText: '試用を開始',
-            helpText: 'スキップ',
-            employee: {
-                description:
-                    '<muted-text>あなたのチームに<strong>Expensify を3か月間無料で提供しましょう！</strong>以下に上司のメールアドレスを入力して、テスト経費を送信してください。</muted-text>',
-                email: '上司のメールアドレスを入力してください',
-                error: 'そのメンバーはワークスペースの所有者です。テストするために新しいメンバーを入力してください。',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: '現在、Expensify を試用中です',

@@ -1033,6 +1033,7 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
+        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
@@ -1320,6 +1321,7 @@ const CONST = {
     EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
+    GOOGLE_SEARCH_URL: 'https://www.google.com/search?q=',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     SAML_REDIRECT_URL: 'expensify://open',
@@ -1391,7 +1393,7 @@ const CONST = {
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
-    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings',
+    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
@@ -5284,6 +5286,8 @@ const CONST = {
         WAYPOINT: {width: 40, height: 40},
     },
 
+    MAP_VIEW_COMPASS_SIZE: {width: 44, height: 44},
+
     QUICK_REACTIONS: [
         {
             name: '+1',
@@ -6142,7 +6146,6 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
-        TEST_DRIVE_COVER_ASPECT_RATIO: 1000 / 508,
     },
 
     /**
@@ -8002,7 +8005,6 @@ const CONST = {
             START_CHAT: 'FABMenu-StartChat',
             SEND_INVOICE: 'FABMenu-SendInvoice',
             BOOK_TRAVEL: 'FABMenu-BookTravel',
-            TEST_DRIVE: 'FABMenu-TestDrive',
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
         },
@@ -8343,10 +8345,6 @@ const CONST = {
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
         },
-        TEST_DRIVE_MODAL: {
-            SKIP: 'TestDriveModal-Skip',
-            START: 'TestDriveModal-Start',
-        },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
@@ -8373,6 +8371,9 @@ const CONST = {
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
         },
+        MAP_VIEW: {
+            COMPASS: 'compass',
+        },
         MONEY_REQUEST: {
             AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
             AMOUNT_PAY_BUTTON: 'MoneyRequest-AmountPayButton',
@@ -8383,6 +8384,7 @@ const CONST = {
             CONFIRMATION_SUBMIT_BUTTON: 'MoneyRequest-ConfirmationSubmitButton',
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
+            GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',
@@ -8875,6 +8877,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'Connect Expensify to ChatGPT, Claude, Cursor',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
+                publishedDate: '2026-06-08',
+            },
+            {
                 title: 'Policy upload, card freeze, and bulk editing',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
@@ -8885,12 +8893,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
                 publishedDate: '2026-05-21',
-            },
-            {
-                title: 'Expensify and Playroll Partner to Eliminate Compliance Complexity',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
-                publishedDate: '2026-05-19',
             },
         ],
     },

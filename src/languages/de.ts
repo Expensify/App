@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Anhang',
         attachments: 'Anhänge',
         center: 'Zentrieren',
+        resetMapToNorth: 'Karte nach Norden ausrichten',
         from: 'Von',
         to: 'AnAn',
         in: 'In',
@@ -314,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Weniger anzeigen',
         plusMore: ({count}: {count: number}) => `+${count} weitere`,
         merchant: 'Händler',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Suchen Sie ${merchant} auf Google`,
         change: 'Ändern',
         category: 'Kategorie',
         vendor: 'Anbieter',
@@ -3374,9 +3377,6 @@ ${amount} für ${merchant} – ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Machen Sie eine [Probefahrt](${testDriveURL})` : 'Mach eine Probefahrt'),
             embeddedDemoIframeTitle: 'Testversion',
-            employeeFakeReceipt: {
-                description: 'Mein Probefahrtbeleg!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Geld zurückzubekommen ist so einfach wie das Senden einer Nachricht. Gehen wir die Grundlagen durch.',
@@ -4424,7 +4424,7 @@ ${amount} für ${merchant} – ${date}`,
             defaultNote: `Belege, die an ${CONST.EMAIL.RECEIPTS} gesendet werden, erscheinen in diesem Workspace.`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
-            deleteOpenExpensifyCardsError: 'Ihr Unternehmen hat noch aktive Expensify Cards.',
+            deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
             outstandingBalanceWarning:
                 'Sie haben einen offenen Saldo, der beglichen werden muss, bevor Sie Ihren letzten Workspace löschen können. Bitte gehen Sie zu Ihren Abonnementeinstellungen, um die Zahlung abzuschließen.',
             settleBalance: 'Zu Abo wechseln',
@@ -9771,18 +9771,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Mach eine 2-minütige Probefahrt',
-        },
-        modal: {
-            title: 'Probier uns aus',
-            description: 'Machen Sie eine kurze Produkttour, um sich schnell zurechtzufinden.',
-            confirmText: 'Testversion starten',
-            helpText: 'Überspringen',
-            employee: {
-                description:
-                    '<muted-text>Verschaffe deinem Team <strong>3 kostenlose Monate Expensify!</strong> Gib unten einfach die E-Mail-Adresse deiner oder deines Vorgesetzten ein und sende eine Testausgabe.</muted-text>',
-                email: 'Gib die E-Mail-Adresse deiner Chefin/deines Chefs ein',
-                error: 'Dieses Mitglied besitzt einen Arbeitsbereich, bitte gib ein neues Mitglied zum Testen ein.',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: 'Du testest Expensify gerade ausprobieren',

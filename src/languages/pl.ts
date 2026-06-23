@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Załącznik',
         attachments: 'Załączniki',
         center: 'Środek',
+        resetMapToNorth: 'Ustaw mapę na północ',
         from: 'Od',
         to: 'Do',
         in: 'W',
@@ -314,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Pokaż mniej',
         plusMore: ({count}: {count: number}) => `+${count} więcej`,
         merchant: 'Sprzedawca',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Wyszukaj w Google: ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Wyszukaj ${merchant} w Google`,
         change: 'Zmień',
         category: 'Kategoria',
         vendor: 'Dostawca',
@@ -3357,9 +3360,6 @@ ${amount} dla ${merchant} - ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Zrób [jazdę próbną](${testDriveURL})` : 'Wypróbuj wersję testową'),
             embeddedDemoIframeTitle: 'Jazda próbna',
-            employeeFakeReceipt: {
-                description: 'Mój paragon za jazdę próbną!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Otrzymanie zwrotu jest tak proste jak wysłanie wiadomości. Omówmy podstawy.',
@@ -4398,7 +4398,7 @@ ${amount} dla ${merchant} - ${date}`,
             defaultNote: `Paragony wysłane na ${CONST.EMAIL.RECEIPTS} pojawią się w tym obszarze roboczym.`,
             deleteConfirmation: 'Czy na pewno chcesz usunąć tę przestrzeń roboczą?',
             deleteWithCardsConfirmation: 'Na pewno chcesz usunąć tę przestrzeń roboczą? Spowoduje to usunięcie wszystkich źródeł kart i przypisanych kart.',
-            deleteOpenExpensifyCardsError: 'Twoja firma nadal ma aktywne karty Expensify.',
+            deleteOpenExpensifyCardsError: 'Twoja firma wciąż ma Karty Expensify. Prosimy, <concierge-link>skontaktuj się z Concierge</concierge-link>, aby je usunąć.',
             outstandingBalanceWarning:
                 'Masz zaległe saldo, które musi zostać uregulowane przed usunięciem ostatniego miejsca pracy. Przejdź do ustawień subskrypcji, aby uregulować płatność.',
             settleBalance: 'Przejdź do subskrypcji',
@@ -9710,18 +9710,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Wypróbuj w 2 minuty',
-        },
-        modal: {
-            title: 'Wypróbuj nas w praktyce',
-            description: 'Zrób krótkie wprowadzenie do produktu, aby szybko się wdrożyć.',
-            confirmText: 'Rozpocznij jazdę testową',
-            helpText: 'Pomiń',
-            employee: {
-                description:
-                    '<muted-text>Zapewnij swojemu zespołowi <strong>3 darmowe miesiące Expensify!</strong> Wpisz poniżej adres e-mail swojego szefa i wyślij mu przykładowy wydatek.</muted-text>',
-                email: 'Wpisz adres e-mail swojego szefa',
-                error: 'Ten członek jest właścicielem przestrzeni roboczej, wprowadź nowego członka do przetestowania.',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: 'Aktualnie testujesz Expensify',

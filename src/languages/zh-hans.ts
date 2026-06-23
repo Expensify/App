@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: '附件',
         attachments: '附件',
         center: '居中',
+        resetMapToNorth: '将地图重置为正北',
         from: '来自',
         to: '到',
         in: '在',
@@ -314,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: '收起',
         plusMore: ({count}: {count: number}) => `+${count}个`,
         merchant: '商户',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `在 Google 上搜索 ${merchant}`,
         change: '更改',
         category: '类别',
         vendor: '供应商',
@@ -3270,9 +3273,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `进行[试用体验](${testDriveURL})` : '试用体验'),
             embeddedDemoIframeTitle: '试用',
-            employeeFakeReceipt: {
-                description: '我的试驾收据！',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发消息一样简单。让我们先了解一下基础内容。',
@@ -4294,7 +4294,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             defaultNote: `发送到 ${CONST.EMAIL.RECEIPTS} 的收据将显示在此工作区中。`,
             deleteConfirmation: '确定要删除此工作区吗？',
             deleteWithCardsConfirmation: '确定要删除此工作区吗？这将移除所有卡片数据源和已分配的卡片。',
-            deleteOpenExpensifyCardsError: '您的公司仍有未关闭的 Expensify 卡。',
+            deleteOpenExpensifyCardsError: '您的公司仍在使用 Expensify 卡。请<concierge-link>联系 Concierge</concierge-link>以停用它们。',
             outstandingBalanceWarning: '您有一笔未结清的余额，必须在删除最后一个工作区之前结清。请前往订阅设置以解决付款问题。',
             settleBalance: '前往订阅',
             unavailable: '工作区不可用',
@@ -9453,17 +9453,6 @@ ${reportName}`,
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: '体验 2 分钟试用',
-        },
-        modal: {
-            title: '试用一下我们的产品',
-            description: '快速浏览产品，立即上手使用。',
-            confirmText: '开始试用',
-            helpText: '跳过',
-            employee: {
-                description: '<muted-text>为你的团队获取<strong>3 个月免费的 Expensify！</strong>只需在下面输入你老板的邮箱并发送一笔测试报销。</muted-text>',
-                email: '输入你老板的邮箱',
-                error: '该成员拥有一个工作区，请输入一位新成员进行测试。',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: '您目前正在试用 Expensify',

@@ -38,6 +38,9 @@ type MapViewProps = {
 
     // Whether it should display the current user's location on the map
     shouldDisplayCurrentLocation?: boolean;
+
+    // Whether it should display the compass overlay on the map
+    shouldDisplayCompass?: boolean;
 };
 
 type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState'> & {

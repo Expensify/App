@@ -42,6 +42,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nueva función',
         beta: 'Beta',
         center: 'Centrar',
+        resetMapToNorth: 'Restablecer el mapa al norte',
         search: 'Buscar',
         reports: 'Informes',
         spend: 'Gastos',
@@ -269,6 +270,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Mostrar menos',
         plusMore: ({count}: {count: number}) => `+${count} más`,
         merchant: 'Comerciante',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Busca ${merchant} en Google`,
         change: 'Cambio',
         category: 'Categoría',
         vendor: 'Proveedor',
@@ -3250,9 +3253,6 @@ ${amount} para ${merchant} - ${date}`,
         testDrive: {
             name: ({testDriveURL}) => (testDriveURL ? `Haz una [prueba](${testDriveURL})` : 'Haz una prueba'),
             embeddedDemoIframeTitle: 'Prueba',
-            employeeFakeReceipt: {
-                description: '¡Mi recibo de prueba!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Que te reembolsen es tan fácil como enviar un mensaje. Repasemos lo básico.',
@@ -4299,7 +4299,7 @@ ${amount} para ${merchant} - ${date}`,
             defaultNote: `Los recibos enviados a ${CONST.EMAIL.RECEIPTS} aparecerán en este espacio de trabajo.`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
-            deleteOpenExpensifyCardsError: 'Su empresa todavía tiene tarjetas Expensify activas.',
+            deleteOpenExpensifyCardsError: 'Tu empresa todavía tiene Tarjetas Expensify. Por favor, <concierge-link>contacta con Concierge</concierge-link> para eliminarlas.',
             outstandingBalanceWarning:
                 'Tienes un saldo pendiente que debe liquidarse antes de eliminar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
             settleBalance: 'Ir a Suscripción',
@@ -9926,18 +9926,6 @@ ${amount} para ${merchant} - ${date}`,
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Haz una prueba de 2 minutos',
-        },
-        modal: {
-            title: 'Haz una prueba con nosotros',
-            description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente.',
-            confirmText: 'Iniciar prueba',
-            helpText: 'Saltar',
-            employee: {
-                description:
-                    '<muted-text>Consigue <strong>3 meses gratis</strong>  de Expensify para tu equipo. Solo introduce el correo electrónico de tu jefe abajo para enviarle un gasto escaneado de prueba.</muted-text>',
-                email: 'Introduce el correo electrónico de tu jefe',
-                error: 'Ese miembro es propietario de un espacio de trabajo, por favor introduce un nuevo miembro para probar.',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: 'Actualmente estás probando Expensify',
