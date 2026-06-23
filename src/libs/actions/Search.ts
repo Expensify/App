@@ -77,6 +77,7 @@ import type {
     Policy,
     Report,
     ReportAction,
+    ReportActions,
     ReportNextStepDeprecated,
     Transaction,
 } from '@src/types/onyx';
@@ -213,6 +214,7 @@ type HandleActionButtonPressParams = {
     chatReportPolicy?: OnyxEntry<Policy>;
     iouReportCurrentNextStepDeprecated?: OnyxEntry<ReportNextStepDeprecated>;
     searchData?: SearchResultDataType;
+    chatReportActions: OnyxEntry<ReportActions>;
 };
 
 function handleActionButtonPress({
@@ -246,6 +248,7 @@ function handleActionButtonPress({
     chatReportPolicy,
     iouReportCurrentNextStepDeprecated,
     searchData,
+    chatReportActions,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -295,6 +298,7 @@ function handleActionButtonPress({
                 amountOwed,
                 policy,
                 searchData,
+                chatReportActions,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -482,6 +486,7 @@ type GetPayActionCallbackParams = {
     amountOwed: OnyxEntry<number>;
     policy: OnyxEntry<Policy>;
     searchData?: SearchResultDataType;
+    chatReportActions: OnyxEntry<ReportActions>;
 };
 
 function getPayActionCallback({
@@ -507,6 +512,7 @@ function getPayActionCallback({
     amountOwed,
     policy,
     searchData,
+    chatReportActions,
 }: GetPayActionCallbackParams) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
@@ -553,6 +559,7 @@ function getPayActionCallback({
         ownerBillingGracePeriodEnd,
         methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
+        chatReportActions,
     });
 }
 
