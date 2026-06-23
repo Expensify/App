@@ -19,6 +19,7 @@ type WorkspaceDistanceRatesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    EmptyStateComponent: React.ReactElement;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -28,7 +29,7 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -136,6 +137,7 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
+            {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
                     {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
