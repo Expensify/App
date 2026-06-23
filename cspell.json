@@ -470,6 +470,7 @@
         "barwidth",
         "basehead",
         "baselined",
+        "beforeunload",
         "behaviour",
         "bigdecimal",
         "billpay",
@@ -781,6 +782,8 @@
         "pbxproj",
         "pdfreport",
         "pdfs",
+        "perdiem",
+        "perdiems",
         "persistable",
         "personaltrackcase",
         "personaltrackgoal",
@@ -814,6 +817,7 @@
         "reactnativehybridapp",
         "reactnativekeycommand",
         "reannounce",
+        "reauthenticating",
         "reauthentication",
         "rebooking",
         "recategorize",
@@ -939,6 +943,7 @@
         "unscrollable",
         "unsharing",
         "unsubmitted",
+        "upsell",
         "urbanairship",
         "urlset",
         "useAutolayout",
@@ -1011,7 +1016,8 @@
         "NitroFetch",
         "Prefetch",
         "Prefetcher",
-        "knip"
+        "knip",
+        "lottiefiles"
     ],
     "ignorePaths": [
         ".gitignore",

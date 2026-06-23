@@ -8,10 +8,15 @@ type ActivatePhysicalCardPageProps = PlatformStackScreenProps<SettingsNavigatorP
 
 function ActivatePhysicalCardPage({
     route: {
-        params: {cardID = ''},
+        params: {cardID = '', isFromDomainCardDetail},
     },
 }: ActivatePhysicalCardPageProps) {
-    return <ActivatePhysicalCardPageBase cardID={cardID} />;
+    return (
+        <ActivatePhysicalCardPageBase
+            cardID={cardID}
+            isFromDomainCardDetail={!!isFromDomainCardDetail}
+        />
+    );
 }
 
 export default ActivatePhysicalCardPage;
