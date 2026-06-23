@@ -16,7 +16,7 @@ To activate Distance rates for a workspace:
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
 2. Click **More Features**.
-3. Toggle **Distance Rates** to enable the setting. 
+3. Toggle **Distance rates** to enable the setting. 
 
 Once enabled, **Distance Rates** will appear in the left menu. 
 
@@ -55,7 +55,7 @@ To prevent members from using a Distance rate, you can either disable it or dele
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
 2. Click **Distance rates**.
-3. Select each of rate you want to disable or delete. 
+3. Select each rate you want to disable or delete.
 4. Click **Selected**
 5. Choose **Disable rates** or **Delete rates**.
 
