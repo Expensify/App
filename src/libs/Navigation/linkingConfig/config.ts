@@ -1243,6 +1243,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT]: {
                             path: ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS]: {
+                            path: ROUTES.RULES_REQUIRE_RECEIPTS.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS]: {
+                            path: ROUTES.RULES_REQUIRE_FIELDS.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
                             path: ROUTES.RULES_MAX_EXPENSE_AMOUNT.route,
                         },
@@ -1281,6 +1287,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
                             path: ROUTES.RULES_PROHIBITED_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_NEW]: {
+                            path: ROUTES.RULES_NEW.route,
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
                             path: ROUTES.RULES_MERCHANT_NEW.route,

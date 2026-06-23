@@ -56,6 +56,7 @@ import {
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport as isExpenseReportUtil,
+    isIndividualInvoiceRoom,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
     isSelfDM,
@@ -105,7 +106,9 @@ import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSelfDMReport from './useSelfDMReport';
+import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
@@ -365,6 +368,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -546,6 +550,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const isFirstTransactionUnreported = firstTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const firstTransactionReport = firstTransactionFetchedReport ?? (isFirstTransactionUnreported ? selfDMReport : undefined);
     const [firstTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${firstTransactionReport?.policyID}`);
+    const splitEffectivePolicy = useSplitEffectivePolicy(firstTransactionReport, undefined, firstTransaction);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(firstTransactionPolicy);
 
     // Use the split-aware delete hook for bulk transaction deletion so split children trigger
     // updateSplitTransactions (with reverse-split when only one sibling is left), instead of plain
@@ -1097,6 +1103,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         invoiceReceiverPolicyID ?? chatReport.policyID,
                     );
 
+                    const shouldUseB2BInvoiceReport = !!paymentItem.payAsBusiness && !!existingB2BInvoiceReport && isIndividualInvoiceRoom(chatReport);
+                    const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
+
                     payInvoice({
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
@@ -1116,6 +1125,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         defaultWorkspaceName,
                         additionalOnyxData,
                         shouldPlaySuccessSound: false,
+                        chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${payChatReportID}`],
                     });
                     paidReportCount += 1;
                     continue;
@@ -1142,6 +1152,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
+                    chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                 });
                 paidReportCount += 1;
             }
@@ -1165,12 +1176,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             policies,
             showDelegateNoAccessModal,
             allReports,
+            allReportActions,
             allNextSteps,
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
             policyIDsWithVBBA,
-            allReportActions,
             formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
@@ -1964,7 +1975,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionPolicy, firstTransactionReport, accountID, {isProduction});
+                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
                 },
             });
         }
@@ -2105,6 +2116,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        selfDMReportID,
+        splitEffectivePolicy,
+        restrictedActionPolicyID,
         doSelectedItemsBelongToSubmitPolicy,
         openSearchReportSubmitToPopover,
         searchResults?.data,
