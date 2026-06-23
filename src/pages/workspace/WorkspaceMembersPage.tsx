@@ -50,7 +50,6 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
@@ -132,7 +131,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
-    const invitedEmails = Object.keys(invitedEmailsToAccountIDsDraft ?? {});
+    const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(
@@ -364,7 +363,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 accountID,
                 name: memberName,
                 email: memberEmail,
-                shouldAnimateInHighlight: invitedEmails.includes(login),
                 employeeUserID: policyEmployee.employeeUserID,
                 employeePayrollID: policyEmployee.employeePayrollID,
                 isInteractive: !details.isOptimisticPersonalDetail,
@@ -386,7 +384,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         policy?.owner,
         policy?.ownerAccountID,
         formatPhoneNumber,
-        invitedEmails,
         session?.accountID,
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
@@ -413,12 +410,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (invitedMemberIndex !== -1) {
             tableRef.current?.scrollToIndex({index: invitedMemberIndex, animated: false});
-
-            const handle = TransitionTracker.runAfterTransitions({
-                callback: () => clearInviteDraft(policyID),
-            });
-
-            return () => handle.cancel();
+            tableRef.current?.highlightItems(invitedEmails);
+            clearInviteDraft(policyID);
         }
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
 

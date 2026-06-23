@@ -36,9 +36,6 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** Whether or not the table row is loading */
     isLoading?: boolean;
 
-    /** Whether or not the row should animate in highlighted */
-    shouldAnimateInHighlight?: boolean;
-
     /** The loading component to render within the table row when the row is loading */
     LoadingComponent?: React.ComponentType;
 
@@ -60,7 +57,6 @@ export default function TableRow({
     sentryLabel,
     interactive,
     isLoading,
-    shouldAnimateInHighlight,
     skeletonReasonAttributes,
     LoadingComponent,
     onPress,
@@ -89,7 +85,7 @@ export default function TableRow({
     }
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: !!shouldAnimateInHighlight,
+        shouldHighlight: !!item?.shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.transparent,
     });

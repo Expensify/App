@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 import useFiltering from './middlewares/filtering';
+import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
@@ -190,7 +191,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         mobileSelectionModalRowKey,
         middleware: selectionMiddleware,
     } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange});
-    const processedData = selectionMiddleware(sortedData);
+    const selectionData = selectionMiddleware(sortedData);
+
+    const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
+    const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
 
@@ -199,6 +203,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...sortMethods,
         ...searchMethods,
         ...selectionMethods,
+        ...highlightingMethods,
     };
 
     /**

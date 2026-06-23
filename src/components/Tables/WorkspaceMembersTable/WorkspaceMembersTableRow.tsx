@@ -54,7 +54,6 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            shouldAnimateInHighlight={item.shouldAnimateInHighlight}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LIST_ROW}
             skeletonReasonAttributes={{context: 'WorkspaceMembersTableRow'}}
             offlineWithFeedback={{errors: item.errors, pendingAction: item.pendingAction, onClose: item.dismissError}}

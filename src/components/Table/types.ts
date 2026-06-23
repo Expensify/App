@@ -2,6 +2,7 @@ import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
+import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
@@ -58,7 +59,10 @@ type TableColumn<ColumnKey extends string = string> = {
 
 type TableRow<DataType extends TableData> = DataType & {
     /** Whether or not the row is selected or not */
-    selected: boolean;
+    selected?: boolean;
+
+    /** Whether or not the row should animate in highlighted */
+    shouldAnimateInHighlight?: boolean;
 };
 
 /**
@@ -68,7 +72,11 @@ type TableRow<DataType extends TableData> = DataType & {
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> & FilteringMethods<FilterKey> & SearchingMethods & SelectionMethods;
+type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> &
+    FilteringMethods<FilterKey> &
+    SearchingMethods &
+    SelectionMethods &
+    HighlightingMethods;
 
 /**
  * The ref handle type for the Table component.
