@@ -195,7 +195,7 @@ describe('WorkspaceUpgrade', () => {
         // Then UpgradeSubmit should target the Collect (Team) plan and pass the report to approve
         TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.TEAM, reportID});
 
-        // And once the upgrade succeeds, the report is refetched (OpenReport) so the stale next step refreshes
+        // And once the upgrade succeeds, the report is fetched again (OpenReport) so the stale next step refreshes
         TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {reportID});
 
         unmount();
