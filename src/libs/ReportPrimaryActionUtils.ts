@@ -526,6 +526,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     if (
         canIOUBePaidAction(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, reportTransactions, false, reportNameValuePairs, invoiceReceiverPolicy) &&
+        // For invoice reports, also require a positive reimbursable amount because canIOUBePaid does not check invoice totals.
+        (!isInvoiceReportUtils(report) || getMoneyRequestSpendBreakdown(report).reimbursableSpend > 0) &&
         !didExportFail &&
         !allExpensesHeld
     ) {
