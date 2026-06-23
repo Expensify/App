@@ -124,10 +124,6 @@ function isReconnectFamilyRequest(request: AnyRequest | null | undefined): reque
     return !!request && (request.command === WRITE_COMMANDS.OPEN_APP || request.command === WRITE_COMMANDS.RECONNECT_APP);
 }
 
-function isOpenAppRequest(request: AnyRequest): boolean {
-    return request.command === WRITE_COMMANDS.OPEN_APP;
-}
-
 /**
  * Read the `updateIDFrom` coverage marker off untyped reconnect params via `in`-narrowing (no cast),
  * so the incoming request the API builds carries the same value the resolver reads. Returns it raw;
@@ -151,29 +147,19 @@ function reconnectCoverageFrom(request: AnyRequest): number {
 }
 
 /**
- * Duplicate-conflict resolver for the reconnect family (OpenApp / ReconnectApp). Unlike the generic
- * resolver it also consults the in-flight (`ongoingRequest`) request, and decides by coverage rather
- * than by command name: an incoming reconnect already covered by one in flight or queued is dropped
- * (`noAction`), while a wider one is pushed to run after. This closes the in-flight dedupe gap the
- * generic resolver leaves open (it scans the waiting queue only) and is the durable convergence point
- * for the reconnect family. Preserve and extend it in the SequentialQueue refactor; do not delete it.
+ * Duplicate-conflict resolver for an incoming ReconnectApp. Unlike the generic resolver it also
+ * consults the in-flight (`ongoingRequest`) request, and decides by coverage rather than by command
+ * name: an incoming reconnect already covered by one in flight or queued is dropped (`noAction`),
+ * while a wider one is pushed to run after. This closes the in-flight dedupe gap the generic resolver
+ * leaves open (it scans the waiting queue only) and is the durable convergence point for reconnect
+ * deduping. Preserve and extend it in the SequentialQueue refactor; do not delete it.
  *
- * Two asymmetries:
- * - An incoming OpenApp is never dropped. Its `successData` can carry caller-specific preservation
- *   writes that coverage cannot see (coverage only measures how far back the server re-fetch reaches),
- *   so collapsing one OpenApp onto another could silently drop them.
- * - A live OpenApp covers an incoming ReconnectApp, since it re-fetches everything. A reconnect that
- *   lands while an OpenApp is live is still dropped.
+ * A live OpenApp counts as covering an incoming ReconnectApp, since OpenApp re-fetches everything, so
+ * a reconnect that lands while an OpenApp is live is dropped. OpenApp itself does not use this
+ * resolver. It dedupes through the generic resolver (a queue-only `replace`) at its own call site,
+ * because its `successData` carries caller-specific preservation writes that coverage cannot see.
  */
 function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, incomingRequest: AnyRequest): ConflictActionData {
-    if (isOpenAppRequest(incomingRequest)) {
-        return {
-            conflictAction: {
-                type: 'push',
-            },
-        };
-    }
-
     const incomingCoverage = reconnectCoverageFrom(incomingRequest);
     const isCovered = [ongoingRequest, ...persistedRequests].some((live) => isReconnectFamilyRequest(live) && reconnectCoverageFrom(live) <= incomingCoverage);
 

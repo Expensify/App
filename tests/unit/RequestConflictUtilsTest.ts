@@ -246,20 +246,19 @@ describe('RequestConflictUtils', () => {
             ['incremental(500)', 'full', 'push', incrementalReconnect(500), fullReconnect()],
             ['incremental(500)', 'incremental(400)', 'push', incrementalReconnect(500), incrementalReconnect(400)],
             ['OpenApp', 'incremental', 'noAction', openApp(), incrementalReconnect(500)],
-            // An incoming OpenApp is never dropped: its successData carries caller-specific writes
-            // coverage can't see (see resolveReconnectDuplicationConflictAction), so this case pushes.
-            ['OpenApp', 'OpenApp', 'push', openApp(), openApp()],
-            ['incremental', 'OpenApp', 'push', incrementalReconnect(500), openApp()],
-        ])('live %s vs incoming %s -> %s', (_live, _incoming, expected, live: AnyRequest, incoming: AnyRequest) => {
+        ])('live %s vs incoming reconnect %s -> %s', (_live, _incoming, expected, live: AnyRequest, incoming: AnyRequest) => {
             // Decided against the in-flight (ongoing) request.
             expect(resolveReconnectDuplicationConflictAction([], live, incoming)).toEqual({conflictAction: {type: expected}});
             // And identically against a waiting-queue request, since the resolver treats both as "live".
             expect(resolveReconnectDuplicationConflictAction([live], null, incoming)).toEqual({conflictAction: {type: expected}});
         });
 
+        // OpenApp only ever appears on the live side here (it covers an incoming reconnect because it
+        // re-fetches everything). An incoming OpenApp does not use this resolver: it dedupes through the
+        // generic resolveDuplicationConflictAction, covered by the resolveDuplicationConflictAction tests
+        // above and end-to-end by "OpenApp should replace same requests" in tests/actions/SessionTest.ts.
         it('pushes when no reconnect-family request is live', () => {
             expect(resolveReconnectDuplicationConflictAction([], null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
-            expect(resolveReconnectDuplicationConflictAction([], null, openApp())).toEqual({conflictAction: {type: 'push'}});
         });
 
         it('ignores unrelated commands in the queue when deciding coverage', () => {

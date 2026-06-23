@@ -466,7 +466,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     return getPolicyParamsForOpenOrReconnect()
         .then((policyParams: PolicyParamsForOpenOrReconnect) => {
             const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-            return API.writeWithNoDuplicatesReconnectConflictAction(
+            return API.writeWithNoDuplicatesConflictAction(
                 WRITE_COMMANDS.OPEN_APP,
                 params,
                 getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),

@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import {resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {resolveDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import * as NetworkState from '@libs/NetworkState';
 import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
@@ -403,14 +403,24 @@ describe('SequentialQueue', () => {
 });
 
 describe('SequentialQueue - reconnect coverage collapse', () => {
-    // Build a reconnect-family request wired to the real resolver exactly as
-    // API.writeWithNoDuplicatesReconnectConflictAction does, so these tests exercise the wiring,
-    // not a stand-in matcher. getOngoingRequest() is read inside the closure (both eval passes agree).
-    function makeReconnectRequest<TKey extends OnyxKey = never>(overrides: {command: 'ReconnectApp' | 'OpenApp'; data?: Record<string, unknown>} & Partial<Request<TKey>>): Request<TKey> {
+    // Build a ReconnectApp wired to the real resolver exactly as API.writeWithNoDuplicatesReconnectConflictAction
+    // does, so these tests exercise the wiring, not a stand-in matcher. getOngoingRequest() is read inside the
+    // closure (both eval passes agree).
+    function makeReconnectRequest<TKey extends OnyxKey = never>(overrides: {command: 'ReconnectApp'; data?: Record<string, unknown>} & Partial<Request<TKey>>): Request<TKey> {
         const incoming: AnyRequest = {command: overrides.command, data: overrides.data};
         return {
             ...overrides,
             checkAndFixConflictingRequest: (persistedRequests) => resolveReconnectDuplicationConflictAction(persistedRequests as AnyRequest[], getOngoingRequest(), incoming),
+        } as Request<TKey>;
+    }
+
+    // Build an OpenApp wired exactly as API.writeWithNoDuplicatesConflictAction(OPEN_APP) does: the generic
+    // resolver dedupes by command against the waiting queue only and never reads the in-flight request.
+    function makeOpenAppRequest<TKey extends OnyxKey = never>(overrides: {data?: Record<string, unknown>} & Partial<Request<TKey>> = {}): Request<TKey> {
+        return {
+            ...overrides,
+            command: 'OpenApp',
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests as AnyRequest[], (queued) => queued.command === 'OpenApp'),
         } as Request<TKey>;
     }
 
@@ -517,8 +527,9 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('ReconnectApp');
 
-            // An incoming OpenApp is never dropped: its successData carries preservation writes coverage can't see.
-            await SequentialQueue.push(makeReconnectRequest({command: 'OpenApp'}));
+            // OpenApp dedupes against the waiting queue only, never the in-flight request, so an OpenApp that
+            // lands mid-reconnect still runs and its preservation writes are never dropped.
+            await SequentialQueue.push(makeOpenAppRequest());
 
             expect(getLength()).toBe(2);
             expect(getAll().at(0)?.command).toBe('OpenApp');
