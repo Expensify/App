@@ -156,7 +156,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         approveMoneyRequest({
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,
-            policy,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email ?? '',
             hasViolations,

@@ -2024,7 +2024,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID)),
-                policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
@@ -2061,7 +2060,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID)),
-                policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
@@ -2660,7 +2658,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
@@ -2712,7 +2709,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
@@ -2760,7 +2756,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
@@ -2884,7 +2879,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
@@ -2915,7 +2909,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
@@ -2944,7 +2937,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport: updatedReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
@@ -3003,7 +2995,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 expenseReport: singleApproverReport,
                 expenseReportPolicy: singleApproverPolicy,
-                policy: singleApproverPolicy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
@@ -3062,12 +3053,11 @@ describe('actions/IOU/ReportWorkflow', () => {
                         childManagerAccountID: normalReport.managerID,
                     },
                 },
-            })
+            } as unknown as OnyxMultiSetInput)
                 .then(() => {
                     approveMoneyRequest({
                         expenseReport: normalReport,
                         expenseReportPolicy: policy,
-                        policy: activeDEWPolicy,
                         currentUserAccountIDParam: managerAccountID,
                         currentUserEmailParam: managerEmail,
                         hasViolations: false,
@@ -3203,7 +3193,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             const newExpenseReportID = approveMoneyRequest({
                 expenseReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,

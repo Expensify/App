@@ -46,7 +46,6 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             approveMoneyRequest({
                 expenseReport: moneyRequestReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,

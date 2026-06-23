@@ -143,7 +143,6 @@ function PayActionButton({
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy: policy,
-                policy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,

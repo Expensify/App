@@ -508,7 +508,6 @@ function SettlementButton({
                 approveMoneyRequest({
                     expenseReport: iouReport,
                     expenseReportPolicy,
-                    policy,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
                     hasViolations,

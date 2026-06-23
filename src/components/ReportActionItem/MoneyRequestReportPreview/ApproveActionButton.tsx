@@ -56,7 +56,6 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy,
-                policy: expenseReportPolicy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
