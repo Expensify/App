@@ -7,6 +7,8 @@ import type {CurrencyList, Locale} from '@src/types/onyx';
 import Log from './Log';
 import {format, formatToParts} from './NumberFormatUtils';
 
+// Temporary fallback for callers that have not been migrated to pass currencyList yet.
+// This will be removed in the final Onyx.connect migration for CurrencyUtils.
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
 Onyx.connect({

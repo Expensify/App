@@ -598,7 +598,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
             return convertToDisplayString(absoluteAmount, trimmedCurrency, true, currencyList);
         }
 
-        return convertToDisplayStringWithoutCurrency(absoluteAmount, trimmedCurrency, currencyList);
+        return convertToDisplayStringWithoutCurrency(absoluteAmount, currency, currencyList);
     } catch (error) {
         Log.hmmm('[Formula] formatAmount failed', {error, amount, currency, displayCurrency});
         return '';
