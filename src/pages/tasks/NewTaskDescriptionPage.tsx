@@ -35,6 +35,7 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
     const {translate} = useLocalize();
     const [task, taskMetadata] = useOnyx(ONYXKEYS.TASK);
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const [accountIDToName] = useOnyx(ONYXKEYS.DERIVED.ACCOUNT_ID_TO_NAME_MAP);
 
     const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
@@ -80,7 +81,7 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''))}
+                            defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName})}
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}

@@ -1194,6 +1194,7 @@ const ONYXKEYS = {
         TODOS: 'todos',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID: 'openAndSubmittedReportsByPolicyID',
+        ACCOUNT_ID_TO_NAME_MAP: 'accountIDToNameMap',
         FLAGGED_EXPENSES: 'flaggedExpenses',
     },
 
@@ -1682,6 +1683,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.TODOS]: OnyxTypes.TodosDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID]: OnyxTypes.OpenAndSubmittedReportsByPolicyIDDerivedValue;
+    [ONYXKEYS.DERIVED.ACCOUNT_ID_TO_NAME_MAP]: OnyxTypes.AccountIDToNameMapDerivedValue;
     [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: OnyxTypes.FlaggedExpensesDerivedValue;
 };
 

@@ -47,6 +47,7 @@ import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
+    AccountIDToNameMapDerivedValue,
     CardFeedErrorsDerivedValue,
     FlaggedExpensesDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
@@ -397,6 +398,7 @@ export type {
     OutstandingReportsByPolicyIDDerivedValue,
     OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    AccountIDToNameMapDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
