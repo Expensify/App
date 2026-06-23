@@ -7835,8 +7835,10 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]);
-            const result = findLastAccessedReport(false, false, undefined, archivedReportsIDSet);
+            const reportNameValuePairsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
+            };
+            const result = findLastAccessedReport(false, false, undefined, reportNameValuePairsCollection);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
