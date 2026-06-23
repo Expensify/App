@@ -329,8 +329,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         cardSettingsBase={settings}
                         personalDetails={personalDetails}
                         listFooterComponent={disclaimerFooter}
-                        listFooterComponentStyle={shouldUseNarrowLayout ? [styles.flexGrow1, styles.justifyContentEnd] : undefined}
-                        listContentContainerStyle={shouldUseNarrowLayout ? [styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}] : undefined}
+                        listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
+                        listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
                     />
                 </View>
             )}
