@@ -27,11 +27,19 @@ function useNewTransactions(
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
 
     const newTransactions = useMemo(() => {
+        // If isFocused is not passed (=undefined) we will not return empty.
+        if (isFocused === false) {
+            return CONST.EMPTY_ARRAY as unknown as Transaction[];
+        }
+
         if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
-            // GUARD: pre-mount adds (e.g., Self DM → workspace). isFocused gates the rail so unfocused chat previews don't consume it prematurely.
+            // When a transaction is submitted from another report (e.g., Self DM → workspace), it is
+            // already in the transactions list by the time this component mounts.
+            // So we use pendingNewTransactionIDs from report metadata to identify these transactions on first load.
             if (isFocused && reportID && !isEmptyObject(pendingNewTransactionIDs) && transactions?.length) {
                 const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
-                return transactions.filter(({transactionID}) => pendingSet.has(transactionID) && pendingNewTransactionIDs[transactionID]);
+                const pendingTransactions = transactions.filter(({transactionID}) => pendingSet.has(transactionID) && pendingNewTransactionIDs[transactionID]);
+                return pendingTransactions;
             }
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
@@ -39,13 +47,12 @@ function useNewTransactions(
             skipFirstTransactionsChange.current = false;
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
-        // DIFF runs regardless of focus — useAnimatedHighlightStyle latches and waits for didScreenTransitionEnd, so unfocused consumers still queue the highlight.
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
 
-        // We don't need to recalculate on change of prevTransactions as it will make the value
+        // We don't need to recalculate on change of prevTransactions or pendingNewTransactionIDs as it will make the value
         // disappear quickly which will break the scroll and highlight on slower devices like mobile app.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions, reportID, isFocused, pendingNewTransactionIDs]);
+    }, [transactions, reportID, isFocused]);
 
     useEffect(() => {
         if (!pendingNewTransactionIDs) {
