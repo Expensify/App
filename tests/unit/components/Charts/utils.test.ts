@@ -19,7 +19,7 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 const LINE_HEIGHT = 16;
 
@@ -669,7 +669,6 @@ describe('calculateMinDomainPadding', () => {
 // Bar chart domain padding constants, mirrored from BarChartContent.
 const BAR_PAD_TOP = 32;
 const BAR_PAD_BOTTOM = 1;
-const CHART_HEIGHT = 250;
 
 describe('getNiceYAxisTicks', () => {
     it('expands a flat series by ±1 and runs D3 nice/ticks so results are always nice values', () => {
@@ -681,27 +680,31 @@ describe('getNiceYAxisTicks', () => {
     });
 
     it('treats flat positive series as range [0, value] using bar chart padding', () => {
-        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_HEIGHT)).toEqual([0, 1, 2, 3]);
+        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 1, 2, 3]);
     });
 
     it('returns correct ticks for varied positive data with bar chart padding', () => {
-        expect(getNiceYAxisTicks(90, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_HEIGHT)).toEqual([0, 20, 40, 60, 80, 100]);
+        expect(getNiceYAxisTicks(90, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 20, 40, 60, 80, 100]);
     });
 
     it('clamps positive rawDataMin to 0 so the y-axis floor matches Victory', () => {
-        expect(getNiceYAxisTicks(90, 10, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_HEIGHT)).toEqual([0, 20, 40, 60, 80, 100]);
+        expect(getNiceYAxisTicks(90, 10, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 20, 40, 60, 80, 100]);
     });
 
     it('returns correct ticks for a high positive-only range with bar chart padding', () => {
-        expect(getNiceYAxisTicks(9000, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_HEIGHT)).toEqual([0, 2000, 4000, 6000, 8000, 10000]);
+        expect(getNiceYAxisTicks(9000, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 2000, 4000, 6000, 8000, 10000]);
+    });
+
+    it('includes the next nice tick when data max sits near a tick boundary with bar chart padding', () => {
+        expect(getNiceYAxisTicks(795, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 200, 400, 600, 800, 1000]);
     });
 
     it('returns correct ticks for mixed positive and negative data with bar chart padding', () => {
-        expect(getNiceYAxisTicks(100, -50, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_HEIGHT)).toEqual([-50, 0, 50, 100]);
+        expect(getNiceYAxisTicks(100, -50, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-50, 0, 50, 100]);
     });
 
     it('returns correct ticks for varied negative data with bar chart padding', () => {
-        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_HEIGHT)).toEqual([-100, -80, -60, -40, -20, 0]);
+        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-100, -80, -60, -40, -20, 0]);
     });
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {

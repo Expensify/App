@@ -226,16 +226,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const yAxisLabelWidth = getYAxisLabelWidth(
-        data,
-        VictoryTheme.axis.tickCount,
-        formatValue,
-        fontMgr,
-        variables.iconSizeExtraSmall,
-        BASE_DOMAIN_PADDING.top,
-        BASE_DOMAIN_PADDING.bottom,
-        CHART_CONTENT_MIN_HEIGHT,
-    );
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontMgr, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontMgr) {

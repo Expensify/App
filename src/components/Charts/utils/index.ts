@@ -2,15 +2,7 @@ import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {
-    CHART_CONTENT_MIN_HEIGHT,
-    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
-    ELLIPSIS,
-    LABEL_PADDING,
-    LABEL_ROTATIONS,
-    MAX_X_AXIS_LABEL_WIDTH,
-    SIN_45,
-} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 import variables from '@styles/variables';
 
 /** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
@@ -413,7 +405,7 @@ function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, ha
 }
 
 /** Predicts Y-axis tick values that victory-native will generate from the data extremes. */
-function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: number, padTop = 0, padBottom = 0, chartHeight = CHART_CONTENT_MIN_HEIGHT): number[] {
+function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: number, padTop = 0, padBottom = 0, chartHeight = CHART_Y_SCALE_HEIGHT): number[] {
     if (tickCount <= 0) {
         return [];
     }
@@ -433,13 +425,10 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
-    tickCount: number,
     formatValue: (value: number) => string,
     fontMgr: SkTypefaceFontProvider | null,
     fontSize: number,
-    padTop = 0,
-    padBottom = 0,
-    chartHeight = CHART_CONTENT_MIN_HEIGHT,
+    domainPadding: {top: number; bottom: number},
 ): number {
     if (!fontMgr) {
         return 0;
@@ -447,7 +436,12 @@ function getYAxisLabelWidth(
     const totals = data.map((p) => p.total);
     const rawDataMax = totals.length ? Math.max(...totals) : 0;
     const rawDataMin = totals.length ? Math.min(...totals) : 0;
-    return Math.max(0, ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, padTop, padBottom, chartHeight).map((tick) => measureTextWidth(formatValue(tick), fontMgr, fontSize)));
+    return Math.max(
+        0,
+        ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
+            measureTextWidth(formatValue(tick), fontMgr, fontSize),
+        ),
+    );
 }
 
 export {
