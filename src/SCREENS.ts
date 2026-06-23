@@ -755,6 +755,7 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT: 'Workspace_ExpensifyCard_Rule_Merchant_Edit',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: 'Workspace_ExpensifyCard_Rule_Category',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: 'Workspace_ExpensifyCard_Rule_Max_Amount',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY: 'Workspace_ExpensifyCard_Rule_Currency',
         EXPENSIFY_CARD_VERIFY_WORK_EMAIL: 'Workspace_ExpensifyCard_Verify_Work_Email',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
@@ -793,6 +794,7 @@ const SCREENS = {
         REPORT_FIELDS_VALUE_SETTINGS: 'Workspace_ReportFields_ValueSettings',
         REPORT_FIELDS_EDIT_VALUE: 'Workspace_ReportFields_EditValue',
         REPORT_FIELDS_EDIT_INITIAL_VALUE: 'Workspace_ReportFields_EditInitialValue',
+        DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE: 'Dynamic_Report_Fields_Initial_List_Value',
         REPORT_FIELDS_TYPE_SELECTOR: 'Workspace_ReportFields_TypeSelector',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
@@ -889,18 +891,22 @@ const SCREENS = {
         RULES_AUTO_PAY_REPORTS_UNDER: 'Rules_AutoPay_Reports_Under',
         RULES_RECEIPT_REQUIRED_AMOUNT: 'Rules_Receipt_Required_Amount',
         RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT: 'Rules_Itemized_Receipt_Required_Amount',
+        RULES_REQUIRE_RECEIPTS: 'Rules_Require_Receipts',
+        RULES_REQUIRE_FIELDS: 'Rules_Require_Fields',
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
         RULES_REIMBURSABLE_DEFAULT: 'Rules_Reimbursable_Default',
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
+        RULES_NEW: 'Rules_New',
         RULES_MERCHANT_NEW: 'Rules_Merchant_New',
         RULES_SPEND_NEW: 'Rules_Spend_New',
         RULES_SPEND_EDIT: 'Rules_Spend_Edit',
         RULES_SPEND_CARD: 'Rules_Spend_Card',
         RULES_SPEND_CATEGORY: 'Rules_Spend_Category',
         RULES_SPEND_MAX_AMOUNT: 'Rules_Spend_Max_Amount',
+        RULES_SPEND_CURRENCIES: 'Rules_Spend_Currencies',
         RULES_MERCHANT_MERCHANT_TO_MATCH: 'Rules_Merchant_Merchant_To_Match',
         RULES_MERCHANT_MATCH_TYPE: 'Rules_Merchant_Match_Type',
         RULES_MERCHANT_MERCHANT: 'Rules_Merchant_Merchant',
@@ -967,10 +973,6 @@ const SCREENS = {
 
     MIGRATED_USER_WELCOME_MODAL: {
         ROOT: 'MigratedUserWelcomeModal_Root',
-    },
-
-    AI_FEATURES_PROMO_MODAL: {
-        ROOT: 'AIFeaturesPromoModal_Root',
     },
 
     TEST_DRIVE_MODAL: {
@@ -1059,8 +1061,10 @@ const SCREENS = {
     WORKSPACES_DOMAIN_ADDED: 'Workspaces_Domain_Added',
     WORKSPACES_DOMAIN_ACCESS_RESTRICTED: 'Workspaces_Domain_Access_Restricted',
     DOMAIN: {
-        VERIFY: 'Domain_Verify',
-        VERIFIED: 'Domain_Verified',
+        SAML_VERIFY: 'Domain_SAML_Verify',
+        SAML_VERIFIED: 'Domain_SAML_Verified',
+        MEMBERS_VERIFY: 'Domain_Members_Verify',
+        MEMBERS_VERIFIED: 'Domain_Members_Verified',
         INITIAL: 'Domain_Initial',
         SAML: 'Domain_SAML',
         ADMINS: 'Domain_Admins',

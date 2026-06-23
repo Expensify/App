@@ -177,6 +177,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
         /** cardID of selected card */
         cardID: string;
+
+        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
+        isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
         /** cardID of selected card */
@@ -424,6 +427,7 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         categoryId?: string;
+        reportID?: string;
         upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
     };
     [SCREENS.WORKSPACE.DOWNGRADE]: {
@@ -637,6 +641,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
@@ -1225,6 +1232,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
+
+        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
+        isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
         /** cardID of selected card */
@@ -1232,6 +1242,9 @@ type SettingsNavigatorParamList = {
 
         /** Reason for replacing the card */
         reason: ReplacementReason;
+
+        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
+        isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.WORKSPACE.TAX_CREATE]: {
@@ -1328,6 +1341,9 @@ type SettingsNavigatorParamList = {
         merchantIndex: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT]: {
@@ -1464,6 +1480,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
         policyID: string;
     };
@@ -1503,6 +1525,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_CUSTOM]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_NEW]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
     };
@@ -1522,6 +1547,10 @@ type SettingsNavigatorParamList = {
         ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES]: {
         policyID: string;
         ruleID: string;
     };
@@ -1623,10 +1652,16 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
         policyID: string;
     };
-    [SCREENS.DOMAIN.VERIFY]: {
+    [SCREENS.DOMAIN.SAML_VERIFY]: {
         domainAccountID: number;
     };
-    [SCREENS.DOMAIN.VERIFIED]: {
+    [SCREENS.DOMAIN.SAML_VERIFIED]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBERS_VERIFY]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBERS_VERIFIED]: {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADMIN_DETAILS]: {
@@ -2927,10 +2962,6 @@ type MigratedUserModalNavigatorParamList = {
     [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
 };
 
-type AIFeaturesPromoModalNavigatorParamList = {
-    [SCREENS.AI_FEATURES_PROMO_MODAL.ROOT]: undefined;
-};
-
 type TestDriveModalNavigatorParamList = {
     [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
         bossEmail?: string;
@@ -3105,7 +3136,6 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
-        [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: NavigatorScreenParams<AIFeaturesPromoModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
@@ -3387,7 +3417,6 @@ export type {
     WorkspaceSplitNavigatorParamList,
     WorkspaceNavigatorParamList,
     MigratedUserModalNavigatorParamList,
-    AIFeaturesPromoModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
     PolicyCopySettingsNavigatorParamList,
