@@ -60,6 +60,7 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
+import usePayChatReportActions from './usePayChatReportActions';
 import usePaymentOptions from './usePaymentOptions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
@@ -132,6 +133,7 @@ function useSelectionModeReportActions({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -408,6 +410,7 @@ function useSelectionModeReportActions({
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                chatReportActions: getChatReportActions(payAsBusiness),
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -429,6 +432,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                chatReportActions: getChatReportActions(false),
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
