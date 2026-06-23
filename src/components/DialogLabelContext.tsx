@@ -38,6 +38,10 @@ function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps)
     const initialFocusClaimedRef = useRef(false);
 
     const updateContainerLabel = () => {
+        // `aria-label` is a DOM contract; bail before any node access on native.
+        if (typeof document === 'undefined') {
+            return;
+        }
         const top = labelStackRef.current.at(-1);
         const node = containerRef.current;
         if (!isHTMLElement(node)) {

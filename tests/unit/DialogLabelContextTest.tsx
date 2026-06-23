@@ -68,6 +68,29 @@ describe('DialogLabelContext', () => {
             expect(id).toBeGreaterThanOrEqual(0);
         });
 
+        it('pushLabel does not crash when containerRef.current is a non-DOM object that satisfies `instanceof HTMLElement` but lacks DOM methods (HybridApp native View)', () => {
+            const fakeNativeView: Record<string, unknown> = {};
+            const originalHasInstance = Object.getOwnPropertyDescriptor(HTMLElement, Symbol.hasInstance);
+            Object.defineProperty(HTMLElement, Symbol.hasInstance, {value: (v: unknown) => v === fakeNativeView, configurable: true});
+
+            try {
+                const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
+                (result.current.containerRef as {current: unknown}).current = fakeNativeView;
+
+                expect(() =>
+                    act(() => {
+                        result.current.pushLabel('Settings');
+                    }),
+                ).not.toThrow();
+            } finally {
+                if (originalHasInstance) {
+                    Object.defineProperty(HTMLElement, Symbol.hasInstance, originalHasInstance);
+                } else {
+                    Reflect.deleteProperty(HTMLElement, Symbol.hasInstance);
+                }
+            }
+        });
+
         it('popLabel removes the label and restores the previous one', () => {
             const {result} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
             const mockElement = document.createElement('div');
