@@ -1,10 +1,8 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import type {ValueOf} from 'type-fest';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
-import {useTableContext} from '@components/Table/TableContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,6 +12,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import WorkspacesEmptyStateComponent from '@pages/workspace/WorkspacesEmptyStateComponent';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceRow from './WorkspaceTableRow';
 
@@ -24,7 +23,6 @@ type WorkspaceRowData = TableData & {
     icon: AvatarSource;
     isDefault: boolean;
     isDeleted: boolean;
-    isLoadingBill: boolean;
     isJoinRequestPending: boolean;
     shouldAnimateInHighlight: boolean;
     policyID: string;
@@ -32,7 +30,6 @@ type WorkspaceRowData = TableData & {
     ownerName?: string;
     ownerLogin?: string;
     ownerAvatar?: AvatarSource;
-    threeDotMenuItems?: PopoverMenuItem[];
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
@@ -41,16 +38,23 @@ type WorkspaceRowData = TableData & {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: (event?: ModifiedMouseEvent) => void;
     dismissError: () => void;
-    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type WorkspaceListTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey, string>> | undefined;
     workspaces: WorkspaceRowData[];
-    children: React.ReactNode;
+
+    /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
+    onDeleteWorkspace: (policyID: string) => void;
+
+    /** ID of the workspace with a deletion in progress, if any */
+    pendingDeletePolicyID?: string;
+
+    /** IDs of the policies eligible as copy-settings targets, passed down to the row menus */
+    copySettingsEligibleTargets: CopySettingsEligibleTargets;
 };
 
-function WorkspaceListTable({ref, workspaces, children}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID, copySettingsEligibleTargets}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -109,6 +113,9 @@ function WorkspaceListTable({ref, workspaces, children}: WorkspaceListTableProps
                 item={item}
                 rowIndex={index}
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+                onDeleteWorkspace={onDeleteWorkspace}
+                pendingDeletePolicyID={pendingDeletePolicyID}
+                copySettingsEligibleTargets={copySettingsEligibleTargets}
             />
         );
     };
@@ -126,40 +133,11 @@ function WorkspaceListTable({ref, workspaces, children}: WorkspaceListTableProps
             ListEmptyComponent={WorkspacesEmptyStateComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
-            {children}
+            {workspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.common.findWorkspace')} />}
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
 
-function WorkspaceListTableContent() {
-    return (
-        <>
-            <Table.Header />
-            <Table.Body />
-        </>
-    );
-}
-
-function WorkspaceListTableSearchBar() {
-    const {translate} = useLocalize();
-    const {originalDataLength} = useTableContext();
-
-    if (originalDataLength < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        return null;
-    }
-
-    return (
-        <Table.SearchBar
-            compact
-            label={translate('workspace.common.findWorkspace')}
-        />
-    );
-}
-
-const WorkspaceListTableCompound = Object.assign(WorkspaceListTable, {
-    Content: WorkspaceListTableContent,
-    SearchBar: WorkspaceListTableSearchBar,
-});
-
-export default WorkspaceListTableCompound;
 export type {WorkspaceRowData, WorkspaceTableColumnKey};

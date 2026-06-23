@@ -48,6 +48,9 @@ type BadgeProps = {
     /** Any additional styles to pass to the left icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Override fill color for the icon */
+    iconFill?: string;
+
     /** Additional styles from OfflineWithFeedback applied to the row */
     style?: StyleProp<ViewStyle>;
 
@@ -71,6 +74,7 @@ function Badge({
     onPress = () => {},
     icon,
     iconStyles = [],
+    iconFill,
     style,
     shouldUseXXSmallIcon = false,
     children,
@@ -116,7 +120,7 @@ function Badge({
                         width={iconSize}
                         height={iconSize}
                         src={icon}
-                        fill={iconColor}
+                        fill={iconFill ?? iconColor}
                     />
                 </View>
             )}

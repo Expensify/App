@@ -39,7 +39,7 @@ import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils'
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
-import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
+import {openPolicyReportFieldsPage, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -342,7 +342,10 @@ function WorkspaceReportFieldsPage({
                                             </View>
                                             {!hasAccountingConnections && canWriteReportFields && (
                                                 <MenuItem
-                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
+                                                    onPress={() => {
+                                                        setInitialCreateReportFieldsForm();
+                                                        Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID));
+                                                    }}
                                                     title={translate('workspace.reportFields.addField')}
                                                     icon={icons.Plus}
                                                     style={[styles.sectionMenuItemTopDescription]}

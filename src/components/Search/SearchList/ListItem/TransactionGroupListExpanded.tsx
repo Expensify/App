@@ -60,10 +60,10 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
-    isAttendeesEnabledForMovingPolicy,
     onLongPress,
     nonPersonalAndWorkspaceCards,
     onUndelete,
+    hideSearchTableHeader,
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -268,7 +268,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
-        if (isMobileSelectionModeEnabled) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as unknown as TItem);
             return;
         }
@@ -289,7 +290,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const content = (
         <View style={[styles.flexColumn, styles.flex1]}>
-            {isLargeScreenWidth && !(isEmpty && shouldDisplayLoadingIndicator) && (
+            {isLargeScreenWidth && !hideSearchTableHeader && !(isEmpty && shouldDisplayLoadingIndicator) && (
                 <>
                     <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
                         <SearchTableHeader
@@ -368,7 +369,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : (event) => openReportInRHP(transaction, event)}
                                     shouldShowArrowRightOnNarrowLayout
                                     reportActions={exportedReportActions}
-                                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}
