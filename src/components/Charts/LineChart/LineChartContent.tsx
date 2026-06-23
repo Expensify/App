@@ -85,18 +85,16 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         unitPosition: yAxisUnitPosition,
     });
 
-    const yAxisLabelWidth = fontMgr
-        ? getYAxisLabelWidth(
-              data,
-              VictoryTheme.axis.tickCount,
-              formatValue,
-              fontMgr,
-              variables.iconSizeExtraSmall,
-              BASE_DOMAIN_PADDING.top,
-              BASE_DOMAIN_PADDING.bottom,
-              CHART_CONTENT_MIN_HEIGHT,
-          )
-        : 0;
+    const yAxisLabelWidth = getYAxisLabelWidth(
+        data,
+        VictoryTheme.axis.tickCount,
+        formatValue,
+        fontMgr,
+        variables.iconSizeExtraSmall,
+        BASE_DOMAIN_PADDING.top,
+        BASE_DOMAIN_PADDING.bottom,
+        CHART_CONTENT_MIN_HEIGHT,
+    );
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
     const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;

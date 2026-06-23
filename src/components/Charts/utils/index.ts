@@ -435,12 +435,15 @@ function getYAxisLabelWidth(
     data: ChartDataPoint[],
     tickCount: number,
     formatValue: (value: number) => string,
-    fontMgr: SkTypefaceFontProvider,
+    fontMgr: SkTypefaceFontProvider | null,
     fontSize: number,
     padTop = 0,
     padBottom = 0,
     chartHeight = CHART_CONTENT_MIN_HEIGHT,
 ): number {
+    if (!fontMgr) {
+        return 0;
+    }
     const totals = data.map((p) => p.total);
     const rawDataMax = totals.length ? Math.max(...totals) : 0;
     const rawDataMin = totals.length ? Math.min(...totals) : 0;
