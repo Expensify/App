@@ -6146,7 +6146,6 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
-        TEST_DRIVE_COVER_ASPECT_RATIO: 1000 / 508,
     },
 
     /**
@@ -8006,7 +8005,6 @@ const CONST = {
             START_CHAT: 'FABMenu-StartChat',
             SEND_INVOICE: 'FABMenu-SendInvoice',
             BOOK_TRAVEL: 'FABMenu-BookTravel',
-            TEST_DRIVE: 'FABMenu-TestDrive',
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
         },
@@ -8346,10 +8344,6 @@ const CONST = {
         },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
-        },
-        TEST_DRIVE_MODAL: {
-            SKIP: 'TestDriveModal-Skip',
-            START: 'TestDriveModal-Start',
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
