@@ -120,6 +120,7 @@ describe('getSecondaryAction', () => {
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(false);
+
         // DOWNLOAD_PDF is unaffected — only PRINT is gated on the OPEN state
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(true);
     });
