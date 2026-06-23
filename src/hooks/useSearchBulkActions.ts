@@ -385,6 +385,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
+    const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
+    const [exportDownloads] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -684,21 +686,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const result = await showConfirmModal({
-                    title: translate('search.exportSearchResults.title'),
-                    prompt: translate('search.exportSearchResults.description'),
-                    confirmText: translate('search.exportSearchResults.title'),
-                    cancelText: translate('common.cancel'),
-                });
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
                 if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
                 const exportParameters = getCSVExportParameters(isBasicExport, queryJSON);
-                queueExportSearchItemsToCSV({
+                const exportID = queueExportSearchItemsToCSV({
                     query: status,
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
@@ -706,6 +699,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                 });
+                setActiveExportID(exportID);
                 selectAllMatchingItems(false);
                 clearSelectedTransactions();
                 return;
@@ -1380,7 +1374,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const completeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+                // SearchBulkActionsButton renders outside SearchScopeProvider so live Onyx may not
+                // yet have the report on a fresh load. Prefer the search snapshot first so export
+                // options are available without the user having to open the report first.
+                const completeReport = getReportFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReports);
 
                 if (!completeReport) {
                     return false;
@@ -2091,6 +2088,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
 
+    const handleExportModalClose = useCallback(() => {
+        if (!activeExportID) {
+            return;
+        }
+        const currentState = exportDownloads?.[`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`]?.state;
+        if (currentState === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
+            return;
+        }
+        setActiveExportID(undefined);
+    }, [activeExportID, exportDownloads]);
+
     const handlePdfModalHide = useCallback(() => {
         setPdfReportID(undefined);
         clearSelectedTransactions();
@@ -2131,6 +2139,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
+        activeExportID,
+        handleExportModalClose,
         isPdfModalVisible,
         setIsPdfModalVisible,
         pdfReportID,

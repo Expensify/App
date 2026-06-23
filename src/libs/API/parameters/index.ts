@@ -355,6 +355,7 @@ export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIn
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
 export type {default as ExportSearchItemsToCSVParams} from './ExportSearchItemsToCSVParams';
+export type {default as QueueExportSearchItemsToCSVParams} from './QueueExportSearchItemsToCSVParams';
 export type {default as ExportReportCSVParams} from './ExportReportCSVParams';
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
@@ -503,6 +504,7 @@ export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
 export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
 export type {default as ExportSearchWithTemplateParams} from './ExportSearchWithTemplateParams';
+export type {default as QueueExportSearchWithTemplateParams} from './QueueExportSearchWithTemplateParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
