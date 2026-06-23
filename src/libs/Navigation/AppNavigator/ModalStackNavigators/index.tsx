@@ -943,11 +943,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CompanyCardsImportSpreadsheetPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CompanyCardsImportedPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_LAYOUT_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CompanyCardLayoutNamePage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardDetailsPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/DynamicWorkspaceCompanyCardDetailsPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditTransactionStartDatePage').default,
-    [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAccountSelectCardPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/DynamicWorkspaceCompanyCardAccountSelectCardPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/DynamicIssueNewCardPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/IssueNewCardConfirmMagicCodePage').default,

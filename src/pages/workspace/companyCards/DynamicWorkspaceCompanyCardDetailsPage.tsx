@@ -57,9 +57,9 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getExportMenuItem} from './utils';
 
-type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS>;
+type DynamicWorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS>;
 
-function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
+function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.path);
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
@@ -148,7 +148,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID="WorkspaceCompanyCardDetailsPage"
+                testID="DynamicWorkspaceCompanyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardDetails')}
@@ -306,4 +306,4 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     );
 }
 
-export default WorkspaceCompanyCardDetailsPage;
+export default DynamicWorkspaceCompanyCardDetailsPage;

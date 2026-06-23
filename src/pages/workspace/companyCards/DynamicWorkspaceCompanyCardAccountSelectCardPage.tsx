@@ -27,9 +27,9 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {getExportMenuItem} from './utils';
 
-type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT>;
+type DynamicWorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT>;
 
-function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
+function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -112,7 +112,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                     </View>
                 }
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
-                displayName="WorkspaceCompanyCardAccountSelectCardPage"
+                displayName="DynamicWorkspaceCompanyCardAccountSelectCardPage"
                 data={searchedListOptions ?? []}
                 textInputOptions={{
                     label: translate('common.search'),
@@ -132,4 +132,4 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     );
 }
 
-export default WorkspaceCompanyCardAccountSelectCardPage;
+export default DynamicWorkspaceCompanyCardAccountSelectCardPage;

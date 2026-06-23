@@ -77,7 +77,7 @@ describe('tokenizedSearch', () => {
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
     });
 
-    it('WorkspaceCompanyCardAccountSelectCardPage', () => {
+    it('DynamicWorkspaceCompanyCardAccountSelectCardPage', () => {
         const tokenizeSearch = 'One Three';
 
         const items: WorkspaceListItem[] = [
