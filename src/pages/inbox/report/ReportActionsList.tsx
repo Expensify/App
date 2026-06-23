@@ -119,10 +119,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         hasPreviousMessages,
         handleShowPreviousMessages,
     } = data;
-
-    // Truly ambient state read locally instead of via the context. These add no Onyx subscription the
-    // pipeline doesn't already hold: network and route are not Onyx, the concierge session is a context,
-    // and archived is derived from the report NVPs we already subscribe to below.
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;

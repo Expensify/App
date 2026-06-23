@@ -105,9 +105,8 @@ function useReportActionsData(reportID: string) {
     // refresh, matching the concierge skeleton condition.
     const canStartConciergeSession = !!hasOnceLoadedReportActions || allReportActions.length > 0;
 
-    // What the skeleton decision (`computeReportActionsSkeletonState`) and the guard's effects read. The
-    // guard consumes this locally; it is never put on the context, so changes to these (loading flags,
-    // app-load, concierge-session start, navigation) do not re-render the list content.
+    // Guard-only slice: skeleton decision + effects. Kept off the context so its churn (loading,
+    // app-load, concierge-session, navigation) never re-renders the list.
     const guardData = {
         report,
         reportResult,
@@ -132,12 +131,9 @@ function useReportActionsData(reportID: string) {
         currentReportID,
     };
 
-    // The report-actions pipeline outputs the list needs. This is the only slice carried through
-    // `ReportActionsDataContext`. `report` and `hasOnceLoadedReportActions` stay here even though they look
-    // ambient: this hook already subscribes to them, and the list's pipeline derivations were built from
-    // this `report`, so re-reading them in the content would only add a duplicate subscription and split
-    // `report` from its own derivations. Truly ambient state (network, route, archived, concierge session)
-    // is read locally in the content instead, since it adds no subscription the pipeline doesn't hold.
+    // The only slice on the context: pipeline outputs the list renders. `report` and
+    // `hasOnceLoadedReportActions` stay here (already subscribed here; keeps `report` consistent with its
+    // derivations). Ambient state (network, route, archived, concierge session) is read locally instead.
     const contentData = {
         report,
         hasOnceLoadedReportActions,

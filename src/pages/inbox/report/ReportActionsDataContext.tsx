@@ -4,10 +4,9 @@ import {isUnread} from '@libs/ReportUtils';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /**
- * Carries the heavy report-actions pipeline outputs (`contentData`) from `ReportActionsSkeletonGuard`
- * down to `ReportActionsListContent`, so the content renders from the same derivations that drive the
- * skeleton decision without subscribing again. Ambient state (network, route, archived, loading flag,
- * concierge session) is intentionally NOT carried here — the content reads it locally.
+ * Carries `contentData` (the pipeline outputs the list renders) from `ReportActionsSkeletonGuard` to
+ * `ReportActionsListContent`, so the list renders from the same derivations as the skeleton decision
+ * without re-subscribing. Ambient state (network, route, archived, concierge session) is read locally.
  */
 const ReportActionsDataContext = createContext<ReportActionsContentData | null>(null);
 
