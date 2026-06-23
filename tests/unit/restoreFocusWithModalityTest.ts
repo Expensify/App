@@ -112,4 +112,18 @@ describe('restoreFocusWithModality', () => {
         expect(trap.pause).toHaveBeenCalledTimes(1);
         expect(trap.unpause).toHaveBeenCalledTimes(1);
     });
+
+    it('unpauses the captured parent trap even when el.focus synchronously activates a new trap that takes the stack-top', () => {
+        // focus-trap's unpause clears state.manuallyPaused=false BEFORE the topmost check; skipping it blocks the next trap's auto-unwind.
+        const parent = pushMockTrap({paused: false});
+        const el = document.createElement('button');
+        jest.spyOn(el, 'focus').mockImplementation(() => {
+            pushMockTrap({paused: false});
+        });
+
+        restoreFocusWithModality(el);
+
+        expect(parent.pause).toHaveBeenCalledTimes(1);
+        expect(parent.unpause).toHaveBeenCalledTimes(1);
+    });
 });

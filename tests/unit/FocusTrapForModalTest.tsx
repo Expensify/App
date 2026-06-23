@@ -19,6 +19,12 @@ jest.mock('focus-trap-react', () => ({
 
 jest.mock('@libs/Accessibility/blurActiveElement', () => ({__esModule: true, default: jest.fn()}));
 
+const mockRestoreFocusWithModality = jest.fn();
+jest.mock('@libs/restoreFocusWithModality', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockRestoreFocusWithModality(...args),
+}));
+
 // document.activeElement isn't settable under the RN-web test harness — stub via Document.prototype descriptor.
 function withActiveElement<T>(element: HTMLElement, fn: () => T): T {
     const descriptor = Object.getOwnPropertyDescriptor(Document.prototype, 'activeElement');
@@ -37,6 +43,7 @@ describe('FocusTrapForModal — launcher capture', () => {
         capturedOptions = null;
         (setActivePopoverLauncher as jest.Mock).mockClear();
         (markActivePopoverLauncherDeactivated as jest.Mock).mockClear();
+        mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
     });
 
@@ -76,6 +83,27 @@ describe('FocusTrapForModal — launcher capture', () => {
 
         expect(setActivePopoverLauncher).toHaveBeenCalledWith(launcher);
         expect(markActivePopoverLauncherDeactivated).toHaveBeenCalled();
+    });
+
+    it('marks the LauncherStack entry deactivated even if restoreFocusWithModality throws', () => {
+        const launcher = document.createElement('button');
+        document.body.appendChild(launcher);
+        mockRestoreFocusWithModality.mockImplementation(() => {
+            throw new Error('focus failed');
+        });
+
+        render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
+
+        withActiveElement(launcher, () => {
+            capturedOptions?.onActivate?.();
+            try {
+                capturedOptions?.onPostDeactivate?.();
+            } catch {
+                // swallow — mocked throw, the assertion below pins markActive ran first
+            }
+        });
+
+        expect(markActivePopoverLauncherDeactivated).toHaveBeenCalledWith(launcher);
     });
 
     it('skips launcher capture when activeElement is document.body (nothing to capture)', () => {

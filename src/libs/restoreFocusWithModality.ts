@@ -15,6 +15,7 @@ function restoreFocusWithModality(el: HTMLElement, {preventScroll = true}: {prev
     try {
         el.focus({preventScroll, focusVisible: getHadTabNavigation()});
     } finally {
+        // Unconditional because focus-trap clears `manuallyPaused = false` even when not topmost — the next trap's deactivate auto-unwind depends on it.
         if (parentTrap && !wasAlreadyPaused) {
             parentTrap.unpause();
         }

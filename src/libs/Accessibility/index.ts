@@ -1,5 +1,5 @@
 import {useCallback, useState, useSyncExternalStore} from 'react';
-import type {AppStateStatus, LayoutChangeEvent} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {AccessibilityInfo, AppState} from 'react-native';
 import Log from '@libs/Log';
 import isScreenReaderEnabled from './isScreenReaderEnabled';
@@ -123,6 +123,8 @@ const {
 ensureReduceMotionWarm();
 
 let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null = null;
+// Seed from currentState so a cold-start in 'background' (silent push, pre-warm) still refreshes on the first 'active'.
+let wasBackgroundedSinceLastActive = AppState.currentState !== 'active';
 
 function resetForTests() {
     cachedScreenReaderValue = false;
@@ -133,6 +135,7 @@ function resetForTests() {
     reduceMotionSubscribers.clear();
     appStateSubscription?.remove();
     appStateSubscription = null;
+    wasBackgroundedSinceLastActive = false;
 }
 
 function subscribeReduceMotion(callback: () => void) {
@@ -156,30 +159,36 @@ function subscribeReduceMotion(callback: () => void) {
 }
 
 /*
- * Re-warm both caches on background→active because change events fired while the JS thread was suspended aren't reliably delivered on resume.
- * Skip iOS 'inactive' transitions (Notification Center, Control Center, banners) — those don't suspend JS.
+ * Re-warm caches on resume from a real suspension. iOS resume is `background → inactive → active`; transient `inactive` (Notification Center,
+ * Control Center, banners) is `active → inactive → active`. The sticky flag distinguishes them — only a true background hop triggers refresh.
  */
-let previousAppStateStatus: AppStateStatus = AppState.currentState ?? 'active';
 appStateSubscription = AppState.addEventListener('change', (status) => {
-    const wasBackgrounded = previousAppStateStatus === 'background';
-    previousAppStateStatus = status;
-    if (!wasBackgrounded || status !== 'active') {
+    if (status === 'background') {
+        wasBackgroundedSinceLastActive = true;
         return;
     }
+    if (status !== 'active' || !wasBackgroundedSinceLastActive) {
+        return;
+    }
+    wasBackgroundedSinceLastActive = false;
     const prevScreenReader = cachedScreenReaderValue;
     const prevReduceMotion = cachedReduceMotionValue;
-    Promise.all([refreshScreenReaderWarm(), refreshReduceMotionWarm()]).then(() => {
-        if (cachedScreenReaderValue !== prevScreenReader) {
-            for (const cb of screenReaderSubscribers) {
-                cb();
+    Promise.all([refreshScreenReaderWarm(), refreshReduceMotionWarm()])
+        .then(() => {
+            if (cachedScreenReaderValue !== prevScreenReader) {
+                for (const cb of screenReaderSubscribers) {
+                    cb();
+                }
             }
-        }
-        if (cachedReduceMotionValue !== prevReduceMotion) {
-            for (const cb of reduceMotionSubscribers) {
-                cb();
+            if (cachedReduceMotionValue !== prevReduceMotion) {
+                for (const cb of reduceMotionSubscribers) {
+                    cb();
+                }
             }
-        }
-    });
+        })
+        .catch((error: unknown) => {
+            Log.warn('[Accessibility] AppState refresh notify threw', {error});
+        });
 });
 
 function getReduceMotionSnapshot() {

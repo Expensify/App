@@ -1,6 +1,20 @@
 import {render} from '@testing-library/react-native';
 import React, {useRef} from 'react';
 
+const mockLogWarn = jest.fn();
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {
+        warn: (...args: unknown[]) => {
+            mockLogWarn(...args);
+        },
+        info: jest.fn(),
+        alert: jest.fn(),
+        hmmm: jest.fn(),
+        client: jest.fn(),
+    },
+}));
+
 /* eslint-disable import/extensions */
 const {default: useAccessibilityFocus} = require<{
     default: (params: {didScreenTransitionEnd: boolean; isFocused: boolean; ref: React.RefObject<HTMLElement | null>; shouldMoveAccessibilityFocus?: boolean}) => void;
@@ -40,6 +54,7 @@ function Harness({
 beforeEach(() => {
     document.body.innerHTML = '';
     resetCycle();
+    mockLogWarn.mockClear();
 });
 
 describe('useAccessibilityFocus — arbiter integration', () => {
@@ -111,5 +126,26 @@ describe('useAccessibilityFocus — arbiter integration', () => {
         );
         expect(spy).not.toHaveBeenCalled();
         expect(isCycleIdle()).toBe(true);
+    });
+
+    it('releases the AUTO cycle and logs (rather than escalating) when focus() throws on a stale node', () => {
+        const {container, button} = makeContainer();
+        jest.spyOn(button, 'focus').mockImplementation(() => {
+            throw new Error('detached element');
+        });
+
+        expect(() =>
+            render(
+                <Harness
+                    container={container}
+                    isFocused
+                    didScreenTransitionEnd
+                />,
+            ),
+        ).not.toThrow();
+
+        expect(isCycleIdle()).toBe(true);
+        expect(mockLogWarn).toHaveBeenCalled();
+        expect(button.hasAttribute('data-programmatic-focus')).toBe(false);
     });
 });

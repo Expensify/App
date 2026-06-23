@@ -29,11 +29,11 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     if (!launcher) {
                         return;
                     }
+                    // Mark first so a throw in restoreFocusWithModality can't leak the LauncherStack entry; the deferred clear keeps the post-hide capture window.
+                    markActivePopoverLauncherDeactivated(launcher);
                     if (shouldReturnFocus && !ReportActionComposeFocusManager.isFocused() && document.contains(launcher)) {
                         restoreFocusWithModality(launcher, {preventScroll: shouldPreventScroll});
                     }
-                    // Deferred so popover paths that navigate after modal-hide can still consume.
-                    markActivePopoverLauncherDeactivated(launcher);
                 },
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,

@@ -31,6 +31,12 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
 
+        it('runImmediately wins over waitForUpcomingTransition when both are set', () => {
+            const callback = jest.fn();
+            TransitionTracker.runAfterTransitions({callback, runImmediately: true, waitForUpcomingTransition: 'navigation'});
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
         it('queues callback when transition is active and runs it after endTransition', () => {
             const callback = jest.fn();
             const handle = TransitionTracker.startTransition();

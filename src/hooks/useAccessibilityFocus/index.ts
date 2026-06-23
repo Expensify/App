@@ -1,6 +1,7 @@
 import {useEffect} from 'react';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import isHTMLElement from '@libs/isHTMLElement';
+import Log from '@libs/Log';
 import markProgrammaticFocus from '@libs/programmaticFocus';
 import {Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseAccessibilityFocus from './type';
@@ -29,27 +30,41 @@ const useAccessibilityFocus: UseAccessibilityFocus = ({didScreenTransitionEnd, i
             return;
         }
 
-        // Release after the focus call so a same-tree sub-modal's INITIAL claim isn't blocked when no nav state change runs handleStateChange's resetCycle.
-        const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-        for (const focusTarget of focusTargets) {
-            const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled') === 'true';
-            if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
-                continue;
+        // try/catch (RC rejects bare try/finally) so a stale-node throw still releases the AUTO cycle; log+swallow keeps a transient DOM throw out of React's error path.
+        try {
+            const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+            for (const focusTarget of focusTargets) {
+                const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled') === 'true';
+                if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
+                    continue;
+                }
+
+                if (focusTarget === activeElement) {
+                    break;
+                }
+
+                const unmarkProgrammaticFocus = markProgrammaticFocus(focusTarget);
+                let focusThrew = false;
+                try {
+                    focusTarget.focus();
+                } catch (focusError) {
+                    focusThrew = true;
+                    Log.warn('[useAccessibilityFocus] focus call threw', {error: focusError});
+                }
+                if (focusThrew) {
+                    unmarkProgrammaticFocus();
+                    break;
+                }
+
+                const focusedElement = document.activeElement;
+                if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
+                    break;
+                }
+
+                unmarkProgrammaticFocus();
             }
-
-            if (focusTarget === activeElement) {
-                break;
-            }
-
-            const unmarkProgrammaticFocus = markProgrammaticFocus(focusTarget);
-            focusTarget.focus();
-
-            const focusedElement = document.activeElement;
-            if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
-                break;
-            }
-
-            unmarkProgrammaticFocus();
+        } catch (error) {
+            Log.warn('[useAccessibilityFocus] focus walk threw', {error});
         }
         resetCycle();
     }, [didScreenTransitionEnd, isFocused, ref, shouldMoveAccessibilityFocus]);

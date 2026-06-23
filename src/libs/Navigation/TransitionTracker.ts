@@ -132,7 +132,7 @@ function endTransition(handle: TransitionHandle): void {
 
 /**
  * Schedules a callback to run after all transitions complete. If no transitions are active
- * or `runImmediately` is true, the callback fires synchronously.
+ * or `runImmediately` is true, the callback fires synchronously. `runImmediately` overrides `waitForUpcomingTransition`.
  *
  * @param options - Options object.
  * @param options.callback - The function to invoke once transitions finish.
@@ -141,6 +141,10 @@ function endTransition(handle: TransitionHandle): void {
  * @returns A handle with a `cancel` method to prevent the callback from firing.
  */
 function runAfterTransitions({callback, runImmediately = false, waitForUpcomingTransition = false}: RunAfterTransitionsOptions): CancelHandle {
+    if (runImmediately) {
+        callback();
+        return {cancel: () => {}};
+    }
     const waitForNavigationOnly = waitForUpcomingTransition === 'navigation';
     // Gate on nav-active only: a concurrent non-nav transition ending would otherwise flush callbacks before the upcoming navigation. Web fires transitionStart before the nav state event, so a mid-flight nav must still take the active-end path.
     if (waitForUpcomingTransition && activeNavigationCount === 0) {
@@ -171,7 +175,7 @@ function runAfterTransitions({callback, runImmediately = false, waitForUpcomingT
         };
     }
 
-    if (activeTransitions.size === 0 || runImmediately) {
+    if (activeTransitions.size === 0) {
         callback();
         return {cancel: () => {}};
     }

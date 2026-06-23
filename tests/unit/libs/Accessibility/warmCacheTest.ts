@@ -12,6 +12,7 @@ let mockScreenReaderValue = false;
 let mockReduceMotionValue = false;
 let mockReduceMotionFetchCount = 0;
 let mockScreenReaderDeferred = false;
+let mockInitialAppState: 'active' | 'background' | 'inactive' = 'active';
 const mockScreenReaderResolvers: Array<(value: boolean) => void> = [];
 
 jest.mock('@libs/Log');
@@ -43,7 +44,9 @@ jest.mock('react-native', () => ({
             }
             return {remove: jest.fn()};
         }),
-        currentState: 'active',
+        get currentState() {
+            return mockInitialAppState;
+        },
     },
 }));
 
@@ -54,6 +57,7 @@ beforeEach(() => {
     mockReduceMotionValue = false;
     mockReduceMotionFetchCount = 0;
     mockScreenReaderDeferred = false;
+    mockInitialAppState = 'active';
     mockScreenReaderResolvers.length = 0;
 });
 
@@ -82,6 +86,34 @@ describe('Accessibility warm cache — AppState refresh', () => {
 
         mockScreenReaderValue = true;
         emitAppState('background');
+        emitAppState('active');
+        await flushPromises();
+
+        expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(true);
+    });
+
+    it('cold-start with AppState.currentState=background still refreshes on first active event', async () => {
+        mockInitialAppState = 'background';
+        mockScreenReaderValue = false;
+        const Accessibility = loadModule();
+        await flushPromises();
+
+        mockScreenReaderValue = true;
+        emitAppState('active');
+        await flushPromises();
+
+        expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(true);
+    });
+
+    it('re-fetches on iOS-style background→inactive→active resume sequence', async () => {
+        mockScreenReaderValue = false;
+        const Accessibility = loadModule();
+        await flushPromises();
+        expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(false);
+
+        mockScreenReaderValue = true;
+        emitAppState('background');
+        emitAppState('inactive');
         emitAppState('active');
         await flushPromises();
 
