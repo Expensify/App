@@ -4962,6 +4962,12 @@ ${amount} dla ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z Certinia każdego dnia.',
             syncReimbursedReportsDescription:
                 'Gdy ta opcja jest włączona, za każdym razem gdy Należna faktura zostanie opłacona w FFA, powiązany raport Expensify zostanie automatycznie oznaczony jako zwrócony.',
+            taxNonBillable: 'Eksportuj podatek jako niefakturowany',
+            taxNonBillableDescription:
+                'Podczas eksportowania fakturowanych wydatków oznaczonych stawkami podatkowymi z Expensify część podatkowa zostanie oznaczona jako niefakturowana przy eksporcie do Certinia PSA.',
+            foreignCurrencyAmount: 'Eksportuj kwotę w walucie obcej',
+            foreignCurrencyAmountDescription:
+                'Jeśli eksportujesz wydatki podlegające zwrotowi jako raporty wydatków, wyeksportujemy do Certinia pierwotną kwotę w walucie obcej dla każdej transakcji, jeśli istnieje.',
             exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Certinia.',
             payableInvoices: 'Należne faktury',
             exportStatus: {

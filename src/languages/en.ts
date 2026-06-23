@@ -5085,6 +5085,11 @@ const translations = {
             company: 'Company',
             autoSyncDescription: 'Expensify will automatically sync with Certinia every day.',
             syncReimbursedReportsDescription: 'With this option enabled, anytime a Payable Invoice is paid in FFA, the related Expensify report will be automatically marked as reimbursed.',
+            taxNonBillable: 'Export tax as non-billable',
+            taxNonBillableDescription: 'When exporting billable expenses coded with tax rates from Expensify, the tax portion will be marked as non-billable when exporting to Certinia PSA.',
+            foreignCurrencyAmount: 'Export foreign currency amount',
+            foreignCurrencyAmountDescription:
+                "If you export reimbursable expenses as Expense Reports, then we will export each transaction's original foreign amount to Certinia - if it exists.",
             exportDescription: 'Configure how Expensify data exports to Certinia.',
             payableInvoices: 'Payable Invoices',
             exportStatus: {
