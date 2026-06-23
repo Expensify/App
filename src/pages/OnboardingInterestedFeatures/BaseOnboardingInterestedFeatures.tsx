@@ -66,8 +66,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
-    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -226,6 +224,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 setOnboardingPolicyID(policyID);
             }
 
+            // MANAGE_TEAM posts tasks to #admins room — selfDMReport is not needed (only used for personal/track choices).
             await completeOnboarding({
                 engagementChoice: onboardingPurposeSelected,
                 onboardingMessage: onboardingMessages[onboardingPurposeSelected],
@@ -241,7 +240,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 isSelfTourViewed,
                 conciergeChat,
                 adminsChatReport,
-                selfDMReport,
             });
 
             // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
@@ -299,7 +297,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         translate,
         conciergeChat,
         adminsChatReport,
-        selfDMReport,
     ]);
 
     // Create items for enabled features

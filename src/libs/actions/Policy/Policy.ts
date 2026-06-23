@@ -2576,7 +2576,7 @@ function buildDefaultTitleFieldList(pendingFields?: Record<string, PendingAction
  * @param [file] Optional, avatar file for workspace
  * @param [shouldAddOnboardingTasks] whether to add onboarding tasks to the workspace
  */
-function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyDataKeys> & {params: CreateWorkspaceParams; adminsChatData: Report} {
+function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyDataKeys> & {params: CreateWorkspaceParams} {
     const {
         policyOwnerEmail = '',
         makeMeAdmin = false,
@@ -3076,7 +3076,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             isSelfTourViewed,
         });
         if (!onboardingData) {
-            return {successData, optimisticData, failureData, params, adminsChatData};
+            return {successData, optimisticData, failureData, params};
         }
         const {guidedSetupData, optimisticData: taskOptimisticData, successData: taskSuccessData, failureData: taskFailureData, optimisticConciergeReportActionID} = onboardingData;
 
@@ -3124,19 +3124,17 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         failureData.push(...employeeWorkspaceChat.onyxFailureData);
     }
 
-    return {successData, optimisticData, failureData, params, adminsChatData};
+    return {successData, optimisticData, failureData, params};
 }
 
-type CreateWorkspaceReturn = CreateWorkspaceParams & {adminsChatReport: Report};
-
-function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspaceReturn {
+function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspaceParams {
     // Set default engagement choice if not provided
     const optionsWithDefaults = {
         engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
         ...options,
     };
 
-    const {optimisticData, failureData, successData, params, adminsChatData} = buildPolicyData(optionsWithDefaults);
+    const {optimisticData, failureData, successData, params} = buildPolicyData(optionsWithDefaults);
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
@@ -3146,7 +3144,7 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspaceRe
         GoogleTagManager.publishEvent(workspaceCreatedEvent, options.currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID, options.currentUserEmailParam);
     }
 
-    return {...params, adminsChatReport: adminsChatData};
+    return params;
 }
 
 /**

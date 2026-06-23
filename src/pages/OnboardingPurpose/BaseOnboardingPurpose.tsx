@@ -66,8 +66,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
@@ -132,6 +130,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
                         return;
                     }
+                    // This path handles LOOKING_AROUND/EMPLOYER/MANAGE_TEAM — selfDMReport is not needed (only used for personal/track choices).
                     completeOnboarding({
                         engagementChoice: choice,
                         onboardingMessage: onboardingMessages[choice],
@@ -144,7 +143,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         isSelfTourViewed,
                         conciergeChat,
                         adminsChatReport,
-                        selfDMReport,
                     });
 
                     return;

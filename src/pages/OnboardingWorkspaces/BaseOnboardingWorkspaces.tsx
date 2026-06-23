@@ -65,10 +65,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const {isBetaEnabled} = usePermissions();
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
-    const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
-    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -90,6 +86,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             askToJoinPolicy(policy.policyID);
         }
 
+        // LOOKING_AROUND only posts tasks to concierge — adminsChatReport and selfDMReport are not needed.
         completeOnboarding({
             engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
             onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
@@ -99,8 +96,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             introSelected,
             isSelfTourViewed,
             conciergeChat,
-            adminsChatReport,
-            selfDMReport,
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);

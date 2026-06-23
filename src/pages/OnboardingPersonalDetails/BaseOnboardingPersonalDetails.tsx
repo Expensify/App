@@ -44,7 +44,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
-    const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -52,8 +51,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
-    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
@@ -92,6 +89,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             setIsLoading(true);
             try {
+                // This path handles LOOKING_AROUND/EMPLOYER which only post tasks to concierge — adminsChatReport and selfDMReport are not needed.
                 await completeOnboardingReport({
                     engagementChoice: onboardingPurposeSelected,
                     onboardingMessage: onboardingMessages[onboardingPurposeSelected],
@@ -102,8 +100,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
-                    adminsChatReport,
-                    selfDMReport,
                 });
 
                 setOnboardingAdminsChatReportID();
@@ -138,8 +134,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             introSelected,
             isSelfTourViewed,
             conciergeChat,
-            adminsChatReport,
-            selfDMReport,
         ],
     );
 

@@ -75,6 +75,7 @@ function useAutoCreateSubmitWorkspace() {
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
             try {
+                // EMPLOYER only posts tasks to concierge — adminsChatReport and selfDMReport are not needed.
                 await completeOnboarding({
                     engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                     onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.EMPLOYER],
@@ -85,8 +86,6 @@ function useAutoCreateSubmitWorkspace() {
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
-                    adminsChatReport: undefined,
-                    selfDMReport: undefined,
                 });
             } catch (error) {
                 Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
