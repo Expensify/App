@@ -2691,10 +2691,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             policyID,
         });
 
-        const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: Policy, policy: Policy = teamPolicy) => ({
+        const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: OnyxEntry<Policy>) => ({
             expenseReport,
             expenseReportPolicy,
-            policy,
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             hasViolations: false,
@@ -2722,28 +2721,20 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
         });
 
-        it('gates upgrade by expenseReportPolicy instead of the policy param', () => {
-            const expenseReport = createSubmittedExpenseReport();
-            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
+        it('gates upgrade by expenseReportPolicy even when the report policyID is Submit', () => {
+            const expenseReport = createSubmittedExpenseReport(submitPolicyID);
 
-            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy, teamPolicy));
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, teamPolicy));
 
-            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
-        it('falls back to policy when expenseReportPolicy is undefined', () => {
+        it('does not fall back to another policy when expenseReportPolicy is undefined', () => {
             const expenseReport = createSubmittedExpenseReport(submitPolicyID);
-            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
 
-            approveMoneyRequest({
-                ...createApproveMoneyRequestParams(expenseReport, submitPolicy),
-                expenseReportPolicy: undefined,
-                policy: submitPolicy,
-            });
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, undefined));
 
-            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         it('uses Navigation.getActiveRoute as backTo when available', () => {

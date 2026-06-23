@@ -417,9 +417,8 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     }
 
     // If this is a Submit workspace, approving requires upgrading first.
-    // IMPORTANT: gate by the workspace that owns the expense report (`expenseReportPolicy`) instead of `policy`,
-    // since some call sites pass `policy` as the active/personal policy rather than the report's workspace policy.
-    const policyToUpgrade = expenseReportPolicy ?? policy;
+    // IMPORTANT: gate by the workspace that owns the expense report.
+    const policyToUpgrade = expenseReportPolicy;
     if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id) {
         const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
         const backTo = Navigation.getActiveRoute() || ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID);
