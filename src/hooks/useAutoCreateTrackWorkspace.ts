@@ -43,6 +43,7 @@ function useAutoCreateTrackWorkspace() {
         shouldUseNarrowLayout,
     } = useOnboardingWorkspaceCreationState();
     const [onboardingPersonalTrackGoal] = useOnyx(ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL);
+    const [onboardingAdminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
 
     const paidGroupPolicySelector = useMemo(
         () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserEmail)),
@@ -70,7 +71,11 @@ function useAutoCreateTrackWorkspace() {
             const engagementChoice =
                 onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ? CONST.ONBOARDING_CHOICES.TRACK_PERSONAL : CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
 
-            const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
+            const {
+                adminsChatReportID: newAdminsChatReportID,
+                policyID: newPolicyID,
+                adminsChatReport: newAdminsChatReport,
+            } = shouldCreateWorkspace
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
@@ -91,7 +96,7 @@ function useAutoCreateTrackWorkspace() {
                       hasActiveAdminPolicies,
                       personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                   })
-                : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+                : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID, adminsChatReport: onboardingAdminsChatReport};
 
             // On mobile, hardcode trackExpensesWithConcierge since the web flow already works
             // with the CompleteGuidedSetup response and side panel isn't supported on native.
@@ -109,6 +114,7 @@ function useAutoCreateTrackWorkspace() {
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
+                    adminsChatReport: newAdminsChatReport,
                     selfDMReport,
                 });
 
@@ -149,6 +155,7 @@ function useAutoCreateTrackWorkspace() {
             onboardingPolicyID,
             hasPaidGroupAdminPolicy,
             onboardingAdminsChatReportID,
+            onboardingAdminsChatReport,
             onboardingPersonalTrackGoal,
             localCurrencyCode,
             introSelected,
