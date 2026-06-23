@@ -5,53 +5,47 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import Text from '@components/Text';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import Text from '@components/Text';
 import useCreateReport from '@hooks/useCreateReport';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
+import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isConnectionInProgress} from '@libs/actions/connections';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
-import {isConnectionInProgress} from '@libs/actions/connections';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {
-    canSendInvoice as canSendInvoicePolicyUtils,
-    getDefaultChatEnabledPolicy,
-    getGroupPoliciesWhereReportCanBeCreated,
-    isPaidGroupPolicy,
-    shouldShowPolicy,
-} from '@libs/PolicyUtils';
+import {canSendInvoice as canSendInvoicePolicyUtils, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
-import {emailSelector, sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
-import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
-import type * as OnyxTypes from '@src/types/onyx';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import usePermissions from '@hooks/usePermissions';
-import useNetwork from '@hooks/useNetwork';
-import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import {primaryLoginSelector} from '@src/selectors/Account';
 import useInitialSettingsPageMenuData from '@pages/settings/useInitialSettingsPageMenuData';
 import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import {setSearchContext} from '@userActions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {primaryLoginSelector} from '@src/selectors/Account';
+import {emailSelector, sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+import type * as OnyxTypes from '@src/types/onyx';
 import navigateToWorkspaceSettingsRoute from './navigateToWorkspaceSettingsRoute';
 
 type RightSideContextProps = {
@@ -119,7 +113,11 @@ function matchesNavigationQuery(query: string, ...values: Array<string | undefin
         return false;
     }
 
-    return values.some((value) => StringUtils.normalizeAccents(value ?? '').toLowerCase().includes(normalizedQuery));
+    return values.some((value) =>
+        StringUtils.normalizeAccents(value ?? '')
+            .toLowerCase()
+            .includes(normalizedQuery),
+    );
 }
 
 function getGoToText(translate: LocaleContextProps['translate'], destination: string) {
@@ -227,54 +225,51 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     const lastSpendQuery = lastSearchParams?.queryJSON ? buildSearchQueryString(lastSearchParams.queryJSON) : undefined;
     const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: lastSpendQuery ?? defaultSpendQuery});
 
-    const topLevelItems = useMemo(
-        () => {
-            const homeText = translate('common.home');
-            const inboxText = translate('common.inbox');
-            const spendText = translate('common.spend');
-            const workspacesText = translate('common.workspacesTabTitle');
-            const accountText = translate('initialSettingsPage.account');
+    const topLevelItems = useMemo(() => {
+        const homeText = translate('common.home');
+        const inboxText = translate('common.inbox');
+        const spendText = translate('common.spend');
+        const workspacesText = translate('common.workspacesTabTitle');
+        const accountText = translate('initialSettingsPage.account');
 
-            return [
-                {
-                    text: getGoToText(translate, homeText),
-                    singleIcon: icons.Home,
-                    action: () => Navigation.navigate(ROUTES.HOME),
-                    keyForList: 'topLevelHome',
-                    matchTerms: [homeText],
-                },
-                {
-                    text: getGoToText(translate, inboxText),
-                    singleIcon: icons.Inbox,
-                    action: () => Navigation.navigate(ROUTES.INBOX),
-                    keyForList: 'topLevelInbox',
-                    matchTerms: [inboxText],
-                },
-                {
-                    text: getGoToText(translate, spendText),
-                    singleIcon: icons.ReceiptMultiple,
-                    action: () => Navigation.navigate(spendRoute),
-                    keyForList: 'topLevelSpend',
-                    matchTerms: [spendText],
-                },
-                {
-                    text: getGoToText(translate, workspacesText),
-                    singleIcon: icons.Buildings,
-                    action: restoreWorkspacesTab,
-                    keyForList: 'topLevelWorkspaces',
-                    matchTerms: [workspacesText],
-                },
-                {
-                    text: getGoToText(translate, accountText),
-                    singleIcon: icons.Gear,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS),
-                    keyForList: 'topLevelAccount',
-                    matchTerms: [accountText],
-                },
-            ];
-        },
-        [icons.Buildings, icons.Gear, icons.Home, icons.Inbox, icons.ReceiptMultiple, restoreWorkspacesTab, spendRoute, translate],
-    );
+        return [
+            {
+                text: getGoToText(translate, homeText),
+                singleIcon: icons.Home,
+                action: () => Navigation.navigate(ROUTES.HOME),
+                keyForList: 'topLevelHome',
+                matchTerms: [homeText],
+            },
+            {
+                text: getGoToText(translate, inboxText),
+                singleIcon: icons.Inbox,
+                action: () => Navigation.navigate(ROUTES.INBOX),
+                keyForList: 'topLevelInbox',
+                matchTerms: [inboxText],
+            },
+            {
+                text: getGoToText(translate, spendText),
+                singleIcon: icons.ReceiptMultiple,
+                action: () => Navigation.navigate(spendRoute),
+                keyForList: 'topLevelSpend',
+                matchTerms: [spendText],
+            },
+            {
+                text: getGoToText(translate, workspacesText),
+                singleIcon: icons.Buildings,
+                action: restoreWorkspacesTab,
+                keyForList: 'topLevelWorkspaces',
+                matchTerms: [workspacesText],
+            },
+            {
+                text: getGoToText(translate, accountText),
+                singleIcon: icons.Gear,
+                action: () => Navigation.navigate(ROUTES.SETTINGS),
+                keyForList: 'topLevelAccount',
+                matchTerms: [accountText],
+            },
+        ];
+    }, [icons.Buildings, icons.Gear, icons.Home, icons.Inbox, icons.ReceiptMultiple, restoreWorkspacesTab, spendRoute, translate]);
 
     const spendItems = useMemo(
         () =>
@@ -299,12 +294,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         [icons, spendContext, translate, typeMenuSections],
     );
 
-    const excludedSettingsItems = new Set<string>([
-        'initialSettingsPage.whatIsNew',
-        'sidebarScreen.saveTheWorld',
-        'initialSettingsPage.signOut',
-        'initialSettingsPage.restoreStashed',
-    ]);
+    const excludedSettingsItems = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
 
     const accountItems = useMemo(
         () =>
@@ -325,9 +315,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     );
 
     const workspaceItems = useMemo(() => {
-        const accessiblePolicies = Object.values(allPolicies ?? {}).filter(
-            (policy): policy is OnyxTypes.Policy => !!policy?.id && shouldShowPolicy(policy, isOffline, currentUserLogin),
-        );
+        const accessiblePolicies = Object.values(allPolicies ?? {}).filter((policy): policy is OnyxTypes.Policy => !!policy?.id && shouldShowPolicy(policy, isOffline, currentUserLogin));
 
         return accessiblePolicies.flatMap((policy) => {
             const items = getWorkspaceMenuItems({
@@ -375,11 +363,26 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 };
             });
         });
-    }, [allPolicies, cardFeedErrors?.shouldShowRbrForWorkspaceAccountID, connectionSyncProgress, convertToDisplayString, currentUserLogin, icons, isBetaEnabled, isOffline, policyCategories, shouldUseNarrowLayout, translate]);
+    }, [
+        allPolicies,
+        cardFeedErrors?.shouldShowRbrForWorkspaceAccountID,
+        connectionSyncProgress,
+        convertToDisplayString,
+        currentUserLogin,
+        icons,
+        isBetaEnabled,
+        isOffline,
+        policyCategories,
+        shouldUseNarrowLayout,
+        translate,
+    ]);
 
     const allPoliciesCollection = (allPolicies ?? {}) as OnyxCollection<OnyxTypes.Policy>;
     const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPoliciesCollection, isBetaEnabled(CONST.BETAS.SUBMIT_2026));
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy as OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>);
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(
+        groupPoliciesWithChatEnabled as Array<OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>>,
+        activePolicy as OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    );
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
@@ -424,9 +427,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         isPaidGroupPolicy(activePolicy) &&
         (activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned));
 
-    const shouldShowNewWorkspaceButton =
-        !isRestrictedPolicyCreation &&
-        Object.values(allPoliciesCollection ?? {}).every((policy) => !shouldShowPolicy(policy, !!isOffline, sessionEmail));
+    const shouldShowNewWorkspaceButton = !isRestrictedPolicyCreation && Object.values(allPoliciesCollection ?? {}).every((policy) => !shouldShowPolicy(policy, !!isOffline, sessionEmail));
 
     const createItems = useMemo(
         () =>
@@ -546,16 +547,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             };
         };
 
-        return [
-            ...topLevelItems,
-            ...spendItems,
-            ...accountItems,
-            ...workspaceItems,
-            ...createItems,
-        ]
-            .map(buildItem)
-            .filter(Boolean)
-            .slice(0, MAX_NAVIGATION_SUGGESTIONS) as SearchQueryItem[];
+        return [...topLevelItems, ...spendItems, ...accountItems, ...workspaceItems, ...createItems].map(buildItem).filter(Boolean).slice(0, MAX_NAVIGATION_SUGGESTIONS) as SearchQueryItem[];
     }, [accountItems, createItems, query, spendItems, topLevelItems, workspaceItems]);
 }
 
