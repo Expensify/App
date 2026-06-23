@@ -88,7 +88,7 @@ For the Basic Export template, the file downloads directly to your device. For a
 
 ## What happens if some reports fail to download as PDFs?
 
-When you download multiple reports as PDFs, the export modal tells you how many of the selected reports were exported. If any reports could not be generated, open your Concierge chat in the **Inbox** to see which reports failed.
+When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports could not be generated, open your Concierge chat in the **Inbox** to see which reports failed.
 
 ## What is the difference between expense-level and report-level export templates?
 
