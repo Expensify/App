@@ -57,7 +57,7 @@ export default function useSelection<DataType extends TableData>({
     // the user confirms the selection
     const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
 
-    const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
+    const selectableKeys = data.filter((item) => !item.disabled && !item.isDisabledCheckbox).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
     // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
@@ -125,6 +125,11 @@ export default function useSelection<DataType extends TableData>({
 
         if (isCurrentlySelected) {
             onRowSelectionChange?.([...selectedKeys.slice(0, keyIndex), ...selectedKeys.slice(keyIndex + 1)]);
+            return;
+        }
+
+        const item = data.find((row) => row.keyForList === keyForList);
+        if (item?.disabled || item?.isDisabledCheckbox) {
             return;
         }
 

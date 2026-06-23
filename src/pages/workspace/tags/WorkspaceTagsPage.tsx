@@ -353,6 +353,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     required: isSwitchEnabled,
                     tagCount,
                     disabled: isDisabled,
+                    isDisabledCheckbox: isSwitchDisabled,
                     isSwitchDisabled,
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
