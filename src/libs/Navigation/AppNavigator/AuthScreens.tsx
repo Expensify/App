@@ -62,6 +62,7 @@ import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAut
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
+import {PusherReinitializationContextProvider} from './PusherReinitializationContext';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
@@ -154,7 +155,9 @@ function AuthScreens() {
 
     return (
         <>
-            <AuthScreensInitHandler />
+            <PusherReinitializationContextProvider>
+                <AuthScreensInitHandler />
+            </PusherReinitializationContextProvider>
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />

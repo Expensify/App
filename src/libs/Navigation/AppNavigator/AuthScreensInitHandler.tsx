@@ -23,6 +23,7 @@ import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
 import * as Report from '@userActions/Report';
+import {registerPusherReinitializeHandler} from '@userActions/requestPusherReinitialize';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -72,6 +73,20 @@ function AuthScreensInitHandler() {
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
+
+    useEffect(() => {
+        registerPusherReinitializeHandler(() => {
+            if (!session?.accountID) {
+                return Promise.resolve();
+            }
+
+            return initializePusher(session.accountID, session.email, () => reportAttributesRef.current);
+        });
+
+        return () => {
+            registerPusherReinitializeHandler(null);
+        };
+    }, [session?.accountID, session?.email]);
 
     useReconcileHighContrastIntent();
 

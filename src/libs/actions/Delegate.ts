@@ -24,9 +24,9 @@ import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
+import {requestPusherReinitialize} from './requestPusherReinitialize';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
-import {subscribeToUserEvents} from './User';
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -132,32 +132,6 @@ type IsConnectedAsDelegateParams = WithDelegatedAccess;
 // Connect as delegate
 type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID;
 
-function initializePusherForDelegateTransition(): Promise<void> {
-    return new Promise((resolve) => {
-        const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.SESSION,
-            callback: (nextSession) => {
-                if (nextSession?.accountID === undefined) {
-                    return;
-                }
-
-                const nextAccountID = nextSession.accountID;
-
-                Onyx.disconnect(connection);
-                Pusher.init({
-                    appKey: CONFIG.PUSHER.APP_KEY,
-                    cluster: CONFIG.PUSHER.CLUSTER,
-                    authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-                })
-                    .then(() => {
-                        subscribeToUserEvents(nextAccountID, nextSession.email ?? '');
-                    })
-                    .finally(resolve);
-            },
-        });
-    });
-}
-
 /**
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
@@ -247,7 +221,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    return initializePusherForDelegateTransition();
+                    return requestPusherReinitialize();
                 })
                 .then(() => {
                     confirmReadyToOpenApp();
@@ -350,7 +324,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     return clearOnyxForDelegateTransition();
                 })
                 .then(() => {
-                    return initializePusherForDelegateTransition();
+                    return requestPusherReinitialize();
                 })
                 .then(() => {
                     Onyx.set(ONYXKEYS.CREDENTIALS, {
