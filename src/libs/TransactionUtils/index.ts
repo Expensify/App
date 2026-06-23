@@ -1428,18 +1428,18 @@ function getCardAuthChainRoot(transaction: OnyxEntry<Transaction>): string | und
  * untouched.
  */
 function getSupersededPendingCardTransactionIDs(transactions: Array<OnyxEntry<Transaction>>): Set<string> {
-    const settledChainRoots = new Set<string>();
+    const settledRootTransactionIDs = new Set<string>();
     for (const transaction of transactions) {
         if (isExpensifyCardTransaction(transaction) && !isPending(transaction)) {
-            const chainRoot = getCardAuthChainRoot(transaction);
-            if (chainRoot) {
-                settledChainRoots.add(chainRoot);
+            const rootTransactionID = getCardAuthChainRoot(transaction);
+            if (rootTransactionID) {
+                settledRootTransactionIDs.add(rootTransactionID);
             }
         }
     }
 
     const supersededTransactionIDs = new Set<string>();
-    if (settledChainRoots.size === 0) {
+    if (settledRootTransactionIDs.size === 0) {
         return supersededTransactionIDs;
     }
 
@@ -1447,8 +1447,8 @@ function getSupersededPendingCardTransactionIDs(transactions: Array<OnyxEntry<Tr
         if (!transaction || !isExpensifyCardTransaction(transaction) || !isPending(transaction)) {
             continue;
         }
-        const chainRoot = getCardAuthChainRoot(transaction);
-        if (chainRoot && settledChainRoots.has(chainRoot)) {
+        const rootTransactionID = getCardAuthChainRoot(transaction);
+        if (rootTransactionID && settledRootTransactionIDs.has(rootTransactionID)) {
             supersededTransactionIDs.add(transaction.transactionID);
         }
     }
