@@ -1,9 +1,8 @@
 import {BaseNavigationContainer, NavigationIndependentTree} from '@react-navigation/core';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
@@ -16,8 +15,8 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import getNavigationBaseTheme from '@libs/Navigation/getNavigationBaseTheme';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
@@ -88,9 +87,6 @@ function MultifactorAuthenticationModalNavigator() {
 
     const [phase, setPhase] = useState<Phase>(isModalOpen ? 'open' : 'closed');
     const backdropProgress = useSharedValue(0);
-    const panelTranslateX = useSharedValue(0);
-    const {windowWidth} = useWindowDimensions();
-    const panelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
@@ -112,42 +108,28 @@ function MultifactorAuthenticationModalNavigator() {
         },
     };
 
-    const finishClose = useCallback(() => {
-        resetMfaNavigation();
-        setPhase('closed');
-        dispatch({type: 'RESET'});
-    }, [dispatch]);
-
     useEffect(() => {
         if (phase === 'open') {
-            panelTranslateX.set(0);
             backdropProgress.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
             return;
         }
         if (phase !== 'closing') {
             return;
         }
-        // Slide the whole overlay out as one unit and fade the backdrop in parallel. Animating a single
-        // screen (e.g. via goBack) would reveal screens still on the stack beneath the outcome screen
-        // before the overlay unmounts.
+        if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
+            mfaNavigationRef.goBack();
+        }
         backdropProgress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
-        panelTranslateX.set(
-            withTiming(panelWidth, {duration: CONST.ANIMATED_TRANSITION}, (finished) => {
-                if (!finished) {
-                    return;
-                }
-                scheduleOnRN(finishClose);
-            }),
-        );
-        return () => cancelAnimation(panelTranslateX);
-    }, [phase, backdropProgress, panelTranslateX, panelWidth, finishClose]);
+        const handle = Navigation.runAfterUpcomingTransition(() => {
+            resetMfaNavigation();
+            setPhase('closed');
+            dispatch({type: 'RESET'});
+        });
+        return () => handle.cancel();
+    }, [phase, backdropProgress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
         opacity: backdropProgress.get() * variables.overlayOpacity,
-    }));
-
-    const panelAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: panelTranslateX.get()}],
     }));
 
     if (phase === 'closed') {
@@ -171,9 +153,7 @@ function MultifactorAuthenticationModalNavigator() {
                     />
                 </Animated.View>
             )}
-            <Animated.View
-                style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, shouldUseNarrowLayout ? styles.w100 : {width: variables.sideBarWidth}, panelAnimatedStyle]}
-            >
+            <View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, shouldUseNarrowLayout ? styles.w100 : {width: variables.sideBarWidth}]}>
                 {isStackReadyToMount && (
                     <NavigationIndependentTree>
                         <BaseNavigationContainer
@@ -235,7 +215,7 @@ function MultifactorAuthenticationModalNavigator() {
                         </BaseNavigationContainer>
                     </NavigationIndependentTree>
                 )}
-            </Animated.View>
+            </View>
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
                 onConfirm={confirmCancel}
