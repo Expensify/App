@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {addLeadingZero, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -116,7 +117,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 accessibilityLabel={translate('workspace.distanceRates.commuterExclusions.distanceLabel')}
                 value={fixedDistanceInput}
                 onChangeText={(value) => {
-                    setFixedDistanceInput(value);
+                    // keyboardType only constrains the soft keyboard on mobile, so sanitize here to keep the field numeric on every platform.
+                    const sanitizedValue = addLeadingZero(replaceCommasWithPeriod(stripSpacesFromAmount(value)));
+                    if (!validateAmount(sanitizedValue, CONST.DISTANCE_DECIMAL_PLACES)) {
+                        return;
+                    }
+                    setFixedDistanceInput(sanitizedValue);
                     if (inlineError) {
                         setInlineError('');
                     }
