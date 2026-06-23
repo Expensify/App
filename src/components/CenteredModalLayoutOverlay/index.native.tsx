@@ -5,11 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type CenteredModalLayoutOverlayProps from './types';
 
-/**
- * On native the navigation `Overlay` can't back the modal (it depends on `position: fixed`),
- * so we render a plain full-screen Pressable behind the card. Tapping the area outside the
- * card (which the centered card layer lets through via `pointerEvents="box-none"`) closes the modal.
- */
+/** On native the navigation `Overlay` can't back the modal, so we render a plain full-screen Pressable behind the card. */
 function CenteredModalLayoutOverlay({onBackdropPress}: CenteredModalLayoutOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
