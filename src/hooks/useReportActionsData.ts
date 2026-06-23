@@ -163,4 +163,4 @@ type ReportActionsGuardData = ReportActionsData['guardData'];
 type ReportActionsContentData = ReportActionsData['contentData'];
 
 export default useReportActionsData;
-export type {ReportActionsData, ReportActionsGuardData, ReportActionsContentData};
+export type {ReportActionsGuardData, ReportActionsContentData};
