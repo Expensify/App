@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {useMachine} from '@xstate/react';
 import type {ActorOptions, AnyStateMachine} from 'xstate';
 import xstateInspector from '@libs/XStateInspector';

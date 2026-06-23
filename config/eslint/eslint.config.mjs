@@ -154,6 +154,11 @@ const restrictedImportPaths = [
         name: '@src/utils/findNodeHandle',
         message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
+    {
+        name: '@xstate/react',
+        importNames: ['useMachine'],
+        message: 'Import `useInspectedMachine` from `@hooks/useInspectedMachine` instead so every machine is wired up to the XState inspector.',
+    },
 ];
 
 const restrictedImportPatterns = [
