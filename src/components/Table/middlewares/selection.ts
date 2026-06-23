@@ -100,6 +100,9 @@ export default function useSelection<DataType extends TableData>({
         prevSelectionModeEnabledRef.current = isSelectionModeEnabled;
     }, [isSelectionModeEnabled, onRowSelectionChange]);
 
+    // When the table unmounts, clear the selection
+    useEffect(() => () => onRowSelectionChange?.([]), [onRowSelectionChange]);
+
     /**
      * Clear all of the currently selected keys
      */
