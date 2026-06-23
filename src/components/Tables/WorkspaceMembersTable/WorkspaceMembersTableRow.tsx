@@ -98,7 +98,7 @@ export default function WorkspaceMembersTableRow({item, rowIndex, shouldShowCust
                     )}
 
                     {!shouldUseNarrowTableLayout && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text numberOfLines={1}>{roleLabel}</Text>
                         </View>
                     )}

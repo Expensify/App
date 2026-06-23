@@ -100,9 +100,6 @@ export default function WorkspaceMembersTable({
             label: translate('common.role'),
             sortable: true,
             width: variables.workspaceMembersRoleColumnWidth,
-            styling: {
-                containerStyles: styles.justifyContentCenter,
-            },
         },
         {
             label: '',
@@ -264,12 +261,10 @@ export default function WorkspaceMembersTable({
             onRowSelectionChange={onRowSelectionChange}
         >
             <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
-                {members.length > CONST.STANDARD_LIST_ITEM_LIMIT && (
-                    <Table.SearchBar
-                        label={translate('workspace.people.findMember')}
-                        style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
-                    />
-                )}
+                <Table.SearchBar
+                    label={translate('workspace.people.findMember')}
+                    style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
+                />
                 <Table.FilterButtons />
             </View>
 
