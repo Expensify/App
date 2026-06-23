@@ -135,10 +135,12 @@ function BaseValidateCodeForm({
     const lastValidateCodeRequestedAt = validateCodeAction?.lastValidateCodeRequestedAt;
     // A code is sent (or resumed) on mount and re-sent on resend, so the resend countdown is running whenever a code was recently requested.
     const [isCountdownRunning, setIsCountdownRunning] = useState(true);
-    // Flows that supply `hasMagicCodeBeenSent` track the magic code outside VALIDATE_ACTION_CODE; otherwise reflect whether the resend countdown is still running.
-    const validateCodeSent = hasMagicCodeBeenSent ?? isCountdownRunning;
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
+    // A request stamps `lastValidateCodeRequestedAt` and reverts it to null on failure, so a present timestamp with no in-flight request and no error means the code was sent successfully.
+    const isCodeSentSuccessfully = !!lastValidateCodeRequestedAt && !validateCodeAction?.isLoading && isEmptyObject(defaultValidateCodeError);
+    // Flows that supply `hasMagicCodeBeenSent` track the magic code outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
+    const validateCodeSent = hasMagicCodeBeenSent ?? isCodeSentSuccessfully;
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
     const isFirstCountdownRunRef = useRef(true);
 
