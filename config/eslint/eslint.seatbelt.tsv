@@ -700,6 +700,7 @@
 "../../src/libs/Network/enhanceParameters.ts"	"no-restricted-syntax"	1
 "../../src/libs/Network/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/NextStepUtils.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
+"../../src/libs/NextStepUtils.ts"	"rulesdir/no-onyx-connect-eslint-disable"	1
 "../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Notification/LocalNotification/BrowserNotifications.ts"	"no-restricted-imports"	1
@@ -737,6 +738,7 @@
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	12
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/libs/ReportNameUtils.ts"	"rulesdir/no-onyx-connect-eslint-disable"	2
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	28
