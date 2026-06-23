@@ -136,3 +136,9 @@ Only if your subscription has been canceled. Otherwise, you’ll need to either 
 
 No — billing continues as long as you own any paid workspace. To fully stop billing, you’ll need to delete or transfer **all** paid workspaces associated with your account.
 
+---
+
+## Why can’t I delete my workspace that still has Expensify Cards?
+
+If your workspace still has Expensify Cards, you’ll see an error when you try to delete it. To remove the cards, reach out to Concierge. Once the cards are removed, you can delete the workspace.
+
