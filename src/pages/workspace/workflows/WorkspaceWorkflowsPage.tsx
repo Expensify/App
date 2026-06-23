@@ -639,7 +639,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     interactive={canWritePayments}
                                     shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                    brickRoadIndicator={bankConnectionBrickRoadIndicator}
+                                    brickRoadIndicator={bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator}
                                 />
                                 {!!bankConnectionMessage && (
                                     <View style={[styles.mt2, styles.ml7]}>

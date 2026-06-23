@@ -4,7 +4,6 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Icon from '@components/Icon';

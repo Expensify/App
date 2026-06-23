@@ -47,7 +47,7 @@ function ConnectionStatusMessage({message, actionText, onActionPress, isActionDi
                 message={message ?? ''}
                 linkText={linkText}
                 onLinkPress={onLinkPress}
-                textStyle={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, isDangerStatus ? {color: 'rgb(134, 32, 32)'} : undefined, styles.flex1]}
+                textStyle={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, styles.flex1]}
             />
         </View>
     );
