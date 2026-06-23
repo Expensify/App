@@ -16,6 +16,7 @@ function useOnboardingStepCounter(page: OnboardingScreen, overrides: Partial<Pic
         purposeSelected: purposeSelected ?? undefined,
         isMergeAccountStepSkipped: onboarding?.isMergeAccountStepSkipped,
         isAccountingEnabled: overrides.isAccountingEnabled ?? isAccountingEnabled ?? undefined,
+        isAccountValidated: !!account?.validated,
     });
 }
 

@@ -1,11 +1,14 @@
-import is2dArray from '@libs/is2dArray';
 import type {Coordinate} from './MapViewTypes';
 
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
 type LngLatLiteral = {lng: number; lat: number};
 
 function isSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): directionCoordinates is Coordinate[] {
-    return is2dArray<Coordinate>(directionCoordinates);
+    const firstElement = directionCoordinates.at(0);
+    if (!firstElement) {
+        return true;
+    }
+    return typeof firstElement.at(0) === 'number';
 }
 
 function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Coordinate[]): {southWest: Coordinate; northEast: Coordinate} {
@@ -112,6 +115,17 @@ function closestPointOnSegment(point: LngLatLiteral, startPoint: Coordinate, end
     return {lng: closestX, lat: closestY};
 }
 
+function areCoordinatesEqual(coordinate1: Coordinate | undefined, coordinate2: Coordinate | undefined) {
+    if (!coordinate1 || !coordinate2) {
+        return false;
+    }
+    return coordinate1[0] === coordinate2[0] && coordinate1[1] === coordinate2[1];
+}
+
+function interpolateCoordinate(start: Coordinate, end: Coordinate, progress: number): Coordinate {
+    return [start[0] + (end[0] - start[0]) * progress, start[1] + (end[1] - start[1]) * progress];
+}
+
 function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate}) {
     const {
         southWest: [south, west],
@@ -127,7 +141,9 @@ function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate})
 export default {
     getBounds,
     areSameCoordinate,
+    areCoordinatesEqual,
     findClosestCoordinateOnLineFromCenter,
     getBoundsCenter,
+    interpolateCoordinate,
     isSingleSegmentRoute,
 };
