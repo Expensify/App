@@ -27,9 +27,7 @@ import {
     generateReportID,
     getAddExpenseDropdownOptions,
     getPolicyExpenseChat,
-    getReportOrDraftReport,
     isDM,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOpenReport,
     isSelfDM,
     navigateOnDeleteExpense,
@@ -61,7 +59,7 @@ import useEnvironment from './useEnvironment';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
-import useMoneyRequestPolicyTags from './useMoneyRequestPolicyTags';
+import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForReport';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
@@ -222,13 +220,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(activePolicyExpenseChat);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(activePolicyExpenseChat?.chatReportID) : activePolicyExpenseChat;
-    const moneyRequestReportID = isMoneyRequestReport ? activePolicyExpenseChat?.reportID : '';
     const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
-    const policyTagList = useMoneyRequestPolicyTags({
-        moneyRequestReportID,
-        parentChatReportPolicyID: currentChatReport?.policyID,
+    const policyTagList = useMoneyRequestPolicyTagsForReport({
+        report: activePolicyExpenseChat,
         participantReportID: participants.at(0)?.reportID,
     });
 

@@ -15,7 +15,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
+import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -46,11 +46,9 @@ import {
     changeMoneyRequestHoldStatus,
     generateReportID,
     getPolicyExpenseChat,
-    getReportOrDraftReport,
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOpenReport,
     isSelfDM,
     navigateToDetailsPage,
@@ -204,13 +202,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const targetPolicyTags = defaultPolicyTags ?? {};
 
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(activePolicyExpenseChat);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(activePolicyExpenseChat?.chatReportID) : activePolicyExpenseChat;
-    const moneyRequestReportID = isMoneyRequestReport ? activePolicyExpenseChat?.reportID : '';
     const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
-    const policyTagList = useMoneyRequestPolicyTags({
-        moneyRequestReportID,
-        parentChatReportPolicyID: currentChatReport?.policyID,
+    const policyTagList = useMoneyRequestPolicyTagsForReport({
+        report: activePolicyExpenseChat,
         participantReportID: participants.at(0)?.reportID,
     });
 
