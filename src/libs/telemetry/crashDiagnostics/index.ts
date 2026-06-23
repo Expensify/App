@@ -4,7 +4,7 @@
  * A tab crash ("Aw, Snap!", typically an out-of-memory kill) terminates JS instantly, so nothing can be
  * reported at crash time. Instead, every session continuously persists a heartbeat plus a ring buffer of
  * memory/DOM samples to localStorage. On the next app start (or from another live tab), sessions that
- * stopped heartbeating without a clean exit are reported to Sentry together with their final samples,
+ * stopped sending heartbeats without a clean exit are reported to Sentry together with their final samples,
  * showing what the user was doing and what was growing right before the tab died.
  *
  * localStorage is used instead of Onyx on purpose: the clean-exit marker must be written synchronously
@@ -183,7 +183,7 @@ function reportAbnormalExit(record: SessionRecord) {
 }
 
 /**
- * Removes finished session records and reports sessions that stopped heartbeating without a clean exit.
+ * Removes finished session records and reports sessions that stopped sending heart beats without a clean exit.
  * Runs on startup and on every heartbeat, so a surviving tab can also report a crashed one.
  */
 function reapDeadSessions() {
