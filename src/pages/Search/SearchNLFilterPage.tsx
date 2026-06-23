@@ -1,8 +1,9 @@
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -10,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseExpenseFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,7 +21,7 @@ function SearchNLFilterPage() {
     const [nlQuery, setNlQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const {currentDraftFilters} = useContext(SearchAdvancedFiltersContext);
+    const {currentSearchQueryJSON} = useSearchQueryContext();
 
     const handleSubmit = () => {
         const trimmedQuery = nlQuery.trim();
@@ -30,7 +30,8 @@ function SearchNLFilterPage() {
         }
         setIsLoading(true);
         setErrorMessage('');
-        parseExpenseFilters(trimmedQuery, currentDraftFilters.policyID).then((result) => {
+        const policyID = Array.isArray(currentSearchQueryJSON?.policyID) ? currentSearchQueryJSON.policyID.at(0) : currentSearchQueryJSON?.policyID;
+        parseExpenseFilters(trimmedQuery, policyID).then((result) => {
             setIsLoading(false);
             if (!result) {
                 return;
