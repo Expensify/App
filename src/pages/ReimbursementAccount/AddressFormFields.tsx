@@ -118,7 +118,7 @@ function AddressFormFields({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultCountry = defaultValues?.country ?? CONST.COUNTRY.US;
+    const defaultCountry = defaultValues?.country === '' ? CONST.COUNTRY.US : (defaultValues?.country ?? CONST.COUNTRY.US);
     const [countryInEditMode, setCountryInEditMode] = useState<Country | ''>('');
     const currentlySelectedCountry = countryInEditMode || defaultCountry;
     const zipSampleFormat = getCountryZipRegexDetails(currentlySelectedCountry)?.samples ?? '';
