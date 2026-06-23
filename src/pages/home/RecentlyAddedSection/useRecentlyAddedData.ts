@@ -1,12 +1,13 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useMemo} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getAmount, getCreated, getCurrency, getMerchant} from '@libs/TransactionUtils';
+import {getAmount, getCreated, getCurrency, getMerchantName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -52,6 +53,7 @@ type RecentlyAddedExpense = {
 function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
     const query = useMemo(
@@ -172,7 +174,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                     transactionID: transaction.transactionID,
                     reportID: transaction.reportID,
                     created: getCreated(transaction),
-                    merchant: getMerchant(transaction),
+                    merchant: getMerchantName(transaction, translate),
                     // Expense-report transactions are stored with an inverted sign, so the displayed amount must be
                     // negated when the parent report is an expense report (mirrors the Search transaction list).
                     amount: getAmount(transaction, reportType === CONST.REPORT.TYPE.EXPENSE),
@@ -181,7 +183,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                     transaction,
                 };
             });
-    }, [snapshotData, accountID, insertedByTransactionID]);
+    }, [snapshotData, accountID, insertedByTransactionID, translate]);
 
     return {transactions};
 }
