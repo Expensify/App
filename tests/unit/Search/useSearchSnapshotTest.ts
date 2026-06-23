@@ -40,10 +40,6 @@ jest.mock('@hooks/useActionLoadingReportIDs', () => ({
     __esModule: true,
     default: () => new Set(),
 }));
-jest.mock('@hooks/useArchivedReportsIDSet', () => ({
-    __esModule: true,
-    default: () => new Set(),
-}));
 jest.mock('@hooks/useReportAttributes', () => ({
     __esModule: true,
     default: () => undefined,

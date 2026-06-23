@@ -3,7 +3,6 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -100,7 +99,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const {currentSearchKey} = useSearchQueryContext();
     const {shouldUseLiveData} = useSearchResultsContext();
     const isActionLoadingSet = useActionLoadingReportIDs();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
     const reportAttributesDerivedValue = useReportAttributes();
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
@@ -116,6 +114,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
@@ -187,7 +186,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
-            archivedReportsIDList: archivedReportsIDSet,
+            reportNameValuePairs,
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
@@ -220,7 +219,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         validGroupBy,
         exportReportActions,
         currentSearchKey,
-        archivedReportsIDSet,
+        reportNameValuePairs,
         queryJSON,
         isActionLoadingSet,
         cardFeeds,
