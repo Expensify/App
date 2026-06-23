@@ -3271,9 +3271,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `进行[试用体验](${testDriveURL})` : '试用体验'),
             embeddedDemoIframeTitle: '试用',
-            employeeFakeReceipt: {
-                description: '我的试驾收据！',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发消息一样简单。让我们先了解一下基础内容。',
@@ -9454,17 +9451,6 @@ ${reportName}`,
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: '体验 2 分钟试用',
-        },
-        modal: {
-            title: '试用一下我们的产品',
-            description: '快速浏览产品，立即上手使用。',
-            confirmText: '开始试用',
-            helpText: '跳过',
-            employee: {
-                description: '<muted-text>为你的团队获取<strong>3 个月免费的 Expensify！</strong>只需在下面输入你老板的邮箱并发送一笔测试报销。</muted-text>',
-                email: '输入你老板的邮箱',
-                error: '该成员拥有一个工作区，请输入一位新成员进行测试。',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: '您目前正在试用 Expensify',

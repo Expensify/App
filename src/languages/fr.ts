@@ -3383,9 +3383,6 @@ ${amount} pour ${merchant} - ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Faites un [essai](${testDriveURL})` : 'Faites un essai'),
             embeddedDemoIframeTitle: 'Essai gratuit',
-            employeeFakeReceipt: {
-                description: "Mon reçu d'essai routier !",
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Se faire rembourser est aussi simple qu’envoyer un message. Passons en revue les bases.',
@@ -9804,18 +9801,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Faites un essai de 2 minutes',
-        },
-        modal: {
-            title: 'Testez-nous en conditions réelles',
-            description: 'Faites une brève visite du produit pour vous familiariser rapidement.',
-            confirmText: 'Commencer l’essai',
-            helpText: 'Ignorer',
-            employee: {
-                description:
-                    '<muted-text>Offrez à votre équipe <strong>3 mois gratuits d’Expensify !</strong> Il suffit de saisir l’e‑mail de votre responsable ci‑dessous et de lui envoyer une dépense test.</muted-text>',
-                email: 'Saisissez l’e-mail de votre responsable',
-                error: 'Ce membre possède un espace de travail, veuillez saisir un nouveau membre pour effectuer le test.',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: 'Vous êtes actuellement en train de tester Expensify',
