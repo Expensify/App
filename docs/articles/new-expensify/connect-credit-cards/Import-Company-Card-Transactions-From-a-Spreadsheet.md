@@ -85,6 +85,17 @@ Your file should include the following required columns:
 - Merchant
 - Currency (optional but recommended)
 
+## What date formats are supported for the Date column?
+
+Expensify recognizes a range of common date formats, so you don't need to reformat your file before importing. Supported formats include:
+- Year-first: `2025-11-02`, `2025/11/02`, or `20251102`
+- Month-first (US): `11/02/2025` or `11-02-2025`
+- Day-first (European): `02/11/2025` or `02-11-2025`
+- Month name: `Nov 2, 2025`, `November 2, 2025`, or `2 Nov 2025`
+- Excel serial date numbers (for example, `45963`)
+
+Each date is converted to the standard year-month-day format during import.
+
 ## What happens if I map the same spreadsheet column twice?
 
 You’ll see an error message and won’t be able to proceed until the issue is resolved.
