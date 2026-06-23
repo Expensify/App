@@ -268,6 +268,8 @@ type ShouldShow = (args: {
     isOffline: boolean;
     isMini: boolean;
     isProduction: boolean;
+    isDevelopment: boolean;
+    isStaging: boolean;
     moneyRequestAction: ReportAction | undefined;
     areHoldRequirementsMet: boolean;
     isDebugModeEnabled: OnyxEntry<boolean>;
@@ -1430,9 +1432,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: 'Checkmark',
-        shouldShow: ({type, reportAction, isProduction}) =>
+        shouldShow: ({type, reportAction, isDevelopment, isStaging}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            !isProduction &&
+            (isDevelopment || isStaging) &&
             !!(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && getOriginalMessage(reportAction)?.agentZeroRequestID),
         onPress: (closePopover, {reportAction}) => {
             const agentZeroRequestID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.agentZeroRequestID : undefined;
