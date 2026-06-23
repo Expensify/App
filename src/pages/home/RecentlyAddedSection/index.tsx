@@ -17,6 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
@@ -27,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import EmptyState from './EmptyState';
-import RecentlyAddedRow, {DATE_COLUMN_WIDTH} from './RecentlyAddedRow';
+import RecentlyAddedRow, {DATE_COLUMN_WIDTH, DATE_COLUMN_WIDTH_WIDE} from './RecentlyAddedRow';
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
@@ -63,6 +64,11 @@ function RecentlyAddedSection() {
     const overflowMenuButtonRef = useRef<View>(null);
 
     const hasExpenses = transactions.length > 0;
+
+    // Mirror the Spend table: when any visible expense's date includes the year (a past-year date), widen the
+    // shared date column so "Jun 7, 2025" isn't truncated. The header and every row use the same width to stay aligned.
+    const shouldShowYear = transactions.some((expense) => DateUtils.doesDateBelongToAPastYear(expense.created));
+    const dateColumnWidth = shouldShowYear ? DATE_COLUMN_WIDTH_WIDE : DATE_COLUMN_WIDTH;
 
     const openExpense = (expense: RecentlyAddedExpense) => {
         // Resolve only the tapped expense now. getReportIDToOpenForExpense may create a transaction thread, so
@@ -160,7 +166,7 @@ function RecentlyAddedSection() {
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)}>
                                 <Text style={styles.textMicroSupporting}>{translate('common.type')}</Text>
                             </View>
-                            <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
+                            <View style={StyleUtils.getWidthStyle(dateColumnWidth)}>
                                 <Text style={styles.textMicroSupporting}>{translate('common.date')}</Text>
                             </View>
                             <Text style={[styles.flex1, styles.textMicroSupporting]}>{translate('common.merchant')}</Text>
@@ -175,6 +181,7 @@ function RecentlyAddedSection() {
                             onPress={() => openExpense(expense)}
                             shouldShowSeparator={index < transactions.length - 1}
                             shouldShowReceiptPreview={isFocused}
+                            dateColumnWidth={dateColumnWidth}
                         />
                     ))}
                 </View>
