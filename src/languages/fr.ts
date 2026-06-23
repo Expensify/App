@@ -1211,6 +1211,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Créer une dépense de temps',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Adresse personnelle requise',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Avant de pouvoir suivre la distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions de trajet.`
+                    : 'Avant de pouvoir suivre la distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions de trajet.',
+            cta: 'Ajouter une adresse personnelle',
+        },
         amount: 'Montant',
         percent: 'Pourcentage',
         date: 'Date',

@@ -1162,6 +1162,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '创建工时报销',
     },
     iou: {
+        homeAddressRequired: {
+            title: '需要家庭地址',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `在记录距离之前，您需要在私人资料中添加家庭地址。${workspaceName} 将此地址用于通勤扣除。`
+                    : '在记录距离之前，您需要在私人资料中添加家庭地址。此工作区将此地址用于通勤扣除。',
+            cta: '添加家庭地址',
+        },
         amount: '金额',
         percent: '百分比',
         date: '日期',

@@ -4291,5 +4291,3 @@ type Route = {
 type DynamicRouteSuffix = (typeof DYNAMIC_ROUTES)[keyof typeof DYNAMIC_ROUTES]['path'];
 
 export type {Route, DynamicRouteSuffix};
-
-export type {Route, DynamicRouteSuffix};

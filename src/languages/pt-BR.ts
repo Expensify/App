@@ -1205,6 +1205,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Criar despesa de tempo',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Endereço residencial obrigatório',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Antes de registrar distância, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa este endereço para deduções de trajeto.`
+                    : 'Antes de registrar distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este espaço de trabalho usa este endereço para deduções de trajeto.',
+            cta: 'Adicionar endereço residencial',
+        },
         amount: 'Valor',
         percent: 'Porcentagem',
         date: 'Data',

@@ -3,6 +3,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useActivePolicy from '@hooks/useActivePolicy';
+import useHomeAddressGateForDistance from '@hooks/useHomeAddressGateForDistance';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -287,6 +288,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
+
+    // Centralised gate: any distance flow that submits through this hook is blocked while the
+    // user is missing a home address on a homeAndOffice workspace. The IOURequestStepDistance
+    // screen surfaces the same modal proactively when it mounts, but this catches every other
+    // entry point (e.g. quick actions, deep-links that skip the step) as well as the case where
+    // the user dismissed the proactive modal and went straight to confirmation.
+    const {needsHomeAddressPrompt: distanceNeedsHomeAddress, promptForHomeAddress: promptForDistanceHomeAddress} = useHomeAddressGateForDistance(policy);
 
     function performPostBatchCleanup({
         participant,
@@ -762,6 +770,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+        // Distance-request home-address gate: bail before flipping any submission state so a
+        // missing home address never produces a half-submitted distance expense. We re-show the
+        // blocking modal here even if the user dismissed the proactive one on the step screen.
+        if (isDistanceRequest && distanceNeedsHomeAddress) {
+            promptForDistanceHomeAddress();
+            return;
+        }
+
         setIsConfirmed(true);
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
 

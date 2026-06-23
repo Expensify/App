@@ -1193,6 +1193,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '時間経費を作成',
     },
     iou: {
+        homeAddressRequired: {
+            title: '自宅住所が必要です',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `距離を記録するには、まずプライベートプロフィールに自宅住所を追加してください。${workspaceName} はこの住所を通勤控除に使用します。`
+                    : '距離を記録するには、まずプライベートプロフィールに自宅住所を追加してください。このワークスペースはこの住所を通勤控除に使用します。',
+            cta: '自宅住所を追加',
+        },
         amount: '金額',
         percent: 'パーセント',
         date: '日付',
