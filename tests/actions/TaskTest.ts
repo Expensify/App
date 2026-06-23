@@ -31,6 +31,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+import createRandomPolicy from '../utils/collections/policies';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1676,7 +1677,7 @@ describe('actions/Task', () => {
             [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'current@example.com', displayName: 'Current User'},
             [OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: OTHER_LOGIN, displayName: 'Other User'},
         };
-        const policy = {id: 'policy_share_destination', name: 'Test Workspace'} as Policy;
+        const policy: Policy = {...createRandomPolicy(0), id: 'policy_share_destination', name: 'Test Workspace'};
 
         beforeEach(async () => {
             await act(async () => {
