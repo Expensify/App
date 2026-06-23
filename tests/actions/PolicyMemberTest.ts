@@ -364,7 +364,7 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -417,9 +417,19 @@ describe('actions/PolicyMember', () => {
 
             // When adding a new admin, scoped admin, and user members
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber, currentUser, {});
-            Member.addMembersToWorkspace({[cardAdminEmail]: cardAdminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.CARD_ADMIN, TestHelper.formatPhoneNumber, currentUser, {});
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber, undefined, currentUser, {});
+            Member.addMembersToWorkspace(
+                {[cardAdminEmail]: cardAdminAccountID},
+                'Welcome',
+                policy,
+                [],
+                CONST.POLICY.ROLE.CARD_ADMIN,
+                TestHelper.formatPhoneNumber,
+                undefined,
+                currentUser,
+                {},
+            );
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -465,7 +475,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             // When the caller passes ROLE.USER for a Submit workspace
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -497,7 +507,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             // When the caller passes ROLE.USER on a non-Submit workspace
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -539,7 +549,7 @@ describe('actions/PolicyMember', () => {
 
             // When inviting a new member on a Submit workspace (role is forced to Editor)
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
+            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -588,7 +598,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, {});
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, undefined, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -648,7 +658,17 @@ describe('actions/PolicyMember', () => {
             };
 
             // When adding the user with the explicit reportActionsList argument
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber, currentUser, reportActionsList);
+            Member.addMembersToWorkspace(
+                {[userEmail]: userAccountID},
+                'Welcome',
+                policy,
+                [],
+                CONST.POLICY.ROLE.USER,
+                TestHelper.formatPhoneNumber,
+                undefined,
+                currentUser,
+                reportActionsList,
+            );
 
             await waitForBatchedUpdates();
 
@@ -673,6 +693,7 @@ describe('actions/PolicyMember', () => {
                     [],
                     CONST.POLICY.ROLE.USER,
                     TestHelper.formatPhoneNumber,
+                    undefined,
                     currentUserInput,
                 );
 

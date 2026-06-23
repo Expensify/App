@@ -802,7 +802,7 @@ describe('actions/Report', () => {
         // We should generate link
         let originalCommentMarkdown = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
-        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -810,7 +810,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment www.google.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         expectedOutput = 'Comment www.google.com';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -818,7 +818,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment [www.google.com]';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         expectedOutput = 'Comment [www.google.com]';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -826,7 +826,7 @@ describe('actions/Report', () => {
         // We should generate both links
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         expectedOutput =
             'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> ' +
             '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
@@ -836,7 +836,7 @@ describe('actions/Report', () => {
         // Should not generate link again for the deleted one
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)  [www.facebook.com](https://www.facebook.com)';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -844,7 +844,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -852,7 +852,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[https://www.facebook.com/hashtag/__main/?__eep__=6](https://www.facebook.com/hashtag/__main/?__eep__=6)';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -860,7 +860,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -868,7 +868,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[http://example.com/foo/*/bar/*/test.txt](http://example.com/foo/*/bar/*/test.txt)';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
         expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -884,7 +884,9 @@ describe('actions/Report', () => {
         });
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'Comment @user';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {
+            [privateDomainAccount.accountID]: privateDomainAccount,
+        });
         expectedOutput = 'Comment <mention-user>@user@expensify.com</mention-user>';
         expect(newCommentHTML).toBe(expectedOutput);
     });
@@ -1362,7 +1364,7 @@ describe('actions/Report', () => {
         };
 
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
-        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, '');
+        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, '', {});
 
         await waitForBatchedUpdates();
 
@@ -1444,7 +1446,7 @@ describe('actions/Report', () => {
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
         const currentUserEmail = 'test@test.com';
-        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, currentUserEmail);
+        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, currentUserEmail, {});
         await waitForBatchedUpdates();
 
         const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
@@ -1504,7 +1506,7 @@ describe('actions/Report', () => {
         };
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, reportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, '');
+        Report.editReportComment(originalReport, reportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, '', {});
 
         await waitForBatchedUpdates();
 
@@ -2323,7 +2325,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, [], 'Testing an edited comment', undefined, undefined, '');
+        Report.editReportComment(originalReport, reportAction, [], 'Testing an edited comment', undefined, undefined, '', {});
 
         await waitForBatchedUpdates();
 
@@ -2362,9 +2364,9 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined, '');
-        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined, '');
-        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined, '');
+        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined, '', {});
+        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined, '', {});
+        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined, '', {});
 
         const requests = PersistedRequests?.getAll();
 
@@ -2426,7 +2428,10 @@ describe('actions/Report', () => {
         const {result: ancestors} = renderHook(() => useAncestors(originalReport));
 
         // Edit the comment to add a short mention
-        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Initial comment with @bob', undefined, undefined, TEST_USER_LOGIN);
+        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Initial comment with @bob', undefined, undefined, TEST_USER_LOGIN, {
+            [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
+            [MENTIONED_USER_ACCOUNT_ID]: {accountID: MENTIONED_USER_ACCOUNT_ID, login: MENTIONED_USER_LOGIN, displayName: 'Bob'},
+        });
 
         await waitForBatchedUpdates();
 
@@ -2467,9 +2472,9 @@ describe('actions/Report', () => {
         const {result: ancestors} = renderHook(() => useAncestors(originalReport));
         const currentUserEmail = 'user@test.com';
 
-        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined, currentUserEmail);
-        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined, currentUserEmail);
-        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined, currentUserEmail);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined, currentUserEmail, {});
+        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined, currentUserEmail, {});
+        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined, currentUserEmail, {});
 
         const requests = PersistedRequests?.getAll();
         expect(requests.length).toBe(1);
@@ -2853,7 +2858,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            markAllMessagesAsRead(new Set<string>());
+            markAllMessagesAsRead({});
 
             await waitForBatchedUpdates();
 
@@ -3132,6 +3137,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: true,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3189,6 +3195,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3256,6 +3263,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3349,6 +3357,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3430,6 +3439,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: false,
                 isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3470,6 +3480,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3486,6 +3497,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3561,6 +3573,7 @@ describe('actions/Report', () => {
 
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: newPolicy,
@@ -3575,6 +3588,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3605,6 +3619,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3619,6 +3634,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3635,6 +3651,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
@@ -3649,6 +3666,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3664,6 +3682,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3678,6 +3697,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3693,6 +3713,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3707,6 +3728,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3724,6 +3746,7 @@ describe('actions/Report', () => {
 
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
@@ -3738,6 +3761,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3776,6 +3800,7 @@ describe('actions/Report', () => {
             mockFetch.pause?.();
 
             Report.changeReportPolicyAndInviteSubmitter({
+                personalDetails: undefined,
                 report: expenseReport,
                 parentReport: undefined,
                 policy: targetPolicy,
@@ -3790,6 +3815,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: false,
                 reportNextStep: undefined,
                 reportActionsList: {},
+                reportPreviewAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -4238,6 +4264,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
@@ -4288,6 +4315,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
 
             // Find the transaction optimistic data
@@ -4346,6 +4374,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -4391,6 +4420,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -4449,6 +4479,7 @@ describe('actions/Report', () => {
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 isReportLastVisibleArchived: undefined,
+                reportPreviewAction: undefined,
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -4460,6 +4491,76 @@ describe('actions/Report', () => {
             expect(nonMatchingOptimisticData).toBeDefined();
             expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.convertedAmount).toBeNull();
+        });
+
+        it('should mark old report preview action as deleted when changing report policy', () => {
+            const parentReportID = '2';
+            const parentReportActionID = '3';
+
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                parentReportID,
+                parentReportActionID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(Number(parentReportID), undefined),
+            };
+
+            const reportPreviewAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {
+                ...createRandomReportAction(Number(parentReportActionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: parentReportID,
+                },
+                previousMessage: [],
+                message: [
+                    {
+                        translationKey: '',
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isEdited: false,
+                        isDeletedParentAction: false,
+                    },
+                ],
+            };
+
+            const policy = createRandomPolicy(Number(1));
+
+            const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                report,
+                parentReport,
+                policy,
+                currentUserAccountID: 1,
+                currentUserEmail: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: true,
+                isReportLastVisibleArchived: undefined,
+                reportPreviewAction,
+            });
+
+            const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
+            const optimisticReportActionData = optimisticData.find((data) => data.key === parentReportActionKey);
+            const failureReportActionData = failureData.find((data) => data.key === parentReportActionKey);
+
+            function isReportActions(value: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>['value']): value is OnyxTypes.ReportActions {
+                return !!value && parentReportActionID in value;
+            }
+
+            expect(optimisticReportActionData).toBeDefined();
+            const updatedOptimisticAction = isReportActions(optimisticReportActionData?.value) ? optimisticReportActionData.value[parentReportActionID] : undefined;
+            const updatedOriginalMessage = updatedOptimisticAction ? getOriginalMessage(updatedOptimisticAction) : undefined;
+            expect(updatedOriginalMessage && 'deleted' in updatedOriginalMessage && updatedOriginalMessage.deleted).toBeTruthy();
+            expect(Array.isArray(updatedOptimisticAction?.message) && updatedOptimisticAction?.message.at(0)?.deleted).toBeTruthy();
+
+            expect(failureReportActionData).toBeDefined();
+            const revertedAction = isReportActions(failureReportActionData?.value) ? failureReportActionData.value[parentReportActionID] : undefined;
+            const revertedOriginalMessage = revertedAction ? getOriginalMessage(revertedAction) : undefined;
+            expect(revertedOriginalMessage && 'deleted' in revertedOriginalMessage && revertedOriginalMessage.deleted).toBeNull();
         });
     });
 
@@ -7713,71 +7814,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-        });
-    });
-
-    describe('readNewestAction', () => {
-        it('should mark a report as read when hasOnceLoadedReportActions is false but report actions exist in Onyx', () => {
-            global.fetch = TestHelper.getGlobalFetchMock();
-            const REPORT_ID = '1';
-            const USER_1_LOGIN = 'user@test.com';
-            const USER_1_ACCOUNT_ID = 1;
-            const USER_2_ACCOUNT_ID = 2;
-
-            let report: OnyxEntry<OnyxTypes.Report>;
-            Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-                callback: (val) => (report = val),
-            });
-
-            const reportActionCreatedDate = DateUtils.getDBTime();
-
-            return TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN)
-                .then(waitForNetworkPromises)
-                .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
-                .then(() => {
-                    // Set up a report with actions in Onyx (as if delivered via Pusher from a new user)
-                    // but without hasOnceLoadedReportActions being set (simulating offline + new chat)
-                    return Promise.all([
-                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                            reportID: REPORT_ID,
-                            participants: {
-                                [USER_1_ACCOUNT_ID]: {notificationPreference: 'always'},
-                            },
-                            lastMessageText: 'Hello from new user',
-                            lastActorAccountID: USER_2_ACCOUNT_ID,
-                            lastVisibleActionCreated: reportActionCreatedDate,
-                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
-                        }),
-                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                            1: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                                actorAccountID: USER_2_ACCOUNT_ID,
-                                automatic: false,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                message: [{type: 'COMMENT', html: 'Hello from new user', text: 'Hello from new user'}],
-                                person: [{type: 'TEXT', style: 'strong', text: 'New User'}],
-                                shouldShow: true,
-                                created: reportActionCreatedDate,
-                                reportActionID: '1',
-                            },
-                        }),
-                    ]);
-                })
-                .then(waitForBatchedUpdates)
-                .then(() => {
-                    // Verify the report is currently unread
-                    expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
-
-                    // Call readNewestAction with hasOnceLoadedReportActions = false
-                    // This simulates the scenario where a chat from a new user is opened offline
-                    Report.readNewestAction(REPORT_ID, false);
-                    return waitForBatchedUpdates();
-                })
-                .then(() => {
-                    // The report should now be read because report actions exist in Onyx
-                    expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
-                });
         });
     });
 

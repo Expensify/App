@@ -2,8 +2,7 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext, useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -15,6 +14,7 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
@@ -32,6 +32,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -46,6 +47,7 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
@@ -78,7 +80,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
 };
 
-function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -146,6 +148,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
@@ -161,8 +164,13 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 onConfirm: () => startAnimation(),
             };
             if (getPlatform() === CONST.PLATFORM.IOS) {
-                // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
-                InteractionManager.runAfterInteractions(() => openHoldMenu(holdMenuParams));
+                // TransitionTracker.runAfterTransitions delays modal until current interaction completes, preventing visual glitches on iOS
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        openHoldMenu(holdMenuParams);
+                    },
+                    waitForUpcomingTransition: true,
+                });
             } else {
                 openHoldMenu(holdMenuParams);
             }
@@ -185,6 +193,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                chatReportActions: getChatReportActions(payAsBusiness),
             });
         } else {
             startAnimation();
@@ -208,6 +217,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 onPaid: () => {
                     startAnimation();
                 },
+                chatReportActions: getChatReportActions(false),
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -420,6 +430,14 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
         />
+    );
+}
+
+function MoneyReportHeaderSecondaryActionsInner(props: MoneyReportHeaderSecondaryActionsProps) {
+    return (
+        <ReportSubmitToPopoverAnchor reportID={props.reportID}>
+            <MoneyReportHeaderSecondaryActionsContent {...props} />
+        </ReportSubmitToPopoverAnchor>
     );
 }
 
