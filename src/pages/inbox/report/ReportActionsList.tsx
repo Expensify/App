@@ -466,8 +466,7 @@ function ReportActionsList({
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex > 0) {
         initialScrollIndex = targetIndex;
-        // top position with 40px offset
-        initialScrollIndexParams = {viewPosition: 1, viewOffset: 40};
+        initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = renderedVisibleReportActions.length - 1;
         initialScrollIndexParams = {viewOffset: windowHeight};
