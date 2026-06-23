@@ -19,9 +19,6 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
 
     /** Whether to skip re-measurement when becoming visible (for components with static dimensions) */
     shouldSkipRemeasurement?: boolean;
-
-    /** Whether the dropdown should take the full height of the screen when keyboard is open in landscape mode */
-    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode?: boolean;
 };
 
 export default PopoverWithMeasuredContentProps;

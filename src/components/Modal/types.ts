@@ -138,12 +138,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * Defaults to true.
          */
         shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
-
-        /**
-         * Whether the modal should take the full height of the screen when keyboard is open in landscape mode.
-         * Defaults to false.
-         */
-        shouldTakeFullHeightOnKeyboardOpenInLandscapeMode?: boolean;
     };
 
 export default BaseModalProps;

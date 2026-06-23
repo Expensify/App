@@ -11,11 +11,7 @@ import type PopoverWithMeasuredContentProps from './types';
  * This component is a perf optimization, it return BOTTOM_DOCKED early, for small screens avoiding Popover measurement logic calculations.
  * It defers rendering of PopoverWithMeasuredContentBase to idle time to avoid blocking more priority UI updates with measurements.
  */
-function PopoverWithMeasuredContent({
-    shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode,
-    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode = false,
-    ...props
-}: PopoverWithMeasuredContentProps) {
+function PopoverWithMeasuredContent({shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode, ...props}: PopoverWithMeasuredContentProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
@@ -40,7 +36,6 @@ function PopoverWithMeasuredContent({
                 animationIn="slideInUp"
                 animationOut="slideOutDown"
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
-                shouldTakeFullHeightOnKeyboardOpenInLandscapeMode={shouldTakeFullHeightOnKeyboardOpenInLandscapeMode}
             />
         );
     }

@@ -6,9 +6,11 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -17,8 +19,11 @@ import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import AmountFilterContentPageWrapper from './AmountFilterContentPageWrapper';
 import CommonFilterContentPageWrapper from './CommonFilterContentPageWrapper';
 import DateFilterContentPageWrapper from './DateFilterContentPageWrapper';
@@ -31,8 +36,8 @@ function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
 
 // HeaderWithBackButton in ReportField/index.tsx uses styles.h10
 const REPORT_FIELD_HEADER_HEIGHT = 40;
-
 const CONFIRM_BUTTON_HEIGHT = 56;
+const MIN_HEADER_HEIGHT_ON_COLLAPSE_LANDSCAPE_MODE = 8;
 
 function SearchAdvancedFiltersContentBase() {
     const route = useRoute<PlatformStackRouteProp<SearchAdvancedFiltersParamList, typeof SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP>>();
@@ -42,13 +47,20 @@ function SearchAdvancedFiltersContentBase() {
 
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const filterKey = route.params.filterKey;
+    const shouldApplyFilterChangeDirectly = !!route.params.applyDirectly;
     const {currentDraftFilters} = useContext(SearchAdvancedFiltersContext);
     const {setDraftFilters} = useContext(SearchAdvancedFiltersActionContext);
+    const {updateFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
+    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const validFilterKey = isFilterKeyValid(filterKey) ? filterKey : undefined;
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        if (shouldApplyFilterChangeDirectly) {
+            Navigation.goBack();
+        } else {
+            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        }
     };
 
     const isFilterWithSelectionList =
@@ -62,6 +74,8 @@ function SearchAdvancedFiltersContentBase() {
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID;
 
     const shouldDisableKeyboardAvoidingView = isInLandscapeMode && isFilterWithSelectionList;
+
+    const buttonText = shouldApplyFilterChangeDirectly ? translate('common.apply') : undefined;
 
     const getCollapsibleHeaderOffset = () => {
         if (!validFilterKey) {
@@ -107,7 +121,7 @@ function SearchAdvancedFiltersContentBase() {
                             // In landscape mode we want to show as much of the selection list as possible for filters that use it
                             alwaysCollapseHeaderOnKeyboard={isFilterWithSelectionList}
                             // We want to leave some empty space above the inputs when the header collapses
-                            minHeaderHeightOnCollapse={8}
+                            minHeaderHeightOnCollapse={MIN_HEADER_HEIGHT_ON_COLLAPSE_LANDSCAPE_MODE}
                         >
                             <HeaderWithBackButton
                                 title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
@@ -117,7 +131,7 @@ function SearchAdvancedFiltersContentBase() {
 
                         <View style={[styles.filterContentContainer]}>
                             <SearchAdvancedFiltersContent
-                                values={currentDraftFilters}
+                                values={shouldApplyFilterChangeDirectly ? searchAdvancedFiltersForm : currentDraftFilters}
                                 filterKey={validFilterKey}
                                 policyIDQuery={currentSearchQueryJSON?.policyID}
                                 ready={didScreenTransitionEnd}
@@ -128,7 +142,17 @@ function SearchAdvancedFiltersContentBase() {
                                     Date: DateFilterContentPageWrapper,
                                     ReportField: ReportFieldFilterContentPageWrapper,
                                 }}
+                                buttonText={buttonText}
                                 onChange={(newValues) => {
+                                    if (shouldApplyFilterChangeDirectly) {
+                                        Navigation.dismissModal({
+                                            afterTransition: () => {
+                                                updateFilterQueryParams(newValues);
+                                            },
+                                        });
+                                        return;
+                                    }
+
                                     setDraftFilters(newValues);
                                     goBack();
                                 }}

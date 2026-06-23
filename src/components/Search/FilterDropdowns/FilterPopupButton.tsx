@@ -44,8 +44,8 @@ type FilterPopupButtonProps = {
     /** The component to render as the button */
     renderButton: (props: ButtonComponentProps) => ReactNode;
 
-    /** Whether the dropdown should take the full height of the screen when keyboard is open in landscape mode */
-    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode?: boolean;
+    /** Called instead of opening the popover when device is in landscape mode */
+    onLandscapePress?: () => void;
 };
 
 const ANCHOR_ORIGIN = {
@@ -60,11 +60,11 @@ function FilterPopupButton({
     popoverAnchorAlignment: popoverAnchorAlignmentProp,
     PopoverComponent,
     renderButton,
-    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode = false,
+    onLandscapePress,
 }: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -112,7 +112,7 @@ function FilterPopupButton({
             style={wrapperStyle}
         >
             {/* Dropdown Trigger */}
-            {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
+            {renderButton({ref: triggerRef, onPress: isInLandscapeMode && onLandscapePress ? onLandscapePress : calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
             {/* Dropdown overlay */}
             {isFocused && (
@@ -138,7 +138,6 @@ function FilterPopupButton({
                     shouldSkipRemeasurement
                     shouldDisplayBelowModals
                     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
-                    shouldTakeFullHeightOnKeyboardOpenInLandscapeMode={shouldTakeFullHeightOnKeyboardOpenInLandscapeMode}
                 >
                     {popoverContent}
                 </PopoverWithMeasuredContent>
