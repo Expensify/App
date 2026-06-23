@@ -25,10 +25,11 @@ type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof 
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, backTo, isWorkspacesOnly: isWorkspacesOnlyParam},
     },
     transaction: initialTransaction,
 }: IOURequestStepParticipantsProps) {
+    const isWorkspacesOnly = isWorkspacesOnlyParam === 'true';
     const participants = initialTransaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -142,7 +143,7 @@ function IOURequestStepParticipants({
                 action={action}
                 isPerDiemRequest={isPerDiem}
                 isTimeRequest={isTime}
-                isWorkspacesOnly={false}
+                isWorkspacesOnly={isWorkspacesOnly}
                 isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop

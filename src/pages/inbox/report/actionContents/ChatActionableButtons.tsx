@@ -1,5 +1,6 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
+import type {ValueOf} from 'type-fest';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkeleton';
@@ -7,6 +8,7 @@ import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
@@ -49,6 +51,8 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const actionOwnerReport = originalReport ?? report;
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const activePolicy = useActivePolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -191,7 +195,28 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                     });
                 },
             });
-            const options = [prepareTrackExpenseButton('submit', {isRestrictedToPreferredPolicy, preferredPolicyID})];
+            // On the Submit (submit2026) plan, "Submit it to someone" splits into two destinations:
+            // submit to an individual ("a friend") or route to a submit-enabled workspace ("my employer").
+            const prepareSubmitDestinationButton = (destination: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>, textKey: 'submitToFriend' | 'submitToEmployer'): ActionableItem => ({
+                text: `actionableMentionTrackExpense.${textKey}`,
+                key: `${action.reportActionID}-actionableMentionTrackExpense-${textKey}`,
+                onPress: () => {
+                    createDraftTransactionAndNavigateToParticipantSelector({
+                        ...baseDraftTransactionParams,
+                        isRestrictedToPreferredPolicy,
+                        preferredPolicyID,
+                        actionName: CONST.IOU.ACTION.SUBMIT,
+                        submitDestination: destination,
+                    });
+                },
+            });
+            const submitButtons: ActionableItem[] = canUseSubmit2026
+                ? [
+                      prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.FRIEND, 'submitToFriend'),
+                      prepareSubmitDestinationButton(CONST.IOU.SUBMIT_DESTINATION.EMPLOYER, 'submitToEmployer'),
+                  ]
+                : [prepareTrackExpenseButton('submit', {isRestrictedToPreferredPolicy, preferredPolicyID})];
+            const options = [...submitButtons];
 
             if (Permissions.canUseTrackFlows()) {
                 options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
