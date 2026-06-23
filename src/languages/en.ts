@@ -280,6 +280,7 @@ const translations = {
         more: 'More',
         other: 'Other',
         debitCard: 'Debit card',
+        bank: 'Bank',
         bankAccount: 'Bank account',
         personalBankAccount: 'Personal bank account',
         businessBankAccount: 'Business bank account',
