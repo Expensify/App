@@ -126,7 +126,6 @@ function SearchFilterBar({item}: {item: SearchFilter & FilterItem}) {
             sentryLabel={item.sentryLabel}
             onClosePress={item.onClosePress}
             onLandscapePress={item.onLandscapePress}
-            shouldTakeFullHeightOnKeyboardOpenInLandscapeMode
         />
     );
 }
