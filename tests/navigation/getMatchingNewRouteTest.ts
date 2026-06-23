@@ -127,12 +127,20 @@ describe('getBestMatchingPath', () => {
             '/workspaces/abc/connections/netsuite/export/invoice-item-preference/select/invoice-item/select?backTo=/home',
         );
     });
+    it('redirects old settings category path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals')).toBe('/settings/abc/categories/category-settings/Meals');
+    });
+
+    it('preserves query params when redirecting old settings category path', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals?backTo=/home')).toBe('/settings/abc/categories/category-settings/Meals?backTo=/home');
+    });
+
     it('redirects old settings category edit path to the new dynamic suffix shape', () => {
-        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit')).toBe('/settings/abc/category/Meals/category-edit');
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit')).toBe('/settings/abc/categories/category-settings/Meals/category-edit');
     });
 
     it('preserves query params when redirecting old settings category edit path', () => {
-        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/category/Meals/category-edit?backTo=/home');
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/categories/category-settings/Meals/category-edit?backTo=/home');
     });
 
     it('redirects old settings tag routes to the new dynamic suffix shape', () => {
