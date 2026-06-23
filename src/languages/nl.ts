@@ -8231,7 +8231,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `bestedingsregel van ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} op ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} van ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} valuta '${value}'` : `valuta '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} valuta gewijzigd van '${oldValue}' naar '${newValue}'` : `valuta van '${oldValue}' naar '${newValue}'`,
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `valuta’s ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `valuta die niet in ${currencies} staan`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `heeft het standaardbelastingtarief van de categorie "${categoryName}" gewijzigd naar "${newTax}" (voorheen "${oldTax}")`,
@@ -9775,7 +9781,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

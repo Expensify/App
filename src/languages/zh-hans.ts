@@ -8004,7 +8004,13 @@ ${reportName}`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `来自 ${cards} 的消费规则`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${cards} 上的 ${content}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `来自 ${cards} 的 ${content}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 货币“${value}”` : `货币“${value}”`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将 ${adjective} 货币从“${oldValue}”更改为“${newValue}”` : `货币从“${oldValue}”更改为“${newValue}”`,
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `货币 ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `不在 ${currencies} 中的货币`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `将“${categoryName}”类别的默认税率更改为“${newTax}”（之前为“${oldTax}”）`,
@@ -9502,7 +9508,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

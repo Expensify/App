@@ -8264,7 +8264,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regola di spesa da ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} su ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} da ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Valuta ${adjective} "${value}"` : `valuta '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `valuta ${adjective} da '${oldValue}' a '${newValue}'` : `valuta da '${oldValue}' a '${newValue}'`,
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `valute ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `valute non in ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `ha cambiato l’aliquota fiscale predefinita della categoria "${categoryName}" in "${newTax}" (in precedenza "${oldTax}")`,
@@ -9809,7 +9815,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

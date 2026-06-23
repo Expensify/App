@@ -8221,7 +8221,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regra de gasto de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} em ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Moeda ${adjective} '${value}'` : `moeda '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} moeda de '${oldValue}' para '${newValue}'` : `moeda de '${oldValue}' para '${newValue}'`,
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `moedas ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `moedas que não estão em ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `alterou a alíquota de imposto padrão da categoria "${categoryName}" para "${newTax}" (antes "${oldTax}")`,
@@ -9764,7 +9770,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

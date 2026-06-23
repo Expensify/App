@@ -8308,7 +8308,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `règle de dépense provenant de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} sur ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Devise ${adjective} « ${value} »` : `devise « ${value} »`),
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Devise ${adjective} de « ${oldValue} » à « ${newValue} »` : `devise de « ${oldValue} » à « ${newValue} »`,
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ne figurant pas dans ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `a modifié le taux de taxe par défaut de la catégorie « ${categoryName} » en « ${newTax} » (auparavant « ${oldTax} »)`,
@@ -9853,7 +9859,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

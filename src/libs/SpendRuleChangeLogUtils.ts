@@ -383,7 +383,8 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     const categoriesChanged = categoryDiff.added.length > 0 || categoryDiff.removed.length > 0;
     const amountsChanged = amountDiff.added.length > 0 || amountDiff.removed.length > 0;
     const cardsChanged = cardDiff.added.length > 0 || cardDiff.removed.length > 0;
-    const currenciesChanged = allowedCurrencyDiff.added.length > 0 || allowedCurrencyDiff.removed.length > 0 || blockedCurrencyDiff.added.length > 0 || blockedCurrencyDiff.removed.length > 0;
+    const currenciesChanged =
+        allowedCurrencyDiff.added.length > 0 || allowedCurrencyDiff.removed.length > 0 || blockedCurrencyDiff.added.length > 0 || blockedCurrencyDiff.removed.length > 0;
     const filtersAndCardsUnchanged = !merchantsChanged && !categoriesChanged && !amountsChanged && !cardsChanged && !currenciesChanged;
 
     const newCardsSummary = getSpendRuleCardsSummary(translate, newCards);

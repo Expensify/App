@@ -7745,7 +7745,13 @@ ${amount} para ${merchant} - ${date}`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `regla de gasto de ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} en ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} de ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `moneda ${adjective} «${value}»` : `moneda «${value}»`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `Moneda ${adjective} de «${oldValue}» a «${newValue}»` : `moneda de '${oldValue}' a '${newValue}'`,
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `monedas ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `monedas que no estén en ${currencies}`,
         },
         preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,

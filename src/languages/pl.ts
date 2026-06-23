@@ -8223,7 +8223,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 bodyRemovedFromCards: ({cards}: {cards: string}) => `zasada wydatków z ${cards}`,
                 composeOnCards: ({content, cards}: {content: string; cards: string}) => `${content} na ${cards}`,
                 composeFromCards: ({content, cards}: {content: string; cards: string}) => `${content} z ${cards}`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} waluta „${value}”` : `waluta „${value}”`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `zmieniono walutę ${adjective} z „${oldValue}” na „${newValue}”` : `walutę z „${oldValue}” na „${newValue}”`,
             },
+            allowedCurrencyFilters: ({currencies}: {currencies: string}) => `waluty ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `waluty inne niż ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `zmienił(a) domyślną stawkę podatku dla kategorii „${categoryName}” na „${newTax}” (wcześniej „${oldTax}”)`,
@@ -9760,7 +9766,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
