@@ -23,7 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearDraftRule, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
+import {clearDraftRule, clearExpenseRuleErrors, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -110,6 +110,7 @@ function ExpenseRulesPage() {
             pendingAction: rule.pendingAction,
             disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             action: () => navigateToEditRulePage(getKeyForList(rule, index)),
+            dismissError: () => clearExpenseRuleErrors(expenseRules, getKeyForList(rule, index), getKeyForRule),
         }))
         .filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 

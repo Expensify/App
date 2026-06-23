@@ -92,7 +92,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,
-                shouldUseNarrowLayout ? styles.ph4 : styles.ph3,
+                shouldUseNarrowLayout && !isSelectionCheckboxVisible ? styles.ph4 : styles.ph3,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,
                 styles.flexRow,

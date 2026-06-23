@@ -36,6 +36,7 @@ export default function PersonalExpenseRulesTableRow({item, rowIndex, shouldUseN
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,
+                onClose: item.dismissError,
                 shouldHideOnDelete: false,
             }}
         >

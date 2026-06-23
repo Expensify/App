@@ -17,6 +17,7 @@ type PersonalExpenseRuleRowData = TableData & {
     changes: string;
     pendingAction?: PendingAction;
     errors?: Errors;
+    dismissError: () => void;
     action: () => void;
 };
 
