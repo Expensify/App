@@ -28,6 +28,9 @@ jest.mock('@libs/actions/Search', () => ({
     getLastPolicyPaymentMethod: jest.fn(),
     getPayMoneyOnSearchInvoiceParams: jest.fn(),
     getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: false, isFirstTimePayment: false})),
+    getReportFromSearchSnapshot: jest.fn((reportID?: string, searchData?: Record<string, unknown>, allReports?: Record<string, unknown>) =>
+        reportID ? (searchData?.[`report_${reportID}`] ?? allReports?.[`report_${reportID}`]) : undefined,
+    ),
     getReportType: jest.fn(),
     getSearchPayOnyxData: jest.fn(() => ({})),
     getTotalFormattedAmount: jest.fn(() => ''),
@@ -128,6 +131,11 @@ let mockDefaultExpensePolicy: Policy | undefined;
 jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     __esModule: true,
     default: () => mockDefaultExpensePolicy,
+}));
+
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
 }));
 
 const mockClearSelectedTransactions = jest.fn();
