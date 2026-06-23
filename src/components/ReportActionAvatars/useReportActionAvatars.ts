@@ -48,6 +48,7 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
     chatReportID: passedChatReportID,
+    shouldUseRealActor = false,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -60,6 +61,8 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
     shouldUseCustomFallbackAvatar?: boolean;
     chatReportID?: string;
+    /** When true, returns the action's real author instead of the Concierge display override used in inbox timelines. */
+    shouldUseRealActor?: boolean;
 }) {
     const defaultAvatars = useDefaultAvatars();
     /* Get avatar type */
@@ -119,7 +122,7 @@ function useReportActionAvatars({
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
