@@ -58,7 +58,6 @@ function WorkspaceTaxesPage({
     },
 }: WorkspaceTaxesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.taxes');
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const styles = useThemeStyles();
@@ -170,11 +169,16 @@ function WorkspaceTaxesPage({
             return [];
         }
 
-        return Object.entries(policy.taxRates?.taxes ?? {}).map(([key, value]) => {
-            const canEditTaxRate = canWriteTaxes && canEditTaxRatePolicyUtils(policy, key);
+        return Object.entries(policy.taxRates?.taxes ?? {}).reduce<WorkspaceTaxTableRowData[]>((acc, [key, value]) => {
             const isDeleting = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            return {
+            if (!isOffline && isDeleting) {
+                return acc;
+            }
+
+            const canEditTaxRate = canWriteTaxes && canEditTaxRatePolicyUtils(policy, key);
+
+            acc.push({
                 keyForList: key,
                 name: value.name,
                 alternateText: textForDefault(key, value),
@@ -188,11 +192,13 @@ function WorkspaceTaxesPage({
                 onToggleEnabled: (newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key),
                 onDisabledSwitchPress: withReadOnlyFallback(),
                 onClose: () => clearTaxRateError(policyID, key, value.pendingAction),
-            };
-        });
-    }, [canWriteTaxes, navigateToEditTaxRate, policy, policyID, textForDefault, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
+            });
 
-    const hasVisibleTaxes = taxRows.some((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+            return acc;
+        }, []);
+    }, [canWriteTaxes, isOffline, navigateToEditTaxRate, policy, policyID, textForDefault, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
+
+    const hasVisibleTaxes = taxRows.length > 0;
     const isLoading = !isOffline && !policy?.taxRates;
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceTaxesPage', isOffline, isTaxesListUndefined: !policy?.taxRates};
 
