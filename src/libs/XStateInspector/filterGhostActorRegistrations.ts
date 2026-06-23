@@ -12,6 +12,8 @@ import type {InspectionEvent, Observer} from 'xstate';
  * otherwise show that actor forever, stuck in its initial state. Because a registration that never
  * receives a later event is never forwarded, those ghosts stay hidden, while a real actor emits its
  * first snapshot on start and therefore has its registration forwarded immediately and in order.
+ *
+ * This filter is a workaround for an upstream limitation tracked at https://github.com/statelyai/inspect/issues/58.
  */
 function filterGhostActorRegistrations(target: Observer<InspectionEvent>): Observer<InspectionEvent> {
     const pendingRegistrations = new Map<string, InspectionEvent>();
