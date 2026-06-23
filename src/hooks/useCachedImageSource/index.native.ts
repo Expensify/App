@@ -15,12 +15,18 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
     const [attachment, attachmentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
 
     useEffect(() => {
-        setCachedUri(null);
         setHasError(false);
         setHasSettled(false);
 
-        // On native, expo-image handles remote/auth attachments natively — no caching needed
         if (!attachmentID || !uri) {
+            setCachedUri(null);
+            return;
+        }
+
+        const localSource = getAttachmentLocalSource(attachmentID);
+        if (localSource) {
+            setCachedUri(localSource);
+            setHasSettled(true);
             return;
         }
 
@@ -28,30 +34,33 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
             return;
         }
 
-        let revoked = false;
+        let cancelled = false;
 
         getCachedAttachment({uri, attachmentID, localSource: attachment?.source})
             .then((cachedSource) => {
-                if (!revoked) {
-                    setHasSettled(true);
-                }
-                if (!cachedSource) {
+                if (cancelled) {
                     return;
                 }
-                if (!revoked) {
-                    setCachedUri(cachedSource);
+
+                setHasSettled(true);
+                if (!cachedSource) {
+                    setHasError(true);
+                    return;
                 }
+
+                setCachedUri(cachedSource);
             })
             .catch((error) => {
-                if (!revoked) {
-                    setHasSettled(true);
-                    setHasError(true);
+                if (cancelled) {
+                    return;
                 }
+                setHasSettled(true);
+                setHasError(true);
                 Log.hmmm('[AttachmentCache] Failed to get cached attachment', {message: (error as Error).message});
             });
 
         return () => {
-            revoked = true;
+            cancelled = true;
         };
     }, [uri, attachmentID, attachment?.source, attachmentMetadata.status]);
 

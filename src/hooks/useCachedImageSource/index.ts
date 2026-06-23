@@ -26,10 +26,6 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
             return;
         }
 
-        // Check attachmentLocalSources (module-level cache) FIRST.
-        // This is synchronous and survives component lifecycles, so
-        // navigate-back is instant — no re-reading from CacheAPI.
-        // Also works while metadata is still loading.
         const localSource = getAttachmentLocalSource(attachmentID);
         if (localSource) {
             objectURL.current = localSource;
