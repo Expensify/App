@@ -2126,10 +2126,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
+            const expenseReportPolicy = {
+                ...createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
 
             approveMoneyRequest({
                 expenseReport,
-                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
+                expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
@@ -2153,10 +2157,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
+            const expenseReportPolicy = {
+                ...createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
 
             approveMoneyRequest({
                 expenseReport,
-                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
+                expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
