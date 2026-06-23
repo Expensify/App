@@ -203,7 +203,6 @@ function useOdometerReadingsState({
 
         // Sync the local readings up from the transaction (but never clobber in-progress typing)
         if (shouldInitializeOdometerFromTransaction(resyncState, isExternalResync) && (startValue || endValue)) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing local form state from the Onyx transaction (an external source) when the user navigates back to the page
             setStartReading(startValue);
             setEndReading(endValue);
             startReadingRef.current = startValue;
