@@ -3,18 +3,18 @@ import CenteredModalLayout from '@components/CenteredModalLayout';
 import ChangeWorkspaceMenuSectionList from '@components/ChangeWorkspaceMenuSectionList';
 import FeatureTrainingContent from '@components/FeatureTrainingContent';
 import useBeforeRemove from '@hooks/useBeforeRemove';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import { useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissChangePolicyModal} from '@libs/actions/Report';
+import { dismissChangePolicyModal } from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 function ChangePolicyEducationalModal() {
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['ReceiptFairy']);
@@ -33,6 +33,7 @@ function ChangePolicyEducationalModal() {
         <CenteredModalLayout
             onBackdropPress={handleClose}
             width={variables.changePolicyEducationModalWidth}
+            contentStyle={[styles.pt0, styles.pb0]}
         >
             <FeatureTrainingContent
                 title={translate('iou.changePolicyEducational.title')}
