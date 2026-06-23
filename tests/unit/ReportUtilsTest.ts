@@ -15902,7 +15902,8 @@ describe('ReportUtils', () => {
                 currentUserAccountID,
                 currentUserEmail,
                 currentUserLocalCurrency: '',
-                policies: {},
+                filteredPoliciesCount: 0,
+                firstPolicyID: undefined,
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -15944,7 +15945,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {},
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -15982,7 +15984,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {},
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -16024,7 +16027,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {},
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the category step
@@ -16068,7 +16072,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {[`${ONYXKEYS.COLLECTION.POLICY}${ownPolicy.id}`]: ownPolicy},
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: ownPolicy.id,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -16099,7 +16104,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {},
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -16151,10 +16157,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {
-                        [`${ONYXKEYS.COLLECTION.POLICY}${policy1.id}`]: policy1,
-                        [`${ONYXKEYS.COLLECTION.POLICY}${policy2.id}`]: policy2,
-                    },
+                    filteredPoliciesCount: 2,
+                    firstPolicyID: policy1.id,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -16202,7 +16206,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {},
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should log a warning and not navigate
@@ -16250,7 +16255,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {},
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -16290,7 +16296,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {},
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should navigate to restricted action page
@@ -16331,7 +16338,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyFromParam.id}`]: policyFromParam},
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: policyFromParam.id,
                 });
 
                 // Then it should pick the policy from the policies param and navigate to the category step
@@ -16368,7 +16376,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyFromParam.id}`]: policyFromParam},
+                    filteredPoliciesCount: 1,
+                    firstPolicyID: policyFromParam.id,
                 });
 
                 // Then it should navigate to the participant selector step
@@ -16398,7 +16407,8 @@ describe('ReportUtils', () => {
                     currentUserAccountID,
                     currentUserEmail,
                     currentUserLocalCurrency: '',
-                    policies: {},
+                    filteredPoliciesCount: 0,
+                    firstPolicyID: undefined,
                 });
 
                 // Then it should still navigate to participant selector since action is SUBMIT (SUBMIT always goes to participants)

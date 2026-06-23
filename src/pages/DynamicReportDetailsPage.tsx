@@ -6,8 +6,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -214,10 +212,24 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [allPolicies] = originalUseOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    let filteredPoliciesCount = 0;
+    let firstPolicyID: string | undefined;
+    for (const policyEntry of Object.values(allPolicies ?? {})) {
+        if (!policyEntry || !shouldShowPolicy(policyEntry, false, currentUserPersonalDetails?.email)) {
+            continue;
+        }
+        if (filteredPoliciesCount === 0) {
+            firstPolicyID = policyEntry.id;
+        }
+        filteredPoliciesCount++;
+        if (filteredPoliciesCount > 1) {
+            break;
+        }
+    }
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
@@ -520,7 +532,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         currentUserEmail: currentUserPersonalDetails.email ?? '',
                         currentUserLocalCurrency,
-                        policies: allPolicies,
+                        filteredPoliciesCount,
+                        firstPolicyID,
                     });
                 },
             });
@@ -546,7 +559,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
-                            policies: allPolicies,
+                            filteredPoliciesCount,
+                            firstPolicyID,
                         });
                     },
                 });
@@ -571,7 +585,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             currentUserEmail: currentUserPersonalDetails.email ?? '',
                             currentUserLocalCurrency,
-                            policies: allPolicies,
+                            filteredPoliciesCount,
+                            firstPolicyID,
                         });
                     },
                 });
@@ -715,7 +730,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
-        allPolicies,
+        filteredPoliciesCount,
+        firstPolicyID,
         parentReport,
         delegateEmail,
         conciergeReportID,

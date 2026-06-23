@@ -1,7 +1,5 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkeleton';
@@ -15,6 +13,7 @@ import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
+import {shouldShowPolicy} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getOriginalMessage,
@@ -59,7 +58,21 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [policies] = originalUseOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    let filteredPoliciesCount = 0;
+    let firstPolicyID: string | undefined;
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || !shouldShowPolicy(policy, false, personalDetail.email)) {
+            continue;
+        }
+        if (filteredPoliciesCount === 0) {
+            firstPolicyID = policy.id;
+        }
+        filteredPoliciesCount++;
+        if (filteredPoliciesCount > 1) {
+            break;
+        }
+    }
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
     const delegateAccountID = useDelegateAccountID();
@@ -177,7 +190,8 @@ function ChatActionableButtons({action, originalReportID, reportID, hasPendingFo
                 currentUserAccountID: personalDetail.accountID,
                 currentUserEmail: personalDetail.email ?? '',
                 currentUserLocalCurrency: personalDetail.localCurrencyCode ?? CONST.CURRENCY.USD,
-                policies,
+                filteredPoliciesCount,
+                firstPolicyID,
             };
             const TRACK_EXPENSE_ACTIONS = {
                 submit: CONST.IOU.ACTION.SUBMIT,
