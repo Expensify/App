@@ -568,3 +568,4 @@ function submitAmount({
 }
 
 export {submitAmount, getIsP2PForAmount, getReportOrReportDraftForAmount};
+export type {SubmitAmountArgs};
