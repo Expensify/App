@@ -305,3 +305,10 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/78873
 - PR introducing patch: https://github.com/Expensify/App/pull/84556
+
+### [react-native+0.85.3+040+fix-recycled-view-stale-frame.patch](react-native+0.85.3+040+fix-recycled-view-stale-frame.patch)
+
+- Reason: Fixes an iOS Fabric bug where a recycled `RCTViewComponentView` keeps the geometry of its previous occupant, leaving an invisible view that swallows all touches (e.g. the app appears frozen after the `SplashScreenHider` fade/scale animation finishes). `prepareForRecycle` cleared `_layoutMetrics` to `{}` but never updated the physical `center`/`bounds`, nor did it reset the layer transform/opacity that libraries like Reanimated mutate directly on the UI thread (bypassing `_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN`). When such a view was later dequeued for a zero-sized wrapper component, `updateLayoutMetrics` saw the incoming zero frame match the (already zero) stored `_layoutMetrics.frame`, skipped updating `center`/`bounds`, and the view retained the splash overlay's full-screen frame. The patch unconditionally realigns `layer.transform`/`layer.opacity` with the shadow-tree props and resets `center`/`bounds` to zero before the view returns to the recycle pool.
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/91629
+- PR introducing patch: https://github.com/Expensify/App/pull/92484

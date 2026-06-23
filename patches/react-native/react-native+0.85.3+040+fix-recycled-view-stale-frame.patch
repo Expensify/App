@@ -1,0 +1,45 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+index 3b1948bd02d..982121c706b 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+@@ -631,13 +631,16 @@ const CGFloat BACKGROUND_COLOR_ZPOSITION = -1024.0f;
+   [super prepareForRecycle];
+ 
+   // If view was managed by animated, its props need to align with UIView's properties.
++  // We realign unconditionally (instead of only when the key is present in
++  // `_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN`) because libraries such as
++  // Reanimated mutate `layer.transform`/`layer.opacity` directly on the UI thread without
++  // registering those keys, so the conditional checks below would otherwise miss them and
++  // leave a recycled view with a stale transform/opacity. Restoring an identity transform
++  // is also required before resetting `center`/`bounds` below (changing frame under a
++  // non-identity transform is undefined behavior).
+   const auto &props = static_cast<const ViewProps &>(*_props);
+-  if ([_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN containsObject:@"transform"]) {
+-    self.layer.transform = RCTCATransform3DFromTransformMatrix(props.transform);
+-  }
+-  if ([_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN containsObject:@"opacity"]) {
+-    self.layer.opacity = (float)props.opacity;
+-  }
++  self.layer.transform = RCTCATransform3DFromTransformMatrix(props.transform);
++  self.layer.opacity = (float)props.opacity;
+ 
+   // Clean up box shadow layers to prevent cross-component contamination
+   if (_boxShadowLayers != nullptr) {
+@@ -669,6 +672,17 @@ const CGFloat BACKGROUND_COLOR_ZPOSITION = -1024.0f;
+   _removeClippedSubviews = NO;
+   _reactSubviews = [NSMutableArray new];
+   _layoutMetrics = {};
++
++  // Keep the physical geometry in sync with the cleared `_layoutMetrics`. Without
++  // this, a recycled view keeps the frame of its previous occupant. If it is later
++  // dequeued for a component whose layout frame is also zero ({0, 0, 0, 0}) - which
++  // is common for layout-less wrapper/placeholder views - `updateLayoutMetrics`
++  // compares the incoming zero frame against the (also zero) `_layoutMetrics.frame`,
++  // detects "no change", and skips updating `center`/`bounds`. The view then retains
++  // the stale (e.g. full-screen) frame from the previous occupant, turning a
++  // zero-sized JS view into an invisible, full-screen view that swallows all touches.
++  self.center = CGPointZero;
++  self.bounds = CGRectZero;
+ }
+ 
+ - (void)setPropKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN:(NSSet<NSString *> *_Nullable)props
