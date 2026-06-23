@@ -2825,7 +2825,7 @@ ${date} の ${merchant} への ${amount}`,
     },
     agentsPage: {
         title: '担当者',
-        subtitle: `<muted-text>ワークフローを処理するエージェントを作成しましょう。手作業をなくして、毎日に数時間の余裕を取り戻せます。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">詳しく見る</a>。</muted-text>`,
+        subtitle: `<muted-text>エージェントがワークフローを代わりに処理するので、毎日の時間を数時間取り戻せます。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">詳しく見る</a>。</muted-text>`,
         newAgent: '新しいエージェント',
         emptyAgents: {
             title: 'エージェントは作成されていません',

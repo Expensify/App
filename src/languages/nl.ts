@@ -2847,7 +2847,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenten',
-        subtitle: `<muted-text>Maak agents aan om je workflow af te handelen. Sla het handmatige werk over en krijg uren per dag terug. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
+        subtitle: `<muted-text>Agents verwerken je workflows voor je, zodat je uren per dag terugkrijgt. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Meer informatie</a>.</muted-text>`,
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {
             title: 'Geen agents aangemaakt',

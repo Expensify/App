@@ -2837,7 +2837,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agentes',
-        subtitle: `<muted-text>Crie agentes para cuidar do seu fluxo de trabalho. Pule o trabalho manual e ganhe horas de volta no seu dia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</muted-text>`,
+        subtitle: `<muted-text>Agentes cuidam dos seus fluxos de trabalho para você, para que você ganhe horas de volta no seu dia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</muted-text>`,
         newAgent: 'Novo agente',
         emptyAgents: {
             title: 'Nenhum agente criado',

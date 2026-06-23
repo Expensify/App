@@ -2841,7 +2841,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenci',
-        subtitle: `<muted-text>Twórz agentów, którzy obsłużą twój workflow. Odpuść sobie ręczną pracę i odzyskaj godziny w ciągu dnia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Dowiedz się więcej</a>.</muted-text>`,
+        subtitle: `<muted-text>Agenci obsługują za ciebie twoje procesy, dzięki czemu odzyskujesz godziny w ciągu dnia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Dowiedz się więcej</a>.</muted-text>`,
         newAgent: 'Nowy agent',
         emptyAgents: {
             title: 'Nie utworzono agentów',
