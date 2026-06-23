@@ -9,7 +9,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import Text from '@components/Text';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
