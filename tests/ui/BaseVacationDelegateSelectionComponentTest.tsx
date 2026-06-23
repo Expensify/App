@@ -7,6 +7,8 @@ import type useInitialSelection from '@hooks/useInitialSelection';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import type * as OptionsListUtils from '@libs/OptionsListUtils';
 
+type SearchSelectorConfig = Parameters<typeof usePersonalDetailSearchSelector>[0];
+
 const mockDelegateDetails = {
     accountID: 1,
     avatar: '',
@@ -48,6 +50,7 @@ const getMockSearchSelectorValue = () => ({
     onListEndReached: jest.fn(),
 });
 let mockSearchSelectorValue = getMockSearchSelectorValue();
+let mockSearchSelectorConfig: SearchSelectorConfig | undefined;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -73,7 +76,12 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useOnyx', () => jest.fn((key: string) => (key === 'countryCode' ? ['US'] : [false])));
-jest.mock('@hooks/usePersonalDetailSearchSelector', () => jest.fn(() => mockSearchSelectorValue));
+jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
+    jest.fn((config: SearchSelectorConfig) => {
+        mockSearchSelectorConfig = config;
+        return mockSearchSelectorValue;
+    }),
+);
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flex1: {},
@@ -116,6 +124,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
         mockedSelectionList.mockClear();
         mockedUsePersonalDetailSearchSelector.mockClear();
         mockSearchSelectorValue = getMockSearchSelectorValue();
+        mockSearchSelectorConfig = undefined;
     });
 
     it('pins the initial vacation delegate to the top on open', () => {
@@ -163,8 +172,7 @@ describe('BaseVacationDelegateSelectionComponent', () => {
         expect(selectionListProps?.initialScrollIndex).toBe(0);
         expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
         expect(selectionListProps?.sections.flatMap((section) => section.data).filter((item) => item.login === mockDelegateDetails.login)).toHaveLength(1);
-        const searchSelectorConfig = mockedUsePersonalDetailSearchSelector.mock.calls.at(0)?.at(0);
-        expect(searchSelectorConfig?.excludeLogins?.[mockDelegateDetails.login]).not.toBe(true);
+        expect(mockSearchSelectorConfig?.excludeLogins?.[mockDelegateDetails.login]).not.toBe(true);
     });
 
     it('keeps the initial delegate pinned while the live selected delegate changes in place', () => {
