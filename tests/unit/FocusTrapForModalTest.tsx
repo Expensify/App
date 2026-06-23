@@ -22,7 +22,9 @@ jest.mock('@libs/Accessibility/blurActiveElement', () => ({__esModule: true, def
 const mockRestoreFocusWithModality = jest.fn();
 jest.mock('@libs/restoreFocusWithModality', () => ({
     __esModule: true,
-    default: (...args: unknown[]) => mockRestoreFocusWithModality(...args),
+    default: (...args: unknown[]): void => {
+        mockRestoreFocusWithModality(...args);
+    },
 }));
 
 // document.activeElement isn't settable under the RN-web test harness — stub via Document.prototype descriptor.
