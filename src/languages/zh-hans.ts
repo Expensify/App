@@ -6559,7 +6559,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                summaryHomeAndOffice: '按家庭和办公室计算',
+                summaryHomeAndOffice: '使用家庭和办公室位置',
                 optionHomeAndOfficeTitle: '按家庭和办公室计算',
                 optionHomeAndOfficeHelp: '使用成员的家庭地址、工作安排和办公室分配来计算通勤排除。',
                 workspaceAddressRequired: {

@@ -6758,7 +6758,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 optionFixedDistanceTitle: 'Escludi una distanza fissa per richiesta',
                 optionFixedDistanceHelp: 'Detrai la stessa distanza del tragitto casa-lavoro da ogni richiesta. Ideale per chi invia una richiesta per ogni giorno lavorativo.',
                 distanceLabel: 'Distanza',
-                summaryHomeAndOffice: 'Calcola in base a casa e ufficio',
+                summaryHomeAndOffice: 'Usa le località di casa e ufficio',
                 optionHomeAndOfficeTitle: 'Calcola in base a casa e ufficio',
                 optionHomeAndOfficeHelp: 'Usa l’indirizzo di casa, la modalità di lavoro e l’assegnazione dell’ufficio del membro per calcolare le esclusioni dei tragitti.',
                 workspaceAddressRequired: {

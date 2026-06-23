@@ -6732,7 +6732,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
                 optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
                 distanceLabel: 'Distância',
-                summaryHomeAndOffice: 'Calcular por casa e escritório',
+                summaryHomeAndOffice: 'Usar locais de casa e escritório',
                 optionHomeAndOfficeTitle: 'Calcular por casa e escritório',
                 optionHomeAndOfficeHelp: 'Use o endereço residencial, o regime de trabalho e a alocação de escritório do membro para calcular as exclusões de trajeto.',
                 workspaceAddressRequired: {

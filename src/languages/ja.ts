@@ -6686,7 +6686,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 optionFixedDistanceTitle: '申請ごとに一定距離を除外します',
                 optionFixedDistanceHelp: '各申請から同じ通勤距離を差し引きます。1勤務日につき1件の申請を行うメンバーに最適です。',
                 distanceLabel: '距離',
-                summaryHomeAndOffice: '自宅とオフィスで計算',
+                summaryHomeAndOffice: '自宅とオフィスの位置を使用',
                 optionHomeAndOfficeTitle: '自宅とオフィスで計算',
                 optionHomeAndOfficeHelp: 'メンバーの自宅住所、勤務形態、オフィスの割り当てを使用して通勤控除を計算します。',
                 workspaceAddressRequired: {

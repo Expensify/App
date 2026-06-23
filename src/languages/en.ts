@@ -6914,7 +6914,7 @@ const translations = {
                 title: 'Exclude commutes',
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
-                summaryHomeAndOffice: 'Calculate by home and office',
+                summaryHomeAndOffice: 'Use home and office locations',
                 optionDisabledTitle: 'Do not exclude commutes',
                 optionDisabledHelp: 'No commute is removed from claims.',
                 optionFixedDistanceTitle: 'Exclude a fixed distance per claim',

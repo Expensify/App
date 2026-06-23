@@ -6731,7 +6731,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
                 optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
                 distanceLabel: 'Dystans',
-                summaryHomeAndOffice: 'Oblicz na podstawie domu i biura',
+                summaryHomeAndOffice: 'Użyj lokalizacji domu i biura',
                 optionHomeAndOfficeTitle: 'Oblicz na podstawie domu i biura',
                 optionHomeAndOfficeHelp: 'Użyj adresu domowego, modelu pracy i przypisania biura członka do obliczenia wykluczeń dojazdów.',
                 workspaceAddressRequired: {

@@ -6798,7 +6798,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                summaryHomeAndOffice: 'Calculer par domicile et bureau',
+                summaryHomeAndOffice: 'Utiliser les emplacements du domicile et du bureau',
                 optionHomeAndOfficeTitle: 'Calculer par domicile et bureau',
                 optionHomeAndOfficeHelp: 'Utilise l’adresse personnelle, le mode de travail et l’affectation au bureau du membre pour calculer les exclusions de trajet.',
                 workspaceAddressRequired: {

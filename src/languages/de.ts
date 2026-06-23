@@ -6772,7 +6772,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                summaryHomeAndOffice: 'Nach Zuhause und Büro berechnen',
+                summaryHomeAndOffice: 'Heim- und Bürostandorte verwenden',
                 optionHomeAndOfficeTitle: 'Nach Zuhause und Büro berechnen',
                 optionHomeAndOfficeHelp: 'Verwende die Heimadresse, das Arbeitsmodell und die Bürozuweisung des Mitglieds, um Pendelausschlüsse zu berechnen.',
                 workspaceAddressRequired: {

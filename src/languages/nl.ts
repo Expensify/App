@@ -6737,7 +6737,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
                 optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
                 distanceLabel: 'Afstand',
-                summaryHomeAndOffice: 'Berekenen via huis en kantoor',
+                summaryHomeAndOffice: 'Gebruik thuis- en kantoorlocaties',
                 optionHomeAndOfficeTitle: 'Berekenen via huis en kantoor',
                 optionHomeAndOfficeHelp: 'Gebruik het huisadres, de werkregeling en de kantoorindeling van het lid om woon-werkuitsluitingen te berekenen.',
                 workspaceAddressRequired: {
