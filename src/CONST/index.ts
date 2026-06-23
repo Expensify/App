@@ -8063,6 +8063,7 @@ const CONST = {
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
+            COPY_CODE: 'HTMLRenderer-CopyCode',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',

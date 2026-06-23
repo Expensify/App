@@ -1,15 +1,34 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
+import ContextMenuItem from '@components/ContextMenuItem';
+import Hoverable from '@components/Hoverable';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Clipboard from '@libs/Clipboard';
 import CONST from '@src/CONST';
+
+/**
+ * Recursively collects the raw text contents of a code block so it can be copied to the clipboard.
+ */
+function getCodeBlockText(tnode: TNode): string {
+    if ('data' in tnode && typeof tnode.data === 'string') {
+        return tnode.data;
+    }
+
+    if (!tnode.children) {
+        return '';
+    }
+
+    return tnode.children.map(getCodeBlockText).join('');
+}
 
 type PreRendererProps = CustomRendererProps<TBlock> & {
     /** Press in handler for the code block */
@@ -32,6 +51,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark']);
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
     const isLast = defaultRendererProps.renderIndex === defaultRendererProps.renderLength - 1;
@@ -39,6 +59,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const isInsideTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const fontSize = StyleUtils.getCodeFontSize(false, isInsideTaskTitle);
+    const codeText = getCodeBlockText(defaultRendererProps.tnode);
 
     if (isChildOfTaskTitle) {
         return (
@@ -51,29 +72,48 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
 
     return (
         <View style={isLast ? styles.mt2 : styles.mv2}>
-            <PressableWithoutFeedback
-                sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.PRE}
-                onPress={onPressIn ?? (() => {})}
-                onPressIn={onPressIn}
-                onPressOut={onPressOut}
-                onLongPress={(event) => {
-                    onShowContextMenu(() => {
-                        if (isDisabled || !shouldDisplayContextMenu) {
-                            return;
-                        }
-                        return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
-                    });
-                }}
-                shouldUseHapticsOnLongPress
-                role={CONST.ROLE.PRESENTATION}
-                accessibilityLabel={translate('accessibilityHints.preStyledText')}
-            >
-                <View>
-                    <Text style={{fontSize}}>
-                        <TDefaultRenderer {...defaultRendererProps} />
-                    </Text>
-                </View>
-            </PressableWithoutFeedback>
+            <Hoverable>
+                {(isHovered) => (
+                    <View>
+                        <PressableWithoutFeedback
+                            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.PRE}
+                            onPress={onPressIn ?? (() => {})}
+                            onPressIn={onPressIn}
+                            onPressOut={onPressOut}
+                            onLongPress={(event) => {
+                                onShowContextMenu(() => {
+                                    if (isDisabled || !shouldDisplayContextMenu) {
+                                        return;
+                                    }
+                                    return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
+                                });
+                            }}
+                            shouldUseHapticsOnLongPress
+                            role={CONST.ROLE.PRESENTATION}
+                            accessibilityLabel={translate('accessibilityHints.preStyledText')}
+                        >
+                            <View>
+                                <Text style={{fontSize}}>
+                                    <TDefaultRenderer {...defaultRendererProps} />
+                                </Text>
+                            </View>
+                        </PressableWithoutFeedback>
+                        {isHovered && !!codeText && (
+                            <View style={[styles.pAbsolute, {top: 4, right: 4}]}>
+                                <ContextMenuItem
+                                    isMini
+                                    icon={icons.Copy}
+                                    successIcon={icons.Checkmark}
+                                    text={translate('common.copyToClipboard')}
+                                    successText={translate('common.copied')}
+                                    onPress={() => Clipboard.setString(codeText)}
+                                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.COPY_CODE}
+                                />
+                            </View>
+                        )}
+                    </View>
+                )}
+            </Hoverable>
         </View>
     );
 }
