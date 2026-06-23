@@ -105,6 +105,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const [endDate, setEndDate] = useState('');
     const [durationAmount, setDurationAmount] = useState('');
     const durationAmountRef = useRef<NumberWithSymbolFormRef | null>(null);
+    const lastEditedRef = useRef<'duration' | 'endDate' | null>(null);
     const ancestors = useAncestors(report);
 
     const durationUnitItems = useMemo(
@@ -124,6 +125,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const onDurationUnitSelected = useCallback(
         (item: ValuePickerItem) => {
             if (item.value) {
+                lastEditedRef.current = 'duration';
                 setSelectedDurationUnit(item.value);
                 if (startDate && durationAmount) {
                     setEndDate(computeEndDate(startDate, durationAmount, item.value));
@@ -137,16 +139,30 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const handleStartDateChange = useCallback(
         (newStartDate: string) => {
             setStartDate(newStartDate);
-            if (!newStartDate || !durationAmount) {
+            if (!newStartDate) {
+                return;
+            }
+            // When the user's most recent intent was to pin an end date, keep that end date and recompute duration.
+            if (endDate && lastEditedRef.current !== 'duration') {
+                const days = computeDurationDays(newStartDate, endDate);
+                if (days !== null) {
+                    setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
+                    setDurationAmount(String(days));
+                    durationAmountRef.current?.updateNumber(String(days));
+                }
+                return;
+            }
+            if (!durationAmount) {
                 return;
             }
             setEndDate(computeEndDate(newStartDate, durationAmount, selectedDurationUnit));
         },
-        [durationAmount, selectedDurationUnit],
+        [durationAmount, endDate, selectedDurationUnit],
     );
 
     const handleDurationAmountChange = useCallback(
         (newDurationAmount: string) => {
+            lastEditedRef.current = 'duration';
             setDurationAmount(newDurationAmount);
             if (!startDate || !newDurationAmount) {
                 return;
@@ -158,6 +174,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
 
     const handleEndDateChange = useCallback(
         (newEndDate: string) => {
+            lastEditedRef.current = 'endDate';
             setEndDate(newEndDate);
             if (!startDate || !newEndDate) {
                 return;
