@@ -29,7 +29,7 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
             return false;
         }
 
-        // Don't show if user gave a positive response
+        // Don't show again after user gave a positive response
         if (proactiveAppReview.response && proactiveAppReview.response === 'positive') {
             return false;
         }
