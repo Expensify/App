@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
@@ -225,12 +225,12 @@ function useReportActionsScroll({
         });
     }, [draftAutoScrollKey, hasNewestReportAction, previousDraftAutoScrollKey, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible]);
 
-    useEffect(() => {
+    const scheduleInitialScrollToBottom = useEffectEvent(() => {
         if (initialScrollKey) {
-            return;
+            return undefined;
         }
 
-        const handle = TransitionTracker.runAfterTransitions({
+        return TransitionTracker.runAfterTransitions({
             callback: () => {
                 if (shouldFocusToTopOnMount) {
                     return;
@@ -240,9 +240,12 @@ function useReportActionsScroll({
             },
             waitForUpcomingTransition: true,
         });
-        return () => handle.cancel();
-        // The initial scroll-to-bottom must be scheduled exactly once, on mount; re-running it as deps change would yank the user back down while they read history.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    });
+
+    // The initial scroll-to-bottom must be scheduled exactly once, on mount; re-running it as deps change would yank the user back down while they read history.
+    useEffect(() => {
+        const handle = scheduleInitialScrollToBottom();
+        return () => handle?.cancel();
     }, []);
 
     // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
@@ -276,21 +279,21 @@ function useReportActionsScroll({
     }, [actionIdToHighlight]);
 
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
-    const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
+    const prevLastIOUActionWithErrorID = useRef(lastIOUActionWithError?.reportActionID);
 
+    // Scroll to the bottom once when a new IOU action with an error appears.
     useEffect(() => {
-        if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
+        if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithErrorID.current) {
             return;
         }
+        prevLastIOUActionWithErrorID.current = lastIOUActionWithError?.reportActionID;
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
                 reportScrollManager.scrollToBottom();
             },
         });
         return () => handle.cancel();
-        // Intentionally keyed to lastAction (not the error object) so the scroll re-evaluates once per new action; the reportActionID comparison above guards actual re-runs.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastAction]);
+    }, [lastIOUActionWithError?.reportActionID, reportScrollManager]);
 
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
