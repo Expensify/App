@@ -849,7 +849,6 @@
 "../../src/libs/actions/MergeTransaction.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/MergeTransaction.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/OdometerTransactionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/Onboarding.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/OnyxDerived/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/OnyxUpdateManager/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/OnyxUpdateManager/utils/DeferredOnyxUpdates.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
