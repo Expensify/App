@@ -94,6 +94,9 @@ function IOURequestStepDistanceOdometer({
     const didSaveEditingConfirmationRef = useRef(false);
     const shouldBypassDiscardConfirmationRef = useRef(false);
     const backupHandledManually = useRef(false);
+    // Blob-failure recovery sets this so useOdometerTransactionBackup skips unmount restore. Separate from
+    // backupHandledManually so discard-changes prompts still work after reload
+    const recoveryHandledBackupRef = useRef(false);
     const userHasUnsavedTypingRef = useRef(false);
 
     const isArchived = useReportIsArchived(report?.reportID);
@@ -157,7 +160,7 @@ function IOURequestStepDistanceOdometer({
         if (shouldResetLocalState) {
             resetOdometerLocalStateRef.current();
         }
-        backupHandledManually.current = true;
+        recoveryHandledBackupRef.current = true;
     });
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
@@ -195,6 +198,7 @@ function IOURequestStepDistanceOdometer({
         transactionID,
         didSaveEditingConfirmationRef,
         backupHandledManuallyRef: backupHandledManually,
+        recoveryHandledBackupRef,
     });
 
     const navigateToNextStep = useOdometerNavigation({
@@ -502,6 +506,8 @@ function IOURequestStepDistanceOdometer({
         setMoneyRequestOdometerReading(transactionID, null, null, isTransactionDraft);
         removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isTransactionDraft, true);
         removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isTransactionDraft, true);
+        // Clear typing guard so draft re-hydration can resync readings into the inputs on return.
+        userHasUnsavedTypingRef.current = false;
         resetOdometerLocalState();
         setFormError('');
     };

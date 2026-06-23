@@ -38,6 +38,7 @@ const renderBackupHook = (overrides: Partial<Params> = {}) => {
         transactionID: TRANSACTION_ID,
         didSaveEditingConfirmationRef: {current: false},
         backupHandledManuallyRef: {current: false},
+        recoveryHandledBackupRef: {current: false},
         ...overrides,
     };
     return {original, ...renderHook(() => useOdometerTransactionBackup(params)), params};
@@ -82,6 +83,30 @@ describe('useOdometerTransactionBackup', () => {
         expect(restored).not.toBeNull();
         expect(restored).not.toBeUndefined();
         expect(backupAfterUnmount).toBeUndefined();
+    });
+
+    // The blob-failure recovery re-hydrates/clears the transaction and sets recoveryHandledBackupRef. The unmount
+    // restore must then be skipped so it doesn't revert the recovery's work back to the pre-edit original.
+    it('skips the unmount restore when the recovery already settled the transaction', async () => {
+        const original = buildOdometerTransaction();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, original);
+        await waitForBatchedUpdates();
+
+        const recoveryHandledBackupRef = {current: false};
+        const {unmount} = renderBackupHook({transaction: original, recoveryHandledBackupRef});
+        await waitForBatchedUpdates();
+
+        // The recovery re-hydrated the transaction to a new state and flagged that it handled the backup
+        const recovered = {...original, comment: {odometerStart: 100, odometerEnd: 999}, merchant: '899 mi', amount: 99999};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, recovered);
+        await waitForBatchedUpdates();
+        recoveryHandledBackupRef.current = true;
+
+        unmount();
+        await waitForBatchedUpdates();
+
+        // The re-hydrated state survives - the restore did NOT run and revert it to the original
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`)).toEqual(recovered);
     });
 
     it('does not back up or restore when not editing from confirmation', async () => {

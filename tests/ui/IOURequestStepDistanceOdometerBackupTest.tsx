@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -284,7 +284,7 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
 
     // Seeds the edit-from-confirmation flow with an active save-for-later readings draft and renders, returning the
     // captured tab guard. `startImage` optionally seeds an image already present at mount (for swap/remove)
-    async function setupAndRender(startImage?: FileObject): Promise<{getHasUnsavedChanges: () => boolean; transaction: Transaction}> {
+    async function setupAndRender(startImage?: FileObject): Promise<{getHasUnsavedChanges: () => boolean; onDiscard: () => Promise<void>; transaction: Transaction}> {
         const transaction = createOdometerTransaction();
         if (startImage) {
             transaction.comment = {...transaction.comment, odometerStartImage: startImage};
@@ -306,8 +306,50 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
         renderWithCapturedGuard(register);
         await waitForBatchedUpdatesWithAct();
 
-        return {getHasUnsavedChanges: () => capturedGuard?.getHasUnsavedChanges() ?? false, transaction};
+        return {
+            getHasUnsavedChanges: () => capturedGuard?.getHasUnsavedChanges() ?? false,
+            onDiscard: async () => {
+                await capturedGuard?.onDiscard();
+            },
+            transaction,
+        };
     }
+
+    // After "Discard" on a tab switch, handleTabSwitchDiscard wipes the transaction and lowers the typing guard. When
+    // the save-for-later draft re-hydrates the readings back into the transaction on return, the inputs must repopulate.
+    // Regression: the typing guard used to stay raised, blocking the resync, so readings stayed empty while images showed.
+    it('repopulates the readings after discard once the draft re-hydrates', async () => {
+        const {onDiscard} = await setupAndRender();
+        const getStartInput = () => {
+            const input = screen.getAllByLabelText('distance.odometer.startReading').find((element) => 'value' in element.props);
+            if (!input) {
+                throw new Error('Start reading input not found');
+            }
+            return input;
+        };
+
+        // The save-for-later draft hydrated the readings into the inputs
+        expect(getStartInput().props.value).toBe(String(ODOMETER_START));
+
+        // User edits the start reading -> raises the typing guard
+        fireEvent.changeText(getStartInput(), '999');
+        await waitForBatchedUpdatesWithAct();
+
+        // Discard the tab switch: wipes the transaction readings/images, resets local state, lowers the typing guard
+        await act(async () => {
+            await onDiscard();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // The draft re-hydrates the readings back into the transaction when returning to the odometer tab
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {comment: {odometerStart: ODOMETER_START, odometerEnd: ODOMETER_END}});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Inputs repopulate from the re-hydrated comment - they'd stay '' if the typing guard hadn't been lowered on discard
+        expect(getStartInput().props.value).toBe(String(ODOMETER_START));
+    });
 
     it('flags an added image as unsaved (the false-negative being fixed)', async () => {
         const {getHasUnsavedChanges, transaction} = await setupAndRender();

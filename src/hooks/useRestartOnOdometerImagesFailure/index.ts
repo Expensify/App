@@ -103,6 +103,8 @@ const useRestartOnOdometerImagesFailure = (
             // Rehydrate over the dead URLs when a draft exists — clearing first races the destination's
             // auto-hydrator and ends up dropping the wrong URL.
             if (odometerDraft) {
+                // Restore images from draft, mark verified, and tell the backup hook not to revert on unmount
+                setAsyncVerificationPassed(true);
                 onBackupHandled?.({shouldResetLocalState: false});
                 hydrateOdometerDraftIntoTransaction(transaction.transactionID, odometerDraft, transaction.comment);
             } else {
