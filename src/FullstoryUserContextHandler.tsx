@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import getEnvironment from './libs/Environment/getEnvironment';
 import useOnyx from './hooks/useOnyx';
 import FS from './libs/Fullstory';
 import type {FullstoryUserVars} from './libs/Fullstory/types';
@@ -44,24 +45,51 @@ function FullstoryUserContextHandler() {
         }
 
         let didCancel = false;
+        let retryTimeoutID: ReturnType<typeof setTimeout> | undefined;
 
-        FS.onReady().then(() => {
-            if (didCancel) {
-                return;
-            }
+        const syncUserVars = () => {
+            getEnvironment()
+                .then((envName) => {
+                    if (didCancel || !FS.shouldInitialize(userMetadata, envName)) {
+                        return;
+                    }
 
-            if (shallowCompare(previousUserVars.current, userVars)) {
-                return;
-            }
+                    return FS.getSessionURL().then((sessionURL) => {
+                        if (didCancel) {
+                            return;
+                        }
 
-            previousUserVars.current = userVars;
-            FS.setUserVars(userVars);
-        });
+                        if (!sessionURL) {
+                            retryTimeoutID = setTimeout(syncUserVars, 250);
+                            return;
+                        }
+
+                        if (shallowCompare(previousUserVars.current, userVars)) {
+                            return;
+                        }
+
+                        previousUserVars.current = userVars;
+                        FS.setUserVars(userVars);
+                    });
+                })
+                .catch(() => {
+                    if (didCancel) {
+                        return;
+                    }
+
+                    retryTimeoutID = setTimeout(syncUserVars, 250);
+                });
+        };
+
+        syncUserVars();
 
         return () => {
             didCancel = true;
+            if (retryTimeoutID) {
+                clearTimeout(retryTimeoutID);
+            }
         };
-    }, [userMetadata?.accountID, userVars]);
+    }, [userMetadata, userVars]);
 
     return null;
 }
