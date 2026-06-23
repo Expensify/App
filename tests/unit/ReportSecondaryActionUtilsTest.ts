@@ -3,7 +3,7 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getSecondaryExportReportActions,
     getSecondaryReportActions,
-    getSecondaryTransactionThreadActions as getSecondaryTransactionThreadActionsOriginal,
+    getSecondaryTransactionThreadActions,
     isChangeWorkspaceAction,
     isMergeActionForSelectedTransactions,
 } from '@libs/ReportSecondaryActionUtils';
@@ -98,12 +98,6 @@ const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporte
     isPolicyExpenseChatEnabled: true,
     connections: createQBOConnections(autoSyncEnabled, exporter),
 });
-
-const getSecondaryTransactionThreadActions = (
-    params: Omit<Parameters<typeof getSecondaryTransactionThreadActionsOriginal>[0], 'archivedReportsIDSet'> & {
-        archivedReportsIDSet?: Parameters<typeof getSecondaryTransactionThreadActionsOriginal>[0]['archivedReportsIDSet'];
-    },
-) => getSecondaryTransactionThreadActionsOriginal({...params, archivedReportsIDSet: params.archivedReportsIDSet ?? new Set<string>()});
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -4317,7 +4311,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             transactionID: originalMessageR14932.IOUTransactionID,
         } as unknown as Transaction;
         const policy = {} as unknown as Policy;
-        const archivedReportsIDSet = new Set<string>();
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
@@ -4330,13 +4323,11 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
-            archivedReportsIDSet,
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
-                archivedReportsIDSet,
                 isChatReportArchived: false,
             }),
         );
@@ -4358,7 +4349,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             ...policy420A,
             id: POLICY_ID,
         };
-        const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${originalMessageR14932.IOUReportID}`]);
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(false);
@@ -4371,14 +4361,13 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: transaction,
             policy,
-            archivedReportsIDSet,
+            isMoneyRequestReportArchived: true,
             isProduction: false,
         });
 
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
-                archivedReportsIDSet,
                 isChatReportArchived: true,
             }),
         );

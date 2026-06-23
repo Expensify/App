@@ -41,7 +41,6 @@ import {
     getReportAction,
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
-    isMoneyRequestAction,
     isPayAction,
 } from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -77,13 +76,11 @@ import {
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
-    isReportArchivedByID,
     isReportManager as isReportManagerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
@@ -1136,7 +1133,7 @@ function getSecondaryTransactionThreadActions({
     policy,
     transactionThreadReport,
     outstandingReportsByPolicyID,
-    archivedReportsIDSet,
+    isMoneyRequestReportArchived = false,
     grandParentReport,
     isProduction,
 }: {
@@ -1149,13 +1146,11 @@ function getSecondaryTransactionThreadActions({
     policy: OnyxEntry<Policy>;
     transactionThreadReport?: OnyxEntry<Report>;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
-    archivedReportsIDSet: ArchivedReportsIDSet;
+    isMoneyRequestReportArchived?: boolean;
     grandParentReport?: OnyxEntry<Report>;
     isProduction: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
-    const iouReportID = reportAction && isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
-    const isMoneyRequestReportArchived = isReportArchivedByID(archivedReportsIDSet, iouReportID);
 
     if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
@@ -1193,7 +1188,6 @@ function getSecondaryTransactionThreadActions({
             isChatReportArchived: isMoneyRequestReportArchived,
             outstandingReportsByPolicyID,
             transaction: reportTransaction,
-            archivedReportsIDSet,
         }) &&
         canUserPerformWriteActionReportUtils(parentReport, isMoneyRequestReportArchived)
     ) {
