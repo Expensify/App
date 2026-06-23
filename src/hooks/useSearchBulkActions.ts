@@ -42,7 +42,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -105,7 +105,9 @@ import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSelfDMReport from './useSelfDMReport';
+import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
@@ -365,6 +367,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -533,6 +536,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const isFirstTransactionUnreported = firstTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const firstTransactionReport = firstTransactionFetchedReport ?? (isFirstTransactionUnreported ? selfDMReport : undefined);
     const [firstTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${firstTransactionReport?.policyID}`);
+    const splitEffectivePolicy = useSplitEffectivePolicy(firstTransactionReport, undefined, firstTransaction);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(firstTransactionPolicy);
 
     // Use the split-aware delete hook for bulk transaction deletion so split children trigger
     // updateSplitTransactions (with reverse-split when only one sibling is left), instead of plain
@@ -1927,7 +1932,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionPolicy, firstTransactionReport, accountID, {isProduction});
+                    initSplitExpense(firstTransaction, firstTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
                 },
             });
         }
@@ -2068,6 +2073,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         isBetaEnabled,
         defaultExpensePolicy,
+        selfDMReportID,
+        splitEffectivePolicy,
+        restrictedActionPolicyID,
+        searchResults?.data,
         accountID,
         deleteTransactionsFromHook,
         duplicateTransactionViolations,
