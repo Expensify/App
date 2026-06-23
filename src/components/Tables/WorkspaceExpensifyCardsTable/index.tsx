@@ -1,7 +1,8 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {PropsWithChildren} from 'react';
 import React from 'react';
+import type {ReactElement} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
@@ -41,7 +42,7 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     onClose: () => void;
 };
 
-type WorkspaceExpensifyCardsTableProps = PropsWithChildren<{
+type WorkspaceExpensifyCardsTableProps = {
     /** Policy ID */
     policyID: string;
 
@@ -65,7 +66,16 @@ type WorkspaceExpensifyCardsTableProps = PropsWithChildren<{
 
     /** Personal details used for search filtering */
     personalDetails?: PersonalDetailsList;
-}>;
+
+    /** Optional footer component rendered at the bottom of the scrollable list */
+    listFooterComponent?: ReactElement;
+
+    /** Optional styles for the list footer component */
+    listFooterComponentStyle?: StyleProp<ViewStyle>;
+
+    /** Optional styles for the list content container */
+    listContentContainerStyle?: StyleProp<ViewStyle>;
+};
 
 export default function WorkspaceExpensifyCardsTable({
     policyID,
@@ -76,7 +86,9 @@ export default function WorkspaceExpensifyCardsTable({
     cardSettings,
     cardSettingsBase,
     personalDetails,
-    children,
+    listFooterComponent,
+    listFooterComponentStyle,
+    listContentContainerStyle,
 }: WorkspaceExpensifyCardsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -160,22 +172,9 @@ export default function WorkspaceExpensifyCardsTable({
         />
     );
 
-    return (
-        <Table
-            data={cards}
-            columns={columns}
-            renderItem={renderCardItem}
-            compareItems={compareItems}
-            isItemInSearch={isItemInSearch}
-            initialSortColumn="name"
-            narrowLayoutSortColumn="name"
-            title={translate('workspace.common.expensifyCard')}
-            keyExtractor={(item) => item.keyForList}
-            selectionEnabled={selectionEnabled}
-            selectedKeys={selectedKeys}
-            onRowSelectionChange={onRowSelectionChange}
-        >
-            <View style={[styles.appBG, styles.flexShrink0]}>
+    const cardListHeaderContent = (
+        <>
+            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
                 <WorkspaceCardListLabels
                     policyID={policyID}
                     cardSettings={cardSettingsBase}
@@ -196,8 +195,29 @@ export default function WorkspaceExpensifyCardsTable({
                 />
             )}
             <Table.Header style={styles.mt5} />
-            <Table.Body />
-            {children}
+        </>
+    );
+
+    return (
+        <Table
+            data={cards}
+            columns={columns}
+            renderItem={renderCardItem}
+            compareItems={compareItems}
+            isItemInSearch={isItemInSearch}
+            initialSortColumn="name"
+            narrowLayoutSortColumn="name"
+            title={translate('workspace.common.expensifyCard')}
+            keyExtractor={(item) => item.keyForList}
+            selectionEnabled={selectionEnabled}
+            selectedKeys={selectedKeys}
+            onRowSelectionChange={onRowSelectionChange}
+            ListFooterComponent={listFooterComponent}
+            ListFooterComponentStyle={listFooterComponentStyle}
+            ListHeaderComponent={shouldUseNarrowTableLayout ? cardListHeaderContent : undefined}
+        >
+            {!shouldUseNarrowTableLayout && cardListHeaderContent}
+            <Table.Body contentContainerStyle={listContentContainerStyle} />
         </Table>
     );
 }

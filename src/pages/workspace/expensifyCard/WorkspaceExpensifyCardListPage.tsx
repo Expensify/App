@@ -21,6 +21,7 @@ import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -29,6 +30,7 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {getCardsByCardholderName, getCardSettings, isCurrencySupportedForECards} from '@libs/CardUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -63,6 +65,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
@@ -195,7 +198,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mt3,
         ];
 
-        if (selectedCardIDs.length > 0) {
+        const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
+
+        if (shouldShowBulkSelectionDropdown) {
             return (
                 <View style={headerButtonsRowStyle}>
                     <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
@@ -205,6 +210,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         options={bulkExportOptions}
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
+                        isDisabled={!selectedCardIDs.length}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
                         wrapperStyle={[!isInLandscapeMode && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.flexShrink1]}
                     />
@@ -243,10 +249,17 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     };
 
     const handleBackButtonPress = () => {
+        if (isMobileSelectionModeEnabled) {
+            clearTableSelection();
+            turnOffMobileSelectionMode();
+            return true;
+        }
+
         Navigation.goBack();
         return true;
     };
-    const shouldShowHeaderButtons = selectedCardIDs.length > 0 || canWriteExpensifyCard || !isCardListEmpty;
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const shouldShowHeaderButtons = (shouldUseNarrowLayout && isMobileSelectionModeEnabled) || selectedCardIDs.length > 0 || canWriteExpensifyCard || !isCardListEmpty;
 
     useAndroidBackButtonHandler(handleBackButtonPress);
 
@@ -268,9 +281,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             testID="WorkspaceExpensifyCardListPage"
         >
             <HeaderWithBackButton
-                icon={illustrations.HandCard}
-                shouldUseHeadlineHeader
-                title={translate('workspace.common.expensifyCard')}
+                icon={!selectionModeHeader ? illustrations.HandCard : undefined}
+                shouldUseHeadlineHeader={!selectionModeHeader}
+                title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplayHelpButton
                 onBackButtonPress={handleBackButtonPress}
@@ -305,7 +318,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     ]}
                 />
             ) : (
-                <View style={[styles.flex1, {minHeight: windowHeight - headerHeight + footerHeight}]}>
+                <View style={styles.flex1}>
                     <WorkspaceExpensifyCardsTable
                         policyID={policyID}
                         cards={cardRows}
@@ -315,9 +328,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         cardSettings={cardSettings}
                         cardSettingsBase={settings}
                         personalDetails={personalDetails}
-                    >
-                        {disclaimerFooter}
-                    </WorkspaceExpensifyCardsTable>
+                        listFooterComponent={disclaimerFooter}
+                        listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
+                        listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                    />
                 </View>
             )}
         </ScreenWrapper>
