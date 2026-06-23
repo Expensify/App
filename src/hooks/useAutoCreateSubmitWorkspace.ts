@@ -46,9 +46,6 @@ function useAutoCreateSubmitWorkspace() {
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
-    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
 
     const autoCreateSubmitWorkspace = useCallback(
         async (firstName: string, lastName: string) => {
@@ -88,8 +85,8 @@ function useAutoCreateSubmitWorkspace() {
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
-                    adminsChatReport,
-                    selfDMReport,
+                    adminsChatReport: undefined,
+                    selfDMReport: undefined,
                 });
             } catch (error) {
                 Log.warn('[useAutoCreateSubmitWorkspace] Error completing onboarding', {error});
@@ -119,8 +116,6 @@ function useAutoCreateSubmitWorkspace() {
             hasActiveAdminPolicies,
             shouldUseNarrowLayout,
             conciergeChat,
-            adminsChatReport,
-            selfDMReport,
         ],
     );
 
