@@ -29,6 +29,23 @@ If SmartScan cannot confidently read these required fields, the scan will fail a
 
 ---
 
+## How to understand why a SmartScan failed
+
+When a scan fails, an **Explain** link appears after the failure message in the transaction thread.
+
+1. Open the transaction thread for the expense with the failed scan.
+2. Select **Explain** after the "Receipt scanning failed" message.
+
+A thread opens and Concierge replies with a field-aware explanation that references the specific fields it couldn't read, so you know exactly what to fix before retrying or entering the details manually.
+
+<!-- SCREENSHOT:
+Suggestion: Transaction thread showing the "Receipt scanning failed — missing ... Enter details manually." message with the inline Explain link beside it.
+Location: Under "How to understand why a SmartScan failed".
+Purpose: Show users where the Explain link appears on a failed scan message.
+-->
+
+---
+
 ## How to fix when SmartScan fails to complete a scan
 
 SmartScan may fail if the receipt image is unreadable, or if the image is missing a clear expense date or amount. 
