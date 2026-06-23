@@ -357,6 +357,12 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.find-apk.outputs.APK_PATH }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+      
+      - name: Upload Android build to BrowserStack Automate
+        if: ${{ fromJSON(env.IS_APP_REPO) }}
+        run: curl -u "$BROWSERSTACK_AUTOMATE" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@${{ steps.find-apk.outputs.APK_PATH }}"
+        env:
+          BROWSERSTACK_AUTOMATE: ${{ secrets.BROWSERSTACK_AUTOMATE }}
 
   androidUploadApplause:
     name: Upload Android to Applause
@@ -587,7 +593,13 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ steps.find-ipa.outputs.IPA_PATH }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
+          
+      - name: Upload iOS build to BrowserStack Automate
+        if: ${{ fromJSON(env.IS_APP_REPO) }}
+        run: curl -u "$BROWSERSTACK_AUTOMATE" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@${{ steps.find-ipa.outputs.IPA_PATH }}"
+        env:
+          BROWSERSTACK_AUTOMATE: ${{ secrets.BROWSERSTACK_AUTOMATE }}
+          
   iosUploadApplause:
     name: Upload iOS to Applause
     needs: [prep, iosBuild]
