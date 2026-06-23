@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
+import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -87,6 +88,7 @@ function ReportFetchHandler() {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
+    const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -228,13 +230,13 @@ function ReportFetchHandler() {
         if (
             transactionThreadReportID !== CONST.FAKE_REPORT_ID ||
             transactionThreadReport?.reportID ||
-            (!reportLoadingState.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)
+            (!reportLoadingState.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport && !isOffline)
         ) {
             return;
         }
 
         createOneTransactionThread();
-    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
+    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID, isOffline]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
@@ -341,8 +343,8 @@ function ReportFetchHandler() {
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
-    }, [report, reportLoadingState?.hasOnceLoadedReportActions]);
+        readNewestAction(report?.reportID, isReportActionsLoaded);
+    }, [report, isReportActionsLoaded]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;

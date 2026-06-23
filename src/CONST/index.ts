@@ -283,6 +283,7 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
+    POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
@@ -493,6 +494,15 @@ const CONST = {
             READY: 'ready',
             FAILED: 'failed',
         },
+        TYPE: {
+            CSV: 'csv',
+            PDF: 'pdf',
+        },
+    },
+
+    SECURE_DOWNLOAD_TYPE: {
+        CSV_EXPORT: 'csvexport',
+        PDF_REPORT: 'pdfreport',
     },
 
     EXPORT_LABELS: {
@@ -1031,6 +1041,8 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        RULES_REVAMP: 'rulesRevamp',
+        COMMUTER_EXCLUSIONS: 'commuterExclusions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1309,6 +1321,7 @@ const CONST = {
     EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
+    GOOGLE_SEARCH_URL: 'https://www.google.com/search?q=',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     SAML_REDIRECT_URL: 'expensify://open',
@@ -1380,7 +1393,7 @@ const CONST = {
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
-    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings',
+    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
@@ -1790,6 +1803,7 @@ const CONST = {
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
                     UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
+                    UPDATE_COMMUTER_EXCLUSIONS: 'POLICYCHANGELOG_UPDATE_COMMUTER_EXCLUSIONS',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -3014,7 +3028,6 @@ const CONST = {
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         PARENT_TAG_MAPPING: 'parentTagMapping',
         SYNC_MILESTONES: 'syncMilestones',
-        REPORT_EXPORT_STATUS: 'reportExportStatus',
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
@@ -3025,6 +3038,11 @@ const CONST = {
     CERTINIA_EXPORT_STATUS: {
         COMPLETE: 'Complete',
         IN_PROGRESS: 'In Progress',
+        APPROVED: 'Approved',
+        SUBMITTED: 'Submitted',
+    },
+
+    CERTINIA_REPORT_EXPORT_STATUS: {
         APPROVED: 'Approved',
         SUBMITTED: 'Submitted',
     },
@@ -3896,6 +3914,10 @@ const CONST = {
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
         },
+        THREE_DOT_MENU_ACTION: {
+            LEAVE: 'leave',
+            TRANSFER_OWNERSHIP: 'transferOwnership',
+        },
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
@@ -4077,6 +4099,15 @@ const CONST = {
             ADULT_ENTERTAINMENT: 'adultEntertainment',
             GIFT_CARD: 'giftCard',
             HANDWRITTEN_RECEIPT: 'handwrittenReceipt',
+        },
+        COMMUTER_EXCLUSION_METHOD: {
+            FIXED_DISTANCE: 'fixedDistance',
+            // R2 will add HOME_AND_OFFICE: 'homeAndOffice'
+        },
+        COMMUTER_EXCLUSION_TYPE: {
+            METHOD: 'method',
+            FIXED_DISTANCE: 'fixedDistance',
+            DISABLED: 'disabled',
         },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},
@@ -4789,6 +4820,11 @@ const CONST = {
         },
     },
     SPEND_RULES: {
+        BADGE_VARIANTS: {
+            SUCCESS: 'success',
+            ERROR: 'error',
+            NEUTRAL: 'neutral',
+        },
         CATEGORIES: {
             AIRLINES: 'airlines',
             ALCOHOL_AND_BARS: 'alcoholAndBars',
@@ -4820,6 +4856,7 @@ const CONST = {
                 MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
                 CATEGORIES: 'categories',
                 MAX_AMOUNT: 'maxAmount',
+                CURRENCIES: 'currencies',
             },
         },
         ACTION: {
@@ -5250,6 +5287,8 @@ const CONST = {
         STOP_WAYPOINT: {width: 48, height: 53},
         WAYPOINT: {width: 40, height: 40},
     },
+
+    MAP_VIEW_COMPASS_SIZE: {width: 44, height: 44},
 
     QUICK_REACTIONS: [
         {
@@ -5943,6 +5982,12 @@ const CONST = {
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
+        RULES_TAB_TYPE: 'rulesTabType',
+        RULES: {
+            GENERAL: 'general',
+            CARD_RESTRICTIONS: 'cardRestrictions',
+            EXPENSE_DEFAULTS: 'expenseDefaults',
+        },
         SPLIT: {
             AMOUNT: 'amount',
             PERCENTAGE: 'percentage',
@@ -6033,6 +6078,7 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        GPS_ROUTE_ANIMATION_DURATION_MS: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,
     },
     ONYX_UPDATE_TYPES: {
@@ -6102,7 +6148,6 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
-        TEST_DRIVE_COVER_ASPECT_RATIO: 1000 / 508,
     },
 
     /**
@@ -7540,6 +7585,14 @@ const CONST = {
                 description: 'workspace.upgrade.approvalSubmit.description' as const,
                 icon: 'AdvancedApprovalsSquare',
             },
+            approvalSubmitReport: {
+                id: 'approvalSubmitReport' as const,
+                alias: 'approval-submit-report',
+                name: 'Approve reports',
+                title: 'workspace.upgrade.approvalSubmitReport.title' as const,
+                description: 'workspace.upgrade.approvalSubmitReport.description' as const,
+                icon: 'Approval',
+            },
         };
     },
     REPORT_FIELD_TYPES: {
@@ -7643,6 +7696,7 @@ const CONST = {
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
+        HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
     },
 
     DEBUG: {
@@ -7953,7 +8007,6 @@ const CONST = {
             START_CHAT: 'FABMenu-StartChat',
             SEND_INVOICE: 'FABMenu-SendInvoice',
             BOOK_TRAVEL: 'FABMenu-BookTravel',
-            TEST_DRIVE: 'FABMenu-TestDrive',
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
         },
@@ -8294,10 +8347,6 @@ const CONST = {
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
         },
-        TEST_DRIVE_MODAL: {
-            SKIP: 'TestDriveModal-Skip',
-            START: 'TestDriveModal-Start',
-        },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
@@ -8324,6 +8373,9 @@ const CONST = {
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
         },
+        MAP_VIEW: {
+            COMPASS: 'compass',
+        },
         MONEY_REQUEST: {
             AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
             AMOUNT_PAY_BUTTON: 'MoneyRequest-AmountPayButton',
@@ -8334,6 +8386,7 @@ const CONST = {
             CONFIRMATION_SUBMIT_BUTTON: 'MoneyRequest-ConfirmationSubmitButton',
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
+            GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',
@@ -8526,6 +8579,7 @@ const CONST = {
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
                 MERCHANT_RULE_DELETE: 'WorkspaceRules-MerchantRuleDelete',
                 CATEGORY_SELECTOR: 'WorkspaceRules-CategorySelector',
+                CURRENCY_SELECTOR: 'WorkspaceRules-CurrencySelector',
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
@@ -8533,6 +8587,11 @@ const CONST = {
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
                 AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
+                NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
+                REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
+                REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
+                FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
@@ -8776,8 +8835,12 @@ const CONST = {
             BACKDROP: 'MfaOverlay-Backdrop',
         },
         DOMAIN: {
+            ADMINS: {
+                ROW: 'DomainAdmins-Row',
+            },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
+                ROW: 'DomainGroups-Row',
             },
         },
     },
@@ -8815,6 +8878,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'Connect Expensify to ChatGPT, Claude, Cursor',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
+                publishedDate: '2026-06-08',
+            },
+            {
                 title: 'Policy upload, card freeze, and bulk editing',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
@@ -8825,12 +8894,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
                 publishedDate: '2026-05-21',
-            },
-            {
-                title: 'Expensify and Playroll Partner to Eliminate Compliance Complexity',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
-                publishedDate: '2026-05-19',
             },
         ],
     },
@@ -8853,7 +8916,11 @@ const CONST = {
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
         ROUTE_BORDER: 'route-border',
+        WAYPOINTS_SOURCE: 'waypoints-source',
+        WAYPOINTS: 'waypoints',
     },
+
+    MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',
 
     PARTNER_ID: {
         EXPENSIFY: 1,
@@ -8869,6 +8936,7 @@ const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id,
+    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id,
