@@ -221,7 +221,6 @@ import {
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -2523,16 +2522,6 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportAr
 
 function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     return !!reportNameValuePairs?.private_isArchived;
-}
-
-function buildArchivedReportsIDSet(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet {
-    const archivedReportsIDSet = new Set<string>();
-    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
-        if (isArchivedReport(value)) {
-            archivedReportsIDSet.add(key);
-        }
-    }
-    return archivedReportsIDSet;
 }
 
 /**
@@ -13192,7 +13181,6 @@ export {
     buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
-    buildArchivedReportsIDSet,
     buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
