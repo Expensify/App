@@ -6,6 +6,7 @@ import Share from 'react-native-share';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import {appendTimeToFileName, getFileName, getFileType, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import saveLocalFileToGallery from './saveLocalFileToGallery';
 import type {FileDownload} from './types';
 
 const isUserCancelled = (err: unknown) => {
@@ -89,7 +90,8 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
  * Download the image to photo lib in iOS
  */
 function downloadImage(fileUrl: string) {
-    return CameraRoll.saveAsset(fileUrl);
+    // Resolve to a truthy value so the shared success alert below still fires (the raw native result is unused).
+    return saveLocalFileToGallery(fileUrl).then(() => true);
 }
 
 /**
