@@ -1786,6 +1786,7 @@
 "../../tests/unit/NetworkTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/NextStepUtilsTest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	23
 "../../tests/unit/NextStepUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../tests/unit/NoOnyxConnectEslintDisableRuleTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/OnboardingSelectorsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/OnyxDerivedTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/OnyxUpdateManagerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
