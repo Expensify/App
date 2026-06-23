@@ -4864,6 +4864,7 @@ const CONST = {
             BLOCK: 'block',
         },
         NOUN: {
+            CURRENCY: 'currency',
             MERCHANT: 'merchant',
             SPEND_CATEGORY: 'spendCategory',
         },

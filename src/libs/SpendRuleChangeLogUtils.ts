@@ -140,8 +140,8 @@ function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: S
 
 type SpendRuleCurrency = {operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>; value: string[]};
 
-function getSpendRuleCurrencyValuesByOperator(currencies: SpendRuleCurrency[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): string[] {
-    return currencies.filter((currency) => currency.operator === operator).flatMap((currency) => currency.value);
+function getSpendRuleCurrencyValues(currencies: SpendRuleCurrency[]): string[] {
+    return currencies.flatMap((currency) => currency.value);
 }
 
 type SpendRuleCard = {cardID?: CardID; displayName?: string};
@@ -190,7 +190,7 @@ function computeSpendRuleCardDiff(oldCards: SpendRuleCard[], newCards: SpendRule
 
 type SpendRulePhraseVerb = 'added' | 'removed' | 'changed' | 'set' | 'applied';
 type SpendRulePhraseAdjective = '' | typeof CONST.SPEND_RULES.ACTION.BLOCK | typeof CONST.SPEND_RULES.ACTION.ALLOW;
-type SpendRulePhraseNoun = typeof CONST.SPEND_RULES.NOUN.MERCHANT | typeof CONST.SPEND_RULES.NOUN.SPEND_CATEGORY | 'currency';
+type SpendRulePhraseNoun = typeof CONST.SPEND_RULES.NOUN.MERCHANT | typeof CONST.SPEND_RULES.NOUN.SPEND_CATEGORY | typeof CONST.SPEND_RULES.NOUN.CURRENCY;
 
 type SpendRulePhrase = {
     verb: SpendRulePhraseVerb;
@@ -370,21 +370,13 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     const categoryDiff = computeSpendRuleStringDiff(oldCategories, newCategories);
     const amountDiff = computeSpendRuleAmountDiff(oldAmounts, newAmounts);
     const cardDiff = computeSpendRuleCardDiff(oldCards, newCards);
-    const allowedCurrencyDiff = computeSpendRuleStringDiff(
-        getSpendRuleCurrencyValuesByOperator(oldCurrencies, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO),
-        getSpendRuleCurrencyValuesByOperator(newCurrencies, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO),
-    );
-    const blockedCurrencyDiff = computeSpendRuleStringDiff(
-        getSpendRuleCurrencyValuesByOperator(oldCurrencies, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO),
-        getSpendRuleCurrencyValuesByOperator(newCurrencies, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO),
-    );
+    const currencyDiff = computeSpendRuleStringDiff(getSpendRuleCurrencyValues(oldCurrencies), getSpendRuleCurrencyValues(newCurrencies));
 
     const merchantsChanged = merchantDiff.added.length > 0 || merchantDiff.removed.length > 0;
     const categoriesChanged = categoryDiff.added.length > 0 || categoryDiff.removed.length > 0;
     const amountsChanged = amountDiff.added.length > 0 || amountDiff.removed.length > 0;
     const cardsChanged = cardDiff.added.length > 0 || cardDiff.removed.length > 0;
-    const currenciesChanged =
-        allowedCurrencyDiff.added.length > 0 || allowedCurrencyDiff.removed.length > 0 || blockedCurrencyDiff.added.length > 0 || blockedCurrencyDiff.removed.length > 0;
+    const currenciesChanged = currencyDiff.added.length > 0 || currencyDiff.removed.length > 0;
     const filtersAndCardsUnchanged = !merchantsChanged && !categoriesChanged && !amountsChanged && !cardsChanged && !currenciesChanged;
 
     const newCardsSummary = getSpendRuleCardsSummary(translate, newCards);
@@ -430,19 +422,9 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
             (params) => translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', params),
         ),
         ...getDiffPhrases(
-            allowedCurrencyDiff,
+            currencyDiff,
             CONST.SPEND_RULES.ACTION.ALLOW,
             getSpendRuleActionVerb(translate, CONST.SPEND_RULES.ACTION.ALLOW),
-            'currency',
-            (value) => value,
-            (params) => translate('workspaceActions.expensifyCardRule.update.bodyCurrency', params),
-            (params) => translate('workspaceActions.expensifyCardRule.update.bodyCurrencyValueOnly', params),
-            (params) => translate('workspaceActions.expensifyCardRule.update.bodyCurrencyChange', params),
-        ),
-        ...getDiffPhrases(
-            blockedCurrencyDiff,
-            CONST.SPEND_RULES.ACTION.BLOCK,
-            getSpendRuleActionVerb(translate, CONST.SPEND_RULES.ACTION.BLOCK),
             'currency',
             (value) => value,
             (params) => translate('workspaceActions.expensifyCardRule.update.bodyCurrency', params),
