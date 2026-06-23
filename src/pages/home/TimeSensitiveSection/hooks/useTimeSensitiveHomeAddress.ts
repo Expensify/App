@@ -16,9 +16,7 @@ function useTimeSensitiveHomeAddress() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     const hasHomeAndOfficeWorkspace = Object.values(allPolicies ?? {}).some(
-        (policy) =>
-            policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
-            policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (policy) => policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 
     const hasHomeAddress = (privatePersonalDetails?.addresses ?? []).some((address) => !!address?.street?.trim());

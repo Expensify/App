@@ -931,7 +931,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addHomeAddress: {
                 title: 'Añade una dirección de casa',
-                subtitle: 'Tu administrador habilitó exclusiones de desplazamientos para los gastos por distancia. Añade una dirección de casa para que podamos aplicarlas a tus reclamaciones.',
+                subtitle:
+                    'Tu administrador habilitó exclusiones de desplazamientos para los gastos por distancia. Añade una dirección de casa para que podamos aplicarlas a tus reclamaciones.',
                 cta: 'Añadir dirección',
             },
             fixFailedBilling: {

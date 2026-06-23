@@ -974,7 +974,8 @@ const translations: TranslationDeepObject<typeof en> = {
             validateAccount: {title: 'Validez votre compte', subtitle: 'Compte', cta: 'Valider'},
             addHomeAddress: {
                 title: 'Ajouter une adresse personnelle',
-                subtitle: 'Votre administrateur a activé les exclusions de trajet pour les dépenses de distance. Ajoutez une adresse personnelle pour que nous puissions les appliquer à vos réclamations.',
+                subtitle:
+                    'Votre administrateur a activé les exclusions de trajet pour les dépenses de distance. Ajoutez une adresse personnelle pour que nous puissions les appliquer à vos réclamations.',
                 cta: 'Ajouter une adresse',
             },
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},

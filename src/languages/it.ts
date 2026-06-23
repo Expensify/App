@@ -972,7 +972,8 @@ const translations: TranslationDeepObject<typeof en> = {
             validateAccount: {title: 'Conferma il tuo account', subtitle: 'Account', cta: 'Conferma'},
             addHomeAddress: {
                 title: 'Aggiungi un indirizzo di casa',
-                subtitle: 'Il tuo amministratore ha abilitato le esclusioni dei tragitti per le spese di distanza. Aggiungi un indirizzo di casa così possiamo applicarle alle tue richieste.',
+                subtitle:
+                    'Il tuo amministratore ha abilitato le esclusioni dei tragitti per le spese di distanza. Aggiungi un indirizzo di casa così possiamo applicarle alle tue richieste.',
                 cta: 'Aggiungi indirizzo',
             },
             fixFailedBilling: {title: 'Non abbiamo potuto addebitare la carta salvata nel profilo', subtitle: 'Abbonamento'},

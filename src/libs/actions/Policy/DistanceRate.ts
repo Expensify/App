@@ -541,10 +541,7 @@ function setPolicyCommuterExclusions(
 ) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    const optimisticCommuterExclusions: CommuterExclusions =
-        method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
-            ? {method, fixedDistance, fixedDistanceUnit}
-            : {method};
+    const optimisticCommuterExclusions: CommuterExclusions = method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {method, fixedDistance, fixedDistanceUnit} : {method};
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -582,9 +579,7 @@ function setPolicyCommuterExclusions(
 
     // Only send distance when the server actually needs it; homeAndOffice ignores the field.
     const parameters: SetPolicyCommuterExclusionsParams =
-        method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
-            ? {policyID, commuterExclusionMethod: method, distance: fixedDistance}
-            : {policyID, commuterExclusionMethod: method};
+        method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {policyID, commuterExclusionMethod: method, distance: fixedDistance} : {policyID, commuterExclusionMethod: method};
     API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
 }
 

@@ -34,11 +34,7 @@ import type {CommuterExclusions, CustomUnit} from '@src/types/onyx/Policy';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
 
-function getCommuterExclusionsSummary(
-    commuterExclusions: CommuterExclusions | undefined,
-    defaultUnit: string | undefined,
-    translate: ReturnType<typeof useLocalize>['translate'],
-): string {
+function getCommuterExclusionsSummary(commuterExclusions: CommuterExclusions | undefined, defaultUnit: string | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
     if (commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
         return translate('workspace.distanceRates.commuterExclusions.summaryHomeAndOffice');
     }
