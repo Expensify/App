@@ -207,7 +207,7 @@ function AvatarWithDisplayName({
         report,
         policy,
         conciergeReportID,
-        getReportAttributeByID(reportAttributes, report?.parentReportID),
+        getReportAttributeByID(reportAttributes, report?.parentReportID)?.reportName,
         isParentReportArchived,
     );
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);

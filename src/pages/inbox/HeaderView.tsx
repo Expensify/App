@@ -166,7 +166,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         parentNavigationReport,
         policy,
         conciergeReportID,
-        getReportAttributeByID(reportAttributes, parentNavigationReport?.parentReportID),
+        getReportAttributeByID(reportAttributes, parentNavigationReport?.parentReportID)?.reportName,
         isParentReportHeaderDataArchived,
     );
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);

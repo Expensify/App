@@ -3238,7 +3238,7 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, undefined);
+                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });

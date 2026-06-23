@@ -249,7 +249,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         report,
         policy,
         conciergeReportID,
-        getReportAttributeByID(reportAttributes, report?.parentReportID),
+        getReportAttributeByID(reportAttributes, report?.parentReportID)?.reportName,
         isParentReportArchived,
     );
     const base62ReportID = getBase62ReportID(Number(report.reportID));
