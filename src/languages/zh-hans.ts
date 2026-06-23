@@ -269,7 +269,6 @@ const translations: TranslationDeepObject<typeof en> = {
         more: '更多',
         other: '其他',
         debitCard: '借记卡',
-        bank: '银行',
         bankAccount: '银行账户',
         personalBankAccount: '个人银行账户',
         businessBankAccount: '企业银行账户',
