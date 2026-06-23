@@ -3613,7 +3613,7 @@ describe('getSupersededPendingCardTransactionIDs', () => {
         expect(result.size).toBe(0);
     });
 
-    it('marks every pending auth in a chain as superseded (incremental auths + clearing)', () => {
+    it('marks every pending auth in a chain as superseded', () => {
         const rootAuth = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
         const incrementalAuth = buildCardTransaction('auth1b', CONST.TRANSACTION.STATUS.PENDING, 'auth1');
         const posted = buildCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
@@ -3623,13 +3623,14 @@ describe('getSupersededPendingCardTransactionIDs', () => {
         expect([...result].sort()).toEqual(['auth1', 'auth1b']);
     });
 
-    it('ignores non-card pending transactions', () => {
-        const pending = generateTransaction({transactionID: 'cashPending', bank: '', status: CONST.TRANSACTION.STATUS.PENDING});
-        const posted = generateTransaction({transactionID: 'cashPosted', bank: '', status: CONST.TRANSACTION.STATUS.POSTED, parentTransactionID: 'cashPending'});
+    it('does not supersede an unrelated non-card pending transaction', () => {
+        const cardPending = buildCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const cardPosted = buildCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+        const manualPending = generateTransaction({transactionID: 'manual1', bank: '', status: CONST.TRANSACTION.STATUS.PENDING});
 
-        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([pending, posted]);
+        const result = TransactionUtils.getSupersededPendingCardTransactionIDs([cardPending, cardPosted, manualPending]);
 
-        expect(result.size).toBe(0);
+        expect([...result]).toEqual(['auth1']);
     });
 
     it('ignores split transactions linked via comment.originalTransactionID rather than parentTransactionID', () => {

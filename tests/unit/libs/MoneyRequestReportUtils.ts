@@ -102,6 +102,16 @@ describe('getAllNonDeletedTransactions - Expensify Card pending/posted deduplica
         };
     }
 
+    function makeNonCardTransaction(transactionID: string, status: Transaction['status'], parentTransactionID = ''): Transaction {
+        return {
+            ...transactionR14932,
+            transactionID,
+            bank: '',
+            status,
+            parentTransactionID,
+        };
+    }
+
     // Pass empty reportActions + includeOrphanedTransactions so the existing action-based filtering keeps every
     // transaction, isolating the card pending/posted deduplication behaviour.
     function getTransactions(transactions: Record<string, Transaction>) {
@@ -127,7 +137,7 @@ describe('getAllNonDeletedTransactions - Expensify Card pending/posted deduplica
         expect(result.at(0)?.transactionID).toBe('auth1');
     });
 
-    test('hides every pending auth in a chain (incremental auths + clearing)', () => {
+    test('hides every pending auth in a chain', () => {
         const rootAuth = makeCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
         const incrementalAuth = makeCardTransaction('auth1b', CONST.TRANSACTION.STATUS.PENDING, 'auth1');
         const posted = makeCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
@@ -138,13 +148,18 @@ describe('getAllNonDeletedTransactions - Expensify Card pending/posted deduplica
         expect(result.at(0)?.transactionID).toBe('clear1');
     });
 
-    test('does not touch non-card pending transactions', () => {
-        const pending = {...transactionR14932, transactionID: 'cashPending', bank: '', status: CONST.TRANSACTION.STATUS.PENDING, parentTransactionID: ''};
-        const posted = {...transactionR14932, transactionID: 'cashPosted', bank: '', status: CONST.TRANSACTION.STATUS.POSTED, parentTransactionID: 'cashPending'};
+    test('keeps non-card pending rows when a card chain settles', () => {
+        const cardPending = makeCardTransaction('auth1', CONST.TRANSACTION.STATUS.PENDING);
+        const cardPosted = makeCardTransaction('clear1', CONST.TRANSACTION.STATUS.POSTED, 'auth1');
+        const manualPending = makeNonCardTransaction('manual1', CONST.TRANSACTION.STATUS.PENDING);
 
-        const result = getTransactions({cashPending: pending, cashPosted: posted});
+        const result = getTransactions({auth1: cardPending, clear1: cardPosted, manual1: manualPending});
 
+        const ids = result.map((transaction) => transaction.transactionID);
         expect(result).toHaveLength(2);
+        expect(ids).toContain('clear1');
+        expect(ids).toContain('manual1');
+        expect(ids).not.toContain('auth1');
     });
 
     test('does not deduplicate across unrelated card auth chains', () => {
