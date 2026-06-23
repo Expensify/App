@@ -174,7 +174,7 @@ export default function WorkspaceExpensifyCardsTable({
 
     const cardListHeaderContent = (
         <>
-            <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
+            <View style={[styles.appBG, styles.flexShrink0, shouldUseNarrowTableLayout && styles.flexGrow1]}>
                 <WorkspaceCardListLabels
                     policyID={policyID}
                     cardSettings={cardSettingsBase}
