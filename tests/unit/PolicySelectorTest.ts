@@ -11,6 +11,9 @@ import {
 } from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
+// Centralizes the single unsafe cast needed to build partial Policy fixtures for these selector tests.
+const buildPolicy = (policy: Partial<Policy>): Policy => policy as Policy;
+
 describe('lastWorkspaceNumberSelector', () => {
     const email = 'jdoe@expensify.com';
     const displayName = 'Expensify';
@@ -28,7 +31,7 @@ describe('lastWorkspaceNumberSelector', () => {
 
     it('should return 0 when there is a matching workspace without a number', () => {
         const policies = {
-            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: workspaceName} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName}),
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(0);
     });
@@ -42,10 +45,10 @@ describe('lastWorkspaceNumberSelector', () => {
 
     it('should return the maximum number when there are multiple matching workspaces', () => {
         const policies = {
-            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: workspaceName} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName}),
             [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${workspaceName} 2`} as Policy,
             [`${ONYXKEYS.COLLECTION.POLICY}3`]: {name: `${workspaceName} 5`} as Policy,
-            [`${ONYXKEYS.COLLECTION.POLICY}4`]: {name: 'Other Workspace'} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}4`]: buildPolicy({name: 'Other Workspace'}),
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(5);
     });
@@ -54,7 +57,7 @@ describe('lastWorkspaceNumberSelector', () => {
         const smsEmail = `+15555555555${CONST.SMS.DOMAIN}`;
         const smsDisplayName = 'My Group Workspace';
         const policies = {
-            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: smsDisplayName} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: smsDisplayName}),
             [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${smsDisplayName} 3`} as Policy,
         };
         expect(lastWorkspaceNumberSelector(policies, smsEmail)).toBe(3);
@@ -62,7 +65,7 @@ describe('lastWorkspaceNumberSelector', () => {
 
     it('should ignore case when matching workspace names', () => {
         const policies = {
-            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {name: workspaceName.toLowerCase()} as Policy,
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName.toLowerCase()}),
             [`${ONYXKEYS.COLLECTION.POLICY}2`]: {name: `${workspaceName.toUpperCase()} 4`} as Policy,
         };
         expect(lastWorkspaceNumberSelector(policies, email)).toBe(4);
@@ -71,7 +74,7 @@ describe('lastWorkspaceNumberSelector', () => {
 
 describe('policyNameSelector', () => {
     it('should return the policy name', () => {
-        expect(policyNameSelector({name: 'My Workspace'} as Policy)).toBe('My Workspace');
+        expect(policyNameSelector(buildPolicy({name: 'My Workspace'}))).toBe('My Workspace');
     });
 
     it('should return undefined for undefined policy', () => {
@@ -79,16 +82,16 @@ describe('policyNameSelector', () => {
     });
 
     it('should return undefined when policy has no name', () => {
-        expect(policyNameSelector({} as Policy)).toBeUndefined();
+        expect(policyNameSelector(buildPolicy({}))).toBeUndefined();
     });
 });
 
 describe('createAdminPoliciesSelector', () => {
     const P = ONYXKEYS.COLLECTION.POLICY;
 
-    const adminPolicy = {id: '1', name: 'Admin WS', role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM, avatarURL: 'https://img/1', created: '2024-01-01'} as Policy;
-    const memberPolicy = {id: '2', name: 'Member WS', role: CONST.POLICY.ROLE.USER, type: CONST.POLICY.TYPE.TEAM} as Policy;
-    const personalPolicy = {id: '3', name: 'Personal', role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.PERSONAL} as Policy;
+    const adminPolicy = buildPolicy({id: '1', name: 'Admin WS', role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM, avatarURL: 'https://img/1', created: '2024-01-01'});
+    const memberPolicy = buildPolicy({id: '2', name: 'Member WS', role: CONST.POLICY.ROLE.USER, type: CONST.POLICY.TYPE.TEAM});
+    const personalPolicy = buildPolicy({id: '3', name: 'Personal', role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.PERSONAL});
     const allPolicies = {
         [`${P}1`]: adminPolicy,
         [`${P}2`]: memberPolicy,
@@ -117,8 +120,8 @@ describe('createAdminPoliciesSelector', () => {
 
     it('should skip policies without id or name', () => {
         const policies = {
-            [`${P}4`]: {role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM} as Policy,
-            [`${P}5`]: {id: '5', role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM} as Policy,
+            [`${P}4`]: buildPolicy({role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM}),
+            [`${P}5`]: buildPolicy({id: '5', role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM}),
         };
         expect(createAdminPoliciesSelector(undefined)(policies)).toEqual({});
     });
@@ -139,7 +142,7 @@ describe('isAdminForPolicyByIDSelector', () => {
     });
 
     it('returns true when policyID is empty string', () => {
-        expect(isAdminForPolicyByIDSelector('')({[`${P}p1`]: {role: CONST.POLICY.ROLE.USER} as Policy})).toBe(true);
+        expect(isAdminForPolicyByIDSelector('')({[`${P}p1`]: buildPolicy({role: CONST.POLICY.ROLE.USER})})).toBe(true);
     });
 
     it('returns false when policies is null and policyID is provided', () => {
@@ -147,17 +150,17 @@ describe('isAdminForPolicyByIDSelector', () => {
     });
 
     it('returns false when the policy is not found in the collection', () => {
-        const policies = {[`${P}p2`]: {role: CONST.POLICY.ROLE.ADMIN} as Policy};
+        const policies = {[`${P}p2`]: buildPolicy({role: CONST.POLICY.ROLE.ADMIN})};
         expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(false);
     });
 
     it('returns false when policy exists but role is not admin', () => {
-        const policies = {[`${P}p1`]: {role: CONST.POLICY.ROLE.USER} as Policy};
+        const policies = {[`${P}p1`]: buildPolicy({role: CONST.POLICY.ROLE.USER})};
         expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(false);
     });
 
     it('returns true when policy exists and role is admin', () => {
-        const policies = {[`${P}p1`]: {role: CONST.POLICY.ROLE.ADMIN} as Policy};
+        const policies = {[`${P}p1`]: buildPolicy({role: CONST.POLICY.ROLE.ADMIN})};
         expect(isAdminForPolicyByIDSelector('p1')(policies)).toBe(true);
     });
 });
@@ -355,8 +358,8 @@ describe('createWorkspaceListPoliciesSelector', () => {
         } as unknown as Policy;
         const result = createWorkspaceListPoliciesSelector(userLogin)({[`${P}p1`]: policy});
         expect(result).toHaveLength(1);
-        expect(result[0]?.isJoinRequestPending).toBe(true);
-        expect(result[0]?.nonMemberDetails).toEqual({
+        expect(result.at(0)?.isJoinRequestPending).toBe(true);
+        expect(result.at(0)?.nonMemberDetails).toEqual({
             policyID: 'nonMemberPolicyID123',
             name: 'External WS',
             type: CONST.POLICY.TYPE.CORPORATE,
@@ -382,7 +385,7 @@ describe('createWorkspaceListPoliciesSelector', () => {
         } as unknown as Record<string, Policy>;
         const result = createWorkspaceListPoliciesSelector(userLogin)(policies);
         expect(result).toHaveLength(1);
-        expect(result[0]?.id).toBe('p2');
+        expect(result.at(0)?.id).toBe('p2');
     });
 
     it('handles undefined currentUserLogin by still including policies that have a role field', () => {

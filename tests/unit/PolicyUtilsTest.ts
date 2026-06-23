@@ -3391,9 +3391,17 @@ describe('PolicyUtils', () => {
     });
 
     describe('isMergeHRCompleteSetupNeededSelector', () => {
+        // Only the fields read by the selector are modeled here; `Object.assign` attaches the connection
+        // to a real policy without an unsafe cast.
+        type MergeHRTestConnection = {
+            lastSync?: {syncStatus?: string};
+            data?: {groups?: unknown[]};
+            config?: {groups?: unknown[] | null};
+        };
+        const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
         const mergeHRBase = {
-            lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE, errorMessage: undefined, errorFields: undefined},
-            data: {groups: [{id: 'g1', name: 'Engineering', employeeCount: 5}]},
+            lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+            data: {groups: [{id: 'g1', name: 'Engineering'}]},
         };
 
         it('returns false when policy is undefined', () => {
@@ -3406,34 +3414,22 @@ describe('PolicyUtils', () => {
         });
 
         it('returns false when sync is not done', () => {
-            const policy = {
-                ...createRandomPolicy(2),
-                connections: {merge_hris: {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING, errorMessage: undefined, errorFields: undefined}}},
-            } as unknown as Policy;
+            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING}});
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
         });
 
         it('returns false when sync is done but there are no groups', () => {
-            const policy = {
-                ...createRandomPolicy(3),
-                connections: {merge_hris: {...mergeHRBase, data: {groups: []}}},
-            } as unknown as Policy;
+            const policy = buildMergeHRPolicy(3, {...mergeHRBase, data: {groups: []}});
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
         });
 
         it('returns false when setup is already complete (groups configured)', () => {
-            const policy = {
-                ...createRandomPolicy(4),
-                connections: {merge_hris: {...mergeHRBase, config: {groups: [{id: 'g1'}]}}},
-            } as unknown as Policy;
+            const policy = buildMergeHRPolicy(4, {...mergeHRBase, config: {groups: ['g1']}});
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
         });
 
         it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
-            const policy = {
-                ...createRandomPolicy(5),
-                connections: {merge_hris: mergeHRBase},
-            } as unknown as Policy;
+            const policy = buildMergeHRPolicy(5, mergeHRBase);
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
     });
