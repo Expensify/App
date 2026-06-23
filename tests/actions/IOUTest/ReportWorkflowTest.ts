@@ -3627,6 +3627,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 role: CONST.POLICY.ROLE.ADMIN,
+                owner: RORY_EMAIL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             };
 
@@ -3756,6 +3757,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 role: CONST.POLICY.ROLE.ADMIN,
+                owner: RORY_EMAIL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             };
 
@@ -4196,6 +4198,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 role: CONST.POLICY.ROLE.ADMIN,
+                owner: RORY_EMAIL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             };
 
@@ -4303,6 +4306,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 role: CONST.POLICY.ROLE.ADMIN,
+                owner: RORY_EMAIL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             };
 
@@ -4367,6 +4371,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 role: CONST.POLICY.ROLE.ADMIN,
+                owner: RORY_EMAIL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
             };
 
