@@ -97,23 +97,33 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
 
-        it('waitForUpcomingTransition ignores non-navigation transitions and waits for an upcoming navigation start (keyboard / modal concurrent with back-nav)', async () => {
+        it("waitForUpcomingTransition: 'navigation' ignores non-navigation transitions and waits for an upcoming navigation start", async () => {
             const callback = jest.fn();
-            // Keyboard or modal animation is active when the back-nav fires its scheduleRestore.
             const otherHandle = TransitionTracker.startTransition();
-            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: 'navigation'});
 
-            // The non-nav transition ends before the nav transition has even started — callback must NOT fire yet.
             TransitionTracker.endTransition(otherHandle);
             await Promise.resolve();
             expect(callback).not.toHaveBeenCalled();
 
-            // Nav transition starts, then ends — only now does the callback fire.
             const navHandle = TransitionTracker.startTransition('navigation');
             await Promise.resolve();
             await Promise.resolve();
             expect(callback).not.toHaveBeenCalled();
             TransitionTracker.endTransition(navHandle);
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
+        it('waitForUpcomingTransition: true (legacy) waits for any transition — modal close (no navigation) still fires the callback', async () => {
+            const callback = jest.fn();
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+
+            const modalHandle = TransitionTracker.startTransition();
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(modalHandle);
             expect(callback).toHaveBeenCalledTimes(1);
             drainTransitions();
         });

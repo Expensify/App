@@ -6,14 +6,14 @@ import getHadTabNavigation from './hadTabNavigation';
  * `deactivate()`, whose re-attached `checkFocusIn` would otherwise yank focus back into the closing container. Leaves an
  * already-paused trap alone so we don't resurrect a pause owned by another caller.
  */
-function restoreFocusWithModality(el: HTMLElement): void {
+function restoreFocusWithModality(el: HTMLElement, {preventScroll = true}: {preventScroll?: boolean} = {}): void {
     const parentTrap = sharedTrapStack.at(-1);
     const wasAlreadyPaused = parentTrap?.paused ?? false;
     if (parentTrap && !wasAlreadyPaused) {
         parentTrap.pause();
     }
     try {
-        el.focus({preventScroll: true, focusVisible: getHadTabNavigation()});
+        el.focus({preventScroll, focusVisible: getHadTabNavigation()});
     } finally {
         if (parentTrap && !wasAlreadyPaused) {
             parentTrap.unpause();

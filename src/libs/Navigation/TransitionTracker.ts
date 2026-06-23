@@ -14,8 +14,8 @@ type RunAfterTransitionsOptions = {
     /** If true, the callback fires synchronously regardless of any active transitions. Defaults to false. */
     runImmediately?: boolean;
 
-    /** Wait for a navigation transition before running the callback — the next one to start if none is active yet, else the active one to end. Defaults to false. */
-    waitForUpcomingTransition?: boolean;
+    /** Wait for a transition before the callback (next-to-start if none active, else active-to-end). `true` = any; `'navigation'` = navigation only. Defaults to false. */
+    waitForUpcomingTransition?: boolean | 'navigation';
 };
 
 const activeTransitions = new Map<TransitionHandle, {timeout: ReturnType<typeof setTimeout>; kind: TransitionKind}>();
@@ -26,6 +26,11 @@ let pendingCallbacks: Array<() => void | Promise<void>> = [];
 let nextTransitionStartResolve: (() => void) | null = null;
 let promiseForNextTransitionStart = new Promise<void>((resolve) => {
     nextTransitionStartResolve = resolve;
+});
+
+let nextNavigationTransitionStartResolve: (() => void) | null = null;
+let promiseForNextNavigationTransitionStart = new Promise<void>((resolve) => {
+    nextNavigationTransitionStartResolve = resolve;
 });
 
 /**
@@ -69,14 +74,24 @@ function decrementAndFlush(): void {
 function startTransition(kind: TransitionKind = 'other'): TransitionHandle {
     const handle: TransitionHandle = Symbol('transition');
 
+    // Resolves on every start so legacy `waitForUpcomingTransition: true` callers see modal / keyboard / layout transitions.
+    const resolveAny = nextTransitionStartResolve;
+    if (resolveAny) {
+        nextTransitionStartResolve = null;
+        promiseForNextTransitionStart = new Promise<void>((r) => {
+            nextTransitionStartResolve = r;
+        });
+        resolveAny();
+    }
+
     if (kind === 'navigation') {
-        const resolve = nextTransitionStartResolve;
-        if (resolve) {
-            nextTransitionStartResolve = null;
-            promiseForNextTransitionStart = new Promise<void>((r) => {
-                nextTransitionStartResolve = r;
+        const resolveNav = nextNavigationTransitionStartResolve;
+        if (resolveNav) {
+            nextNavigationTransitionStartResolve = null;
+            promiseForNextNavigationTransitionStart = new Promise<void>((r) => {
+                nextNavigationTransitionStartResolve = r;
             });
-            resolve();
+            resolveNav();
         }
         activeNavigationCount += 1;
     }
@@ -126,22 +141,21 @@ function endTransition(handle: TransitionHandle): void {
  * @returns A handle with a `cancel` method to prevent the callback from firing.
  */
 function runAfterTransitions({callback, runImmediately = false, waitForUpcomingTransition = false}: RunAfterTransitionsOptions): CancelHandle {
-    // If a navigation transition is already active (web fires transitionStart before the navigation state event), wait for it to end rather than a next start that never comes. Non-nav transitions are excluded — their end could flush callbacks before the nav transition starts.
-    if (waitForUpcomingTransition && activeNavigationCount === 0) {
+    const waitForNavigationOnly = waitForUpcomingTransition === 'navigation';
+    const activeRelevantCount = waitForNavigationOnly ? activeNavigationCount : activeTransitions.size;
+    // If a transition of the awaited kind is already active (web fires transitionStart before the navigation state event), wait for it to end rather than a next start that never comes.
+    if (waitForUpcomingTransition && activeRelevantCount === 0) {
         let cancelled = false;
         let innerHandle: CancelHandle | null = null;
 
-        // Guard against transitionStart never arriving.
-        // We race promiseForNextTransitionStart against a fallback timeout.
-        // Whichever resolves first wins.
-        // Afterwards we clearTimeout so the fallback doesn't keep the timer alive unnecessarily.
         let transitionStartTimeoutId!: ReturnType<typeof setTimeout>;
         const transitionStartTimeout = new Promise<void>((resolve) => {
             transitionStartTimeoutId = setTimeout(resolve, CONST.MAX_TRANSITION_START_WAIT_MS);
         });
+        const startPromise = waitForNavigationOnly ? promiseForNextNavigationTransitionStart : promiseForNextTransitionStart;
 
         (async () => {
-            await Promise.race([promiseForNextTransitionStart, transitionStartTimeout]);
+            await Promise.race([startPromise, transitionStartTimeout]);
             clearTimeout(transitionStartTimeoutId);
 
             if (!cancelled) {

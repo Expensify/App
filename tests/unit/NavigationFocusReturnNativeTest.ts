@@ -50,14 +50,14 @@ jest.mock('../../src/libs/Accessibility/fireFocusEvent', () => ({
 
 AccessibilityInfo.sendAccessibilityEvent = mockSendAccessibilityEvent;
 
-type TtEntry = {cb: () => void; cancelled: boolean; waitForUpcomingTransition: boolean};
+type TtEntry = {cb: () => void; cancelled: boolean; waitForUpcomingTransition: boolean | 'navigation'};
 let mockTtQueue: TtEntry[] = [];
 jest.mock('../../src/libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
     default: {
         startTransition: jest.fn(),
         endTransition: jest.fn(),
-        runAfterTransitions: ({callback, waitForUpcomingTransition = false}: {callback: () => void; waitForUpcomingTransition?: boolean}) => {
+        runAfterTransitions: ({callback, waitForUpcomingTransition = false}: {callback: () => void; waitForUpcomingTransition?: boolean | 'navigation'}) => {
             const entry: TtEntry = {cb: callback, cancelled: false, waitForUpcomingTransition};
             mockTtQueue.push(entry);
             return {
@@ -301,7 +301,7 @@ describe('handleStateChange — backward', () => {
         );
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
 
-        expect(mockTtQueue.at(-1)?.waitForUpcomingTransition).toBe(true);
+        expect(mockTtQueue.at(-1)?.waitForUpcomingTransition).toBe('navigation');
     });
 
     it('does NOT restore when skipNextFocusRestore was called before goBack (form-submit path)', () => {

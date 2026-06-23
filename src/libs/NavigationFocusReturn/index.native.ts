@@ -140,7 +140,7 @@ function applySkippedRestore(restoreKey: string): void {
     triggerMap.delete(restoreKey);
 }
 
-function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
+function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: false | 'navigation'}): void {
     // Cancel first so a stale prior restore can't fire on the prior route after the user moved on (rapid double-back).
     cancelPendingRestore();
     // Consume the entry so a later SR re-enable + press-less nav can't replay this stale capture.
@@ -212,7 +212,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
         if (skipNextRestore) {
             applySkippedRestore(action.restoreKey);
         } else {
-            scheduleRestore(action.restoreKey, {waitForUpcomingTransition: true});
+            scheduleRestore(action.restoreKey, {waitForUpcomingTransition: 'navigation'});
         }
     } else if (action.type === 'lateral') {
         skipNextRestore = false;

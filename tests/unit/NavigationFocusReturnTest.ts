@@ -1,14 +1,14 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
 
 // scheduleRestore defers through TransitionTracker; mock it so the deferred restore can be flushed deterministically (waitForUpcomingTransition is Promise-based and can't be driven by fake timers alone).
-type TtEntry = {cb: () => void; cancelled: boolean; waitForUpcomingTransition: boolean};
+type TtEntry = {cb: () => void; cancelled: boolean; waitForUpcomingTransition: boolean | 'navigation'};
 let mockTtQueue: TtEntry[] = [];
 jest.mock('../../src/libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
     default: {
         startTransition: jest.fn(),
         endTransition: jest.fn(),
-        runAfterTransitions: ({callback, waitForUpcomingTransition = false}: {callback: () => void; waitForUpcomingTransition?: boolean}) => {
+        runAfterTransitions: ({callback, waitForUpcomingTransition = false}: {callback: () => void; waitForUpcomingTransition?: boolean | 'navigation'}) => {
             const entry: TtEntry = {cb: callback, cancelled: false, waitForUpcomingTransition};
             mockTtQueue.push(entry);
             return {

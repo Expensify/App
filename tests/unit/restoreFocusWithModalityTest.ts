@@ -13,7 +13,7 @@ jest.mock('@components/FocusTrap/sharedTrapStack', () => ({
 }));
 
 const mockTrapStack = require<{default: MockTrap[]}>('@components/FocusTrap/sharedTrapStack').default;
-const restoreFocusWithModality = require<{default: (el: HTMLElement) => void}>('@libs/restoreFocusWithModality').default;
+const restoreFocusWithModality = require<{default: (el: HTMLElement, options?: {preventScroll?: boolean}) => void}>('@libs/restoreFocusWithModality').default;
 
 function pushMockTrap({paused = false}: {paused?: boolean} = {}): MockTrap {
     const trap: MockTrap = {paused, pause: jest.fn(), unpause: jest.fn()};
@@ -51,6 +51,15 @@ describe('restoreFocusWithModality', () => {
         restoreFocusWithModality(el);
 
         expect(focusSpy).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+    });
+
+    it('honors preventScroll: false so an off-screen launcher can scroll into view on modal close', () => {
+        const el = document.createElement('button');
+        const focusSpy = jest.spyOn(el, 'focus');
+
+        restoreFocusWithModality(el, {preventScroll: false});
+
+        expect(focusSpy).toHaveBeenCalledWith({preventScroll: false, focusVisible: true});
     });
 
     it('pauses and unpauses the topmost trap when it was active', () => {

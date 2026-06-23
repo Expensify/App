@@ -30,7 +30,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                         return;
                     }
                     if (shouldReturnFocus && !ReportActionComposeFocusManager.isFocused() && document.contains(launcher)) {
-                        restoreFocusWithModality(launcher);
+                        restoreFocusWithModality(launcher, {preventScroll: shouldPreventScroll});
                     }
                     // Deferred so popover paths that navigate after modal-hide can still consume.
                     markActivePopoverLauncherDeactivated(launcher);

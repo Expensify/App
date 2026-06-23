@@ -266,7 +266,7 @@ function applySkippedRestore(restoreKey: string): void {
     triggerMap.delete(restoreKey);
 }
 
-function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: boolean}): void {
+function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitForUpcomingTransition: false | 'navigation'}): void {
     // Baseline: focus present synchronously at back-nav time is pre-existing, not a user action during the defer.
     const restoreBaseline = typeof document !== 'undefined' ? document.activeElement : null;
     cancelPendingRestore();
@@ -335,7 +335,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
         if (skipNextRestore) {
             applySkippedRestore(action.restoreKey);
         } else {
-            scheduleRestore(action.restoreKey, {waitForUpcomingTransition: true});
+            scheduleRestore(action.restoreKey, {waitForUpcomingTransition: 'navigation'});
         }
     } else if (action.type === 'lateral') {
         skipNextRestore = false;
