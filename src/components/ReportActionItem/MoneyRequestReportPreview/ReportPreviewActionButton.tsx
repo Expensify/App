@@ -247,9 +247,11 @@ function ReportPreviewActionButton({
     }
 
     return (
+        // The primary (green) button fills the available space while the View button hugs its content, so a long
+        // primary label (e.g. "Mark as paid") isn't truncated by a 50/50 split.
         <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, {height: variables.h40}]}>
             <View style={[styles.flex1]}>{primaryButton}</View>
-            <View style={[styles.flex1]}>{viewButton}</View>
+            {viewButton}
         </View>
     );
 }
