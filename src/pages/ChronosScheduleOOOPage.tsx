@@ -267,19 +267,21 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                     <InputWrapper
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.DATE}
+                        valueType="string"
                         label={translate('chronos.date')}
                         value={startDate}
-                        onValueChange={(value) => handleStartDateChange(value as string)}
+                        onValueChange={handleStartDateChange}
                     />
                 </View>
                 <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.END_DATE}
+                        valueType="string"
                         label={translate('chronos.endDate')}
                         value={endDate}
                         minDate={startDateAsDate ?? undefined}
-                        onValueChange={(value) => handleEndDateChange(value as string)}
+                        onValueChange={handleEndDateChange}
                     />
                 </View>
                 <View style={styles.mb4}>
@@ -296,6 +298,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                     <InputWrapper
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.DURATION_AMOUNT}
+                        valueType="string"
                         label={translate('chronos.durationAmount')}
                         displayAsTextInput
                         hideCurrencySymbol
@@ -305,7 +308,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         currency={CONST.CURRENCY.USD}
                         decimals={2}
                         value={durationAmount}
-                        onValueChange={(value) => handleDurationAmountChange(value as string)}
+                        onValueChange={handleDurationAmountChange}
                         onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
                         isCurrencyPressable
                         numberFormRef={durationAmountRef}
