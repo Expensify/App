@@ -105,50 +105,66 @@ function useReportActionsData(reportID: string) {
     // refresh, matching the concierge skeleton condition.
     const canStartConciergeSession = !!hasOnceLoadedReportActions || allReportActions.length > 0;
 
-    return {
-        isOffline,
-        reportActionIDFromRoute,
+    // What the skeleton decision (`computeReportActionsSkeletonState`) and the guard's effects read. The
+    // guard consumes this locally; it is never put on the context, so changes to these (loading flags,
+    // app-load, concierge-session start, navigation) do not re-render the list content.
+    const guardData = {
         report,
         reportResult,
+        isOffline,
+        reportActionIDFromRoute,
+        transactionThreadReport,
+        isReportArchived,
+        isReportTransactionThread,
+        isLoadingInitialReportActions,
+        hasOnceLoadedReportActions,
+        isLoadingApp,
         reportActions,
+        oldestUnreadReportAction,
+        reportPreviewAction,
+        sortedVisibleReportActions,
+        isConciergeHiddenHistory,
+        isConciergeMainDM,
         allReportActions,
-        allReportActionIDs,
-        hasOlderActions,
+        showConciergeSidePanelWelcome,
+        canStartConciergeSession,
+        startSession,
+        currentReportID,
+    };
+
+    // The report-actions pipeline outputs the list needs. This is the only slice carried through
+    // `ReportActionsDataContext`. `report` and `hasOnceLoadedReportActions` stay here even though they look
+    // ambient: this hook already subscribes to them, and the list's pipeline derivations were built from
+    // this `report`, so re-reading them in the content would only add a duplicate subscription and split
+    // `report` from its own derivations. Truly ambient state (network, route, archived, concierge session)
+    // is read locally in the content instead, since it adds no subscription the pipeline doesn't hold.
+    const contentData = {
+        report,
+        hasOnceLoadedReportActions,
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
-        transactionThreadReportID,
         transactionThreadReport,
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
-        reportPreviewAction,
         parentReportAction,
-        reportLoadingState,
-        isLoadingInitialReportActions,
-        hasOnceLoadedReportActions,
-        currentReportID,
-        sessionStartTime,
-        startSession,
-        isReportTransactionThread,
-        isReportArchived,
-        canPerformWriteAction,
-        isLoadingApp,
-        loadOlderChats,
-        loadNewerChats,
         sortedReportActions,
         sortedVisibleReportActions,
-        isConciergeMainDM,
         isConciergeHiddenHistory,
-        showConciergeSidePanelWelcome,
         showFullHistory,
         hasPreviousMessages,
         handleShowPreviousMessages,
-        canStartConciergeSession,
+        loadOlderChats,
+        loadNewerChats,
     };
+
+    return {guardData, contentData};
 }
 
 type ReportActionsData = ReturnType<typeof useReportActionsData>;
+type ReportActionsGuardData = ReportActionsData['guardData'];
+type ReportActionsContentData = ReportActionsData['contentData'];
 
 export default useReportActionsData;
-export type {ReportActionsData};
+export type {ReportActionsData, ReportActionsGuardData, ReportActionsContentData};

@@ -1,17 +1,18 @@
 import {createContext, useContext} from 'react';
-import type {ReportActionsData} from '@hooks/useReportActionsData';
+import type {ReportActionsContentData, ReportActionsGuardData} from '@hooks/useReportActionsData';
 import {isUnread} from '@libs/ReportUtils';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /**
- * Carries the single `useReportActionsData` pipeline result from `ReportActionsSkeletonGuard`
- * down to `ReportActionsListContent`, so the content renders from the same data that drives the
- * skeleton decision without subscribing again.
+ * Carries the heavy report-actions pipeline outputs (`contentData`) from `ReportActionsSkeletonGuard`
+ * down to `ReportActionsListContent`, so the content renders from the same derivations that drive the
+ * skeleton decision without subscribing again. Ambient state (network, route, archived, loading flag,
+ * concierge session) is intentionally NOT carried here — the content reads it locally.
  */
-const ReportActionsDataContext = createContext<ReportActionsData | null>(null);
+const ReportActionsDataContext = createContext<ReportActionsContentData | null>(null);
 
-/** Read the report-actions pipeline bundle. Throws if used outside the guard's provider. */
-function useReportActionsDataContext(): ReportActionsData {
+/** Read the report-actions pipeline outputs. Throws if used outside the guard's provider. */
+function useReportActionsDataContext(): ReportActionsContentData {
     const value = useContext(ReportActionsDataContext);
     if (value === null) {
         throw new Error('useReportActionsDataContext must be used within a ReportActionsDataContext.Provider');
@@ -19,17 +20,11 @@ function useReportActionsDataContext(): ReportActionsData {
     return value;
 }
 
-type ReportActionsSkeletonState = {
-    shouldShowLoadingSkeleton: boolean;
-    shouldShowDerivedTimingSkeleton: boolean;
-    shouldShowInitialSkeleton: boolean;
-};
-
 /**
  * Pure derivation of the two skeleton states from the pipeline bundle: a loading skeleton and the
  * derived-value-timing skeleton. The guard uses these to decide whether to render the list.
  */
-function computeReportActionsSkeletonState(data: ReportActionsData): ReportActionsSkeletonState {
+function computeReportActionsSkeletonState(data: ReportActionsGuardData) {
     const {
         report,
         reportResult,
@@ -105,4 +100,3 @@ function computeReportActionsSkeletonState(data: ReportActionsData): ReportActio
 
 export default ReportActionsDataContext;
 export {useReportActionsDataContext, computeReportActionsSkeletonState};
-export type {ReportActionsSkeletonState};

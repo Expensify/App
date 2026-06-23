@@ -34,10 +34,8 @@ type ReportActionsSkeletonGuardProps = {
  * instead of being suppressed. That is intentional: content is on screen, so it should behave as visible.
  */
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
-    const data = useReportActionsData(reportID);
-    const {report, isOffline, reportActionIDFromRoute, isConciergeMainDM, canStartConciergeSession, startSession, oldestUnreadReportAction, currentReportID} = data;
-
-    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton, shouldShowInitialSkeleton} = computeReportActionsSkeletonState(data);
+    const {guardData, contentData} = useReportActionsData(reportID);
+    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton, shouldShowInitialSkeleton} = computeReportActionsSkeletonState(guardData);
     const shouldShowSkeleton = shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton;
 
     // Forward latch: once content has shown, never return the full skeleton again for this mount.
@@ -49,6 +47,8 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     // Side effects that must run whenever the chat list is shown, including while the skeleton renders.
     useCopySelectionHelper();
     usePendingConciergeResponse(reportID);
+
+    const {report, isOffline, reportActionIDFromRoute, isConciergeMainDM, canStartConciergeSession, startSession, oldestUnreadReportAction, currentReportID} = guardData;
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -93,9 +93,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
-    return <ReportActionsDataContext.Provider value={data}>{children}</ReportActionsDataContext.Provider>;
+    return <ReportActionsDataContext.Provider value={contentData}>{children}</ReportActionsDataContext.Provider>;
 }
-
-ReportActionsSkeletonGuard.displayName = 'ReportActionsSkeletonGuard';
 
 export default ReportActionsSkeletonGuard;

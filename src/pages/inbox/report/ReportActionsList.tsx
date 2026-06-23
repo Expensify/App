@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -10,6 +11,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,6 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
@@ -32,6 +35,7 @@ import {
 import {
     chatIncludesChronosWithID,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isCanceledTaskReport,
     isExpenseReport,
     isHarvestCreatedExpenseReport,
@@ -41,10 +45,13 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
+import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
@@ -91,10 +98,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {isProduction} = useEnvironment();
 
     const data = useReportActionsDataContext();
+
     const {
-        isOffline,
-        reportActionIDFromRoute,
         report,
+        hasOnceLoadedReportActions,
         hasNewerActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
@@ -103,9 +110,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
         parentReportAction,
-        hasOnceLoadedReportActions,
-        sessionStartTime,
-        isReportArchived,
         loadOlderChats,
         loadNewerChats,
         sortedReportActions,
@@ -115,6 +119,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         hasPreviousMessages,
         handleShowPreviousMessages,
     } = data;
+
+    // Truly ambient state read locally instead of via the context. These add no Onyx subscription the
+    // pipeline doesn't already hold: network and route are not Onyx, the concierge session is a context,
+    // and archived is derived from the report NVPs we already subscribe to below.
+    const {isOffline} = useNetwork();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const reportActionIDFromRoute = route?.params?.reportActionID;
+    const {sessionStartTime} = useConciergeSessionState();
 
     const didLayout = useRef(false);
 
@@ -126,6 +138,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const isReportArchived = !!isArchivedReport(reportNameValuePairs);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
 
