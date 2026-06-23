@@ -290,6 +290,21 @@ describe('handleStateChange — backward', () => {
         expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });
 
+    it('stack-pop restore fires synchronously inside the transition callback (no rAF defer)', () => {
+        const view = fakeView('display-name');
+        notifyPressedTrigger(fakeRef(view));
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'profile', name: 'Profile'},
+                {key: 'display-name-page', name: 'DisplayName'},
+            ]),
+        );
+        handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
+        flushTransitions();
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
+    });
+
     it('waits for the upcoming transition on a stack pop', () => {
         notifyPressedTrigger(fakeRef(fakeView('display-name')));
         handleStateChange(stackState(0, [{key: 'profile', name: 'Profile'}]));
@@ -607,6 +622,7 @@ describe('PUSH_PARAMS — same-route param change', () => {
         // PUSH_PARAMS emits no transition — restore must not wait for one (would stall on the 1s timeout).
         expect(mockTtQueue.at(-1)?.waitForUpcomingTransition).toBe(false);
         flushTransitions();
+        jest.advanceTimersByTime(20);
         expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
     });
 
@@ -652,6 +668,7 @@ describe('PUSH_PARAMS — same-route param change', () => {
 
         notifyPushParamsBackward(ROUTE_KEY, {q: 'old'});
         flushTransitions();
+        jest.advanceTimersByTime(20);
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
     });
 
@@ -672,6 +689,29 @@ describe('PUSH_PARAMS — same-route param change', () => {
         handleStateChange(stackState(0, [{key: ROUTE_KEY, name: 'Search'}]));
         handleStateChange(stackState(0, [{key: 'OtherRoot', name: 'Other'}]));
         expect(getTriggerMapSizeForTests()).toBe(0);
+    });
+
+    it('defers the first restore attempt by one frame so the post-commit render lands before focus', () => {
+        const view = fakeView('row');
+        notifyPressedTrigger(fakeRef(view));
+        notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
+
+        notifyPushParamsBackward(ROUTE_KEY, {q: 'old'});
+        flushTransitions();
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(20);
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(view);
+    });
+
+    it('cancelPendingFocusRestore drops the rAF-deferred attempt so a later nav cannot replay it', () => {
+        notifyPressedTrigger(fakeRef(fakeView('row')));
+        notifyPushParamsForward(ROUTE_KEY, {q: 'old'});
+
+        notifyPushParamsBackward(ROUTE_KEY, {q: 'old'});
+        flushTransitions();
+        cancelPendingFocusRestore();
+        jest.advanceTimersByTime(20);
+        expect(mockFireFocusEvent).not.toHaveBeenCalled();
     });
 });
 

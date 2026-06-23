@@ -72,8 +72,9 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => {
-                const stableId = id ?? `${title}_${description}`;
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}, index) => {
+                // `title` is the edited value — embedding it would shift the identifier across edits and miss the focus-return lookup. `description` is stable; index disambiguates.
+                const stableId = id ?? `${description}-${index}`;
                 return (
                     <MenuItemWithTopDescription
                         key={stableId}

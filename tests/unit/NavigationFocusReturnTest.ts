@@ -1176,6 +1176,26 @@ describe('restoreTriggerForRoute', () => {
         });
     });
 
+    it('stack-pop restore fires synchronously inside the transition callback (no rAF defer)', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(stackState(0, [{key: 'route-a', name: 'A'}]));
+            handleStateChange(
+                stackState(1, [
+                    {key: 'route-a', name: 'A'},
+                    {key: 'route-b', name: 'B'},
+                ]),
+            );
+            trigger.blur();
+            handleStateChange(stackState(0, [{key: 'route-a', name: 'A'}]));
+            const spy = jest.spyOn(trigger, 'focus');
+            flushTransitions();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
     it('should consume the entry so a second restore returns false', () => {
         const trigger = document.createElement('button');
         document.body.appendChild(trigger);
@@ -1742,6 +1762,7 @@ describe('PUSH_PARAMS notifications', () => {
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'foo'});
             flushTransitions();
+            jest.runAllTimers();
             expect(spy).toHaveBeenCalled();
         });
     });
@@ -1791,6 +1812,56 @@ describe('PUSH_PARAMS notifications', () => {
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'baz'});
             flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+        });
+    });
+
+    it('defers the first restore attempt by one frame so the post-commit render lands before focus', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            expect(spy).not.toHaveBeenCalled();
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('yields to a user focus that lands during the rAF defer (baseline-vs-activeElement check still wins)', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const triggerSpy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            const userTarget = appendButton();
+            userTarget.focus();
+            jest.runAllTimers();
+            expect(triggerSpy).not.toHaveBeenCalled();
+            expect(document.activeElement).toBe(userTarget);
+        });
+    });
+
+    it('cancelPendingFocusRestore drops the rAF-deferred attempt so a later nav cannot replay it', () => {
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            flushTransitions();
+            cancelPendingFocusRestore();
+            jest.runAllTimers();
             expect(spy).not.toHaveBeenCalled();
         });
     });

@@ -193,7 +193,12 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
                 }
                 rafHandle = requestAnimationFrame(attempt);
             };
-            attempt();
+            // PUSH_PARAMS dispatches pre-commit (from getStateForAction) — defer a frame so the new params render before we focus.
+            if (waitForUpcomingTransition === false) {
+                rafHandle = requestAnimationFrame(attempt);
+            } else {
+                attempt();
+            }
         },
     });
 }

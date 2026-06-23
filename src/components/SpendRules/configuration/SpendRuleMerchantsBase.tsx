@@ -82,7 +82,8 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                     />
                     {merchants.length > 0 ? (
                         merchants.map(({name, matchType}, index) => {
-                            const rowId = `merchant-${index}-${matchType ?? 'NONE'}-${name}`;
+                            // `name`/`matchType` are edited on the detail screen — index is the stable identity (already what the edit route uses).
+                            const rowId = `merchant-${index}`;
                             return (
                                 <MenuItemWithTopDescription
                                     key={rowId}
