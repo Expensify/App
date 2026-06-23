@@ -51,7 +51,7 @@ type AmountSubmitDataSyncProps = {
     submitDataRef: RefObject<AmountSubmitData | null>;
 };
 
-/** Renderless owner of IOURequestStepAmount's submit-only Onyx subs; syncs the latest snapshot into submitDataRef. */
+/** Owns IOURequestStepAmount's submit-only Onyx subs and syncs the latest snapshot into submitDataRef; renders null. */
 function AmountSubmitDataSync({report, transaction, transactionID, policyID, isEditing, submitDataRef}: AmountSubmitDataSyncProps) {
     const delegateAccountID = useDelegateAccountID();
     const selfDMReport = useSelfDMReport();
