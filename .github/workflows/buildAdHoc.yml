@@ -204,6 +204,8 @@ jobs:
             const webLink = prNumber && '${{ needs.deployWebAdHoc.result }}' === 'success' ? `https://${prNumber}.pr-testing.expensify.com` : '';
             const androidLink = '${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}' || '';
             const iosLink = '${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}' || '';
+            const androidSentryLink = '${{ needs.buildAndroid.outputs.SENTRY_URL }}' || '';
+            const iosSentryLink = '${{ needs.buildIOS.outputs.SENTRY_URL }}' || '';
             const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';
 
             const webFailed = '${{ needs.buildWeb.result }}' === 'failure' || '${{ needs.deployWebAdHoc.result }}' === 'failure';
@@ -213,21 +215,24 @@ jobs:
 
             const summary = core.summary
               .addTable([
-                [{data: 'Platform', header: true}, {data: 'Status', header: true}, {data: 'Download', header: true}],
+                [{data: 'Platform', header: true}, {data: 'Status', header: true}, {data: 'Download', header: true}, {data: 'Sentry size analysis', header: true}],
                 [
                   'Web',
                   webStatus,
-                  webLink ? `<a href="${webLink}">${webLink}</a>` : '-'
+                  webLink ? `<a href="${webLink}">${webLink}</a>` : '-',
+                  '-'
                 ],
                 [
                   'Android',
                   androidStatus,
-                  androidLink ? `<a href="${androidLink}">${androidLink}</a>` : '-'
+                  androidLink ? `<a href="${androidLink}">${androidLink}</a>` : '-',
+                  androidSentryLink ? `<a href="${androidSentryLink}">View</a>` : '-'
                 ],
                 [
                   'iOS',
                   iosStatus,
-                  iosLink ? `<a href="${iosLink}">${iosLink}</a>` : '-'
+                  iosLink ? `<a href="${iosLink}">${iosLink}</a>` : '-',
+                  iosSentryLink ? `<a href="${iosSentryLink}">View</a>` : '-'
                 ],
               ]);
 
