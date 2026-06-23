@@ -5656,6 +5656,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
@@ -5667,6 +5668,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
@@ -5841,13 +5843,24 @@ function getColumnsToShow({
             }
             // Expense report view: TOTAL (workspace currency) is always shown; add AMOUNT
             // (transaction's own currency) when a conversion exists so both are visible.
+            // ORIGINAL_AMOUNT (the transaction's original/foreign amount) is a separate,
+            // user-selectable report column — show it when a conversion exists, mirroring the
+            // search page so it's data-driven rather than always-on.
             // Search page: show ORIGINAL_AMOUNT column (transaction's original amount).
             if (hasExchangeRate) {
                 if (isExpenseReportView) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
+                    columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 } else {
                     columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 }
+            }
+
+            // POSTED (card posting date) is a user-selectable report column. Keep it data-driven:
+            // show it in the report view only when at least one transaction has a posting date,
+            // so an explicit selection renders when there's data and is hidden when there isn't.
+            if (isExpenseReportView && transaction.posted) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.POSTED] = true;
             }
 
             if (!Array.isArray(data)) {
