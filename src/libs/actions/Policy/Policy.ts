@@ -90,7 +90,7 @@ import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalytic
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import Permissions from '@libs/Permissions';
@@ -5803,7 +5803,12 @@ function upgradeSubmit(
         return;
     }
 
-    type UpgradeSubmitOnyxKey = typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL;
+    type UpgradeSubmitOnyxKey =
+        | typeof ONYXKEYS.COLLECTION.POLICY
+        | typeof ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL
+        | typeof ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.COLLECTION.NEXT_STEP;
 
     const now = new Date();
     const optimisticFirstDayFreeTrial = formatDate(subMinutes(now, 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
@@ -5855,6 +5860,100 @@ function upgradeSubmit(
     } else {
         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     }
+
+    // When the upgrade also approves a report (the "Approve report" flow on a Submit workspace), optimistically
+    // reflect the approval on the report so its next step doesn't stay stale. UpgradeSubmit approves the report
+    // server-side but—unlike ApproveMoneyRequest—its response does not return a refreshed next step, so without
+    // this the banner stays stuck on "Waiting for you to approve" until the report is reopened/refetched.
+    const reportApprovalOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
+    const reportApprovalSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const reportApprovalFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
+
+    const reportToApprove = reportID ? ReportUtils.getReportOrDraftReport(reportID) : undefined;
+    if (reportID && reportToApprove && ReportUtils.isExpenseReport(reportToApprove)) {
+        // After the upgrade the upgrader becomes the workspace's sole approver, so the report is approved outright.
+        const upgradedPolicyForNextStep: OnyxEntry<Policy> = {
+            ...policy,
+            type: targetType,
+            owner: currentUserLogin || priorOwner,
+            ...(optimisticOwnerAccountID !== undefined ? {ownerAccountID: optimisticOwnerAccountID} : {}),
+            reimbursementChoice: newReimbursementChoice,
+        };
+        const approvedReportSnapshot: OnyxEntry<Report> = {
+            ...reportToApprove,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            ...(currentUserAccountID !== undefined ? {managerID: currentUserAccountID} : {}),
+        };
+        const approvedNextStepParams = {
+            report: approvedReportSnapshot,
+            policy: upgradedPolicyForNextStep,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserLogin,
+            hasViolations: false,
+            isASAPSubmitBetaEnabled: false,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const optimisticReportNextStep = buildOptimisticNextStep(approvedNextStepParams);
+        const optimisticNextStepDeprecated = buildNextStepNew(approvedNextStepParams);
+
+        // Rebuild the pre-approval (submitted) next step from the original report/policy so a failed upgrade rolls back cleanly.
+        const revertedNextStepDeprecated = buildNextStepNew({
+            report: reportToApprove,
+            policy,
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserLogin,
+            hasViolations: false,
+            isASAPSubmitBetaEnabled: false,
+            predictedNextStatus: reportToApprove.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+        const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}` as const;
+
+        reportApprovalOptimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: reportKey,
+                value: {
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    ...(currentUserAccountID !== undefined ? {managerID: currentUserAccountID} : {}),
+                    nextStep: optimisticReportNextStep ?? undefined,
+                    pendingFields: {nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: nextStepKey,
+                value: optimisticNextStepDeprecated,
+            },
+        );
+        reportApprovalSuccessData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: reportKey,
+            value: {pendingFields: {nextStep: null}},
+        });
+        reportApprovalFailureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: reportKey,
+                value: {
+                    statusNum: reportToApprove.statusNum ?? null,
+                    stateNum: reportToApprove.stateNum ?? null,
+                    managerID: reportToApprove.managerID ?? null,
+                    nextStep: reportToApprove.nextStep ?? null,
+                    pendingFields: {nextStep: null},
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: nextStepKey,
+                value: revertedNextStepDeprecated,
+            },
+        );
+    }
+
     const optimisticData: Array<OnyxUpdate<UpgradeSubmitOnyxKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5931,6 +6030,10 @@ function upgradeSubmit(
             },
         },
     ];
+
+    optimisticData.push(...reportApprovalOptimisticData);
+    successData.push(...reportApprovalSuccessData);
+    failureData.push(...reportApprovalFailureData);
 
     API.write(WRITE_COMMANDS.UPGRADE_SUBMIT, {policyID, targetType, reportID}, {optimisticData, successData, failureData});
 }

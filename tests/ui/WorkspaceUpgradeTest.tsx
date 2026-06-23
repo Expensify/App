@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -162,9 +163,10 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdates();
     });
 
-    it('should refetch the report after upgrading via the Approve report flow so the next step is no longer stale', async () => {
+    it('should optimistically approve the report and refresh its next step when upgrading via the Approve report flow', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
         const reportID = '987654321';
+        const staleNextStep = {type: 'neutral' as const, message: [{text: 'Waiting for you to approve expenses'}]};
 
         // Given a Submit workspace (with the Submit 2026 beta) that has a submitted expense report awaiting approval
         await act(async () => {
@@ -176,7 +178,11 @@ describe('WorkspaceUpgrade', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: 1,
+                total: -5000,
+                currency: 'USD',
             });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, staleNextStep);
         });
 
         // And the upgrade page is opened for the "Approve report" flow with the report to approve
@@ -195,8 +201,13 @@ describe('WorkspaceUpgrade', () => {
         // Then UpgradeSubmit should target the Collect (Team) plan and pass the report to approve
         TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPGRADE_SUBMIT, 0, {policyID: policy.id, targetType: CONST.POLICY.TYPE.TEAM, reportID});
 
-        // And once the upgrade succeeds, the report is fetched again (OpenReport) so the stale next step refreshes
-        TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {reportID});
+        // And the report is optimistically approved so the next step is no longer the stale "Waiting for you to approve"
+        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+
+        const updatedNextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
+        expect(updatedNextStep).not.toEqual(staleNextStep);
 
         unmount();
         await waitForBatchedUpdates();
