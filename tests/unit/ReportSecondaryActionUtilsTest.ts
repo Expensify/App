@@ -13,7 +13,9 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
-import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
+import {policy420A} from '../../__mocks__/reportData/policies';
+import {chatReportR14932 as chatReport, iouReportR14932} from '../../__mocks__/reportData/reports';
+import {transactionR14932} from '../../__mocks__/reportData/transactions';
 
 const EMPLOYEE_ACCOUNT_ID = 1;
 const EMPLOYEE_EMAIL = 'employee@mail.com';
@@ -4099,6 +4101,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             transactionID: originalMessageR14932.IOUTransactionID,
         } as unknown as Transaction;
         const policy = {} as unknown as Policy;
+        const archivedReportsIDSet = new Set<string>();
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
@@ -4111,12 +4114,13 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportAction: actionR14932,
             originalTransaction: {} as Transaction,
             policy,
+            archivedReportsIDSet,
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
-                archivedReportsIDSet: expect.any(Set),
+                archivedReportsIDSet,
                 isChatReportArchived: false,
             }),
         );
@@ -4124,16 +4128,20 @@ describe('getSecondaryTransactionThreadActions', () => {
     });
 
     it('uses the money request report archived state for transaction thread MOVE_EXPENSE checks', () => {
-        const parentReport = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
+        const parentReport: Report = {
+            ...iouReportR14932,
+            reportID: String(REPORT_ID),
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             policyID: POLICY_ID,
-        } as unknown as Report;
-        const transaction = {
+        };
+        const transaction: Transaction = {
+            ...transactionR14932,
             transactionID: originalMessageR14932.IOUTransactionID,
-        } as unknown as Transaction;
-        const policy = {} as unknown as Policy;
+        };
+        const policy: Policy = {
+            ...policy420A,
+            id: POLICY_ID,
+        };
         const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${originalMessageR14932.IOUReportID}`]);
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
@@ -4145,7 +4153,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             parentReport,
             reportTransaction: transaction,
             reportAction: actionR14932,
-            originalTransaction: {} as Transaction,
+            originalTransaction: transaction,
             policy,
             archivedReportsIDSet,
             isProduction: false,
