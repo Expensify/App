@@ -1,4 +1,3 @@
-import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -98,8 +97,7 @@ type InitialState = {
 type WayPoint = {
     id: string;
     coordinate: Coordinate;
-    markerComponent: () => ReactNode;
-    markerType?: MapMarkerType;
+    markerType: MapMarkerType;
 };
 
 // Represents a handle to interact with a map view.

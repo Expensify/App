@@ -1,7 +1,5 @@
 import React, {useEffect} from 'react';
-import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -45,7 +43,6 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     const coordinates = route?.geometry?.coordinates ?? [];
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const getMapMarkerIconComponent = useMapMarkers();
 
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
@@ -72,7 +69,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
         waypointMarkers.push({
             id: `${waypoint.lng},${waypoint.lat},${index}`,
             coordinate: [waypoint.lng, waypoint.lat] as const,
-            markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
+            markerType,
         });
     }
 

@@ -1,6 +1,4 @@
-import type {ReactNode} from 'react';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
-import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import {getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
 import type {GpsDraftDetails} from '@src/types/onyx';
@@ -12,7 +10,6 @@ type UseGPSWaypointMarkersProps = {
 };
 
 function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPointProp}: UseGPSWaypointMarkersProps) {
-    const getMapMarkerIconComponent = useMapMarkers();
     const trimmedEndPoint = trimmedEndPointProp ?? gpsDraftDetails?.trimmedEndPoint;
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
@@ -40,7 +37,6 @@ function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPoin
             {
                 id: key,
                 coordinate: [waypoint.lng, waypoint.lat],
-                markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
                 markerType,
             },
         ];
