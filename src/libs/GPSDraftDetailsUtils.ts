@@ -165,7 +165,7 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
         return;
     }
 
-    if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment) && gpsPoints.length > 1) {
+    if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment)) {
         removeLastSegment(gpsPoints);
         return;
     }

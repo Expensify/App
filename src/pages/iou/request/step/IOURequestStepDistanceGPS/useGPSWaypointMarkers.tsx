@@ -41,6 +41,7 @@ function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPoin
                 id: key,
                 coordinate: [waypoint.lng, waypoint.lat],
                 markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
+                markerType,
             },
         ];
     });

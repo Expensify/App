@@ -25,6 +25,7 @@ function PopoverWithoutOverlay({
     onModalHide = () => {},
     children,
     shouldDisplayBelowModals = false,
+    enableEdgeToEdgeBottomSafeAreaPadding,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,18 +33,19 @@ function PopoverWithoutOverlay({
     const {windowWidth, windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
-        StyleUtils.getModalStyles(
-            CONST.MODAL.MODAL_TYPE.POPOVER,
-            {
+        StyleUtils.getModalStyles({
+            type: CONST.MODAL.MODAL_TYPE.POPOVER,
+            windowDimensions: {
                 windowWidth,
                 windowHeight,
                 isSmallScreenWidth: false,
             },
-            anchorPosition,
+            popoverAnchorPosition: anchorPosition,
             innerContainerStyle,
             outerStyle,
             shouldDisplayBelowModals,
-        );
+            enableEdgeToEdgeBottomSafeAreaPadding,
+        });
 
     useEffect(() => {
         let removeOnClose: () => void;
@@ -78,12 +80,21 @@ function PopoverWithoutOverlay({
             StyleUtils.getModalPaddingStyles({
                 shouldAddBottomSafeAreaMargin,
                 shouldAddTopSafeAreaMargin,
-                shouldAddBottomSafeAreaPadding,
+                shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
                 shouldAddTopSafeAreaPadding,
                 modalContainerStyle,
                 insets,
             }),
-        [StyleUtils, insets, modalContainerStyle, shouldAddBottomSafeAreaMargin, shouldAddBottomSafeAreaPadding, shouldAddTopSafeAreaMargin, shouldAddTopSafeAreaPadding],
+        [
+            StyleUtils,
+            enableEdgeToEdgeBottomSafeAreaPadding,
+            insets,
+            modalContainerStyle,
+            shouldAddBottomSafeAreaMargin,
+            shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaMargin,
+            shouldAddTopSafeAreaPadding,
+        ],
     );
 
     if (!isVisible) {
