@@ -64,6 +64,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import {isCertiniaSRPConnection} from './certinia/utils';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -323,7 +324,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           interactive: false,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
-                return !certiniaConfig?.hasPSA || certiniaConfig?.hasPSAOnly !== false
+                return !isCertiniaSRPConnection(certiniaConfig)
                     ? {}
                     : {
                           description: translate('workspace.certinia.company'),

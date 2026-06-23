@@ -13,7 +13,6 @@ import Section from '@components/Section';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
 import useActivePolicy from '@hooks/useActivePolicy';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -69,7 +68,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
@@ -259,7 +258,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 conciergeReportID,
-                archivedReportsIDSet,
+                reportNameValuePairs,
                 policyID,
                 adminsChatReportID,
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
@@ -274,7 +273,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     }, [
         isBetaEnabled,
         isSmallScreenWidth,
-        archivedReportsIDSet,
+        reportNameValuePairs,
         onboardingAdminsChatReportID,
         onboardingCompanySize,
         onboardingMessages,
