@@ -5841,25 +5841,26 @@ function getColumnsToShow({
             if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
-            // Expense report view: TOTAL (workspace currency) is always shown; add AMOUNT
-            // (transaction's own currency) when a conversion exists so both are visible.
-            // ORIGINAL_AMOUNT (the transaction's original/foreign amount) is a separate,
-            // user-selectable report column — show it when a conversion exists, mirroring the
-            // search page so it's data-driven rather than always-on.
-            // Search page: show ORIGINAL_AMOUNT column (transaction's original amount).
+            // Expense report view: TOTAL (workspace currency) is always shown when a conversion
+            // exists. ORIGINAL_AMOUNT (the transaction's original/foreign amount) is a separate,
+            // user-selectable report column — in the report view it's gated behind an explicit
+            // selection (customResult) so it never renders by default, only when the user picks it.
+            // Search page: ORIGINAL_AMOUNT stays data-driven (shown whenever a conversion exists).
             if (hasExchangeRate) {
                 if (isExpenseReportView) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
-                    columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+                    if (customResult) {
+                        columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+                    }
                 } else {
                     columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 }
             }
 
-            // POSTED (card posting date) is a user-selectable report column. Keep it data-driven:
-            // show it in the report view only when at least one transaction has a posting date,
-            // so an explicit selection renders when there's data and is hidden when there isn't.
-            if (isExpenseReportView && transaction.posted) {
+            // POSTED (card posting date) is a user-selectable report column. In the report view it's
+            // gated behind an explicit selection (customResult) so it never renders by default —
+            // it shows only when the user picks it and the transaction actually has a posting date.
+            if (customResult && isExpenseReportView && transaction.posted) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.POSTED] = true;
             }
 

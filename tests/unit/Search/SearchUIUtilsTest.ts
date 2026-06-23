@@ -8956,6 +8956,27 @@ describe('SearchUIUtils', () => {
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
         });
 
+        test('Should not show POSTED or ORIGINAL_AMOUNT by default in expense report view when not explicitly selected', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            // Transaction has BOTH a posting date and a currency conversion, but no custom column
+            // selection is provided (visibleColumns is empty). POSTED and ORIGINAL_AMOUNT must only
+            // appear when the user explicitly picks them, not in the default report view.
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                posted: '20240115',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+                currency: 'USD',
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns: [], isExpenseReportView: true});
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.POSTED);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+        });
+
         test('Should hide empty TAX columns in expense report view with custom columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
