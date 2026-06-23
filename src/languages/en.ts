@@ -332,6 +332,8 @@ const translations = {
         showLess: 'Show less',
         plusMore: ({count}: {count: number}) => `+${count} more`,
         merchant: 'Merchant',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Search ${merchant} on Google`,
         change: 'Change',
         category: 'Category',
         vendor: 'Vendor',
@@ -3469,9 +3471,6 @@ const translations = {
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive'),
             embeddedDemoIframeTitle: 'Test Drive',
-            employeeFakeReceipt: {
-                description: 'My test drive receipt!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
@@ -9848,17 +9847,6 @@ const translations = {
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Take a 2-minute test drive',
-        },
-        modal: {
-            title: 'Take us for a test drive',
-            description: 'Take a quick product tour to get up to speed fast.',
-            confirmText: 'Start test drive',
-            helpText: 'Skip',
-            employee: {
-                description: '<muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and send them a test expense.</muted-text>',
-                email: "Enter your boss's email",
-                error: 'That member owns a workspace, please input a new member to test.',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: "You're currently test driving Expensify",
