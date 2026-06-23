@@ -7831,8 +7831,10 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]);
-            const result = findLastAccessedReport(false, false, undefined, archivedReportsIDSet);
+            const reportNameValuePairsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
+            };
+            const result = findLastAccessedReport(false, false, undefined, reportNameValuePairsCollection);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -8722,8 +8724,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-            expect(isReportOutstanding(report, policy.id, archivedReportsIDSet)).toBe(false);
+            const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'}};
+            expect(isReportOutstanding(report, policy.id, reportNameValuePairs)).toBe(false);
         });
     });
 
