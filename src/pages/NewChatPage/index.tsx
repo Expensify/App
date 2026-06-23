@@ -32,7 +32,7 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -134,18 +134,15 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             countryCode,
             reportAttributesDerived,
             sortedActions,
+            selectedOptions,
+            includeSelectedOptions: true,
         },
     );
 
-    if (selectedOptions.length) {
-        defaultOptions.recentReports = defaultOptions.recentReports.filter((option) => !option.isSelfDM);
-    }
-
-    const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
-
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
+    // Keep selected options in the list (don't filter them out) so they stay in place when toggled, rather than jumping to a separate section at the top.
+    const options = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -264,18 +261,33 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions(reportAttributesDerived);
 
+    // Selected rows are marked in place by getValidOptions (isSelected), so the checkmark stays with the row instead of jumping to the top.
+    // In group selection mode the self DM stays visible (so the list doesn't shift and jump the scroll position) but is made non-selectable.
+    const recentReportsData = selectedOptions.length ? recentReports.map((option) => (option.isSelfDM ? {...option, isDisabled: true} : option)) : recentReports;
+
     const sections: Array<Section<OptionWithKey>> = [];
 
-    const selectedSection =
-        debouncedSearchTerm === ''
-            ? selectedOptions
-            : selectedOptions.filter((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, debouncedSearchTerm.trim().toLowerCase()));
+    // Existing selected users are already marked in place within Recents/Contacts (and remain reachable in the paginated list),
+    // so they don't need a separate row here. A selected non-existing user (an invited contact created from the search term)
+    // has no row in recents/contacts and disappears once the search input is cleared, so surface only those in a top section
+    // to keep them visible and easy to deselect. The one already shown as the current invite row is excluded to avoid a duplicate.
+    const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+    const selectedSection = selectedOptions.filter(
+        (option) =>
+            !!option.isOptimisticAccount && !(userToInvite && option.login === userToInvite.login) && doesPersonalDetailMatchSearchTerm(option, currentUserAccountID, cleanSearchTerm),
+    );
 
-    sections.push({data: selectedSection, title: undefined, sectionIndex: 0});
+    if (selectedSection.length) {
+        sections.push({
+            title: undefined,
+            data: selectedSection,
+            sectionIndex: 0,
+        });
+    }
 
     sections.push({
         title: translate('common.recents'),
-        data: recentReports,
+        data: recentReportsData,
         sectionIndex: 1,
     });
 
@@ -304,8 +316,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (isOptionInList) {
             newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
-            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
-            selectionListRef?.current?.scrollToIndex(0);
+            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
         }
 
         selectionListRef.current?.clearInputAfterSelect();
@@ -379,7 +390,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     };
 
     const itemRightSideComponent = (item: OptionWithKey, isFocused?: boolean) => {
-        if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
+        if (item.isSelfDM) {
             return null;
         }
 
@@ -394,6 +405,12 @@ function NewChatPage({ref}: NewChatPageProps) {
                 />
             );
         }
+
+        // "Add to group" only makes sense for eligible (login-bearing, non-excluded) users
+        if (!item.login || excludedGroupEmails.has(item.login)) {
+            return null;
+        }
+
         const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
         return (
             <Button
@@ -470,6 +487,10 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
+                canSelectMultiple
+                shouldPreventAutoScrollOnSelect
+                shouldClearInputOnSelect={false}
+                shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
                     onConfirm: (e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option)),
