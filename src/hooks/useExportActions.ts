@@ -192,14 +192,14 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
             onSelected: () => {
-                if (!connectedIntegration || !moneyRequestReport) {
+                if (!connectedIntegrationFallback || !moneyRequestReport) {
                     return;
                 }
                 if (isExported) {
                     triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     return;
                 }
-                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegration);
+                markAsManuallyExported([moneyRequestReport.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegrationFallback);
             },
         },
     };

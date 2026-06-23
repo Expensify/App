@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Bijlage',
         attachments: 'Bijlagen',
         center: 'Centreren',
+        resetMapToNorth: 'Kaart op het noorden zetten',
         from: 'Van',
         to: 'Aan',
         in: 'In',
@@ -314,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Toon minder',
         plusMore: ({count}: {count: number}) => `+${count} meer`,
         merchant: 'Handelaar',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Zoek ${merchant} op Google`,
         change: 'Wijzigen',
         category: 'Categorie',
         vendor: 'Leverancier',
@@ -509,6 +512,7 @@ const translations: TranslationDeepObject<typeof en> = {
         avatar: 'Avatar',
         editor: 'Editor',
         restrictions: 'Beperkingen',
+        off: 'Uit',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -1062,6 +1066,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,
+        recentlyAddedSection: {
+            title: 'Recent toegevoegd',
+            viewAll: 'Alle uitgaven bekijken',
+            emptyStateTitle: 'Geen recente uitgaven',
+            emptyStateMessage: 'Maak er een aan of sleep hier een bonnetje naartoe',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1340,6 +1350,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Markeer ${formattedAmount} als betaald` : `Markeren als betaald`),
         confirmPaymentReceivedModalTitle: 'Ontvangst van betaling bevestigen',
         receivedPayment: 'Betaling ontvangen',
+        receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}betaling ontvangen`,
         receivedPaymentConfirmation: 'Ga alleen verder als je de betaling al buiten Expensify hebt ontvangen.',
         confirmReceivedPayment: 'Ja, ik heb de betaling ontvangen.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met privérekening`),
@@ -1644,6 +1655,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
+        submitReportTo: {
+            subtitle: 'Kies een werkruimtelid of voer het e-mailadres in van degene die deze inzending moet ontvangen.',
+            emailLabel: 'E-mailadres',
+            workspaceMembers: 'Werkruimteleden',
+            sendExpense: 'Stuur je uitgave naar iedereen',
+            sendExpenseSubtitle: 'Nodig iedereen uit voor Expensify met hun e-mailadres of telefoonnummer.',
+        },
         changeApprover: {
             title: 'Goedkeurder wijzigen',
             header: (workflowSettingLink: string) =>
@@ -1699,6 +1717,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         bulkDuplicateLimit: `Je kunt maximaal ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} uitgaven tegelijk dupliceren. Selecteer minder uitgaven en probeer het opnieuw.`,
         deleted: 'Verwijderd',
+        categoryDisabledAlert: {
+            title: 'Categorie uitgeschakeld',
+            prompt: 'Schakel categorieën in de workspace in om de onkostendetails te bewerken of de categorie uit deze onkost te verwijderen.',
+            confirmText: 'Categorie verwijderen',
+        },
+        tagDisabledAlert: {
+            title: 'Label uitgeschakeld',
+            prompt: 'Schakel tags in op de werkruimte om de onkostendetails te bewerken of de tag uit deze onkosten te verwijderen.',
+            confirmText: 'Label verwijderen',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3027,12 +3055,6 @@ ${amount} voor ${merchant} - ${date}`,
         welcome: 'Welkom!',
         welcomeSignOffTitleManageTeam: 'Zodra je de bovenstaande taken hebt afgerond, kunnen we meer functionaliteit verkennen, zoals goedkeuringsworkflows en regels!',
         welcomeSignOffTitle: 'Leuk om je te ontmoeten!',
-        explanationModal: {
-            title: 'Welkom bij Expensify',
-            description:
-                'Eén app om je zakelijke en persoonlijke uitgaven af te handelen met de snelheid van chat. Probeer het uit en laat ons weten wat je ervan vindt. Er komt nog veel meer aan!',
-            secondaryDescription: 'Om terug te schakelen naar Expensify Classic, tik je gewoon op je profielfoto > Ga naar Expensify Classic.',
-        },
         getStarted: 'Aan de slag',
         whatsYourName: 'Hoe heet je?',
         peopleYouMayKnow: 'Kijk of je team al in Expensify zit',
@@ -3514,7 +3536,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     statusPage: {
         status: 'Status',
-        statusExplanation: 'Voeg een emoji toe zodat je collega’s en vrienden eenvoudig kunnen zien wat er aan de hand is. Je kunt er ook nog een bericht bij zetten.',
+        statusExplanation: 'Stel je status in met een emoji en een optioneel bericht.',
         today: 'Vandaag',
         clearStatus: 'Status wissen',
         save: 'Opslaan',
@@ -4386,7 +4408,7 @@ ${amount} voor ${merchant} - ${date}`,
             defaultNote: `Bonnetjes die naar ${CONST.EMAIL.RECEIPTS} worden gestuurd, verschijnen in deze workspace.`,
             deleteConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen?',
             deleteWithCardsConfirmation: 'Weet je zeker dat je deze werkruimte wilt verwijderen? Hiermee worden alle kaartfeeds en toegewezen kaarten verwijderd.',
-            deleteOpenExpensifyCardsError: 'Uw bedrijf heeft nog actieve Expensify Cards.',
+            deleteOpenExpensifyCardsError: 'Je bedrijf heeft nog Expensify Kaarten. <concierge-link>Neem contact op met Concierge</concierge-link> om ze te verwijderen.',
             outstandingBalanceWarning:
                 'Je hebt een openstaand saldo dat moet worden vereffend voordat je je laatste werkruimte kunt verwijderen. Ga naar je abonnementsinstellingen om de betaling af te ronden.',
             settleBalance: 'Ga naar abonnement',
@@ -4815,6 +4837,7 @@ ${amount} voor ${merchant} - ${date}`,
             bankTransactions: 'Banktransacties',
             travelInvoicingDescription: 'Reiskosten worden als banktransacties geëxporteerd naar het hieronder opgegeven Xero-account.',
             xeroBankAccount: 'Xero-bankrekening',
+            bankAccount: 'Bankrekening',
             xeroBankAccountDescription: 'Kies waar onkosten als banktransacties worden geboekt.',
             exportExpensesDescription: 'Rapporten worden geëxporteerd als een inkoopfactuur met de datum en status die hieronder zijn geselecteerd.',
             purchaseBillDate: 'Aankoopfactuurdatum',
@@ -4944,6 +4967,8 @@ ${amount} voor ${merchant} - ${date}`,
         certinia: {
             title: 'Certinia',
             titleFFA: 'Certinia (FFA)',
+            titlePSA: 'Certinia (PSA)',
+            company: 'Bedrijf',
             autoSyncDescription: 'Expensify wordt elke dag automatisch met Certinia gesynchroniseerd.',
             syncReimbursedReportsDescription:
                 'Als deze optie is ingeschakeld, wordt elke keer dat een te betalen factuur in FFA wordt betaald, het bijbehorende Expensify-rapport automatisch als terugbetaald gemarkeerd.',
@@ -4952,9 +4977,17 @@ ${amount} voor ${merchant} - ${date}`,
             exportStatus: {
                 label: 'Status te betalen factuur',
                 values: {
-                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Voltooien',
+                    [CONST.CERTINIA_EXPORT_STATUS.COMPLETE]: 'Voltooien',
                     [CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS]: 'Bezig',
+                    [CONST.CERTINIA_EXPORT_STATUS.APPROVED]: 'Goedgekeurd',
                     [CONST.CERTINIA_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
+                },
+            },
+            reportExportStatus: {
+                label: 'Status van declaratie',
+                values: {
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.APPROVED]: 'Goedgekeurd',
+                    [CONST.CERTINIA_REPORT_EXPORT_STATUS.SUBMITTED]: 'Ingediend',
                 },
             },
             exportDate: {
@@ -4970,8 +5003,13 @@ ${amount} voor ${merchant} - ${date}`,
                 helperText: 'Declarabele uitgaven worden geëxporteerd als te betalen facturen op naam van de werknemer.',
             },
             exportNonReimbursable: {label: 'Niet-declarabele uitgaven exporteren als'},
+            expenseReports: 'Declaraties',
+            exportReimbursableExpenseReports: {helperText: 'Declarabele uitgaven worden geëxporteerd als declaraties op naam van de werknemer.'},
+            exportNonReimbursableExpenseReports: {helperText: 'Niet-declarabele uitgaven worden geëxporteerd als declaraties op naam van de werknemer.'},
             noVendorsFound: 'Geen leveranciers gevonden',
             noVendorsFoundDescription: 'Synchroniseer de verbinding opnieuw nadat leveranciers zijn toegevoegd in Certinia.',
+            noCompaniesFound: 'Geen bedrijven gevonden',
+            noCompaniesFoundDescription: 'Synchroniseer de verbinding opnieuw nadat bedrijven zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
                 installBundle: 'Voor FFA-verbindingen',
@@ -6188,6 +6226,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Selecteer functies om te kopiëren',
                 description: 'Selecteer de instellingen die je wilt overschrijven in je bestaande werkruimtes.',
                 accountingMismatch: ({part}: {part: string}) => `Je kunt ${part} alleen kopiëren als alle werkruimtes hetzelfde boekhoudsysteem en dezelfde bedrijfsverbinding gebruiken.`,
+                travelAddressMismatch: 'Je kunt reizen alleen kopiëren als elke geselecteerde werkruimte een bedrijfsadres heeft.',
             },
             confirmSettings: {
                 title: 'Laten we controleren of alles er goed uitziet.',
@@ -6283,6 +6322,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             admins: 'Workspace-beheerders',
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
+            editors: 'Bewerkers',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},
             configureHRSync: (providerName: string) => `Stel ${providerName}-synchronisatie in.`,
             syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
@@ -6617,6 +6657,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             exportCompanyCard: 'Bedrijfspaskosten exporteren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standaardleverancier',
+            defaultAccount: 'Standaardrekening',
             autoSync: 'Automatisch synchroniseren',
             autoSyncDescription: 'Synchroniseer NetSuite en Expensify automatisch, elke dag. Exporteer een afgerond rapport in realtime',
             reimbursedReports: 'Geverifieerde rapporten synchroniseren',
@@ -6684,8 +6725,20 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         distanceRates: {
             oopsNotSoFast: 'Oeps! Niet zo snel...',
             workspaceNeeds: 'Een workspace heeft minstens één ingeschakelde afstandstarief nodig.',
+            commuterExclusions: {
+                title: 'Woon-werkverkeer uitsluiten',
+                summaryDisabled: 'Geen woon-werkuitzondering',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Sluit ${distance} ${unit} per declaratie uit`,
+                optionDisabledTitle: 'Woon-werkverkeer niet uitsluiten',
+                optionDisabledHelp: 'Er is geen woon-werkuitzondering toegepast.',
+                optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
+                optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
+                distanceLabel: 'Afstand',
+                errors: {distanceMustBePositive: 'Afstand moet groter zijn dan 0.'},
+            },
             distance: 'Afstand',
             centrallyManage: 'Beheer tarieven centraal, volg in mijlen of kilometers en stel een standaardcategorie in.',
+            emptyRates: {title: 'Nog geen afstandstarieven', subtitle: 'Voeg een tarief toe om kilometers tegen aangepaste tarieven te vergoeden.'},
             rate: 'Beoordeling',
             addRate: 'Tarief toevoegen',
             findRate: 'Tarief zoeken',
@@ -6819,11 +6872,9 @@ Als je de facturering voor hun volledige abonnement wilt overnemen, laat hen je 
             description: ({
                 reportName,
                 connectionName,
-            }: ExportAgainModalDescriptionParams) => `De volgende rapporten zijn al geëxporteerd naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:
+            }: ExportAgainModalDescriptionParams) => `De volgende rapporten zijn al geëxporteerd naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Weet je zeker dat je ze opnieuw wilt exporteren?
 
-${reportName}
-
-Weet je zeker dat je ze opnieuw wilt exporteren?`,
+${reportName}`,
             confirmText: 'Ja, opnieuw exporteren',
             cancelText: 'Annuleren',
         },
@@ -6959,6 +7010,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
             commonFeatures: {
                 title: 'Upgrade naar het Control-abonnement',
+                collect: {
+                    title: 'Upgrade naar het Collect-abonnement',
+                    startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
+                        `<muted-text>Het Collect-abonnement begint bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`} <a href="${learnMoreMethodsRoute}">Meer informatie</a> over onze abonnementen en prijzen.</muted-text>`,
+                    note: 'Ontgrendel essentiële functies voor je bedrijf, waaronder:',
+                },
                 note: 'Ontgrendel onze krachtigste functies, waaronder:',
                 benefits: {
                     startsAtFull: (learnMoreMethodsRoute: string, formattedPrice: string, hasTeam2025Pricing: boolean) =>
@@ -6985,6 +7042,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 description: 'Configureer centraal naar wie alle leden indienen door goedkeuringen in te schakelen.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Goedkeuringen zijn beschikbaar in de Collect- en Control-abonnementen, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            approvalSubmitReport: {
+                title: 'Rapporten goedkeuren',
+                description:
+                    'Beoordeel, keur goed en bewaak alle uitgaven op één plek. Goedkeuringsworkflows helpen je kosten te beheersen, bedrijfsbeleid te handhaven en je medewerkers sneller terug te betalen.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Goedkeuringsworkflows zijn alleen beschikbaar in het Collect-abonnement, vanaf <strong>${formattedPrice}</strong> per actieve deelnemer per maand.</muted-text>`,
             },
             companyCardSubmit: {
                 title: 'Bedrijfskaarten',
@@ -7033,7 +7097,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
             controlPolicyRoles: {
                 title: 'Beleidsrollen controleren',
-                description: 'Gebruik gespecialiseerde rollen zoals Auditor en Kaartbeheerder om leden alleen toegang te geven tot wat ze nodig hebben.',
+                description: 'Geef leden specifieke toegang door rollen zoals Auditor of Kaartbeheerder toe te wijzen.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
@@ -7201,6 +7265,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 saveAnyway: 'Toch opslaan',
                 applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
                 findRule: 'Zoek handelsregel',
+                expenseDefaultsTitle: 'Standaardinstellingen voor uitgaven',
+                expenseDefaultsSubtitle: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
+                ifAnyExpenseMatches: 'Als een uitgave overeenkomt:',
+                thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -7269,10 +7337,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 chooseCards: 'Kaarten kiezen',
                 saveRule: 'Regel opslaan',
                 allow: 'Toestaan',
-                spendRuleSectionTitle: 'Bestedingsregel',
-                restrictionType: 'Restrictietype',
-                restrictionTypeHelpAllow: 'Kosten worden goedgekeurd als ze overeenkomen met een handelaar of categorie en een maximumbedrag niet overschrijden.',
-                restrictionTypeHelpBlock: 'Betalingen worden geweigerd als ze overeenkomen met een handelaar of categorie, of een maximumbedrag overschrijden.',
+                spendRuleSectionTitle: 'Bestedingsregels',
                 addMerchant: 'Handelaar toevoegen',
                 merchantContains: 'Handelaar bevat',
                 merchantExactlyMatches: 'Handelaar komt exact overeen',
@@ -7283,11 +7348,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 matchType: 'Overeenkomsttype',
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
-                spendCategory: 'Uitgavencategorie',
                 maxAmount: 'Maximumbedrag',
                 maxAmountHelp: 'Elke betaling boven dit bedrag wordt geweigerd, ongeacht beperkingen voor handelaar en uitgavencategorie.',
-                currencyMismatchTitle: 'Valutamismatch',
-                currencyMismatchPrompt: 'Om een maximumbedrag in te stellen, selecteer je kaarten die in dezelfde valuta worden vereffend.',
+                maxAmountCurrencyMismatchTitle: 'Valutaverschil',
+                maxAmountCurrencyMismatchPrompt: 'Om een maximumbedrag in te stellen, selecteer kaarten die in dezelfde valuta worden verrekend.',
                 reviewSelectedCards: 'Geselecteerde kaarten bekijken',
                 summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} meer` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Pas minstens één bestedingsregel toe op één kaart',
@@ -7350,19 +7414,129 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
+                defaultRuleSummary: 'Categorieën zoals erotische diensten, geldautomaten, gokken en...',
+                findRule: 'Regel zoeken',
+                defaultSection: 'Standaard',
+                customRulesSection: 'Aangepaste regels',
+                tableColumnType: 'Type',
+                tableColumnCard: 'Kaart',
+                tableColumnRule: 'Regel',
+                cardRulesUpsell: {
+                    title: 'Vraag de Expensify Kaart aan en beheer uitgaven',
+                    subtitle:
+                        'Met de Expensify Kaart kun je regels instellen voor maximale uitgaven, bepaalde verkopers of soorten aankopen blokkeren of toestaan. Je krijgt bovendien 2% cashback.',
+                    cta: 'Vraag de kaart aan',
+                },
+                restrictCardSpendTitle: 'Kaartuitgaven beperken',
+                restrictCardSpendSubtitle: 'Blokkeer of beperk uitgaven bij het verkooppunt.',
+                ifAnyCardMatches: 'Als een kaart overeenkomt:',
+                thenDoThisAtPointOfSale: 'Doe dan het volgende bij het verkooppunt:',
+                setRestrictions: 'Beperkingen instellen',
+                merchantRestrictions: 'Handelaarsbeperkingen',
+                blockedMerchant: 'Geblokkeerde handelaar',
+                blockedMerchantTypes: 'Geblokkeerde handelaarstypen',
+                maxAmountAbove: ({amount}: {amount: string}) => `boven ${amount}`,
+                restrictMerchants: 'Handelaars beperken',
+                merchantTypes: 'Handelaarstypen',
+                allowedMerchants: 'Toegestane handelaren',
+                allowedMerchantTypes: 'Toegestane merchanttypen',
+                blockedMerchants: 'Geblokkeerde handelaren',
+                currencies: 'Valuta’s',
+                permittedCurrencies: 'Toegestane valuta',
+                allCurrencies: 'Alle valuta',
+                permittedCurrenciesSubtitle: 'Kies om alle of specifieke valuta toe te staan',
+                settlementCurrencyPermittedSubtitle: 'De afrekeningsvaluta van de kaart is altijd toegestaan',
+                currenciesCurrencyMismatchTitle: 'Valutaverschil',
+                currenciesCurrencyMismatchPrompt: 'Om voorkeursvaluta in te stellen, selecteer je kaarten die in dezelfde valuta worden afgerekend.',
+                restrictMerchantsOffSubtitle: "Kosten worden goedgekeurd voor toegestane valuta's die een maximumbedrag niet overschrijden",
+                restrictMerchantsAllowSubtitle:
+                    'Kosten worden goedgekeurd voor toegestane valuta’s die een maximumbedrag niet overschrijden, en wanneer de handelaar of het handelaarstype overeenkomt.',
+                restrictMerchantsBlockSubtitle:
+                    'Kosten worden goedgekeurd voor toegestane valuta’s die een maximumbedrag niet overschrijden, of wanneer de handelaar of het handelaarstype overeenkomt.',
+                summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
+                    `Toegestaan ${shownCount > 1 ? 'valuta’s' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
             },
             agentRules: {
                 title: 'Agentregels',
-                subtitle: 'Beschrijf flexibele regels die worden uitgevoerd wanneer je ze nodig hebt',
+                subtitle: 'Stel regels in voor hoe AI-agenten met uitgaven omgaan in deze werkruimte.',
                 addRule: 'Agentregel toevoegen',
                 findRule: 'Agentregel zoeken',
                 addRuleTitle: 'Regel toevoegen',
                 editRuleTitle: 'Regel bewerken',
                 deleteRule: 'Regel verwijderen',
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
-                describeRuleTitle: 'Beschrijf je regel',
-                describeRuleSubtitle: 'Beschrijf je regel en Concierge maakt hem voor je',
+                describeRuleTitle: 'Beschrijf de regel die je AI-agent moet volgen',
                 disclaimer: 'AI-agents kunnen fouten maken.',
+                agentCreatedTitle: 'RuleBot is toegevoegd aan je werkruimte!',
+                agentCreatedDescription: (agentsRoute: string) =>
+                    `<muted-text>Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.<br><br>Bewerk de gegevens van je agent in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
+            },
+            tabs: {general: 'Algemeen', cardRestrictions: 'Kaartbeperkingen', expenseDefaults: 'Standaardinstellingen voor uitgaven'},
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Regel verwijderen',
+                    other: 'Regels verwijderen',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                    other: 'Weet je zeker dat je deze regels wilt verwijderen?',
+                }),
+            },
+            generalTab: {
+                title: 'Basisregels',
+                subtitle: 'Algemene regels om uitgaven te beheersen',
+                expensesOlderThan: 'Markeer onkosten ouder dan',
+                expensesAboveAmount: 'Markeer uitgaven boven bedrag',
+                flagReceiptLineItems: 'Regelitems van bon markeren',
+                receiptRequirements: 'Bonnen verplicht stellen',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Normaal boven ${regularAmount}, gespecificeerd boven ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Regulier boven ${regularAmount}, itemisatie niet vereist`;
+                    }
+                    if (itemizedAmount) {
+                        return `Vereis geen gewone, gespecificeerde bonnetjes boven ${itemizedAmount}`;
+                    }
+                    return 'Geen bonnen verplichten';
+                },
+                requireFieldsForAllExpenses: 'Velden vereisen voor alle uitgaven',
+                cashExpenses: 'Contante uitgaven',
+                cashExpensesReimbursableByDefault: 'Standaard declarabel',
+                cashExpensesNonReimbursableByDefault: 'Standaard niet-declarabel',
+                cashExpensesAlwaysReimbursable: 'Altijd te vergoeden',
+                cashExpensesAlwaysNonReimbursable: 'Altijd niet-vergoedbaar',
+                billableExpenses: 'Factureerbare uitgaven',
+                billableExpensesBillable: 'Declarabel contant en creditcard',
+                billableExpensesNonBillable: 'Contant en creditcard niet-declareerbaar',
+            },
+            requireReceipts: {
+                title: 'Bonnen verplicht stellen',
+                description: 'Bonnen verplichten wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categorietoevoeging.',
+                requireReceipt: 'Bon vereist',
+                requireItemizedReceipt: 'Gespecificeerde bon vereist',
+                requireAboveAmount: 'Bovenstaand bedrag verplicht stellen',
+                saveRule: 'Regel opslaan',
+                emptyAmountError: 'Voer een geldig bedrag in voordat je opslaat',
+            },
+            requireFields: {title: 'Velden vereisen voor alle uitgaven', category: 'Categorie', tag: 'Label', save: 'Regel opslaan'},
+            newRule: {
+                title: 'Nieuwe regel',
+                subtitle: 'Wat wil je doen?',
+                restrictCardSpend: 'Kaartuitgaven beperken',
+                restrictCardSpendDescription: 'Blokkeer of beperk uitgaven bij het verkooppunt',
+                applyExpenseDefaults: 'Standaardinstellingen voor uitgaven toepassen',
+                applyExpenseDefaultsDescription: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Voorwaarde',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel zoeken',
+                rename: 'Naam wijzigen',
+                update: 'Bijwerken',
+                merchantIs: (merchant: string) => `Handelaar is "${merchant}"`,
             },
         },
         planTypePage: {
@@ -7946,6 +8120,22 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
+        commuterExclusions: {
+            changedToFixedDistance: 'heeft ‘woon-werkverkeer uitsluiten’ gewijzigd naar een vaste afstand per declaratie',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'mijl' : 'mijlen';
+                } else {
+                    unitLabel = isSingular ? 'kilometer' : 'kilometers';
+                }
+                return `stel vaste afstandsuitsluiting in op ${distance} ${unitLabel} per declaratie`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `heeft de vaste afstandsuitsluiting gewijzigd naar ${newDistance} ${unit} per declaratie (voorheen ${oldDistance} ${unit})`,
+            disabled: 'uitschakelen woon-werkverkeer uitsluiten voor afstandstarieven',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `vergoedingsmethode gewijzigd naar ‘${newReimbursementChoice}’ (voorheen ‘${oldReimbursementChoice}’)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} vooraf goedkeuren van werkruimte-toevoegingsverzoeken`,
@@ -8306,10 +8496,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             line: 'Lijn',
             pie: 'Cirkeldiagram',
         },
-        moneyRequestReport: {
-            emptyStateTitle: 'Dit rapport heeft geen uitgaven.',
-            accessPlaceHolder: 'Open voor details',
-        },
+        moneyRequestReport: {emptyStateTitle: 'Nog geen uitgaven', accessPlaceHolder: 'Open voor details'},
         noCategory: 'Geen categorie',
         noMerchant: 'Geen handelaar',
         noTag: 'Geen tag',
@@ -9482,6 +9669,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             theresAProblemWithYourWallet: 'Er is een probleem met je wallet',
             theresAProblemWithYourWalletTerms: 'Er is een probleem met de voorwaarden van je wallet',
             aBankAccountIsLocked: 'Een bankrekening is geblokkeerd',
+            completeHrSetup: 'HR-configuratie voltooien',
         },
     },
     emptySearchView: {
@@ -9569,6 +9757,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
+        currentView: 'Huidige weergave exporteren',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
@@ -9582,6 +9771,11 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         readyBody: "If it didn't automatically download, use the button below.",
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
+        csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {

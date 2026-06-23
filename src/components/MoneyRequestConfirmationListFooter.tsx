@@ -160,17 +160,19 @@ function MoneyRequestConfirmationListFooter({
             isEditingSplitBill={isEditingSplitBill}
             isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             isPolicyExpenseChat={isPolicyExpenseChat}
+            isDistanceRequest={expenseMode.isDistance}
+            isPerDiemRequest={expenseMode.isPerDiem}
+            isTimeRequest={expenseMode.isTime}
+            isTypeInvoice={expenseMode.isInvoice}
+            isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
+            isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
+            isGPSDistanceRequest={distanceFlags.isGPSDistanceRequest}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>
                     <InvoiceSenderSection selectedParticipants={selectedParticipants} />
-                    <DistanceMapSection
-                        isDistanceRequest={expenseMode.isDistance}
-                        isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
-                        isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
-                    />
+                    <DistanceMapSection />
                     <PerDiemSection
-                        isPerDiemRequest={expenseMode.isPerDiem}
                         policy={policy}
                         shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                         formError={errorState.formError}
@@ -179,10 +181,6 @@ function MoneyRequestConfirmationListFooter({
 
                 <ReceiptSection
                     policy={policy}
-                    isPerDiemRequest={expenseMode.isPerDiem}
-                    isDistanceRequest={expenseMode.isDistance}
-                    isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
-                    isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
                     isReceiptEditable={receiptOptions.isReceiptEditable ?? false}
                     shouldDisplayReceipt={receiptOptions.shouldDisplayReceipt}
                     isLoadingReceipt={receiptOptions.isLoadingReceipt ?? false}
@@ -203,8 +201,6 @@ function MoneyRequestConfirmationListFooter({
                     policy={policy}
                     policyTags={policyTags}
                     selectedParticipants={selectedParticipants}
-                    expenseMode={expenseMode}
-                    distanceFlags={distanceFlags}
                     distanceData={distanceData}
                     amountDisplay={amountDisplay}
                     requiredFlags={requiredFlags}

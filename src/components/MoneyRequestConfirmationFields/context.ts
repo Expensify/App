@@ -22,6 +22,15 @@ type ConfirmationFieldsContextValue = {
     isEditingSplitBill: boolean;
     isNewManualExpenseFlowEnabled: boolean;
     isPolicyExpenseChat: boolean;
+
+    // Mode — *what kind* of expense is being confirmed
+    isDistanceRequest: boolean;
+    isPerDiemRequest: boolean;
+    isTimeRequest: boolean;
+    isTypeInvoice: boolean;
+    isManualDistanceRequest: boolean;
+    isOdometerDistanceRequest: boolean;
+    isGPSDistanceRequest: boolean;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

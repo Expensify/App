@@ -33,9 +33,12 @@ type ConfirmedRouteProps = {
 
     /** Whether the map is interactive or not */
     interactive?: boolean;
+
+    /** Whether it should display the compass on the map */
+    shouldDisplayCompass?: boolean;
 };
 
-function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive}: ConfirmedRouteProps) {
+function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive, shouldDisplayCompass = true}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -92,6 +95,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
             styleURL={CONST.MAPBOX.STYLE_URL}
             requireRouteToDisplayMap={requireRouteToDisplayMap}
             shouldDisplayCurrentLocation={false}
+            shouldDisplayCompass={shouldDisplayCompass}
         />
     ) : (
         <PendingMapView

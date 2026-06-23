@@ -13,6 +13,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import {resolveActionableMentionWhisper} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type MentionWhisperContentProps = {
@@ -42,6 +43,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
 
     // Subscribe to the full report here — the resolve action needs heartbeat fields for its failure-revert payload.
     const [actionOwnerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportStable?.reportID}`);
+    const [targetAccountDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(getOriginalMessage(action)?.inviteeAccountIDs)});
 
     const isReportInPolicy = !!policyID && policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== policyID;
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
@@ -76,7 +78,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
 
     return (
         <ReportActionItemBasicMessage>
-            <RenderHTML html={getActionableMentionWhisperMessage(translate, action)} />
+            <RenderHTML html={getActionableMentionWhisperMessage(translate, action, targetAccountDetails)} />
             {buttons.length > 0 && (
                 <ActionableItemButtons
                     items={buttons}
