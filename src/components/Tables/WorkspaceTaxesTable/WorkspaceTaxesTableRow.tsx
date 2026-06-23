@@ -93,6 +93,7 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                             disabledAction={item.onDisabledSwitchPress}
                             accessibilityLabel={translate('workspace.taxes.actions.enable')}
                             onToggle={item.onToggleEnabled}
+                            isNested
                         />
                     </View>
 
