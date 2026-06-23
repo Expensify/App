@@ -439,7 +439,7 @@ function useAutocompleteSuggestions({
                     continue;
                 }
                 const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
-                const label = getBankAccountSearchLabel(bankAccount);
+                const label = getBankAccountSearchLabel(bankAccount, translate('common.bank'));
                 bankAccountSuggestions.push({id: bankAccountID.toString(), label, accountNumber});
             }
             const filteredBankAccounts = bankAccountSuggestions
