@@ -53,7 +53,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
-import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getFilteredPoliciesInfo, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
@@ -216,20 +216,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    let filteredPoliciesCount = 0;
-    let firstPolicyID: string | undefined;
-    for (const policyEntry of Object.values(allPolicies ?? {})) {
-        if (!policyEntry || !shouldShowPolicy(policyEntry, false, currentUserPersonalDetails?.email)) {
-            continue;
-        }
-        if (filteredPoliciesCount === 0) {
-            firstPolicyID = policyEntry.id;
-        }
-        filteredPoliciesCount++;
-        if (filteredPoliciesCount > 1) {
-            break;
-        }
-    }
+    const {filteredPoliciesCount, firstPolicyID} = getFilteredPoliciesInfo(allPolicies, currentUserPersonalDetails?.email);
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
