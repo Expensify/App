@@ -71,7 +71,12 @@ function SearchAdvancedFiltersContentBase() {
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
-        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID;
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG;
 
     const shouldDisableKeyboardAvoidingView = isInLandscapeMode && isFilterWithSelectionList;
 
