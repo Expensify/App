@@ -263,6 +263,9 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
     const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
     const chatReport = parentChatReport ?? snapshotChatReport;
+    const [chatReportActions] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
+    );
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
         reportID: reportItem.reportID,
         chatReportPolicyID: chatReport?.policyID,
@@ -308,6 +311,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             chatReportPolicy,
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData: snapshot?.data,
+            chatReportActions,
         });
     };
     return !isLargeScreenWidth ? (
