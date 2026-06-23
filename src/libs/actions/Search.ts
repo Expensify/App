@@ -10,8 +10,7 @@ import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import * as API from '@libs/API';
-import {waitForWrites} from '@libs/API';
+import {makeRequestWithSideEffects, read, waitForWrites, write} from '@libs/API';
 import type {
     ExportSearchItemsToCSVParams,
     ExportSearchWithTemplateParams,
@@ -635,7 +634,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             },
         },
     ];
-    API.write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
 function deleteSavedSearch(hash: number) {
@@ -671,7 +670,7 @@ function deleteSavedSearch(hash: number) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
 function openSearchPage(params?: OpenSearchPageParams) {
@@ -683,7 +682,7 @@ function openSearchPage(params?: OpenSearchPageParams) {
         },
     ];
 
-    API.read(
+    read(
         READ_COMMANDS.OPEN_SEARCH_PAGE,
         {
             includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
@@ -702,7 +701,7 @@ function openSearchCardFiltersPage() {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -722,7 +721,7 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
         },
     ];
 
-    API.write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
+    write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
 }
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
@@ -812,8 +811,7 @@ function search({
     }
 
     const startRequest = () =>
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
                 if (shouldUpdateLastSearchParams) {
                     const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
@@ -909,7 +907,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.
     // In the meantime, we'll call SubmitReport which works for a single expense only, so not bulk actions are possible.
-    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey) {
@@ -972,7 +970,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
     ];
 
     playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
 }
 
 function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connectionName: ConnectionName, currentSearchKey?: SearchKey) {
@@ -1072,7 +1070,7 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
         optimisticReportActions: JSON.stringify(optimisticReportActions),
     } satisfies ReportExportParams;
 
-    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, successData, failureData, finallyData});
+    write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, successData, failureData, finallyData});
 }
 
 function rejectMoneyRequestInBulk(
@@ -1114,7 +1112,7 @@ function rejectMoneyRequestInBulk(
         }
     }
 
-    API.write(
+    write(
         WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
         {
             reportID,
@@ -1296,7 +1294,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
         exportID,
     }) as QueueExportSearchItemsToCSVParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {optimisticData, failureData});
+    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters, {optimisticData, failureData});
 
     return exportID;
 }
@@ -1337,7 +1335,7 @@ function queueExportSearchWithTemplate(
         ...(shouldTrackExportProgress ? {exportID} : {}),
     }) as QueueExportSearchWithTemplateParams;
 
-    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
+    write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters, onyxData);
 
     return exportID;
 }
