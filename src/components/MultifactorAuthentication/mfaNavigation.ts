@@ -71,16 +71,6 @@ function navigate<T extends keyof MultifactorAuthenticationModalNavigatorParamLi
         return;
     }
 
-    // In HybridApp the MFA overlay renders in an independent BaseNavigationContainer presented inside a native
-    // modal, where StackActions.replace silently fails to commit (the computed state is never applied), stranding
-    // the user on the spinner-bearing Prompt screen. For the terminal outcome screens we push instead, which
-    // commits reliably; outcome screens end the flow (the stack is reset when the overlay closes) so the extra
-    // stack entry has no downside. Standalone keeps replace, where it works as expected.
-    if (CONFIG.IS_HYBRID_APP && OUTCOME_SCREENS.has(screen)) {
-        mfaNavigationRef.dispatch(StackActions.push(screen, params));
-        return;
-    }
-
     mfaNavigationRef.dispatch(StackActions.replace(screen, params));
 }
 
