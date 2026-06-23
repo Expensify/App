@@ -7992,6 +7992,10 @@ ${reportName}`,
                 bodySpendCategoryValueOnly: ({value}: {value: string}) => `「${value}」`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `将${adjective}支出类别从“${oldValue}”修改为“${newValue}”` : `支出类别从“${oldValue}”更改为“${newValue}”`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} currency '${value}'` : `currency '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} currency from '${oldValue}' to '${newValue}'` : `currency from '${oldValue}' to '${newValue}'`,
                 bodyMaxAmount: '最大金额',
                 bodyMaxAmountSet: ({value}: {value: string}) => `最大金额至 ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金额从 ${oldValue} 变为 ${newValue}`,

@@ -7733,6 +7733,10 @@ ${amount} para ${merchant} - ${date}`,
                 bodySpendCategoryValueOnly: ({value}: {value: string}) => `«${value}»`,
                 bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
+                bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} currency '${value}'` : `currency '${value}'`),
+                bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
+                bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} currency from '${oldValue}' to '${newValue}'` : `currency from '${oldValue}' to '${newValue}'`,
                 bodyMaxAmount: 'importe máximo',
                 bodyMaxAmountSet: ({value}: {value: string}) => `importe máximo hasta ${value}`,
                 bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `importe máximo de ${oldValue} a ${newValue}`,
