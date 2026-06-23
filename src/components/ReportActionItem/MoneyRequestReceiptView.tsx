@@ -180,9 +180,10 @@ function MoneyRequestReceiptView({
     // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
     // map/route-based distance expenses. Odometer and pure-manual distance expenses have no map and must be excluded.
     const isMapDistanceRequest = isMapBasedDistanceRequest(displayedTransaction);
+    const isPendingReceiptRegeneration = hasPendingDistanceReceiptRegeneration(displayedTransaction);
     // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
     // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
-    const canShowDistanceEReceipt = isMapDistanceRequest && !hasPendingDistanceReceiptRegeneration(displayedTransaction);
+    const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
     const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
     const isTransactionScanning = isScanning(displayedTransaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
@@ -264,12 +265,12 @@ function MoneyRequestReceiptView({
         return CONST.IOU.TYPE.SUBMIT;
     }, [isTrackExpense, isInvoice]);
 
-    let receiptURIs;
-    if (hasReceipt) {
-        receiptURIs = getThumbnailAndImageURIs(displayedTransaction);
-    }
+    const receiptURIs = hasReceipt ? getThumbnailAndImageURIs(displayedTransaction) : undefined;
     const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
     const canZoomReceipt = hasReceipt && !isLoading && !isEReceiptTransaction && !!receiptURIs?.image;
+    // Disable the hover-zoom wrapper while the distance map is regenerating. This also resets the shared hover state,
+    // so the e-receipt overlay waits for a fresh pointer move instead of flashing during the regeneration → new-source gap.
+    const canHoverZoomReceipt = canZoomReceipt && !isPendingReceiptRegeneration;
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
@@ -379,7 +380,7 @@ function MoneyRequestReceiptView({
         if (!isEmptyObject(fallbackReceiptError)) {
             return {...errorsWithoutReportCreation, ...fallbackReceiptError};
         }
-        return {...errorsWithoutReportCreation, ...reportCreationError};
+        return isEmptyObject(errorsWithoutReportCreation) ? reportCreationError : errorsWithoutReportCreation;
     }, [hasReceiptUploadError, fallbackReceiptError, errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
@@ -624,7 +625,12 @@ function MoneyRequestReceiptView({
                         <View
                             ref={receiptContainerRef}
                             style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
-                            onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
+                            onMouseEnter={() => {
+                                if (isLoading) {
+                                    return;
+                                }
+                                hoverBind.onMouseEnter();
+                            }}
                             // `onMouseEnter` alone isn't enough to keep `hovered` in sync: when `hovered` resets while
                             // the cursor is already over the receipt (e.g. after closing the RHP) or `onMouseEnter` fires
                             // while the receipt is still loading, no new `mouseenter` event occurs, so we re-sync on mouse move.
@@ -638,30 +644,32 @@ function MoneyRequestReceiptView({
                         >
                             <View style={[styles.flex1, isReceiptOfflinePending && styles.offlineFeedbackPending]}>
                                 <ReceiptHoverZoom
-                                    isEnabled={canZoomReceipt}
+                                    isEnabled={canHoverZoomReceipt}
                                     hoverContainerRef={receiptContainerRef}
                                 >
-                                    <>
-                                        <ReportActionItemImage
-                                            shouldUseThumbnailImage={!fillSpace}
-                                            shouldUseFullHeight={fillSpace}
-                                            canZoomReceipt={canZoomReceipt}
-                                            thumbnail={receiptURIs?.thumbnail}
-                                            fileExtension={receiptURIs?.fileExtension}
-                                            isThumbnail={receiptURIs?.isThumbnail}
-                                            image={receiptURIs?.image}
-                                            isLocalFile={receiptURIs?.isLocalFile}
-                                            filename={receiptURIs?.filename}
-                                            transaction={updatedTransaction ?? transaction}
-                                            enablePreviewModal
-                                            readonly={readonly || !canEditReceipt}
-                                            mergeTransactionID={mergeTransactionID}
-                                            report={report}
-                                            onLoad={() => setIsLoading(false)}
-                                            onLoadFailure={() => setIsLoading(false)}
-                                        />
-                                        {canShowDistanceEReceipt && hovered && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
-                                    </>
+                                    {({isHovering}) => (
+                                        <>
+                                            <ReportActionItemImage
+                                                shouldUseThumbnailImage={!fillSpace}
+                                                shouldUseFullHeight={fillSpace}
+                                                canZoomReceipt={canZoomReceipt}
+                                                thumbnail={receiptURIs?.thumbnail}
+                                                fileExtension={receiptURIs?.fileExtension}
+                                                isThumbnail={receiptURIs?.isThumbnail}
+                                                image={receiptURIs?.image}
+                                                isLocalFile={receiptURIs?.isLocalFile}
+                                                filename={receiptURIs?.filename}
+                                                transaction={updatedTransaction ?? transaction}
+                                                enablePreviewModal
+                                                readonly={readonly || !canEditReceipt}
+                                                mergeTransactionID={mergeTransactionID}
+                                                report={report}
+                                                onLoad={() => setIsLoading(false)}
+                                                onLoadFailure={() => setIsLoading(false)}
+                                            />
+                                            {canShowDistanceEReceipt && isHovering && !!displayedTransaction && <HoveredDistanceEReceipt transaction={displayedTransaction} />}
+                                        </>
+                                    )}
                                 </ReceiptHoverZoom>
                             </View>
                             {canShowReceiptActions && (
