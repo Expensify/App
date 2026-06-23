@@ -6,7 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {transactionsByReportIDSelector} from '@src/selectors/Transaction';
 import type {Report, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
-import useStableArrayReference from './useStableArrayReference';
 
 function useTransactionViolationOfWorkspace(policyID?: string) {
     const [allReports, reportsResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -25,21 +24,15 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
         }
     }
 
-    // `transactionIDSet` is rebuilt fresh on every render, so project it to a stable, order-independent
-    // ID array and have the selector depend on that — otherwise the selector identity changes each
-    // render and defeats useOnyx's memoization, re-subscribing endlessly under the store-based engine.
-    const transactionIDList = useStableArrayReference(Array.from(transactionIDSet).sort());
-
     const [transactionViolations, transactionViolationsResult] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: (violations: OnyxCollection<TransactionViolations>) => {
             if (!violations) {
                 return {};
             }
 
-            const eligibleTransactionIDs = new Set(transactionIDList);
             const filteredViolationKeys = Object.keys(violations).filter((violationKey) => {
                 const transactionID = extractCollectionItemID(violationKey as `${OnyxCollectionKey}${string}`);
-                return eligibleTransactionIDs.has(transactionID);
+                return transactionIDSet.has(transactionID);
             });
 
             const filteredViolations = filteredViolationKeys.reduce(
