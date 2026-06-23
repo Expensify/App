@@ -1,10 +1,12 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
@@ -13,6 +15,7 @@ import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
+    centeredModalNavigator: PlatformStackNavigationOptions;
     basicModalNavigator: PlatformStackNavigationOptions;
     splitNavigator: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
@@ -26,6 +29,7 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 };
 
 const useRootNavigatorScreenOptions = () => {
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -67,6 +71,15 @@ const useRootNavigatorScreenOptions = () => {
                 },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: onboardingEnter}),
             },
+        },
+        centeredModalNavigator: {
+            presentation: Presentation.TRANSPARENT_MODAL,
+            native: {
+                contentStyle: {
+                    ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
+                },
+            },
+            animation: InternalPlatformAnimations.FADE,
         },
         splitNavigator: {
             ...commonScreenOptions,
