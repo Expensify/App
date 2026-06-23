@@ -5943,15 +5943,6 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         ]);
 
-        // POSTED (card posting date) and ORIGINAL_AMOUNT (original/foreign amount) were aligned into the
-        // single-report picker. In report view they are kept whenever the user explicitly selected them,
-        // matching the existing retention behavior of ATTENDEES/TOTAL_PER_ATTENDEE. On the search page both
-        // keep their existing data-driven behavior, so they are only treated as non-data in report view.
-        if (isExpenseReportView) {
-            nonDataColumns.add(CONST.SEARCH.TABLE_COLUMNS.POSTED);
-            nonDataColumns.add(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
-        }
-
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
     }
 
