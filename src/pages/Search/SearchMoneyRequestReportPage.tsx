@@ -7,7 +7,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
-import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
+import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -176,7 +176,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
 
-    useRHPWidth(shouldShowSuperWideRHP ? 'super-wide' : 'wide');
+    useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
     // Tracks initial mount to ensure openReport is called once for multi-transaction reports
     const isInitialMountRef = useRef(true);

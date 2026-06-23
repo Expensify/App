@@ -134,7 +134,7 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
-    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
+    const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
@@ -579,9 +579,9 @@ function Search({
                 }
 
                 if (item.transactions.length > 1) {
-                    markReportRHPWidth(reportID, 'super-wide');
+                    markReportIDAsMultiTransactionExpense(reportID);
                 } else {
-                    unmarkReportRHPWidth(reportID, 'super-wide');
+                    unmarkReportIDAsMultiTransactionExpense(reportID);
                 }
 
                 // Persist the current search context so prev/next navigation arrows
@@ -626,7 +626,7 @@ function Search({
                 return;
             }
 
-            markReportRHPWidth(reportID, 'wide');
+            markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
@@ -639,9 +639,10 @@ function Search({
             requestAnimationFrame(() => Navigation.navigate(route));
         },
         [
-            markReportRHPWidth,
+            markReportIDAsExpense,
             handleSearch,
-            unmarkReportRHPWidth,
+            markReportIDAsMultiTransactionExpense,
+            unmarkReportIDAsMultiTransactionExpense,
             introSelected,
             betas,
             isSelfTourViewed,

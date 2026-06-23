@@ -4,8 +4,7 @@ import React from 'react';
 import {Animated} from 'react-native';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ScrollView from '@components/ScrollView';
-import type {RHPWidth} from '@components/WideRHPContextProvider';
-import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
+import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -69,13 +68,7 @@ function WideRHPReceiptPanelGate() {
             report?.type === CONST.REPORT.TYPE.EXPENSE ||
             report?.type === CONST.REPORT.TYPE.IOU);
 
-    let rhpWidth: RHPWidth = 'narrow';
-    if (shouldDisplayMoneyRequestActionsList) {
-        rhpWidth = 'super-wide';
-    } else if (shouldShowWideRHP) {
-        rhpWidth = 'wide';
-    }
-    useRHPWidth(rhpWidth);
+    useShowWideRHPVersion(shouldShowWideRHP);
 
     if (!shouldShowWideRHP) {
         return null;
