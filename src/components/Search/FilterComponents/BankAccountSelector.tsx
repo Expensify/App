@@ -77,7 +77,7 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
         );
 
         const item: BankAccountFilterItem = {
-            text: getBankAccountSearchLabel(bankAccount, translate('common.bank')),
+            text: getBankAccountSearchLabel(bankAccount),
             keyForList: key,
             value: key,
             isSelected: value.includes(key),

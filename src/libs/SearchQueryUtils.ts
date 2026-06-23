@@ -1508,7 +1508,7 @@ function getFilterDisplayValue({
         if (!bankAccount) {
             return filterValue;
         }
-        return getBankAccountSearchLabel(bankAccount, translate('common.bank'));
+        return getBankAccountSearchLabel(bankAccount);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;

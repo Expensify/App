@@ -19,15 +19,13 @@ function getLastFourDigits(bankAccountNumber: string): string {
 
 /**
  * Renders a bank account as `${friendlyBankName} xx${last4}` for Search filter
- * pickers, chips, and autocomplete suggestions. Real bank brand names stay in
- * English; the generic fallback is the localized `common.bank` string supplied
- * by the caller so non-English locales render e.g. `銀行 xx1111` instead of
- * `Bank xx1111`.
+ * pickers, chips, and autocomplete suggestions. Falls back to GENERIC_BANK when
+ * the bank name is missing or not in CONST.BANK_NAMES_USER_FRIENDLY.
  */
-function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>, genericBankLabel: string): string {
+function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): string {
     const bankName = bankAccount?.accountData?.additionalData?.bankName;
     const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
-    const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? genericBankLabel;
+    const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const maskedNumber = accountNumber ? `xx${getLastFourDigits(accountNumber)}` : '';
     return maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
 }
