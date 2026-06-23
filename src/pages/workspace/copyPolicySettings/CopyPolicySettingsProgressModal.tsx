@@ -92,7 +92,10 @@ function useCopyPolicySettingsProgressModal() {
                 requestCopyPolicySettingsNotification();
                 setCopyPolicySettingsData({currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE});
             },
-            onCancel: () => {},
+            onCancel: () => {
+                requestCopyPolicySettingsNotification(true);
+                clearCopyPolicySettings();
+            },
         };
     }
 
