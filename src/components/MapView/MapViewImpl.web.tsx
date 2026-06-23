@@ -3,11 +3,10 @@
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
 import {useFocusEffect} from '@react-navigation/native';
-import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {MapRef, ViewState} from 'react-map-gl';
-import Map, {Marker} from 'react-map-gl';
+import type {MapRef, ViewState} from 'react-map-gl/mapbox';
+import Map, {Marker} from 'react-map-gl/mapbox';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
@@ -265,16 +264,11 @@ function MapViewImpl({
             <Map
                 onDrag={() => setUserInteractedWithMap(true)}
                 ref={setRef}
-                mapLib={mapboxgl}
                 mapboxAccessToken={accessToken}
                 initialViewState={initialViewState}
                 style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                 mapStyle={styleURL}
                 interactive={interactive}
-                // Disables fog (invisible on this flat top-down view) to avoid a Mapbox marker fog-opacity
-                // teardown crash. TODO: remove this entire workaround once mapbox-gl is upgraded to 3.x
-                // (see #91740) — react-map-gl's fog prop type omits null, but null clears the style's fog.
-                fog={null as never}
             >
                 {interactive && shouldDisplayCurrentLocation && (
                     <Marker

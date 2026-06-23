@@ -132,7 +132,7 @@ export default function useReportUnreadMessageScrollTracking({
         }
 
         // when the unread action scrolls into view, the consumer decides whether a skipped mark-as-read needs completing
-        if (unreadActionVisible) {
+        if (hasUnreadMarkerReportAction && unreadActionVisible) {
             ref.current.onUnreadActionVisible();
         }
 
