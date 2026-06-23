@@ -392,7 +392,9 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions].sort((a, b) => {
-            // Scanning transactions stay pinned to the top of the ungrouped (None) list regardless of the sort column or direction
+            // Scanning transactions are pinned ahead of the rest regardless of the sort column or direction — to the top
+            // of the ungrouped (None) list, and to the top of their own section in the grouped (Category/Tag) layouts.
+            // The section itself still sorts in its normal position (see sortGroupedTransactions); only the row within it is pinned.
             const scanningComparison = compareScanningPriority(a, b);
             if (scanningComparison !== 0) {
                 return scanningComparison;
@@ -402,11 +404,6 @@ function MoneyRequestReportTransactionList({
     }, [transactions, compareTransactionsByColumn]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
-
-    // Grouped layouts (Category/Tag) follow the normal column order, so a scanning expense stays in its section in its
-    // usual position instead of being pinned to the top. Only the ungrouped (None) list pins scanning (see above).
-    const transactionsForGrouping = useMemo(() => [...transactions].sort(compareTransactionsByColumn), [transactions, compareTransactionsByColumn]);
-    const resolvedTransactionsForGrouping = useMemo(() => resolveTransactionCardFields(transactionsForGrouping, cardList, translate), [transactionsForGrouping, cardList, translate]);
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
@@ -482,13 +479,13 @@ function MoneyRequestReportTransactionList({
             return [];
         }
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
-            return groupTransactionsByTag(resolvedTransactionsForGrouping, report, localeCompare);
+            return groupTransactionsByTag(resolvedTransactions, report, localeCompare);
         }
-        return groupTransactionsByCategory(resolvedTransactionsForGrouping, report, localeCompare);
+        return groupTransactionsByCategory(resolvedTransactions, report, localeCompare);
         // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
         // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resolvedTransactionsForGrouping, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
+    }, [resolvedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldGroupTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldGroupTransactions || groupedTransactions.length === 0) {
