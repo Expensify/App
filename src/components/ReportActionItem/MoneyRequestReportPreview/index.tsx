@@ -186,13 +186,14 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            // On narrow layouts push the report onto the stack first and then the expense on top, so the
-            // back button returns to the report (the wide RHP is not available on narrow layouts).
+            // On narrow layouts the wide RHP is unavailable, so navigate straight to the pressed expense with the
+            // report chained underneath it via backTo. Using a single navigation (rather than pushing the report
+            // and then the expense) keeps the transition a forward push and avoids the backward animation seen on
+            // iOS, while back still returns to the report and then the chat.
             if (isSmallScreenWidth) {
-                if (iouReportID) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
-                }
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
+                const backTo = Navigation.getActiveRoute();
+                const reportRoute = iouReportID ? ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo) : backTo;
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
                 return;
             }
 

@@ -397,16 +397,19 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
-        it('pushes the report then the expense on narrow layouts so back returns to the report', async () => {
+        it('navigates to the pressed expense with the report chained underneath on narrow layouts', async () => {
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
-            expect(navigateSpy).toHaveBeenCalledTimes(2);
-            expect(navigateSpy).toHaveBeenNthCalledWith(1, ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
-            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, ''));
+            // A single forward navigation to the expense, with the report chained via backTo so back returns to the
+            // report and then the chat. A single push (rather than report-then-expense) avoids the backward
+            // animation that the double push caused on iOS.
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
+            expect(navigateSpy).toHaveBeenCalledTimes(1);
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(`thread_${mockSecondTransactionID}`, undefined, undefined, reportRoute));
         });
 
         it('falls back to opening the parent report when the pressed expense has no thread', async () => {
