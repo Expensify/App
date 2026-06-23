@@ -74,7 +74,7 @@ function ConfirmationStep({
             {summaryItems.map(({description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
                 <MenuItemWithTopDescription
                     key={description}
-                    pressableTestID={testID}
+                    pressableTestID={testID ?? description}
                     description={description}
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}

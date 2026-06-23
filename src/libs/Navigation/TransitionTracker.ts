@@ -142,9 +142,8 @@ function endTransition(handle: TransitionHandle): void {
  */
 function runAfterTransitions({callback, runImmediately = false, waitForUpcomingTransition = false}: RunAfterTransitionsOptions): CancelHandle {
     const waitForNavigationOnly = waitForUpcomingTransition === 'navigation';
-    const activeRelevantCount = waitForNavigationOnly ? activeNavigationCount : activeTransitions.size;
-    // If a transition of the awaited kind is already active (web fires transitionStart before the navigation state event), wait for it to end rather than a next start that never comes.
-    if (waitForUpcomingTransition && activeRelevantCount === 0) {
+    // Gate on nav-active only: a concurrent non-nav transition ending would otherwise flush callbacks before the upcoming navigation. Web fires transitionStart before the nav state event, so a mid-flight nav must still take the active-end path.
+    if (waitForUpcomingTransition && activeNavigationCount === 0) {
         let cancelled = false;
         let innerHandle: CancelHandle | null = null;
 

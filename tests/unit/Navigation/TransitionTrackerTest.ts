@@ -128,6 +128,24 @@ describe('TransitionTracker', () => {
             drainTransitions();
         });
 
+        it('waitForUpcomingTransition: true with a non-navigation transition active still waits for the upcoming nav-start (register-before-dispatch)', async () => {
+            const callback = jest.fn();
+            const otherHandle = TransitionTracker.startTransition();
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+
+            TransitionTracker.endTransition(otherHandle);
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+
+            const navHandle = TransitionTracker.startTransition('navigation');
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(callback).not.toHaveBeenCalled();
+            TransitionTracker.endTransition(navHandle);
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
         it('waitForUpcomingTransition fires callback after timeout if transitionStart never arrives', async () => {
             const callback = jest.fn();
             TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
