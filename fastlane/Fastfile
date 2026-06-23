@@ -540,15 +540,25 @@ platform :ios do
     Spaceship::ConnectAPI.token = api_token
 
     app = Spaceship::ConnectAPI::App.find(ENV["APPLE_ID"])
-    version = app.get_live_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+    if app.nil?
+      UI.user_error!("Could not find an App Store Connect app for bundle id '#{ENV['APPLE_ID']}'")
+    end
 
-    # Skip if the version is already at 100% rollout
-    if version.fetch_app_store_version_phased_release.phased_release_state == "COMPLETE"
+    version = app.get_live_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+    if version.nil?
+      UI.important "No live App Store version found, nothing to complete the rollout for, skipping"
+      next
+    end
+
+    phased_release = version.fetch_app_store_version_phased_release
+
+    # Skip if there is no phased release or it is already at 100% rollout
+    if phased_release.nil? || phased_release.phased_release_state == "COMPLETE"
       UI.important "Version is already at 100% rollout, skipping completing the rollout"
       next
     end
 
-    version.fetch_app_store_version_phased_release.complete
+    phased_release.complete
   end
 
   desc "Submit HybridApp for production App Store slow rollout"
