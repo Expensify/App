@@ -34,8 +34,6 @@ function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
     return filterKey in FILTER_VIEW_MAP;
 }
 
-// HeaderWithBackButton in ReportField/index.tsx uses styles.h10
-const REPORT_FIELD_HEADER_HEIGHT = 40;
 const CONFIRM_BUTTON_HEIGHT = 56;
 const MIN_HEADER_HEIGHT_ON_COLLAPSE_LANDSCAPE_MODE = 8;
 
@@ -87,12 +85,9 @@ function SearchAdvancedFiltersContentBase() {
             return undefined;
         }
 
-        if (validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
-            return REPORT_FIELD_HEADER_HEIGHT;
-        }
-
         // We want to make space for the confirm button for filters with text inputs without list
         if (
+            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD ||
             validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
             validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
             validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
