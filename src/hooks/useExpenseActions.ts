@@ -27,7 +27,9 @@ import {
     generateReportID,
     getAddExpenseDropdownOptions,
     getPolicyExpenseChat,
+    getReportOrDraftReport,
     isDM,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOpenReport,
     isSelfDM,
     navigateOnDeleteExpense,
@@ -42,7 +44,7 @@ import {
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
-import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantsFromReport, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,6 +61,7 @@ import useEnvironment from './useEnvironment';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
+import useMoneyRequestPolicyTags from './useMoneyRequestPolicyTags';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
@@ -219,6 +222,16 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(activePolicyExpenseChat);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(activePolicyExpenseChat?.chatReportID) : activePolicyExpenseChat;
+    const moneyRequestReportID = isMoneyRequestReport ? activePolicyExpenseChat?.reportID : '';
+    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const policyTagList = useMoneyRequestPolicyTags({
+        moneyRequestReportID,
+        parentChatReportPolicyID: currentChatReport?.policyID,
+        participantReportID: participants.at(0)?.reportID,
+    });
+
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {
             return;
@@ -251,6 +264,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                policyTagList,
             });
         }
     };

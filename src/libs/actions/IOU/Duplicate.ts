@@ -729,6 +729,7 @@ type DuplicateExpenseTransactionParams = {
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    policyTagList: OnyxTypes.PolicyTagLists;
 };
 
 function duplicateExpenseTransaction({
@@ -755,20 +756,10 @@ function duplicateExpenseTransaction({
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
     currentUserLocalCurrency,
+    policyTagList,
 }: DuplicateExpenseTransactionParams) {
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(targetReport);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(targetReport?.chatReportID) : targetReport;
-    const moneyRequestReportID = isMoneyRequestReport ? targetReport?.reportID : '';
     const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUser.accountID);
 
-    // Part of the onyx.connect migration, it will be removed in further PRs (https://github.com/Expensify/App/issues/72721).
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTagList = getMoneyRequestPolicyTags({
-        existingIOUReport,
-        moneyRequestReportID,
-        parentChatReport: currentChatReport,
-        participant: participants.at(0) ?? {},
-    });
     if (!transaction) {
         return;
     }
@@ -1071,6 +1062,7 @@ type BulkDuplicateExpensesParams = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
     currentUserLocalCurrency: string | undefined;
+    policyTagList: OnyxTypes.PolicyTagLists;
 };
 
 function bulkDuplicateExpenses({
@@ -1092,6 +1084,7 @@ function bulkDuplicateExpenses({
     recentWaypoints,
     currentUser,
     currentUserLocalCurrency,
+    policyTagList,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1187,6 +1180,7 @@ function bulkDuplicateExpenses({
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
             currentUserLocalCurrency,
+            policyTagList,
         });
 
         if (result?.iouReport) {

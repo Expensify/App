@@ -3,12 +3,14 @@ import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
+import {getPolicyExpenseChat, getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
+import useMoneyRequestPolicyTags from './useMoneyRequestPolicyTags';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -54,9 +56,19 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
         sourcePolicyIDMap[transactionID] = report?.policyID;
     }
 
-    const handleDuplicate = () => {
-        const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(activePolicyExpenseChat);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(activePolicyExpenseChat?.chatReportID) : activePolicyExpenseChat;
+    const moneyRequestReportID = isMoneyRequestReport ? activePolicyExpenseChat?.reportID : '';
+    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
 
+    const policyTagList = useMoneyRequestPolicyTags({
+        moneyRequestReportID,
+        parentChatReportPolicyID: currentChatReport?.policyID,
+        participantReportID: participants.at(0)?.reportID,
+    });
+
+    const handleDuplicate = () => {
         bulkDuplicateExpenses({
             transactionIDs: selectedTransactionsKeys,
             allTransactions: allTransactions ?? {},
@@ -76,6 +88,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+            policyTagList,
         });
 
         if (onAfterDuplicate) {

@@ -15,6 +15,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -27,6 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
+import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -44,9 +46,11 @@ import {
     changeMoneyRequestHoldStatus,
     generateReportID,
     getPolicyExpenseChat,
+    getReportOrDraftReport,
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOpenReport,
     isSelfDM,
     navigateToDetailsPage,
@@ -200,6 +204,16 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const targetPolicyTags = defaultPolicyTags ?? {};
 
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(activePolicyExpenseChat);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(activePolicyExpenseChat?.chatReportID) : activePolicyExpenseChat;
+    const moneyRequestReportID = isMoneyRequestReport ? activePolicyExpenseChat?.reportID : '';
+    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const policyTagList = useMoneyRequestPolicyTags({
+        moneyRequestReportID,
+        parentChatReportPolicyID: currentChatReport?.policyID,
+        participantReportID: participants.at(0)?.reportID,
+    });
+
     // Duplicate action throttle
     const handleDuplicateReset = () => {
         if (shouldDuplicateCloseModalOnSelect) {
@@ -242,6 +256,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyTags,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
                 currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+                policyTagList,
             });
         }
     };
