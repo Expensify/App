@@ -199,7 +199,7 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
 /**
  * Writes a reconnect-family command (OpenApp / ReconnectApp) while collapsing it against any reconnect
  * already in flight or queued. Unlike writeWithNoDuplicatesConflictAction, the resolver also consults the
- * ongoing request and decides by coverage (how far back a reconnect refetches), so a redundant reconnect is
+ * ongoing request and decides by coverage (how far back a reconnect re-fetches), so a redundant reconnect is
  * dropped while a wider one runs after. getOngoingRequest() is read inside the resolver closure so both
  * evaluation passes (prepareRequest's read-only optimistic-data check and the authoritative push) agree.
  */

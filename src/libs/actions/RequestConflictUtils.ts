@@ -141,8 +141,8 @@ function readUpdateIDFrom(params: unknown): unknown {
 }
 
 /**
- * How far back a reconnect refetches: a lower number means more coverage. OpenApp and a full
- * ReconnectApp refetch everything (0); an incremental ReconnectApp covers only from its
+ * How far back a reconnect re-fetches: a lower number means more coverage. OpenApp and a full
+ * ReconnectApp re-fetch everything (0); an incremental ReconnectApp covers only from its
  * `updateIDFrom` onward. Mirrors the `!updateIDFrom` "is full reconnect" notion in App.ts.
  */
 function reconnectCoverageFrom(request: AnyRequest): number {
@@ -154,15 +154,15 @@ function reconnectCoverageFrom(request: AnyRequest): number {
  * Duplicate-conflict resolver for the reconnect family (OpenApp / ReconnectApp). Unlike the generic
  * resolver it also consults the in-flight (`ongoingRequest`) request, and decides by coverage rather
  * than by command name: an incoming reconnect already covered by one in flight or queued is dropped
- * (`noAction`), while a wider one is pushed to run after. This closes the in-flight dedup gap the
+ * (`noAction`), while a wider one is pushed to run after. This closes the in-flight dedupe gap the
  * generic resolver leaves open (it scans the waiting queue only) and is the durable convergence point
  * for the reconnect family. Preserve and extend it in the SequentialQueue refactor; do not delete it.
  *
  * Two asymmetries:
  * - An incoming OpenApp is never dropped. Its `successData` can carry caller-specific preservation
- *   writes that coverage cannot see (coverage only measures how far back the server refetch reaches),
+ *   writes that coverage cannot see (coverage only measures how far back the server re-fetch reaches),
  *   so collapsing one OpenApp onto another could silently drop them.
- * - A live OpenApp covers an incoming ReconnectApp, since it refetches everything. A reconnect that
+ * - A live OpenApp covers an incoming ReconnectApp, since it re-fetches everything. A reconnect that
  *   lands while an OpenApp is live is still dropped.
  */
 function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, incomingRequest: AnyRequest): ConflictActionData {

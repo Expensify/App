@@ -439,7 +439,7 @@ describe('SequentialQueue - reconnect coverage collapse', () => {
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.data?.updateIDFrom).toBe(500);
 
-            // A full reconnect refetches more than the in-flight incremental one, so it must run after.
+            // A full reconnect re-fetches more than the in-flight incremental one, so it must run after.
             await SequentialQueue.push(makeReconnectRequest({command: 'ReconnectApp'}));
 
             expect(getLength()).toBe(2);
