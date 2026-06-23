@@ -37,7 +37,7 @@ import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS}
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
-import {getBankAccountSearchLabel} from './BankAccountUtils';
+import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -1151,12 +1151,18 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
-            // Presence check only. The filter looks backward at withdrawals that already paid expenses, so a saved
-            // search should survive an account changing state (BUSINESS -> LOCKED, etc). Eligibility is only enforced
-            // at option-generation sites (picker, autocomplete, chip) where forward-looking eligibility matters.
-            // When bankAccountList is still loading (undefined), keep the saved IDs as-is so useSearchFilterSync
-            // does not record an empty signature and skip the re-sync once Onyx hydrates.
-            filtersForm[key as typeof filterKey] = bankAccountList ? filterValues.filter((bankAccountID) => bankAccountList[bankAccountID]) : filterValues;
+            // Drop unknown IDs and partially-setup accounts (SETUP/VERIFYING/PENDING). The filter looks backward at
+            // withdrawals that already paid expenses, so a saved search should survive an account changing state
+            // (BUSINESS -> LOCKED, etc), but a partially-setup account has paid no expenses and can never match -
+            // keeping its ID would leave the chip visible while the picker hides it. When bankAccountList is still
+            // loading (undefined), keep the saved IDs as-is so useSearchFilterSync does not record an empty signature
+            // and skip the re-sync once Onyx hydrates.
+            filtersForm[key as typeof filterKey] = bankAccountList
+                ? filterValues.filter((bankAccountID) => {
+                      const bankAccount = bankAccountList[bankAccountID];
+                      return !!bankAccount && !isBankAccountPartiallySetup(bankAccount.accountData?.state);
+                  })
+                : filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
             filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
