@@ -231,7 +231,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
                 if (property === 'scrollToIndex') {
                     return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) => {
-                        listRef.current?.scrollToIndex({...params, index: params.index + (shouldRenderStickyHeader ? 1 : 0)});
+                        listRef.current?.scrollToIndex({...params, index: params.index + (shouldRenderStickyHeader ? 2 : 0)});
                     };
                 }
 

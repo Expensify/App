@@ -450,7 +450,7 @@ describe('Table', () => {
                 animationFrameCallback?.(0);
             });
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
 
             requestAnimationFrameSpy.mockRestore();
             cancelAnimationFrameSpy.mockRestore();
@@ -477,7 +477,7 @@ describe('Table', () => {
                 tableRef.current?.scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});
         });
     });
 
