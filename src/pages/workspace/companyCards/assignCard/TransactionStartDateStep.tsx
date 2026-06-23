@@ -38,7 +38,7 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
     const [errorText, setErrorText] = useState('');
     const [localStartDate, setLocalStartDate] = useState<string>();
     const dateOptionSelected = localDateOption ?? cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
-    const startDate = localStartDate ?? cardToAssign?.startDate ?? assignCard?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const startDate = localStartDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -152,7 +152,6 @@ function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
                                                     setLocalStartDate(value);
                                                 }}
                                                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                                maxDate={new Date()}
                                                 errorText={errorText}
                                             />
                                         </View>
