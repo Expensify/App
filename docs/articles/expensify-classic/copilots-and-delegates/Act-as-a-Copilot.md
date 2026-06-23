@@ -51,7 +51,7 @@ On mobile:
 1. Forward the receipt email to [receipts@expensify.com](mailto:receipts@expensify.com).
 2. Include the account owner's email address in the subject line.
 
-The receipt is automatically Smartcanned to the account owner's Expensify account.
+The receipt is automatically SmartScanned to the account owner's Expensify account.
 
 ## What happens after you switch to a Copilot account
 
