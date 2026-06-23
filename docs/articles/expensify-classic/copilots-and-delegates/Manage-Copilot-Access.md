@@ -35,6 +35,8 @@ A Copilot cannot:
 
 ## How to add a Copilot
 
+This feature is only available in a web browser. It is not available in the mobile app
+
 1. In the navigation tabs on the left, click **Settings > Account**.
 2. Click **Profile**.
 3. In the **Copilot: Delegated Access** section, enter the email or phone number of the person to delegate access to. 
@@ -42,8 +44,6 @@ A Copilot cannot:
    * **Full Access** — Grants access to all available actions.
    * **Limited Access** — Allows a Copilot to manage expenses and reports, but prevents approval and payment-related actions, including approvals, payments, rejections, holds, retractions, and reopens.
 5. Click **Add copilot**.
-
-**Note:** A Copilot can only be added on the Expensify website. This option is not available in the mobile app.
 
 ## How to remove a Copilot
 
