@@ -84,7 +84,12 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ROW}
-            offlineWithFeedback={{errors, pendingAction, onClose: item.dismissError}}
+            offlineWithFeedback={{
+                errors,
+                pendingAction,
+                shouldHideOnDelete: false,
+                onClose: item.dismissError,
+            }}
             onPress={item.action}
         >
             {({hovered}) => (

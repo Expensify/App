@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Allegato',
         attachments: 'Allegati',
         center: 'Centro',
+        resetMapToNorth: 'Riporta la mappa a nord',
         from: 'Da',
         to: 'A',
         in: 'In',
@@ -314,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Mostra meno',
         plusMore: ({count}: {count: number}) => `+${count} altri`,
         merchant: 'Esercente',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Cerca ${merchant} su Google`,
         change: 'Modifica',
         category: 'Categoria',
         vendor: 'Fornitore',
@@ -1656,6 +1659,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Sposta nel report',
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
+        submitReportTo: {
+            subtitle: 'Scegli un membro dello spazio di lavoro o inserisci l’indirizzo email di chi deve ricevere questa richiesta.',
+            emailLabel: 'Indirizzo email',
+            workspaceMembers: 'Membri dell’area di lavoro',
+            sendExpense: 'Invia la tua spesa a chiunque',
+            sendExpenseSubtitle: 'Invita chiunque su Expensify usando il suo indirizzo email o numero di telefono.',
+        },
         changeApprover: {
             title: 'Cambia approvatore',
             header: (workflowSettingLink: string) =>
@@ -4403,7 +4413,7 @@ ${amount} per ${merchant} - ${date}`,
             defaultNote: `Le ricevute inviate a ${CONST.EMAIL.RECEIPTS} verranno visualizzate in questo workspace.`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
-            deleteOpenExpensifyCardsError: 'La tua azienda ha ancora carte Expensify attive.',
+            deleteOpenExpensifyCardsError: 'La tua azienda ha ancora delle Carte Expensify. Per favore, <concierge-link>contatta Concierge</concierge-link> per rimuoverle.',
             outstandingBalanceWarning:
                 'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
             settleBalance: 'Vai all’abbonamento',
@@ -6749,6 +6759,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             distance: 'Distanza',
             centrallyManage: 'Gestisci centralmente le tariffe, monitora in miglia o chilometri e imposta una categoria predefinita.',
+            emptyRates: {title: 'Ancuna nessuna tariffa distanza', subtitle: 'Aggiungi una tariffa per rimborsare il chilometraggio a tariffe personalizzate.'},
             rate: 'Valuta',
             addRate: 'Aggiungi tariffa',
             findRate: 'Trova tariffa',
@@ -7054,6 +7065,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Le approvazioni sono disponibili nei piani Collect e Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Approva i report',
+                description:
+                    'Esamina, approva e mantieni le spese sotto controllo in un unico posto. I flussi di approvazione ti aiutano a controllare i costi, far rispettare le politiche aziendali e rimborsare più velocemente i tuoi dipendenti.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>I flussi di approvazione sono disponibili solo nel piano Collect, a partire da <strong>${formattedPrice}</strong> per membro attivo al mese.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Carte aziendali',
                 description: `Porta la tua carta aziendale in Expensify per ottenere importazione automatica, categorizzazione automatica, supporto per regole personalizzabili e riconciliazione integrata.`,
@@ -7271,6 +7289,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 saveAnyway: 'Salva comunque',
                 applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
                 findRule: 'Trova regola esercente',
+                expenseDefaultsTitle: 'Impostazioni predefinite spese',
+                expenseDefaultsSubtitle: 'Aggiorna i campi senza che chi invia debba fare nulla',
+                ifAnyExpenseMatches: 'Se una qualsiasi spesa corrisponde a:',
+                thenApplyFollowingDefaults: 'Quindi applica le seguenti impostazioni predefinite:',
             },
             categoryRules: {
                 title: 'Regole di categoria',
@@ -7418,12 +7440,33 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
+                defaultRuleSummary: 'Categorie che includono servizi per adulti, sportelli bancomat, gioco d’azzardo e...',
+                findRule: 'Trova regola',
+                defaultSection: 'Predefinito',
+                customRulesSection: 'Regole personalizzate',
+                tableColumnType: 'Tipo',
+                tableColumnCard: 'Carta',
+                tableColumnRule: 'Regola',
+                cardRulesUpsell: {
+                    title: 'Ottieni la Carta Expensify e controlla le spese',
+                    subtitle:
+                        'Con la Carta Expensify puoi impostare regole di spesa massima, bloccare o consentire determinati esercenti o tipi di acquisti. Inoltre ricevi il 2% di cashback.',
+                    cta: 'Ottieni la carta',
+                },
+                restrictCardSpendTitle: 'Limita spesa carta',
+                restrictCardSpendSubtitle: 'Blocca o limita la spesa al punto vendita.',
+                ifAnyCardMatches: 'Se una qualsiasi carta corrisponde:',
+                thenDoThisAtPointOfSale: 'Poi fai questo al punto vendita:',
+                setRestrictions: 'Imposta restrizioni',
+                merchantRestrictions: 'Limitazioni sugli esercenti',
+                blockedMerchant: 'Esercente bloccato',
+                blockedMerchantTypes: 'Tipologie di esercenti bloccate',
+                maxAmountAbove: ({amount}: {amount: string}) => `sopra ${amount}`,
                 restrictMerchants: 'Limita esercenti',
                 merchantTypes: 'Tipi di esercenti',
                 allowedMerchants: 'Esercenti consentiti',
                 allowedMerchantTypes: 'Tipi di esercenti consentiti',
                 blockedMerchants: 'Esercenti bloccati',
-                blockedMerchantTypes: 'Tipi di esercenti bloccati',
                 currencies: 'Valute',
                 permittedCurrencies: 'Valute consentite',
                 allCurrencies: 'Tutte le valute',
@@ -7453,6 +7496,73 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 agentCreatedTitle: 'RuleBot è stato aggiunto al tuo spazio di lavoro!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Per applicare le tue regole dell’agente, abbiamo creato un agente per te e lo abbiamo aggiunto come amministratore del tuo spazio di lavoro.<br><br>Modifica i dettagli del tuo agente in <a href="${agentsRoute}">Account &gt; Agenti</a>.</muted-text>`,
+            },
+            tabs: {general: 'Generale', cardRestrictions: 'Limitazioni carta', expenseDefaults: 'Impostazioni predefinite spese'},
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Elimina regola',
+                    other: 'Elimina regole',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Sei sicuro di voler eliminare questa regola?',
+                    other: 'Sei sicuro di voler eliminare queste regole?',
+                }),
+            },
+            generalTab: {
+                title: 'Regole di base',
+                subtitle: 'Regole comuni per controllare le spese',
+                expensesOlderThan: 'Contrassegna le spese più vecchie di',
+                expensesAboveAmount: 'Segnala le spese sopra l’importo',
+                flagReceiptLineItems: 'Contrassegna le voci della ricevuta',
+                receiptRequirements: 'Richiedi ricevute',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Normale oltre ${regularAmount}, dettaglio oltre ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Importo regolare superiore a ${regularAmount}, non richiede dettagli articolo`;
+                    }
+                    if (itemizedAmount) {
+                        return `Non richiedere ricevute ordinarie, dettagliate sopra ${itemizedAmount}`;
+                    }
+                    return 'Non richiedere ricevute';
+                },
+                requireFieldsForAllExpenses: 'Rendi obbligatori i campi per tutte le spese',
+                cashExpenses: 'Spese in contanti',
+                cashExpensesReimbursableByDefault: 'Rimborsabile per impostazione predefinita',
+                cashExpensesNonReimbursableByDefault: 'Non rimborsabile per impostazione predefinita',
+                cashExpensesAlwaysReimbursable: 'Sempre rimborsabile',
+                cashExpensesAlwaysNonReimbursable: 'Sempre non rimborsabile',
+                billableExpenses: 'Spese fatturabili',
+                billableExpensesBillable: 'Contanti e carta di credito fatturabili',
+                billableExpensesNonBillable: 'Contanti e carta di credito non fatturabili',
+            },
+            requireReceipts: {
+                title: 'Richiedi ricevute',
+                description: 'Richiedi ricevute quando la spesa supera questo importo, salvo eccezioni definite da una regola di categoria.',
+                requireReceipt: 'Richiedi ricevuta',
+                requireItemizedReceipt: 'Richiedi ricevuta dettagliata',
+                requireAboveAmount: 'Richiedi importo superiore',
+                saveRule: 'Salva regola',
+                emptyAmountError: 'Inserisci un importo valido prima di salvare',
+            },
+            requireFields: {title: 'Rendi obbligatori i campi per tutte le spese', category: 'Categoria', tag: 'Etichetta', save: 'Salva regola'},
+            newRule: {
+                title: 'Nuova regola',
+                subtitle: 'Che cosa vuoi fare?',
+                restrictCardSpend: 'Limita spesa carta',
+                restrictCardSpendDescription: 'Blocca o limita la spesa al punto vendita',
+                applyExpenseDefaults: 'Applica impostazioni predefinite spese',
+                applyExpenseDefaultsDescription: 'Aggiorna i campi senza che chi invia debba fare nulla',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Tipo',
+                tableColumnCondition: 'Condizione',
+                tableColumnRule: 'Regola',
+                findRule: 'Trova regola',
+                rename: 'Rinomina',
+                update: 'Aggiorna',
+                merchantIs: (merchant: string) => `L'esercente è "${merchant}"`,
             },
         },
         planTypePage: {
@@ -9696,6 +9806,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
