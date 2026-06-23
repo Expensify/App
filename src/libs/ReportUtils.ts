@@ -2525,16 +2525,6 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
     return !!reportNameValuePairs?.private_isArchived;
 }
 
-function buildArchivedReportsIDSet(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet {
-    const archivedReportsIDSet = new Set<string>();
-    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
-        if (isArchivedReport(value)) {
-            archivedReportsIDSet.add(key);
-        }
-    }
-    return archivedReportsIDSet;
-}
-
 /**
  * Whether the report was created during harvesting
  */
@@ -13195,7 +13185,6 @@ export {
     buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
-    buildArchivedReportsIDSet,
     buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
