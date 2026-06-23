@@ -24,6 +24,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
+import doesInitialURLMatchActiveRoute from '@libs/Navigation/helpers/doesInitialURLMatchActiveRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
@@ -191,12 +192,12 @@ function ScreenWrapper({
     useEffect(() => {
         Navigation.isNavigationReady().then(() => setInitialActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams()));
     }, []);
-    const initialURLWithoutParams = initialURL?.replaceAll(/\?.*/g, '');
-    const doesInitialURLMatchActiveRoute = !!initialURLWithoutParams?.endsWith(Navigation.getActiveRouteWithoutParams() || initialActiveRouteWithoutParams);
+    const activeRouteWithoutParams = Navigation.getActiveRouteWithoutParams() || initialActiveRouteWithoutParams;
+    const initialURLMatchesActiveRoute = doesInitialURLMatchActiveRoute(initialURL, activeRouteWithoutParams);
 
     // A multifactor authentication flow (e.g. Face ID to reveal UK/EU card details) renders in an independent navigation tree
     // overlaid above the single NewDot entry, and each MFA screen renders its own ScreenWrapper. Navigation.getActiveRouteWithoutParams()
-    // still reports the underlying NewDot route while the overlay is up, so doesInitialURLMatchActiveRoute is true on the MFA screens too.
+    // still reports the underlying NewDot route while the overlay is up, so initialURLMatchesActiveRoute is true on the MFA screens too.
     // usePreventRemove calls e.preventDefault() unconditionally whenever the guard is active, so guarding these instances would consume the
     // MFA navigator's own stack actions (e.g. replacing the magic-code page with the Face ID prompt, or popping the outcome screen on close),
     // blocking transitions within the flow. Guard only the outer NewDot ScreenWrapper, never the ScreenWrappers inside the MFA overlay.
@@ -204,7 +205,7 @@ function ScreenWrapper({
     const route = useContext(NavigationRouteContext ?? FallbackRouteContext);
     const isMfaOverlayScreen = !!route && MFA_OVERLAY_SCREENS.has(route.name);
 
-    usePreventRemove(isSingleNewDotEntry && doesInitialURLMatchActiveRoute && !shouldBlockSingleEntryOldAppExit && !isMfaOverlayScreen, () => {
+    usePreventRemove(isSingleNewDotEntry && initialURLMatchesActiveRoute && !shouldBlockSingleEntryOldAppExit && !isMfaOverlayScreen, () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
