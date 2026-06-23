@@ -81,3 +81,7 @@ If a field is restricted for any selected expense (for example, amount on a card
 ## Why can't I see the Edit multiple option?
 
 **Edit multiple** only appears when you select 2 or more Unreported, Draft, or Outstanding expenses that have at least one editable field.
+
+## What is the Google [merchant name] link below the Merchant field?
+
+On card-imported expenses (company card, imported personal card, or Expensify Card), a **Google [merchant name]** link appears below the **Merchant** field. Select it to open a Google search for that merchant in a new window, which can help you identify an unfamiliar transaction. The search uses the merchant name as originally imported, even if you've changed the displayed merchant. The link does not appear on manually created expenses or while a receipt is still scanning.
