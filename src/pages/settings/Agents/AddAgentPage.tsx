@@ -20,7 +20,7 @@ import {isMobile} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {createAgent} from '@userActions/Agent';
 import CONST from '@src/CONST';
@@ -31,14 +31,10 @@ import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationToken, setReturnRoute} from './pendingAgentAvatarStore';
 
-type AddAgentPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>
-    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_ADD_AGENT>;
+type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
 function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
-    const workflowApproverEmail = route.params?.workflowApproverEmail;
-    const isWorkflowSeedFlow = !!policyID && !!workflowApproverEmail;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -77,7 +73,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const handleAvatarPress = () => {
         setInitialPresetID(selectedPresetID ?? undefined);
         setNavigationToken();
-        setReturnRoute(isWorkflowSeedFlow ? ROUTES.WORKSPACE_WORKFLOWS_ADD_AGENT.getRoute({policyID, workflowApproverEmail}) : ROUTES.SETTINGS_AGENTS_ADD.getRoute());
+        setReturnRoute(ROUTES.SETTINGS_AGENTS_ADD.getRoute());
         Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
     };
 
@@ -97,18 +93,10 @@ function AddAgentPage({route}: AddAgentPageProps) {
         // Pure optimistic flow — no waiting on the server, online or offline. `createAgent`
         // returns the optimistic accountID it wrote into Onyx so we can hand it to the next
         // screen and let it render the agent with opacity until CREATE_AGENT resolves.
-        const {optimisticAccountID} = pendingFile
-            ? createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID)
-            : createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
-
-        if (isWorkflowSeedFlow && policyID && workflowApproverEmail) {
-            // Drop the user on the Edit Approvers screen for the workflow they came from, with
-            // the optimistic agent already seeded as approver[0]. The Edit Approvers page reads
-            // the optimistic personal detail by accountID, renders it with reduced opacity
-            // (via `pendingAction`), and reconciles the email/accountID once CREATE_AGENT lands.
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflowApproverEmail, undefined, Number(optimisticAccountID)));
-            return;
+        if (pendingFile) {
+            createAgent(firstName, prompt, undefined, pendingFile.file, pendingFile.uri, policyID);
+        } else {
+            createAgent(firstName, prompt, selectedPresetID ?? undefined, undefined, undefined, policyID);
         }
 
         Navigation.goBack();

@@ -5,7 +5,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isDistanceRequest} from '@libs/TransactionUtils';
@@ -96,7 +96,7 @@ function useParticipantSubmission({
 
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE &&
-        isPaidGroupPolicy(activePolicy) &&
+        isGroupPolicy(activePolicy) &&
         activePolicy?.isPolicyExpenseChatEnabled &&
         !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID);
 
