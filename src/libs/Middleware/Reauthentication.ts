@@ -1,5 +1,6 @@
 import {reconnect} from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
+import HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
 import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
@@ -97,7 +98,11 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                 return reauthenticate(request?.commandName)
                     .then((wasSuccessful) => {
                         if (!wasSuccessful) {
-                            return;
+                            // Clear failure/finally data so SaveResponseInOnyx does not apply them
+                            // after a sign-in redirect — the original request is abandoned at this point.
+                            delete request.failureData;
+                            delete request.finallyData;
+                            return data;
                         }
 
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
@@ -137,6 +142,16 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
             // If the request is on the sequential queue, re-throw the error so we can decide to retry or not
             if (isFromSequentialQueue) {
                 throw error;
+            }
+
+            // HTTP errors on the Authenticate command carry a meaningful status code and message that
+            // the caller needs to display (e.g. 403 Forbidden). Resolve with those details so the
+            // caller can handle the auth failure correctly instead of showing a generic retry error.
+            if (request.command === 'Authenticate' && error instanceof HttpsError) {
+                if (request.resolve) {
+                    request.resolve({jsonCode: Number(error.status), message: error.message, title: error.title});
+                }
+                return;
             }
 
             // If we have caught a networking error from a DeprecatedAPI request, resolve it as unable to retry, otherwise the request will never resolve or reject.
