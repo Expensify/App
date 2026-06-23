@@ -114,6 +114,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
         }
 
         const reportOwnerByReportID = new Map<string, number | undefined>();
+        const reportTypeByReportID = new Map<string, string | undefined>();
         const snapshotTransactions: Transaction[] = [];
         const snapshotReportActions: ReportAction[] = [];
         // Snapshot data is a keyed record where the key prefix determines the value type.
@@ -128,6 +129,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 const report = value as Report;
                 if (report?.reportID) {
                     reportOwnerByReportID.set(report.reportID, report.ownerAccountID);
+                    reportTypeByReportID.set(report.reportID, report.type);
                 }
                 continue;
             }
@@ -164,16 +166,21 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 return firstKey < secondKey ? 1 : -1;
             })
             .slice(0, CONST.HOME.SECTION_VISIBLE_LIMIT)
-            .map((transaction) => ({
-                transactionID: transaction.transactionID,
-                reportID: transaction.reportID,
-                created: getCreated(transaction),
-                merchant: getMerchant(transaction),
-                amount: getAmount(transaction),
-                currency: getCurrency(transaction),
-                threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
-                transaction,
-            }));
+            .map((transaction) => {
+                const reportType = reportTypeByReportID.get(transaction.reportID);
+                return {
+                    transactionID: transaction.transactionID,
+                    reportID: transaction.reportID,
+                    created: getCreated(transaction),
+                    merchant: getMerchant(transaction),
+                    // Expense-report transactions are stored with an inverted sign, so the displayed amount must be
+                    // negated when the parent report is an expense report (mirrors the Search transaction list).
+                    amount: getAmount(transaction, reportType === CONST.REPORT.TYPE.EXPENSE),
+                    currency: getCurrency(transaction),
+                    threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
+                    transaction,
+                };
+            });
     }, [snapshotData, accountID, insertedByTransactionID]);
 
     return {transactions};
