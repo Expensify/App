@@ -6,6 +6,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,17 +23,18 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {getExportMenuItem} from './utils';
 
-type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EXPORT>;
+type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT>;
 
 function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const {policyID, cardID, backTo} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.path);
+    const {policyID, cardID} = route.params;
     const feed = route.params.feed;
     const policy = usePolicy(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -78,7 +80,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
         const exportValue = isDefaultSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
         setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, getCompanyCardFeed(feed));
 
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo));
+        Navigation.goBack(backPath);
     };
 
     return (
@@ -119,7 +121,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                 }}
                 onSelectRow={updateExportAccount}
                 initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feed, cardID, backTo))}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
                 headerTitleAlreadyTranslated={exportMenuItem?.description}
                 listEmptyContent={listEmptyContent}
                 connectionName={connectedIntegration}
