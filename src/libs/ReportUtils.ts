@@ -5956,7 +5956,13 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isPolicyNamePreferred = false, isReportArchived = false, conciergeReportID?: string): string | undefined {
+function getChatRoomSubtitle(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    conciergeReportID: string | undefined,
+    isPolicyNamePreferred = false,
+    isReportArchived = false,
+): string | undefined {
     if (isChatThread(report)) {
         return '';
     }

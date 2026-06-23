@@ -248,7 +248,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const ancestors = useAncestors(report);
 
     const chatRoomSubtitle = useMemo(() => {
-        const subtitle = getChatRoomSubtitle(report, policy, false, isReportArchived, conciergeReportID);
+        const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, false, isReportArchived);
 
         if (subtitle) {
             return subtitle;
