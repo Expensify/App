@@ -1,6 +1,7 @@
 import type {Dispatch, SetStateAction} from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -59,6 +60,18 @@ export default function useSelection<DataType extends TableData>({
 
     const selectableKeys = data.filter((item) => !item.disabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
+
+    // Disable selection mode when the Android hardware back button is pressed
+    const androidBackButtonDisableSelectionMode = useCallback(() => {
+        if (!isSelectionModeEnabled) {
+            return false;
+        }
+
+        turnOffMobileSelectionMode();
+        return true;
+    }, [isSelectionModeEnabled]);
+
+    useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
 
     // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
     useEffect(() => {
