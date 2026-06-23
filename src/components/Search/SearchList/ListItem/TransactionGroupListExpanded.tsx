@@ -153,7 +153,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
 
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
@@ -212,7 +212,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 });
                 return;
             }
-            markReportIDAsExpense(reportID);
+            markReportRHPWidth(reportID, 'wide');
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
             if (openInternalRouteInNewTab(route, event)) {
                 return;
@@ -268,7 +268,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
-        if (isMobileSelectionModeEnabled) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as unknown as TItem);
             return;
         }

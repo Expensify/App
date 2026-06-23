@@ -5,8 +5,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {ActionHandledType} from '@components/Modal/Global/HoldMenuModalWrapper';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
-import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -64,10 +63,10 @@ type UseLifecycleActionsResult = {
  * and their associated guards (delegate access, hold, pending RTER, strict policy rules).
  */
 function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
-    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -100,7 +99,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
@@ -120,11 +118,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         transactions,
     );
 
-    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
-
-    const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 1;
-
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
@@ -157,7 +151,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE, skipAnimation ? undefined : () => startApprovedAnimation());
             return;
         }
-        if (!skipAnimation) {
+        if (!skipAnimation && !isSubmitPolicy(policy)) {
             startApprovedAnimation();
         }
         approveMoneyRequest({
@@ -198,18 +192,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
 
         const doSubmit = () => {
-            if (isSubmitPolicy(policy)) {
-                openReportSubmitToPopover({
-                    onSubmitSuccess: () => {
-                        if (skipAnimation) {
-                            clearSelectedTransactions(true);
-                            return;
-                        }
-                        startSubmittingAnimation();
-                    },
-                });
-                return;
-            }
             submitReport({
                 expenseReport: moneyRequestReport,
                 policy,
@@ -264,10 +246,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 confirmPendingRTERAndProceed(() => {
-                    if (isSubmitPolicy(policy)) {
-                        openReportSubmitToPopover();
-                        return;
-                    }
                     submitReport({
                         expenseReport: moneyRequestReport,
                         policy,
@@ -318,7 +296,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '');
+                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -326,7 +304,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '');
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep, accountID, email ?? '', chatReportActions);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
