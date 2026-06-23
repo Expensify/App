@@ -15,7 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getSearchPayOnyxData} from '@libs/actions/Search';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,6 +43,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
@@ -93,6 +95,13 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 invoiceReceiverPolicyID ?? chatReport?.policyID,
             );
 
+            // getPayMoneyRequestParams resolves the chat report from `chatReport` but swaps to `existingB2BInvoiceReport`
+            // when paying an individual invoice room as a business. `payAsBusiness` is only known at click time, so pick
+            // the right report's actions here in the function scope.
+            const shouldUseB2BInvoiceReport = !!payAsBusiness && !!existingB2BInvoiceReport && isIndividualInvoiceRoom(chatReport);
+            const chatReportActions =
+                allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
+
             payInvoice({
                 paymentMethodType: type,
                 chatReport,
@@ -111,6 +120,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 isSelfTourViewed,
                 defaultWorkspaceName,
                 additionalOnyxData,
+                chatReportActions,
             });
             return;
         }
@@ -133,6 +143,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
             ownerBillingGracePeriodEnd,
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
+            chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
         });
     };
 
