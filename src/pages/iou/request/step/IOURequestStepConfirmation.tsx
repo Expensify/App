@@ -593,12 +593,6 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        // If the user came from Test Drive modal, we need to take him back there
-        if (transaction?.receipt?.isTestDriveReceipt && (transaction.participants?.length ?? 0) > 0) {
-            Navigation.goBack(ROUTES.TEST_DRIVE_MODAL_ROOT.getRoute(transaction.participants?.at(0)?.login));
-            return;
-        }
-
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
@@ -607,8 +601,6 @@ function IOURequestStepConfirmation({
         isCreatingTrackExpense,
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
-        transaction?.receipt?.isTestDriveReceipt,
-        transaction?.participants,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
         requestType,
@@ -784,6 +776,8 @@ function IOURequestStepConfirmation({
                             title={headerTitle}
                             subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                             onBackButtonPress={navigateBack}
+                            /** Skip focus of the first interactive element in the header to make sure that Enter key submits the expense on the confirmation page instead of navigating back.  */
+                            shouldSkipFocusAfterTransition
                         >
                             {hasMultipleTransactions ? (
                                 <PrevNextButtons
