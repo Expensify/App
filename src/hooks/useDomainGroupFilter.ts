@@ -1,6 +1,5 @@
 import {groupsSelector} from '@selectors/Domain';
 import type {DomainSecurityGroupWithID} from '@selectors/Domain';
-import {useMemo} from 'react';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,41 +34,33 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
     const shouldShowGroupFilter = (groups?.length ?? 0) > 1;
     const shouldShowGroupColumn = (groups?.length ?? 0) > 0;
 
-    const filterConfig = useMemo((): FilterConfig<DomainMembersTableFilterKey> | undefined => {
-        if (!shouldShowGroupFilter) {
-            return undefined;
-        }
+    const filterConfig: FilterConfig<DomainMembersTableFilterKey> | undefined = !shouldShowGroupFilter
+        ? undefined
+        : {
+              group: {
+                  filterType: 'single-select',
+                  options: [{label: allMembersLabel, value: ALL_MEMBERS_VALUE}, ...(groups ?? []).map((group) => ({label: group.details.name ?? '', value: group.id}))],
+                  default: ALL_MEMBERS_VALUE,
+              },
+          };
 
-        return {
-            group: {
-                filterType: 'single-select',
-                options: [{label: allMembersLabel, value: ALL_MEMBERS_VALUE}, ...(groups ?? []).map((group) => ({label: group.details.name ?? '', value: group.id}))],
-                default: ALL_MEMBERS_VALUE,
-            },
-        };
-    }, [allMembersLabel, groups, shouldShowGroupFilter]);
+    const isItemInFilter: IsItemInFilterCallback<DomainMemberRowData> | undefined = !shouldShowGroupFilter
+        ? undefined
+        : (item, filterValues) => {
+              const filterValue = filterValues.at(0);
 
-    const isItemInFilter = useMemo((): IsItemInFilterCallback<DomainMemberRowData> | undefined => {
-        if (!shouldShowGroupFilter) {
-            return undefined;
-        }
+              if (!filterValue || filterValue === ALL_MEMBERS_VALUE) {
+                  return true;
+              }
 
-        return (item, filterValues) => {
-            const filterValue = filterValues.at(0);
+              const matchedGroup = groups?.find((group) => group.id === filterValue);
 
-            if (!filterValue || filterValue === ALL_MEMBERS_VALUE) {
-                return true;
-            }
+              if (!matchedGroup) {
+                  return true;
+              }
 
-            const matchedGroup = groups?.find((group) => group.id === filterValue);
-
-            if (!matchedGroup) {
-                return true;
-            }
-
-            return String(item.accountID) in matchedGroup.details.shared;
-        };
-    }, [groups, shouldShowGroupFilter]);
+              return String(item.accountID) in matchedGroup.details.shared;
+          };
 
     return {
         filterConfig,

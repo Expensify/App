@@ -1,5 +1,5 @@
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -53,9 +53,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download', 'Transfer']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-    const clearSelectedMembers = useCallback(() => {
+    const clearSelectedMembers = () => {
         setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
-    }, []);
+    };
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedMembers);
     const {isOffline} = useNetwork();
 
@@ -98,42 +98,38 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         },
     ];
 
-    const members: DomainMemberRowData[] = useMemo(
-        () =>
-            (memberIDs ?? [])
-                .filter((accountID) => {
-                    const details = personalDetails?.[accountID];
-                    return !!details?.login || !!details?.displayName;
-                })
-                .map((accountID) => {
-                    const details = personalDetails?.[accountID];
-                    const login = details?.login ?? '';
-                    const customProps = getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, login);
-                    const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                    const group = groups?.find((securityGroup) => String(accountID) in securityGroup.details.shared);
+    const members: DomainMemberRowData[] = (memberIDs ?? [])
+        .filter((accountID) => {
+            const details = personalDetails?.[accountID];
+            return !!details?.login || !!details?.displayName;
+        })
+        .map((accountID) => {
+            const details = personalDetails?.[accountID];
+            const login = details?.login ?? '';
+            const customProps = getMemberCustomRowProps(accountID, domainPendingActions, domainErrors, login);
+            const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const group = groups?.find((securityGroup) => String(accountID) in securityGroup.details.shared);
 
-                    return {
-                        keyForList: String(accountID),
-                        accountID,
-                        login,
-                        name: formatPhoneNumber(getDisplayNameOrDefault(details)),
-                        email: formatPhoneNumber(login),
-                        groupName: group?.details.name ?? '-',
-                        errors: getLatestError(customProps?.errors),
-                        pendingAction: customProps?.pendingAction,
-                        brickRoadIndicator: customProps?.brickRoadIndicator,
-                        disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
-                        action: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID)),
-                        dismissError: () => {
-                            if (!defaultSecurityGroupID) {
-                                return;
-                            }
-                            clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction);
-                        },
-                    };
-                }),
-        [memberIDs, personalDetails, domainPendingActions, domainErrors, groups, formatPhoneNumber, domainAccountID, defaultSecurityGroupID],
-    );
+            return {
+                keyForList: String(accountID),
+                accountID,
+                login,
+                name: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                email: formatPhoneNumber(login),
+                groupName: group?.details.name ?? '-',
+                errors: getLatestError(customProps?.errors),
+                pendingAction: customProps?.pendingAction,
+                brickRoadIndicator: customProps?.brickRoadIndicator,
+                disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
+                action: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID)),
+                dismissError: () => {
+                    if (!defaultSecurityGroupID) {
+                        return;
+                    }
+                    clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction);
+                },
+            };
+        });
 
     useClearSelectedDomainMembersOnMoveComplete(clearSelectedMembers);
     useCleanupSelectedOptions(clearSelectedMembers);
