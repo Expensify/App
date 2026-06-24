@@ -100,47 +100,44 @@ describe('AmountSubmission', () => {
 
     describe('getReportOrReportDraftForAmount', () => {
         it('returns undefined when reportID is undefined', () => {
-            expect(getReportOrReportDraftForAmount(undefined)).toBeUndefined();
+            expect(getReportOrReportDraftForAmount(undefined, {}, {})).toBeUndefined();
         });
 
         it('returns undefined when reportID is an empty string', () => {
-            expect(getReportOrReportDraftForAmount('')).toBeUndefined();
+            expect(getReportOrReportDraftForAmount('', {}, {})).toBeUndefined();
         });
 
-        it('returns the report from COLLECTION.REPORT when it exists', async () => {
+        it('returns the report from the supplied COLLECTION.REPORT when it exists', () => {
             const reportID = 'report-1';
             const testReport: Report = {...createRandomReport(1, undefined), reportID};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, testReport);
-            await waitForBatchedUpdates();
+            const allReports = {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: testReport};
 
-            const result = getReportOrReportDraftForAmount(reportID);
+            const result = getReportOrReportDraftForAmount(reportID, allReports, {});
             expect(result?.reportID).toBe(reportID);
         });
 
-        it('falls back to COLLECTION.REPORT_DRAFT when not in REPORT', async () => {
+        it('falls back to the supplied COLLECTION.REPORT_DRAFT when not in REPORT', () => {
             const reportID = 'draft-1';
             const draftReport: Report = {...createRandomReport(2, undefined), reportID};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, draftReport);
-            await waitForBatchedUpdates();
+            const allReportDrafts = {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]: draftReport};
 
-            const result = getReportOrReportDraftForAmount(reportID);
+            const result = getReportOrReportDraftForAmount(reportID, {}, allReportDrafts);
             expect(result?.reportID).toBe(reportID);
         });
 
-        it('prefers COLLECTION.REPORT over COLLECTION.REPORT_DRAFT when both have the reportID', async () => {
+        it('prefers COLLECTION.REPORT over COLLECTION.REPORT_DRAFT when both have the reportID', () => {
             const reportID = 'both-1';
             const realReport: Report = {...createRandomReport(3, undefined), reportID, reportName: 'real'};
             const draftReport: Report = {...createRandomReport(4, undefined), reportID, reportName: 'draft'};
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, realReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, draftReport);
-            await waitForBatchedUpdates();
+            const allReports = {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: realReport};
+            const allReportDrafts = {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]: draftReport};
 
-            const result = getReportOrReportDraftForAmount(reportID);
+            const result = getReportOrReportDraftForAmount(reportID, allReports, allReportDrafts);
             expect(result?.reportName).toBe('real');
         });
 
         it('returns undefined when neither collection has the reportID', () => {
-            expect(getReportOrReportDraftForAmount('nonexistent')).toBeUndefined();
+            expect(getReportOrReportDraftForAmount('nonexistent', {}, {})).toBeUndefined();
         });
     });
 
@@ -229,15 +226,29 @@ describe('AmountSubmission', () => {
                 navigateBack: jest.fn(),
                 amount: '10',
                 paymentMethod: undefined,
+                allPersonalDetails: {},
+                allReports: {},
+                allReportDrafts: {},
+                allReportNVPs: {},
                 transactionDrafts: {},
                 transactionViolations: {},
                 storedTransaction: undefined,
                 parentReportNextStep: undefined,
                 policyCategories: undefined,
                 userBillingGracePeriodEnds: {},
-                allReportNVPs: {},
                 duplicateTransactions: {},
                 duplicateTransactionViolations: {},
+                reportAttributesDerivedValue: undefined,
+                betas: [],
+                betaConfiguration: undefined,
+                quickAction: undefined,
+                onboarding: undefined,
+                introSelected: undefined,
+                recentWaypoints: undefined,
+                policyRecentlyUsedCurrencies: undefined,
+                amountOwed: undefined,
+                ownerBillingGracePeriodEnd: undefined,
+                conciergeReportID: undefined,
                 ...overrides,
             };
         };

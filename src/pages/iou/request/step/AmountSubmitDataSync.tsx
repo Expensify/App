@@ -20,15 +20,29 @@ type AmountSubmitData = Pick<
     | 'selfDMReport'
     | 'defaultExpensePolicy'
     | 'personalPolicy'
+    | 'allPersonalDetails'
+    | 'allReports'
+    | 'allReportDrafts'
+    | 'allReportNVPs'
     | 'transactionDrafts'
     | 'transactionViolations'
     | 'storedTransaction'
     | 'parentReportNextStep'
     | 'policyCategories'
     | 'userBillingGracePeriodEnds'
-    | 'allReportNVPs'
     | 'duplicateTransactions'
     | 'duplicateTransactionViolations'
+    | 'reportAttributesDerivedValue'
+    | 'betas'
+    | 'betaConfiguration'
+    | 'quickAction'
+    | 'onboarding'
+    | 'introSelected'
+    | 'recentWaypoints'
+    | 'policyRecentlyUsedCurrencies'
+    | 'amountOwed'
+    | 'ownerBillingGracePeriodEnd'
+    | 'conciergeReportID'
 >;
 
 type AmountSubmitDataSyncProps = {
@@ -57,14 +71,28 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const selfDMReport = useSelfDMReport();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
+    const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
+    const [reportAttributesDerivedValue] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const duplicateTransactionIDs = useMemo(() => (isEditing && transactionID ? [transactionID] : []), [isEditing, transactionID]);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(duplicateTransactionIDs);
@@ -76,15 +104,29 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             selfDMReport,
             defaultExpensePolicy,
             personalPolicy,
+            allPersonalDetails,
+            allReports,
+            allReportDrafts,
+            allReportNVPs,
             transactionDrafts,
             transactionViolations,
             storedTransaction,
             parentReportNextStep,
             policyCategories,
             userBillingGracePeriodEnds,
-            allReportNVPs,
             duplicateTransactions,
             duplicateTransactionViolations,
+            reportAttributesDerivedValue,
+            betas,
+            betaConfiguration,
+            quickAction,
+            onboarding,
+            introSelected,
+            recentWaypoints,
+            policyRecentlyUsedCurrencies,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            conciergeReportID,
         };
     }, [
         submitDataRef,
@@ -92,15 +134,29 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         selfDMReport,
         defaultExpensePolicy,
         personalPolicy,
+        allPersonalDetails,
+        allReports,
+        allReportDrafts,
+        allReportNVPs,
         transactionDrafts,
         transactionViolations,
         storedTransaction,
         parentReportNextStep,
         policyCategories,
         userBillingGracePeriodEnds,
-        allReportNVPs,
         duplicateTransactions,
         duplicateTransactionViolations,
+        reportAttributesDerivedValue,
+        betas,
+        betaConfiguration,
+        quickAction,
+        onboarding,
+        introSelected,
+        recentWaypoints,
+        policyRecentlyUsedCurrencies,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        conciergeReportID,
     ]);
 
     return null;
