@@ -1,6 +1,6 @@
 type GetExpensifyCardStatementPDFParams = {
-    policyID: string;
     entryIDs: string;
+    policyID?: string;
     feedCountry?: string;
 };
 

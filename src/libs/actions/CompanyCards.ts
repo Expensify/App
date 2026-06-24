@@ -1307,7 +1307,7 @@ function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedTyp
     });
 }
 
-function getExpensifyCardStatementPDF(policyID: string, feedCountry: string | undefined, entryIDs: number[]) {
+function getExpensifyCardStatementPDF(policyID: string | undefined, feedCountry: string | undefined, entryIDs: number[]) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1337,8 +1337,8 @@ function getExpensifyCardStatementPDF(policyID: string, feedCountry: string | un
     ];
 
     const params: GetExpensifyCardStatementPDFParams = {
-        policyID,
         entryIDs: entryIDs.join(','),
+        ...(policyID ? {policyID} : {}),
         ...(feedCountry ? {feedCountry} : {}),
     };
 
