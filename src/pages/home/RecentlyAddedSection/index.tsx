@@ -131,6 +131,10 @@ function RecentlyAddedSection() {
                         text: translate('homePage.recentlyAddedSection.viewAll'),
                         icon: icons.Receipt,
                         onSelected: navigateToExpensesPage,
+                        // Defer navigation until the popover modal has fully dismissed. On native the popover is a
+                        // full-screen Modal with a backdrop; navigating to another tab synchronously races the
+                        // dismissal and can leave the backdrop mounted on top of the destination, blocking all taps.
+                        shouldCallAfterModalHide: true,
                     },
                 ]}
             />
