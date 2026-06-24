@@ -133,6 +133,11 @@ export default function useSelection<DataType extends TableData>({
             return;
         }
 
+        const item = data.find((row) => row.keyForList === keyForList);
+        if (item?.disabled || item?.isDisabledCheckbox) {
+            return;
+        }
+
         onRowSelectionChange?.([...selectedKeys, keyForList]);
     };
 

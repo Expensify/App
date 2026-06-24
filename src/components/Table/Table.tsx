@@ -165,8 +165,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         throw new Error('Table columns must be provided');
     }
 
-    const originalSelectableCount = data.filter((item) => !item.disabled).length;
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const originalSelectableCount = data.filter((item) => !item.disabled && !item.isSelectionDisabled).length;
 
     const {middleware: filterMiddleware, currentFilters, hasActiveFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
     const filteredData = filterMiddleware(data);
