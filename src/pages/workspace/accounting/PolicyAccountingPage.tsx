@@ -37,6 +37,7 @@ import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, r
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
+import getPlatform from '@libs/getPlatform';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -63,6 +64,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import {isCertiniaSRPConnection} from './certinia/utils';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -322,7 +324,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           interactive: false,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
-                return !certiniaConfig?.hasPSA || certiniaConfig?.hasPSAOnly !== false
+                return !isCertiniaSRPConnection(certiniaConfig)
                     ? {}
                     : {
                           description: translate('workspace.certinia.company'),
@@ -385,6 +387,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     return {
                         ...iconProps,
                         interactive: false,
+                        // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
+                        // so VoiceOver focuses the whole row instead of the nested Connect button. Disabling it only on native iOS lets
+                        // VoiceOver focus/activate the button on its own. Other platforms (Android/TalkBack, web, iOS mWeb→WEB) keep grouping.
+                        shouldBeAccessible: getPlatform() !== CONST.PLATFORM.IOS,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
@@ -650,6 +656,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         />
                     ),
                     interactive: false,
+                    // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
+                    // so VoiceOver focuses the whole row instead of the nested Connect button. Disabling it only on native iOS lets
+                    // VoiceOver focus/activate the button on its own. Other platforms (Android/TalkBack, web, iOS mWeb→WEB) keep grouping.
+                    shouldBeAccessible: getPlatform() !== CONST.PLATFORM.IOS,
                     shouldShowRightComponent: true,
                     wrapperStyle: styles.sectionMenuItemTopDescription,
                 };

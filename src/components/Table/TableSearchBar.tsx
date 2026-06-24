@@ -1,5 +1,7 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import TextInput from '@components/TextInput';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -16,12 +18,23 @@ type TableSearchBarProps = {
 function TableSearchBar({label}: TableSearchBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const inputRef = useRef<BaseTextInputRef>(null);
 
     const {
         activeSearchString,
         shouldUseNarrowTableLayout,
         tableMethods: {updateSearchString},
     } = useTableContext();
+
+    const hasActiveSearchString = activeSearchString.length > 0;
+
+    useLayoutEffect(() => {
+        if (!hasActiveSearchString || isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        inputRef.current?.focus?.();
+    }, [hasActiveSearchString]);
 
     useEffect(() => {
         return () => updateSearchString('');
@@ -35,6 +48,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
 
     return (
         <TextInput
+            ref={inputRef}
             hideFocusedState
             multiline={false}
             spellCheck={false}
