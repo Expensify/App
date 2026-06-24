@@ -1,5 +1,5 @@
 import {addDays, addHours, addMinutes, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import DatePicker from '@components/DatePicker';
@@ -116,90 +116,75 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const lastEditedRef = useRef<'duration' | 'endDate' | null>(null);
     const ancestors = useAncestors(report);
 
-    const durationUnitItems = useMemo(
-        () => [
-            {value: CONST.CHRONOS.OOO_DURATION_UNITS.HOUR, label: translate('chronos.hour')},
-            {value: CONST.CHRONOS.OOO_DURATION_UNITS.DAY, label: translate('chronos.day')},
-            {value: CONST.CHRONOS.OOO_DURATION_UNITS.WEEK, label: translate('chronos.week')},
-            {value: CONST.CHRONOS.OOO_DURATION_UNITS.MONTH, label: translate('chronos.month')},
-        ],
-        [translate],
-    );
+    const durationUnitItems = [
+        {value: CONST.CHRONOS.OOO_DURATION_UNITS.HOUR, label: translate('chronos.hour')},
+        {value: CONST.CHRONOS.OOO_DURATION_UNITS.DAY, label: translate('chronos.day')},
+        {value: CONST.CHRONOS.OOO_DURATION_UNITS.WEEK, label: translate('chronos.week')},
+        {value: CONST.CHRONOS.OOO_DURATION_UNITS.MONTH, label: translate('chronos.month')},
+    ];
 
     const durationUnitButtonLabel = durationUnitItems.find((item) => item.value === selectedDurationUnit)?.label ?? '';
 
-    const startDateAsDate = useMemo(() => parseDate(startDate), [startDate]);
+    const startDateAsDate = parseDate(startDate);
 
-    const onDurationUnitSelected = useCallback(
-        (item: ValuePickerItem) => {
-            if (item.value) {
-                lastEditedRef.current = 'duration';
-                setSelectedDurationUnit(item.value);
-                if (startDate && durationAmount) {
-                    setEndDate(computeEndDate(startDate, durationAmount, item.value));
-                }
-            }
-            setIsDurationUnitModalVisible(false);
-        },
-        [startDate, durationAmount],
-    );
-
-    const handleStartDateChange = useCallback(
-        (newStartDate: string) => {
-            setStartDate(newStartDate);
-            if (!newStartDate) {
-                return;
-            }
-            // When the user's most recent intent was to pin an end date, keep that end date and recompute duration.
-            if (endDate && lastEditedRef.current !== 'duration') {
-                const days = computeDurationDays(newStartDate, endDate);
-                if (days === null) {
-                    // The new start date is after the pinned end date, so the range is no longer valid.
-                    setEndDate('');
-                } else {
-                    setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
-                    setDurationAmount(String(days));
-                    durationAmountRef.current?.updateNumber(String(days));
-                }
-                return;
-            }
-            if (!durationAmount) {
-                return;
-            }
-            setEndDate(computeEndDate(newStartDate, durationAmount, selectedDurationUnit));
-        },
-        [durationAmount, endDate, selectedDurationUnit],
-    );
-
-    const handleDurationAmountChange = useCallback(
-        (newDurationAmount: string) => {
+    const onDurationUnitSelected = (item: ValuePickerItem) => {
+        if (item.value) {
             lastEditedRef.current = 'duration';
-            setDurationAmount(newDurationAmount);
-            if (!startDate || !newDurationAmount) {
-                return;
+            setSelectedDurationUnit(item.value);
+            if (startDate && durationAmount) {
+                setEndDate(computeEndDate(startDate, durationAmount, item.value));
             }
-            setEndDate(computeEndDate(startDate, newDurationAmount, selectedDurationUnit));
-        },
-        [startDate, selectedDurationUnit],
-    );
+        }
+        setIsDurationUnitModalVisible(false);
+    };
 
-    const handleEndDateChange = useCallback(
-        (newEndDate: string) => {
-            lastEditedRef.current = 'endDate';
-            setEndDate(newEndDate);
-            if (!startDate || !newEndDate) {
-                return;
-            }
-            const days = computeDurationDays(startDate, newEndDate);
+    const handleStartDateChange = (newStartDate: string) => {
+        setStartDate(newStartDate);
+        if (!newStartDate) {
+            return;
+        }
+        // When the user's most recent intent was to pin an end date, keep that end date and recompute duration.
+        if (endDate && lastEditedRef.current !== 'duration') {
+            const days = computeDurationDays(newStartDate, endDate);
             if (days === null) {
-                return;
+                // The new start date is after the pinned end date, so the range is no longer valid.
+                setEndDate('');
+            } else {
+                setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
+                setDurationAmount(String(days));
+                durationAmountRef.current?.updateNumber(String(days));
             }
-            setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
-            setDurationAmount(String(days));
-            durationAmountRef.current?.updateNumber(String(days));
-        },
-        [startDate],
-    );
+            return;
+        }
+        if (!durationAmount) {
+            return;
+        }
+        setEndDate(computeEndDate(newStartDate, durationAmount, selectedDurationUnit));
+    };
+
+    const handleDurationAmountChange = (newDurationAmount: string) => {
+        lastEditedRef.current = 'duration';
+        setDurationAmount(newDurationAmount);
+        if (!startDate || !newDurationAmount) {
+            return;
+        }
+        setEndDate(computeEndDate(startDate, newDurationAmount, selectedDurationUnit));
+    };
+
+    const handleEndDateChange = (newEndDate: string) => {
+        lastEditedRef.current = 'endDate';
+        setEndDate(newEndDate);
+        if (!startDate || !newEndDate) {
+            return;
+        }
+        const days = computeDurationDays(startDate, newEndDate);
+        if (days === null) {
+            return;
+        }
+        setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
+        setDurationAmount(String(days));
+        durationAmountRef.current?.updateNumber(String(days));
+    };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> = {};
