@@ -49,6 +49,7 @@ function GenericPressable({
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
+    const isScreenReaderKnownOff = Accessibility.useIsScreenReaderKnownOff();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
     const [isHovered, setIsHovered] = useState(false);
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
@@ -59,11 +60,11 @@ function GenericPressable({
     const focusIdentifier = rest.id || rest.nativeID || rest.testID || undefined;
 
     useEffect(() => {
-        if (!isScreenReaderActive || !routeKey || !focusIdentifier) {
+        if (isScreenReaderKnownOff || !routeKey || !focusIdentifier) {
             return;
         }
         return registerPressable(routeKey, focusIdentifier, internalRef);
-    }, [isScreenReaderActive, routeKey, focusIdentifier]);
+    }, [isScreenReaderKnownOff, routeKey, focusIdentifier]);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;

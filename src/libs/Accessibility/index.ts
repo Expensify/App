@@ -107,6 +107,13 @@ function isScreenReaderKnownOff(): boolean {
     return isScreenReaderCacheWarm() && !cachedScreenReaderValue;
 }
 
+function getIsScreenReaderKnownOffSnapshot(): boolean {
+    return isScreenReaderKnownOff();
+}
+
+/** Reactive variant of {@link isScreenReaderKnownOff} — for effects that need the tri-state predicate (warm-up = unknown). */
+const useIsScreenReaderKnownOff = (): boolean => useSyncExternalStore(subscribeScreenReader, getIsScreenReaderKnownOffSnapshot, () => false);
+
 let cachedReduceMotionValue = false;
 const reduceMotionSubscribers = new Set<() => void>();
 const {
@@ -229,6 +236,7 @@ export {resetForTests};
 export default {
     moveAccessibilityFocus,
     useScreenReaderStatus,
+    useIsScreenReaderKnownOff,
     useAutoHitSlop,
     useReducedMotion,
     isScreenReaderEnabledSync,
