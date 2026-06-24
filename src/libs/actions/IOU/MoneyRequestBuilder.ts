@@ -663,31 +663,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Flag the new tx for useNewTransactions; success/failure clear it because REPORT_METADATA is persisted (else stale highlight on next session).
-    if (iou.report?.reportID && transaction.transactionID) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {
-                pendingNewTransactionIDs: {[transaction.transactionID]: true},
-            },
-        });
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {
-                pendingNewTransactionIDs: {[transaction.transactionID]: null},
-            },
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {
-                pendingNewTransactionIDs: {[transaction.transactionID]: null},
-            },
-        });
-    }
-
     if (shouldGenerateTransactionThreadReport && !isSelfDMSplit && !isEmptyObject(transactionThreadCreatedReportAction)) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
