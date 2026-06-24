@@ -19,6 +19,7 @@ import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransacti
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
+    doesExportTemplateRequireWorkspacePolicy,
     exportSearchItemsToCSV,
     exportToIntegrationOnSearch,
     getExportTemplates,
@@ -572,7 +573,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionsKeys);
 
     const beginExportWithTemplate = useCallback(
-        (templateName: string, templateType: string, policyID: string | undefined) => {
+        (templateName: string, templateType: string, policyID: string | undefined, requiresWorkspacePolicy: boolean) => {
             const emptyReports =
                 selectedReports?.filter((selectedReport) => {
                     if (!selectedReport) {
@@ -593,6 +594,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+
+            // Only resolve a workspace policyID for templates that reference GL codes. Account-level templates with plain
+            // {expense:category}/{expense:tag} columns must keep policyID undefined, otherwise the backend can't generate the
+            // file (see #93088). When resolving, only fall back to the selection's workspace when every selected transaction
+            // belongs to a single real workspace, so GL codes aren't resolved against the wrong workspace.
+            const resolveFallbackPolicyID = () => {
+                if (!requiresWorkspacePolicy) {
+                    return undefined;
+                }
+                if (areAllMatchingItemsSelected) {
+                    return queryJSON?.policyID?.length === 1 ? queryJSON.policyID.at(0) : undefined;
+                }
+                const allSelectedHavePolicy = Object.values(selectedTransactions).every((transaction) => !!transaction.policyID);
+                return allSelectedHavePolicy && selectedPolicyIDs.length === 1 ? selectedPolicyIDs.at(0) : undefined;
+            };
+            const exportPolicyID = policyID ?? resolveFallbackPolicyID();
             let exportID: string;
 
             if (areAllMatchingItemsSelected) {
@@ -603,7 +620,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         jsonQuery: serializedQuery,
                         reportIDList: [],
                         transactionIDList: [],
-                        policyID,
+                        policyID: exportPolicyID,
                     },
                     true,
                 );
@@ -616,14 +633,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         jsonQuery: isGroupExport ? serializeQueryJSONForBackend(addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data)) : '{}',
                         reportIDList: isGroupExport ? [] : selectedTransactionReportIDs,
                         transactionIDList: isGroupExport ? [] : selectedTransactionsKeys,
-                        policyID,
+                        policyID: exportPolicyID,
                     },
                     true,
                 );
             }
             setActiveExportID(exportID);
         },
-        [selectedReports, selectedTransactions, isOffline, areAllMatchingItemsSelected, currentSearchResults?.data, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
+        [
+            selectedReports,
+            selectedTransactions,
+            isOffline,
+            areAllMatchingItemsSelected,
+            currentSearchResults?.data,
+            queryJSON,
+            selectedTransactionReportIDs,
+            selectedTransactionsKeys,
+            selectedPolicyIDs,
+        ],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -1509,7 +1536,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                         description: template.description,
                         onSelected: () => {
-                            beginExportWithTemplate(template.templateName, template.type, template.policyID);
+                            beginExportWithTemplate(template.templateName, template.type, template.policyID, doesExportTemplateRequireWorkspacePolicy(template));
                         },
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,

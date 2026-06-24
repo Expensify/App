@@ -1393,6 +1393,16 @@ function getExportTemplates(
 }
 
 /**
+ * Account-level export templates have no policyID by design. Only templates that reference GL codes
+ * (e.g. {expense:category:glcode}) need a workspace policyID for the backend to resolve them. Plain
+ * {expense:category}/{expense:tag} templates must keep policyID undefined — sending a workspace policyID
+ * for them prevents the backend from generating the file for account-level templates (see #93088).
+ */
+function doesExportTemplateRequireWorkspacePolicy(template: ExportTemplate): boolean {
+    return (template.columns ?? []).some((column) => column.includes(CONST.EXPORT_TEMPLATE_GL_CODE_COLUMN_MARKER));
+}
+
+/**
  * Updates the form values for the advanced filters search form.
  */
 function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>>, shouldUseOnyxSetMethod = false) {
@@ -1698,6 +1708,7 @@ export {
     handleBulkPayItemSelected,
     isCurrencySupportWalletBulkPay,
     getExportTemplates,
+    doesExportTemplateRequireWorkspacePolicy,
     getReportType,
     getTotalFormattedAmount,
     setOptimisticDataForTransactionThreadPreview,
