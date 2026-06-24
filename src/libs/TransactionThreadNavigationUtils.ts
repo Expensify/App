@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
 import {createTransactionThreadReport} from './actions/Report';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {getReportOrDraftReport, isOneTransactionReport} from './ReportUtils';
+import {getReportOrDraftReport} from './ReportUtils';
 import {isExpenseUnreported} from './TransactionUtils';
 
 /**
@@ -32,10 +32,8 @@ type ResolveReportContext = {
 /**
  * Resolves which report to open for a single expense, creating its transaction thread only if necessary.
  *
- * A one-transaction report already renders the expense inline, so we keep its reportID; for a multi-expense
- * report we resolve (and create if needed) the transaction thread for that expense. This is intentionally lazy:
- * callers resolve one expense at a time, so opening a list never creates threads for expenses the user hasn't
- * navigated to.
+ * This is intentionally lazy: callers resolve one expense at a time, so opening a list never creates threads
+ * for expenses the user hasn't navigated to.
  */
 function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescriptor, context: ResolveReportContext): string {
     const {transaction, reportID, threadReportID} = expense;
@@ -44,14 +42,6 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     // Unreported (tracked) expenses live in the self-DM; their transaction thread (resolved from the
     // snapshot) is the expense view to open, since report "0" does not exist.
     if (isUnreported) {
-        return threadReportID ?? reportID;
-    }
-
-    const parentReport = getReportOrDraftReport(reportID);
-    if (isOneTransactionReport(parentReport)) {
-        // Prefer the transaction thread (resolved from the snapshot) so the expense opens in the transaction-thread
-        // view (MoneyRequestHeader), which hosts the prev/next carousel. Falling back to the parent one-transaction
-        // report would render MoneyReportHeader, which has no carousel. Only use the parent when no thread is known.
         return threadReportID ?? reportID;
     }
 
@@ -75,7 +65,7 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
         betas: context.betas,
-        iouReport: parentReport,
+        iouReport: getReportOrDraftReport(reportID),
         iouReportAction: iouAction,
         transaction,
     });
