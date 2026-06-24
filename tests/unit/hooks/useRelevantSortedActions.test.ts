@@ -239,7 +239,6 @@ describe('useRelevantSortedActions', () => {
         renderHook(() => useRelevantSortedActions(['report1']));
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.any() returns AsymmetricMatcher typed as any
-        const selectorMatcher = expect.any(Function);
-        expect(mockUseOnyx).toHaveBeenCalledWith(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, expect.objectContaining({selector: selectorMatcher}));
+        expect(mockUseOnyx).toHaveBeenCalledWith(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, expect.objectContaining({selector: expect.any(Function)}));
     });
 });
