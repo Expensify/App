@@ -10,8 +10,8 @@ let mockIsScreenReaderActive = false;
 
 jest.mock('@libs/NavigationFocusReturn', () => ({
     __esModule: true,
-    registerPressable: (...args: unknown[]) => {
-        mockRegisterPressable(...args);
+    registerPressable: (routeKey: string, identifier: string, ref: {current: unknown}) => {
+        mockRegisterPressable(routeKey, identifier, ref);
         return () => {};
     },
     notifyPressedTrigger: (...args: unknown[]) => {

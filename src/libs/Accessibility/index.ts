@@ -178,19 +178,22 @@ appStateSubscription = AppState.addEventListener('change', (status) => {
         return;
     }
     wasBackgroundedSinceLastActive = false;
-    const prevScreenReader = cachedScreenReaderValue;
-    const prevReduceMotion = cachedReduceMotionValue;
-    Promise.all([refreshScreenReaderWarm(), refreshReduceMotionWarm()])
+    // refresh() invalidates `warmed` synchronously — notify so reactive consumers re-read during the in-flight window.
+    const settled = Promise.all([refreshScreenReaderWarm(), refreshReduceMotionWarm()]);
+    for (const cb of screenReaderSubscribers) {
+        cb();
+    }
+    for (const cb of reduceMotionSubscribers) {
+        cb();
+    }
+    settled
         .then(() => {
-            if (cachedScreenReaderValue !== prevScreenReader) {
-                for (const cb of screenReaderSubscribers) {
-                    cb();
-                }
+            // Re-notify unconditionally: `warmed` flips back true even when value unchanged.
+            for (const cb of screenReaderSubscribers) {
+                cb();
             }
-            if (cachedReduceMotionValue !== prevReduceMotion) {
-                for (const cb of reduceMotionSubscribers) {
-                    cb();
-                }
+            for (const cb of reduceMotionSubscribers) {
+                cb();
             }
         })
         .catch((error: unknown) => {
