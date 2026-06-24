@@ -5835,7 +5835,6 @@ function getColumnsToShow({
         if (!transactionPolicyID && transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             transactionPolicyID = fallbackPolicyID;
         }
-        const transactionPolicyCategories = getPolicyCategoriesForPolicyID(policyCategories, transactionPolicyID);
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
         if (!isInvalidMerchantValue(merchant) || isScanning(transaction)) {
             columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT] = true;
@@ -5858,17 +5857,16 @@ function getColumnsToShow({
         // Category/tag: set for all paths (default search, custom search, report view).
         // Will be refined later for search page non-IOU check.
         if (hasCategory) {
-            const categoryGLCode = getCategoryGLCode(transactionPolicyCategories, transaction.category);
             columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = !isExpenseReportViewFromIOUReport;
-            if (isCategoryGLCodeSelected && !isExpenseReportViewFromIOUReport && categoryGLCode) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE] = true;
-            }
         }
         if (hasTag) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
-        // Once the Tag GL code column is selected, keep it visible even when the loaded rows have no GL
-        // code — otherwise sorting (which floats empty values to the top) makes the column vanish until scroll.
+        // Once a GL code column is selected, keep it visible even when the loaded rows have no GL code —
+        // otherwise sorting (which floats empty values to the top) makes the column vanish until scroll.
+        if (isCategoryGLCodeSelected && !isExpenseReportViewFromIOUReport) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE] = true;
+        }
         if (isTagGLCodeSelected && !isExpenseReportViewFromIOUReport) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE] = true;
         }
