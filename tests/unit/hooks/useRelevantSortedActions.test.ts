@@ -106,91 +106,124 @@ describe('useRelevantSortedActions', () => {
         expect(result.current).toEqual({});
     });
 
-    it('includes IOU report actions when last action is a REPORT_PREVIEW', () => {
-        const reportAction = makeReportAction({reportActionID: 'a1'});
-        const iouAction = makeReportAction({reportActionID: 'iou1'});
+    it('includes IOU report actions when a REPORT_PREVIEW exists in sorted actions', () => {
         const previewAction = makeReportPreviewAction('iouReport1', {reportActionID: 'preview1'});
+        const iouAction = makeReportAction({reportActionID: 'iou1'});
 
         onyxData[ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS] = {
             sortedActions: {
-                report1: [reportAction],
+                report1: [previewAction],
+                iouReport1: [iouAction],
+            },
+            lastActions: {},
+            transactionThreadIDs: {},
+        };
+
+        const {result} = renderHook(() => useRelevantSortedActions(['report1']));
+        expect(result.current).toEqual({
+            report1: [previewAction],
+            iouReport1: [iouAction],
+        });
+    });
+
+    it('includes IOU report even when a non-visible action sits above the REPORT_PREVIEW', () => {
+        const whisperAction = makeReportAction({reportActionID: 'whisper1', created: '2024-01-02'});
+        const previewAction = makeReportPreviewAction('iouReport1', {reportActionID: 'preview1', created: '2024-01-01'});
+        const iouAction = makeReportAction({reportActionID: 'iou1'});
+
+        onyxData[ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS] = {
+            sortedActions: {
+                report1: [whisperAction, previewAction],
                 iouReport1: [iouAction],
             },
             lastActions: {
-                report1: previewAction,
+                report1: whisperAction,
             },
             transactionThreadIDs: {},
         };
 
         const {result} = renderHook(() => useRelevantSortedActions(['report1']));
         expect(result.current).toEqual({
-            report1: [reportAction],
+            report1: [whisperAction, previewAction],
             iouReport1: [iouAction],
         });
     });
 
-    it('does not include IOU report when last action is not a REPORT_PREVIEW', () => {
-        const reportAction = makeReportAction({reportActionID: 'a1'});
-        const lastAction = makeReportAction({reportActionID: 'last1', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+    it('does not include IOU report when no REPORT_PREVIEW exists in sorted actions', () => {
+        const commentAction = makeReportAction({reportActionID: 'a1'});
 
         onyxData[ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS] = {
             sortedActions: {
-                report1: [reportAction],
+                report1: [commentAction],
                 iouReport1: [makeReportAction({reportActionID: 'iou1'})],
             },
-            lastActions: {
-                report1: lastAction,
-            },
+            lastActions: {},
             transactionThreadIDs: {},
         };
 
         const {result} = renderHook(() => useRelevantSortedActions(['report1']));
-        expect(result.current).toEqual({report1: [reportAction]});
+        expect(result.current).toEqual({report1: [commentAction]});
         expect(result.current).not.toHaveProperty('iouReport1');
     });
 
     it('does not include IOU report when linkedReportID has no sorted actions', () => {
-        const reportAction = makeReportAction({reportActionID: 'a1'});
         const previewAction = makeReportPreviewAction('missingIouReport', {reportActionID: 'preview1'});
 
         onyxData[ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS] = {
             sortedActions: {
-                report1: [reportAction],
+                report1: [previewAction],
             },
-            lastActions: {
-                report1: previewAction,
-            },
+            lastActions: {},
             transactionThreadIDs: {},
         };
 
         const {result} = renderHook(() => useRelevantSortedActions(['report1']));
-        expect(result.current).toEqual({report1: [reportAction]});
+        expect(result.current).toEqual({report1: [previewAction]});
     });
 
-    it('handles multiple reports with mixed REPORT_PREVIEW and non-preview last actions', () => {
-        const action1 = makeReportAction({reportActionID: 'a1'});
-        const action2 = makeReportAction({reportActionID: 'a2'});
-        const iouAction = makeReportAction({reportActionID: 'iou1'});
-        const previewAction = makeReportPreviewAction('iouReport1', {reportActionID: 'preview1'});
-        const commentAction = makeReportAction({reportActionID: 'comment1'});
+    it('includes multiple IOU reports from multiple REPORT_PREVIEW actions', () => {
+        const preview1 = makeReportPreviewAction('iouReport1', {reportActionID: 'preview1', created: '2024-01-02'});
+        const preview2 = makeReportPreviewAction('iouReport2', {reportActionID: 'preview2', created: '2024-01-01'});
+        const iouAction1 = makeReportAction({reportActionID: 'iou1'});
+        const iouAction2 = makeReportAction({reportActionID: 'iou2'});
 
         onyxData[ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS] = {
             sortedActions: {
-                report1: [action1],
-                report2: [action2],
+                report1: [preview1, preview2],
+                iouReport1: [iouAction1],
+                iouReport2: [iouAction2],
+            },
+            lastActions: {},
+            transactionThreadIDs: {},
+        };
+
+        const {result} = renderHook(() => useRelevantSortedActions(['report1']));
+        expect(result.current).toEqual({
+            report1: [preview1, preview2],
+            iouReport1: [iouAction1],
+            iouReport2: [iouAction2],
+        });
+    });
+
+    it('handles multiple reports with mixed REPORT_PREVIEW and non-preview actions', () => {
+        const previewAction = makeReportPreviewAction('iouReport1', {reportActionID: 'preview1'});
+        const commentAction = makeReportAction({reportActionID: 'a2'});
+        const iouAction = makeReportAction({reportActionID: 'iou1'});
+
+        onyxData[ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS] = {
+            sortedActions: {
+                report1: [previewAction],
+                report2: [commentAction],
                 iouReport1: [iouAction],
             },
-            lastActions: {
-                report1: previewAction,
-                report2: commentAction,
-            },
+            lastActions: {},
             transactionThreadIDs: {},
         };
 
         const {result} = renderHook(() => useRelevantSortedActions(['report1', 'report2']));
         expect(result.current).toEqual({
-            report1: [action1],
-            report2: [action2],
+            report1: [previewAction],
+            report2: [commentAction],
             iouReport1: [iouAction],
         });
     });

@@ -28,13 +28,19 @@ function useRelevantSortedActions(reportIDs: Array<string | undefined>): Record<
                 const reportActions = value.sortedActions[reportID];
                 if (reportActions) {
                     relevant[reportID] = reportActions;
-                }
-                const lastAction = value.lastActions[reportID];
-                if (lastAction && isReportPreviewAction(lastAction)) {
-                    const iouReportID = getIOUReportIDFromReportActionPreview(lastAction);
-                    const iouReportActions = iouReportID ? value.sortedActions[iouReportID] : undefined;
-                    if (iouReportID && iouReportActions) {
-                        relevant[iouReportID] = iouReportActions;
+
+                    // Scan sorted actions for REPORT_PREVIEW actions instead of only checking
+                    // lastActions — the absolute last action may be a whisper, errored, or
+                    // pending-deleted action while getLastVisibleAction still renders an older preview.
+                    for (const action of reportActions) {
+                        if (!isReportPreviewAction(action)) {
+                            continue;
+                        }
+                        const iouReportID = getIOUReportIDFromReportActionPreview(action);
+                        const iouReportActions = iouReportID ? value.sortedActions[iouReportID] : undefined;
+                        if (iouReportID && iouReportActions) {
+                            relevant[iouReportID] = iouReportActions;
+                        }
                     }
                 }
             }
