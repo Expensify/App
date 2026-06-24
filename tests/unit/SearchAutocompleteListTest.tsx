@@ -473,7 +473,7 @@ describe('SearchAutocompleteList', () => {
 
             const names = screen
                 .queryAllByText(/Report$/)
-                .map((el) => (typeof el.props.children === 'string' ? (el.props.children as string) : ''))
+                .map((el) => (typeof el.props.children === 'string' ? el.props.children : ''))
                 .filter((name) => ['ServerOne Report', 'ServerTwo Report', 'ServerThree Report'].includes(name));
 
             // The server section must follow Auth's order (203, 201, 202), not the order getSearchOptions returned.
