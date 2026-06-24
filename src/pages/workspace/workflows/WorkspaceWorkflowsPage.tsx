@@ -80,7 +80,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
@@ -110,11 +109,12 @@ function WorkflowNoResultsView({message, shouldShow, searchValue}: {message: str
 }
 
 // Bordered "Load more" card matching the workflow rows: the whole card is the tap target and gets the row-hover state.
-function WorkflowsLoadMoreCard({count, icon, onPress}: {count: number; icon: IconAsset; onPress: () => void}) {
+function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => void}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CircularArrowBackwards']);
     const label = translate('workflowsPage.loadMoreWorkflows', {count});
 
     return (
@@ -128,7 +128,7 @@ function WorkflowsLoadMoreCard({count, icon, onPress}: {count: number; icon: Ico
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.minHeightComponentSizeSmall]}>
                 <Icon
-                    src={icon}
+                    src={expensifyIcons.CircularArrowBackwards}
                     fill={theme.textSupporting}
                     extraSmall
                     additionalStyles={styles.mr1}
@@ -145,7 +145,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CircularArrowBackwards', 'DotIndicator', 'Info', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -566,7 +566,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         {hiddenWorkflowsCount > 0 && (
                             <WorkflowsLoadMoreCard
                                 count={hiddenWorkflowsCount}
-                                icon={expensifyIcons.CircularArrowBackwards}
                                 onPress={() => setIsWorkflowListExpanded(true)}
                             />
                         )}
@@ -798,7 +797,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         promptConfigureApprovalsInHR,
         isDEWEnabled,
         shouldUseNarrowLayout,
-        expensifyIcons.CircularArrowBackwards,
         expensifyIcons.Info,
         expensifyIcons.Plus,
         expensifyIcons.DotIndicator,
