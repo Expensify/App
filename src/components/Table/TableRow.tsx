@@ -156,13 +156,15 @@ export default function TableRow({
         tableMethods.handleSingleRowSelection(item.keyForList);
     };
 
+    const isSelectionDisabled = !!item.disabled || !!item.isDisabledCheckbox;
+
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isDisabled || !interactive) {
             return;
         }
 
         if (shouldUseNarrowLayout && isMobileSelectionEnabled && selectionEnabled) {
-            if (item.disabled) {
+            if (isSelectionDisabled) {
                 return;
             }
 
@@ -174,7 +176,7 @@ export default function TableRow({
     };
 
     const handleRowLongPress = () => {
-        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
+        if (isDisabled || isSelectionDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
             return;
         }
 
@@ -240,7 +242,7 @@ export default function TableRow({
                                             shouldStopMouseDownPropagation
                                             containerStyle={styles.m0}
                                             style={styles.flex1}
-                                            disabled={item.disabled}
+                                            disabled={isSelectionDisabled}
                                             isChecked={!!item.selected}
                                             accessibilityLabel={translate('common.select')}
                                             onPress={(event) => handleCheckboxPress(event)}
