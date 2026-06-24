@@ -154,7 +154,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 exportReportToCSV(
                     {
                         reportID: moneyRequestReport.reportID,
-                        transactionIDList: transactionIDs,
+                        transactionIDList: [],
                     },
                     () => {
                         showDownloadErrorModal();
