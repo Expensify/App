@@ -36,7 +36,6 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
     NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR,
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
-    NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR,
     NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR,
     SCREENS.NOT_FOUND,
     SCREENS.REPORT_ATTACHMENTS,
@@ -535,7 +534,13 @@ function handleReplaceFullscreenUnderRHP(
 
         const updatedTabRoute = {...existingTabRoute, state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
         // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
-        preInsertedOriginalTabRoute = existingTabRoute;
+        // In the cold-start fallback the tab navigator has no nested state yet, so saving the raw
+        // route would leave it stateless and the dismiss-restore path (removePreInsertedFullscreenIfNeeded)
+        // couldn't derive a tab to jump back to, stranding the user on the pre-inserted tab. Synthesize
+        // the default Home tab state in that case so the restore lands on the tab the user started on.
+        preInsertedOriginalTabRoute = existingTabState?.routes?.length
+            ? existingTabRoute
+            : ({...existingTabRoute, state: buildTabNavigatorNestedState({name: TAB_SCREENS[0]})} as StackNavigationState<ParamListBase>['routes'][number]);
         const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), updatedTabRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
         return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
     }
