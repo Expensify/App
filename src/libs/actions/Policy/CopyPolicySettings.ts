@@ -75,8 +75,8 @@ function clearCopyPolicySettings(): void {
     Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {});
 }
 
-function requestCopyPolicySettingsNotification(shouldNotifyOnFailure = false): void {
-    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {shouldNotifyOnFailure});
+function requestCopyPolicySettingsNotification(shouldOnlyNotifyOnFailure = false): void {
+    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {shouldOnlyNotifyOnFailure});
 }
 
 function findCustomUnitByName(policy: Policy | undefined, unitName: string): CustomUnit | undefined {
