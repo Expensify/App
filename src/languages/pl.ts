@@ -4450,6 +4450,8 @@ ${amount} dla ${merchant} - ${date}`,
             auditorAlternateText: 'Przeglądaj i komentuj raporty.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Właściciel';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrator przestrzeni roboczej';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -6335,6 +6337,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             syncWithHR: (providerName: string) => `Synchronizuj z ${providerName}`,
             makeCardAdmin: () => ({one: 'Ustaw jako administratora karty', other: 'Ustaw administratorów kart'}),
             cardAdmins: 'Administratorzy kart',
+            members: 'Członkowie',
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',

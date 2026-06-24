@@ -4476,6 +4476,8 @@ ${amount} für ${merchant} – ${date}`,
             auditorAlternateText: 'Berichte anzeigen und kommentieren.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Eigentümer';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Workspace-Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4483,9 +4485,9 @@ ${amount} für ${merchant} – ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Kartenadministrator';
+                        return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personenverwaltung';
+                        return 'Personen-Admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -6373,6 +6375,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             syncWithHR: (providerName: string) => `Mit ${providerName} synchronisieren`,
             makeCardAdmin: () => ({one: 'Zum Karten-Admin machen', other: 'Karten-Admins festlegen'}),
             cardAdmins: 'Karten-Admins',
+            members: 'Mitglieder',
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',

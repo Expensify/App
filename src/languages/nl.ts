@@ -4457,6 +4457,8 @@ ${amount} voor ${merchant} - ${date}`,
             auditorAlternateText: 'Rapporten bekijken en erop reageren.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Eigenaar';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Werkruimtebeheerder';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4464,7 +4466,7 @@ ${amount} voor ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Kaartbeheer';
+                        return 'Kaartbeheerder';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Personenbeheer';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
@@ -6339,6 +6341,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
             makeCardAdmin: () => ({one: 'Kaartbeheerder maken', other: 'Kaartbeheerders maken'}),
             cardAdmins: 'Kaartbeheerders',
+            members: 'Leden',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',

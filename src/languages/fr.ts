@@ -4487,6 +4487,8 @@ ${amount} pour ${merchant} - ${date}`,
             auditorAlternateText: 'Afficher et commenter les notes de frais.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Responsable';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrateur d’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4496,7 +4498,7 @@ ${amount} pour ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Admin personnes';
+                        return 'Administration des personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
@@ -6397,6 +6399,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
+            members: 'Membres',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',

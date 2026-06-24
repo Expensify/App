@@ -3905,6 +3905,7 @@ const CONST = {
         DEFAULT_FIELD_LIST_TARGET: 'expense',
         DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
+            OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
@@ -8534,6 +8535,7 @@ const CONST = {
                 INVITE_BUTTON: 'WorkspaceMembers-InviteButton',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
+                LIST_ROW: 'WorkspaceMembers-ListRow',
             },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',

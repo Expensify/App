@@ -4578,6 +4578,8 @@ const translations = {
             },
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Owner';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Workspace Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -6416,6 +6418,7 @@ const translations = {
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',
+            members: 'Members',
             emptyRoleFilter: {
                 title: 'No members match this filter',
                 subtitle: 'Invite a member or change the filter above.',
