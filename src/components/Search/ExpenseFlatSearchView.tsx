@@ -101,16 +101,15 @@ const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ??
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
 /**
- * The flat-expense Search list (Slice S5, callstack-internal/expensify-issues#2547).
+ * The flat-expense Search list.
  *
- * The first real consumer of the S4 data layer. `<Search>` keeps the snapshot, lifecycle and selection
- * providers; this view is rendered as a provider child (so it reads the real `toggle`/`toggleAll`/
- * `selectedTransactions`) and composes the S5 primitives directly around `BaseSearchList` — no
- * `SearchList` shell, no `ListItem` prop, no factory. `TransactionListItem` is the only row renderer for
- * the flat-expense path, and rows always animate, so the group/sticky/chat/task branches of `SearchList`
- * collapse away. KeyboardListNavigation is inherited from `BaseSearchList`; RowHighlight stays in the
- * router (the snapshot already stamps `shouldAnimateInHighlight`, and `newTransactions` flows into
- * `extraData`).
+ * Consumes `useSearchSnapshot` and is rendered by `<Search>` as a child of the selection providers (so it
+ * reads the real `toggle`/`toggleAll`/`selectedTransactions`). It composes the reusable Search list
+ * primitives directly around `BaseSearchList` — no `SearchList` shell, no `ListItem` prop, no factory.
+ * `TransactionListItem` is the only row renderer for the flat-expense path, and rows always animate, so the
+ * group/sticky/chat/task branches of `SearchList` do not apply here. Keyboard navigation is inherited from
+ * `BaseSearchList`; the post-create highlight stays in the router (the snapshot stamps
+ * `shouldAnimateInHighlight`, and `newTransactions` flows into `extraData`).
  */
 function ExpenseFlatSearchView({
     queryJSON,

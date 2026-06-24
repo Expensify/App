@@ -18,9 +18,9 @@ type AnimatedExitRowProps = {
 
 /**
  * Wraps a Search row in the FadeOutUp exit + LinearTransition layout animation that plays when an
- * expense is deleted from the list. Extracted from SearchList so ExpenseFlatSearchView can reuse it
- * without the god-component (Slice S5). Kept byte-identical to the original wrapper because FlashList
- * v2 + reanimated exit animations are timing-sensitive.
+ * expense is deleted from the list. Extracted from SearchList so ExpenseFlatSearchView can reuse it.
+ * Kept byte-identical to the original wrapper because FlashList v2 + reanimated exit animations are
+ * timing-sensitive.
  */
 function AnimatedExitRow({shouldApplyAnimation, hasItemsBeingRemoved, children}: AnimatedExitRowProps) {
     const styles = useThemeStyles();

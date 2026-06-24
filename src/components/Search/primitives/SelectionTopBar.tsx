@@ -37,7 +37,7 @@ type SelectionTopBarProps = {
 
 /**
  * The Search list's sticky header bar: an optional select-all control plus the column header.
- * Extracted from SearchList so ExpenseFlatSearchView can reuse it (Slice S5). Purely presentational,
+ * Extracted from SearchList so ExpenseFlatSearchView can reuse it. Purely presentational,
  * the consumer computes the selection counts and passes them in so a checkbox press does not re-render
  * the whole bar subtree through a selection subscription here.
  */

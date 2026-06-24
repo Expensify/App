@@ -149,7 +149,7 @@ function createMockData(length: number, deletedKeys = new Set<string>()): Search
     }) as unknown as SearchListItem[];
 }
 
-/** Max render count for the view subtree on initial mount with stable props. Also the #3 memo-cleanup benchmark. */
+/** Max render count for the view subtree on initial mount with stable props. Also guards against re-render regressions from the memoization cleanup. */
 const MAX_INITIAL_RENDER_COUNT = 15;
 
 function ThemeProviderWithLight({children}: {children: React.ReactNode}) {

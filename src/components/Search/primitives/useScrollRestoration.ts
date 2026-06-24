@@ -9,7 +9,7 @@ import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
  *
  * The offset is saved per route in ScrollOffsetContext by the page wrappers; on focus we read it back
  * and apply it to the FlashList on the next frame, so a back-navigation lands at the prior position
- * instead of the top. Extracted from SearchList so ExpenseFlatSearchView can reuse it (Slice S5).
+ * instead of the top. Extracted from SearchList so ExpenseFlatSearchView can reuse it.
  */
 function useScrollRestoration<TItem>(listRef: RefObject<FlashListRef<TItem> | null>) {
     const route = useRoute();

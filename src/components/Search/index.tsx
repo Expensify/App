@@ -1038,10 +1038,10 @@ function Search({
             />
         ) : undefined;
 
-    // Flat-expense (a plain transaction list) renders through the dedicated ExpenseFlatSearchView (S5,
-    // callstack-internal/expensify-issues#2547), which composes the S5 primitives directly over
-    // BaseSearchList. Every other variant (chat, task, report, grouped) keeps the legacy SearchList shell
-    // until S6. The snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    // Flat-expense (a plain transaction list) renders through the dedicated ExpenseFlatSearchView, which
+    // composes the reusable Search list primitives directly over BaseSearchList. Every other variant
+    // (chat, task, report, grouped) keeps the legacy SearchList shell. The snapshot, lifecycle and
+    // selection providers stay here so the data layer runs once.
     const isFlatExpenseView = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !validGroupBy;
 
     return (

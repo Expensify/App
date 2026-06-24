@@ -34,7 +34,7 @@ type UseRowLongPressMenuResult = {
 /**
  * Owns the row long-press affordance: in mobile selection mode a long press toggles the row, otherwise
  * it opens a bottom-docked menu whose single action turns on selection mode for the pressed row.
- * Extracted from SearchList so ExpenseFlatSearchView can reuse it (Slice S5). Must be used inside
+ * Extracted from SearchList so ExpenseFlatSearchView can reuse it. Must be used inside
  * SearchWriteActionsProvider so `toggle` resolves to the real action rather than the no-op default.
  */
 function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled}: UseRowLongPressMenuParams): UseRowLongPressMenuResult {

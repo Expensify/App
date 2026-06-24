@@ -34,7 +34,7 @@ type HorizontalTableScrollProps = {
 /**
  * Wraps the Search table in a horizontal ScrollView when it is wider than the viewport, and restores
  * the saved horizontal offset across query changes (before paint, to avoid a visible shift). Extracted
- * from SearchList so ExpenseFlatSearchView can reuse it without the god-component (Slice S5).
+ * from SearchList so ExpenseFlatSearchView can reuse it.
  */
 function HorizontalTableScroll({children, columns, type, isActionColumnWide, isHeaderVisible, dataKey}: HorizontalTableScrollProps) {
     const styles = useThemeStyles();
