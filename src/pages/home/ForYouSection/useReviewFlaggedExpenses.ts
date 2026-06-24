@@ -164,4 +164,3 @@ function useReviewFlaggedExpenses(isHomeTabFocused: boolean): ReviewFlaggedExpen
 
 export default useReviewFlaggedExpenses;
 export {getFlaggedExpenses};
-export type {ReviewFlaggedExpenses};
