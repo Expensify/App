@@ -509,10 +509,33 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
     });
 }
 
-function setPersonalDetailsAndRevealExpensifyCard(values: PersonalDetailsFormValues, countryCode: number, cardID: number, validateCode: string): Promise<ExpensifyCardDetails> {
+/**
+ * Empty personal-detail fields to send when the user's details are already set on the
+ * backend — the SetPersonalDetailsAndRevealExpensifyCard command treats empty modified
+ * fields as "no update" and uses the existing details for the reveal.
+ */
+const EMPTY_REVEAL_PERSONAL_DETAILS: Omit<SetPersonalDetailsAndRevealExpensifyCardParams, 'cardID' | 'validateCode'> = {
+    legalFirstName: '',
+    legalLastName: '',
+    phoneNumber: '',
+    addressCity: '',
+    addressStreet: '',
+    addressStreet2: '',
+    addressZip: '',
+    addressCountry: '',
+    addressState: '',
+    addressProvince: '',
+    dob: '',
+};
+
+function setPersonalDetailsAndRevealExpensifyCard(
+    personalDetailsParams: Omit<SetPersonalDetailsAndRevealExpensifyCardParams, 'cardID' | 'validateCode'>,
+    cardID: number,
+    validateCode: string,
+): Promise<ExpensifyCardDetails> {
     return new Promise((resolve, reject) => {
         const parameters: SetPersonalDetailsAndRevealExpensifyCardParams = {
-            ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
+            ...personalDetailsParams,
             cardID,
             validateCode,
         };
@@ -605,4 +628,5 @@ export {
     setPersonalDetailsAndRevealExpensifyCard,
     clearPersonalDetailsErrors,
     buildSetPersonalDetailsAndShipExpensifyCardsParams,
+    EMPTY_REVEAL_PERSONAL_DETAILS,
 };

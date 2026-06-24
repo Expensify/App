@@ -6,7 +6,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {clearPersonalDetailsErrors, setPersonalDetailsAndRevealExpensifyCard, updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
+import {
+    buildSetPersonalDetailsAndShipExpensifyCardsParams,
+    clearPersonalDetailsErrors,
+    setPersonalDetailsAndRevealExpensifyCard,
+    updatePersonalDetailsAndShipExpensifyCards,
+} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -73,7 +78,7 @@ function MissingPersonalDetailsMagicCodePage({
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
             if (isVirtualCard) {
-                setPersonalDetailsAndRevealExpensifyCard(values, countryCode, Number(cardID), validateCode)
+                setPersonalDetailsAndRevealExpensifyCard(buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode), Number(cardID), validateCode)
                     .then((details) => {
                         setRevealedVirtualCardDetails(cardID, details);
                         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);

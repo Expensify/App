@@ -30,6 +30,7 @@ import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
+import {EMPTY_REVEAL_PERSONAL_DETAILS} from '@libs/actions/PersonalDetails';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
@@ -516,7 +517,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                 }
 
                                                                 if (isUkEuExpensifyCard(card)) {
-                                                                    executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_CARD_DETAILS, {
+                                                                    executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
+                                                                        ...EMPTY_REVEAL_PERSONAL_DETAILS,
                                                                         cardID: String(card.cardID),
                                                                     });
                                                                     return;

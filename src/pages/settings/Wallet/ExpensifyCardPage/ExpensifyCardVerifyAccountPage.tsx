@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
-import {revealVirtualCardDetails} from '@libs/actions/Card';
+import {EMPTY_REVEAL_PERSONAL_DETAILS, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,7 +43,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         // That is why this action is handled manually and the response is stored in a local state.
         // Hence eslint disable here.
 
-        revealVirtualCardDetails(Number.parseInt(cardID, 10), validateCode)
+        setPersonalDetailsAndRevealExpensifyCard(EMPTY_REVEAL_PERSONAL_DETAILS, Number.parseInt(cardID, 10), validateCode)
             .then((value) => {
                 setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [cardID]: value}));
                 setCardsDetailsErrors((prevState) => ({
@@ -52,8 +52,8 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
                 }));
                 navigateBack();
             })
-            .catch((error: TranslationPaths) => {
-                setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
+            .catch((error: Error) => {
+                setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error.message as TranslationPaths));
             })
             .finally(() => {
                 setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [cardID]: false}));
