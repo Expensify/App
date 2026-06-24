@@ -1,9 +1,13 @@
 import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
+import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
+import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {getRouteFromLink} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -29,6 +33,26 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             // Without this, the native SDK never sees the callback URL and retries OAuth in a loop
             // after app-to-app bank auth returns. See issue #87757.
             continuePlaidOAuth(url);
+            return;
+        }
+        // Don't forward URLs to React Navigation when AuthScreens isn't mounted yet (i.e., user is
+        // on PublicScreens) unless the URL targets a public screen route (e.g., magic code validation).
+        // The navigator tree can't handle authenticated routes at that point, which causes an unhandled
+        // NAVIGATE action error. DeepLinkHandler handles authenticated URLs separately via
+        // openReportFromDeepLink after sign-in completes.
+        if (!Navigation.navContainsProtectedRoutes(navigationRef.current?.getRootState()) && !isPublicScreenRoute(getRouteFromLink(url))) {
+            // If the user is already authenticated, AuthScreens is about to mount (lazy-load).
+            // Queue the URL so it's forwarded once the navigator is ready instead of dropping it.
+            // Use a timeout so a stale/expired token doesn't permanently lose the URL.
+            if (hasAuthToken()) {
+                const timeout = new Promise<void>((_, reject) => {
+                    setTimeout(() => reject(new Error('Timed out waiting for protected routes')), 5000);
+                });
+                Promise.race([Navigation.waitForProtectedRoutes(), timeout]).then(
+                    () => listener(url),
+                    () => {},
+                );
+            }
             return;
         }
         listener(url);
