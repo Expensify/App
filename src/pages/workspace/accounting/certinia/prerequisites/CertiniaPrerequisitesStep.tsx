@@ -71,7 +71,10 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
             {stepContent}
-            <FixedFooter style={[styles.mtAuto]}>
+            <FixedFooter
+                style={[styles.mtAuto]}
+                addBottomSafeAreaPadding
+            >
                 <Button
                     success
                     large
