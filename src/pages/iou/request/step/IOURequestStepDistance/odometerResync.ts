@@ -16,12 +16,6 @@ type OdometerResyncState = {
     localStartValue: string;
     localEndValue: string;
 
-    /** Resolved image URIs from the transaction and from the on-mount baseline */
-    transactionStartImageUri: string;
-    transactionEndImageUri: string;
-    baselineStartImageUri: string;
-    baselineEndImageUri: string;
-
     /** Whether the transaction carries any odometer reading */
     hasTransactionData: boolean;
 
@@ -39,19 +33,15 @@ type OdometerResyncState = {
 };
 
 /**
- * An "external resync": the transaction changed elsewhere (e.g. an edit saved from the confirmation step) while
- * nothing is being typed here, so it becomes the new baseline. The typing guard avoids clobbering in-progress keystrokes.
+ * Whether the transaction *readings* changed externally (not from typing here), making them the new readings baseline.
+ * Readings-only by design: this slides the readings baseline, so counting image changes would re-baseline still-unsent
+ * readings and drop the discard prompt. Images are tracked separately against a never-slid baseline.
  */
 function isExternalOdometerResync(state: OdometerResyncState): boolean {
     if (!state.hasTransactionData || !state.hasInitialized || state.isUserTyping) {
         return false;
     }
-    return (
-        state.transactionStartValue !== state.localStartValue ||
-        state.transactionEndValue !== state.localEndValue ||
-        state.transactionStartImageUri !== state.baselineStartImageUri ||
-        state.transactionEndImageUri !== state.baselineEndImageUri
-    );
+    return state.transactionStartValue !== state.localStartValue || state.transactionEndValue !== state.localEndValue;
 }
 
 /**

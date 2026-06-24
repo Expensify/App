@@ -90,6 +90,27 @@ describe('useOdometerReadingsState', () => {
         expect(result.current.initialStartReadingRef.current).toBe('100');
     });
 
+    // Regression: an image-only external change must NOT slide the readings baseline. Pre-fix, isExternalOdometerResync
+    // treated an image diff as an external resync and slid initialStart/EndReadingRef to the transaction readings, which
+    // masked still-unsent readings once the image was reverted (the discard prompt would then never fire).
+    it('does not slide the readings baseline when only an image changes externally', () => {
+        const {result, rerender} = renderHook((params: Params) => useOdometerReadingsState(params), {initialProps: baseParams});
+
+        // Simulate the create-flow state: committed transaction readings but an intentionally-empty readings baseline
+        // (the post-type+Next state the hook can't reach via typing in isolation).
+        act(() => {
+            result.current.initialStartReadingRef.current = '';
+            result.current.initialEndReadingRef.current = '';
+        });
+
+        // An image is added externally; the readings themselves do not change.
+        rerender({...baseParams, currentTransaction: buildOdometerTransaction({odometerStartImage: {uri: 'new.jpg'}})});
+
+        // The readings baseline must stay empty - pre-fix it slid to '100'/'250' and hid the unsent readings.
+        expect(result.current.initialStartReadingRef.current).toBe('');
+        expect(result.current.initialEndReadingRef.current).toBe('');
+    });
+
     it('captures initial baseline refs once blobs are verified and no draft is pending', () => {
         const {result} = renderHook(() => useOdometerReadingsState(baseParams));
 

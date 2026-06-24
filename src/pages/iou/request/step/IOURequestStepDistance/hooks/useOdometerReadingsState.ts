@@ -1,7 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransactionUtils';
-import {getOdometerImageIdentity} from '@libs/OdometerImageUtils';
 import type {OdometerResyncState} from '@pages/iou/request/step/IOURequestStepDistance/odometerResync';
 import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@pages/iou/request/step/IOURequestStepDistance/odometerResync';
 import CONST from '@src/CONST';
@@ -188,10 +187,6 @@ function useOdometerReadingsState({
             transactionEndValue: endValue,
             localStartValue: startReadingRef.current,
             localEndValue: endReadingRef.current,
-            transactionStartImageUri: getOdometerImageIdentity(currentTransaction?.comment?.odometerStartImage),
-            transactionEndImageUri: getOdometerImageIdentity(currentTransaction?.comment?.odometerEndImage),
-            baselineStartImageUri: getOdometerImageIdentity(initialStartImageRef.current),
-            baselineEndImageUri: getOdometerImageIdentity(initialEndImageRef.current),
             hasTransactionData: (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined),
             hasLocalState: !!(startReadingRef.current || endReadingRef.current),
             hasInitialized: hasInitializedRefs.current,
@@ -209,20 +204,13 @@ function useOdometerReadingsState({
             endReadingRef.current = endValue;
         }
 
-        // Slide the readings baseline on a non-user change (draft hydration, external save) so leaving doesn't flag it as unsaved.
-        // Images aren't slid: their re-mint-invariant diff already ignores re-mints, and sliding would absorb a genuine swap.
+        // Slide the readings baseline on an external (non-user) reading change (e.g. draft hydration) so leaving
+        // doesn't flag it. Images aren't slid - they use a separate, never-slid, re-mint-invariant baseline.
         if (isExternalResync) {
             initialStartReadingRef.current = startValue;
             initialEndReadingRef.current = endValue;
         }
-    }, [
-        currentTransaction?.comment?.odometerStart,
-        currentTransaction?.comment?.odometerEnd,
-        currentTransaction?.comment?.odometerStartImage,
-        currentTransaction?.comment?.odometerEndImage,
-        isEditing,
-        userHasUnsavedTypingRef,
-    ]);
+    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing, userHasUnsavedTypingRef]);
 
     return {
         startReading,

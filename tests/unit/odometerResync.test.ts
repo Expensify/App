@@ -1,16 +1,12 @@
 import type {OdometerResyncState} from '@pages/iou/request/step/IOURequestStepDistance/odometerResync';
 import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@pages/iou/request/step/IOURequestStepDistance/odometerResync';
 
-// A steady state: initialized, transaction and local readings/images all match, nothing being typed.
+// A steady state: initialized, transaction and local readings match, nothing being typed.
 const STEADY_STATE: OdometerResyncState = {
     transactionStartValue: '100',
     transactionEndValue: '200',
     localStartValue: '100',
     localEndValue: '200',
-    transactionStartImageUri: 'start.jpg',
-    transactionEndImageUri: 'end.jpg',
-    baselineStartImageUri: 'start.jpg',
-    baselineEndImageUri: 'end.jpg',
     hasTransactionData: true,
     hasLocalState: true,
     hasInitialized: true,
@@ -31,9 +27,9 @@ describe('isExternalOdometerResync', () => {
         expect(isExternalOdometerResync(buildState({transactionStartValue: '150'}))).toBe(true);
     });
 
-    it('is true when only an image was changed externally', () => {
-        expect(isExternalOdometerResync(buildState({transactionStartImageUri: 'new-start.jpg'}))).toBe(true);
-    });
+    // Image changes are intentionally NOT part of this predicate: it slides the readings baseline, so reacting to an
+    // image-only change would re-baseline still-unsent readings and silently drop the discard prompt. The image-change
+    // discard signal is handled separately by the screen against a never-slid image baseline.
 
     it('is false before on-mount initialization, even if values differ', () => {
         expect(isExternalOdometerResync(buildState({hasInitialized: false, transactionStartValue: '150'}))).toBe(false);

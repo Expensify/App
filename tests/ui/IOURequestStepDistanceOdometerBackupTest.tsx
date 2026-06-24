@@ -81,6 +81,19 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     default: () => ({didScreenTransitionEnd: true}),
 }));
 
+// Stub the navigation hook so pressing "Next" in the create flow commits readings + lowers the typing guard without
+// triggering real navigation - the create-flow tests below only assert the discard-guard state, not where Next routes.
+jest.mock('@pages/iou/request/step/IOURequestStepDistance/hooks/useOdometerNavigation', () => ({
+    __esModule: true,
+    default: () => jest.fn(),
+}));
+
+// Next opens a telemetry span; stub it so the real Sentry span machinery doesn't run in the test.
+jest.mock('@libs/telemetry/activeSpans', () => ({
+    ...jest.requireActual('@libs/telemetry/activeSpans'),
+    startSpan: jest.fn(),
+}));
+
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({name: 'Money_Request_Step_Distance_Odometer', params: {}})),
     getState: jest.fn(() => ({})),
@@ -417,5 +430,144 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
         await waitForBatchedUpdatesWithAct();
 
         expect(getHasUnsavedChanges()).toBe(false);
+    });
+});
+
+// Create-flow regression (codex P2): an image add + revert must not corrupt the readings discard-baseline.
+// Repro: type readings -> Next (commits them to the transaction; the readings baseline stays empty) -> add image ->
+// remove image. Pre-fix, adding the image flagged an external resync and slid the readings baseline to the committed
+// values; reverting the image then left both the reading diff and the image diff clean, so getHasUnsavedChanges()
+// wrongly returned false and the discard prompt was silently lost while unsent readings remained.
+describe('IOURequestStepDistanceOdometer - an image add/revert must not drop the readings discard prompt (create flow)', () => {
+    const START_IMAGE: FileObject = {uri: 'odo.jpg', name: 'odo.jpg', type: 'image/jpeg', size: 4321, lastModified: 3000};
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+    });
+
+    // A create-flow route (name = DISTANCE_CREATE) so `isCreatingNewRequest` is true and the Next button keeps the
+    // discard guard active. The edit-from-confirmation route used above sets `didSaveEditingConfirmationRef` on Next,
+    // which disables the guard - unsuitable for this repro.
+    function createDistanceCreateRoute(): PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route'] {
+        // The DISTANCE_CREATE route types `action`/`backTo` as `never` (unused for navigation but read at runtime here), so the params object can't be built without one assertion.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see comment above
+        const params = {
+            action: CONST.IOU.ACTION.CREATE,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            reportID: REPORT_ID,
+            transactionID: TRANSACTION_ID,
+        } as unknown as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE];
+        return {
+            key: 'Money_Request_Distance_Create-test',
+            name: SCREENS.MONEY_REQUEST.DISTANCE_CREATE,
+            params,
+        };
+    }
+
+    // An odometer transaction with no readings yet, so the on-mount readings baseline snapshots as empty.
+    function createEmptyOdometerTransaction(): Transaction {
+        const transaction = createRandomTransaction(1);
+        return {
+            ...transaction,
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+            comment: {
+                ...transaction.comment,
+                odometerStart: undefined,
+                odometerEnd: undefined,
+                customUnit: {
+                    customUnitID: 'test-unit-id',
+                    customUnitRateID: 'test-rate-id',
+                    name: 'Distance',
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            },
+        };
+    }
+
+    async function setupCreateFlow(): Promise<{getHasUnsavedChanges: () => boolean; transaction: Transaction}> {
+        const transaction = createEmptyOdometerTransaction();
+        let capturedGuard: TabSwitchGuard | undefined;
+        const register: RegisterTabSwitchGuard = (guard) => {
+            capturedGuard = guard;
+            return () => {};
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <TabSwitchGuardContext.Provider value={register}>
+                        <IOURequestStepDistanceOdometer
+                            route={createDistanceCreateRoute()}
+                            // @ts-expect-error minimal navigation for test
+                            navigation={undefined}
+                        />
+                    </TabSwitchGuardContext.Provider>
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        return {
+            getHasUnsavedChanges: () => capturedGuard?.getHasUnsavedChanges() ?? false,
+            transaction,
+        };
+    }
+
+    const findInput = (label: string) => {
+        const input = screen.getAllByLabelText(label).find((element) => 'value' in element.props);
+        if (!input) {
+            throw new Error(`Input not found: ${label}`);
+        }
+        return input;
+    };
+
+    it('keeps the discard prompt after readings are committed, an image is added, then reverted', async () => {
+        const {getHasUnsavedChanges, transaction} = await setupCreateFlow();
+
+        // Nothing entered yet -> clean baseline, no prompt.
+        expect(getHasUnsavedChanges()).toBe(false);
+
+        // Enter readings, then commit them with Next (writes them to the transaction and lowers the typing guard).
+        fireEvent.changeText(findInput('distance.odometer.startReading'), '100');
+        fireEvent.changeText(findInput('distance.odometer.endReading'), '250');
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('next-save-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // The committed-but-unsent readings differ from the empty baseline -> the prompt fires.
+        expect(getHasUnsavedChanges()).toBe(true);
+
+        // Add an odometer image - still unsaved (the image now differs from its baseline too).
+        await act(async () => {
+            setMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, START_IMAGE, true, false);
+            await waitForBatchedUpdates();
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(getHasUnsavedChanges()).toBe(true);
+
+        // Revert the image. The readings are still unsent, so the prompt MUST remain. Pre-fix the earlier image add slid
+        // the readings baseline, so this returned false and the discard prompt was silently lost.
+        await act(async () => {
+            removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, true, false);
+            await waitForBatchedUpdates();
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(getHasUnsavedChanges()).toBe(true);
     });
 });
