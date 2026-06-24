@@ -1666,13 +1666,6 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpenses: 'Déplacer vers le rapport',
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
-        submitReportTo: {
-            subtitle: 'Choisissez un membre de l’espace de travail ou saisissez une adresse e-mail de la personne qui doit recevoir cette soumission.',
-            emailLabel: 'Adresse e-mail',
-            workspaceMembers: 'Membres de l’espace de travail',
-            sendExpense: 'Envoyez votre dépense à n’importe qui',
-            sendExpenseSubtitle: 'Invitez n’importe qui sur Expensify en utilisant son adresse e-mail ou son numéro de téléphone.',
-        },
         changeApprover: {
             title: 'Modifier l’approbateur',
             header: (workflowSettingLink: string) =>
@@ -2861,7 +2854,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agents',
-        subtitle: `<muted-text>Créez des agents pour gérer votre flux de travail. Évitez le travail manuel et gagnez des heures chaque jour. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
+        subtitle: `<muted-text>Les agents gèrent vos workflows pour vous, afin que vous gagniez des heures dans votre journée. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">En savoir plus</a>.</muted-text>`,
         newAgent: 'Nouvel agent',
         emptyAgents: {
             title: 'Aucun agent créé',
@@ -3385,9 +3378,6 @@ ${amount} pour ${merchant} - ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Faites un [essai](${testDriveURL})` : 'Faites un essai'),
             embeddedDemoIframeTitle: 'Essai gratuit',
-            employeeFakeReceipt: {
-                description: "Mon reçu d'essai routier !",
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Se faire rembourser est aussi simple qu’envoyer un message. Passons en revue les bases.',
@@ -5009,6 +4999,12 @@ ${amount} pour ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify se synchronisera automatiquement avec Certinia chaque jour.',
             syncReimbursedReportsDescription:
                 'Lorsque cette option est activée, chaque fois qu’une facture à payer est réglée dans FFA, la note de frais Expensify associée est automatiquement marquée comme remboursée.',
+            taxNonBillable: 'Exporter la taxe comme non facturable',
+            taxNonBillableDescription:
+                'Lors de l’exportation de dépenses facturables codées avec des taux de taxe depuis Expensify, la partie taxe sera marquée comme non facturable lors de l’exportation vers Certinia PSA.',
+            foreignCurrencyAmount: 'Exporter le montant en devise étrangère',
+            foreignCurrencyAmountDescription:
+                'Si vous exportez des dépenses remboursables sous forme de notes de frais, nous exporterons vers Certinia le montant étranger d’origine de chaque transaction, s’il existe.',
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Certinia.',
             payableInvoices: 'Factures à payer',
             exportStatus: {
@@ -5075,6 +5071,16 @@ ${amount} pour ${merchant} - ${date}`,
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Ne pas mapper',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importé comme tags',
                     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importé en tant que champs de note de frais',
+                },
+                expenseTypeGlaMappings: 'Correspondances GLA par type de dépense',
+                expenseTypeGlaMappingsDescription: 'Les correspondances des comptes GLA de type de dépense FinancialForce sont importées dans Expensify en tant que catégories.',
+                tagsMappedTo: 'Les tags doivent être associés à',
+                milestones: 'Jalons',
+                milestonesDescription: 'Lorsque cette option est activée, les jalons associés aux projets PSA sont synchronisés avec Expensify.',
+                parentTagMappingTypes: {
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS]: 'Projets et affectations',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS]: 'Projets',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Affectations',
                 },
             },
         },
@@ -9806,18 +9812,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Faites un essai de 2 minutes',
-        },
-        modal: {
-            title: 'Testez-nous en conditions réelles',
-            description: 'Faites une brève visite du produit pour vous familiariser rapidement.',
-            confirmText: 'Commencer l’essai',
-            helpText: 'Ignorer',
-            employee: {
-                description:
-                    '<muted-text>Offrez à votre équipe <strong>3 mois gratuits d’Expensify !</strong> Il suffit de saisir l’e‑mail de votre responsable ci‑dessous et de lui envoyer une dépense test.</muted-text>',
-                email: 'Saisissez l’e-mail de votre responsable',
-                error: 'Ce membre possède un espace de travail, veuillez saisir un nouveau membre pour effectuer le test.',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: 'Vous êtes actuellement en train de tester Expensify',

@@ -23,7 +23,6 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     isLastItem?: boolean;
     transactionViolations: TransactionViolation[];
     handleActionButtonPress: (event?: ModifiedMouseEvent) => void;
-    shouldDisableActionPointerEvents?: boolean;
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
     policyCategories?: PolicyCategories;

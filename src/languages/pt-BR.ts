@@ -1653,13 +1653,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover para relatório',
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
-        submitReportTo: {
-            subtitle: 'Escolha um membro do espaço de trabalho ou digite o e-mail de quem deve receber este envio.',
-            emailLabel: 'Endereço de e-mail',
-            workspaceMembers: 'Membros do workspace',
-            sendExpense: 'Envie sua despesa para qualquer pessoa',
-            sendExpenseSubtitle: 'Convide qualquer pessoa para o Expensify usando o endereço de e-mail ou número de telefone.',
-        },
         changeApprover: {
             title: 'Alterar aprovador',
             header: (workflowSettingLink: string) =>
@@ -2837,7 +2830,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agentes',
-        subtitle: `<muted-text>Crie agentes para cuidar do seu fluxo de trabalho. Pule o trabalho manual e ganhe horas de volta no seu dia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</muted-text>`,
+        subtitle: `<muted-text>Agentes cuidam dos seus fluxos de trabalho para você, para que você ganhe horas de volta no seu dia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Saiba mais</a>.</muted-text>`,
         newAgent: 'Novo agente',
         emptyAgents: {
             title: 'Nenhum agente criado',
@@ -3357,9 +3350,6 @@ ${amount} para ${merchant} - ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Faça um [test drive](${testDriveURL})` : 'Faça um test drive'),
             embeddedDemoIframeTitle: 'Test Drive',
-            employeeFakeReceipt: {
-                description: 'Meu recibo de test drive!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ser reembolsado é tão fácil quanto enviar uma mensagem. Vamos revisar o básico.',
@@ -4963,6 +4953,12 @@ ${amount} para ${merchant} - ${date}`,
             autoSyncDescription: 'O Expensify vai sincronizar automaticamente com a Certinia todos os dias.',
             syncReimbursedReportsDescription:
                 'Com essa opção ativada, sempre que uma Fatura a Pagar for paga no FFA, o relatório correspondente no Expensify será marcado automaticamente como reembolsado.',
+            taxNonBillable: 'Exportar imposto como não faturável',
+            taxNonBillableDescription:
+                'Ao exportar despesas faturáveis codificadas com alíquotas de imposto do Expensify, a parte do imposto será marcada como não faturável ao exportar para o Certinia PSA.',
+            foreignCurrencyAmount: 'Exportar valor em moeda estrangeira',
+            foreignCurrencyAmountDescription:
+                'Se você exportar despesas reembolsáveis como relatórios de despesas, exportaremos para a Certinia o valor original em moeda estrangeira de cada transação, se existir.',
             exportDescription: 'Configure como os dados do Expensify são exportados para o Certinia.',
             payableInvoices: 'Faturas a Pagar',
             exportStatus: {
@@ -5029,6 +5025,16 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Não mapear',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importado como tags',
                     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importado como campos de relatório',
+                },
+                expenseTypeGlaMappings: 'Mapeamentos de GLA por tipo de despesa',
+                expenseTypeGlaMappingsDescription: 'Os mapeamentos de GLA de tipo de despesa do FinancialForce são importados para o Expensify como categorias.',
+                tagsMappedTo: 'As tags devem ser mapeadas para',
+                milestones: 'Marcos',
+                milestonesDescription: 'Quando ativado, os marcos associados a projetos PSA são sincronizados com o Expensify.',
+                parentTagMappingTypes: {
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS]: 'Projetos e atribuições',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS]: 'Projetos',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Atribuições',
                 },
             },
         },
@@ -9717,18 +9723,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Faça um test drive de 2 minutos',
-        },
-        modal: {
-            title: 'Faça um test drive conosco',
-            description: 'Faça um rápido tour pelo produto para se atualizar rapidamente.',
-            confirmText: 'Iniciar test drive',
-            helpText: 'Pular',
-            employee: {
-                description:
-                    '<muted-text>Garanta para sua equipe <strong>3 meses grátis de Expensify!</strong> Basta inserir o e-mail da sua chefia abaixo e enviar uma despesa de teste.</muted-text>',
-                email: 'Insira o e-mail do seu chefe',
-                error: 'Essa pessoa já é dona de um espaço de trabalho, insira uma nova pessoa para testar.',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: 'Você está testando o Expensify no momento',
