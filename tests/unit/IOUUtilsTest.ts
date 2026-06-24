@@ -974,6 +974,39 @@ describe('getExistingTransactionID', () => {
     });
 });
 
+describe('formatCurrentUserToAttendee', () => {
+    test('returns undefined when current user has no login or display name', () => {
+        const currentUser = {
+            accountID: 2840332,
+        };
+
+        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
+    });
+
+    test('uses session email when current user login is missing', () => {
+        const currentUser = {
+            accountID: 2840332,
+            email: 'john.smith@example.com',
+            displayName: '',
+        };
+
+        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser, '123');
+
+        expect(attendees).toEqual([
+            {
+                email: 'john.smith@example.com',
+                login: 'john.smith@example.com',
+                displayName: 'john.smith@example.com',
+                avatarUrl: '',
+                accountID: 2840332,
+                text: 'john.smith@example.com',
+                selected: true,
+                reportID: '123',
+            },
+        ]);
+    });
+});
+
 describe('isParticipantP2P', () => {
     it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
         const participant = {
