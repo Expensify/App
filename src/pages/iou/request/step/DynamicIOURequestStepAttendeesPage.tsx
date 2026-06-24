@@ -1,7 +1,8 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -18,17 +19,18 @@ import {getOriginalAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
+type IOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES>;
 
-function IOURequestStepAttendees({
+function DynamicIOURequestStepAttendeesPage({
     route: {
-        params: {transactionID, reportID, iouType, backTo, action},
+        params: {transactionID, reportID, iouType, action},
     },
 }: IOURequestStepAttendeesProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -53,7 +55,16 @@ function IOURequestStepAttendees({
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.path);
     const {isOffline} = useNetwork();
+    const backPathRef = useRef(backPath);
+
+    // We use a ref because MoneyRequestAttendeeSelector's memo only compares attendees and iouType,
+    // so the onFinish callback can become stale if backPath updates after the initial render.
+    // A ref avoids adding backPath to useCallback deps, which would unnecessarily re-render the heavy child (MoneyRequestAttendeeSelector).
+    useEffect(() => {
+        backPathRef.current = backPath;
+    }, [backPath]);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -82,11 +93,10 @@ function IOURequestStepAttendees({
             }
         }
 
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPathRef.current);
     }, [
         attendees,
         previousAttendees,
-        backTo,
         transactionID,
         isEditing,
         report,
@@ -104,7 +114,7 @@ function IOURequestStepAttendees({
     ]);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPathRef.current);
     };
 
     return (
@@ -112,7 +122,7 @@ function IOURequestStepAttendees({
             headerTitle={translate('iou.attendees')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepAttendees"
+            testID="DynamicIOURequestStepAttendeesPage"
         >
             <MoneyRequestAttendeeSelector
                 onFinish={saveAttendees}
@@ -125,4 +135,4 @@ function IOURequestStepAttendees({
     );
 }
 
-export default withWritableReportOrNotFound(IOURequestStepAttendees);
+export default withWritableReportOrNotFound(DynamicIOURequestStepAttendeesPage);
