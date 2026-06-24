@@ -1,7 +1,7 @@
 import findAllMatchingDynamicSuffixes, {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
-    dynamicTabPatternToTabPaths: new Map(),
+    dynamicTabPatternToTabPaths: new Map([['flag/:reportID/:reportActionID', new Set(['AllTab', 'LinkedTab'])]]),
 }));
 
 jest.mock('@src/ROUTES', () => ({
@@ -255,10 +255,8 @@ describe('findAllMatchingDynamicSuffixes', () => {
 });
 
 describe('findAllMatchingDynamicSuffixes - tab-suffix stripping', () => {
-    const tabMap = new Map<string, Set<string>>([['flag/:reportID/:reportActionID', new Set(['AllTab', 'LinkedTab'])]]);
-
     it('strips the trailing tab segment and returns match with pathUsedForMatching', () => {
-        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab', tabMap);
+        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab');
         expect(results).toHaveLength(1);
         expect(results.at(0)).toEqual({
             pattern: 'flag/:reportID/:reportActionID',
@@ -269,7 +267,7 @@ describe('findAllMatchingDynamicSuffixes - tab-suffix stripping', () => {
     });
 
     it('strips the non-default tab segment and sets pathUsedForMatching', () => {
-        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/LinkedTab', tabMap);
+        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/LinkedTab');
         expect(results).toHaveLength(1);
         expect(results.at(0)).toMatchObject({
             pattern: 'flag/:reportID/:reportActionID',
@@ -278,7 +276,7 @@ describe('findAllMatchingDynamicSuffixes - tab-suffix stripping', () => {
     });
 
     it('preserves query string in pathUsedForMatching when stripping tab segment', () => {
-        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab?foo=bar', tabMap);
+        const results = findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab?foo=bar');
         expect(results).toHaveLength(1);
         expect(results.at(0)).toMatchObject({
             pathUsedForMatching: '/base/flag/456/abc?foo=bar',
@@ -286,20 +284,12 @@ describe('findAllMatchingDynamicSuffixes - tab-suffix stripping', () => {
     });
 
     it('does NOT strip when the last segment is a tab of a different (non-matched) pattern', () => {
-        const results = findAllMatchingDynamicSuffixes('/base/about/keyboard-shortcuts/AllTab', tabMap);
+        const results = findAllMatchingDynamicSuffixes('/base/about/keyboard-shortcuts/AllTab');
         expect(results).toEqual([]);
     });
 
-    it('does NOT strip when tabMap is not provided', () => {
-        expect(findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab')).toEqual([]);
-    });
-
-    it('does NOT strip when tabMap is empty', () => {
-        expect(findAllMatchingDynamicSuffixes('/base/flag/456/abc/AllTab', new Map())).toEqual([]);
-    });
-
-    it('recursive retry does not receive tabMap so stripping stops after one level', () => {
-        const results = findAllMatchingDynamicSuffixes('/base/flag/456/AllTab/LinkedTab', tabMap);
+    it('stripping stops after one level - nested tab segments do not double-strip', () => {
+        const results = findAllMatchingDynamicSuffixes('/base/flag/456/AllTab/LinkedTab');
         expect(results).toHaveLength(1);
         expect(results.at(0)).toMatchObject({
             pattern: 'flag/:reportID/:reportActionID',

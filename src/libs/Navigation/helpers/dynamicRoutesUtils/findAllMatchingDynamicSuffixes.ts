@@ -15,13 +15,15 @@ type DynamicSuffixMatch = {
     pathUsedForMatching: string;
 };
 
+type RawSuffixMatch = Omit<DynamicSuffixMatch, 'pathUsedForMatching'>;
+
 /**
  * Tries to match a candidate suffix against a list of compiled parametric patterns.
  * Returns the first match with extracted path params, or undefined.
  *
  * @private - Internal helper. Do not export or use outside this file.
  */
-function tryMatchParametric(candidate: string, candidateSegmentCount: number, patterns: CompiledEntry[]): Omit<DynamicSuffixMatch, 'pathUsedForMatching'> | undefined {
+function tryMatchParametric(candidate: string, candidateSegmentCount: number, patterns: CompiledEntry[]): RawSuffixMatch | undefined {
     const normalized = candidate.endsWith('/') ? candidate : `${candidate}/`;
 
     for (const {compiled} of patterns) {
@@ -51,28 +53,47 @@ function tryMatchParametric(candidate: string, candidateSegmentCount: number, pa
 }
 
 /**
- * Strips the trailing tab segment from a path and retries matching.
- * Returns an empty array if stripping is not applicable.
- * Calls `findAllMatchingDynamicSuffixes` recursively with an empty map to prevent double-stripping.
+ * Collects all registered dynamic route suffixes that syntactically match the end of the given path,
+ * across three phases in priority order:
+ *   1. Static matches (`dynamicRoutePaths` Set lookup), longest to shortest.
+ *   2. Strict parametric patterns (no optional params), longest to shortest.
+ *   3. Optional parametric patterns (has at least one `:param?`), longest to shortest.
  *
  * @private - Internal helper. Do not export or use outside this file.
  */
-function tryStripTabSuffix(normalizedPath: string, query: string, tabPatternMap: Map<string, Set<string>>): DynamicSuffixMatch[] {
-    if (tabPatternMap.size === 0) {
-        return [];
-    }
-    const lastSlash = normalizedPath.lastIndexOf('/');
-    if (lastSlash <= 0) {
-        return [];
-    }
-    const lastSegment = normalizedPath.slice(lastSlash + 1);
-    const pathWithoutTab = normalizedPath.slice(0, lastSlash);
-    const fullPathWithoutTab = query ? `${pathWithoutTab}?${query}` : pathWithoutTab;
-    const retriedResults = findAllMatchingDynamicSuffixes(pathWithoutTab, new Map());
+function collectMatchesForPath(normalizedPath: string): RawSuffixMatch[] {
+    const segments = normalizedPath.split('/').filter(Boolean);
+    const results: RawSuffixMatch[] = [];
+    const seenPatterns = new Set<string>();
 
-    // Keep only matches whose pattern owns the stripped segment as a registered tab-child path.
-    const validResults = retriedResults.filter((match) => tabPatternMap.get(match.pattern)?.has(lastSegment));
-    return validResults.map((match) => ({...match, pathUsedForMatching: fullPathWithoutTab}));
+    // Phase 1: Static matches (longest to shortest)
+    for (let i = 0; i < segments.length; i++) {
+        const candidate = segments.slice(i).join('/');
+        if (dynamicRoutePaths.has(candidate)) {
+            results.push({pattern: candidate, actualSuffix: candidate, pathParams: {}});
+            seenPatterns.add(candidate);
+        }
+    }
+
+    // Phase 2: Strict parametric patterns - no optional params (longest to shortest)
+    for (let i = 0; i < segments.length; i++) {
+        const match = tryMatchParametric(segments.slice(i).join('/'), segments.length - i, compiledStrictParametricDynamicRoutes);
+        if (match && !seenPatterns.has(match.pattern)) {
+            results.push(match);
+            seenPatterns.add(match.pattern);
+        }
+    }
+
+    // Phase 3: Optional parametric patterns - has at least one :param? (longest to shortest)
+    for (let i = 0; i < segments.length; i++) {
+        const match = tryMatchParametric(segments.slice(i).join('/'), segments.length - i, compiledOptionalParametricDynamicRoutes);
+        if (match && !seenPatterns.has(match.pattern)) {
+            results.push(match);
+            seenPatterns.add(match.pattern);
+        }
+    }
+
+    return results;
 }
 
 /**
@@ -93,54 +114,33 @@ function tryStripTabSuffix(normalizedPath: string, query: string, tabPatternMap:
  * to what `findMatchingDynamicSuffix` would return for the same path.
  *
  * @param path - The path to find all matching dynamic suffixes for
- * @param tabPatternMap - Override for the tab-pattern map (defaults to the app-wide
- *   `dynamicTabPatternToTabPaths`).
  * @returns Array of all matching dynamic suffixes in priority order (may be empty)
  */
-function findAllMatchingDynamicSuffixes(path = '', tabPatternMap: Map<string, Set<string>> = dynamicTabPatternToTabPaths): DynamicSuffixMatch[] {
+function findAllMatchingDynamicSuffixes(path = ''): DynamicSuffixMatch[] {
     const [normalizedPath, query] = splitPathAndQuery(path);
     if (!normalizedPath) {
         return [];
     }
 
-    // Handles dynamic routes that host a tab navigator: if the URL ends with a tab segment,
-    // strip it and return the match immediately.
-    const tabResults = tryStripTabSuffix(normalizedPath, query ?? '', tabPatternMap);
-    if (tabResults.length > 0) {
-        return tabResults;
-    }
-
-    const segments = normalizedPath.split('/').filter(Boolean);
-    const results: DynamicSuffixMatch[] = [];
-    const seenPatterns = new Set<string>();
-
-    // Phase 1: Static matches (longest to shortest)
-    for (let i = 0; i < segments.length; i++) {
-        const candidate = segments.slice(i).join('/');
-        if (dynamicRoutePaths.has(candidate)) {
-            results.push({pattern: candidate, actualSuffix: candidate, pathParams: {}, pathUsedForMatching: path});
-            seenPatterns.add(candidate);
+    // Some dynamic routes host a tab navigator, so their URLs end with an extra tab segment
+    // We detect this by stripping the last segment,
+    // matching the remaining path, and keeping only matches whose pattern has that segment
+    // registered as a tab child in `dynamicTabPatternToTabPaths`. If any such match is found
+    // we return early with `pathUsedForMatching` pointing at the path without the tab segment
+    // (preserving the query string) so that callers can correctly strip the dynamic suffix.
+    const lastSlash = normalizedPath.lastIndexOf('/');
+    if (lastSlash > 0) {
+        const lastSegment = normalizedPath.slice(lastSlash + 1);
+        const pathWithoutTab = normalizedPath.slice(0, lastSlash);
+        const matches = collectMatchesForPath(pathWithoutTab);
+        const tabMatches = matches.filter((match) => dynamicTabPatternToTabPaths.get(match.pattern)?.has(lastSegment));
+        if (tabMatches.length > 0) {
+            const fullPathWithoutTab = query ? `${pathWithoutTab}?${query}` : pathWithoutTab;
+            return tabMatches.map((match) => ({...match, pathUsedForMatching: fullPathWithoutTab}));
         }
     }
 
-    // Phase 2: Strict parametric patterns - no optional params (longest to shortest)
-    for (let i = 0; i < segments.length; i++) {
-        const match = tryMatchParametric(segments.slice(i).join('/'), segments.length - i, compiledStrictParametricDynamicRoutes);
-        if (match && !seenPatterns.has(match.pattern)) {
-            results.push({...match, pathUsedForMatching: path});
-            seenPatterns.add(match.pattern);
-        }
-    }
-
-    // Phase 3: Optional parametric patterns - has at least one :param? (longest to shortest)
-    for (let i = 0; i < segments.length; i++) {
-        const match = tryMatchParametric(segments.slice(i).join('/'), segments.length - i, compiledOptionalParametricDynamicRoutes);
-        if (match && !seenPatterns.has(match.pattern)) {
-            results.push({...match, pathUsedForMatching: path});
-            seenPatterns.add(match.pattern);
-        }
-    }
-
+    const results = collectMatchesForPath(normalizedPath).map((match) => ({...match, pathUsedForMatching: path}));
     return results;
 }
 

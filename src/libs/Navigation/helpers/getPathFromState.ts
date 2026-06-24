@@ -87,7 +87,7 @@ function popFocusedRoute(state: State): State | undefined {
 
     // the focused route has nested state - try to pop from deeper levels first,
     // unless it hosts an OnyxTabNavigator (treat it as a leaf).
-    if (focusedRoute.state && !screensWithOnyxTabNavigator.has(focusedRoute.name ?? '')) {
+    if (focusedRoute.state && focusedRoute.name && !screensWithOnyxTabNavigator.has(focusedRoute.name)) {
         const nestedResult = popFocusedRoute(focusedRoute.state as State);
 
         // A deeper route was successfully popped - rebuild the current level with the updated nested state.
