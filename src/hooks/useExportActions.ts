@@ -6,7 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
-import {getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {doesExportTemplateRequireWorkspacePolicy, getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
@@ -212,7 +212,13 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             value: template.templateName,
             description: template.description,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
-            onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.policyID),
+            onSelected: () =>
+                beginExportWithTemplate(
+                    template.templateName,
+                    template.type,
+                    transactionIDs,
+                    template.policyID ?? (doesExportTemplateRequireWorkspacePolicy(template) ? moneyRequestReport?.policyID : undefined),
+                ),
         };
     }
 

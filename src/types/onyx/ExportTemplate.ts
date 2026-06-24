@@ -16,6 +16,9 @@ type ExportTemplate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Description of the template */
     description: string;
+
+    /** Column formulas the template exports (e.g. {expense:category:glcode}); present for in-app/CSV layout templates */
+    columns?: string[];
 }>;
 
 export default ExportTemplate;

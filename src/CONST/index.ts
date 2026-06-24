@@ -1983,6 +1983,8 @@ const CONST = {
         IN_APP: 'in-app',
     },
     EXPORT_TEMPLATE: 'exportTemplate',
+    // Marker present in a template column formula (e.g. {expense:category:glcode}) that requires a workspace policyID to resolve GL codes
+    EXPORT_TEMPLATE_GL_CODE_COLUMN_MARKER: ':glcode',
     NEXT_STEP: {
         MESSAGE_KEY: {
             WAITING_TO_ADD_TRANSACTIONS: 'waitingToAddTransactions',
