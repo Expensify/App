@@ -5,6 +5,7 @@ import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,19 +14,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-type WorkspaceCurrencySelectionPageProps = {
-    route: {
-        params: {
-            backTo?: Route;
-        };
-    };
-};
-
-function WorkspaceCurrencySelectionPage({route}: WorkspaceCurrencySelectionPageProps) {
+function DynamicWorkspaceCurrencySelectionPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_CURRENCY.path);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [workspaceConfirmationFormDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
@@ -33,9 +27,8 @@ function WorkspaceCurrencySelectionPage({route}: WorkspaceCurrencySelectionPageP
     const value = workspaceConfirmationFormDraft?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     const goBack = useCallback(() => {
-        const backTo = route?.params?.backTo;
-        Navigation.goBack(backTo);
-    }, [route?.params?.backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const onSelect = useCallback(
         (option: CurrencyListItem) => {
@@ -50,7 +43,7 @@ function WorkspaceCurrencySelectionPage({route}: WorkspaceCurrencySelectionPageP
     );
 
     return (
-        <ScreenWrapper testID="WorkspaceCurrencySelectionPage">
+        <ScreenWrapper testID="DynamicWorkspaceCurrencySelectionPage">
             <HeaderWithBackButton
                 title={translate('workspace.editor.currencyInputLabel')}
                 onBackButtonPress={goBack}
@@ -66,4 +59,4 @@ function WorkspaceCurrencySelectionPage({route}: WorkspaceCurrencySelectionPageP
     );
 }
 
-export default WorkspaceCurrencySelectionPage;
+export default DynamicWorkspaceCurrencySelectionPage;
