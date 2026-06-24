@@ -91,8 +91,8 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                         <View style={[styles.popoverMenuIcon, styles.wAuto, styles.pRelative]}>
                             <Icon
                                 src={icon}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
+                                width={variables.iconSizeSmall}
+                                height={variables.iconSizeSmall}
                                 fill={StyleUtils.getIconFillColor(getButtonState(focused || hovered, pressed, false, false, true), true, true)}
                             />
                             {!!badgeText && (

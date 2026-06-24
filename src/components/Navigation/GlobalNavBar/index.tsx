@@ -88,7 +88,6 @@ function GlobalNavBar() {
                 right: 0,
                 height: GLOBAL_NAV_BAR_HEIGHT,
                 backgroundColor: theme.appBG,
-                borderTopLeftRadius: 16,
                 zIndex: 10,
             }}
             testID="GlobalNavBar"

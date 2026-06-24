@@ -131,6 +131,9 @@ type PaymentMethodListProps = {
 
     /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
+
+    /** Render MenuItem titles with normal weight rather than bold */
+    shouldShowBasicTitle?: boolean;
 };
 
 function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefault = false, shouldHideDefaultBadge = false): boolean {
@@ -178,6 +181,7 @@ function PaymentMethodList({
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
     onThreeDotsMenuPress,
+    shouldShowBasicTitle = false,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -505,6 +509,7 @@ function PaymentMethodList({
             icon={expensifyIcons.Plus}
             wrapperStyle={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
+            shouldShowBasicTitle={shouldShowBasicTitle}
         />
     );
 
@@ -540,6 +545,7 @@ function PaymentMethodList({
                 )}
                 listItemStyle={listItemStyle}
                 threeDotsMenuItems={threeDotsMenuItems}
+                shouldShowBasicTitle={shouldShowBasicTitle}
             />
         );
     };

@@ -749,6 +749,7 @@ function WalletPage() {
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
+                                shouldShowBasicTitle
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
@@ -765,6 +766,7 @@ function WalletPage() {
                                 <PaymentMethodList
                                     shouldShowAddBankAccount={false}
                                     shouldShowAssignedCards
+                                    shouldShowBasicTitle
                                     onPress={assignedCardPressed}
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
@@ -777,6 +779,7 @@ function WalletPage() {
                                         icon={icons.Plus}
                                         wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
+                                        shouldShowBasicTitle
                                     />
                                 </View>
                             </>
@@ -788,6 +791,7 @@ function WalletPage() {
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
                                     wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
+                                    shouldShowBasicTitle
                                 />
                             </View>
                             {!hasAssignedCard && (
@@ -801,7 +805,7 @@ function WalletPage() {
                                         wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                                         title={translate('personalCard.lookingForCompanyCards')}
                                         description={translate('personalCard.lookingForCompanyCardsDescription')}
-                                        titleStyle={styles.textStrong}
+                                        shouldShowBasicTitle
                                         onPress={openCompanyCardFlow}
                                     />
                                 </View>
@@ -881,6 +885,7 @@ function WalletPage() {
                                                             shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
                                                         ]}
                                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_BALANCE}
+                                                        shouldShowBasicTitle
                                                     />
                                                 );
                                             }
@@ -934,6 +939,7 @@ function WalletPage() {
                                                         shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
                                                     ]}
                                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
+                                                    shouldShowBasicTitle
                                                 />
                                             );
                                         }}
