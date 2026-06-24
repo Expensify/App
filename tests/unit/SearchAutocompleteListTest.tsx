@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
@@ -78,6 +79,12 @@ jest.mock('@hooks/useFilteredOptions', () => ({
     __esModule: true,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     default: (...args: unknown[]) => mockUseFilteredOptions(...args),
+}));
+
+const mockUseNavigationSuggestions = jest.fn<SearchQueryItem[], []>(() => []);
+jest.mock('@components/Search/SearchRouter/useNavigationSuggestions', () => ({
+    __esModule: true,
+    default: () => mockUseNavigationSuggestions(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -187,6 +194,37 @@ describe('SearchAutocompleteList', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        mockUseNavigationSuggestions.mockReturnValue([]);
+    });
+
+    it('should display and select navigation suggestion rows', async () => {
+        const navigationAction = jest.fn();
+        mockUseNavigationSuggestions.mockReturnValue([
+            {
+                text: 'Go to Inbox',
+                keyForList: 'navigate_inbox',
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE,
+                action: navigationAction,
+            },
+        ]);
+
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            ...mockedReports,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            [ONYXKEYS.BETAS]: mockedBetas,
+        });
+
+        render(<SearchRouterWrapper />);
+        await flushAllUpdates();
+
+        const navigationSuggestion = await screen.findByText('Go to Inbox');
+        fireEvent.press(navigationSuggestion);
+
+        await waitFor(() => {
+            expect(navigationAction).toHaveBeenCalled();
+            expect(mockOnClose).toHaveBeenCalled();
+        });
     });
 
     it('should display Recent searches section when query is empty and recent searches exist', async () => {
