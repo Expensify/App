@@ -1,7 +1,7 @@
 ---
 title: Enable Time Tracking and Set a Default Hourly Rate
 description: Learn how to enable Time Tracking and set a default hourly rate for your workspace.
-keywords: [New Expensify, Time Tracking, enable Time Tracking, default hourly rate, Collect plan, Control plan, Workspace Admin, track time, hourly rate]
+keywords: [New Expensify, Time Tracking, enable Time Tracking, default hourly rate, Collect plan, Control plan, Workspace Admin, track time, hourly rate]rr
 internalScope: Audience is Workspace Admins. Covers enabling Time Tracking and setting a default hourly rate in Collect and Control workspaces. Does not cover invoicing, billing, or time report approvals.
 ---
 
