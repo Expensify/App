@@ -203,7 +203,7 @@ jobs:
         run: |
           OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration Release --log-level debug 2>&1)
           echo "$OUTPUT"
-          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
+          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ "}]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
             echo "::notice::Android Sentry size analysis: $SENTRY_URL"
             echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
