@@ -236,6 +236,23 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         );
     }
     const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
+
+    // The current user can never be the recipient of a money request, so an expense whose only recipient resolves to
+    // the current user (or the self-DM) must be a self-DM track expense — exactly what the old flow produces by
+    // navigating to the confirmation with the TRACK iouType. In the new flow that iouType conversion happens via an
+    // async navigation.setParams, so by submit time the route iouType can still be CREATE/SUBMIT and we'd otherwise
+    // fall through to requestMoney and hit "you cannot request money from yourself". Derive the destination from the
+    // resolved participant instead of the (racy) route iouType so both flows behave the same.
+    const soleSelectedParticipant = selectedParticipants.length === 1 ? selectedParticipants.at(0) : undefined;
+    const isSelfDMDestination =
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        iouType !== CONST.IOU.TYPE.INVOICE &&
+        iouType !== CONST.IOU.TYPE.PAY &&
+        !!soleSelectedParticipant &&
+        !soleSelectedParticipant.isSender &&
+        !soleSelectedParticipant.isPolicyExpenseChat &&
+        (soleSelectedParticipant.isSelfDM === true || (!!currentUserPersonalDetails.accountID && soleSelectedParticipant.accountID === currentUserPersonalDetails.accountID));
+
     const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
@@ -296,6 +313,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         navigateBackToReport,
         lastOptimisticTransactionID,
         preResolvedChatTarget,
+        reportForCleanup,
     }: {
         participant: Participant;
         shouldHandleNavigation: boolean;
@@ -304,6 +322,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         navigateBackToReport: string | undefined;
         lastOptimisticTransactionID: string | undefined;
         preResolvedChatTarget?: {report: OnyxEntry<Report>; chatReportID: string};
+        /** Overrides the report used to resolve the post-submit nav target (self-DM track forces the self-DM here). */
+        reportForCleanup?: OnyxEntry<Report>;
     }) {
         const lastTransaction = transactions.at(-1);
         // Action bailed mid-batch — keep drafts for retry.
@@ -320,7 +340,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
-                report,
+                report: reportForCleanup ?? report,
                 fallbackOptimisticChatReportID,
                 action,
             });
@@ -619,6 +639,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
+        // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
+        // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
+        const trackReport = isSelfDMDestination ? undefined : report;
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         let lastOptimisticTransactionID: string | undefined;
         for (const item of transactions) {
@@ -629,7 +652,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const email = currentUserPersonalDetails.email ?? '';
             trackExpenseIOUActions({
-                report,
+                report: trackReport,
                 isDraftPolicy,
                 action,
                 existingTransaction: item,
@@ -700,6 +723,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             fallbackOptimisticChatReportID: optimisticSelfDMReportID,
             navigateBackToReport: undefined,
             lastOptimisticTransactionID,
+            reportForCleanup: isSelfDMDestination ? selfDMReport : undefined,
         });
     }
 
@@ -776,7 +800,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
+        if (!isTrackExpense && !isSelfDMDestination && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
             const shouldDeferDistanceForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
             createDistanceRequest(trimmedComment, shouldHandleNavigation, shouldDeferDistanceForSearch);
             markSubmitExpenseEnd();
@@ -929,7 +953,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense)) {
+        if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense || isSelfDMDestination)) {
             if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
