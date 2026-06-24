@@ -114,6 +114,9 @@ type Decision = {
 type OriginalMessageSmartScanFailed = {
     /** Fields that are missing */
     missingFields: string[];
+
+    /** LLM-friendly explanation of the scan failure that activates the Explain button */
+    reasoning?: string;
 };
 
 /** Model of `add comment` report action */
