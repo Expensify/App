@@ -75,6 +75,8 @@ function ReportActionsListItemRenderer({
     isHarvestCreatedExpenseReport = false,
     shouldDisableContextMenuForConciergeDraft = false,
 }: ReportActionsListItemRendererProps) {
+    console.log('[ReportActionsListItemRenderer]', reportAction?.reportActionID);
+
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
     /**

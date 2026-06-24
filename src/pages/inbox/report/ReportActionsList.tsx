@@ -476,6 +476,13 @@ function ReportActionsList({
         isTrackIntentUser,
     });
 
+    console.log(
+        '[ReportActionsList] render, actions count:',
+        renderedVisibleReportActions?.length,
+        'IDs:',
+        renderedVisibleReportActions?.map((a) => a?.reportActionID),
+    );
+
     return (
         <>
             <FloatingMessageCounter
