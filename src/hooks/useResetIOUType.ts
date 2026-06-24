@@ -11,6 +11,7 @@ import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
@@ -132,12 +133,9 @@ function useResetIOUType({
         // participants. This ensures destinationReportID is defined from the confirmation's
         // first render, preventing the pre-insert useEffect from seeing an undefined-to-value
         // transition that would tear down and fail to re-fire the pre-insert.
-        if (isFromGlobalCreate && defaultParticipants && defaultParticipants.length > 0) {
-            const firstParticipant = defaultParticipants.at(0);
-            const resolvedReportID = firstParticipant?.isSelfDM ? CONST.REPORT.UNREPORTED_REPORT_ID : firstParticipant?.reportID;
-            if (resolvedReportID) {
-                setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: resolvedReportID}, true);
-            }
+        const earlyReportID = resolveEarlyReportID(isFromGlobalCreate, defaultParticipants);
+        if (earlyReportID) {
+            setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: earlyReportID}, true);
         }
 
         // Layer odometer draft fields onto the freshly-rebuilt transaction. The merge queues after
@@ -180,4 +178,21 @@ function useResetIOUType({
     return onTabSelected;
 }
 
+/**
+ * Resolves the reportID that should be set on the transaction draft for
+ * global-create flows with default participants. Returns undefined when
+ * no early set is needed (non-global-create or empty participants).
+ */
+function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Participant[] | undefined): string | undefined {
+    if (!isFromGlobalCreate || !participants || participants.length === 0) {
+        return undefined;
+    }
+    const firstParticipant = participants.at(0);
+    if (firstParticipant?.isSelfDM) {
+        return CONST.REPORT.UNREPORTED_REPORT_ID;
+    }
+    return firstParticipant?.reportID;
+}
+
 export default useResetIOUType;
+export {resolveEarlyReportID};

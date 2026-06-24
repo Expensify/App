@@ -1,71 +1,46 @@
-import {setTransactionReport} from '@userActions/Transaction';
+import {resolveEarlyReportID} from '@hooks/useResetIOUType';
 import CONST from '@src/CONST';
+import type {Participant} from '@src/types/onyx/IOU';
 
-jest.mock('@userActions/Transaction', () => ({
-    setTransactionReport: jest.fn(),
-}));
+describe('resolveEarlyReportID', () => {
+    it('returns workspace chat reportID for workspace participants', () => {
+        const participants: Participant[] = [{accountID: 0, reportID: 'workspace-chat-123', isPolicyExpenseChat: true, selected: true}];
 
-const mockSetTransactionReport = jest.mocked(setTransactionReport);
-
-beforeEach(() => {
-    jest.clearAllMocks();
-});
-
-describe('useResetIOUType - early reportID setting', () => {
-    it('calls setTransactionReport with workspace reportID for workspace participants', () => {
-        const defaultParticipants = [{accountID: 0, reportID: 'workspace-chat-123', isPolicyExpenseChat: true, selected: true, isSelfDM: false}];
-        const isFromGlobalCreate = true;
-
-        // Simulate the logic from useResetIOUType
-        if (isFromGlobalCreate && defaultParticipants && defaultParticipants.length > 0) {
-            const firstParticipant = defaultParticipants.at(0);
-            const resolvedReportID = firstParticipant?.isSelfDM ? CONST.REPORT.UNREPORTED_REPORT_ID : firstParticipant?.reportID;
-            if (resolvedReportID) {
-                setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: resolvedReportID}, true);
-            }
-        }
-
-        expect(mockSetTransactionReport).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: 'workspace-chat-123'}, true);
+        expect(resolveEarlyReportID(true, participants)).toBe('workspace-chat-123');
     });
 
-    it('calls setTransactionReport with UNREPORTED_REPORT_ID for selfDM participants', () => {
-        const defaultParticipants = [{accountID: 0, reportID: 'self-dm-456', isSelfDM: true, selected: true}];
-        const isFromGlobalCreate = true;
+    it('returns UNREPORTED_REPORT_ID for selfDM participants', () => {
+        const participants: Participant[] = [{accountID: 0, reportID: 'self-dm-456', isSelfDM: true, selected: true}];
 
-        if (isFromGlobalCreate && defaultParticipants && defaultParticipants.length > 0) {
-            const firstParticipant = defaultParticipants.at(0);
-            const resolvedReportID = firstParticipant?.isSelfDM ? CONST.REPORT.UNREPORTED_REPORT_ID : firstParticipant?.reportID;
-            if (resolvedReportID) {
-                setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: resolvedReportID}, true);
-            }
-        }
-
-        expect(mockSetTransactionReport).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+        expect(resolveEarlyReportID(true, participants)).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
     });
 
-    it('does not call setTransactionReport when not from global create', () => {
-        const defaultParticipants = [{accountID: 0, reportID: 'some-report', selected: true}];
-        const isFromGlobalCreate = false;
+    it('returns undefined when not from global create', () => {
+        const participants: Participant[] = [{accountID: 0, reportID: 'some-report', selected: true}];
 
-        if (isFromGlobalCreate && defaultParticipants && defaultParticipants.length > 0) {
-            const firstParticipant = defaultParticipants.at(0);
-            const resolvedReportID = firstParticipant?.isSelfDM ? CONST.REPORT.UNREPORTED_REPORT_ID : firstParticipant?.reportID;
-            if (resolvedReportID) {
-                setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: resolvedReportID}, true);
-            }
-        }
-
-        expect(mockSetTransactionReport).not.toHaveBeenCalled();
+        expect(resolveEarlyReportID(false, participants)).toBeUndefined();
     });
 
-    it('does not call setTransactionReport when no default participants', () => {
-        const defaultParticipants = undefined;
-        const isFromGlobalCreate = true;
+    it('returns undefined when participants array is empty', () => {
+        expect(resolveEarlyReportID(true, [])).toBeUndefined();
+    });
 
-        if (isFromGlobalCreate && defaultParticipants && (defaultParticipants as unknown[]).length > 0) {
-            setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: 'should-not-reach'}, true);
-        }
+    it('returns undefined when participants is undefined', () => {
+        expect(resolveEarlyReportID(true, undefined)).toBeUndefined();
+    });
 
-        expect(mockSetTransactionReport).not.toHaveBeenCalled();
+    it('returns undefined when first participant has no reportID and is not selfDM', () => {
+        const participants: Participant[] = [{accountID: 123, selected: true}];
+
+        expect(resolveEarlyReportID(true, participants)).toBeUndefined();
+    });
+
+    it('uses first participant only, ignores subsequent ones', () => {
+        const participants: Participant[] = [
+            {accountID: 0, reportID: 'first-report', isPolicyExpenseChat: true, selected: true},
+            {accountID: 0, reportID: 'second-report', isPolicyExpenseChat: true, selected: true},
+        ];
+
+        expect(resolveEarlyReportID(true, participants)).toBe('first-report');
     });
 });
