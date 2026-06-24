@@ -3,14 +3,12 @@ import {AccessibilityInfo} from 'react-native';
 import type {Text as RNText, View} from 'react-native';
 import Log from '@libs/Log';
 
-/** Returns false when `sendAccessibilityEvent` throws on a stale native handle — react-native-screens detach can leave the JS ref non-null while the RCTView is dead. */
-function fireFocusEvent(view: View | RNText): boolean {
+/** Catches stale-handle throws (Android-only — iOS silently no-ops) so the orchestrator isn't aborted; not a success signal — recovery is via the parallel registry-rescue in `restoreTriggerForRoute`. */
+function fireFocusEvent(view: View | RNText): void {
     try {
         AccessibilityInfo.sendAccessibilityEvent(view, 'focus');
-        return true;
     } catch (error: unknown) {
         Log.warn('[fireFocusEvent] sendAccessibilityEvent threw', {error});
-        return false;
     }
 }
 
