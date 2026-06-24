@@ -2776,10 +2776,8 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         firstApproverEmail: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
+    [SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
         policyID: string;

@@ -561,8 +561,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/ImportedMembersConfirmationPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsCreatePage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage').default,
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsExpensesFromPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/DynamicWorkspaceWorkflowsApprovalsExpensesFromPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage').default,

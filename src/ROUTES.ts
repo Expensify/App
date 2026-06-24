@@ -742,7 +742,11 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_INVITE_MESSAGE: {
         path: 'invite-message',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM],
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
+        path: 'expenses-from',
+        entryScreens: [SCREENS.WORKSPACE.WORKFLOWS, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT],
     },
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         path: 'role',
@@ -2444,11 +2448,6 @@ const ROUTES = {
     WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
         route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
         getRoute: (policyID: string, firstApproverEmail: string) => `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
-    },
-    WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
-        route: 'workspaces/:policyID/workflows/approvals/expenses-from',
-
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/workflows/approvals/expenses-from` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/approver',

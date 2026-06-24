@@ -818,7 +818,7 @@ const SCREENS = {
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
         WORKFLOWS_APPROVALS_EDIT: 'Workspace_Approvals_Edit',
-        WORKFLOWS_APPROVALS_EXPENSES_FROM: 'Workspace_Workflows_Approvals_Expenses_From',
+        DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM: 'Dynamic_Workspace_Workflows_Approvals_Expenses_From',
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
         WORKFLOWS_APPROVALS_APPROVER_CHANGE: 'Workspace_Workflows_Approvals_Approver_Change',
         WORKFLOWS_APPROVALS_APPROVAL_LIMIT: 'Workspace_Workflows_Approvals_Approval_Limit',
