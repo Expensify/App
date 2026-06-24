@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report} from '@src/types/onyx';
@@ -16,7 +17,7 @@ const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 
 function useMoneyRequestPolicyTagsForReport({report, currentUserAccountID, existingIOUReportPolicyID}: UseMoneyRequestPolicyTagsForReportParams): PolicyTagLists {
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const chatReportID = isMoneyRequestReport ? report?.chatReportID : undefined;
+    const chatReportID = isMoneyRequestReport ? getNonEmptyStringOnyxID(report?.chatReportID) : undefined;
 
     // Subscribe reactively (the chat report may load after first render) and narrow to the primitive policyID to avoid re-renders on unrelated field changes.
     const [chatReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: selectReportPolicyID});
