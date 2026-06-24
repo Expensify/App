@@ -88,7 +88,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
+                shouldUseNarrowTableLayout && !isSelectionCheckboxVisible ? styles.ph4 : styles.ph3,
                 styles.mh5,
                 styles.highlightBG,
                 styles.borderBottom,
