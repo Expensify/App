@@ -30,7 +30,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
-import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -207,11 +206,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const targetPolicyTags = defaultPolicyTags ?? {};
 
-    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
-    const policyTagList = useMoneyRequestPolicyTagsForReport({
-        report: activePolicyExpenseChat,
-        participantReportID: participants.at(0)?.reportID,
-    });
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
 
     // Duplicate action throttle
     const handleDuplicateReset = () => {

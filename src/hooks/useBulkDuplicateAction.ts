@@ -3,7 +3,6 @@ import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
-import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,12 +56,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     }
 
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
-    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
-
-    const policyTagList = useMoneyRequestPolicyTagsForReport({
-        report: activePolicyExpenseChat,
-        participantReportID: participants.at(0)?.reportID,
-    });
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
 
     const handleDuplicate = () => {
         bulkDuplicateExpenses({

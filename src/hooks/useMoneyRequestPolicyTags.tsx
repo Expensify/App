@@ -1,5 +1,7 @@
+import type {OnyxEntry} from 'react-native-onyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists} from '@src/types/onyx';
+import type {PolicyTagLists, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useOnyx from './useOnyx';
 
@@ -10,13 +12,16 @@ type UseMoneyRequestPolicyTagsParams = {
     participantReportID?: string;
 };
 
+const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
+
 function useMoneyRequestPolicyTags({existingIOUReportPolicyID, moneyRequestReportID, parentChatReportPolicyID, participantReportID}: UseMoneyRequestPolicyTagsParams): PolicyTagLists {
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
-    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
+    // getNonEmptyStringOnyxID guards against an empty id producing a bare collection key (e.g. `report_`), which would subscribe to the whole collection.
+    const [moneyRequestReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReportID)}`, {selector: selectReportPolicyID});
+    const [participantReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(participantReportID)}`, {selector: selectReportPolicyID});
 
-    const iouReportPolicyID = existingIOUReportPolicyID ?? moneyRequestReport?.policyID ?? parentChatReportPolicyID ?? participantReport?.policyID;
+    const iouReportPolicyID = existingIOUReportPolicyID ?? moneyRequestReportPolicyID ?? parentChatReportPolicyID ?? participantReportPolicyID;
 
-    const [policyTags = getEmptyObject<PolicyTagLists>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
+    const [policyTags = getEmptyObject<PolicyTagLists>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(iouReportPolicyID)}`);
 
     return policyTags;
 }

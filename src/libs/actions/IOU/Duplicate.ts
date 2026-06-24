@@ -758,12 +758,11 @@ function duplicateExpenseTransaction({
     currentUserLocalCurrency,
     policyTagList,
 }: DuplicateExpenseTransactionParams) {
-    const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUser.accountID);
-
     if (!transaction) {
         return;
     }
     const {accountID: currentUserAccountID, email: currentUserLogin = ''} = currentUser;
+    const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUserAccountID);
 
     const transactionDetails = getTransactionDetails(transaction);
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);

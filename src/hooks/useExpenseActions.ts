@@ -42,7 +42,7 @@ import {
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
-import {getMoneyRequestParticipantsFromReport, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -224,11 +224,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
-    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
-    const policyTagList = useMoneyRequestPolicyTagsForReport({
-        report: activePolicyExpenseChat,
-        participantReportID: participants.at(0)?.reportID,
-    });
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
 
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {

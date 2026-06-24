@@ -1,24 +1,37 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {getReportOrDraftReport, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report} from '@src/types/onyx';
 import useMoneyRequestPolicyTags from './useMoneyRequestPolicyTags';
+import useOnyx from './useOnyx';
 
 type UseMoneyRequestPolicyTagsForReportParams = {
     report: OnyxEntry<Report>;
-    participantReportID?: string;
+    currentUserAccountID: number;
     existingIOUReportPolicyID?: string;
 };
 
-// Report-centric wrapper around useMoneyRequestPolicyTags: derives moneyRequestReportID and the parent-chat policy ID from `report`.
-function useMoneyRequestPolicyTagsForReport({report, participantReportID, existingIOUReportPolicyID}: UseMoneyRequestPolicyTagsForReportParams): PolicyTagLists {
+const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
+
+function useMoneyRequestPolicyTagsForReport({report, currentUserAccountID, existingIOUReportPolicyID}: UseMoneyRequestPolicyTagsForReportParams): PolicyTagLists {
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    // getNonEmptyStringOnyxID guards against an empty chatReportID producing a bare collection key (`report_`), which would subscribe to the whole collection.
+    const chatReportID = isMoneyRequestReport ? getNonEmptyStringOnyxID(report?.chatReportID) : undefined;
+
+    // Subscribe reactively (the chat report may load after first render) and narrow to the primitive policyID to avoid re-renders on unrelated field changes.
+    const [chatReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: selectReportPolicyID});
+    const [chatReportDraftPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, {selector: selectReportPolicyID});
+
+    const parentChatReportPolicyID = isMoneyRequestReport ? (chatReportPolicyID ?? chatReportDraftPolicyID) : report?.policyID;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+    const participantReportID = getMoneyRequestParticipantsFromReport(report, currentUserAccountID).at(0)?.reportID;
 
     return useMoneyRequestPolicyTags({
         existingIOUReportPolicyID,
         moneyRequestReportID,
-        parentChatReportPolicyID: currentChatReport?.policyID,
+        parentChatReportPolicyID,
         participantReportID,
     });
 }
