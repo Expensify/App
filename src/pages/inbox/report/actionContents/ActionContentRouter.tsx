@@ -171,7 +171,6 @@ function ActionContentRouter({
             <ChatTransactionPreview
                 action={action}
                 reportID={reportID}
-                chatReportID={report?.type === CONST.REPORT.TYPE.CHAT ? reportID : report?.chatReportID}
                 chatReport={report?.type === CONST.REPORT.TYPE.CHAT ? report : chatReport}
                 iouReport={report?.type === CONST.REPORT.TYPE.CHAT ? iouReport : report}
                 shouldShowSplitPreview={shouldShowSplitPreview}
