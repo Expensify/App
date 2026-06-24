@@ -12,7 +12,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import {clearExportDownload, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
@@ -56,6 +56,7 @@ import {
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport as isExpenseReportUtil,
+    isIndividualInvoiceRoom,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
     isSelfDM,
@@ -199,6 +200,12 @@ type ShouldShowBulkDuplicateParams = {
     typeExpenseReport: boolean;
     searchData: Record<string, unknown> | undefined;
 };
+
+function areIncludedSubmitPolicyTransactions(selectedTransactions: SelectedTransactions, selectedReports: SelectedReports[], allPolicies: OnyxCollection<Policy>): boolean {
+    return selectedReports.length > 0
+        ? selectedReports.some((report) => isSubmitPolicy(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
+        : Object.values(selectedTransactions).some((transaction) => isSubmitPolicy(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${transaction.policyID}`]));
+}
 
 function getAllTransactionsForDuplicate({
     selectedTransactionsKeys,
@@ -1091,6 +1098,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         invoiceReceiverPolicyID ?? chatReport.policyID,
                     );
 
+                    const shouldUseB2BInvoiceReport = !!paymentItem.payAsBusiness && !!existingB2BInvoiceReport && isIndividualInvoiceRoom(chatReport);
+                    const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
+
                     payInvoice({
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
@@ -1110,6 +1120,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         defaultWorkspaceName,
                         additionalOnyxData,
                         shouldPlaySuccessSound: false,
+                        chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${payChatReportID}`],
                     });
                     paidReportCount += 1;
                     continue;
@@ -1136,6 +1147,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
+                    chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
                 });
                 paidReportCount += 1;
             }
@@ -1159,12 +1171,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             policies,
             showDelegateNoAccessModal,
             allReports,
+            allReportActions,
             allNextSteps,
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
             policyIDsWithVBBA,
-            allReportActions,
             formatPhoneNumber,
             clearSelectedTransactions,
             accountID,
@@ -1608,10 +1620,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) =>
             selectedTransactions[id].reportID ? selectedReportIDs.includes(selectedTransactions[id].reportID) : true,
         );
+        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
+            !hasSubmitPolicyTransactions &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.canApprove)
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
