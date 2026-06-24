@@ -731,7 +731,7 @@ function toggleCashbackToBill(workspaceAccountID: number, programKey: CardProgra
     ];
 
     const parameters = {
-        workspaceAccountID,
+        policyAccountID: workspaceAccountID,
         shouldApplyCashbackToBill,
     };
 

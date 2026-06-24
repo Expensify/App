@@ -23,7 +23,7 @@ type ReportCardLostConfirmMagicCodePageProps = PlatformStackScreenProps<Settings
 
 function ReportCardLostConfirmMagicCodePage({
     route: {
-        params: {cardID = '', reason = 'damaged'},
+        params: {cardID = '', reason = 'damaged', isFromDomainCardDetail},
     },
 }: ReportCardLostConfirmMagicCodePageProps) {
     const {translate} = useLocalize();
@@ -65,9 +65,16 @@ function ReportCardLostConfirmMagicCodePage({
             >
                 <HeaderWithBackButton
                     title={translate('common.success')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(newCardID))}
+                    onBackButtonPress={() =>
+                        Navigation.goBack(isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(newCardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(newCardID), {
+                            compareParams: false,
+                        })
+                    }
                 />
-                <SuccessReportCardLost cardID={newCardID} />
+                <SuccessReportCardLost
+                    cardID={newCardID}
+                    isFromDomainCardDetail={!!isFromDomainCardDetail}
+                />
             </ScreenWrapper>
         );
     }

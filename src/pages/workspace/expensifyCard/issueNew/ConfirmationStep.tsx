@@ -151,6 +151,11 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             fields.push(translation);
         }
 
+        if (spendRuleForm?.currencies?.length) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.currencies') : translate('workspace.rules.spendRules.currencies').toLowerCase();
+            fields.push(translation);
+        }
+
         return fields.join(', ');
     })();
 

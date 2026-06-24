@@ -770,7 +770,7 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
                 }
 
                 // Someone reimburses an expense
-                if ('IOUReportID' in message) {
+                if ('paymentType' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
 

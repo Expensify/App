@@ -2,16 +2,18 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import {useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
@@ -63,9 +65,11 @@ function RateField({
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
+    const {isSearchRouterDisplayed} = useSearchRouterState();
+
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED,
-        !!shouldShowRateAutoUpdatedTooltip,
+        !!shouldShowRateAutoUpdatedTooltip && !isSearchRouterDisplayed && !shouldDisplayDistanceRateError,
     );
 
     return (
@@ -84,15 +88,16 @@ function RateField({
 
                 if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action,
-                            iouType,
-                            transactionID,
-                            reportID,
-                            upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                            backTo: Navigation.getActiveRoute(),
-                            shouldSubmitExpense: !isTrackExpense,
-                        }),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action,
+                                iouType,
+                                transactionID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                shouldSubmitExpense: !isTrackExpense,
+                            }),
+                        ),
                     );
                 } else if (!policy && shouldSelectPolicy && isTrackExpense) {
                     Navigation.navigate(

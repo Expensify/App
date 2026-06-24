@@ -11,10 +11,8 @@ import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import MultiSelect from './MultiSelect';
 
-type CategorySelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
+type CategorySelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyIDs: string[] | undefined;
-    onChange: (categories: string[]) => void;
 };
 
 function CategorySelector({value = [], policyIDs = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
