@@ -1,6 +1,5 @@
 import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
-import CONFIG from '@src/CONFIG';
 import SCREENS from '@src/SCREENS';
 
 /**
@@ -15,12 +14,6 @@ const MFA_INITIAL_SCREEN = 'MFA_Initial' as const;
 type MultifactorAuthenticationModalNavigatorInternalParamList = MultifactorAuthenticationModalNavigatorParamList & Record<typeof MFA_INITIAL_SCREEN, undefined>;
 
 const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationModalNavigatorInternalParamList>();
-
-// Outcome screens are terminal states the flow ends on.
-const OUTCOME_SCREENS = new Set<keyof MultifactorAuthenticationModalNavigatorParamList>([
-    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS,
-    SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE,
-]);
 
 // Screens that live inside this independent overlay navigator. REVOKE and AUTHORIZE_TRANSACTION are intentionally excluded: they
 // render in the main RHP modal stack, not this tree.
