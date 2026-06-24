@@ -5,7 +5,6 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
@@ -48,28 +47,6 @@ function DatePickerModal({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-
-    useEffect(() => {
-        if (
-            getPlatform() !== CONST.PLATFORM.WEB ||
-            !isSmallScreenWidth ||
-            !isVisible ||
-            !shouldCloseWhenBrowserNavigationChanged ||
-            typeof window === 'undefined' ||
-            typeof window.addEventListener !== 'function'
-        ) {
-            return;
-        }
-
-        const listener = () => {
-            onClose?.();
-        };
-
-        window.addEventListener('popstate', listener);
-        return () => {
-            window.removeEventListener('popstate', listener);
-        };
-    }, [isSmallScreenWidth, isVisible, onClose, shouldCloseWhenBrowserNavigationChanged]);
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {

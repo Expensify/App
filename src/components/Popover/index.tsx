@@ -5,6 +5,9 @@ import {usePopoverActions, usePopoverState} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import subscribeToRootNavigation from '@libs/Navigation/helpers/subscribeToRootNavigation';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type PopoverProps from './types';
@@ -55,20 +58,41 @@ function Popover(props: PopoverProps) {
     React.useEffect(() => {
         // When this Popover manages its own back-guard (`shouldHandleNavigationBack`), the Modal-level
         // history sync (useSyncModalWithHistory) closes it on browser Back and consumes the entry. This
-        // listener only covers the other case: dismissing the popover when the browser navigation changes
-        // for some other reason, without intercepting that navigation.
-        if (!shouldCloseWhenBrowserNavigationChanged || props.shouldHandleNavigationBack) {
+        // listener only covers the other case: dismissing the popover when the active navigation route
+        // changes, without intercepting that navigation.
+        //
+        // We subscribe to React Navigation state events rather than raw `popstate` so that
+        // `navigationRef.getCurrentRoute()` is already fresh when the callback fires. Sentinel-only
+        // history changes (e.g. a nested YearPickerModal opening/closing) do NOT change the focused
+        // route key, so the calendar popover stays open. A real navigation away changes the key and
+        // closes the popover.
+        if (!shouldCloseWhenBrowserNavigationChanged || props.shouldHandleNavigationBack || !isVisible) {
             return;
         }
-        const listener = () => {
-            if (!isVisible) {
+
+        let isActive = true;
+        let baselineKey: string | undefined;
+        // Holds the unsubscribe function once the subscription is set up asynchronously.
+        const unsubscribeRef: {current: (() => void) | undefined} = {current: undefined};
+
+        Navigation.isNavigationReady().then(() => {
+            if (!isActive) {
                 return;
             }
-            onClose?.();
-        };
-        window.addEventListener('popstate', listener);
+            baselineKey = navigationRef.getCurrentRoute()?.key;
+            unsubscribeRef.current = subscribeToRootNavigation(() => {
+                if (!isActive || baselineKey === undefined) {
+                    return;
+                }
+                if (navigationRef.getCurrentRoute()?.key !== baselineKey) {
+                    onClose?.();
+                }
+            });
+        });
+
         return () => {
-            window.removeEventListener('popstate', listener);
+            isActive = false;
+            unsubscribeRef.current?.();
         };
     }, [onClose, isVisible, shouldCloseWhenBrowserNavigationChanged, props.shouldHandleNavigationBack]);
 
