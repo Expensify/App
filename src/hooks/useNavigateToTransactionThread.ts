@@ -40,7 +40,7 @@ type NavigateToTransactionThreadParams = {
  * `siblingTransactionIDs` because the data sources differ per screen.
  */
 function useNavigateToTransactionThread() {
-    const {markReportRHPWidth} = useWideRHPActions();
+    const {markReportIDAsExpense} = useWideRHPActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -77,7 +77,7 @@ function useNavigateToTransactionThread() {
         // display prev/next arrows for navigation between expenses.
         setActiveTransactionIDs(siblingTransactionIDs).then(() => {
             if (reportIDToNavigate) {
-                markReportRHPWidth(reportIDToNavigate, 'wide');
+                markReportIDAsExpense(reportIDToNavigate);
             }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
         });

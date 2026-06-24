@@ -174,7 +174,7 @@ type ComputeReportName = {
     report?: Report;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
-    transactions?: OnyxCollection<Transaction>;
+    transactions: OnyxCollection<Transaction>;
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     personalDetailsList?: PersonalDetailsList;
@@ -831,10 +831,10 @@ function computeChatThreadReportName(
     report: Report,
     reports: OnyxCollection<Report>,
     currentUserLogin: string,
+    transactions: OnyxCollection<Transaction>,
     parentReportAction?: ReportAction,
     policyTags?: OnyxEntry<PolicyTagLists>,
     policy?: OnyxEntry<Policy>,
-    transactions?: OnyxCollection<Transaction>,
 ): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
@@ -849,15 +849,11 @@ function computeChatThreadReportName(
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
         const linkedTransactionID = getLinkedTransactionID(parentReportAction);
         const linkedTransaction = linkedTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`] : undefined;
-        let linkedTransactions: Transaction[] | undefined;
-        if (transactions) {
-            linkedTransactions = linkedTransaction ? [linkedTransaction] : [];
-        }
         const linkedTransactionReport = linkedTransaction?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction.reportID}`] : undefined;
         let formattedName = getTransactionReportName({
             translate,
             reportAction: parentReportAction,
-            transactions: linkedTransactions,
+            linkedTransaction,
             report: linkedTransactionReport,
         });
 
@@ -994,10 +990,10 @@ function computeReportName({
         report,
         reports ?? {},
         currentUserLogin ?? '',
+        transactions,
         parentReportAction,
         policyTags,
         reportPolicy,
-        transactions,
     );
     if (chatThreadReportName) {
         return chatThreadReportName;
