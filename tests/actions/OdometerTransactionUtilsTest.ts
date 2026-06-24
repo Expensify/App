@@ -11,6 +11,7 @@ import {
 } from '@libs/actions/OdometerTransactionUtils';
 import type {OdometerUnsavedChangesState} from '@libs/actions/OdometerTransactionUtils';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import getPlatform from '@libs/getPlatform';
 import {getOdometerImageIdentity} from '@libs/OdometerImageUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -106,6 +107,9 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
+
+jest.mock('@libs/getPlatform', () => jest.fn());
+const mockGetPlatform = jest.mocked(getPlatform);
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
@@ -416,6 +420,12 @@ describe('actions/OdometerTransactionUtils', () => {
     });
 
     describe('getOdometerImageIdentity (re-mint-invariant)', () => {
+        // Unmocked, getPlatform resolves to native (jest-expo defaultPlatform 'ios'); pin it so the native fallback
+        // (uri included) is deterministic. Tests that need the web fallback flip it to CONST.PLATFORM.WEB themselves.
+        beforeEach(() => {
+            mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+        });
+
         it('is empty for a missing image', () => {
             expect(getOdometerImageIdentity(undefined)).toBe('');
             expect(getOdometerImageIdentity(null)).toBe('');
@@ -465,6 +475,15 @@ describe('actions/OdometerTransactionUtils', () => {
             const a = {uri: 'file:///path/to/a_111.jpg', name: 'a.jpg', type: 'image/jpeg', size: 1234};
             const b = {uri: 'file:///path/to/a_222.jpg', name: 'a.jpg', type: 'image/jpeg', size: 1234};
             expect(getOdometerImageIdentity(b)).not.toBe(getOdometerImageIdentity(a));
+        });
+
+        // On web the uri is a volatile blob: that re-mints across reloads. With no lastModified to anchor identity, a
+        // uri-only change must NOT register as a swap (name|size alone) - otherwise the discard guard fires on resume.
+        it('is invariant under a web blob re-mint with no lastModified (uri-only change)', () => {
+            mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+            const original = {uri: 'blob:abc', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+            const reminted = {uri: 'blob:xyz', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+            expect(getOdometerImageIdentity(reminted)).toBe(getOdometerImageIdentity(original));
         });
     });
 });

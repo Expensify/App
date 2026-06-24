@@ -252,8 +252,8 @@ describe('IOURequestStepDistanceOdometer - edit-from-confirmation backup is rest
 // moved ahead of the draft. Unlike the unit tests, these run the whole path (resync effect + image baseline +
 // getOdometerHasUnsavedChanges), not just the pure function.
 describe('IOURequestStepDistanceOdometer - discard guard detects user image changes with an active save-for-later draft', () => {
-    const START_IMAGE_A: FileObject = {uri: 'a.jpg', name: 'a.jpg', type: 'image/jpeg', size: 1234};
-    const START_IMAGE_B: FileObject = {uri: 'b.jpg', name: 'b.jpg', type: 'image/jpeg', size: 5678};
+    const START_IMAGE_A: FileObject = {uri: 'a.jpg', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 1000};
+    const START_IMAGE_B: FileObject = {uri: 'b.jpg', name: 'b.jpg', type: 'image/jpeg', size: 5678, lastModified: 2000};
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
@@ -400,9 +400,9 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
         expect(getHasUnsavedChanges()).toBe(false);
     });
 
-    // A NON-user image URI change (blob re-mint on reload, external save) keeps the file name + size and only changes
-    // the uri, so its re-mint-invariant identity (getOdometerImageIdentity = name|size) is unchanged and the guard
-    // stays silent - no "user edited" tracking needed
+    // A NON-user image URI change (blob re-mint on reload, external save) keeps name + size + lastModified and only
+    // changes the uri, so its re-mint-invariant identity (getOdometerImageIdentity = name|size|lastModified) is
+    // unchanged and the guard stays silent - no "user edited" tracking needed
     it('stays silent for a non-user image URI change (e.g. blob re-mint) because the identity is invariant', async () => {
         const {getHasUnsavedChanges} = await setupAndRender(START_IMAGE_A);
 
@@ -411,7 +411,7 @@ describe('IOURequestStepDistanceOdometer - discard guard detects user image chan
         // Change the image URI WITHOUT going through the user-edit actions -> no marker is set
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
-                comment: {odometerStartImage: {uri: 'a-reminted.jpg', name: 'a.jpg', type: 'image/jpeg', size: 1234}},
+                comment: {odometerStartImage: {uri: 'a-reminted.jpg', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 1000}},
             });
         });
         await waitForBatchedUpdatesWithAct();

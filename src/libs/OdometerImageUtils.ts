@@ -1,5 +1,7 @@
+import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getMimeTypeFromUri} from './fileDownload/FileUtils';
+import getPlatform from './getPlatform';
 
 function getOdometerImageUri(image: FileObject | string | null | undefined): string {
     return typeof image === 'string' ? image : (image?.uri ?? '');
@@ -11,11 +13,12 @@ function getOdometerImageName(image: FileObject | string | null | undefined): st
 
 /**
  * A re-mint-invariant identity for an odometer image, used in the discard-changes baseline diff.
- * On web, `uri` changes on every re-mint, but `name|size|lastModified` is preserved across the draft round-trip, so it
- * stays stable on resume/reload while still changing for a real swap (`lastModified` disambiguates a different
- * file that happens to share name + size). Native image objects have no `lastModified`, but their durable `file://`
- * uri is unique per selection (rand64 suffix) and stable across the draft round-trip (no blob re-mint on native), so
- * we fall back to it there to keep a same-name/same-size swap detectable.
+ * `name|size|lastModified` is preserved across the draft round-trip, so it stays stable on resume/reload while still
+ * changing for a real swap (`lastModified` disambiguates a different file that happens to share name + size).
+ * When `lastModified` is missing we fall back to the uri ONLY on native, where the `file://` uri is durable, unique per
+ * selection (rand64 suffix), and stable across the round-trip (no blob re-mint) - so a same-name/same-size swap stays
+ * detectable. On web the uri is a volatile `blob:` that re-mints on every resume/reload, so including it would fire a
+ * false discard prompt; there we use `name|size` alone.
  */
 function getOdometerImageIdentity(image: FileObject | string | null | undefined): string {
     if (!image) {
@@ -25,7 +28,12 @@ function getOdometerImageIdentity(image: FileObject | string | null | undefined)
         return image;
     }
     const base = `${image.name ?? ''}|${image.size ?? ''}`;
-    return image.lastModified !== undefined ? `${base}|${image.lastModified}` : `${base}|${image.uri ?? ''}`;
+    if (image.lastModified !== undefined) {
+        return `${base}|${image.lastModified}`;
+    }
+    // No lastModified: only native's durable file:// uri is a safe disambiguator. On web the uri is a volatile blob:
+    // that re-mints on resume/reload, so name|size alone keeps the identity stable and avoids a false discard prompt.
+    return getPlatform() === CONST.PLATFORM.WEB ? base : `${base}|${image.uri ?? ''}`;
 }
 
 function getOdometerImageType(image: FileObject | string | null | undefined): string | undefined {
