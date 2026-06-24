@@ -5586,8 +5586,6 @@ function getColumnsToShow({
     reportCurrency,
     shouldUseStrictDefaultExpenseColumns = false,
     isPolicyTaxEnabled = false,
-    policyCategories,
-    policyTags,
     fallbackPolicyID,
 }: {
     currentAccountID: number | undefined;
