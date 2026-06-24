@@ -123,31 +123,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}, sectionIndex) => {
-            if (!contextualReportID) {
-                if (!navigationSuggestions.length) {
-                    return undefined;
-                }
+            const getNavigationSuggestionsSection = () => (navigationSuggestions.length ? [{sectionIndex, data: navigationSuggestions}] : undefined);
 
-                return [
-                    {
-                        sectionIndex,
-                        data: navigationSuggestions,
-                    },
-                ];
+            if (!contextualReportID) {
+                return getNavigationSuggestionsSection();
             }
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
-                if (!navigationSuggestions.length) {
-                    return undefined;
-                }
-
-                return [
-                    {
-                        sectionIndex,
-                        data: navigationSuggestions,
-                    },
-                ];
+                return getNavigationSuggestionsSection();
             }
 
             if (!isSearchRouterDisplayed && !isSearchRouterScreen) {

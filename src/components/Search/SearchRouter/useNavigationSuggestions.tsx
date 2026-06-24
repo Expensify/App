@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
+import type {IconProps} from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import Text from '@components/Text';
@@ -30,7 +31,8 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {canSendInvoice as canSendInvoicePolicyUtils, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-imports -- This mirrors the existing Book travel quick-create readiness check, which is billing/paid-policy specific.
+import {canSendInvoice as canSendInvoicePolicyUtils, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, isWorkspaceProvisionedForTravel, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
@@ -50,7 +52,7 @@ import navigateToWorkspaceSettingsRoute from './navigateToWorkspaceSettingsRoute
 
 type RightSideContextProps = {
     label: string;
-    icon: React.ComponentProps<typeof Icon>['src'];
+    icon: IconProps['src'];
 };
 
 function RightSideContext({label, icon}: RightSideContextProps) {
@@ -74,6 +76,7 @@ type WorkspaceContextProps = {
 };
 
 const MAX_NAVIGATION_SUGGESTIONS = 8;
+const MIN_NAVIGATION_QUERY_LENGTH = 3;
 const EXCLUDED_SETTINGS_ITEMS = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
 
 function WorkspaceContext({policy}: WorkspaceContextProps) {
@@ -412,17 +415,17 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     });
 
     const canSendInvoice = canSendInvoicePolicyUtils(allPoliciesCollection, sessionEmail);
-    const isTravelVisible = !!activePolicyEntry?.isTravelEnabled;
+    const travelEnabledPolicy = useMemo(() => Object.values(allPoliciesCollection ?? {}).find((policy) => !!policy?.isTravelEnabled), [allPoliciesCollection]);
+    const isTravelVisible = !!travelEnabledPolicy;
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const isPolicyProvisioned = activePolicyEntry?.travelSettings?.spotnanaCompanyID ?? activePolicyEntry?.travelSettings?.associatedTravelDomainAccountID;
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const shouldOpenTravelDirectly =
         !isBlockedFromSpotnanaTravel &&
         !!primaryContactMethod &&
         !Str.isSMSLogin(primaryContactMethod) &&
-        isGroupPolicy(activePolicyEntry) &&
-        (activePolicyEntry?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned));
+        isPaidGroupPolicy(travelEnabledPolicy) &&
+        (travelEnabledPolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isWorkspaceProvisionedForTravel(travelEnabledPolicy?.travelSettings)));
 
     const shouldShowNewWorkspaceButton = !isRestrictedPolicyCreation && Object.values(allPoliciesCollection ?? {}).every((policy) => !shouldShowPolicy(policy, !!isOffline, sessionEmail));
 
@@ -480,10 +483,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     action: () =>
                         interceptAnonymousUser(() => {
                             if (shouldOpenTravelDirectly) {
-                                openTravelDotLink(activePolicyEntry?.id);
+                                openTravelDotLink(travelEnabledPolicy?.id);
                                 return;
                             }
-                            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicyEntry?.id));
+                            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
                         }),
                     keyForList: 'create_travel',
                 },
@@ -498,7 +501,6 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 .filter((item) => item.visible)
                 .map((item) => ({text: item.text, singleIcon: item.icon, action: item.action, keyForList: item.keyForList, matchTerms: [item.text]})),
         [
-            activePolicyEntry?.id,
             canSendInvoice,
             createReport,
             draftTransactionIDs,
@@ -509,13 +511,14 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             shouldOpenTravelDirectly,
             shouldShowNewWorkspaceButton,
             translate,
+            travelEnabledPolicy?.id,
         ],
     );
 
     return useMemo(() => {
         const trimmedQuery = query.trim();
         const isNavigationIntentOnly = isNavigationIntentOnlyQuery(trimmedQuery);
-        if (trimmedQuery.length <= 2 && !isNavigationIntentOnly) {
+        if (trimmedQuery.length < MIN_NAVIGATION_QUERY_LENGTH && !isNavigationIntentOnly) {
             return [];
         }
 

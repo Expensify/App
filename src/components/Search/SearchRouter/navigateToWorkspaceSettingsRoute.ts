@@ -19,8 +19,8 @@ type NavigationRouteWithState = {
 };
 
 function getWorkspaceRouteSuffix(route: string): string | undefined {
-    const normalizedRoute = route.replace(/\?.*$/, '').replace(/^\//, '');
-    const match = normalizedRoute.match(/^workspaces\/[^/]+(\/.*)?$/);
+    const normalizedRoute = route.replace(/\?.*$/, '');
+    const match = normalizedRoute.match(WORKSPACE_ROUTE_PATTERN);
     return match?.[1] ?? '';
 }
 
