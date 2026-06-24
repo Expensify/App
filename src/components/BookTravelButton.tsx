@@ -18,7 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
@@ -157,11 +157,17 @@ function BookTravelButton({
             return;
         }
 
-        const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
+        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {
-            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, undefined, activePolicyID ?? undefined);
+            // Send the default so the Travel-access check runs against the workspace owner's domain, not the acting admin's.
+            if (!isUserValidated) {
+                setTravelProvisioningNextStep(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID)));
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, Navigation.getActiveRoute()));
+                return;
+            }
+            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, true, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));

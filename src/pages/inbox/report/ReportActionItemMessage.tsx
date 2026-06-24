@@ -4,18 +4,9 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    getMemberChangeMessageFragment,
-    getOriginalMessage,
-    getUpdateRoomDescriptionFragment,
-    isMemberChangeAction,
-    isMoneyRequestAction,
-    isReimbursementDirectionInformationRequiredAction,
-} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {getOriginalMessage, getUpdateRoomDescriptionFragment, isMoneyRequestAction, isReimbursementDirectionInformationRequiredAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -43,7 +34,6 @@ type ReportActionItemMessageProps = {
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const reportAttributes = useReportAttributes();
 
     if (isMoneyRequestAction(action)) {
         return (
@@ -54,22 +44,6 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 style={style}
                 isHidden={isHidden}
             />
-        );
-    }
-
-    if (isMemberChangeAction(action)) {
-        const fragment = getMemberChangeMessageFragment(translate, action, getReportName, reportAttributes);
-
-        return (
-            <View style={[styles.chatItemMessage, style]}>
-                <TextCommentFragment
-                    fragment={fragment}
-                    displayAsGroup={displayAsGroup}
-                    style={style}
-                    source=""
-                    styleAsDeleted={false}
-                />
-            </View>
         );
     }
 
