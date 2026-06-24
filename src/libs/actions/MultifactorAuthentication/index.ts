@@ -295,12 +295,15 @@ async function changePINForCard({cardID, pin, signedChallenge, authenticationMet
 }
 
 async function setPersonalDetailsAndRevealExpensifyCardWithSCA(params: MultifactorAuthenticationScenarioParameters['SET-PERSONAL-DETAILS-AND-REVEAL-CARD-DETAILS']) {
+    // `isFromMissingDetailsFlow` is a UI-only flag consumed by the scenario callback to drive
+    // post-reveal navigation; the backend doesn't expect it.
+    const {isFromMissingDetailsFlow, ...apiParams} = params;
     try {
         const response = await makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD,
             {
-                ...params,
-                signedChallenge: JSON.stringify(params.signedChallenge),
+                ...apiParams,
+                signedChallenge: JSON.stringify(apiParams.signedChallenge),
             },
             {
                 optimisticData: [

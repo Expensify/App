@@ -509,25 +509,6 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
     });
 }
 
-/**
- * Empty personal-detail fields to send when the user's details are already set on the
- * backend — the SetPersonalDetailsAndRevealExpensifyCard command treats empty modified
- * fields as "no update" and uses the existing details for the reveal.
- */
-const EMPTY_REVEAL_PERSONAL_DETAILS: Omit<SetPersonalDetailsAndRevealExpensifyCardParams, 'cardID' | 'validateCode'> = {
-    legalFirstName: '',
-    legalLastName: '',
-    phoneNumber: '',
-    addressCity: '',
-    addressStreet: '',
-    addressStreet2: '',
-    addressZip: '',
-    addressCountry: '',
-    addressState: '',
-    addressProvince: '',
-    dob: '',
-};
-
 function setPersonalDetailsAndRevealExpensifyCard(
     personalDetailsParams: Omit<SetPersonalDetailsAndRevealExpensifyCardParams, 'cardID' | 'validateCode'>,
     cardID: number,
@@ -564,14 +545,17 @@ function setPersonalDetailsAndRevealExpensifyCard(
             .then((response) => {
                 if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_MAGIC_CODE) {
-                        reject(new Error('validateCodeForm.error.incorrectMagicCode'));
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('validateCodeForm.error.incorrectMagicCode');
                         return;
                     }
                     if (response?.jsonCode === 500) {
-                        reject(new Error('cardPage.unexpectedError'));
+                        // eslint-disable-next-line prefer-promise-reject-errors
+                        reject('cardPage.unexpectedError');
                         return;
                     }
-                    reject(new Error('cardPage.cardDetailsLoadingFailure'));
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject('cardPage.cardDetailsLoadingFailure');
                     return;
                 }
                 resolve({
@@ -580,7 +564,8 @@ function setPersonalDetailsAndRevealExpensifyCard(
                     cvv: typeof response.cvv === 'string' ? response.cvv : '',
                 });
             })
-            .catch(() => reject(new Error('cardPage.cardDetailsLoadingFailure')));
+            // eslint-disable-next-line prefer-promise-reject-errors
+            .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
     });
 }
 
@@ -628,5 +613,4 @@ export {
     setPersonalDetailsAndRevealExpensifyCard,
     clearPersonalDetailsErrors,
     buildSetPersonalDetailsAndShipExpensifyCardsParams,
-    EMPTY_REVEAL_PERSONAL_DETAILS,
 };

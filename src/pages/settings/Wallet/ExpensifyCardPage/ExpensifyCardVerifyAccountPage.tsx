@@ -1,14 +1,19 @@
 import React, {useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
-import {EMPTY_REVEAL_PERSONAL_DETAILS, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
+import {buildSetPersonalDetailsAndShipExpensifyCardsParams, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getSubPageValues} from '@pages/MissingPersonalDetails/utils';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
@@ -25,6 +30,9 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const [validateError, setValidateError] = useState<Errors>({});
     const primaryLogin = usePrimaryContactMethod();
     const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardActions();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [personalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const navigateBack = () => {
         if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE) {
@@ -43,7 +51,10 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         // That is why this action is handled manually and the response is stored in a local state.
         // Hence eslint disable here.
 
-        setPersonalDetailsAndRevealExpensifyCard(EMPTY_REVEAL_PERSONAL_DETAILS, Number.parseInt(cardID, 10), validateCode)
+        const personalDetailsForm = normalizeCountryCode(getSubPageValues(privatePersonalDetails, personalDetailsDraft));
+        const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(personalDetailsForm, countryCode);
+
+        setPersonalDetailsAndRevealExpensifyCard(personalDetailsParams, Number.parseInt(cardID, 10), validateCode)
             .then((value) => {
                 setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [cardID]: value}));
                 setCardsDetailsErrors((prevState) => ({
@@ -52,8 +63,8 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
                 }));
                 navigateBack();
             })
-            .catch((error: Error) => {
-                setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error.message as TranslationPaths));
+            .catch((error: TranslationPaths) => {
+                setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
             })
             .finally(() => {
                 setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [cardID]: false}));

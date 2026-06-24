@@ -85,8 +85,8 @@ function MissingPersonalDetailsMagicCodePage({
                         Navigation.closeRHPFlow();
                         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
                     })
-                    .catch((error: Error) => {
-                        setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey(error.message as TranslationPaths));
+                    .catch((error: TranslationPaths) => {
+                        setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey(error));
                     });
                 return;
             }

@@ -112,6 +112,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
                 ...personalDetailsParams,
                 cardID,
+                isFromMissingDetailsFlow: true,
             });
         } else {
             onComplete();

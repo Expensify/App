@@ -32,6 +32,12 @@ type Payload = {
     addressState: string;
     addressProvince: string;
     dob: string;
+    /**
+     * True when the user just filled out the missing-personal-details form and we need to
+     * close that RHP and bounce back to the card page. False (or omitted) when the user
+     * triggered the reveal directly from the card page — they're already there.
+     */
+    isFromMissingDetailsFlow?: boolean;
 };
 
 /**
@@ -71,9 +77,11 @@ export default {
             const expiration = typeof callbackInput.body?.expiration === 'string' ? callbackInput.body.expiration : '';
             const cvv = typeof callbackInput.body?.cvv === 'string' ? callbackInput.body.cvv : '';
             setRevealedVirtualCardDetails(payload.cardID, {pan, expiration, cvv});
-            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.closeRHPFlow();
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
+            if (payload.isFromMissingDetailsFlow) {
+                clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+                Navigation.closeRHPFlow();
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
+            }
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
         }
 
