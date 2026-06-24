@@ -383,7 +383,6 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         groupPoliciesWithChatEnabled as Array<OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>>,
         activePolicy as OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
     );
-    const isReportInSearch = isOnSearchMoneyRequestReportPage();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
         onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -391,6 +390,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 return;
             }
 
+            const isReportInSearch = isOnSearchMoneyRequestReportPage();
             if (isReportInSearch) {
                 clearLastSearchParams();
             }
