@@ -116,7 +116,6 @@ function getFlaggedExpenses(
  * user's OPEN expense reports for flagged transactions, then reads the first flagged expense's report, report
  * actions, and transaction, and exposes a bound handler that navigates to the transaction thread
  * (single-expense RHP + review carousel).
- *
  */
 function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -131,8 +130,8 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const firstReportID = firstFlaggedExpense?.reportID;
     const firstTransactionID = firstFlaggedExpense?.transactionID;
 
-    // Load the first flagged expense's parent report, its actions, and the transaction itself so the shared
-    // navigation hook can resolve (or optimistically create) the transaction thread.
+    // Load the first flagged expense's report actions so the shared navigation hook can resolve (or
+    // optimistically create) its transaction thread.
     const [firstFlaggedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(firstReportID)}`);
 
     const navigateToTransactionThread = useNavigateToTransactionThread();
