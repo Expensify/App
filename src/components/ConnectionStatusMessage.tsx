@@ -18,9 +18,19 @@ type ConnectionStatusMessageProps = {
     statusTone?: 'default' | 'success' | 'danger';
     linkText?: string;
     onLinkPress?: (event: GestureResponderEvent | ReactKeyboardEvent) => void;
+    shouldIncludeHorizontalPadding?: boolean;
 };
 
-function ConnectionStatusMessage({message, actionText, onActionPress, isActionDisabled = false, statusTone = 'default', linkText, onLinkPress}: ConnectionStatusMessageProps) {
+function ConnectionStatusMessage({
+    message,
+    actionText,
+    onActionPress,
+    isActionDisabled = false,
+    statusTone = 'default',
+    linkText,
+    onLinkPress,
+    shouldIncludeHorizontalPadding = true,
+}: ConnectionStatusMessageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -30,7 +40,7 @@ function ConnectionStatusMessage({message, actionText, onActionPress, isActionDi
         return null;
     }
 
-    const statusMessageRowPadding = {paddingLeft: 32, paddingRight: 32};
+    const statusMessageRowPadding = shouldIncludeHorizontalPadding ? {paddingLeft: 32, paddingRight: 32} : undefined;
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
     const messageContent = (

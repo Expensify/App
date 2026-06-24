@@ -649,6 +649,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
                                             isActionDisabled={!canInteractWithBankAccountRow}
                                             statusTone="danger"
+                                            shouldIncludeHorizontalPadding={false}
                                         />
                                     </View>
                                 )}
