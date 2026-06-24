@@ -16,6 +16,7 @@ import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTabl
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
@@ -251,15 +252,31 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         openPolicyRulesPage(policyID);
     }, [policyID]);
 
-    useEffect(() => {
-        const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.map((rule) => rule.keyForList));
-        setSelectedExpenseDefaultKeys((prev) => prev.filter((key) => validExpenseDefaultKeys.has(key)));
-    }, [expenseDefaultsTableData]);
+    const clearAllTableSelection = () => {
+        setSelectedSpendRuleKeys((prev) => (prev.length > 0 ? [] : prev));
+        setSelectedExpenseDefaultKeys((prev) => (prev.length > 0 ? [] : prev));
+        turnOffMobileSelectionMode();
+    };
+
+    useCleanupSelectedOptions(clearAllTableSelection);
 
     useEffect(() => {
+        if (selectedExpenseDefaultKeys.length === 0 || !canWriteRules) {
+            return;
+        }
+
+        const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.map((rule) => rule.keyForList));
+        setSelectedExpenseDefaultKeys((prev) => prev.filter((key) => validExpenseDefaultKeys.has(key)));
+    }, [canWriteRules, expenseDefaultsTableData, selectedExpenseDefaultKeys.length]);
+
+    useEffect(() => {
+        if (selectedSpendRuleKeys.length === 0 || !canWriteRules) {
+            return;
+        }
+
         const validSpendRuleKeys = new Set(spendRulesTableData.map((rule) => rule.keyForList));
         setSelectedSpendRuleKeys((prev) => prev.filter((key) => validSpendRuleKeys.has(key)));
-    }, [spendRulesTableData]);
+    }, [canWriteRules, selectedSpendRuleKeys.length, spendRulesTableData]);
 
     let selectedRuleKeys: string[];
     if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
