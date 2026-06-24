@@ -4,6 +4,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,22 +21,22 @@ import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceOwnerChangeCheck from './WorkspaceOwnerChangeCheck';
 import WorkspaceOwnerPaymentCardForm from './WorkspaceOwnerPaymentCardForm';
 
-type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
+type DynamicWorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK>;
 
-function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: WorkspaceOwnerChangeWrapperPageProps) {
+function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: DynamicWorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.path);
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const policyID = route.params.policyID;
     const accountID = Number(route.params.accountID);
     const error = route.params.error;
-    const backTo = route.params.backTo;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
     const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
@@ -54,9 +55,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
         }
 
         if (!policy.errorFields && policy.isChangeOwnerFailed) {
-            // there are some errors but not related to change owner flow - show an error page
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.getRoute(policyID, accountID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path), {forceReplace: true});
             return;
         }
 
@@ -70,12 +69,12 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
         if (changeOwnerErrors && changeOwnerErrors.length > 0) {
             Navigation.setParams({error: changeOwnerErrors.at(0)});
         }
-    }, [accountID, backTo, policy, policy?.errorFields?.changeOwner, policyID]);
+    }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
 
     const isLoading = isLoadingPolicy || !!policy?.isLoading;
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceOwnerChangeWrapperPage',
+        context: 'DynamicWorkspaceOwnerChangeWrapperPage',
         isLoadingPolicy: !!isLoadingPolicy,
         isPolicyLoading: !!policy?.isLoading,
     };
@@ -86,17 +85,12 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
             policyID={policyID}
             shouldBeBlocked={!shouldShowChangeWorkspaceOwnerPage(fundList, error)}
         >
-            <ScreenWrapper testID="WorkspaceOwnerChangeWrapperPage">
+            <ScreenWrapper testID="DynamicWorkspaceOwnerChangeWrapperPage">
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={() => {
                         clearWorkspaceOwnerChangeFlow(policyID);
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                        } else {
-                            Navigation.goBack();
-                            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-                        }
+                        Navigation.goBack(backPath);
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, shouldShowPaymentCardForm ? styles.ph0 : styles.ph5, styles.pb0]}>
@@ -126,4 +120,4 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
     );
 }
 
-export default withPolicy(WorkspaceOwnerChangeWrapperPage);
+export default withPolicy(DynamicWorkspaceOwnerChangeWrapperPage);

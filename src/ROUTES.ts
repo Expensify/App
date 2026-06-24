@@ -149,7 +149,7 @@ const DYNAMIC_ROUTES = {
     },
     PAYMENT_CARD_CURRENCY_SELECTOR: {
         path: 'payment-card-currency',
-        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.OWNER_CHANGE_CHECK],
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
@@ -754,7 +754,16 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_OWNER_CHANGE_SUCCESS: {
         path: 'owner-change-success',
-        entryScreens: [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+    },
+    WORKSPACE_OWNER_CHANGE_ERROR: {
+        path: 'owner-change-failure',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+    },
+    WORKSPACE_OWNER_CHANGE_CHECK: {
+        path: 'change-owner/:policyID/:accountID/:error',
+        entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],
+        getRoute: (policyID: string, accountID: number, error: string) => `change-owner/${policyID}/${accountID}/${error}` as const,
     },
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         path: 'role',
@@ -2781,21 +2790,6 @@ const ROUTES = {
     WORKSPACE_CUSTOM_FIELDS: {
         route: 'workspaces/:policyID/members/:accountID/:customFieldType',
         getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
-    },
-    WORKSPACE_OWNER_CHANGE_ERROR: {
-        route: 'workspaces/:policyID/change-owner/:accountID/failure',
-
-        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/failure` as const, backTo),
-    },
-    WORKSPACE_OWNER_CHANGE_CHECK: {
-        route: 'workspaces/:policyID/change-owner/:accountID/:error',
-        getRoute: (policyID: string | undefined, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_OWNER_CHANGE_CHECK route');
-            }
-
-            return getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/${error as string}` as const, backTo);
-        },
     },
     WORKSPACE_TAX_CREATE: {
         route: 'workspaces/:policyID/taxes/new',

@@ -3,9 +3,10 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import TransferOwnershipFlow from '@components/Tables/WorkspaceListTable/TransferOwnershipFlow';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockClearWorkspaceOwnerChangeFlow = jest.fn();
@@ -90,7 +91,9 @@ describe('TransferOwnershipFlow', () => {
         renderAction();
         await waitForBatchedUpdatesWithAct();
         // The component always passes 'amountOwed' as the initial error step and the active route from Navigation.getActiveRoute()
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(POLICY_ID, USER_ACCOUNT_ID, 'amountOwed', ''));
+        expect(mockNavigate).toHaveBeenCalledWith(
+            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(POLICY_ID, USER_ACCOUNT_ID, 'amountOwed'), ROUTES.WORKSPACES_LIST.route),
+        );
     });
 
     it('calls onDismiss once the flow has started', async () => {

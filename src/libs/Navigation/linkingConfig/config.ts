@@ -1008,12 +1008,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path,
-                        [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
-                            path: ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.route,
-                        },
-                        [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
-                            path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_ERROR]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_EDIT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_PAYROLL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path,

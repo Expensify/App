@@ -1410,7 +1410,7 @@
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/members/WorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
+"../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeSuccessPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/workspace/perDiem/WorkspacePerDiemPage.tsx"	"react-hooks/set-state-in-effect"	1
