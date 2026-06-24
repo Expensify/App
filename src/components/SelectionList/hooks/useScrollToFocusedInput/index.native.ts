@@ -1,12 +1,11 @@
-import type {FlashListRef} from '@shopify/flash-list';
 import {useCallback, useEffect, useRef} from 'react';
-import type {RefObject} from 'react';
 import type {EmitterSubscription, NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 import {Keyboard} from 'react-native';
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
+import type {UseScrollToFocusedInput} from './types';
 
-/** Extra space (px) left between the focused input and the bottom of the visible list area after scrolling. */
+/** Extra space (px) left between the focused input and the top of the visible list area after scrolling. */
 const EXTRA_SCROLL_PADDING = 16;
 
 type MeasureInWindowCallback = (x: number, y: number, width: number, height: number) => void;
@@ -19,24 +18,13 @@ function isMeasurable(node: MeasurableInput): node is MeasurableNode {
     return typeof node === 'object' && node !== null && 'measureInWindow' in node && typeof node.measureInWindow === 'function';
 }
 
-type UseScrollToFocusedInputResult = {
-    /** Attach to the list's outer container; its top is used as a stable anchor to pull focused inputs up to. */
-    containerRef: RefObject<View | null>;
-
-    /** Wire into the list's `onScroll` so we always know the current content offset. */
-    trackScrollOffset: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** Scrolls the list so the given input is fully visible above the keyboard. Safe to call from an input's `onFocus`. */
-    scrollInputIntoView: (input: MeasurableInput) => void;
-};
-
 /**
  * Scrolls a `FlashList` so that an input rendered inside its footer is not hidden behind the keyboard.
  *
  * `BaseSelectionList` scrolls *list items* into view via `scrollToIndex`, but footer inputs aren't list items,
  * so we instead pull the focused input up toward the top of the list area once the keyboard is shown.
  */
-function useScrollToFocusedInput(listRef: RefObject<Pick<FlashListRef<unknown>, 'scrollToOffset'> | null>, isKeyboardShown: boolean): UseScrollToFocusedInputResult {
+const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardShown) => {
     const containerRef = useRef<View | null>(null);
     const scrollOffsetRef = useRef(0);
     const isKeyboardShownRef = useRef(isKeyboardShown);
@@ -118,6 +106,6 @@ function useScrollToFocusedInput(listRef: RefObject<Pick<FlashListRef<unknown>, 
     );
 
     return {containerRef, trackScrollOffset, scrollInputIntoView};
-}
+};
 
 export default useScrollToFocusedInput;
