@@ -12,6 +12,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 
@@ -35,6 +36,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
@@ -59,9 +61,10 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
         const animationCallback = () => onConfirm?.(full);
 
-        // `moneyRequestReport`/`chatReport` may be heartbeat-stripped projections (e.g. from the report list).
-        // The pay/approve actions build their failure rollback by merging the whole report back, so read the full
-        // reports here to restore the chat's last-message fields if the request fails.
+        // moneyRequestReport/chatReport can be lightweight versions of the report (the report list drops fields
+        // like the last message text/time so it doesn't re-render on every new message). The pay/approve actions
+        // restore the report on failure by merging it back in, so we grab the full reports here to make sure the
+        // chat's last message comes back correctly if the payment fails.
         const currentMoneyRequestReport = getReportOrDraftReport(moneyRequestReport?.reportID) ?? moneyRequestReport;
         const currentChatReport = getReportOrDraftReport(chatReport?.reportID) ?? chatReport;
 
@@ -103,6 +106,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 methodID,
                 onPaid: animationCallback,
+                chatReportActions: getChatReportActions(false),
             });
         }
         onClose();

@@ -2,6 +2,7 @@ import {FlashList} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
@@ -14,6 +15,7 @@ import {useReportPreviewCarouselList, useReportPreviewMeta, useReportPreviewUISt
  */
 function TransactionReportCarousel() {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {shouldShowPreviewLoading, shouldShowAccessPlaceHolder, shouldShowEmptyPlaceholder, previewCarouselMinWidth, carouselReasonAttributes, reportPreviewStyles} =
         useReportPreviewUIState();
     const carousel = useReportPreviewCarouselList();
@@ -23,10 +25,8 @@ function TransactionReportCarousel() {
         return (
             <View
                 style={[
-                    {
-                        height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT,
-                        minWidth: previewCarouselMinWidth,
-                    },
+                    StyleUtils.getHeight(CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT),
+                    StyleUtils.getMinimumWidth(previewCarouselMinWidth),
                     styles.justifyContentCenter,
                     styles.mtn1,
                 ]}

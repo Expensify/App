@@ -15,7 +15,7 @@ import {formatList} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getQBOVendorByID, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
+import {findVendorByID, getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
@@ -457,14 +457,17 @@ function getForReportAction({
     const hasModifiedVendor = isReportActionOriginalMessageAnObject && ('oldVendor' in reportActionOriginalMessage || 'vendor' in reportActionOriginalMessage);
     if (hasModifiedVendor) {
         // Vendor is stored on the action as `{externalID, isManuallySet}` (or absent/null). Resolve
-        // the display name from the policy's QBO vendor list; if the vendor has since been removed
-        // from QBO the name is unrecoverable, so fall back to the externalID so the fragment still
-        // identifies which vendor was set rather than rendering `set vendor ""`.
+        // the display name from any connection that has the vendor data (QBO or Intacct), without
+        // gating on the workspace's current export mode — a past "set vendor" action should still
+        // render the vendor name after an admin switches the non-reimbursable export type. If the
+        // vendor has been removed from the integration entirely the name is unrecoverable, so fall
+        // back to the externalID so the fragment still identifies which vendor was set rather than
+        // rendering `set vendor ""`.
         const resolveVendorName = (entry: typeof reportActionOriginalMessage.vendor): string => {
             if (!entry?.externalID) {
                 return '';
             }
-            return getQBOVendorByID(policy, entry.externalID)?.name ?? entry.externalID;
+            return findVendorByID(policy, entry.externalID)?.name ?? entry.externalID;
         };
         buildMessageFragmentForValue(
             translate,

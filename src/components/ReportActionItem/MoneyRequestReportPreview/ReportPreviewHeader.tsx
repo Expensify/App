@@ -42,6 +42,14 @@ function ReportPreviewHeader() {
     const [derivedReportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: selectReportName});
     const reportName = reportID ? (derivedReportName ?? iouReport?.reportName ?? '') : '';
 
+    /*
+     Show subtitle if at least one of the expenses is not being smart scanned, and either:
+     - There is more than one expense – in this case, the "X expenses, Y scanning" subtitle is shown;
+     - There is only one expense, it has a receipt and is not being smart scanned – in this case, the expense merchant or description is shown;
+
+     * There is an edge case when there is only one distance expense with a pending route and amount = 0.
+       In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
+     */
     const expenseCount = useMemo(
         () =>
             translate('iou.expenseCount', {

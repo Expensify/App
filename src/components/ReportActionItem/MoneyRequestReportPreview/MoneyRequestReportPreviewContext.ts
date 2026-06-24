@@ -9,32 +9,18 @@ import type {MoneyRequestReportPreviewStyleType} from './types';
 import type usePreviewMessageAnimation from './usePreviewMessageAnimation';
 import type useReportPreviewCarousel from './useReportPreviewCarousel';
 
-/**
- * Context for the money request report preview, modeled on `ReportActionCompose`'s `ComposerContext`: the provider
- * owns all state/derivations once and exposes it as slices split by concept + "temperature", so a change to one slice
- * never re-renders consumers of another. Components read only the slice(s) they need instead of having data drilled.
- *
- * - Hot   — `CarouselState`: arrow-disabled flags, change on every scroll. `AnimationState`: pay/approve animation
- *           running flags, flip during a settle/approve.
- * - Warm  — `Data` (report subject), `UIState` (presentation/loading), `CarouselList`.
- * - Frozen— `Actions` (stable callbacks), `Meta` (stable refs).
- */
 
-// Hot — changes on every carousel scroll
 type ReportPreviewCarouselState = {
     isPreviousDisabled: boolean;
     isNextDisabled: boolean;
 };
 
-// Hot — flips while a pay/approve animation runs; consumed only by the body (to feed the action button), so it is
-// kept out of UIState to avoid re-rendering the header/total/carousel when an animation starts or ends.
 type ReportPreviewAnimationState = {
     isPaidAnimationRunning: boolean;
     isApprovedAnimationRunning: boolean;
     isSubmittingAnimationRunning: boolean;
 };
 
-// Warm — the report subject; changes when the report's transactions/data update
 type ReportPreviewData = {
     iouReportID: string | undefined;
     chatReportID: string | undefined;
@@ -47,7 +33,6 @@ type ReportPreviewData = {
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
 };
 
-// Warm — presentation/loading state + animation-running flags
 type ReportPreviewUIState = {
     isTransitionPending: boolean;
     shouldShowPreviewLoading: boolean;
@@ -64,13 +49,11 @@ type ReportPreviewUIState = {
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 };
 
-// Warm — the carousel FlashList data + handlers (consumed only by the carousel body)
 type ReportPreviewCarouselList = Pick<
     ReturnType<typeof useReportPreviewCarousel>,
     'carouselTransactions' | 'carouselKey' | 'snapOffsets' | 'renderItem' | 'getItemType' | 'renderSeparator' | 'viewabilityConfig' | 'onViewableItemsChanged' | 'adjustScroll'
 >;
 
-// Frozen — stable callbacks
 type ReportPreviewActions = {
     openReportFromPreview: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
@@ -84,7 +67,6 @@ type ReportPreviewActions = {
     goToNext: () => void;
 };
 
-// Frozen — stable refs
 type ReportPreviewMeta = {
     setCarouselRef: ReturnType<typeof useReportPreviewCarousel>['setCarouselRef'];
     holdMenuRef: RefObject<ReportPreviewHoldMenuHandle | null>;

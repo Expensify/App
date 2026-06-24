@@ -138,7 +138,6 @@ function MoneyRequestReportPreview({
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
-            chatReportID={chatReportID}
             chatReport={chatReport}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}

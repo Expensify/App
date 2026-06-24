@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getCreated} from '@libs/TransactionUtils';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {MoneyRequestReportPreviewStyleType} from './types';
@@ -212,7 +211,7 @@ function useReportPreviewCarousel({
                     style={[styles.p5, styles.justifyContentCenter]}
                     onLayout={(e) => setFooterWidth(e.nativeEvent.layout.width)}
                 >
-                    <Text style={{color: colors.blue600}}>
+                    <Text style={styles.textBlue}>
                         +{transactions.length - MAX_PREVIEWS_NUMBER} {translate('common.more').toLowerCase()}
                     </Text>
                 </View>
@@ -262,9 +261,7 @@ function useReportPreviewCarousel({
     const isNextDisabled = optimisticIndex ? optimisticIndex + visibleItemsOnEndCount >= carouselTransactions.length : currentVisibleItems.at(-1) === carouselTransactions.length - 1;
 
     return {
-        // Carousel data
         carouselTransactions,
-        // FlashList props
         carouselKey,
         setCarouselRef,
         snapOffsets,
@@ -274,7 +271,6 @@ function useReportPreviewCarousel({
         viewabilityConfig,
         onViewableItemsChanged,
         adjustScroll,
-        // Arrow controls (used by the header)
         goToPrevious,
         goToNext,
         isPreviousDisabled,
