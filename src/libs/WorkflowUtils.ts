@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -14,6 +15,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './HRUtils';
+import {rand64} from './NumberUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -716,8 +718,763 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
     return [...workflowMembers, ...additionalMembers];
 }
 
+// ---------------------------------------------------------------------------
+// Approval-workflow rules (rules.approvalWorkflows on the policy)
+// ---------------------------------------------------------------------------
+//
+// These helpers translate the in-app `ApprovalWorkflow` model into the rule
+// format the backend stores under `Policy.rules.approvalWorkflows`, and
+// reconcile a workflow change against the existing rules so we can hand a
+// minimal diff to `Auth/SetApprovalWorkflow`.
+//
+// Diff convention: a value of `ApprovalWorkflowRule` upserts the rule; a value
+// of `null` removes it. JSON-stringified, that matches what Auth expects.
+
+const APPROVAL_WORKFLOW_FORWARD_ACTION = 'forward' as const;
+
+/** Diff shape passed to the backend: ruleID -> rule (upsert) or null (remove). */
+type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
+
+/** Build a leaf comparison: `<left> <operator> <right>`. */
+function buildComparison(
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
+    left: ApprovalWorkflowFilterComparison['left'],
+    right: ApprovalWorkflowFilterComparison['right'],
+): ApprovalWorkflowFilterComparison {
+    return {operator, left, right};
+}
+
+/** Build the `from in [emails]` leaf used by every approval-workflow rule. */
+function buildFromComparison(memberEmails: string[]): ApprovalWorkflowFilterComparison {
+    return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, [...memberEmails]);
+}
+
+/** Build the `previousApprover = email` leaf used by all non-initial-hop rules. */
+function buildPreviousApproverComparison(email: string): ApprovalWorkflowFilterComparison {
+    return buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.PREVIOUS_APPROVER, email);
+}
+
+/**
+ * Build the `rules.approvalWorkflows` rule chain for a single `ApprovalWorkflow`.
+ *
+ * For a workflow whose approver chain is `[A0, A1, ..., A_{N-1}]` and whose members are `M`,
+ * we emit one rule per approver position. The rule at position `i` routes the report TO
+ * `approvers[i]`:
+ *
+ * - i == 0 (initial submission): filter is `from ∈ M`, nextReceiver is `A0.email`.
+ * - i > 0 (after `A_{i-1}` approves): filter is `from ∈ M AND previousApprover == A_{i-1}.email`,
+ *   nextReceiver is `A_i.email`.
+ *
+ * When `A_{i-1}` has both `approvalLimit > 0` and `overLimitForwardsTo` set, the hop after
+ * them splits into two rules — an under-limit rule that continues to `A_i` and an over-limit
+ * counterpart that jumps directly to `A_{i-1}.overLimitForwardsTo` instead.
+ *
+ * No rule is emitted "after the last approver" because nothing forwards past the terminal
+ * approver in the chain.
+ */
+function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
+    const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const approvers = approvalWorkflow.approvers;
+
+    if (memberEmails.length === 0 || approvers.length === 0) {
+        return [];
+    }
+
+    const fromComparison = buildFromComparison(memberEmails);
+    const rules: ApprovalWorkflowRule[] = [];
+
+    for (let i = 0; i < approvers.length; i++) {
+        const current = approvers[i];
+        const previous = i > 0 ? approvers.at(i - 1) : undefined;
+
+        // Initial-submission rule: degenerate single-comparison filter, no previousApprover gate.
+        if (!previous) {
+            rules.push({
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: fromComparison},
+                action: APPROVAL_WORKFLOW_FORWARD_ACTION,
+                nextReceiver: current.email,
+            });
+            continue;
+        }
+
+        const previousApproverComparison = buildPreviousApproverComparison(previous.email);
+        const hasLimitSplit = !!previous.approvalLimit && previous.approvalLimit > 0 && !!previous.overLimitForwardsTo;
+
+        if (!hasLimitSplit) {
+            rules.push({
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: fromComparison, right: previousApproverComparison},
+                action: APPROVAL_WORKFLOW_FORWARD_ACTION,
+                nextReceiver: current.email,
+            });
+            continue;
+        }
+
+        // Split: amount < limit continues to the next approver, amount >= limit jumps to overLimit.
+        const limit = previous.approvalLimit as number;
+        const overLimitTarget = previous.overLimitForwardsTo as string;
+
+        rules.push({
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: fromComparison,
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: previousApproverComparison,
+                    right: buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit),
+                },
+            },
+            action: APPROVAL_WORKFLOW_FORWARD_ACTION,
+            nextReceiver: current.email,
+        });
+
+        rules.push({
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: fromComparison,
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: previousApproverComparison,
+                    right: buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit),
+                },
+            },
+            action: APPROVAL_WORKFLOW_FORWARD_ACTION,
+            nextReceiver: overLimitTarget,
+        });
+    }
+
+    return rules;
+}
+
+// ---------------------------------------------------------------------------
+// Rule introspection helpers (used by reconciliation)
+// ---------------------------------------------------------------------------
+
+/** True when a comparison node targets the `from` field with an equality operator. */
+function isFromComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): boolean {
+    return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (node as ApprovalWorkflowFilterComparison).left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
+}
+
+/** Walk a filter tree and call `visitor` on every `from` comparison leaf. */
+function forEachFromComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, visitor: (leaf: ApprovalWorkflowFilterComparison) => void): void {
+    if (!node) {
+        return;
+    }
+    if (isFromComparison(node)) {
+        visitor(node as ApprovalWorkflowFilterComparison);
+        return;
+    }
+    // Only filter nodes (which always carry a left filter) and AND/OR nodes have children to recurse into.
+    const leftIsNode = typeof (node as ApprovalWorkflowFilter).left === 'object' && (node as ApprovalWorkflowFilter).left !== null;
+    if (leftIsNode) {
+        forEachFromComparison((node as ApprovalWorkflowFilter).left, visitor);
+    }
+    const right = (node as ApprovalWorkflowFilter).right as ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined;
+    if (right && typeof right === 'object') {
+        forEachFromComparison(right, visitor);
+    }
+}
+
+/** Extract the union of email values across every `from` leaf in a rule. */
+function extractFromEmails(rule: ApprovalWorkflowRule): string[] {
+    const emails = new Set<string>();
+    forEachFromComparison(rule.filters, (leaf) => {
+        const right = leaf.right;
+        if (Array.isArray(right)) {
+            right.forEach((email) => {
+                if (typeof email === 'string') {
+                    emails.add(email);
+                }
+            });
+        } else if (typeof right === 'string') {
+            emails.add(right);
+        }
+    });
+    return Array.from(emails);
+}
+
+/**
+ * Return a structural fingerprint of a rule with the `right` values of every `from` leaf
+ * stripped. Two rules with the same fingerprint differ only in their submitter list, which
+ * is what we look for when deciding whether to merge two workflows into a shared rule.
+ */
+function structuralFingerprint(rule: ApprovalWorkflowRule): string {
+    const stripFromValues = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): unknown => {
+        if (!node) {
+            return node;
+        }
+        if (isFromComparison(node)) {
+            return {operator: node.operator, left: (node as ApprovalWorkflowFilterComparison).left};
+        }
+        const out: Record<string, unknown> = {operator: node.operator};
+        const left = (node as ApprovalWorkflowFilter).left;
+        if (left !== undefined) {
+            out.left = typeof left === 'object' && left !== null ? stripFromValues(left) : left;
+        }
+        const right = (node as ApprovalWorkflowFilter).right as unknown;
+        if (right !== undefined) {
+            out.right = typeof right === 'object' && right !== null ? stripFromValues(right as ApprovalWorkflowFilter) : right;
+        }
+        return out;
+    };
+
+    return JSON.stringify({
+        filters: stripFromValues(rule.filters),
+        action: rule.action,
+        nextReceiver: rule.nextReceiver,
+    });
+}
+
+/** Replace the `right` value on every `from` leaf with `newEmails`. */
+function withFromEmails(rule: ApprovalWorkflowRule, newEmails: string[]): ApprovalWorkflowRule {
+    const rewrite = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison => {
+        if (isFromComparison(node)) {
+            return {...node, right: [...newEmails]} as ApprovalWorkflowFilterComparison;
+        }
+        const left = (node as ApprovalWorkflowFilter).left;
+        const right = (node as ApprovalWorkflowFilter).right as ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined;
+        return {
+            ...node,
+            ...(typeof left === 'object' && left !== null ? {left: rewrite(left)} : {}),
+            ...(right && typeof right === 'object' ? {right: rewrite(right)} : {}),
+        } as ApprovalWorkflowFilter;
+    };
+    return {...rule, filters: rewrite(rule.filters) as ApprovalWorkflowFilter};
+}
+
+/** Union of `existingEmails` and `additions`, preserving the order of `existingEmails`. */
+function unionEmails(existingEmails: string[], additions: string[]): string[] {
+    const seen = new Set(existingEmails);
+    const result = [...existingEmails];
+    additions.forEach((email) => {
+        if (seen.has(email)) {
+            return;
+        }
+        seen.add(email);
+        result.push(email);
+    });
+    return result;
+}
+
+/** `existingEmails` with everything in `removals` filtered out. */
+function differenceEmails(existingEmails: string[], removals: string[]): string[] {
+    const removalSet = new Set(removals);
+    return existingEmails.filter((email) => !removalSet.has(email));
+}
+
+// ---------------------------------------------------------------------------
+// Reconciliation against the existing `rules.approvalWorkflows` map
+// ---------------------------------------------------------------------------
+
+type ReconcileContext = {
+    /** The existing `Policy.rules.approvalWorkflows` snapshot, defaulting to `{}`. */
+    existingRules: Record<string, ApprovalWorkflowRule>;
+};
+
+/**
+ * Reconcile a freshly created workflow against the existing rules. New rules that match an
+ * existing rule's structure (ignoring `from`) are folded into that existing rule by appending
+ * the new workflow's members to its `from` list. Anything left over is saved under a fresh
+ * client-generated ruleID.
+ */
+function reconcileApprovalWorkflowRulesForCreate(newRules: ApprovalWorkflowRule[], memberEmails: string[], context: ReconcileContext): ApprovalWorkflowRulesDiff {
+    const diff: ApprovalWorkflowRulesDiff = {};
+    const existingEntries = Object.entries(context.existingRules);
+
+    for (const newRule of newRules) {
+        const fingerprint = structuralFingerprint(newRule);
+        const match = existingEntries.find(([, existing]) => structuralFingerprint(existing) === fingerprint);
+
+        if (match) {
+            const [existingID, existingRule] = match;
+            const mergedEmails = unionEmails(extractFromEmails(existingRule), memberEmails);
+            diff[existingID] = withFromEmails(existingRule, mergedEmails);
+            continue;
+        }
+
+        diff[rand64()] = newRule;
+    }
+
+    return diff;
+}
+
+/**
+ * Reconcile an edit to an existing workflow. Returns add/replace/remove instructions to
+ * morph the existing rule set into the new chain while preserving rules shared with other
+ * workflows.
+ *
+ * Two passes:
+ *   1. Walk every existing rule that contains any of the workflow's members. If a new rule
+ *      structurally matches, leave it alone; otherwise either drop this workflow's members
+ *      from the rule (when it's shared with other workflows) or remove the rule entirely.
+ *   2. For every new rule that didn't already exist, look for a structurally matching rule
+ *      under a different membership and fold this workflow into it; failing that, create
+ *      a fresh rule with a new ruleID.
+ */
+function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[], memberEmails: string[], context: ReconcileContext): ApprovalWorkflowRulesDiff {
+    const diff: ApprovalWorkflowRulesDiff = {};
+    const memberSet = new Set(memberEmails);
+    const newFingerprints = new Set(newRules.map(structuralFingerprint));
+
+    // Track which existing rules we've already turned into a no-op match so we don't drop them in pass 2.
+    const matchedExistingIDs = new Set<string>();
+
+    // Pass 1: walk existing rules that belong (at least partially) to this workflow.
+    for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
+        const ruleEmails = extractFromEmails(existingRule);
+        const sharedWithThisWorkflow = ruleEmails.some((email) => memberSet.has(email));
+        if (!sharedWithThisWorkflow) {
+            continue;
+        }
+
+        const fingerprint = structuralFingerprint(existingRule);
+        if (newFingerprints.has(fingerprint)) {
+            // Structurally identical to a new rule: leave it alone but remember it as "covered".
+            matchedExistingIDs.add(ruleID);
+            continue;
+        }
+
+        const remaining = differenceEmails(ruleEmails, memberEmails);
+        if (remaining.length === 0) {
+            // No other workflow shares this rule — drop it entirely.
+            diff[ruleID] = null;
+        } else {
+            // Keep the rule for the other workflows that still need it, minus our members.
+            diff[ruleID] = withFromEmails(existingRule, remaining);
+        }
+    }
+
+    // Pass 2: create or extend rules for any new rule that wasn't already covered.
+    const existingEntries = Object.entries(context.existingRules);
+    for (const newRule of newRules) {
+        const fingerprint = structuralFingerprint(newRule);
+
+        // Already in place via a pass-1 match — nothing to do.
+        const alreadyCovered = existingEntries.some(([id, existing]) => matchedExistingIDs.has(id) && structuralFingerprint(existing) === fingerprint);
+        if (alreadyCovered) {
+            continue;
+        }
+
+        // Look for a rule belonging to a different workflow that we can fold into.
+        const foreignMatch = existingEntries.find(([id, existing]) => {
+            if (matchedExistingIDs.has(id)) {
+                return false;
+            }
+            if (structuralFingerprint(existing) !== fingerprint) {
+                return false;
+            }
+            const existingEmails = extractFromEmails(existing);
+            // "Different workflow" => no overlap with our members.
+            return !existingEmails.some((email) => memberSet.has(email));
+        });
+
+        if (foreignMatch) {
+            const [existingID, existingRule] = foreignMatch;
+            const mergedEmails = unionEmails(extractFromEmails(existingRule), memberEmails);
+            diff[existingID] = withFromEmails(existingRule, mergedEmails);
+            continue;
+        }
+
+        diff[rand64()] = newRule;
+    }
+
+    return diff;
+}
+
+/**
+ * Reconcile the deletion of a workflow. Rules that listed only this workflow's members in
+ * their `from` filter are removed outright; rules shared with other workflows have just
+ * this workflow's members stripped from `from`.
+ */
+function reconcileApprovalWorkflowRulesForRemove(memberEmails: string[], context: ReconcileContext): ApprovalWorkflowRulesDiff {
+    const diff: ApprovalWorkflowRulesDiff = {};
+    const memberSet = new Set(memberEmails);
+
+    for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
+        const ruleEmails = extractFromEmails(existingRule);
+        const sharedWithThisWorkflow = ruleEmails.some((email) => memberSet.has(email));
+        if (!sharedWithThisWorkflow) {
+            continue;
+        }
+
+        const remaining = differenceEmails(ruleEmails, memberEmails);
+        diff[ruleID] = remaining.length === 0 ? null : withFromEmails(existingRule, remaining);
+    }
+
+    return diff;
+}
+
+/**
+ * Reconcile a member-only change (the approver chain is unchanged but the workflow's
+ * member list changed). For every existing rule that includes any of the previous members
+ * we add the new members and drop any previous members that aren't part of the new set.
+ */
+function reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails: string[], newMemberEmails: string[], context: ReconcileContext): ApprovalWorkflowRulesDiff {
+    const diff: ApprovalWorkflowRulesDiff = {};
+    const previousSet = new Set(previousMemberEmails);
+    const newSet = new Set(newMemberEmails);
+    const removed = previousMemberEmails.filter((email) => !newSet.has(email));
+
+    for (const [ruleID, existingRule] of Object.entries(context.existingRules)) {
+        const ruleEmails = extractFromEmails(existingRule);
+        if (!ruleEmails.some((email) => previousSet.has(email))) {
+            continue;
+        }
+
+        const afterRemoval = differenceEmails(ruleEmails, removed);
+        const updatedEmails = unionEmails(afterRemoval, newMemberEmails);
+
+        // No effective change to this rule's `from` — skip the round-trip.
+        if (updatedEmails.length === ruleEmails.length && updatedEmails.every((email, idx) => email === ruleEmails[idx])) {
+            continue;
+        }
+
+        diff[ruleID] = updatedEmails.length === 0 ? null : withFromEmails(existingRule, updatedEmails);
+    }
+
+    return diff;
+}
+
+// ---------------------------------------------------------------------------
+// Reconstruct ApprovalWorkflow[] from `policy.rules.approvalWorkflows`
+// ---------------------------------------------------------------------------
+//
+// Inverse of `buildApprovalWorkflowRules`. Given the policy's rule set we walk
+// each submitter's hop chain and rebuild the same `PolicyConversionResult` the
+// legacy employeeList-based converter produces, so the rest of the workflows UI
+// keeps working unchanged.
+//
+// Per-hop employeeList fallback: when a hop has no matching rule we fall back
+// to that approver's employeeList entry. This keeps pre-beta workflows visible
+// during the migration window. We deliberately don't fuse legacy chains with
+// rule-based chains even when they share a shape — the legacy chains will go
+// away on their own as workflows are re-saved.
+
+/** A leaf comparison node — its `left` is a primitive (field name), unlike a boolean filter whose `left` is another node. */
+function isComparisonLeaf(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
+    if (!node) {
+        return false;
+    }
+    const nodeLeft = (node as ApprovalWorkflowFilter).left;
+    return typeof nodeLeft !== 'object' || nodeLeft === null || Array.isArray(nodeLeft);
+}
+
+/** Return the first comparison leaf in the filter tree whose `left` field matches. */
+function findComparisonByLeft(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
+    if (!node) {
+        return undefined;
+    }
+    if (isComparisonLeaf(node)) {
+        return node.left === leftKey ? node : undefined;
+    }
+    const fromLeft = findComparisonByLeft((node as ApprovalWorkflowFilter).left, leftKey);
+    if (fromLeft) {
+        return fromLeft;
+    }
+    const right = (node as ApprovalWorkflowFilter).right as ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined;
+    return findComparisonByLeft(right, leftKey);
+}
+
+/** Initial-submission rule for a submitter — `from` includes them and no `previousApprover` filter exists. */
+function findInitialSubmissionRule(submitter: string, rules: Record<string, ApprovalWorkflowRule>): ApprovalWorkflowRule | undefined {
+    for (const rule of Object.values(rules)) {
+        if (!extractFromEmails(rule).includes(submitter)) {
+            continue;
+        }
+        if (!findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.PREVIOUS_APPROVER)) {
+            return rule;
+        }
+    }
+    return undefined;
+}
+
+/** Resolved hop info — where the report goes after the current approver acts, and any limit split that controlled it. */
+type ApprovalWorkflowHopInfo = {
+    /** Next approver email (under-limit path, or the only path when no split). */
+    forwardsTo: string;
+    /** Amount threshold from the under/over-limit split, if any. */
+    approvalLimit?: number;
+    /** Over-limit forward target, if the hop is split. */
+    overLimitForwardsTo?: string;
+};
+
+/**
+ * Look for the rules describing what happens after `currentApproverEmail` approves a report
+ * submitted by `submitter`. Returns:
+ *   - {forwardsTo, approvalLimit, overLimitForwardsTo} when both halves of a limit split exist
+ *   - {forwardsTo} when there's a single normal rule (or only one half of a partial/broken split)
+ *   - undefined when no matching rule exists, signaling the caller to fall back to employeeList
+ */
+function extractHopFromRules(submitter: string, currentApproverEmail: string, rules: Record<string, ApprovalWorkflowRule>): ApprovalWorkflowHopInfo | undefined {
+    let underLimitRule: ApprovalWorkflowRule | undefined;
+    let overLimitRule: ApprovalWorkflowRule | undefined;
+    let normalRule: ApprovalWorkflowRule | undefined;
+    let approvalLimit: number | undefined;
+
+    for (const rule of Object.values(rules)) {
+        if (!extractFromEmails(rule).includes(submitter)) {
+            continue;
+        }
+        const previousApproverLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.PREVIOUS_APPROVER);
+        if (!previousApproverLeaf || previousApproverLeaf.right !== currentApproverEmail) {
+            continue;
+        }
+
+        const amountLeaf = findComparisonByLeft(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
+        if (amountLeaf && typeof amountLeaf.right === 'number') {
+            if (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
+                underLimitRule = rule;
+                approvalLimit = amountLeaf.right;
+            } else if (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO) {
+                overLimitRule = rule;
+                approvalLimit = approvalLimit ?? amountLeaf.right;
+            } else {
+                normalRule = rule;
+            }
+        } else {
+            normalRule = rule;
+        }
+    }
+
+    if (underLimitRule && overLimitRule) {
+        return {
+            forwardsTo: underLimitRule.nextReceiver,
+            approvalLimit,
+            overLimitForwardsTo: overLimitRule.nextReceiver,
+        };
+    }
+    if (normalRule) {
+        return {forwardsTo: normalRule.nextReceiver};
+    }
+    // Partial split (one half missing): use whichever rule we found as the next hop. This is a
+    // best-effort recovery from a corrupted rule pair rather than an expected state.
+    const partial = underLimitRule ?? overLimitRule;
+    if (partial) {
+        return {forwardsTo: partial.nextReceiver};
+    }
+    return undefined;
+}
+
+type BuildApproverChainFromRulesParams = {
+    submitter: string;
+    rules: Record<string, ApprovalWorkflowRule>;
+    employees: PolicyEmployeeList;
+    personalDetailsByEmail: PersonalDetailsList;
+};
+
+/**
+ * Walk a submitter's approval chain by following rules from their initial-submission rule
+ * forward. Each hop's `forwardsTo` / `approvalLimit` / `overLimitForwardsTo` is taken from
+ * the rule when one exists, and falls back to the current approver's `employeeList` entry
+ * when the rule chain runs out. Stops at circular references (matching `calculateApprovers`).
+ */
+function buildApproverChainFromRules({submitter, rules, employees, personalDetailsByEmail}: BuildApproverChainFromRulesParams): Approver[] {
+    // First approver: prefer the initial-submission rule, fall back to employeeList.submitsTo for
+    // pre-beta workflows that haven't been re-saved yet.
+    const initialRule = findInitialSubmissionRule(submitter, rules);
+    let currentEmail: string | undefined = initialRule?.nextReceiver ?? employees[submitter]?.submitsTo;
+    if (!currentEmail) {
+        return [];
+    }
+
+    const chain: Approver[] = [];
+    const seenEmails = new Set<string>();
+
+    while (currentEmail) {
+        const isCircularReference = seenEmails.has(currentEmail);
+        const employee: PolicyEmployee | undefined = employees[currentEmail];
+
+        const hopInfo = extractHopFromRules(submitter, currentEmail, rules);
+        const approvalLimit: number | null = hopInfo?.approvalLimit ?? employee?.approvalLimit ?? null;
+        const overLimitForwardsTo: string | undefined = hopInfo?.overLimitForwardsTo ?? employee?.overLimitForwardsTo;
+        const forwardsTo: string | undefined = hopInfo?.forwardsTo ?? employee?.forwardsTo;
+
+        chain.push({
+            email: currentEmail,
+            forwardsTo,
+            avatar: personalDetailsByEmail[currentEmail]?.avatar,
+            displayName: personalDetailsByEmail[currentEmail]?.displayName ?? currentEmail,
+            isCircularReference,
+            approvalLimit,
+            overLimitForwardsTo,
+            overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(overLimitForwardsTo, personalDetailsByEmail),
+            pendingAction: employee?.pendingAction,
+            errors: employee?.errors,
+        });
+
+        if (isCircularReference) {
+            break;
+        }
+        seenEmails.add(currentEmail);
+        currentEmail = forwardsTo;
+    }
+
+    return chain;
+}
+
+/** Structural identity of a chain — used to fold submitters with identical chains into one workflow. */
+function approverChainFingerprint(chain: Approver[]): string {
+    return JSON.stringify(
+        chain.map((approver) => ({
+            email: approver.email,
+            approvalLimit: approver.approvalLimit ?? null,
+            overLimitForwardsTo: approver.overLimitForwardsTo ?? null,
+            isCircularReference: !!approver.isCircularReference,
+        })),
+    );
+}
+
+/** True when at least one rule mentions this submitter in any `from` filter. */
+function isSubmitterCoveredByRules(submitter: string, rules: Record<string, ApprovalWorkflowRule>): boolean {
+    for (const rule of Object.values(rules)) {
+        if (extractFromEmails(rule).includes(submitter)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Beta-enabled counterpart to `convertPolicyEmployeesToApprovalWorkflows`: rebuild the same
+ * `PolicyConversionResult` shape from `policy.rules.approvalWorkflows`, with per-hop
+ * fallback to `employeeList` for any chain step the rules don't cover. Rule-based chains
+ * are kept separate from legacy chains even when their shapes match — the legacy ones are
+ * expected to disappear as workflows are migrated.
+ */
+function convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, firstApprover, localeCompare, currentUserLogin}: PolicyConversionParams): PolicyConversionResult {
+    const employees = policy?.employeeList ?? {};
+    const rules = policy?.rules?.approvalWorkflows ?? {};
+    const defaultApprover = getHRFinalApprover(policy) ?? getDefaultApprover(policy);
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
+    const hrAdvancedModeFinalApproverEmail = getHRAdvancedModeFinalApprover(policy);
+
+    const personalDetailsByEmail: PersonalDetailsList = {};
+    for (const [key, value] of Object.entries(personalDetails)) {
+        personalDetailsByEmail[value?.login ?? key] = value;
+    }
+
+    // Source-tagged fingerprint groups so a legacy chain and a rule-based chain with the same
+    // shape stay in separate workflows. Tag values: 'r' (any rule mentions the submitter) or 'l'.
+    type WorkflowGroup = {
+        chain: Approver[];
+        members: Member[];
+        isDefault: boolean;
+        pendingAction: ApprovalWorkflow['pendingAction'];
+    };
+    const groupedByFingerprint = new Map<string, WorkflowGroup>();
+    const usedApproverEmails = new Set<string>();
+    const availableMembers: Member[] = [];
+
+    for (const employee of Object.values(employees)) {
+        const {email, submitsTo, pendingAction} = employee;
+        if (!email) {
+            continue;
+        }
+        if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email)) {
+            continue;
+        }
+
+        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
+
+        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            availableMembers.push(member);
+        }
+
+        const initialRule = findInitialSubmissionRule(email, rules);
+        if (!initialRule && (!submitsTo || (!employees[submitsTo] && !hrAdvancedModeFinalApproverEmail))) {
+            // Mirrors the existing legacy filter: skip submitters whose first approver isn't reachable.
+            continue;
+        }
+
+        let chain = buildApproverChainFromRules({submitter: email, rules, employees, personalDetailsByEmail});
+        if (chain.length === 0) {
+            continue;
+        }
+
+        if (shouldFilterOutExpensifyTeam) {
+            chain = chain.filter((approver) => !isExpensifyTeam(approver.email));
+        }
+        if (hrAdvancedModeFinalApproverEmail) {
+            const last = chain.at(-1);
+            if (last && last.email !== hrAdvancedModeFinalApproverEmail) {
+                chain.push({
+                    email: hrAdvancedModeFinalApproverEmail,
+                    forwardsTo: undefined,
+                    avatar: personalDetailsByEmail[hrAdvancedModeFinalApproverEmail]?.avatar,
+                    displayName: personalDetailsByEmail[hrAdvancedModeFinalApproverEmail]?.displayName ?? hrAdvancedModeFinalApproverEmail,
+                    isCircularReference: false,
+                });
+                usedApproverEmails.add(hrAdvancedModeFinalApproverEmail);
+            }
+        }
+        if (chain.length === 0) {
+            continue;
+        }
+
+        const firstApproverEmail = chain[0].email;
+        if (firstApproverEmail !== firstApprover) {
+            for (const approver of chain) {
+                usedApproverEmails.add(approver.email);
+            }
+        }
+
+        const sourceTag = isSubmitterCoveredByRules(email, rules) ? 'r' : 'l';
+        const fingerprint = `${sourceTag}|${approverChainFingerprint(chain)}`;
+        const existingGroup = groupedByFingerprint.get(fingerprint);
+
+        if (existingGroup) {
+            if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                existingGroup.members.push(member);
+            }
+            if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                existingGroup.pendingAction = pendingAction;
+            }
+            continue;
+        }
+
+        const workflowPendingAction = pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? pendingAction : undefined;
+        groupedByFingerprint.set(fingerprint, {
+            chain,
+            members: pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [member] : [],
+            isDefault: firstApproverEmail === defaultApprover,
+            pendingAction: workflowPendingAction,
+        });
+    }
+
+    const sortedApprovalWorkflows: ApprovalWorkflow[] = Array.from(groupedByFingerprint.values())
+        .map(({chain, members, isDefault, pendingAction}) => ({
+            members,
+            approvers: chain,
+            isDefault,
+            pendingAction,
+        }))
+        .sort((a, b) => {
+            if (a.isDefault) {
+                return -1;
+            }
+            if (b.isDefault) {
+                return 1;
+            }
+            return localeCompare(a.approvers.at(0)?.displayName ?? '', b.approvers.at(0)?.displayName ?? '');
+        });
+
+    const firstWorkflow = sortedApprovalWorkflows.at(0);
+    if (firstWorkflow && !firstWorkflow.isDefault) {
+        sortedApprovalWorkflows.unshift({
+            members: [],
+            approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail}),
+            isDefault: true,
+        });
+    }
+
+    availableMembers.sort((a, b) => localeCompare(a.displayName ?? a.email, b.displayName ?? b.email));
+
+    return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
+}
+
 export {
+    buildApprovalWorkflowRules,
     calculateApprovers,
+    convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalLimitDescription,
@@ -726,5 +1483,10 @@ export {
     getOverLimitForwardsToDisplayName,
     INITIAL_APPROVAL_WORKFLOW,
     mergeWorkflowMembersWithAvailableMembers,
+    reconcileApprovalWorkflowRulesForCreate,
+    reconcileApprovalWorkflowRulesForEdit,
+    reconcileApprovalWorkflowRulesForMembersChange,
+    reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 };
+export type {ApprovalWorkflowRulesDiff};

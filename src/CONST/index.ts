@@ -7043,6 +7043,7 @@ const CONST = {
             IS: 'is',
             REPORT_FIELD: 'reportField',
             EXPORTED_TO: 'exportedTo',
+            PREVIOUS_APPROVER: 'previousApprover',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field

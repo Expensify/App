@@ -527,6 +527,7 @@ export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
 export type {default as SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams} from './SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams';
 export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
+export type {SetApprovalWorkflowParams} from './ApprovalWorkflowParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';

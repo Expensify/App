@@ -2,9 +2,11 @@ import lodashDropRightWhile from 'lodash/dropRightWhile';
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
+import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import {getDefaultApprover} from '@libs/PolicyUtils';
+import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
 import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees, getOverLimitForwardsToDisplayName, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -12,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {completeTask} from './Task';
 
@@ -262,6 +265,84 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 }
 
+type SetApprovalWorkflowRulesParams = {
+    policyID: string;
+
+    /**
+     * Diff to apply to `Policy.rules.approvalWorkflows`. A value of `ApprovalWorkflowRule`
+     * upserts the rule under its `ruleID`; a value of `null` removes it. Produced by the
+     * `reconcileApprovalWorkflowRules*` helpers in `WorkflowUtils`.
+     */
+    rulesDiff: ApprovalWorkflowRulesDiff;
+
+    /** Snapshot of the policy's `rules.approvalWorkflows` taken before applying `rulesDiff`. Used to roll back on failure. */
+    previousApprovalWorkflows: Record<string, ApprovalWorkflowRule>;
+};
+
+/**
+ * Apply a set of approval-workflow rule changes to a policy via the new SetApprovalWorkflow
+ * Auth command. Mirrors the optimistic/success/failure dance of `createApprovalWorkflow`,
+ * but operates on `rules.approvalWorkflows` instead of `employeeList`.
+ *
+ * No-op when `rulesDiff` is empty — there's nothing to send to the backend.
+ */
+function setApprovalWorkflowRules({policyID, rulesDiff, previousApprovalWorkflows}: SetApprovalWorkflowRulesParams) {
+    if (!policyID || isEmptyObject(rulesDiff)) {
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    // Build the rollback shape: for every rule we're about to touch, either restore the
+    // previous value (if one existed) or clear the optimistic upsert with `null`. Without
+    // the explicit `null`s, newly-added rules would survive the failure rollback.
+    const failureApprovalWorkflows: Record<string, ApprovalWorkflowRule | null> = {};
+    for (const ruleID of Object.keys(rulesDiff)) {
+        failureApprovalWorkflows[ruleID] = previousApprovalWorkflows[ruleID] ?? null;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                rules: {approvalWorkflows: rulesDiff},
+                pendingFields: {approvalWorkflows: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {approvalWorkflows: null},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {approvalWorkflows: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                rules: {approvalWorkflows: failureApprovalWorkflows},
+                pendingFields: {approvalWorkflows: null},
+                errorFields: {approvalWorkflows: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const parameters: SetApprovalWorkflowParams = {
+        policyID,
+        rules: JSON.stringify(rulesDiff),
+    };
+
+    API.write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, {optimisticData, successData, failureData});
+}
+
 /** Set the members of the approval workflow that is currently edited */
 function setApprovalWorkflowMembers(members: Member[]) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members, errors: null});
@@ -428,6 +509,7 @@ export {
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,
     setApprovalWorkflow,
+    setApprovalWorkflowRules,
     selectApprovalWorkflowForEdit,
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,

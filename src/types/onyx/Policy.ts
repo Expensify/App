@@ -5,6 +5,7 @@ import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
+import type {ApprovalWorkflowRule} from './ApprovalWorkflowRules';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
@@ -2293,6 +2294,13 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of Agent rules defined with natural language - The rules are run by the "RuleBot" */
             agentRules?: Record<string, AgentRule>;
+
+            /**
+             * Approval-workflow rules keyed by ruleID. Each rule routes a report to a `nextReceiver`
+             * when its `filters` match. Multiple workflows can share the same rule by listing more
+             * than one submitter in the `from` filter.
+             */
+            approvalWorkflows?: Record<string, ApprovalWorkflowRule>;
         };
 
         /** The "RuleBot" agent account ID */
@@ -2439,7 +2447,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate' | 'approvalWorkflows'
 >;
 
 /** Stages of policy connection sync */
