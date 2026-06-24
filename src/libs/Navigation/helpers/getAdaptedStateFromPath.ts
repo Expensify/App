@@ -412,9 +412,8 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    // Legacy/external `/Home` URLs (e.g. cached last-visited paths from when the unauthenticated SignInPage
-    // was registered as the top-level SCREENS.HOME) must resolve to the root. The authenticated config maps
-    // SCREENS.HOME to lowercase 'home', so the case-sensitive `/Home` would otherwise fall through to NOT_FOUND.
+    // `/Home` (capital H) has no route mapping — the config maps SCREENS.HOME to lowercase 'home' — so it would
+    // fall through to NOT_FOUND. Redirect legacy/cached `/Home` paths to the root instead.
     if (normalizedPath === `/${SCREENS.HOME}`) {
         normalizedPath = '/';
     }

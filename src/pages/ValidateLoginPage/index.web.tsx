@@ -110,12 +110,9 @@ function ValidateLoginPage({
     useEffect(() => {
         let ignore = false;
         if (canCompleteTwoFactorOnSignIn) {
-            // Show the sign-in page so its ValidateCodeForm renders the authenticator-code stage.
-            // ROUTES.HOME ('home') is nested under the authenticated TAB_NAVIGATOR, so navigate/goBack
-            // to it no-op from the public /v/ route; reset the stack to TAB_NAVIGATOR instead (the public
-            // SignInPage is registered under that name) — the same mechanism logout uses to surface the
-            // public SignInPage. The "2FA required" modal stays rendered as the fallback so a failed
-            // hand-off shows it, not a blank or an endless loader.
+            // Surface the sign-in page so its ValidateCodeForm renders the authenticator-code stage. navigate/goBack
+            // no-op from the public /v/ route, so reset the stack to TAB_NAVIGATOR (which hosts the public SignInPage).
+            // The "2FA required" modal stays rendered as the fallback so a failed hand-off shows it, not a blank screen.
             Navigation.isNavigationReady().then(() => {
                 // Bail if the effect re-ran (e.g. `isSignedIn` flipped true) before this resolved, so a
                 // stale callback can't reset the stack out from under the new state.

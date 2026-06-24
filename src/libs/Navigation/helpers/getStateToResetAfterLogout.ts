@@ -23,9 +23,8 @@ function getStateToResetAfterLogout(rootState: NavigationState | undefined): Nav
     // ReportsSplit is shared between logged-in & logged-out; its params can carry stale auth.
     const shouldClearParams = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
 
-    // The public SignInPage is hosted by TAB_NAVIGATOR, which has no path of its own. Drop any nested
-    // tab focus carried over from the authenticated session (e.g. the Home tab) so the post-logout URL
-    // lands on the root "/" instead of a tab path like "/home".
+    // TAB_NAVIGATOR hosts the public SignInPage at the root. Drop nested tab focus carried over from the
+    // authenticated session so the post-logout URL lands on "/" instead of a tab path like "/home".
     const shouldClearNestedState = lastRoute.name === NAVIGATORS.TAB_NAVIGATOR;
     return {
         ...rootState,

@@ -3022,8 +3022,7 @@ type ShareNavigatorParamList = {
 };
 
 type PublicScreensParamList = SharedScreensParamList & {
-    // The SignInPage is registered under TAB_NAVIGATOR so the unauthenticated navigator mirrors the authenticated
-    // top-level structure (TAB_NAVIGATOR) and the root URL stays "/". It renders SignInPage, not the tab navigator.
+    // Hosts the public SignInPage (see PublicScreens), mirroring the authenticated top-level navigator name.
     [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
