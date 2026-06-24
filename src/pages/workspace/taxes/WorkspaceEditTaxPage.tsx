@@ -18,7 +18,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canEditTaxRate as canEditTaxRateUtil, getCurrentTaxID, hasAccountingConnections, isControlPolicy} from '@libs/PolicyUtils';
+import {canEditTaxRate as canEditTaxRateUtil, getCurrentTaxID, hasAccountingConnections, isControlPolicy, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -82,7 +82,7 @@ function WorkspaceEditTaxPage({
         }
         return <NotFoundPage />;
     }
-    const taxCodeToShow = isControlPolicy(policy) ? taxID : '';
+    const taxCodeToShow = isControlPolicy(policy) && isTaxCodeCustomized(taxID, policy) ? taxID : '';
 
     return (
         <AccessOrNotFoundWrapper

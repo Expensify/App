@@ -23,6 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {
@@ -496,7 +497,13 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem) ? '' : (transactionItem.taxCode ?? '')} />
+                        <TextCell
+                            text={
+                                isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem) || !isTaxCodeCustomized(transactionItem.taxCode, policy)
+                                    ? ''
+                                    : (transactionItem.taxCode ?? '')
+                            }
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
