@@ -27,10 +27,10 @@ import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useRelevantSortedActions from '@hooks/useRelevantSortedActions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import useSortedActions from '@hooks/useSortedActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
@@ -118,7 +118,6 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const personalDetails = usePersonalDetails();
-    const sortedActions = useSortedActions();
     const allPolicyCategories = usePolicyCategories();
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
@@ -143,6 +142,9 @@ function IOURequestStepConfirmation({
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const participantReportIDs = useMemo(() => transaction?.participants?.map((participant) => participant.reportID).filter(Boolean) ?? [], [transaction?.participants]);
+    const sortedActions = useRelevantSortedActions(participantReportIDs);
 
     const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal ?? participantReport);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);

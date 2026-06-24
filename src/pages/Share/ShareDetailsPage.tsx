@@ -17,10 +17,10 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRelevantSortedActions from '@hooks/useRelevantSortedActions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
-import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -61,7 +61,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const reportAttributesDerived = useReportAttributes();
     const personalDetails = usePersonalDetails();
-    const sortedActions = useSortedActions();
     const personalDetail = useCurrentUserPersonalDetails();
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
@@ -70,6 +69,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const reportIDs = useMemo(() => [report?.reportID], [report?.reportID]);
+    const sortedActions = useRelevantSortedActions(reportIDs);
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);

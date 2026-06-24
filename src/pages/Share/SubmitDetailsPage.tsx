@@ -17,10 +17,10 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useRelevantSortedActions from '@hooks/useRelevantSortedActions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
-import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getIOURequestPolicyID,
@@ -69,7 +69,6 @@ function SubmitDetailsPage({
     const {translate} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
-    const sortedActions = useSortedActions();
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
     const routeReportID = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const draftReportID = unknownUserDetails ? unknownUserDetails.reportID : routeReportID;
@@ -177,6 +176,8 @@ function SubmitDetailsPage({
     useShareFileSizeValidation(currentReceiptSource, setErrorTitle, setErrorMessage, !errorTitle);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
+    const participantReportIDs = selectedParticipants.map((participant) => participant.reportID).filter(Boolean);
+    const sortedActions = useRelevantSortedActions(participantReportIDs);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
