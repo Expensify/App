@@ -37,6 +37,7 @@ import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, r
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
+import getPlatform from '@libs/getPlatform';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -63,6 +64,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import {isCertiniaSRPConnection} from './certinia/utils';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -136,6 +138,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
+    const shouldShowReconnect = hasAuthError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
+    if (shouldShowReconnect) {
+        credentialsMenuTextKey = 'workspace.accounting.reconnect';
+    } else if (isSageIntacct && !hasAuthError) {
+        credentialsMenuTextKey = 'workspace.accounting.updateCredentials';
+    }
+
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             ...(shouldShowReinstallConnectorMenuItem
@@ -154,7 +164,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ? [
                       {
                           icon: icons.Key,
-                          text: translate(isSageIntacct && !hasAuthError ? 'workspace.accounting.updateCredentials' : 'workspace.accounting.enterCredentials'),
+                          text: translate(credentialsMenuTextKey),
                           onSelected: () => {
                               if (isSageIntacct && policyID) {
                                   Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
@@ -200,6 +210,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             startIntegrationFlow,
             isSageIntacct,
             hasAuthError,
+            credentialsMenuTextKey,
             policyID,
         ],
     );
@@ -236,6 +247,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
+        const certiniaConfig = policy?.connections?.financialforce?.config;
+        const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
+        const certiniaCompanyID = certiniaConfig?.credentials?.companyID;
+        const selectedCertiniaCompany = certiniaCompanies.find((company) => company.id === certiniaCompanyID);
         switch (connectedIntegration) {
             case CONST.POLICY.CONNECTIONS.NAME.XERO:
                 return !policy?.connections?.xero?.data?.tenants
@@ -308,6 +323,22 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldShowDescriptionOnTop: true,
                           interactive: false,
                       };
+            case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
+                return !isCertiniaSRPConnection(certiniaConfig)
+                    ? {}
+                    : {
+                          description: translate('workspace.certinia.company'),
+                          iconRight: icons.ArrowRight,
+                          title: selectedCertiniaCompany?.name ?? certiniaCompanyID ?? translate('common.none'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
+                          pendingAction: settingsPendingAction([CONST.CERTINIA_CONFIG.COMPANY_ID], certiniaConfig?.pendingFields),
+                          brickRoadIndicator: areSettingsInErrorFields([CONST.CERTINIA_CONFIG.COMPANY_ID], certiniaConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress: canWriteAccounting ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR.getRoute(policyID)) : undefined,
+                      };
 
             default:
                 return undefined;
@@ -356,6 +387,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     return {
                         ...iconProps,
                         interactive: false,
+                        // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
+                        // so VoiceOver focuses the whole row instead of the nested Connect button. Disabling it only on native iOS lets
+                        // VoiceOver focus/activate the button on its own. Other platforms (Android/TalkBack, web, iOS mWeb→WEB) keep grouping.
+                        shouldBeAccessible: getPlatform() !== CONST.PLATFORM.IOS,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
@@ -621,6 +656,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         />
                     ),
                     interactive: false,
+                    // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
+                    // so VoiceOver focuses the whole row instead of the nested Connect button. Disabling it only on native iOS lets
+                    // VoiceOver focus/activate the button on its own. Other platforms (Android/TalkBack, web, iOS mWeb→WEB) keep grouping.
+                    shouldBeAccessible: getPlatform() !== CONST.PLATFORM.IOS,
                     shouldShowRightComponent: true,
                     wrapperStyle: styles.sectionMenuItemTopDescription,
                 };

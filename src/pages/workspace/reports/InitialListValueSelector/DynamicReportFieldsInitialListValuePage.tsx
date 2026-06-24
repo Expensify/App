@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -33,10 +34,23 @@ function DynamicReportFieldsInitialListValuePage({
 }: DynamicReportFieldsInitialListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft, formDraftMetadata] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path);
 
     const currentValue = formDraft?.[INPUT_IDS.INITIAL_VALUE] ?? '';
+    const isLoadingFormDraft = formDraftMetadata.status !== 'loaded';
+    // Mirror the guard used on the create page: the initial value selector is only relevant when there are
+    // available (non-disabled) list values. On a refresh or deeplink the form draft can be empty, in which case
+    // we send the user back to the Add field page instead of showing an empty picker.
+    const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
+    const shouldRedirectToCreatePage = !isLoadingFormDraft && availableListValuesLength === 0;
+
+    useEffect(() => {
+        if (!shouldRedirectToCreatePage) {
+            return;
+        }
+        Navigation.goBack(backPath);
+    }, [shouldRedirectToCreatePage, backPath]);
 
     const onValueSelected = (value: string) => {
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
@@ -54,7 +68,6 @@ function DynamicReportFieldsInitialListValuePage({
         >
             <ScreenWrapper
                 style={styles.pb0}
-                includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="DynamicReportFieldsInitialListValuePage"
             >
@@ -62,15 +75,26 @@ function DynamicReportFieldsInitialListValuePage({
                     title={translate('common.initialValue')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
-                <View style={[styles.ph5, styles.pb4]}>
-                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
-                </View>
-                <ReportFieldsInitialListValuePicker
-                    listValues={formDraft?.[INPUT_IDS.LIST_VALUES] ?? []}
-                    disabledOptions={formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []}
-                    value={currentValue}
-                    onValueChange={onValueSelected}
-                />
+                {isLoadingFormDraft || shouldRedirectToCreatePage ? (
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size="large"
+                            reasonAttributes={{context: 'DynamicReportFieldsInitialListValuePage', isLoadingFormDraft: !!isLoadingFormDraft}}
+                        />
+                    </View>
+                ) : (
+                    <>
+                        <View style={[styles.ph5, styles.pb4]}>
+                            <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
+                        </View>
+                        <ReportFieldsInitialListValuePicker
+                            listValues={formDraft?.[INPUT_IDS.LIST_VALUES] ?? []}
+                            disabledOptions={formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []}
+                            value={currentValue}
+                            onValueChange={onValueSelected}
+                        />
+                    </>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -90,8 +90,8 @@ function TextInput({
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
-    const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
+    const hasNoData = dataLength === 0 && !shouldShowLoadingPlaceholder;
+    const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || hasNoData);
     const trimmedSearchValue = value?.trim() ?? '';
     const suggestionsCount = dataLength ?? 0;
     const suggestionsAnnouncement =

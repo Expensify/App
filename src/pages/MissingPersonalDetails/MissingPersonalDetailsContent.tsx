@@ -165,6 +165,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 <InteractiveStepSubPageHeader
                     stepNames={stepIndexList}
                     currentStepIndex={pageIndex}
+                    currentStepAccessibilityDescription={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
                     onStepSelected={moveTo}
                 />
             </View>
