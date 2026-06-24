@@ -5,6 +5,8 @@ import {Linking, View} from 'react-native';
 import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
+import {isExternalLinkSchemeAllowed} from '@libs/Url';
 import CONST from '@src/CONST';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
@@ -82,6 +84,10 @@ function Header({
         () => (
             <TextLink
                 onPress={() => {
+                    if (!isExternalLinkSchemeAllowed(subTitleLink)) {
+                        Log.warn('[Header] blocked subtitle link with disallowed scheme');
+                        return;
+                    }
                     Linking.openURL(subTitleLink);
                 }}
                 numberOfLines={1}

@@ -108,6 +108,25 @@ describe('Url', () => {
             expect(Url.getUrlWithParams(baseUrl, params)).toBe(expected);
         });
     });
+    describe('isExternalLinkSchemeAllowed', () => {
+        it.each([
+            ['allows https', 'https://new.expensify.com/inbox', true],
+            ['allows http', 'http://example.com', true],
+            ['allows mailto', 'mailto:concierge@expensify.com', true],
+            ['allows tel', 'tel:+15551234567', true],
+            ['is case-insensitive on scheme', 'HTTPS://example.com', true],
+            ['allows schemeless relative paths', '/r/1234', true],
+            // eslint-disable-next-line no-script-url
+            ['blocks javascript', 'javascript:alert(1)', false],
+            // cspell:disable-next-line
+            ['blocks data', 'data:text/html,<script>alert(1)</script>', false],
+            ['blocks file', 'file:///etc/passwd', false],
+            ['blocks custom app schemes', 'intent://evil#Intent;scheme=foo;end', false],
+            ['blocks scheme despite leading whitespace', '  javascript:alert(1)', false],
+        ])('%s', (_, url, expected) => {
+            expect(Url.isExternalLinkSchemeAllowed(url)).toBe(expected);
+        });
+    });
     describe('getSearchParamFromPath', () => {
         it.each([
             ['returns null when no query string', 'search/hold/search', 'q', null],
