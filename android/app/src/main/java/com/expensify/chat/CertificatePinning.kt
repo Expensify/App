@@ -76,12 +76,18 @@ object CertificatePinning {
         }
     }
 
-    private fun reportPinningFailure(hostname: String, url: String, message: String) {
+    /**
+     * Strips query parameters from a URL so credentials (e.g. authToken) are never sent to Sentry.
+     */
+    private fun redactUrl(url: okhttp3.HttpUrl): String =
+        url.newBuilder().query(null).fragment(null).build().toString()
+
+    private fun reportPinningFailure(hostname: String, url: okhttp3.HttpUrl, message: String) {
         Sentry.captureException(SSLPeerUnverifiedException(message)) { scope ->
             scope.level = SentryLevel.WARNING
             scope.setTag(CERTIFICATE_PINNING_HOST_TAG, hostname)
             scope.setTag(CERTIFICATE_PINNING_MODE_TAG, if (ENFORCE_PINNING) "enforce" else "monitor")
-            scope.setExtra("url", url)
+            scope.setExtra("url", redactUrl(url))
         }
     }
 
@@ -103,7 +109,7 @@ object CertificatePinning {
                 } catch (error: SSLPeerUnverifiedException) {
                     reportPinningFailure(
                         hostname = request.url.host,
-                        url = request.url.toString(),
+                        url = request.url,
                         message = error.message ?: "Certificate pinning validation failed",
                     )
                 }
