@@ -24,7 +24,7 @@ import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import navigateAfterExpenseCreate, {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
@@ -568,16 +568,28 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
 
             if (result && targetReportID) {
-                navigateAfterExpenseCreate({
-                    activeReportID: targetReportID,
-                    iouReportID: result.iouReport?.reportID,
-                    transactionID: result.transactionID,
-                    transactionThreadReportID: result.transactionThreadReportID,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                    hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
-                    shouldNavigate: shouldHandleNavigation,
-                });
+                if (shouldHandleNavigation) {
+                    navigateAfterExpenseCreate({
+                        activeReportID: targetReportID,
+                        iouReportID: result.iouReport?.reportID,
+                        transactionID: result.transactionID,
+                        transactionThreadReportID: result.transactionThreadReportID,
+                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                        hasMultipleTransactions: reportTransactions.length > 0,
+                        shouldAddPendingNewTransactionIDs: targetReportID === chatReportID || isOneToTwoTransition,
+                    });
+                } else {
+                    // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface
+                    // feedback wherever the user lands: highlight the new row for in-report adds,
+                    // otherwise the "Expense added" growl with a "View" deep link - matching
+                    // requestMoney/trackExpense/split/invoice.
+                    surfaceExpenseCreatedFeedback({
+                        iouReportID: result.iouReport?.reportID,
+                        transactionID: result.transactionID,
+                        transactionThreadReportID: result.transactionThreadReportID,
+                        isMoneyRequestReport,
+                    });
+                }
             }
         }
     }

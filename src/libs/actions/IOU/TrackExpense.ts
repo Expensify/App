@@ -22,7 +22,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import {showExpenseAddedGrowl} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -1903,16 +1903,17 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 transactionID: transaction.transactionID,
                 transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                 isFromGlobalCreate,
-                shouldAddPendingNewTransactionIDs: navigationReportID === chatReport.reportID,
+                shouldAddPendingNewTransactionIDs: isMoneyRequestReport,
             });
-        } else if (isFromGlobalCreate) {
-            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). The
-            // "Expense added" growl with the "View" deep link still needs to fire wherever the
-            // user ends up after the dismissal (Spend or a report).
-            showExpenseAddedGrowl({
+        } else {
+            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
+            // wherever the user lands: highlight the new row for in-report adds, otherwise the
+            // "Expense added" growl with a "View" deep link.
+            surfaceExpenseCreatedFeedback({
                 iouReportID: iouReport?.reportID,
                 transactionID: transaction.transactionID,
                 transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                isMoneyRequestReport,
             });
         }
     }
@@ -2748,13 +2749,14 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 isFromGlobalCreate,
                 shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
             });
-        } else if (isFromGlobalCreate) {
-            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths); still surface
-            // the "Expense added" growl wherever the user lands after the dismissal.
-            showExpenseAddedGrowl({
+        } else {
+            // Navigation is owned by SubmitExpenseOrchestrator (dismiss-first paths). Surface feedback
+            // wherever the user lands: highlight the new row for in-report adds, otherwise the growl.
+            surfaceExpenseCreatedFeedback({
                 iouReportID: iouReport?.reportID,
                 transactionID: transaction?.transactionID,
                 transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                isMoneyRequestReport,
             });
         }
     }

@@ -9,7 +9,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import {showExpenseAddedGrowl} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -823,17 +823,15 @@ function sendInvoice({
             isFromGlobalCreate,
             isInvoice: true,
         });
-    } else if (isFromGlobalCreate) {
-        // Dismiss-first paths (orchestrator owns navigation); still surface the "Expense added"
-        // growl with "View" wherever the user lands after the dismissal (Spend or a report).
-        showExpenseAddedGrowl({
+    } else {
+        // Dismiss-first paths (orchestrator owns navigation); still surface feedback wherever the user
+        // lands. Invoices go to an invoice room (no expense-report table), so this resolves to the growl.
+        surfaceExpenseCreatedFeedback({
             iouReportID: invoiceReportID,
             transactionID,
             transactionThreadReportID,
             isInvoice: true,
         });
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    } else {
         removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 

@@ -13,7 +13,7 @@ import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@li
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import {showExpenseAddedGrowl} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import {surfaceExpenseCreatedFeedback} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -2197,18 +2197,17 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
             transactionID: parameters.transactionID,
             transactionThreadReportID: parameters.transactionThreadReportID,
-            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
+            shouldAddPendingNewTransactionIDs: isMoneyRequestReport,
         });
-    } else if (isFromGlobalCreate) {
-        // Dismiss-first paths (orchestrator owns navigation); still surface the "Expense added"
-        // growl with "View" wherever the user lands after the dismissal (Spend or a report).
-        showExpenseAddedGrowl({
+    } else {
+        // Dismiss-first paths (orchestrator owns navigation). Surface feedback wherever the user lands:
+        // highlight the new row for in-report adds, otherwise the "Expense added" growl with "View".
+        surfaceExpenseCreatedFeedback({
             iouReportID: parameters.iouReportID,
             transactionID: parameters.transactionID,
             transactionThreadReportID: parameters.transactionThreadReportID,
+            isMoneyRequestReport,
         });
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    } else {
         removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     }
 

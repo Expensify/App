@@ -231,6 +231,35 @@ function showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadRep
     }, SAFETY_TIMEOUT_MS);
 }
 
+type SurfaceExpenseCreatedFeedbackParams = {
+    iouReportID?: string;
+    transactionID?: string;
+    transactionThreadReportID?: string;
+
+    /**
+     * Whether the expense was added from within its own expense report (i.e. the report table is the
+     * surface in front of the user). When true we highlight the new row instead of showing a growl.
+     */
+    isMoneyRequestReport?: boolean;
+
+    /** Whether this is an invoice (changes the growl copy). */
+    isInvoice?: boolean;
+};
+
+/**
+ * Surfaces post-create feedback when navigation is owned elsewhere (the dismiss-first orchestrator) or
+ * isn't needed. Single decision point shared by every expense type:
+ * - if the user is looking at the expense report's table (in-report add) → highlight the new row;
+ * - otherwise → show the "Expense added" growl with a "View" deep link.
+ */
+function surfaceExpenseCreatedFeedback({iouReportID, transactionID, transactionThreadReportID, isMoneyRequestReport, isInvoice}: SurfaceExpenseCreatedFeedbackParams) {
+    if (isMoneyRequestReport && iouReportID && transactionID) {
+        addPendingNewTransactionIDs(iouReportID, transactionID);
+        return;
+    }
+    showExpenseAddedGrowl({iouReportID, transactionID, transactionThreadReportID, isInvoice});
+}
+
 /**
  * Helper to navigate after an expense is created in order to standardize the post‑creation experience
  * when creating an expense from the global create button.
@@ -343,4 +372,4 @@ function navigateAfterExpenseCreate({
 }
 
 export default navigateAfterExpenseCreate;
-export {showExpenseAddedGrowl};
+export {showExpenseAddedGrowl, surfaceExpenseCreatedFeedback};
