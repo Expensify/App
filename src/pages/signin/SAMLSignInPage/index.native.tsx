@@ -11,7 +11,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {clearSignInData, setAccountError, signInWithShortLivedAuthToken} from '@userActions/Session';
+import {clearSignInData, setAccountError, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +26,8 @@ function SAMLSignInPage() {
     const hasOpenedAuthSession = useRef(false);
 
     const handleExitSAMLFlow = useCallback(() => {
+        // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
+        setIsAuthenticatingWithShortLivedToken(false);
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
             clearSignInData();
@@ -67,6 +69,8 @@ function SAMLSignInPage() {
                 return;
             }
 
+            // The browser returned but we couldn't sign in, so clear the guard we set before opening it
+            setIsAuthenticatingWithShortLivedToken(false);
             clearSignInData();
             setAccountError(translate('common.error.login'));
             Navigation.isNavigationReady().then(() => {
@@ -84,6 +88,12 @@ function SAMLSignInPage() {
             return;
         }
         hasOpenedAuthSession.current = true;
+        // Opening the in-app browser backgrounds the app. When it returns, the app resumes and fires
+        // reconnectApp() with the expired authToken, which 407s and would trigger reauthenticate() ->
+        // redirectToSignIn(), wiping the session before the SAML callback can sign the user back in. Setting
+        // this guard up front makes reauthenticate() abort while the SAML sign-in is in progress. It is cleared
+        // by signInWithShortLivedAuthToken() on success, and on the cancel/error paths below.
+        setIsAuthenticatingWithShortLivedToken(true);
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
                 if (response.type !== 'success') {

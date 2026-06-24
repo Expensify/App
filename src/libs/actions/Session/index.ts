@@ -838,6 +838,20 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
 }
 
 /**
+ * Marks (or clears) that a short-lived-token sign-in is in progress.
+ *
+ * Native SAML sign-in opens an in-app browser, which backgrounds the app. On resume, `reconnectApp()` fires
+ * with the now-expired authToken and gets a 407; if this guard isn't already set, `reauthenticate()` takes
+ * the `isSAMLRequired` branch and calls `redirectToSignIn()`, wiping the session before the SAML callback can
+ * sign the user back in. Setting it `true` before opening the browser makes `reauthenticate()` abort while the
+ * SAML sign-in is in progress. `signInWithShortLivedAuthToken` clears it on completion; the cancel/error paths
+ * clear it explicitly.
+ */
+function setIsAuthenticatingWithShortLivedToken(isAuthenticating: boolean) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, isAuthenticating);
+}
+
+/**
  * Sign the user into the application. This will first authenticate their account
  * then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
@@ -1686,6 +1700,7 @@ export {
     signInWithValidateCodeAndNavigate,
     initAutoAuthState,
     signInWithShortLivedAuthToken,
+    setIsAuthenticatingWithShortLivedToken,
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
