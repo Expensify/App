@@ -77,7 +77,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
-        includeRecentReports: true,
+        includeRecentReports: false,
         shouldInitialize: true,
     });
 
@@ -243,7 +243,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             }
 
             // Add search results that are not already workspace members
-            const searchResults = [...availableOptions.recentOptions, ...availableOptions.personalDetails].filter((option) => {
+            const searchResults = availableOptions.personalDetails.filter((option) => {
                 const isMember = policy?.employeeList?.[normalizeLogin(option.login)];
                 const isAlreadyInList = members.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login));
                 return !isMember && !isAlreadyInList;
@@ -272,7 +272,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         debouncedSearchTerm,
         areOptionsInitialized,
         availableOptions.userToInvite,
-        availableOptions.recentOptions,
         availableOptions.personalDetails,
         icons.FallbackAvatar,
         policyMemberEmailsToAccountIDs,
