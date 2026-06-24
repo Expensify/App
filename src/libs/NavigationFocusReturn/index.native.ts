@@ -101,31 +101,41 @@ function captureTriggerForRoute(routeKey: string): void {
 }
 
 /*
- * Fast path = captured ref still alive. Fallback = ref nulled by `react-native-screens` detach; resolve via the registry's live re-registration.
+ * Fast path = captured ref still alive AND `fireFocusEvent` succeeds. Fallback = ref nulled or `fireFocusEvent` returned false on a stale handle; resolve via the registry's live re-registration.
  */
+function resolveLiveRefFromRegistry(routeKey: string, identifier: string): RefObject<View | null> | null {
+    // Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
+    const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
+    const liveRefs = Array.from(pressableRegistry.get(rawRouteKey)?.get(identifier) ?? []).filter((candidate) => candidate.current);
+    const acceptCollision = COLLISION_TOLERANT_IDENTIFIERS.has(identifier);
+    return liveRefs.length === 1 || (acceptCollision && liveRefs.length > 1) ? (liveRefs.at(0) ?? null) : null;
+}
+
 function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
         return null;
     }
-    let ref: RefObject<View | null> = entry.ref;
-    let view = ref.current;
-    if (!view && entry.identifier) {
-        // Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
-        const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
-        const liveRefs = Array.from(pressableRegistry.get(rawRouteKey)?.get(entry.identifier) ?? []).filter((candidate) => candidate.current);
-        const acceptCollision = COLLISION_TOLERANT_IDENTIFIERS.has(entry.identifier);
-        const liveRef = liveRefs.length === 1 || (acceptCollision && liveRefs.length > 1) ? liveRefs.at(0) : undefined;
-        if (liveRef) {
-            ref = liveRef;
-            view = liveRef.current;
-        }
+    const fastView = entry.ref.current;
+    if (fastView && fireFocusEvent(fastView)) {
+        return entry.ref;
     }
-    if (!view) {
+    if (!entry.identifier) {
         return null;
     }
-    fireFocusEvent(view);
-    return ref;
+    const liveRef = resolveLiveRefFromRegistry(routeKey, entry.identifier);
+    const liveView = liveRef?.current;
+    if (!liveRef || !liveView) {
+        return null;
+    }
+    // Same ref re-registered (registration ran before detach nulled the JS ref) — skip so the retry waits for the actual remount.
+    if (liveRef === entry.ref) {
+        return null;
+    }
+    if (!fireFocusEvent(liveView)) {
+        return null;
+    }
+    return liveRef;
 }
 
 function cancelPendingRestore(): void {

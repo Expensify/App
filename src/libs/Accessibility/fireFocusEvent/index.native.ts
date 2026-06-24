@@ -3,12 +3,14 @@ import {AccessibilityInfo} from 'react-native';
 import type {Text as RNText, View} from 'react-native';
 import Log from '@libs/Log';
 
-/** A non-null JS ref doesn't mean the native handle is alive (react-native-screens detach). Catch + log so a stale-handle throw doesn't silently abort the restore. */
-function fireFocusEvent(view: View | RNText): void {
+/** Returns false when `sendAccessibilityEvent` throws on a stale native handle — react-native-screens detach can leave the JS ref non-null while the RCTView is dead. */
+function fireFocusEvent(view: View | RNText): boolean {
     try {
         AccessibilityInfo.sendAccessibilityEvent(view, 'focus');
+        return true;
     } catch (error: unknown) {
         Log.warn('[fireFocusEvent] sendAccessibilityEvent threw', {error});
+        return false;
     }
 }
 

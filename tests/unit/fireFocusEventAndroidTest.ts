@@ -17,7 +17,7 @@ jest.mock('@libs/Log', () => ({
 const mockSendAccessibilityEvent = jest.fn();
 AccessibilityInfo.sendAccessibilityEvent = mockSendAccessibilityEvent;
 
-const fireFocusEvent = require<{default: (view: unknown) => void}>('../../src/libs/Accessibility/fireFocusEvent/index.native').default;
+const fireFocusEvent = require<{default: (view: unknown) => boolean}>('../../src/libs/Accessibility/fireFocusEvent/index.native').default;
 
 beforeEach(() => {
     mockSendAccessibilityEvent.mockClear();
@@ -25,20 +25,20 @@ beforeEach(() => {
 });
 
 describe('fireFocusEvent (native)', () => {
-    it('dispatches sendAccessibilityEvent with `focus` for the given view', () => {
+    it('dispatches sendAccessibilityEvent with `focus` for the given view and returns true on success', () => {
         const view = {label: 'pressable'};
-        fireFocusEvent(view);
+        expect(fireFocusEvent(view)).toBe(true);
         expect(mockSendAccessibilityEvent).toHaveBeenCalledTimes(1);
         expect(mockSendAccessibilityEvent).toHaveBeenCalledWith(view, 'focus');
     });
 
-    it('catches and logs (does not rethrow) when sendAccessibilityEvent throws on a stale native handle', () => {
+    it('catches and logs (does not rethrow) AND returns false when sendAccessibilityEvent throws on a stale native handle — callers must fall through to the registry fallback', () => {
         mockSendAccessibilityEvent.mockImplementationOnce(() => {
             throw new Error('View has been removed');
         });
         const view = {label: 'detached'};
 
-        expect(() => fireFocusEvent(view)).not.toThrow();
+        expect(fireFocusEvent(view)).toBe(false);
         expect(mockLogWarn).toHaveBeenCalled();
     });
 });

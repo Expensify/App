@@ -2,6 +2,8 @@
 import type {Text as RNText, View} from 'react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function fireFocusEvent(_view: View | RNText): void {}
+function fireFocusEvent(_view: View | RNText): boolean {
+    return true;
+}
 
 export default fireFocusEvent;

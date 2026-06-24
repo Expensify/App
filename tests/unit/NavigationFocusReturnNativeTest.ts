@@ -12,6 +12,7 @@ type NavState = {
 };
 
 const mockFireFocusEvent = jest.fn();
+const mockFireFocusEventFailingViews = new Set<unknown>();
 const mockSendAccessibilityEvent = jest.fn();
 const mockLogWarn = jest.fn();
 let mockScreenReaderEnabled = true;
@@ -43,8 +44,9 @@ jest.mock('../../src/libs/Accessibility', () => ({
 
 jest.mock('../../src/libs/Accessibility/fireFocusEvent', () => ({
     __esModule: true,
-    default: (view: unknown): void => {
+    default: (view: unknown): boolean => {
         mockFireFocusEvent(view);
+        return !mockFireFocusEventFailingViews.has(view);
     },
 }));
 
@@ -159,6 +161,7 @@ beforeEach(() => {
     jest.useFakeTimers();
     mockSendAccessibilityEvent.mockClear();
     mockFireFocusEvent.mockClear();
+    mockFireFocusEventFailingViews.clear();
     mockLogWarn.mockClear();
     mockScreenReaderEnabled = true;
     mockScreenReaderCacheWarmed = true;
@@ -750,6 +753,30 @@ describe('pressable registry — identifier-based fallback', () => {
         flushTransitions();
 
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
+    });
+
+    it('falls through to the registry when the JS ref is non-null but `fireFocusEvent` returned false (stale native handle — react-native-screens detach can leave the JS ref alive while sendAccessibilityEvent throws)', () => {
+        const staleView = fakeView('row');
+        const staleRef = fakeRef(staleView);
+        notifyPressedTrigger(staleRef, 'row');
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        handleStateChange(
+            stackState(1, [
+                {key: 'A', name: 'A'},
+                {key: 'B', name: 'B'},
+            ]),
+        );
+
+        mockFireFocusEventFailingViews.add(staleView);
+        const liveView = fakeView('row-remount');
+        registerPressable('A', 'row', fakeRef(liveView));
+
+        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
+        flushTransitions();
+
+        expect(mockFireFocusEvent).toHaveBeenCalledWith(staleView);
+        expect(mockFireFocusEvent).toHaveBeenLastCalledWith(liveView);
     });
 
     it('rAF retry rescues focus when re-attach lags transitionEnd', () => {
