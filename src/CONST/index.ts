@@ -8889,6 +8889,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'AI agents, Concierge upgrades, and smarter card controls',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
+                publishedDate: '2026-06-24',
+            },
+            {
                 title: 'Connect Expensify to ChatGPT, Claude, Cursor',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
@@ -8899,12 +8905,6 @@ const CONST = {
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
                 publishedDate: '2026-05-22',
-            },
-            {
-                title: 'Expensify and VAT IT Launch Integration Partnership to Simplify Global VAT Reclaim',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
-                publishedDate: '2026-05-21',
             },
         ],
     },
