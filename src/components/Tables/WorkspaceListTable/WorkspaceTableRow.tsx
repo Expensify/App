@@ -16,6 +16,7 @@ import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {WorkspaceRowData} from '.';
+import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
 import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
 type WorkspaceRowProps = {
@@ -39,7 +40,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'DotIndicator', 'Hourglass']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'Hourglass']);
 
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
@@ -55,15 +56,6 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     ]
         .filter(Boolean)
         .join(', ');
-
-    const BrickRoadIndicator = !!item.brickRoadIndicator && (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-            <Icon
-                src={icons.DotIndicator}
-                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
-            />
-        </View>
-    );
 
     const JoinRequestPendingBadge = (
         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
@@ -96,7 +88,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
 
     const ThreeDotsMenuWithBrickRoadIndicator = (
         <View style={[styles.flexRow, styles.gap1]}>
-            {item.brickRoadIndicator && BrickRoadIndicator}
+            {item.role === CONST.POLICY.ROLE.ADMIN && <WorkspaceRowBrickRoadIndicator policyID={item.policyID} />}
             <WorkspaceRowThreeDotsMenu
                 item={item}
                 onDeleteWorkspace={onDeleteWorkspace}

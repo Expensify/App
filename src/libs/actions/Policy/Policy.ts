@@ -407,6 +407,13 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     const filteredPolicies = Object.values(policies ?? {}).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.policyAccountID;
 
+    if (hasDeleteWorkspaceExpensifyCardsError) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError'),
+        });
+        return;
+    }
+
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.POLICY
@@ -430,7 +437,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             value: {
                 avatarURL: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                errors: hasDeleteWorkspaceExpensifyCardsError ? ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.common.deleteOpenExpensifyCardsError') : null,
+                errors: null,
             },
         },
         {
@@ -613,16 +620,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
                 [optimisticClosedReportAction.reportActionID]: null,
             },
         });
-
-        if (hasDeleteWorkspaceExpensifyCardsError) {
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    errors: null,
-                },
-            });
-        }
 
         reportIDToOptimisticCloseReportActionID[reportID] = optimisticClosedReportAction.reportActionID;
 
@@ -6243,15 +6240,22 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string, c
 }
 
 /**
- *
  * @param policyID
- * @param prohibitedExpense
+ * @param prohibitedExpenses - The full prohibited expenses values to save
+ * @param previousProhibitedExpenses - The previous prohibited expenses values from Onyx
  */
-function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses, currentProhibitedExpense: ProhibitedExpenses | undefined) {
-    const prohibitedExpenses = {
-        ...currentProhibitedExpense,
-        [prohibitedExpense]: !currentProhibitedExpense?.[prohibitedExpense],
-    };
+function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: ProhibitedExpenses, previousProhibitedExpenses: ProhibitedExpenses | undefined) {
+    const prohibitedExpenseKeys = Object.values(CONST.POLICY.PROHIBITED_EXPENSES);
+    const changedKeys = prohibitedExpenseKeys.filter((key) => prohibitedExpenses[key] !== previousProhibitedExpenses?.[key]);
+
+    if (changedKeys.length === 0) {
+        return;
+    }
+
+    const pendingFields = changedKeys.reduce<NonNullable<ProhibitedExpenses['pendingFields']>>((acc, key) => {
+        acc[key] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        return acc;
+    }, {});
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -6261,9 +6265,7 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
                 value: {
                     prohibitedExpenses: {
                         ...prohibitedExpenses,
-                        pendingFields: {
-                            [prohibitedExpense]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
+                        pendingFields,
                     },
                 },
             },
@@ -6274,9 +6276,7 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     prohibitedExpenses: {
-                        pendingFields: {
-                            [prohibitedExpense]: null,
-                        },
+                        pendingFields: Object.fromEntries(changedKeys.map((key) => [key, null])),
                     },
                     errorFields: null,
                 },
@@ -6287,21 +6287,34 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    prohibitedExpenses: currentProhibitedExpense,
+                    prohibitedExpenses: previousProhibitedExpenses,
                     errorFields: {prohibitedExpenses: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
             },
         ],
     };
 
-    // Remove pendingFields before sending to the API
-    const {pendingFields, ...prohibitedExpensesWithoutPendingFields} = prohibitedExpenses;
+    const {pendingFields: pendingFieldsToRemove, ...prohibitedExpensesWithoutPendingFields} = prohibitedExpenses;
     const parameters: SetPolicyProhibitedExpensesParams = {
         policyID,
         prohibitedExpenses: JSON.stringify(prohibitedExpensesWithoutPendingFields),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES, parameters, onyxData);
+}
+
+/**
+ *
+ * @param policyID
+ * @param prohibitedExpense
+ */
+function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses, currentProhibitedExpense: ProhibitedExpenses | undefined) {
+    const prohibitedExpenses = {
+        ...currentProhibitedExpense,
+        [prohibitedExpense]: !currentProhibitedExpense?.[prohibitedExpense],
+    };
+
+    setPolicyProhibitedExpenses(policyID, prohibitedExpenses, currentProhibitedExpense);
 }
 
 /**
@@ -7600,7 +7613,6 @@ export {
     deleteWorkspace,
     updateAddress,
     updateLastAccessedWorkspace,
-    clearDeleteWorkspaceError,
     dismissWorkspaceError,
     setWorkspaceDefaultSpendCategory,
     getDisplayNameForWorkspace,
@@ -7691,6 +7703,7 @@ export {
     setPolicyMaxExpenseAge,
     updateCustomRules,
     setPolicyProhibitedExpense,
+    setPolicyProhibitedExpenses,
     setDuplicateWorkspaceData,
     clearDuplicateWorkspace,
     setPolicyBillableMode,

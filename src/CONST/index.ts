@@ -283,7 +283,6 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
-    POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
@@ -1041,6 +1040,7 @@ const CONST = {
         CERTINIA: 'financialForceNewDot',
         MERGE_HR: 'mergeHRConnections',
         VENDOR_MATCHING: 'vendorMatching',
+        RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
     },
     BUTTON_STATES: {
@@ -1320,6 +1320,7 @@ const CONST = {
     EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
+    GOOGLE_SEARCH_URL: 'https://www.google.com/search?q=',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     SAML_REDIRECT_URL: 'expensify://open',
@@ -1391,7 +1392,7 @@ const CONST = {
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
-    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings',
+    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
@@ -3065,9 +3066,9 @@ const CONST = {
 
     /** PSA parent tag mapping mode */
     CERTINIA_PARENT_TAG_MAPPING: {
-        PARENT_TAG_PROJECTS_AND_ASSIGNMENTS: 'PARENT_TAG_PROJECTS_AND_ASSIGNMENTS',
-        PARENT_TAG_PROJECTS: 'PARENT_TAG_PROJECTS',
-        PARENT_TAG_ASSIGNMENTS: 'PARENT_TAG_ASSIGNMENTS',
+        PARENT_TAG_PROJECTS_AND_ASSIGNMENTS: 'PROJECTS_AND_ASSIGNMENTS',
+        PARENT_TAG_PROJECTS: 'PROJECTS',
+        PARENT_TAG_ASSIGNMENTS: 'ASSIGNMENTS',
     },
 
     SAGE_INTACCT_CONFIG: {
@@ -5135,6 +5136,8 @@ const CONST = {
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
     SEARCH_BAR_THRESHOLD: 3,
+    // Number of approval workflow cards rendered before the "Load more" affordance on Workspace → Workflows.
+    WORKFLOW_APPROVALS_INITIAL_BATCH: 5,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -5283,6 +5286,8 @@ const CONST = {
         STOP_WAYPOINT: {width: 48, height: 53},
         WAYPOINT: {width: 40, height: 40},
     },
+
+    MAP_VIEW_COMPASS_SIZE: {width: 44, height: 44},
 
     QUICK_REACTIONS: [
         {
@@ -5976,6 +5981,12 @@ const CONST = {
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
+        RULES_TAB_TYPE: 'rulesTabType',
+        RULES: {
+            GENERAL: 'general',
+            CARD_RESTRICTIONS: 'cardRestrictions',
+            EXPENSE_DEFAULTS: 'expenseDefaults',
+        },
         SPLIT: {
             AMOUNT: 'amount',
             PERCENTAGE: 'percentage',
@@ -6066,6 +6077,7 @@ const CONST = {
         DEFAULT_COORDINATE: [-122.4021, 37.7911] as [number, number],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
         ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        GPS_ROUTE_ANIMATION_DURATION_MS: 1000,
         CENTER_BUTTON_FADE_DURATION: 300,
     },
     ONYX_UPDATE_TYPES: {
@@ -6135,7 +6147,6 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
-        TEST_DRIVE_COVER_ASPECT_RATIO: 1000 / 508,
     },
 
     /**
@@ -6641,43 +6652,65 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
         },
+        /**
+         * Single source of truth for which transaction-level columns are available in each column-picker surface:
+         * - `search`: the Spend/Search picker (`/search` → Display → Edit columns), read via `TYPE_CUSTOM_COLUMNS.EXPENSE`.
+         * - `reportView`: the single-report picker (`r/:reportID/settings/columns`), read via `REPORT_DETAILS_CUSTOM_COLUMNS`.
+         *
+         * Both `TYPE_CUSTOM_COLUMNS.EXPENSE` and `REPORT_DETAILS_CUSTOM_COLUMNS` are derived from this map (preserving
+         * this declaration order), so adding a new column forces a single, deliberate availability decision here instead
+         * of silently drifting between two hand-maintained lists. A guard test (`tests/unit/Search/ColumnAvailabilityTest.ts`)
+         * asserts every expense-relevant `TABLE_COLUMNS` value is classified here or explicitly owned by another surface.
+         *
+         * Rule of thumb for `reportView`: a column belongs in the single-report view only if its value can differ between
+         * expenses within the same report. Report-level values (identical on every row) stay Search-only.
+         */
+        get COLUMN_AVAILABILITY() {
+            return {
+                RECEIPT: {column: this.TABLE_COLUMNS.RECEIPT, search: true, reportView: true},
+                DATE: {column: this.TABLE_COLUMNS.DATE, search: true, reportView: true},
+                STATUS: {column: this.TABLE_COLUMNS.STATUS, search: true, reportView: false},
+                SUBMITTED: {column: this.TABLE_COLUMNS.SUBMITTED, search: true, reportView: false},
+                APPROVED: {column: this.TABLE_COLUMNS.APPROVED, search: true, reportView: false},
+                POSTED: {column: this.TABLE_COLUMNS.POSTED, search: true, reportView: true},
+                EXPORTED: {column: this.TABLE_COLUMNS.EXPORTED, search: true, reportView: false},
+                MERCHANT: {column: this.TABLE_COLUMNS.MERCHANT, search: true, reportView: true},
+                DESCRIPTION: {column: this.TABLE_COLUMNS.DESCRIPTION, search: true, reportView: true},
+                FROM: {column: this.TABLE_COLUMNS.FROM, search: true, reportView: false},
+                TO: {column: this.TABLE_COLUMNS.TO, search: true, reportView: false},
+                POLICY_NAME: {column: this.TABLE_COLUMNS.POLICY_NAME, search: true, reportView: false},
+                CARD: {column: this.TABLE_COLUMNS.CARD, search: true, reportView: true},
+                CATEGORY: {column: this.TABLE_COLUMNS.CATEGORY, search: true, reportView: true},
+                CATEGORY_GL_CODE: {column: this.TABLE_COLUMNS.CATEGORY_GL_CODE, search: true, reportView: true},
+                ATTENDEES: {column: this.TABLE_COLUMNS.ATTENDEES, search: true, reportView: true},
+                TOTAL_PER_ATTENDEE: {column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, search: true, reportView: true},
+                TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
+                EXCHANGE_RATE: {column: this.TABLE_COLUMNS.EXCHANGE_RATE, search: true, reportView: true},
+                ORIGINAL_AMOUNT: {column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT, search: true, reportView: true},
+                REPORT_ID: {column: this.TABLE_COLUMNS.REPORT_ID, search: true, reportView: false},
+                BASE_62_REPORT_ID: {column: this.TABLE_COLUMNS.BASE_62_REPORT_ID, search: true, reportView: false},
+                REIMBURSABLE: {column: this.TABLE_COLUMNS.REIMBURSABLE, search: true, reportView: true},
+                BILLABLE: {column: this.TABLE_COLUMNS.BILLABLE, search: true, reportView: true},
+                MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
+                TAX_CODE: {column: this.TABLE_COLUMNS.TAX_CODE, search: true, reportView: true},
+                TAX_RATE: {column: this.TABLE_COLUMNS.TAX_RATE, search: true, reportView: true},
+                TAX_AMOUNT: {column: this.TABLE_COLUMNS.TAX_AMOUNT, search: true, reportView: true},
+                TITLE: {column: this.TABLE_COLUMNS.TITLE, search: true, reportView: false},
+                AMOUNT: {column: this.TABLE_COLUMNS.TOTAL_AMOUNT, search: true, reportView: true},
+                TOTAL: {column: this.TABLE_COLUMNS.TOTAL, search: false, reportView: true},
+                EXPORTED_TO: {column: this.TABLE_COLUMNS.EXPORTED_TO, search: true, reportView: false},
+                ACTION: {column: this.TABLE_COLUMNS.ACTION, search: true, reportView: false},
+                WITHDRAWAL_ID: {column: this.TABLE_COLUMNS.WITHDRAWAL_ID, search: true, reportView: true},
+            };
+        },
         get TYPE_CUSTOM_COLUMNS() {
             return {
-                EXPENSE: {
-                    RECEIPT: this.TABLE_COLUMNS.RECEIPT,
-                    DATE: this.TABLE_COLUMNS.DATE,
-                    STATUS: this.TABLE_COLUMNS.STATUS,
-                    SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
-                    APPROVED: this.TABLE_COLUMNS.APPROVED,
-                    POSTED: this.TABLE_COLUMNS.POSTED,
-                    EXPORTED: this.TABLE_COLUMNS.EXPORTED,
-                    MERCHANT: this.TABLE_COLUMNS.MERCHANT,
-                    DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
-                    FROM: this.TABLE_COLUMNS.FROM,
-                    TO: this.TABLE_COLUMNS.TO,
-                    POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
-                    CARD: this.TABLE_COLUMNS.CARD,
-                    CATEGORY: this.TABLE_COLUMNS.CATEGORY,
-                    CATEGORY_GL_CODE: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
-                    ATTENDEES: this.TABLE_COLUMNS.ATTENDEES,
-                    TOTAL_PER_ATTENDEE: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
-                    TAG: this.TABLE_COLUMNS.TAG,
-                    EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
-                    ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-                    REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
-                    BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
-                    REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
-                    BILLABLE: this.TABLE_COLUMNS.BILLABLE,
-                    MCC: this.TABLE_COLUMNS.MCC,
-                    TAX_CODE: this.TABLE_COLUMNS.TAX_CODE,
-                    TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
-                    TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                    TITLE: this.TABLE_COLUMNS.TITLE,
-                    AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                    EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
-                    ACTION: this.TABLE_COLUMNS.ACTION,
-                    WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
-                },
+                // Derived from COLUMN_AVAILABILITY: every column flagged `search`, in declaration order.
+                EXPENSE: Object.fromEntries(
+                    Object.entries(this.COLUMN_AVAILABILITY)
+                        .filter(([, availability]) => availability.search)
+                        .map(([key, availability]) => [key, availability.column] as const),
+                ),
                 EXPENSE_REPORT: {
                     AVATAR: this.TABLE_COLUMNS.AVATAR,
                     DATE: this.TABLE_COLUMNS.DATE,
@@ -6703,27 +6736,13 @@ const CONST = {
                 CHAT: {},
             };
         },
+        // Derived from COLUMN_AVAILABILITY: every column flagged `reportView`, in declaration order.
         get REPORT_DETAILS_CUSTOM_COLUMNS() {
-            return {
-                RECEIPT: this.TABLE_COLUMNS.RECEIPT,
-                DATE: this.TABLE_COLUMNS.DATE,
-                MERCHANT: this.TABLE_COLUMNS.MERCHANT,
-                DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
-                CARD: this.TABLE_COLUMNS.CARD,
-                CATEGORY: this.TABLE_COLUMNS.CATEGORY,
-                CATEGORY_GL_CODE: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
-                TAG: this.TABLE_COLUMNS.TAG,
-                EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
-                REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
-                BILLABLE: this.TABLE_COLUMNS.BILLABLE,
-                MCC: this.TABLE_COLUMNS.MCC,
-                TAX_CODE: this.TABLE_COLUMNS.TAX_CODE,
-                TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
-                TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                TOTAL: this.TABLE_COLUMNS.TOTAL,
-                WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
-            };
+            return Object.fromEntries(
+                Object.entries(this.COLUMN_AVAILABILITY)
+                    .filter(([, availability]) => availability.reportView)
+                    .map(([key, availability]) => [key, availability.column] as const),
+            );
         },
         get GROUP_CUSTOM_COLUMNS() {
             return {
@@ -7282,7 +7301,7 @@ const CONST = {
         SCREENS.NOT_FOUND,
         SCREENS.SAML_SIGN_IN,
         SCREENS.VALIDATE_LOGIN,
-        SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
+        SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
         SCREENS.MONEY_REQUEST.STEP_SCAN,
         SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
         ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),
@@ -7995,7 +8014,6 @@ const CONST = {
             START_CHAT: 'FABMenu-StartChat',
             SEND_INVOICE: 'FABMenu-SendInvoice',
             BOOK_TRAVEL: 'FABMenu-BookTravel',
-            TEST_DRIVE: 'FABMenu-TestDrive',
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
         },
@@ -8336,10 +8354,6 @@ const CONST = {
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
         },
-        TEST_DRIVE_MODAL: {
-            SKIP: 'TestDriveModal-Skip',
-            START: 'TestDriveModal-Start',
-        },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
@@ -8366,6 +8380,9 @@ const CONST = {
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
         },
+        MAP_VIEW: {
+            COMPASS: 'compass',
+        },
         MONEY_REQUEST: {
             AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
             AMOUNT_PAY_BUTTON: 'MoneyRequest-AmountPayButton',
@@ -8376,6 +8393,7 @@ const CONST = {
             CONFIRMATION_SUBMIT_BUTTON: 'MoneyRequest-ConfirmationSubmitButton',
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
+            GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',
@@ -8528,6 +8546,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
             },
             TAXES: {
+                ROW: 'WorkspaceTaxes-Row',
                 ADD_BUTTON: 'WorkspaceTaxes-AddButton',
                 MORE_DROPDOWN: 'WorkspaceTaxes-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
@@ -8542,6 +8561,7 @@ const CONST = {
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
+                LOAD_MORE_APPROVALS: 'WorkspaceWorkflows-LoadMoreApprovals',
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
                 AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
@@ -8576,6 +8596,11 @@ const CONST = {
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',
                 AGENT_RULE_SAVE: 'WorkspaceRules-AgentRuleSave',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
+                NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
+                REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
+                REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
+                FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
+                BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
@@ -8862,6 +8887,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'Connect Expensify to ChatGPT, Claude, Cursor',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
+                publishedDate: '2026-06-08',
+            },
+            {
                 title: 'Policy upload, card freeze, and bulk editing',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
@@ -8872,12 +8903,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
                 publishedDate: '2026-05-21',
-            },
-            {
-                title: 'Expensify and Playroll Partner to Eliminate Compliance Complexity',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
-                publishedDate: '2026-05-19',
             },
         ],
     },
@@ -8900,7 +8925,11 @@ const CONST = {
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
         ROUTE_BORDER: 'route-border',
+        WAYPOINTS_SOURCE: 'waypoints-source',
+        WAYPOINTS: 'waypoints',
     },
+
+    MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',
 
     PARTNER_ID: {
         EXPENSIFY: 1,
