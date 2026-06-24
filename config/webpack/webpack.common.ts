@@ -347,7 +347,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     use: isDevelopment ? ['style-loader', 'css-loader'] : [MiniCssExtractPlugin.loader, 'css-loader'],
                 },
                 {
-                    test: /\.(woff|woff2|ttf)$/i,
+                    test: /\.(woff2|ttf)$/i,
                     type: 'asset',
                 },
                 {
