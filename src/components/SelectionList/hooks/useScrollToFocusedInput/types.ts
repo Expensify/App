@@ -16,4 +16,5 @@ type UseScrollToFocusedInputResult = {
 
 type UseScrollToFocusedInput = (listRef: RefObject<Pick<FlashListRef<unknown>, 'scrollToOffset'> | null>, isKeyboardShown: boolean) => UseScrollToFocusedInputResult;
 
-export default UseScrollToFocusedInput;
+// eslint-disable-next-line import/prefer-default-export
+export type {UseScrollToFocusedInput};
