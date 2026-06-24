@@ -130,6 +130,12 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
 
     const startDateAsDate = parseDate(startDate);
 
+    const applyDurationDays = (days: number) => {
+        setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
+        setDurationAmount(String(days));
+        durationAmountRef.current?.updateNumber(String(days));
+    };
+
     const handleDurationUnitChange = (item: ValuePickerItem) => {
         if (item.value) {
             lastEditedRef.current = 'duration';
@@ -153,9 +159,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 // The new start date is after the pinned end date, so the range is no longer valid.
                 setEndDate('');
             } else {
-                setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
-                setDurationAmount(String(days));
-                durationAmountRef.current?.updateNumber(String(days));
+                applyDurationDays(days);
             }
             return;
         }
@@ -184,9 +188,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         if (days === null) {
             return;
         }
-        setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
-        setDurationAmount(String(days));
-        durationAmountRef.current?.updateNumber(String(days));
+        applyDurationDays(days);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> => {
