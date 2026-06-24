@@ -26,7 +26,7 @@ import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -119,7 +119,7 @@ function NewChatConfirmPage() {
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const participants = newGroupDraft?.participants ?? [];
@@ -184,7 +184,8 @@ function NewChatConfirmPage() {
             personalData.login ?? '',
             optimisticReportID.current,
             introSelected,
-            isSelfTourViewed,
+            guidedSetupAndTourStatus?.isSelfTourViewed,
+            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
             personalData.accountID,
             newGroupDraft.avatarUri ?? '',

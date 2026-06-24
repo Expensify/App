@@ -1893,6 +1893,7 @@ function createGroupChat(
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     avatar?: File | CustomRNImageManipulatorResult,
 ) {
@@ -2067,7 +2068,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2344,6 +2345,7 @@ function navigateToAndOpenReport(
 }
 
 // TODO: update to object structure https://github.com/Expensify/App/issues/73656
+// eslint-disable-next-line @typescript-eslint/max-params
 function navigateToAndCreateGroupChat(
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     reportName: string,
@@ -2351,6 +2353,7 @@ function navigateToAndCreateGroupChat(
     optimisticReportID: string,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     currentUserAccountID: number,
     avatarUri?: string,
@@ -2363,7 +2366,7 @@ function navigateToAndCreateGroupChat(
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(newChat.reportID, participantsPersonalDetails, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
+    createGroupChat(newChat.reportID, participantsPersonalDetails, newChat, currentUserLogin, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, avatarFile);
 
     navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
