@@ -283,7 +283,6 @@ const CONST = {
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
-    POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT: 416,
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
@@ -1033,6 +1032,7 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_EDIT_WORKSPACES: 'bulkEditWorkspaces',
+        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
@@ -1320,6 +1320,7 @@ const CONST = {
     EXPENSIFY_MOBILE_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
+    GOOGLE_SEARCH_URL: 'https://www.google.com/search?q=',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     SAML_REDIRECT_URL: 'expensify://open',
@@ -1838,6 +1839,7 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
@@ -6144,7 +6146,6 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
-        TEST_DRIVE_COVER_ASPECT_RATIO: 1000 / 508,
     },
 
     /**
@@ -8004,7 +8005,6 @@ const CONST = {
             START_CHAT: 'FABMenu-StartChat',
             SEND_INVOICE: 'FABMenu-SendInvoice',
             BOOK_TRAVEL: 'FABMenu-BookTravel',
-            TEST_DRIVE: 'FABMenu-TestDrive',
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
         },
@@ -8345,10 +8345,6 @@ const CONST = {
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
         },
-        TEST_DRIVE_MODAL: {
-            SKIP: 'TestDriveModal-Skip',
-            START: 'TestDriveModal-Start',
-        },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
@@ -8388,6 +8384,7 @@ const CONST = {
             CONFIRMATION_SUBMIT_BUTTON: 'MoneyRequest-ConfirmationSubmitButton',
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
+            GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',
@@ -8879,6 +8876,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'Connect Expensify to ChatGPT, Claude, Cursor',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
+                publishedDate: '2026-06-08',
+            },
+            {
                 title: 'Policy upload, card freeze, and bulk editing',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
@@ -8889,12 +8892,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
                 publishedDate: '2026-05-21',
-            },
-            {
-                title: 'Expensify and Playroll Partner to Eliminate Compliance Complexity',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260519341013/en/Expensify-and-Playroll-Partner-to-Eliminate-Compliance-Complexity-and-Streamline-Expenses-to-Payroll-for-Businesses-Going-Global',
-                publishedDate: '2026-05-19',
             },
         ],
     },

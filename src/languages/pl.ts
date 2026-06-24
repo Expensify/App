@@ -315,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Pokaż mniej',
         plusMore: ({count}: {count: number}) => `+${count} więcej`,
         merchant: 'Sprzedawca',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Wyszukaj w Google: ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Wyszukaj ${merchant} w Google`,
         change: 'Zmień',
         category: 'Kategoria',
         vendor: 'Dostawca',
@@ -1652,13 +1654,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
-        submitReportTo: {
-            subtitle: 'Wybierz członka przestrzeni roboczej lub wpisz adres e‑mail osoby, która powinna otrzymać to zgłoszenie.',
-            emailLabel: 'Adres e-mail',
-            workspaceMembers: 'Członkowie przestrzeni roboczej',
-            sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
-            sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
-        },
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
             header: (workflowSettingLink: string) =>
@@ -2839,7 +2834,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenci',
-        subtitle: `<muted-text>Twórz agentów, którzy obsłużą twój workflow. Odpuść sobie ręczną pracę i odzyskaj godziny w ciągu dnia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Dowiedz się więcej</a>.</muted-text>`,
+        subtitle: `<muted-text>Agenci obsługują za ciebie twoje procesy, dzięki czemu odzyskujesz godziny w ciągu dnia. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Dowiedz się więcej</a>.</muted-text>`,
         newAgent: 'Nowy agent',
         emptyAgents: {
             title: 'Nie utworzono agentów',
@@ -3358,9 +3353,6 @@ ${amount} dla ${merchant} - ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Zrób [jazdę próbną](${testDriveURL})` : 'Wypróbuj wersję testową'),
             embeddedDemoIframeTitle: 'Jazda próbna',
-            employeeFakeReceipt: {
-                description: 'Mój paragon za jazdę próbną!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Otrzymanie zwrotu jest tak proste jak wysłanie wiadomości. Omówmy podstawy.',
@@ -4399,7 +4391,7 @@ ${amount} dla ${merchant} - ${date}`,
             defaultNote: `Paragony wysłane na ${CONST.EMAIL.RECEIPTS} pojawią się w tym obszarze roboczym.`,
             deleteConfirmation: 'Czy na pewno chcesz usunąć tę przestrzeń roboczą?',
             deleteWithCardsConfirmation: 'Na pewno chcesz usunąć tę przestrzeń roboczą? Spowoduje to usunięcie wszystkich źródeł kart i przypisanych kart.',
-            deleteOpenExpensifyCardsError: 'Twoja firma nadal ma aktywne karty Expensify.',
+            deleteOpenExpensifyCardsError: 'Twoja firma wciąż ma Karty Expensify. Prosimy, <concierge-link>skontaktuj się z Concierge</concierge-link>, aby je usunąć.',
             outstandingBalanceWarning:
                 'Masz zaległe saldo, które musi zostać uregulowane przed usunięciem ostatniego miejsca pracy. Przejdź do ustawień subskrypcji, aby uregulować płatność.',
             settleBalance: 'Przejdź do subskrypcji',
@@ -4963,6 +4955,12 @@ ${amount} dla ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify będzie automatycznie synchronizować się z Certinia każdego dnia.',
             syncReimbursedReportsDescription:
                 'Gdy ta opcja jest włączona, za każdym razem gdy Należna faktura zostanie opłacona w FFA, powiązany raport Expensify zostanie automatycznie oznaczony jako zwrócony.',
+            taxNonBillable: 'Eksportuj podatek jako niefakturowany',
+            taxNonBillableDescription:
+                'Podczas eksportowania fakturowanych wydatków oznaczonych stawkami podatkowymi z Expensify część podatkowa zostanie oznaczona jako niefakturowana przy eksporcie do Certinia PSA.',
+            foreignCurrencyAmount: 'Eksportuj kwotę w walucie obcej',
+            foreignCurrencyAmountDescription:
+                'Jeśli eksportujesz wydatki podlegające zwrotowi jako raporty wydatków, wyeksportujemy do Certinia pierwotną kwotę w walucie obcej dla każdej transakcji, jeśli istnieje.',
             exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Certinia.',
             payableInvoices: 'Należne faktury',
             exportStatus: {
@@ -9711,18 +9709,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Wypróbuj w 2 minuty',
-        },
-        modal: {
-            title: 'Wypróbuj nas w praktyce',
-            description: 'Zrób krótkie wprowadzenie do produktu, aby szybko się wdrożyć.',
-            confirmText: 'Rozpocznij jazdę testową',
-            helpText: 'Pomiń',
-            employee: {
-                description:
-                    '<muted-text>Zapewnij swojemu zespołowi <strong>3 darmowe miesiące Expensify!</strong> Wpisz poniżej adres e-mail swojego szefa i wyślij mu przykładowy wydatek.</muted-text>',
-                email: 'Wpisz adres e-mail swojego szefa',
-                error: 'Ten członek jest właścicielem przestrzeni roboczej, wprowadź nowego członka do przetestowania.',
-            },
         },
         banner: {
             currentlyTestDrivingExpensify: 'Aktualnie testujesz Expensify',
