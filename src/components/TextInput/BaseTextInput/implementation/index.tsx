@@ -139,6 +139,36 @@ function BaseTextInput({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Keep `isFocused` in sync with the actual DOM focus state.
+    // The React `onFocus`/`onBlur` synthetic events can be dropped when the input is focused
+    // programmatically (e.g. via a ref) while the component is mid-remount, which leaves
+    // `isFocused` stuck on `false`: the focus border never shows and the label never floats
+    // even though the caret is in the field. Listening to the native focus/blur events directly
+    // on the element — plus reconciling against the current `activeElement` in case focus already
+    // landed before this effect attached its listeners — makes the visual state authoritative.
+    // See https://github.com/Expensify/App/issues/94233
+    useEffect(() => {
+        const inputElement = input.current;
+        if (!inputElement) {
+            return;
+        }
+
+        if (typeof document !== 'undefined' && document.activeElement === inputElement) {
+            setIsFocused(true);
+        }
+
+        const handleFocus = () => setIsFocused(true);
+        const handleBlur = () => setIsFocused(false);
+
+        inputElement.addEventListener('focus', handleFocus);
+        inputElement.addEventListener('blur', handleBlur);
+
+        return () => {
+            inputElement.removeEventListener('focus', handleFocus);
+            inputElement.removeEventListener('blur', handleBlur);
+        };
+    }, []);
+
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
             labelScale.set(
