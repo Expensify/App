@@ -104,8 +104,8 @@ jobs:
         run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
 
       - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        # v1.310.0
+        uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f
         with:
           bundler-cache: true
 
@@ -252,7 +252,7 @@ jobs:
         run: |
           OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration Release --log-level debug 2>&1)
           echo "$OUTPUT"
-          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
+          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ "}]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
             echo "::notice::iOS Sentry size analysis: $SENTRY_URL"
             echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"

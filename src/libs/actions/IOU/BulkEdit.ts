@@ -31,7 +31,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getAllTransactionViolations} from '.';
 import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
 
 function removeUnchangedBulkEditFields(
@@ -78,6 +77,7 @@ type UpdateMultipleMoneyRequestsParams = {
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     hash?: number;
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
@@ -93,6 +93,7 @@ function updateMultipleMoneyRequests({
     reportActions,
     policyCategories,
     policyTags,
+    violations,
     hash,
     allPolicies,
     currentUserAccountID,
@@ -341,7 +342,7 @@ function updateMultipleMoneyRequests({
         let optimisticViolationsData: ReturnType<typeof ViolationsUtils.getViolationsOnyxData> | undefined;
         let currentTransactionViolations: OnyxTypes.TransactionViolation[] | undefined;
         if (transactionPolicy && !isUnreportedExpense) {
-            currentTransactionViolations = getAllTransactionViolations()[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+            currentTransactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             let optimisticViolations =
                 transactionChanges.amount !== undefined || transactionChanges.created || transactionChanges.currency
                     ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
@@ -352,18 +353,18 @@ function updateMultipleMoneyRequests({
                     : optimisticViolations;
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
             const transactionPolicyCategories = policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionPolicy?.id}`] ?? {};
-            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData(
+            optimisticViolationsData = ViolationsUtils.getViolationsOnyxData({
                 updatedTransaction,
-                optimisticViolations,
-                transactionPolicy,
-                transactionPolicyTagList,
-                transactionPolicyCategories,
-                hasDependentTags(transactionPolicy, transactionPolicyTagList),
-                isInvoiceReportReportUtils(iouReport),
-                isSelfDM(iouReport),
+                transactionViolations: optimisticViolations,
+                policy: transactionPolicy,
+                policyTagList: transactionPolicyTagList,
+                policyCategories: transactionPolicyCategories,
+                hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList),
+                isInvoiceTransaction: isInvoiceReportReportUtils(iouReport),
+                isSelfDM: isSelfDM(iouReport),
                 iouReport,
                 isFromExpenseReport,
-            );
+            });
             optimisticData.push(optimisticViolationsData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,

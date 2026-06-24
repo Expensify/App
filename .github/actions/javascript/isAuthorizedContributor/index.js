@@ -11582,13 +11582,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isAuthorizedContributor = isAuthorizedContributor;
 exports.isContributorPlusMember = isContributorPlusMember;
+exports.isInternalExpensifyEngineer = isInternalExpensifyEngineer;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const request_error_1 = __nccwpck_require__(537);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
-const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR']);
+const isTeamMember_1 = __importDefault(__nccwpck_require__(1077));
+const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR', 'COLLABORATOR']);
 const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
+// Internal Expensify engineers belong to this team. We can't rely on author_association, which only reports MEMBER for publicly visible org members.
+const ENGINEERING_TEAM_SLUG = 'engineering';
 const ISSUE_URL_PATTERN = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
 function parseExpensifyLink(match) {
     const repoFullName = match[1];
@@ -11610,27 +11613,18 @@ function logVerificationError(repoFullName, number, error) {
 }
 async function isContributorPlusMember(username, orgToken) {
     GithubUtils_1.default.initOctokitWithToken(orgToken);
-    try {
-        await GithubUtils_1.default.octokit.teams.getMembershipForUserInOrg({
-            org: CONST_1.default.GITHUB_OWNER,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            team_slug: CONTRIBUTOR_PLUS_TEAM_SLUG,
-            username,
-        });
-        console.log(`${username} is a Contributor+ member. Authorized.`);
-        return true;
-    }
-    catch (error) {
-        if (error instanceof request_error_1.RequestError && error.status === 404) {
-            console.log(`${username} is not a Contributor+ member.`);
-            return false;
-        }
-        const message = error instanceof Error ? error.message : String(error);
-        core.warning(`Could not verify Contributor+ membership for ${username}. Assuming they are not a Contributor+: ${message}`);
-        return false;
-    }
+    const isMember = await (0, isTeamMember_1.default)(GithubUtils_1.default.octokit, CONST_1.default.GITHUB_OWNER, CONTRIBUTOR_PLUS_TEAM_SLUG, username);
+    console.log(isMember ? `${username} is a Contributor+ member. Authorized.` : `${username} is not a Contributor+ member.`);
+    return isMember;
 }
-async function isAuthorizedViaLinkedIssues(prBody, prAuthor) {
+/**
+ * Returns whether a user is an internal Expensify engineer (member of the engineering org team).
+ */
+async function isInternalExpensifyEngineer(username, orgToken) {
+    GithubUtils_1.default.initOctokitWithToken(orgToken);
+    return (0, isTeamMember_1.default)(GithubUtils_1.default.octokit, CONST_1.default.GITHUB_OWNER, ENGINEERING_TEAM_SLUG, username);
+}
+async function isAuthorizedViaLinkedIssues(prBody, actor) {
     for (const match of prBody.matchAll(ISSUE_URL_PATTERN)) {
         const link = parseExpensifyLink(match);
         if (!link) {
@@ -11644,11 +11638,11 @@ async function isAuthorizedViaLinkedIssues(prBody, prAuthor) {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: number,
             });
-            if (issue.assignees?.some((assignee) => assignee.login?.toLowerCase() === prAuthor.toLowerCase())) {
-                console.log(`${prAuthor} is assigned to ${repoFullName}#${number}. Authorized.`);
+            if (issue.assignees?.some((assignee) => assignee.login?.toLowerCase() === actor.toLowerCase())) {
+                console.log(`${actor} is assigned to ${repoFullName}#${number}. Authorized.`);
                 return true;
             }
-            console.log(`${prAuthor} is NOT assigned to ${repoFullName}#${number}.`);
+            console.log(`${actor} is NOT assigned to ${repoFullName}#${number}.`);
         }
         catch (error) {
             logVerificationError(repoFullName, number, error);
@@ -11659,15 +11653,15 @@ async function isAuthorizedViaLinkedIssues(prBody, prAuthor) {
 /**
  * Returns whether a PR author is authorized to contribute per Expensify external contributor rules.
  */
-async function isAuthorizedContributor({ prNumber, prAuthor, authorAssociation, repoOwner, repoName, githubToken, orgToken }) {
-    if (AUTHORIZED_ASSOCIATIONS.has(authorAssociation)) {
-        console.log(`${prAuthor} is ${authorAssociation}. Authorized.`);
+async function isAuthorizedContributor({ prNumber, actor, actorAssociation, repoOwner, repoName, githubToken, orgToken }) {
+    if (AUTHORIZED_ASSOCIATIONS.has(actorAssociation)) {
+        console.log(`${actor} is ${actorAssociation}. Authorized.`);
         return true;
     }
-    if (await isContributorPlusMember(prAuthor, orgToken)) {
+    if (await isContributorPlusMember(actor, orgToken)) {
         return true;
     }
-    console.log(`${prAuthor} has association "${authorAssociation}". Checking linked issues...`);
+    console.log(`${actor} has association "${actorAssociation}". Checking linked issues...`);
     GithubUtils_1.default.initOctokitWithToken(githubToken);
     const { data: pr } = await GithubUtils_1.default.octokit.pulls.get({
         owner: repoOwner,
@@ -11676,29 +11670,31 @@ async function isAuthorizedContributor({ prNumber, prAuthor, authorAssociation, 
         pull_number: prNumber,
     });
     const prBody = pr.body ?? '';
-    const isAuthorized = await isAuthorizedViaLinkedIssues(prBody, prAuthor);
+    const isAuthorized = await isAuthorizedViaLinkedIssues(prBody, actor);
     if (!isAuthorized) {
-        console.log(`No valid authorization found for ${prAuthor}.`);
+        console.log(`No valid authorization found for ${actor}.`);
     }
     return isAuthorized;
 }
 async function run() {
     const prNumber = Number.parseInt(core.getInput('PR_NUMBER', { required: true }), 10);
-    const prAuthor = core.getInput('PR_AUTHOR', { required: true });
-    const authorAssociation = core.getInput('AUTHOR_ASSOCIATION', { required: true });
+    const actor = core.getInput('ACTOR', { required: true });
+    const actorAssociation = core.getInput('ACTOR_ASSOCIATION', { required: true });
     const githubToken = core.getInput('GITHUB_TOKEN', { required: true });
     const orgToken = core.getInput('OS_BOTIFY_TOKEN', { required: true });
     const { owner, repo } = github.context.repo;
     const isAuthorized = await isAuthorizedContributor({
         prNumber,
-        prAuthor,
-        authorAssociation,
+        actor,
+        actorAssociation,
         repoOwner: owner,
         repoName: repo,
         githubToken,
         orgToken,
     });
     core.setOutput('IS_AUTHORIZED', isAuthorized);
+    const isInternal = await isInternalExpensifyEngineer(actor, orgToken);
+    core.setOutput('IS_INTERNAL', isInternal);
 }
 if (require.main === require.cache[eval('__filename')]) {
     run().catch((error) => {
@@ -12237,6 +12233,75 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
+
+
+/***/ }),
+
+/***/ 1077:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable @typescript-eslint/naming-convention */
+const core = __importStar(__nccwpck_require__(2186));
+const request_error_1 = __nccwpck_require__(537);
+/**
+ * Whether a user is a member of the given org team.
+ * The octokit must be authenticated with a token that has read:org scope, otherwise concealed (private) members are reported as non-members.
+ */
+async function isTeamMember(octokit, org, teamSlug, username) {
+    try {
+        await octokit.teams.getMembershipForUserInOrg({
+            org,
+            team_slug: teamSlug,
+            username,
+        });
+        return true;
+    }
+    catch (error) {
+        if (error instanceof request_error_1.RequestError && error.status === 404) {
+            return false;
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        core.warning(`Could not verify ${teamSlug} membership for ${username}. Assuming they are not a member: ${message}`);
+        return false;
+    }
+}
+exports["default"] = isTeamMember;
 
 
 /***/ }),

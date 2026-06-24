@@ -1,3 +1,4 @@
+import {policyTypeSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -11,9 +12,11 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -27,21 +30,22 @@ import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isReportInGroupPolicy, isSelfDM} from '@libs/ReportUtils';
+import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -73,11 +77,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
+    const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, splitExpenseDraftTransaction, transaction);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
-    const hasAnyPaidWorkspace = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}).length > 0, [allPolicies]);
+    const hasAnyPaidWorkspace = hasAnyPaidPolicy(allPolicies ?? {});
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
 
@@ -115,7 +120,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
-    const isPolicyExpenseChat = isReportInGroupPolicy(draftTransactionReport);
+    const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {
+        selector: policyTypeSelector,
+    });
+    const isPolicyExpenseChat = isGroupPolicyByType(draftTransactionPolicyType);
 
     const originalTransactionCategory = transaction?.category ?? '';
     const originalTransactionTag = transaction?.tag ?? '';
@@ -131,7 +139,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport);
+    const {isProduction} = useEnvironment();
+    const isSplitAvailable =
+        report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport, isProduction);
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const reportAttributes = useReportAttributes();
@@ -158,7 +168,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: effectivePolicy});
+    const {
+        unit,
+        rate,
+        name: rateName,
+    } = DistanceRequestUtils.getRate({
+        transaction: splitExpenseDraftTransaction,
+        policy: effectivePolicy,
+        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+    });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currentAmount =
         isDistance && distance && rate
@@ -253,13 +271,15 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                     // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
                     if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action: CONST.IOU.ACTION.EDIT,
-                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                reportID,
-                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                            }),
+                            createDynamicRoute(
+                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                    action: CONST.IOU.ACTION.EDIT,
+                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                    reportID,
+                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                }),
+                            ),
                         );
                         return;
                     }
@@ -318,23 +338,25 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
-                                    const categoryRoute = ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                        reportID,
-                                        Navigation.getActiveRoute(),
+                                    const categoryRoute = createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                            CONST.IOU.ACTION.EDIT,
+                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                            reportID,
+                                        ),
                                     );
                                     if (shouldNavigateToUpgradePath) {
                                         Navigation.navigate(
-                                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                action: CONST.IOU.ACTION.EDIT,
-                                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                reportID,
-                                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                                backTo: categoryRoute,
-                                            }),
+                                            createDynamicRoute(
+                                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                    action: CONST.IOU.ACTION.EDIT,
+                                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                    reportID,
+                                                    upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                }),
+                                            ),
                                         );
                                         return;
                                     }

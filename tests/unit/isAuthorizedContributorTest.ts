@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import {RequestError} from '@octokit/request-error';
-import {isAuthorizedContributor, isContributorPlusMember} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
+import {isAuthorizedContributor, isContributorPlusMember, isInternalExpensifyEngineer} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 
@@ -47,8 +47,8 @@ afterEach(() => {
 
 const defaultParams = {
     prNumber: 123,
-    prAuthor: 'externalUser',
-    authorAssociation: 'NONE',
+    actor: 'externalUser',
+    actorAssociation: 'NONE',
     repoOwner: 'Expensify',
     repoName: 'App',
     githubToken: 'github-token',
@@ -70,13 +70,35 @@ describe('isAuthorizedContributor', () => {
         });
     });
 
+    describe('isInternalExpensifyEngineer', () => {
+        test('returns true for an engineering team member', async () => {
+            mockGetMembershipForUserInOrg.mockResolvedValue({data: {state: 'active'}});
+
+            await expect(isInternalExpensifyEngineer('engineerUser', 'org-token')).resolves.toBe(true);
+        });
+
+        test('returns false when not on the engineering team (404)', async () => {
+            mockGetMembershipForUserInOrg.mockRejectedValue(createRequestError(404));
+
+            await expect(isInternalExpensifyEngineer('externalUser', 'org-token')).resolves.toBe(false);
+        });
+
+        test('returns false for a Contributor+ member who is not on the engineering team', async () => {
+            mockGetMembershipForUserInOrg.mockImplementation((params: Record<string, unknown>) =>
+                params.team_slug === 'engineering' ? Promise.reject(createRequestError(404)) : Promise.resolve({data: {state: 'active'}}),
+            );
+
+            await expect(isInternalExpensifyEngineer('contributorPlusUser', 'org-token')).resolves.toBe(false);
+        });
+    });
+
     describe('isAuthorizedContributor', () => {
         test('authorizes MEMBER association without API calls', async () => {
             await expect(
                 isAuthorizedContributor({
                     ...defaultParams,
-                    prAuthor: 'memberUser',
-                    authorAssociation: 'MEMBER',
+                    actor: 'memberUser',
+                    actorAssociation: 'MEMBER',
                 }),
             ).resolves.toBe(true);
 

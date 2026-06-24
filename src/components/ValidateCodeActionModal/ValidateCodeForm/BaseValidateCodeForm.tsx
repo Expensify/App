@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {AccessibilityInfo, View} from 'react-native';
@@ -21,6 +21,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -118,6 +121,7 @@ function BaseValidateCodeForm({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const [isCountdownRunning, setIsCountdownRunning] = useState(true);
@@ -169,22 +173,47 @@ function BaseValidateCodeForm({
                 clearTimeout(focusTimeoutRef.current);
             }
 
-            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
-            if (!isMobileSafari()) {
-                focusTimeoutRef.current = setTimeout(() => {
-                    inputValidateCodeRef.current?.focusLastSelected();
-                }, CONST.ANIMATED_TRANSITION);
-            } else {
+            // On mobile Safari, focus must be synchronous to trigger the keyboard.
+            if (isMobileSafari()) {
                 inputValidateCodeRef.current?.focusLastSelected();
+                return;
             }
 
-            return () => {
-                if (!focusTimeoutRef.current) {
+            // Android only opens the soft keyboard once the app window has focus.
+            let didFocus = false;
+            let isCancelled = false;
+            const focusOnce = () => {
+                if (didFocus) {
                     return;
                 }
-                clearTimeout(focusTimeoutRef.current);
+                didFocus = true;
+                isWindowReadyToFocus().then(() => {
+                    // Skip if the screen lost focus while the window-ready promise was pending, to avoid stealing focus.
+                    if (isCancelled) {
+                        return;
+                    }
+                    inputValidateCodeRef.current?.focusLastSelected();
+                });
             };
-        }, []),
+
+            const unsubscribeTransitionEnd = navigation?.addListener?.('transitionEnd', (event) => {
+                if (event?.data?.closing) {
+                    return;
+                }
+                focusOnce();
+            });
+
+            // Fallback in case `transitionEnd` does not fire.
+            focusTimeoutRef.current = setTimeout(focusOnce, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
+            return () => {
+                isCancelled = true;
+                unsubscribeTransitionEnd?.();
+                if (focusTimeoutRef.current) {
+                    clearTimeout(focusTimeoutRef.current);
+                }
+            };
+        }, [navigation]),
     );
 
     useEffect(() => {

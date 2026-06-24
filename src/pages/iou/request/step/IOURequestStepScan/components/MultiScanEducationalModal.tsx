@@ -25,8 +25,7 @@ function MultiScanEducationalModal() {
             title={translate('iou.scanMultipleReceipts')}
             image={lazyIllustrations.MultiScan}
             shouldRenderSVG
-            imageHeight="auto"
-            imageWidth="auto"
+            imageHeight={220}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
             onConfirm={dismissEducationalPopup}

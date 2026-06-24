@@ -20,6 +20,8 @@ Workspace admins may need to update a member's role to adjust their permissions,
 
 **Note:** A Workspace Admin is the member with the highest level of permissions on a workspace.
 
+**Note:** A **Card Admin** role — which lets you delegate Expensify Card and company card management without granting full Workspace Admin access — is available only in New Expensify. To assign or use it, switch to New Expensify. [Learn more](https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members).
+
 ---
 
 # Change a Member's Role or Permissions

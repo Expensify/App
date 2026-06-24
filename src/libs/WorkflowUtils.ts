@@ -13,6 +13,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './HRUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -74,6 +75,8 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             approvalLimit: employee.approvalLimit,
             overLimitForwardsTo: employee.overLimitForwardsTo,
             overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(employee.overLimitForwardsTo, personalDetailsByEmail),
+            pendingAction: employee.pendingAction,
+            errors: employee.errors,
         });
 
         // If we've already seen this approver, break to prevent infinite loop
@@ -150,7 +153,7 @@ function findFirstNonExpensifyApprover(employees: PolicyEmployeeList, startEmail
 /** Convert a list of policy employees to a list of approval workflows */
 function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, firstApprover, localeCompare, currentUserLogin}: PolicyConversionParams): PolicyConversionResult {
     const employees = policy?.employeeList ?? {};
-    const defaultApprover = getDefaultApprover(policy);
+    const defaultApprover = getHRFinalApprover(policy) ?? getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
@@ -161,6 +164,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         personalDetailsByEmail[value?.login ?? key] = value;
     }
     const availableMembers: Member[] = [];
+    const hrAdvancedModeFinalApproverEmail = getHRAdvancedModeFinalApprover(policy);
 
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
@@ -179,21 +183,41 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             availableMembers.push(member);
         }
 
-        if (!submitsTo || !employees[submitsTo]) {
+        if (!submitsTo || (!employees[submitsTo] && !hrAdvancedModeFinalApproverEmail)) {
             continue;
         }
 
         // If submitsTo is an Expensify team member, find the first non-Expensify approver in the chain
-        const effectiveSubmitsTo = shouldFilterOutExpensifyTeam ? (findFirstNonExpensifyApprover(employees, submitsTo) ?? submitsTo) : submitsTo;
-
-        if (!employees[effectiveSubmitsTo]) {
-            continue;
-        }
+        const effectiveSubmitsTo = shouldFilterOutExpensifyTeam && employees[submitsTo] ? (findFirstNonExpensifyApprover(employees, submitsTo) ?? submitsTo) : submitsTo;
 
         if (!approvalWorkflows[effectiveSubmitsTo]) {
             let approvers = calculateApprovers({employees, firstEmail: effectiveSubmitsTo, personalDetailsByEmail});
+            if (approvers.length === 0) {
+                approvers = [
+                    {
+                        email: effectiveSubmitsTo,
+                        forwardsTo: undefined,
+                        avatar: personalDetailsByEmail[effectiveSubmitsTo]?.avatar,
+                        displayName: personalDetailsByEmail[effectiveSubmitsTo]?.displayName ?? effectiveSubmitsTo,
+                        isCircularReference: false,
+                    },
+                ];
+            }
             if (shouldFilterOutExpensifyTeam) {
                 approvers = approvers.filter((approver) => !isExpensifyTeam(approver.email));
+            }
+            if (hrAdvancedModeFinalApproverEmail) {
+                const lastApprover = approvers.at(-1);
+                if (lastApprover && lastApprover.email !== hrAdvancedModeFinalApproverEmail) {
+                    approvers.push({
+                        email: hrAdvancedModeFinalApproverEmail,
+                        forwardsTo: undefined,
+                        avatar: personalDetailsByEmail[hrAdvancedModeFinalApproverEmail]?.avatar,
+                        displayName: personalDetailsByEmail[hrAdvancedModeFinalApproverEmail]?.displayName ?? hrAdvancedModeFinalApproverEmail,
+                        isCircularReference: false,
+                    });
+                    usedApproverEmails.add(hrAdvancedModeFinalApproverEmail);
+                }
             }
             if (effectiveSubmitsTo !== firstApprover) {
                 for (const approver of approvers) {

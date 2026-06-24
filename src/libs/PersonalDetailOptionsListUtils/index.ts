@@ -293,8 +293,9 @@ function getValidOptions(
             !personalDetail.login ||
             !personalDetail.accountID ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN
+            // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN
         ) {
             return false;
         }
@@ -305,7 +306,7 @@ function getValidOptions(
         return matchesSearchTerms(personalDetail, searchTerms);
     };
 
-    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true);
+    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true).options;
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
@@ -369,7 +370,7 @@ function getValidOptions(
             return true;
         };
 
-        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction);
+        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction).options;
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -383,8 +384,9 @@ function getValidOptions(
             !personalDetail.accountID ||
             !!personalDetail.isOptimisticPersonalDetail ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
-            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-            personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN ||
+            // Exclude the account executive (and its legacy "Setup Specialist" login) from the list of personal details as it's a fallback if guide is not assigned
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LOGIN ||
+            personalDetail.login === CONST.ACCOUNT_EXECUTIVE_LEGACY_LOGIN ||
             // Exclude any recent options from the personal details
             recentOptionsByAccountID.has(personalDetail.accountID)
         ) {
@@ -397,7 +399,7 @@ function getValidOptions(
         return matchesSearchTerms(personalDetail, searchTerms);
     };
 
-    personalDetailsOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, filteringFunction, true);
+    personalDetailsOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, filteringFunction, true).options;
 
     let userToInvite: OptionData | null = null;
     if (includeUserToInvite) {
@@ -486,6 +488,16 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
     return translate('common.noResultsFound');
 }
 
-export {createOption, getContactOption, canCreateOptimisticPersonalDetailOption, filterOption, matchesSearchTerms, getValidOptions, createOptionList, getHeaderMessage};
+export {
+    createOption,
+    getContactOption,
+    canCreateOptimisticPersonalDetailOption,
+    filterOption,
+    matchesSearchTerms,
+    getValidOptions,
+    createOptionList,
+    getHeaderMessage,
+    getUserToInviteOption,
+};
 
 export type {OptionData};

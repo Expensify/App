@@ -31,6 +31,14 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/settings/name?backTo=/home')).toBe('/r/123/details/settings/name?backTo=/home');
     });
 
+    it('redirects old report settings root path to dynamic report settings', () => {
+        expect(getMatchingNewRoute('/r/123/settings')).toBe('/r/123/details/report-settings');
+    });
+
+    it('preserves query params when redirecting report settings root', () => {
+        expect(getMatchingNewRoute('/r/123/settings?backTo=/home')).toBe('/r/123/details/report-settings?backTo=/home');
+    });
+
     it('redirects old task title path', () => {
         expect(getMatchingNewRoute('/r/123/title')).toBe('/r/123/title');
     });
@@ -39,12 +47,45 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
     });
 
+    it('redirects old room members path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/members')).toBe('/r/123/details/members');
+    });
+
+    it('preserves query params when redirecting old room members path', () => {
+        expect(getMatchingNewRoute('/r/123/members?backTo=/home')).toBe('/r/123/details/members?backTo=/home');
+    });
+
+    it('redirects old room member details path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/members/456')).toBe('/r/123/details/members/room-member-details/456');
+    });
+
+    it('preserves query params when redirecting old room member details path', () => {
+        expect(getMatchingNewRoute('/r/123/members/456?backTo=/home')).toBe('/r/123/details/members/room-member-details/456?backTo=/home');
+    });
+
+    it('redirects old room invite path to report details dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/invite')).toBe('/r/123/details/room-invite');
+    });
+
+    it('preserves query params when redirecting old room invite path', () => {
+        expect(getMatchingNewRoute('/r/123/invite?backTo=/home')).toBe('/r/123/details/room-invite?backTo=/home');
+    });
+
     it('redirects old task assignee path', () => {
         expect(getMatchingNewRoute('/r/123/assignee')).toBe('/r/123/assignee');
     });
 
     it('redirects old private notes edit path to the new dynamic suffix shape', () => {
         expect(getMatchingNewRoute('/r/123/notes/456/edit')).toBe('/r/123/notes-edit/456');
+    });
+
+    it('redirects old report participants invite path to the dynamic route', () => {
+        expect(getMatchingNewRoute('/r/123/participants/invite')).toBe('/r/123/participants/participants-invite');
+    });
+
+    it('preserves query params when redirecting report participant routes', () => {
+        expect(getMatchingNewRoute('/r/123/participants/invite?backTo=/home')).toBe('/r/123/participants/participants-invite?backTo=/home');
+        expect(getMatchingNewRoute('/r/123/participants/456/role?backTo=/home')).toBe('/r/123/participants/participants-details/456/participants-role?backTo=/home');
     });
 
     it('redirects old workspace overview address path', () => {
@@ -86,12 +127,20 @@ describe('getBestMatchingPath', () => {
             '/workspaces/abc/connections/netsuite/export/invoice-item-preference/select/invoice-item/select?backTo=/home',
         );
     });
+    it('redirects old settings category path to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals')).toBe('/settings/abc/categories/category-settings/Meals');
+    });
+
+    it('preserves query params when redirecting old settings category path', () => {
+        expect(getMatchingNewRoute('/settings/abc/category/Meals?backTo=/home')).toBe('/settings/abc/categories/category-settings/Meals?backTo=/home');
+    });
+
     it('redirects old settings category edit path to the new dynamic suffix shape', () => {
-        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit')).toBe('/settings/abc/category/Meals/category-edit');
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit')).toBe('/settings/abc/categories/category-settings/Meals/category-edit');
     });
 
     it('preserves query params when redirecting old settings category edit path', () => {
-        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/category/Meals/category-edit?backTo=/home');
+        expect(getMatchingNewRoute('/settings/abc/category/Meals/edit?backTo=/home')).toBe('/settings/abc/categories/category-settings/Meals/category-edit?backTo=/home');
     });
 
     it('redirects old settings tag routes to the new dynamic suffix shape', () => {
@@ -107,8 +156,32 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
+    it('redirects old workspace tag routes to the new dynamic suffix shape', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/settings')).toBe('/workspaces/p123/tags/tags-settings');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/tag-create');
+    });
+
+    it('preserves query params when redirecting old workspace tag routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/settings?backTo=/home')).toBe('/workspaces/p123/tags/tags-settings?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/new?backTo=/home')).toBe('/workspaces/p123/tags/tag-create?backTo=/home');
+    });
+
+    it('does not redirect the new workspace tag dynamic routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tags-settings')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/p123/tags/tag-create')).toBe(undefined);
+    });
+
     it('redirects old flag comment path to report-based dynamic route', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
+    });
+
+    it('redirects old report Share Code paths to the new dynamic suffix', () => {
+        expect(getMatchingNewRoute('/r/123/details/shareCode')).toBe('/r/123/share-code');
+        expect(getMatchingNewRoute('/e/123/details/shareCode')).toBe('/e/123/share-code');
+    });
+
+    it('redirects legacy standalone referral routes to a dynamic route with a home base', () => {
+        expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
     });
 
     it('redirects old travel upgrade path to dynamic route', () => {

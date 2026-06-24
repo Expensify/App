@@ -206,7 +206,7 @@ function getTagVisibility({
     shouldShowTags: boolean;
     policy: Policy | undefined;
     policyTags: OnyxEntry<PolicyTagLists>;
-    transaction: Transaction | undefined;
+    transaction: Pick<Transaction, 'tag'> | undefined;
 }): TagVisibility[] {
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const isMultilevelTags = isMultiLevelTagsPolicyUtils(policyTags);

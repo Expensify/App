@@ -25,13 +25,16 @@ jobs:
         uses: ./.github/actions/javascript/isAuthorizedContributor
         with:
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
+          ACTOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
           GITHUB_TOKEN: ${{ github.token }}
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: authorChecklist.ts
-        if: steps.gate.outputs.IS_AUTHORIZED == 'true'
+        # Internal Expensify engineers skip the author checklist; external contributors still fill it out.
+        if: |
+          steps.gate.outputs.IS_AUTHORIZED == 'true'
+          && steps.gate.outputs.IS_INTERNAL != 'true'
         uses: ./.github/actions/javascript/authorChecklist
         with:
           GITHUB_TOKEN: ${{ github.token }}

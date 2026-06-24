@@ -2,6 +2,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkeleton';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -37,9 +38,10 @@ type ChatActionableButtonsProps = {
     action: OnyxTypes.ReportAction;
     originalReportID: string | undefined;
     reportID: string | undefined;
+    hasPendingFollowupListSkeleton: boolean;
 };
 
-function ChatActionableButtons({action, originalReportID, reportID}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, originalReportID, reportID, hasPendingFollowupListSkeleton}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
     const actionOwnerReportID = originalReportID ?? reportID;
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
@@ -208,6 +210,9 @@ function ChatActionableButtons({action, originalReportID, reportID}: ChatActiona
     })();
 
     if (actionableItemButtons.length === 0) {
+        if (hasPendingFollowupListSkeleton) {
+            return <FollowupListSkeleton />;
+        }
         return null;
     }
 

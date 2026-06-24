@@ -73,6 +73,8 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             policyID={policyID}
             shouldBeBlocked={isSettlementFrequencyBlocked}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceSettlementFrequencyPage"

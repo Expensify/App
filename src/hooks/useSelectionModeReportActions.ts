@@ -1,5 +1,5 @@
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -38,11 +38,13 @@ import {
     isIOUReport as isIOUReportUtil,
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
+    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
@@ -50,12 +52,14 @@ import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useEnvironment from './useEnvironment';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
+import usePayChatReportActions from './usePayChatReportActions';
 import usePaymentOptions from './usePaymentOptions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
@@ -114,16 +118,20 @@ function useSelectionModeReportActions({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const {isOffline} = useNetwork();
+    const {isProduction} = useEnvironment();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -238,6 +246,7 @@ function useSelectionModeReportActions({
         return getSecondaryReportActions({
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
+            submitterLogin,
             report,
             chatReport,
             reportTransactions: transactions,
@@ -251,6 +260,7 @@ function useSelectionModeReportActions({
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
+            isProduction,
         });
     })();
 
@@ -383,6 +393,7 @@ function useSelectionModeReportActions({
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                chatReportActions: getChatReportActions(payAsBusiness),
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
@@ -404,7 +415,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                conciergeReportID,
+                chatReportActions: getChatReportActions(false),
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -507,7 +518,7 @@ function useSelectionModeReportActions({
         let idx = 0;
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions[idx++] = {
-                text: translate('common.submit'),
+                text: shouldShowMarkAsDone({policy, report, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: handleSubmitReport,
