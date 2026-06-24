@@ -260,29 +260,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     useCleanupSelectedOptions(clearAllTableSelection);
 
-    useEffect(() => {
-        if (selectedExpenseDefaultKeys.length === 0 || !canWriteRules) {
-            return;
-        }
-
-        const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.map((rule) => rule.keyForList));
-        setSelectedExpenseDefaultKeys((prev) => prev.filter((key) => validExpenseDefaultKeys.has(key)));
-    }, [canWriteRules, expenseDefaultsTableData, selectedExpenseDefaultKeys.length]);
-
-    useEffect(() => {
-        if (selectedSpendRuleKeys.length === 0 || !canWriteRules) {
-            return;
-        }
-
-        const validSpendRuleKeys = new Set(spendRulesTableData.map((rule) => rule.keyForList));
-        setSelectedSpendRuleKeys((prev) => prev.filter((key) => validSpendRuleKeys.has(key)));
-    }, [canWriteRules, selectedSpendRuleKeys.length, spendRulesTableData]);
+    const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.map((rule) => rule.keyForList));
+    const validSpendRuleKeys = new Set(spendRulesTableData.map((rule) => rule.keyForList));
+    const filteredSelectedExpenseDefaultKeys = canWriteRules ? selectedExpenseDefaultKeys.filter((key) => validExpenseDefaultKeys.has(key)) : [];
+    const filteredSelectedSpendRuleKeys = canWriteRules ? selectedSpendRuleKeys.filter((key) => validSpendRuleKeys.has(key)) : [];
 
     let selectedRuleKeys: string[];
     if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
-        selectedRuleKeys = selectedSpendRuleKeys;
+        selectedRuleKeys = filteredSelectedSpendRuleKeys;
     } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
-        selectedRuleKeys = selectedExpenseDefaultKeys;
+        selectedRuleKeys = filteredSelectedExpenseDefaultKeys;
     } else {
         selectedRuleKeys = [];
     }
@@ -326,7 +313,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return;
         }
 
-        for (const ruleID of selectedSpendRuleKeys) {
+        for (const ruleID of filteredSelectedSpendRuleKeys) {
             if (ruleID === DEFAULT_SPEND_RULE_ID) {
                 continue;
             }
@@ -346,7 +333,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return;
         }
 
-        for (const ruleID of selectedExpenseDefaultKeys) {
+        for (const ruleID of filteredSelectedExpenseDefaultKeys) {
             deletePolicyCodingRule(policy, ruleID);
         }
         clearTableSelection();
@@ -557,7 +544,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     <WorkspaceSpendRulesTable
                                         rulesData={areCardsEnabled ? spendRulesTableData : []}
                                         selectionEnabled={canWriteRules}
-                                        selectedKeys={selectedSpendRuleKeys}
+                                        selectedKeys={filteredSelectedSpendRuleKeys}
                                         onRowSelectionChange={handleSpendRuleSelectionChange}
                                         emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
                                     />
@@ -566,7 +553,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     <WorkspaceExpenseDefaultsTable
                                         rulesData={expenseDefaultsTableData}
                                         selectionEnabled={canWriteRules}
-                                        selectedKeys={selectedExpenseDefaultKeys}
+                                        selectedKeys={filteredSelectedExpenseDefaultKeys}
                                         onRowSelectionChange={handleExpenseDefaultSelectionChange}
                                     />
                                 )}
