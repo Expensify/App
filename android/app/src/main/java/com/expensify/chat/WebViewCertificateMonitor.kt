@@ -1,16 +1,20 @@
 package com.expensify.chat
 
 import android.net.http.SslCertificate
+import android.net.http.X509TrustManagerExtensions
 import android.net.Uri
 import android.os.Build
 import android.webkit.WebView
 import io.sentry.Sentry
 import io.sentry.SentryLevel
 import java.io.ByteArrayInputStream
+import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLPeerUnverifiedException
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 /**
  * Monitors WebView SSL certificates against pinned SPKI hashes. Android WebView does not expose a
@@ -36,6 +40,19 @@ object WebViewCertificateMonitor {
     /** Domain → set of base64-encoded SHA-256 SPKI hashes (without the "sha256/" prefix). */
     private var pinnedDomains: Map<String, Set<String>> = emptyMap()
 
+    private val trustManagerExtensions: X509TrustManagerExtensions? by lazy {
+        try {
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            tmf.init(null as KeyStore?)
+            val tm = tmf.trustManagers
+                .filterIsInstance<X509TrustManager>()
+                .firstOrNull() ?: return@lazy null
+            X509TrustManagerExtensions(tm)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     /**
      * Called once from [CertificatePinning.install] with the canonical pin data. Not called in
      * debug builds, so [validateCertificate] becomes a no-op.
@@ -49,6 +66,11 @@ object WebViewCertificateMonitor {
     /**
      * Validates the SSL certificate of the loaded page against pinned SPKI hashes. Called from the
      * react-native-webview patch via reflection.
+     *
+     * A pin is satisfied if ANY certificate in the validated chain (leaf, intermediate, or root) has
+     * an SPKI hash present in the pin set — matching RFC 7469 semantics and OkHttp behaviour. Since
+     * [WebView.getCertificate] only exposes the leaf, the full chain is rebuilt via
+     * [X509TrustManagerExtensions.checkServerTrusted] using the system trust store.
      */
     @JvmStatic
     fun validateCertificate(webView: WebView, url: String) {
@@ -63,11 +85,34 @@ object WebViewCertificateMonitor {
         val expectedHashes = pinnedDomains[host] ?: return
 
         val sslCertificate = webView.certificate ?: return
-        val x509 = extractX509Certificate(sslCertificate) ?: return
+        val leafCert = extractX509Certificate(sslCertificate) ?: return
 
-        val actualHash = computeSpkiSha256(x509) ?: return
-        if (actualHash !in expectedHashes) {
-            reportMismatch(host, url, actualHash, expectedHashes)
+        val leafHash = computeSpkiSha256(leafCert) ?: return
+        if (leafHash in expectedHashes) return
+
+        val chainHashes = buildChainHashes(leafCert, host)
+        if (chainHashes.any { it in expectedHashes }) return
+
+        reportMismatch(host, url, leafHash, expectedHashes)
+    }
+
+    /**
+     * Builds the certificate chain from the leaf using the system trust manager and returns SPKI
+     * hashes for all certificates beyond the leaf (intermediates and root). Returns an empty list
+     * if chain building fails, falling back to leaf-only validation.
+     */
+    private fun buildChainHashes(leafCert: X509Certificate, host: String): List<String> {
+        val extensions = trustManagerExtensions ?: return emptyList()
+        return try {
+            val authType = if (leafCert.publicKey.algorithm == "EC") "ECDHE_ECDSA" else "RSA"
+            val fullChain = extensions.checkServerTrusted(
+                arrayOf(leafCert),
+                authType,
+                host,
+            )
+            fullChain.drop(1).mapNotNull { computeSpkiSha256(it) }
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 
