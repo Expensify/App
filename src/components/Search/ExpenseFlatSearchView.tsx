@@ -287,4 +287,3 @@ function ExpenseFlatSearchView({
 ExpenseFlatSearchView.displayName = 'ExpenseFlatSearchView';
 
 export default ExpenseFlatSearchView;
-export type {ExpenseFlatSearchViewProps, SearchListHandle};
