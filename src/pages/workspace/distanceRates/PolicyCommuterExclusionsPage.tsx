@@ -116,8 +116,6 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 accessibilityLabel={translate('workspace.distanceRates.commuterExclusions.distanceLabel')}
                 value={fixedDistanceInput}
                 onChangeText={(value) => {
-                    // Strip anything that isn't a digit so the input stays integer-only,
-                    // even when pasting or on web where the keyboard hint isn't enforced.
                     setFixedDistanceInput(value.replace(/\D/g, ''));
                     if (inlineError) {
                         setInlineError('');
