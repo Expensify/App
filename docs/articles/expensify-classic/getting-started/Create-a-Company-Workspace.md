@@ -148,5 +148,5 @@ By reinforcing this process, you help prevent expense reports from being mis-cat
 
 ---
 
-**Need help?** Schedule a free onboarding session with a Setup Specialist! Check your email and Expensify notifications for your unique signup link.
+**Need help?** Schedule a free onboarding session with an Account Executive! Check your email and Expensify notifications for your unique signup link.
 

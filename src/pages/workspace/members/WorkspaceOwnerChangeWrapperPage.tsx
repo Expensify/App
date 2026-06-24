@@ -100,7 +100,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
                         }
                     }}
                 />
-                <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
+                <View style={[styles.containerWithSpaceBetween, shouldShowPaymentCardForm ? styles.ph0 : styles.ph5, styles.pb0]}>
                     {isLoading && (
                         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
                             <ActivityIndicator

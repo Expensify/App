@@ -789,6 +789,35 @@ describe('canApproveIOU', () => {
         expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
+    it('should return true for Submit workspace report when user is manager', async () => {
+        const report: Report = {
+            ...createRandomReport(Number(REPORT_ID), undefined),
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 999,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        };
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(123),
+            reportID: REPORT_ID,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            status: undefined,
+        };
+
+        expect(canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
+    });
+
     it('should return false for non-expense report', async () => {
         // Given a non-expense report
         const report = {
@@ -830,9 +859,9 @@ describe('getExistingTransactionID', () => {
             reportActionID: 'action1',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '',
+            reportID: 'report456',
             originalMessage: {
                 IOUTransactionID: 'txn123',
-                IOUReportID: 'report456',
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
         } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
@@ -942,5 +971,64 @@ describe('getExistingTransactionID', () => {
             const harvestingDisabledPolicy: Policy = {...policyForResolve, harvesting: {enabled: false}};
             expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
         });
+    });
+});
+
+describe('isParticipantP2P', () => {
+    it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false when participant is undefined', () => {
+        expect(IOUUtils.isParticipantP2P(undefined)).toBe(false);
+    });
+
+    it('should return false when participant has no accountID', () => {
+        const participant = {
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when participant is a policy expense chat', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return false when accountID is 0', () => {
+        const participant = {
+            accountID: 0,
+            isPolicyExpenseChat: false,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+
+    it('should return true for P2P participant without isPolicyExpenseChat property', () => {
+        const participant = {
+            accountID: 456,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(true);
+    });
+
+    it('should return false for self-DM participant', () => {
+        const participant = {
+            accountID: 123,
+            isPolicyExpenseChat: false,
+            isSelfDM: true,
+        };
+
+        expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
     });
 });

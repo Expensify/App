@@ -50,6 +50,15 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldHideClearButton?: boolean;
+
+        /**
+         * Defers showing the popover until the anchor position has been freshly measured, and opens the picker on
+         * press instead of focus. Use in scrollable contexts where the field position can
+         * change after mount: it prevents the popover from blinking at a stale position, and the press-based open
+         * prevents the picker from reopening when focus returns to the input as it is dismissed.
+         * @default false
+         */
+        shouldDeferShowUntilPositioned?: boolean;
     };
 
 type DatePickerProps = {

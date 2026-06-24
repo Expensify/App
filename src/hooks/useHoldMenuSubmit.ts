@@ -12,6 +12,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 
@@ -35,12 +36,12 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -97,8 +98,8 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID,
-                conciergeReportID,
                 onPaid: animationCallback,
+                chatReportActions: getChatReportActions(false),
             });
         }
         onClose();

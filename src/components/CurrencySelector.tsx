@@ -5,9 +5,10 @@ import type {View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CurrencySelectorProps = {
@@ -27,8 +28,8 @@ type CurrencySelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** object to get route details from */
-    currencySelectorRoute?: typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY | typeof ROUTES.CURRENCY_SELECTION;
+    /** Optional route override; when omitted the selector opens the dynamic payment-card currency picker. */
+    currencySelectorRoute?: typeof ROUTES.WORKSPACE_CURRENCY_SELECTION;
 
     /** Label for the input */
     label?: string;
@@ -40,16 +41,7 @@ type CurrencySelectorProps = {
     ref: ForwardedRef<View>;
 };
 
-function CurrencySelector({
-    errorText = '',
-    value: currency,
-    onInputChange = () => {},
-    onBlur,
-    currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY,
-    label,
-    shouldShowCurrencySymbol = false,
-    ref,
-}: CurrencySelectorProps) {
+function CurrencySelector({errorText = '', value: currency, onInputChange = () => {}, onBlur, currencySelectorRoute, label, shouldShowCurrencySymbol = false, ref}: CurrencySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -84,11 +76,11 @@ function CurrencySelector({
             errorText={errorText}
             onPress={() => {
                 didOpenCurrencySelector.current = true;
-                if (currencySelectorRoute === ROUTES.CURRENCY_SELECTION) {
+                if (currencySelectorRoute === ROUTES.WORKSPACE_CURRENCY_SELECTION) {
                     Navigation.navigate(currencySelectorRoute.getRoute(Navigation.getActiveRoute()));
-                } else {
-                    Navigation.navigate(currencySelectorRoute as typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY);
+                    return;
                 }
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path));
             }}
         />
     );

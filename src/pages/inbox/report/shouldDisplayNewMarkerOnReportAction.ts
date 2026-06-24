@@ -29,6 +29,8 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
 
     /** The reportActionID of the current unread marker, if one exists */
     prevUnreadMarkerReportActionID?: string | null;
+    /** Whether the app window is focused */
+    hasWindowFocus?: boolean;
 };
 
 /**
@@ -45,6 +47,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     isScrolledOverThreshold,
     isOffline,
     prevUnreadMarkerReportActionID,
+    hasWindowFocus = true,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
@@ -92,7 +95,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
         return false;
     }
 
-    return !isNewMessage || isScrolledOverThreshold;
+    return !isNewMessage || isScrolledOverThreshold || !hasWindowFocus;
 };
 
 export default shouldDisplayNewMarkerOnReportAction;
@@ -127,6 +130,8 @@ type GetUnreadMarkerReportActionParams = {
 
     /** The reportActionID of the current unread marker, if one exists */
     prevUnreadMarkerReportActionID?: string | null;
+    /** Whether the app window is focused */
+    hasWindowFocus?: boolean;
 };
 
 /**
@@ -144,6 +149,7 @@ const getUnreadMarkerReportAction = ({
     isReversed,
     isAnonymousUser = false,
     prevUnreadMarkerReportActionID,
+    hasWindowFocus = true,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
     if (isAnonymousUser) {
         return [null, -1];
@@ -184,6 +190,7 @@ const getUnreadMarkerReportAction = ({
                 isScrolledOverThreshold,
                 isOffline,
                 prevUnreadMarkerReportActionID,
+                hasWindowFocus,
             });
 
         if (shouldShowMarker) {
