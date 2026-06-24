@@ -15,7 +15,6 @@ type UseMoneyRequestPolicyTagsParams = {
 const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 
 function useMoneyRequestPolicyTags({existingIOUReportPolicyID, moneyRequestReportID, parentChatReportPolicyID, participantReportID}: UseMoneyRequestPolicyTagsParams): PolicyTagLists {
-    // getNonEmptyStringOnyxID guards against an empty id producing a bare collection key (e.g. `report_`), which would subscribe to the whole collection.
     const [moneyRequestReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReportID)}`, {selector: selectReportPolicyID});
     const [participantReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(participantReportID)}`, {selector: selectReportPolicyID});
 

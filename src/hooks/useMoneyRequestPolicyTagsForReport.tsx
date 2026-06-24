@@ -17,7 +17,6 @@ const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 
 function useMoneyRequestPolicyTagsForReport({report, currentUserAccountID, existingIOUReportPolicyID}: UseMoneyRequestPolicyTagsForReportParams): PolicyTagLists {
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    // getNonEmptyStringOnyxID guards against an empty chatReportID producing a bare collection key (`report_`), which would subscribe to the whole collection.
     const chatReportID = isMoneyRequestReport ? getNonEmptyStringOnyxID(report?.chatReportID) : undefined;
 
     // Subscribe reactively (the chat report may load after first render) and narrow to the primitive policyID to avoid re-renders on unrelated field changes.
