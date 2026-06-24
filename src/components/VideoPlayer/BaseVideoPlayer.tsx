@@ -340,8 +340,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             return true;
         }
 
-        const videoElement = videoViewRef.current?.nativeRef?.current as (HTMLVideoElement & {webkitDisplayingFullscreen?: boolean}) | undefined;
-        return !!videoElement?.webkitDisplayingFullscreen;
+        // nativeRef.current is typed as `any` — access webkit property directly without assertion
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return !!videoViewRef.current?.nativeRef?.current?.webkitDisplayingFullscreen;
     }, [isFullScreen, videoViewRef]);
 
     useEffect(() => {
