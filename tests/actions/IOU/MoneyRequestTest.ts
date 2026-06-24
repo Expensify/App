@@ -615,6 +615,7 @@ describe('MoneyRequest', () => {
             action: CONST.IOU.ACTION.CREATE,
             reportDraft: undefined,
             currentUserLocalCurrency: undefined,
+            policyTagList: {},
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
