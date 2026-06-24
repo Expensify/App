@@ -46,19 +46,8 @@ let allReportActions: OnyxCollection<ReportActions> = {};
 // Report actions are cached only to resolve parent actions for IOU cleanup; no UI subscribes, so connectWithoutView() is used.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (snapshot) => {
-        if (!snapshot) {
-            allReportActions = {};
-            return;
-        }
-        // Rebuild the rawID-keyed view from the prefixed-key snapshot. Each value
-        // shares its reference with the snapshot, preserving structural-sharing
-        // ref-stability for unchanged members.
-        const next: OnyxCollection<ReportActions> = {};
-        for (const [k, v] of Object.entries(snapshot)) {
-            next[k.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')] = v;
-        }
-        allReportActions = next;
+    callback: (value) => {
+        allReportActions = value ?? {};
     },
 });
 
@@ -81,7 +70,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
     // If an optimistic IOU action was created before we knew a preexisting IOU action for the thread existed,
     // remove it to avoid duplicate IOU report actions
     if (isMoneyRequest(report) && parentReportID && parentReportActionID) {
-        const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
+        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
         if (parentReportAction?.isOptimisticAction) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentReportActionID]: null,
@@ -119,7 +108,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                 });
                 // Non-optimistic parent actions already exist, so we update their childReportID;
                 // optimistic actions were already cleaned up above
-                const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
+                const parentReportAction = parentReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID] : null;
                 if (parentReportAction && !parentReportAction.isOptimisticAction) {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                         [parentReportActionID]: {childReportID: preexistingReportID},

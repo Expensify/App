@@ -97,17 +97,8 @@ Onyx.connect({
 let allTransactionViolations: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (snapshot) => {
-        if (!snapshot) {
-            allTransactionViolations = {};
-            return;
-        }
-        // Rebuild the transactionID-keyed view from the prefixed-key snapshot.
-        const next: OnyxCollection<TransactionViolation[]> = {};
-        for (const [k, v] of Object.entries(snapshot)) {
-            next[k.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')] = v;
-        }
-        allTransactionViolations = next;
+    callback: (value) => {
+        allTransactionViolations = value ?? {};
     },
 });
 
@@ -1173,9 +1164,9 @@ function changeTransactionsReport({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
                         // For each duplicate, write its own violations minus the DUPLICATED_TRANSACTION marker.
-                        // Previously this read a stale `allTransactionViolations` flat-array that held only
-                        // the last-fired per-member value (latent bug, now removed alongside per-member dispatch).
-                        value: (allTransactionViolations?.[id] ?? []).filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        value: (allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []).filter(
+                            (violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                        ),
                     });
                 }
             }
