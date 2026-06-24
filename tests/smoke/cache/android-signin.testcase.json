@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "model": "claude-sonnet-4-6",
+  "testCaseHash": "377c89ecd3182b95",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "stepTextHash": "eefe04289ed44849",
+      "preSignature": "bada22fec79afdc7",
+      "postSignature": "bada22fec79afdc7",
+      "actions": [],
+      "expect": "snapshot.contains_text(\"Phone or email\")",
+      "recordedAt": "2026-05-11T10:29:23.672Z",
+      "runId": "25659967543"
+    },
+    {
+      "stepNumber": 2,
+      "stepTextHash": "988a4a6e077e6dc6",
+      "preSignature": "bada22fec79afdc7",
+      "postSignature": "04ba1966c1ae1c5f",
+      "actions": [
+        {
+          "tool": "fill",
+          "locator": {
+            "kind": "text-field",
+            "index": 0,
+            "editable": true
+          },
+          "text": "rustam.zeinalov@callstack.com"
+        }
+      ],
+      "expect": "snapshot.field_with_text(\"rustam.zeinalov@callstack.com\").exists",
+      "recordedAt": "2026-05-11T10:29:23.673Z",
+      "runId": "25659967543"
+    },
+    {
+      "stepNumber": 3,
+      "stepTextHash": "a071b334a6b8c0f4",
+      "preSignature": "04ba1966c1ae1c5f",
+      "postSignature": "33d1e5d0787b275a",
+      "actions": [
+        {
+          "tool": "press",
+          "locator": {
+            "kind": "button",
+            "index": 0
+          }
+        },
+        {
+          "tool": "dismiss_keyboard"
+        }
+      ],
+      "expect": "appstate.foreground == \"com.expensify.chat.dev\"",
+      "recordedAt": "2026-05-11T10:29:23.673Z",
+      "runId": "25659967543"
+    },
+    {
+      "stepNumber": 4,
+      "stepTextHash": "a1059919be2f42c9",
+      "preSignature": "33d1e5d0787b275a",
+      "postSignature": "33d1e5d0787b275a",
+      "actions": [
+        {
+          "tool": "wait_for",
+          "predicate": "snapshot.contains_text(\"Magic code\")",
+          "timeoutMs": 60000
+        }
+      ],
+      "expect": "snapshot.contains_text(\"Magic code\")",
+      "recordedAt": "2026-05-11T10:29:23.673Z",
+      "runId": "25659967543"
+    }
+  ]
+}
