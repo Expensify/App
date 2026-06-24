@@ -8,6 +8,7 @@ import type {Middleware, MiddlewareHookResult} from './types';
  * Configuration for a single table filter.
  */
 type FilterConfigEntry = {
+    label: string;
     showLabel?: boolean;
     filterType?: ValueOf<typeof CONST.TABLES.FILTER_TYPE>;
     options: Array<{label: string; value: string}>;

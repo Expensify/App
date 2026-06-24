@@ -1,3 +1,4 @@
+import React from 'react';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -6,6 +7,7 @@ import CONST from '@src/CONST';
 
 export default function TableFilterPopoverComponent({closeOverlay}: PopoverComponentProps) {
     const {filterConfig, activeFilters, tableMethods} = useTableContext();
+    // To start with, we expect tables to only have one set of filters. This will be updated in the future
     const filterKey = Object.keys(filterConfig ?? {}).at(0);
 
     if (!filterKey || !filterConfig) {
