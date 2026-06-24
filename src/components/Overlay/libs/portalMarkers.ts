@@ -1,0 +1,7 @@
+const OVERLAY_PORTAL_ATTR = 'data-overlay-portal';
+const OVERLAY_TOP_LAYER_ATTR = 'data-overlay-top-layer';
+
+const OVERLAY_PORTAL_DATASET_KEY = 'overlayPortal';
+const OVERLAY_TOP_LAYER_DATASET_KEY = 'overlayTopLayer';
+
+export {OVERLAY_PORTAL_ATTR, OVERLAY_TOP_LAYER_ATTR, OVERLAY_PORTAL_DATASET_KEY, OVERLAY_TOP_LAYER_DATASET_KEY};

@@ -15,6 +15,7 @@ import ComposeProviders from './components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
+import {Confirm, Decision, HoldMenu, HRSyncResults} from './components/Dialog';
 import EnvironmentProvider from './components/EnvironmentContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
@@ -132,6 +133,10 @@ function App() {
                                             <Expensify />
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
+                                    <Confirm />
+                                    <Decision />
+                                    <HoldMenu />
+                                    <HRSyncResults />
                                     <NavigationBar />
                                 </ComposeProviders>
                             </View>

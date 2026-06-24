@@ -16,6 +16,7 @@ type IconButtonProps = WithSentryLabel & {
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
     fill?: string;
     tooltipText?: string;
+    shouldRenderTooltip?: boolean;
     style?: StyleProp<ViewStyle>;
     hoverStyle?: StyleProp<ViewStyle>;
     small?: boolean;
@@ -24,11 +25,24 @@ type IconButtonProps = WithSentryLabel & {
     ref?: PressableRef | Ref<View>;
 };
 
-function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false, sentryLabel, ref}: IconButtonProps) {
+function IconButton({
+    src,
+    fill = 'white',
+    onPress,
+    style,
+    hoverStyle,
+    tooltipText = '',
+    shouldRenderTooltip = true,
+    small = false,
+    shouldForceRenderingTooltipBelow = false,
+    sentryLabel,
+    ref,
+}: IconButtonProps) {
     const styles = useThemeStyles();
     return (
         <Tooltip
             text={tooltipText}
+            shouldRender={shouldRenderTooltip}
             shouldForceRenderingBelow={shouldForceRenderingTooltipBelow}
         >
             <PressableWithFeedback

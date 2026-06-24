@@ -1,31 +1,43 @@
 import React from 'react';
-import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
+import {useRoot} from '@components/PopoverMenu/v2/root/RootContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
+import ResponsiveShell from './ResponsiveShell';
+import useContentController from './useContentController';
 import useMaxHeightStyle from './useMaxHeightStyle';
 
 type ContentProps = BasePopoverProps;
 
-/** Popover surface for menus that fit; for unbounded row counts, use `<ScrollableContent>`. */
-function Content({containerStyles, ...rest}: ContentProps): React.ReactElement | null {
+function Content({containerStyles, onExitComplete, testID, anchorAlignment, children}: ContentProps): React.ReactElement | null {
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float on desktop, so device width drives the padding split.
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isVisible} = useRootVisibility(Content.displayName);
-    useSuppressSpaceScroll(isVisible);
+    const {state, meta} = useRoot(Content.displayName);
+    const {isOpen} = state;
+    const {triggerID, contentID} = meta;
+    useSuppressSpaceScroll(isOpen);
 
     const maxHeightStyle = useMaxHeightStyle();
+    const controller = useContentController(Content.displayName);
+    const padding = isSmallScreenWidth ? styles.pv4 : styles.pv2;
 
     return (
-        <BaseContent
-            {...rest}
+        <ResponsiveShell
             componentName={Content.displayName}
+            controller={controller}
+            isOpen={isOpen}
+            triggerID={triggerID}
+            contentID={contentID}
+            anchorAlignment={anchorAlignment}
             maxHeightStyle={maxHeightStyle}
-            containerStyles={[isSmallScreenWidth ? styles.pv4 : styles.pv2, containerStyles]}
-        />
+            containerStyles={[padding, containerStyles]}
+            onExitComplete={onExitComplete}
+            testID={testID}
+        >
+            {children}
+        </ResponsiveShell>
     );
 }
 

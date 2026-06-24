@@ -1,7 +1,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
+import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/context';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -13,7 +13,6 @@ type HeaderProps = {
     style?: StyleProp<TextStyle>;
 };
 
-/** To title a sub, render inside `<SubContent>` instead. */
 function Header({children, style}: HeaderProps): React.ReactElement | null {
     const styles = useThemeStyles();
     const isAtActiveLevel = useIsAtActiveLevel(Header.displayName);

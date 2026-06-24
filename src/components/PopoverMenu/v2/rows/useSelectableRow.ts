@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
-import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
+import {useContent} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/context';
 import {createCustomEvent} from '@libs/CustomEventUtils';
 import type {CustomEvent} from '@libs/CustomEventUtils';
 import useFocusableRow from './useFocusableRow';
@@ -18,9 +18,8 @@ type UseSelectableRowResult = {
     isAtActiveLevel: boolean;
 };
 
-/** Closes after `onSelect`; call `event.preventDefault()` inside `onSelect` to keep the menu open. */
 function useSelectableRow({onSelect, disabled = false, text}: {onSelect?: (event: ItemSelectEvent) => void; disabled?: boolean; text?: string} = {}): UseSelectableRowResult {
-    const close = useContentClose(HOOK_NAME);
+    const {close} = useContent(HOOK_NAME).actions;
     const isAtActiveLevel = useIsAtActiveLevel(HOOK_NAME);
 
     const row = useFocusableRow({

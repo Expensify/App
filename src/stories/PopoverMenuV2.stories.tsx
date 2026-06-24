@@ -281,7 +281,7 @@ function WithSecondaryInteraction() {
     return (
         <SafeAreaProvider>
             <PopoverMenu.Root>
-                <PopoverMenu.SecondaryInteractionTrigger>
+                <PopoverMenu.Trigger interaction="secondary">
                     <PressableWithSecondaryInteraction
                         onPress={() => {}}
                         onSecondaryInteraction={() => {}}
@@ -295,7 +295,7 @@ function WithSecondaryInteraction() {
                         />
                         <Text>Right-click / long-press me</Text>
                     </PressableWithSecondaryInteraction>
-                </PopoverMenu.SecondaryInteractionTrigger>
+                </PopoverMenu.Trigger>
                 <PopoverMenu.Content>
                     <PopoverMenu.Item
                         text="Copy"
@@ -313,5 +313,89 @@ function WithSecondaryInteraction() {
     );
 }
 
+function WithNestedSubmenu() {
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Bank', 'CreditCard', 'Wallet']);
+    return (
+        <SafeAreaProvider>
+            <PopoverMenu.Root>
+                <StoryTrigger
+                    iconSrc={icons.Plus}
+                    label="More"
+                    accessibilityLabel="Open menu"
+                />
+                <PopoverMenu.Content>
+                    <PopoverMenu.Item
+                        text="Wallet"
+                        icon={icons.Wallet}
+                        onSelect={() => {}}
+                    />
+                    <PopoverMenu.Sub id="cards">
+                        <PopoverMenu.Sub.Trigger
+                            text="Cards"
+                            icon={icons.CreditCard}
+                        />
+                        <PopoverMenu.Sub.Content>
+                            <PopoverMenu.Sub.BackButton text="Cards" />
+                            <PopoverMenu.Item
+                                text="Add card"
+                                icon={icons.Plus}
+                                onSelect={() => {}}
+                            />
+                            <PopoverMenu.Sub id="bank">
+                                <PopoverMenu.Sub.Trigger
+                                    text="Bank-linked cards"
+                                    icon={icons.Bank}
+                                />
+                                <PopoverMenu.Sub.Content>
+                                    <PopoverMenu.Sub.BackButton text="Bank-linked" />
+                                    <PopoverMenu.Item
+                                        text="Debit"
+                                        icon={icons.CreditCard}
+                                        onSelect={() => {}}
+                                    />
+                                    <PopoverMenu.Item
+                                        text="Credit"
+                                        icon={icons.CreditCard}
+                                        onSelect={() => {}}
+                                    />
+                                </PopoverMenu.Sub.Content>
+                            </PopoverMenu.Sub>
+                        </PopoverMenu.Sub.Content>
+                    </PopoverMenu.Sub>
+                </PopoverMenu.Content>
+            </PopoverMenu.Root>
+        </SafeAreaProvider>
+    );
+}
+
+function WithLabelRow() {
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Bank', 'CreditCard']);
+    return (
+        <SafeAreaProvider>
+            <PopoverMenu.Root>
+                <StoryTrigger
+                    iconSrc={icons.Plus}
+                    label="Account"
+                    accessibilityLabel="Open menu"
+                />
+                <PopoverMenu.Content>
+                    <PopoverMenu.Label text="Signed in as test@example.com" />
+                    <PopoverMenu.Separator />
+                    <PopoverMenu.Item
+                        text="Bank account"
+                        icon={icons.Bank}
+                        onSelect={() => {}}
+                    />
+                    <PopoverMenu.Item
+                        text="Debit card"
+                        icon={icons.CreditCard}
+                        onSelect={() => {}}
+                    />
+                </PopoverMenu.Content>
+            </PopoverMenu.Root>
+        </SafeAreaProvider>
+    );
+}
+
 export default story;
-export {Default, WithHeader, WithSubmenu, WithRadioItems, ScrollableVariant, GroupedWithSeparator, DisabledRow, WithSecondaryInteraction};
+export {Default, WithHeader, WithSubmenu, WithNestedSubmenu, WithLabelRow, WithRadioItems, ScrollableVariant, GroupedWithSeparator, DisabledRow, WithSecondaryInteraction};

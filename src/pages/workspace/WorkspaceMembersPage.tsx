@@ -28,7 +28,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useDebouncedValue from '@hooks/useDebouncedValue';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
+import useHRSyncResultsOnComplete from '@hooks/useHRSyncResultsOnComplete';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -653,7 +653,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         clearInviteDraft(route.params.policyID);
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
 
-    useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useHRSyncResultsOnComplete(policyID, connectionSyncProgress, isFocused);
 
     const headerMessage = useMemo(() => {
         if (isOfflineAndNoMemberDataAvailable) {

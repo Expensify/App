@@ -1,7 +1,7 @@
 import {useId, useLayoutEffect, useRef} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import {useContentFocus, useContentItemActions} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContent} from '@components/PopoverMenu/v2/content/ContentContext';
 import useSyncFocus from '@hooks/useSyncFocus';
 
 type FocusableRow = {
@@ -11,7 +11,6 @@ type FocusableRow = {
     onFocus: () => void;
 };
 
-/** For close-on-select rows, prefer `useSelectableRow`. */
 function useFocusableRow({
     componentName,
     visible,
@@ -27,10 +26,10 @@ function useFocusableRow({
 }): FocusableRow {
     const id = useId();
     const ref = useRef<View>(null);
-    const {focusedID} = useContentFocus(componentName);
-    const {registerItem, unregisterItem, setFocusedID} = useContentItemActions(componentName);
+    const content = useContent(componentName);
+    const {focusedID} = content.state;
+    const {registerItem, unregisterItem, setFocusedID} = content.actions;
 
-    // Mirror so registered onActivate stays stable across renders.
     const onActivateRef = useRef(onActivate);
     useLayoutEffect(() => {
         onActivateRef.current = onActivate;

@@ -1968,6 +1968,15 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.modalBackground,
         },
 
+        popoverSurface: {
+            backgroundColor: theme.appBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
+            overflow: 'hidden',
+        },
+
         chatLinkRowPressable: {
             minWidth: 0,
             textDecorationLine: 'none',
@@ -2806,6 +2815,17 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             backgroundColor: 'black',
+        },
+
+        overlayPortalHost: {
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            pointerEvents: 'none',
         },
 
         reportActionContextMenuMiniButton: {
@@ -4311,6 +4331,10 @@ const staticStyles = (theme: ThemeColors) =>
         contextMenuItemPopoverMaxWidth: {
             minWidth: variables.compactPopoverMenuWidth,
             maxWidth: variables.compactPopoverMenuWidth,
+        },
+
+        compactPopoverMenuContentWidth: {
+            width: variables.compactPopoverMenuWidth,
         },
 
         formSpaceVertical: {

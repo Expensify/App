@@ -1,31 +1,36 @@
 import React, {useId, useState} from 'react';
 import type {ReactNode} from 'react';
-import {RootActionsContext, RootMetaContext, RootVisibilityContext} from './RootContext';
-import type {ActiveAnchor, RootActions, RootMeta, RootVisibility} from './RootContext';
+import useDisclosureState from '@hooks/useDisclosureState';
+import {RootContext} from './RootContext';
+import type {ActiveAnchor, RootActions, RootContextValue, RootMeta, RootState} from './RootContext';
 
 type RootProps = {
     children: ReactNode;
+    isOpen?: boolean;
     defaultOpen?: boolean;
+    onOpenChange?: (isOpen: boolean) => void;
 };
 
-/** Uncontrolled — observe via `useIsPopoverVisible()`. */
-function Root({children, defaultOpen = false}: RootProps): React.ReactElement {
-    const [isVisible, setIsVisible] = useState(defaultOpen);
-    const [activeAnchor, setActiveAnchor] = useState<ActiveAnchor | null>(null);
+function Root({children, isOpen: controlled, defaultOpen, onOpenChange}: RootProps): React.ReactElement {
+    const disclosure = useDisclosureState({isOpen: controlled, defaultOpen, onOpenChange});
+    const [activeAnchor, setActiveAnchorState] = useState<ActiveAnchor | null>(null);
     const triggerID = useId();
     const contentID = useId();
 
-    const visibility: RootVisibility = {isVisible};
-    const meta: RootMeta = {activeAnchor, triggerID, contentID};
-    const actions: RootActions = {setIsVisible, setActiveAnchor};
+    const setActiveAnchor = (anchor: ActiveAnchor) => setActiveAnchorState(anchor);
 
-    return (
-        <RootVisibilityContext.Provider value={visibility}>
-            <RootMetaContext.Provider value={meta}>
-                <RootActionsContext.Provider value={actions}>{children}</RootActionsContext.Provider>
-            </RootMetaContext.Provider>
-        </RootVisibilityContext.Provider>
-    );
+    const state: RootState = {isOpen: disclosure.isOpen, activeAnchor};
+    const actions: RootActions = {
+        setOpen: disclosure.setOpen,
+        open: disclosure.open,
+        close: disclosure.close,
+        toggle: disclosure.toggle,
+        setActiveAnchor,
+    };
+    const meta: RootMeta = {triggerID, contentID};
+    const value: RootContextValue = {state, actions, meta};
+
+    return <RootContext value={value}>{children}</RootContext>;
 }
 
 Root.displayName = 'PopoverMenu.Root';

@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import {Trigger as PopoverMenuTrigger} from '@components/PopoverMenu/v2';
+import {Trigger as PopoverMenuTrigger, useIsOpen as usePopoverMenuIsOpen} from '@components/PopoverMenu/v2';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
@@ -64,6 +64,7 @@ function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObjec
     const {updateVideoPopoverMenuPlayerRef, updateSource} = useVideoPopoverMenuActions();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const {translate} = useLocalize();
+    const isPopoverOpen = usePopoverMenuIsOpen();
 
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (!videoPlayerRef.current) {
@@ -79,6 +80,7 @@ function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObjec
             <IconButton
                 src={icons.ThreeDots}
                 tooltipText={translate('common.more')}
+                shouldRenderTooltip={!isPopoverOpen}
                 onPress={handlePress}
                 small={small}
                 sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_BUTTON}

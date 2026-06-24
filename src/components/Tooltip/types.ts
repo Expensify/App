@@ -83,6 +83,9 @@ type GenericTooltipProps = SharedTooltipProps & {
 
 type TooltipProps = ChildrenProps &
     SharedTooltipProps & {
+        /** Whether the actual Tooltip portal should be rendered. The Hoverable wrapper stays mounted regardless so hover state is preserved across visibility flips. */
+        shouldRender?: boolean;
+
         /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
         shouldHandleScroll?: boolean;
 

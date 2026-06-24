@@ -2099,6 +2099,8 @@ const CONST = {
             CENTERED_DURATION_OUT_WEB: 80,
             NARROW_SLIDE_DURATION_IN_WEB: 300,
             NARROW_SLIDE_DURATION_OUT_WEB: 200,
+            OVERLAY_FADE_IN_WEB: 150,
+            OVERLAY_FADE_OUT_WEB: 150,
         },
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
@@ -5863,6 +5865,10 @@ const CONST = {
         MENUBAR: 'menubar',
         /** Use for items within a menu. */
         MENUITEM: 'menuitem',
+        /** Use for single-select rows inside a menu (one of several options can be selected at a time). */
+        MENUITEMRADIO: 'menuitemradio',
+        /** Use for multi-select rows inside a menu (each option toggles independently). */
+        MENUITEMCHECKBOX: 'menuitemcheckbox',
         /** Use for selectable options within a listbox. */
         OPTION: 'option',
         /** Use to group related elements together for assistive technology. */
@@ -5903,6 +5909,8 @@ const CONST = {
         TOOLTIP: 'tooltip',
         /** Use for dialog/modal elements */
         DIALOG: 'dialog',
+        /** Use for modals that require an explicit user decision. */
+        ALERTDIALOG: 'alertdialog',
         /** Use for data table containers. */
         TABLE: 'table',
         /** Use for table rows. */

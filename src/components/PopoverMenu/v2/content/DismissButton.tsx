@@ -8,7 +8,6 @@ type DismissButtonProps = {
     onPress: () => void;
 };
 
-/** Hidden screen-reader dismiss affordance; not in the keyboard tab order (mirrors React Aria DismissButton). */
 function DismissButton({onPress}: DismissButtonProps): React.ReactElement {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

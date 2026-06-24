@@ -1,15 +1,13 @@
 import {NavigationContext} from '@react-navigation/core';
 import type {NavigationProp, ParamListBase} from '@react-navigation/native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
-import {useContentNavigation, useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
-// Test-only: harness publishes `activeAnchor` synthetically so we don't need a real measurable trigger.
-import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
-import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
+import {useContent} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useRoot} from '@components/PopoverMenu/v2/root/RootContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import usePressResponderPropsImport from '@components/Pressable/PressResponder/usePressResponderProps';
 import useResponderRefImport from '@components/Pressable/PressResponder/useResponderRef';
@@ -25,14 +23,26 @@ type MenuItemMockProps = Record<string, unknown> & {
 
 const menuItemPropsCapture: {current: MenuItemMockProps[]} = {current: []};
 
-// Production-faithful: keep children mounted across `isVisible` flips (mirrors react-native-modal during close animation).
-jest.mock('@components/PopoverWithMeasuredContent', () => {
-    function MockPopoverWithMeasuredContent({isVisible, children}: {isVisible?: boolean; children?: ReactNode}) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
-        const {View: RNView} = jest.requireActual('react-native');
-        return <RNView testID={isVisible ? 'mock-popover-open' : 'mock-popover-closed'}>{children}</RNView>;
+jest.mock('@components/Overlay/Portal', () => {
+    function MockPortal({children}: {children?: ReactNode}) {
+        return children;
     }
-    return MockPopoverWithMeasuredContent;
+    return MockPortal;
+});
+
+jest.mock('@components/Overlay/Presence', () => {
+    const PRESENCE_VALUE = {
+        state: {present: true, state: 'mounted'},
+        actions: {onAnimationEnd: () => {}},
+    } as const;
+    function MockPresence({present, children}: {present: boolean; children?: ReactNode}) {
+        return present ? children : null;
+    }
+    return {
+        __esModule: true,
+        default: MockPresence,
+        usePresence: () => PRESENCE_VALUE,
+    };
 });
 
 jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
@@ -43,7 +53,7 @@ jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
 });
 
 jest.mock('@components/MenuItem', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns untyped module
     const {View: RNView, Text: RNText} = jest.requireActual('react-native');
     function MockMenuItem(props: MenuItemMockProps) {
         menuItemPropsCapture.current.push(props);
@@ -64,7 +74,7 @@ jest.mock('@components/OfflineWithFeedback', () => {
 });
 
 jest.mock('@components/CompactMenuContext', () => {
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo. */
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- jest.requireActual returns untyped module */
     const ReactActual = jest.requireActual('react');
     const ctx = ReactActual.createContext(false);
     return {
@@ -112,8 +122,9 @@ function pressShortcut(shortcutKey: string): void {
     act(() => entry.callback());
 }
 
-const mockNavigationState: {blurListeners: Set<() => void>} = {
+const mockNavigationState: {blurListeners: Set<() => void>; isFocused: boolean} = {
     blurListeners: new Set(),
+    isFocused: false,
 };
 const mockNavigation = {
     addListener: (event: string, listener: () => void) => {
@@ -123,6 +134,7 @@ const mockNavigation = {
         mockNavigationState.blurListeners.add(listener);
         return () => mockNavigationState.blurListeners.delete(listener);
     },
+    isFocused: () => mockNavigationState.isFocused,
 } as unknown as NavigationProp<ParamListBase>;
 
 function fireBlur(): void {
@@ -131,12 +143,16 @@ function fireBlur(): void {
     }
 }
 
+function setMockNavigationFocused(value: boolean): void {
+    mockNavigationState.isFocused = value;
+}
+
 const mockModalState: {
     value: {willAlertModalBecomeVisible?: boolean; isPopover?: boolean} | undefined;
     listeners: Set<() => void>;
 } = {value: undefined, listeners: new Set()};
 jest.mock('@hooks/useOnyx', () => {
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo. */
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.requireActual returns untyped module */
     const ReactActual = jest.requireActual('react');
     return (_key: string, options?: {selector?: (v: unknown) => unknown}) => {
         const [, force] = ReactActual.useState({});
@@ -160,6 +176,7 @@ function setMockModal(value: typeof mockModalState.value): void {
 beforeEach(() => {
     menuItemPropsCapture.current = [];
     mockNavigationState.blurListeners.clear();
+    mockNavigationState.isFocused = false;
     mockModalState.value = undefined;
     mockModalState.listeners.clear();
     for (const key of Object.keys(registeredShortcuts)) {
@@ -168,27 +185,16 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-// RN's View ref in jest exposes `measureInWindow` but not `getBoundingClientRect` (production paths have it); install the stub for tests that exercise the press → anchor-measurement path.
 function stubViewGetBoundingClientRect(): {restore: () => void} {
     const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
-    const original = proto.getBoundingClientRect as ((this: unknown) => DOMRect) | undefined;
-    proto.getBoundingClientRect = () => ({
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        toJSON: () => ({}),
-    });
+    const original = proto.measureInWindow as ((cb: (x: number, y: number, w: number, h: number) => void) => void) | undefined;
+    proto.measureInWindow = (callback: (x: number, y: number, w: number, h: number) => void) => callback(0, 0, 100, 32);
     return {
         restore: () => {
             if (original) {
-                proto.getBoundingClientRect = original;
+                proto.measureInWindow = original;
             } else {
-                delete proto.getBoundingClientRect;
+                delete proto.measureInWindow;
             }
         },
     };
@@ -213,25 +219,46 @@ function focus(title: string): void {
     }
 }
 
-/** Publishes `activeAnchor` synthetically; stays mounted across open/close. Rect is fabricated — the mock ignores it. */
 function AutoSetAnchor() {
-    const {setActiveAnchor} = useRootActions('AutoSetAnchor');
-    const ref: AnchorRef = useRef<RNViewType>(null);
+    const {setActiveAnchor} = useRoot('AutoSetAnchor').actions;
+    const ref = useRef<RNViewType>(null);
     useLayoutEffect(() => {
-        setActiveAnchor({ref, rect: {x: 0, y: 0, width: 0, height: 0}});
-    }, [setActiveAnchor, ref]);
+        if (!ref.current) {
+            return;
+        }
+        setActiveAnchor({node: ref.current, rect: {top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0}});
+    }, [setActiveAnchor]);
     return <View ref={ref} />;
 }
 
 function VisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
-    const isVisible = PopoverMenu.useIsPopoverVisible();
+    const isOpen = PopoverMenu.useIsOpen();
     useEffect(() => {
-        onChange(isVisible);
-    }, [isVisible, onChange]);
+        onChange(isOpen);
+    }, [isOpen, onChange]);
     return null;
 }
 
-/** Test-side observer; `<Root>` has no `onOpenChange` prop. */
+const rootControls: {setOpen: ((next: boolean) => void) | null} = {setOpen: null};
+
+function RootControlBridge() {
+    const {setOpen} = useRoot('RootControlBridge').actions;
+    useEffect(() => {
+        rootControls.setOpen = setOpen;
+        return () => {
+            rootControls.setOpen = null;
+        };
+    }, [setOpen]);
+    return null;
+}
+
+function reopenRoot(): void {
+    if (!rootControls.setOpen) {
+        throw new Error('rootControls.setOpen not wired — render <RootControlBridge /> inside <Harness>.');
+    }
+    act(() => rootControls.setOpen?.(true));
+}
+
 function Harness({
     initialOpen = false,
     onOpenChange,
@@ -244,6 +271,7 @@ function Harness({
         <NavigationContext.Provider value={mockNavigation}>
             <PopoverMenu.Root defaultOpen={initialOpen}>
                 <AutoSetAnchor />
+                <RootControlBridge />
                 {onOpenChange ? <VisibilityObserver onChange={onOpenChange} /> : null}
                 {children}
             </PopoverMenu.Root>
@@ -253,7 +281,7 @@ function Harness({
 
 describe('PopoverMenu V2', () => {
     describe('Root', () => {
-        it('renders the popover in the closed state when not open', () => {
+        it('does not render menu items when closed', () => {
             render(
                 <Harness>
                     <PopoverMenu.Content>
@@ -264,8 +292,7 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            expect(screen.getByTestId('mock-popover-closed')).toBeOnTheScreen();
-            expect(screen.queryByTestId('mock-popover-open')).toBeNull();
+            expect(findItemByTitle('Hidden')).toBeUndefined();
         });
 
         it('renders Content when open', () => {
@@ -296,6 +323,29 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Default')).toBeDefined();
         });
 
+        it('defaultOpen without an anchor reports open but renders nothing', () => {
+            const observed: boolean[] = [];
+            function VisibilitySpy() {
+                observed.push(PopoverMenu.useIsOpen());
+                return null;
+            }
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root defaultOpen>
+                        <VisibilitySpy />
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Item
+                                text="Unseeded"
+                                onSelect={() => {}}
+                            />
+                        </PopoverMenu.Content>
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(observed.at(-1)).toBe(true);
+            expect(findItemByTitle('Unseeded')).toBeUndefined();
+        });
+
         it('closes on screen blur via navigation.addListener', () => {
             const onOpenChange = jest.fn();
             render(
@@ -312,8 +362,44 @@ describe('PopoverMenu V2', () => {
                 </Harness>,
             );
             onOpenChange.mockClear();
+            setMockNavigationFocused(false);
             act(() => fireBlur());
             expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('ignores spurious blur events when the screen is still focused (focus-shuffle within the same screen)', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            onOpenChange.mockClear();
+            setMockNavigationFocused(true);
+            act(() => fireBlur());
+            expect(onOpenChange).not.toHaveBeenCalled();
+        });
+
+        it('does not subscribe to blur while the popover is closed (avoids self-close on the same tick as open)', () => {
+            render(
+                <Harness initialOpen={false}>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            expect(mockNavigationState.blurListeners.size).toBe(0);
         });
 
         it('renders without a NavigationContainer in scope', () => {
@@ -394,6 +480,39 @@ describe('PopoverMenu V2', () => {
             );
             expect(onOpenChange).not.toHaveBeenCalledWith(false);
         });
+
+        it('does NOT close when isOpen transitions false→true while already covered (cover-then-open scenario)', () => {
+            mockModalState.value = {willAlertModalBecomeVisible: true, isPopover: false};
+            const onOpenChange = jest.fn();
+            const tree = render(
+                <Harness
+                    initialOpen={false}
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            onOpenChange.mockClear();
+            tree.rerender(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            expect(onOpenChange).not.toHaveBeenCalledWith(false);
+        });
     });
 
     describe('Trigger', () => {
@@ -405,7 +524,7 @@ describe('PopoverMenu V2', () => {
             getBoundingClientRectStub?.restore();
         });
 
-        it('opens the popover when the slotted child is pressed', () => {
+        it('opens the popover when the slotted child is pressed', async () => {
             const onOpenChange = jest.fn();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
@@ -427,10 +546,36 @@ describe('PopoverMenu V2', () => {
             expect(screen.getByTestId('trigger-icon')).toBeOnTheScreen();
             onOpenChange.mockClear();
             fireEvent.press(screen.getByTestId('trigger'));
-            expect(onOpenChange).toHaveBeenCalledWith(true);
+            await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(true));
         });
 
-        it("runs the slotted child's onPress before opening", () => {
+        it('toggles the popover closed when pressed while already open (WAI-ARIA disclosure pattern)', async () => {
+            const onOpenChange = jest.fn();
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <PressableWithFeedback
+                                onPress={() => {}}
+                                accessibilityLabel="Open menu"
+                                sentryLabel="TriggerTest"
+                                testID="trigger"
+                            >
+                                <View testID="trigger-icon" />
+                            </PressableWithFeedback>
+                        </PopoverMenu.Trigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            fireEvent.press(screen.getByTestId('trigger'));
+            await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(true));
+            onOpenChange.mockClear();
+            fireEvent.press(screen.getByTestId('trigger'));
+            await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
+        });
+
+        it("runs the slotted child's onPress before opening", async () => {
             const order: string[] = [];
             const onOpenChange = jest.fn(() => order.push('open'));
             const consumerOnPress = jest.fn(() => {
@@ -456,7 +601,7 @@ describe('PopoverMenu V2', () => {
             order.length = 0;
             onOpenChange.mockClear();
             fireEvent.press(screen.getByTestId('trigger'));
-            expect(consumerOnPress).toHaveBeenCalledTimes(1);
+            await waitFor(() => expect(consumerOnPress).toHaveBeenCalledTimes(1));
             expect(order).toEqual(['consumer', 'open']);
         });
 
@@ -493,7 +638,7 @@ describe('PopoverMenu V2', () => {
             expect(onOpenChange).not.toHaveBeenCalledWith(true);
         });
 
-        it('opens via PressResponder context even when the consumer pressable omits onPress', () => {
+        it('opens via PressResponder context even when the consumer pressable omits onPress', async () => {
             const onOpenChange = jest.fn();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
@@ -512,7 +657,7 @@ describe('PopoverMenu V2', () => {
                 </NavigationContext.Provider>,
             );
             expect(() => fireEvent.press(screen.getByTestId('trigger'))).not.toThrow();
-            expect(onOpenChange).toHaveBeenLastCalledWith(true);
+            await waitFor(() => expect(onOpenChange).toHaveBeenLastCalledWith(true));
         });
 
         it('merges the consumer ref with the internal anchor ref', () => {
@@ -577,7 +722,7 @@ describe('PopoverMenu V2', () => {
             expect(consumerOnPressB).toHaveBeenCalledTimes(1);
         });
 
-        it('flows responder props through arbitrary wrappers to the underlying pressable', () => {
+        it('flows responder props through arbitrary wrappers to the underlying pressable', async () => {
             const onOpenChange = jest.fn();
             function PassthroughWrapper({children}: {children: ReactNode}) {
                 return <View testID="wrapper">{children}</View>;
@@ -604,10 +749,10 @@ describe('PopoverMenu V2', () => {
             );
             onOpenChange.mockClear();
             fireEvent.press(screen.getByTestId('trigger'));
-            expect(onOpenChange).toHaveBeenLastCalledWith(true);
+            await waitFor(() => expect(onOpenChange).toHaveBeenLastCalledWith(true));
         });
 
-        it('accepts multiple children and a Fragment subtree', () => {
+        it('accepts multiple children and a Fragment subtree', async () => {
             const onOpenChange = jest.fn();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
@@ -630,7 +775,7 @@ describe('PopoverMenu V2', () => {
             );
             expect(screen.getByTestId('trigger-sibling')).toBeOnTheScreen();
             fireEvent.press(screen.getByTestId('trigger'));
-            expect(onOpenChange).toHaveBeenLastCalledWith(true);
+            await waitFor(() => expect(onOpenChange).toHaveBeenLastCalledWith(true));
         });
 
         it('publishes accessibilityHasPopup, accessibilityState.expanded, nativeID and accessibilityControls through PressResponderContext', () => {
@@ -652,7 +797,8 @@ describe('PopoverMenu V2', () => {
             const slotBefore = captured.at(-1);
             expect(slotBefore?.accessibilityHasPopup).toBe('menu');
             expect(slotBefore?.accessibilityState).toMatchObject({expanded: false});
-            expect(slotBefore?.accessibilityControls).toBeUndefined();
+            expect(typeof slotBefore?.accessibilityControls).toBe('string');
+            expect(slotBefore?.accessibilityControls).toBeTruthy();
             expect(typeof slotBefore?.nativeID).toBe('string');
         });
     });
@@ -666,12 +812,12 @@ describe('PopoverMenu V2', () => {
             getBoundingClientRectStub?.restore();
         });
 
-        it('opens the popover when the slotted child receives a long-press', () => {
+        it('opens the popover when the slotted child receives a long-press', async () => {
             const onOpenChange = jest.fn();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger>
+                        <PopoverMenu.Trigger interaction="secondary">
                             <PressableWithSecondaryInteraction
                                 onSecondaryInteraction={() => {}}
                                 accessibilityLabel="Long-press me"
@@ -679,7 +825,7 @@ describe('PopoverMenu V2', () => {
                             >
                                 <View testID="secondary-icon" />
                             </PressableWithSecondaryInteraction>
-                        </PopoverMenu.SecondaryInteractionTrigger>
+                        </PopoverMenu.Trigger>
                         <VisibilityObserver onChange={onOpenChange} />
                     </PopoverMenu.Root>
                 </NavigationContext.Provider>,
@@ -695,18 +841,18 @@ describe('PopoverMenu V2', () => {
                 },
             };
             fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', longPressEvent);
+            await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(true));
             expect(longPressEvent.defaultPrevented).toBe(true);
-            expect(onOpenChange).toHaveBeenCalledWith(true);
         });
 
-        it("runs the slotted child's onSecondaryInteraction before opening", () => {
+        it("runs the slotted child's onSecondaryInteraction before opening", async () => {
             const order: string[] = [];
             const onOpenChange = jest.fn(() => order.push('open'));
             const consumerOnSecondary = jest.fn(() => order.push('consumer'));
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger>
+                        <PopoverMenu.Trigger interaction="secondary">
                             <PressableWithSecondaryInteraction
                                 onSecondaryInteraction={consumerOnSecondary}
                                 accessibilityLabel="Long-press me"
@@ -714,7 +860,7 @@ describe('PopoverMenu V2', () => {
                             >
                                 <View testID="secondary-icon" />
                             </PressableWithSecondaryInteraction>
-                        </PopoverMenu.SecondaryInteractionTrigger>
+                        </PopoverMenu.Trigger>
                         <VisibilityObserver onChange={onOpenChange} />
                     </PopoverMenu.Root>
                 </NavigationContext.Provider>,
@@ -724,17 +870,17 @@ describe('PopoverMenu V2', () => {
             fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', {
                 preventDefault: () => {},
             });
-            expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
+            await waitFor(() => expect(consumerOnSecondary).toHaveBeenCalledTimes(1));
             expect(order).toEqual(['consumer', 'open']);
         });
 
-        it('still opens when the slotted child calls event.preventDefault() (framework reserves preventDefault for OS suppression)', () => {
+        it('still opens when the slotted child calls event.preventDefault() (framework reserves preventDefault for OS suppression)', async () => {
             const onOpenChange = jest.fn();
             const consumerOnSecondary = jest.fn((event: {preventDefault: () => void}) => event.preventDefault());
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger>
+                        <PopoverMenu.Trigger interaction="secondary">
                             <PressableWithSecondaryInteraction
                                 onSecondaryInteraction={consumerOnSecondary}
                                 accessibilityLabel="Long-press me"
@@ -742,7 +888,7 @@ describe('PopoverMenu V2', () => {
                             >
                                 <View testID="secondary-icon" />
                             </PressableWithSecondaryInteraction>
-                        </PopoverMenu.SecondaryInteractionTrigger>
+                        </PopoverMenu.Trigger>
                         <VisibilityObserver onChange={onOpenChange} />
                     </PopoverMenu.Root>
                 </NavigationContext.Provider>,
@@ -755,15 +901,15 @@ describe('PopoverMenu V2', () => {
                 },
             };
             fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', longPressEvent);
+            await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(true));
             expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
             expect(longPressEvent.defaultPrevented).toBe(true);
-            expect(onOpenChange).toHaveBeenCalledWith(true);
         });
     });
 
     describe('useSubTrigger', () => {
         it('returns the trigger shape and reports active-level visibility', () => {
-            const captured: PopoverMenu.UseSubTriggerResult[] = [];
+            const captured: PopoverMenu.UsePopoverMenuSubTriggerResult[] = [];
             function ProbeHook() {
                 captured.push(PopoverMenu.useSubTrigger());
                 return null;
@@ -792,14 +938,14 @@ describe('PopoverMenu V2', () => {
         });
 
         it('drills into the enclosing Sub on onPress', () => {
-            const captured: PopoverMenu.UseSubTriggerResult[] = [];
-            const navigationCaptured: Array<ReturnType<typeof useContentNavigation>> = [];
+            const captured: PopoverMenu.UsePopoverMenuSubTriggerResult[] = [];
+            const navigationCaptured: Array<ReturnType<typeof useContent>['state']> = [];
             function ProbeHook() {
                 captured.push(PopoverMenu.useSubTrigger());
                 return null;
             }
             function NavigationProbe() {
-                navigationCaptured.push(useContentNavigation('NavigationProbe'));
+                navigationCaptured.push(useContent('NavigationProbe').state);
                 return null;
             }
             render(
@@ -824,14 +970,14 @@ describe('PopoverMenu V2', () => {
         });
 
         it('does not drill into the Sub when disabled', () => {
-            const captured: PopoverMenu.UseSubTriggerResult[] = [];
-            const navigationCaptured: Array<ReturnType<typeof useContentNavigation>> = [];
+            const captured: PopoverMenu.UsePopoverMenuSubTriggerResult[] = [];
+            const navigationCaptured: Array<ReturnType<typeof useContent>['state']> = [];
             function ProbeHook() {
                 captured.push(PopoverMenu.useSubTrigger({disabled: true}));
                 return null;
             }
             function NavigationProbe() {
-                navigationCaptured.push(useContentNavigation('NavigationProbe'));
+                navigationCaptured.push(useContent('NavigationProbe').state);
                 return null;
             }
             render(
@@ -857,7 +1003,7 @@ describe('PopoverMenu V2', () => {
 
     describe('useSubBackButton', () => {
         it('returns the back-button shape and reports active-level visibility', () => {
-            const captured: PopoverMenu.UseSubBackButtonResult[] = [];
+            const captured: PopoverMenu.UsePopoverMenuSubBackButtonResult[] = [];
             function ProbeHook() {
                 captured.push(PopoverMenu.useSubBackButton());
                 return null;
@@ -884,14 +1030,14 @@ describe('PopoverMenu V2', () => {
         });
 
         it('exits to the parent level on onPress', () => {
-            const captured: PopoverMenu.UseSubBackButtonResult[] = [];
-            const navigationCaptured: Array<ReturnType<typeof useContentNavigation>> = [];
+            const captured: PopoverMenu.UsePopoverMenuSubBackButtonResult[] = [];
+            const navigationCaptured: Array<ReturnType<typeof useContent>['state']> = [];
             function ProbeHook() {
                 captured.push(PopoverMenu.useSubBackButton());
                 return null;
             }
             function NavigationProbe() {
-                navigationCaptured.push(useContentNavigation('NavigationProbe'));
+                navigationCaptured.push(useContent('NavigationProbe').state);
                 return null;
             }
             render(
@@ -916,7 +1062,7 @@ describe('PopoverMenu V2', () => {
 
     describe('useSelectableRow', () => {
         it('returns the row shape and reports active-level visibility', () => {
-            const captured: PopoverMenu.UseSelectableRowResult[] = [];
+            const captured: PopoverMenu.UsePopoverMenuSelectableRowResult[] = [];
             function ProbeHook() {
                 captured.push(PopoverMenu.useSelectableRow());
                 return null;
@@ -938,7 +1084,7 @@ describe('PopoverMenu V2', () => {
 
         it('closes the popover after onPress', () => {
             const onOpenChange = jest.fn();
-            const captured: PopoverMenu.UseSelectableRowResult[] = [];
+            const captured: PopoverMenu.UsePopoverMenuSelectableRowResult[] = [];
             function ProbeHook() {
                 captured.push(PopoverMenu.useSelectableRow({onSelect: jest.fn()}));
                 return null;
@@ -960,7 +1106,7 @@ describe('PopoverMenu V2', () => {
 
         it('keeps the popover open when onSelect calls event.preventDefault()', () => {
             const onOpenChange = jest.fn();
-            const captured: PopoverMenu.UseSelectableRowResult[] = [];
+            const captured: PopoverMenu.UsePopoverMenuSelectableRowResult[] = [];
             function ProbeHook() {
                 captured.push(
                     PopoverMenu.useSelectableRow({
@@ -985,11 +1131,11 @@ describe('PopoverMenu V2', () => {
         });
     });
 
-    describe('useIsPopoverVisible', () => {
+    describe('useIsOpen', () => {
         it('reflects Root visibility', () => {
             const captured: boolean[] = [];
             function Probe() {
-                captured.push(PopoverMenu.useIsPopoverVisible());
+                captured.push(PopoverMenu.useIsOpen());
                 return null;
             }
             render(
@@ -1003,7 +1149,7 @@ describe('PopoverMenu V2', () => {
         it('returns false when Root is closed', () => {
             const captured: boolean[] = [];
             function Probe() {
-                captured.push(PopoverMenu.useIsPopoverVisible());
+                captured.push(PopoverMenu.useIsOpen());
                 return null;
             }
             render(
@@ -1015,12 +1161,12 @@ describe('PopoverMenu V2', () => {
         });
     });
 
-    describe('useClosePopover', () => {
+    describe('useClose', () => {
         it('closes the popover when called', () => {
             const onOpenChange = jest.fn();
             const captured: Array<() => void> = [];
             function Probe() {
-                captured.push(PopoverMenu.useClosePopover());
+                captured.push(PopoverMenu.useClose());
                 return null;
             }
             render(
@@ -1447,7 +1593,6 @@ describe('PopoverMenu V2', () => {
         });
 
         it('resets to top level when the menu closes via item selection and reopens', () => {
-            // Remounting `<Root>` (key bump) tears down nav state — the test's substitute for a "close + reopen" cycle.
             function RemountingHarness({remountKey}: {remountKey: number}) {
                 return (
                     <Harness
@@ -1481,10 +1626,10 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Choose')).toBeUndefined();
         });
 
-        it('resets sub navigation when the menu closes via screen blur (so reopen lands at top)', () => {
+        it('reopen after blur-close lands at top level', () => {
             const captured: Array<string | null> = [];
             function NavProbe() {
-                const {currentSubID} = useContentNavigation('NavProbe');
+                const {currentSubID} = useContent('NavProbe').state;
                 captured.push(currentSubID);
                 return null;
             }
@@ -1508,14 +1653,19 @@ describe('PopoverMenu V2', () => {
             press('Open Sub');
             expect(captured.at(-1)).toBe('A');
 
+            setMockNavigationFocused(false);
             act(() => fireBlur());
+            menuItemPropsCapture.current = [];
+            reopenRoot();
             expect(captured.at(-1)).toBeNull();
+            expect(findItemByTitle('Open Sub')).toBeDefined();
+            expect(findItemByTitle('Choose')).toBeUndefined();
         });
 
-        it('resets sub navigation when the menu closes via modal-stack cover (so reopen lands at top)', () => {
+        it('reopen after modal-cover-close lands at top level', () => {
             const captured: Array<string | null> = [];
             function NavProbe() {
-                const {currentSubID} = useContentNavigation('NavProbe');
+                const {currentSubID} = useContent('NavProbe').state;
                 captured.push(currentSubID);
                 return null;
             }
@@ -1540,7 +1690,12 @@ describe('PopoverMenu V2', () => {
             expect(captured.at(-1)).toBe('A');
 
             act(() => setMockModal({willAlertModalBecomeVisible: true, isPopover: false}));
+            act(() => setMockModal(undefined));
+            menuItemPropsCapture.current = [];
+            reopenRoot();
             expect(captured.at(-1)).toBeNull();
+            expect(findItemByTitle('Open Sub')).toBeDefined();
+            expect(findItemByTitle('Choose')).toBeUndefined();
         });
 
         it('renders a nested SubTrigger when its parent sub is the active level', () => {
@@ -1589,6 +1744,60 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('A item')).toBeDefined();
             expect(findItemByTitle('Open B')).toBeDefined();
             expect(findItemByTitle('B item')).toBeUndefined();
+        });
+
+        it('opening a sibling sub at the same depth evicts the prior sibling in one state write (React Aria parity)', () => {
+            const captured: Array<string | null> = [];
+            function NavProbe() {
+                const {currentSubID} = useContent('NavProbe').state;
+                captured.push(currentSubID);
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <NavProbe />
+                        <PopoverMenu.Group>
+                            <PopoverMenu.Sub id="A">
+                                <PopoverMenu.Sub.Trigger text="Open A" />
+                                <PopoverMenu.Sub.Content>
+                                    <PopoverMenu.Sub.BackButton text="Back from A" />
+                                    <PopoverMenu.Item
+                                        text="In A"
+                                        onSelect={() => {}}
+                                    />
+                                </PopoverMenu.Sub.Content>
+                            </PopoverMenu.Sub>
+                            <PopoverMenu.Sub id="B">
+                                <PopoverMenu.Sub.Trigger text="Open B" />
+                                <PopoverMenu.Sub.Content>
+                                    <PopoverMenu.Sub.BackButton text="Back from B" />
+                                    <PopoverMenu.Item
+                                        text="In B"
+                                        onSelect={() => {}}
+                                    />
+                                </PopoverMenu.Sub.Content>
+                            </PopoverMenu.Sub>
+                        </PopoverMenu.Group>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+
+            expect(captured.at(-1)).toBeNull();
+            expect(findItemByTitle('Open A')).toBeDefined();
+            expect(findItemByTitle('Open B')).toBeDefined();
+
+            press('Open A');
+            expect(captured.at(-1)).toBe('A');
+            expect(findItemByTitle('In A')).toBeDefined();
+            expect(findItemByTitle('Open B')).toBeUndefined();
+
+            press('Back from A');
+            expect(captured.at(-1)).toBeNull();
+            press('Open B');
+            expect(captured.at(-1)).toBe('B');
+            expect(findItemByTitle('In B')).toBeDefined();
+            expect(findItemByTitle('In A')).toBeUndefined();
         });
 
         it('pops to parent when an active <Sub> unmounts mid-flight', () => {
@@ -1674,7 +1883,7 @@ describe('PopoverMenu V2', () => {
         it('pops to parent when only the nested <Sub> unmounts (parent stays mounted)', () => {
             const captured: Array<string | null> = [];
             function NavProbe() {
-                const {currentSubID} = useContentNavigation('NavProbe');
+                const {currentSubID} = useContent('NavProbe').state;
                 captured.push(currentSubID);
                 return null;
             }
@@ -1714,7 +1923,6 @@ describe('PopoverMenu V2', () => {
             menuItemPropsCapture.current = [];
             tree.rerender(<NestedTree showInner={false} />);
 
-            // Cascade pops the path-stack tail past unmounted entries to the nearest still-mounted ancestor (A), NOT to root.
             expect(captured.at(-1)).toBe('A');
         });
 
@@ -1862,11 +2070,10 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Inner')?.focused).toBe(false);
         });
 
-        // Stricter than the integration test below — fails first if RC ever regresses on the actions-object memoization.
         it('keeps registerSub identity stable across unrelated parent re-renders (RC mutation guard)', () => {
             const registerSubCaptures: unknown[] = [];
             function RegisterSubProbe() {
-                const {registerSub} = useContentSubActions('RegisterSubProbe');
+                const {registerSub} = useContent('RegisterSubProbe').actions;
                 registerSubCaptures.push(registerSub);
                 return null;
             }
@@ -1894,7 +2101,6 @@ describe('PopoverMenu V2', () => {
             expect(registerSubCaptures.length).toBeGreaterThan(1);
         });
 
-        // Guards `Sub`'s useLayoutEffect cleanup + `ContentSubActions` identity stability across unrelated re-renders.
         it('stays in the sub when focus changes inside it (re-render stability)', () => {
             render(
                 <Harness initialOpen>
@@ -1921,7 +2127,6 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Second')).toBeDefined();
             expect(findItemByTitle('Back')).toBeDefined();
 
-            // Focus change re-renders the Content tree; sub state must not collapse.
             focus('Second');
 
             expect(findItemByTitle('First')).toBeDefined();
@@ -1966,16 +2171,60 @@ describe('PopoverMenu V2', () => {
             const tree = render(<SubMenuWithToggle showSub />);
             press('Open');
 
-            // Focus Inner-A (index 1 after the back button).
             focus('Inner-A');
             expect(findItemByTitle('Inner-A')?.focused).toBe(true);
 
             menuItemPropsCapture.current = [];
             tree.rerender(<SubMenuWithToggle showSub={false} />);
 
-            // After cascade: index 1 maps to Outer-B in the parent list. Focus must NOT carry over.
             expect(findItemByTitle('Outer-A')?.focused).toBe(false);
             expect(findItemByTitle('Outer-B')?.focused).toBe(false);
+        });
+
+        it('preserves focus when an unrelated inactive sub unmounts', () => {
+            function MenuWithTwoSubs({showB}: {showB: boolean}) {
+                return (
+                    <Harness initialOpen>
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Sub id="A">
+                                <PopoverMenu.Sub.Trigger text="Enter A" />
+                                <PopoverMenu.Sub.Content>
+                                    <PopoverMenu.Item
+                                        text="A-1"
+                                        onSelect={() => {}}
+                                    />
+                                    <PopoverMenu.Item
+                                        text="A-2"
+                                        onSelect={() => {}}
+                                    />
+                                </PopoverMenu.Sub.Content>
+                            </PopoverMenu.Sub>
+                            {showB && (
+                                <PopoverMenu.Sub id="B">
+                                    <PopoverMenu.Sub.Trigger text="Enter B" />
+                                    <PopoverMenu.Sub.Content>
+                                        <PopoverMenu.Item
+                                            text="B-1"
+                                            onSelect={() => {}}
+                                        />
+                                    </PopoverMenu.Sub.Content>
+                                </PopoverMenu.Sub>
+                            )}
+                        </PopoverMenu.Content>
+                    </Harness>
+                );
+            }
+
+            const tree = render(<MenuWithTwoSubs showB />);
+            press('Enter A');
+            focus('A-1');
+            expect(findItemByTitle('A-1')?.focused).toBe(true);
+
+            menuItemPropsCapture.current = [];
+            tree.rerender(<MenuWithTwoSubs showB={false} />);
+
+            expect(findItemByTitle('A-1')?.focused).toBe(true);
+            expect(findItemByTitle('A-2')?.focused).toBe(false);
         });
     });
 
@@ -2155,27 +2404,27 @@ describe('PopoverMenu V2', () => {
             ).toThrow(/PopoverMenu\.Trigger must be used inside <PopoverMenu\.Root>/);
         });
 
-        it('throws when SecondaryInteractionTrigger is rendered outside Root', () => {
+        it('throws when Trigger interaction="secondary" is rendered outside Root', () => {
             expect(() =>
                 render(
-                    <PopoverMenu.SecondaryInteractionTrigger>
+                    <PopoverMenu.Trigger interaction="secondary">
                         <PressableWithSecondaryInteraction
                             onSecondaryInteraction={() => {}}
                             accessibilityLabel="X"
                         >
                             <View />
                         </PressableWithSecondaryInteraction>
-                    </PopoverMenu.SecondaryInteractionTrigger>,
+                    </PopoverMenu.Trigger>,
                 ),
-            ).toThrow(/PopoverMenu\.SecondaryInteractionTrigger must be used inside <PopoverMenu\.Root>/);
+            ).toThrow(/PopoverMenu\.Trigger must be used inside <PopoverMenu\.Root>/);
         });
 
-        it('throws when useIsPopoverVisible is called outside Root', () => {
+        it('throws when useIsOpen is called outside Root', () => {
             function CallVisibilityHook() {
-                PopoverMenu.useIsPopoverVisible();
+                PopoverMenu.useIsOpen();
                 return null;
             }
-            expect(() => render(<CallVisibilityHook />)).toThrow(/useIsPopoverVisible must be used inside <PopoverMenu\.Root>/);
+            expect(() => render(<CallVisibilityHook />)).toThrow(/useIsOpen must be used inside <PopoverMenu\.Root>/);
         });
 
         it('throws when Content is rendered outside Root', () => {
@@ -2254,9 +2503,9 @@ describe('PopoverMenu V2', () => {
             ).toThrow(/useSelectableRow must be used inside <PopoverMenu\.Content>/);
         });
 
-        it('throws when useClosePopover is called outside Content', () => {
+        it('throws when useClose is called outside Content', () => {
             function CallClosePopoverHook() {
-                PopoverMenu.useClosePopover();
+                PopoverMenu.useClose();
                 return null;
             }
             expect(() =>
@@ -2265,7 +2514,7 @@ describe('PopoverMenu V2', () => {
                         <CallClosePopoverHook />
                     </Harness>,
                 ),
-            ).toThrow(/useClosePopover must be used inside <PopoverMenu\.Content>/);
+            ).toThrow(/useClose must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when useSubBackButton is called outside Sub', () => {
@@ -2387,7 +2636,6 @@ describe('PopoverMenu V2', () => {
     });
 
     describe('Arrow-key navigation', () => {
-        // capture accumulates across re-renders — read the LATEST render of a title to assert post-arrow state.
         function findItemFocusedFlag(title: string): boolean {
             return !!menuItemPropsCapture.current.findLast((p) => p.title === title)?.focused;
         }
@@ -2480,6 +2728,35 @@ describe('PopoverMenu V2', () => {
             pressShortcut('Enter');
             expect(onSelectBeta).toHaveBeenCalledTimes(1);
             expect(onSelectAlpha).not.toHaveBeenCalled();
+            expect(onOpenChange).toHaveBeenLastCalledWith(false);
+        });
+
+        it('Space activates the focused row just like Enter (WAI-ARIA APG menuitem contract)', () => {
+            const onSelectAlpha = jest.fn();
+            const onSelectBeta = jest.fn();
+            const onOpenChange = jest.fn();
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="Alpha"
+                            onSelect={onSelectAlpha}
+                        />
+                        <PopoverMenu.Item
+                            text="Beta"
+                            onSelect={onSelectBeta}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+
+            pressShortcut('ArrowDown');
+            pressShortcut('Space');
+            expect(onSelectAlpha).toHaveBeenCalledTimes(1);
+            expect(onSelectBeta).not.toHaveBeenCalled();
             expect(onOpenChange).toHaveBeenLastCalledWith(false);
         });
 

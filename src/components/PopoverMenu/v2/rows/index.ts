@@ -1,15 +1,16 @@
 export {default as Group} from './Group';
-export type {GroupProps} from './Group';
+export type {GroupProps as PopoverMenuGroupProps} from './Group';
 export {default as Header} from './Header';
-export type {HeaderProps} from './Header';
+export type {HeaderProps as PopoverMenuHeaderProps} from './Header';
 export {default as Item} from './Item';
-export type {ItemProps, ItemSelectEvent} from './Item';
+export type {ItemProps as PopoverMenuItemProps, ItemSelectEvent as PopoverMenuItemSelectEvent} from './Item';
 export {default as Label} from './Label';
-export type {LabelProps} from './Label';
+export type {LabelProps as PopoverMenuLabelProps} from './Label';
 export {default as RadioItem} from './RadioItem';
-export type {RadioItemProps} from './RadioItem';
+export type {RadioItemProps as PopoverMenuRadioItemProps} from './RadioItem';
 export {default as Separator} from './Separator';
 export {default as useSelectableRow} from './useSelectableRow';
-export type {UseSelectableRowResult} from './useSelectableRow';
-// Re-exported here so custom non-row content placed alongside rows can self-gate without reaching into the sub barrel.
-export {useIsAtActiveLevel} from '../sub/SubContext';
+export type {UseSelectableRowResult as UsePopoverMenuSelectableRowResult} from './useSelectableRow';
+export {default as useMenuItem} from './useMenuItem';
+export type {MenuItemRole as PopoverMenuItemRole, UseMenuItemInput as UsePopoverMenuItemInput, UseMenuItemResult as UsePopoverMenuItemResult} from './useMenuItem';
+export {useIsAtActiveLevel} from '../sub/context';

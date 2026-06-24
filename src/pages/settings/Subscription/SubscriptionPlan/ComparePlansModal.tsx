@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
-import type {AnimationOut} from '@components/Modal/ReanimatedModal/types';
+import {CenteredModal, CenteredSmallModal} from '@components/Modal/v2';
+import type {AnimationOut} from '@components/Modal/v2';
 import RenderHTML from '@components/RenderHTML';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
@@ -25,12 +25,15 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with Modal v2 layout decisions
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [animationOut, setAnimationOut] = useState<AnimationOut>('slideOutRight');
 
     useEffect(() => {
+        if (!isModalVisible) {
+            return;
+        }
         setAnimationOut('slideOutRight');
     }, [isModalVisible]);
 
@@ -62,28 +65,32 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
     );
 
     const maxHeight = isSmallScreenWidth ? undefined : windowHeight - 40;
+    const Variant = isSmallScreenWidth ? CenteredModal : CenteredSmallModal;
 
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <Modal
-                    isVisible={isModalVisible}
-                    type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-                    onClose={onClose}
-                    animationOut={isSmallScreenWidth ? animationOut : undefined}
-                    innerContainerStyle={isSmallScreenWidth ? {...safeAreaPaddingBottomStyle, maxHeight} : {...styles.workspaceSection, ...safeAreaPaddingBottomStyle, maxHeight}}
+                <Variant.Root
+                    isOpen={isModalVisible}
+                    onOpenChange={setIsModalVisible}
                 >
-                    <HeaderWithBackButton
-                        title={translate('subscription.compareModal.comparePlans')}
-                        shouldShowCloseButton={!isSmallScreenWidth}
-                        onCloseButtonPress={onClose}
-                        shouldShowBackButton={isSmallScreenWidth}
-                        onBackButtonPress={onClose}
-                        style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
-                        shouldDisplayHelpButton={false}
-                    />
-                    <ScrollView>{renderPlans()}</ScrollView>
-                </Modal>
+                    <Variant.Content
+                        innerStyle={[isSmallScreenWidth ? undefined : styles.workspaceSection, safeAreaPaddingBottomStyle, {maxHeight}]}
+                        animationOut={isSmallScreenWidth ? animationOut : undefined}
+                        accessibilityLabel={translate('subscription.compareModal.comparePlans')}
+                    >
+                        <HeaderWithBackButton
+                            title={translate('subscription.compareModal.comparePlans')}
+                            shouldShowCloseButton={!isSmallScreenWidth}
+                            onCloseButtonPress={onClose}
+                            shouldShowBackButton={isSmallScreenWidth}
+                            onBackButtonPress={onClose}
+                            style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
+                            shouldDisplayHelpButton={false}
+                        />
+                        <ScrollView>{renderPlans()}</ScrollView>
+                    </Variant.Content>
+                </Variant.Root>
             )}
         </SafeAreaConsumer>
     );

@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContent} from '@components/PopoverMenu/v2/content/ContentContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,23 +16,20 @@ import type {ItemSelectEvent} from './useSelectableRow';
 type RadioItemOwnProps = {
     text: string;
     isSelected?: boolean;
-    /** Call `event.preventDefault()` to keep the menu open after select. */
     onSelect?: (event: ItemSelectEvent) => void;
     disabled?: boolean;
     pendingAction?: PendingAction;
     testID?: string;
-    /** Replaces the built-in radio indicator. */
     rightIcon?: IconAsset;
 };
 
 type RadioItemProps = RadioItemOwnProps & MenuItemForwardProps;
 
-/** Single-select row with a radio indicator; pass `rightIcon` to replace the indicator. */
 function RadioItem({text, isSelected = false, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: RadioItemProps): React.ReactElement | null {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    useContentClose(RadioItem.displayName);
+    useContent(RadioItem.displayName);
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled, text});
 
     if (!isAtActiveLevel) {
@@ -53,7 +50,6 @@ function RadioItem({text, isSelected = false, onSelect, disabled = false, pendin
                 disabled={disabled}
                 interactive
                 isSelected={isSelected}
-                // Skip the row tint when the radio indicator is the visual cue.
                 wrapperStyle={StyleUtils.getItemBackgroundColorStyle(!!rightIcon && isSelected, focused, disabled, theme.activeComponentBG, theme.hoverComponentBG)}
                 titleStyle={styles.flex1}
                 shouldRemoveHoverBackground={isSelected}
@@ -62,6 +58,7 @@ function RadioItem({text, isSelected = false, onSelect, disabled = false, pendin
                 focused={focused}
                 shouldCheckActionAllowedOnPress={false}
                 role={CONST.ROLE.MENUITEM}
+                accessibilityState={{checked: isSelected, disabled}}
                 pressableTestID={testID ?? `PopoverMenu.RadioItem-${text}`}
             />
         </OfflineWithFeedback>

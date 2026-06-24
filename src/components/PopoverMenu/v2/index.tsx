@@ -1,9 +1,9 @@
-export {Content, ScrollableContent, useClosePopover} from './content';
+export {Content, ScrollableContent, useClose, useMenu} from './content';
 
-export {Root, SecondaryInteractionTrigger, Trigger, useIsPopoverVisible} from './root';
+export {Root, Trigger, useIsOpen} from './root';
 
-export {Group, Header, Item, Label, RadioItem, Separator, useSelectableRow} from './rows';
-export type {ItemSelectEvent, UseSelectableRowResult} from './rows';
+export {Group, Header, Item, Label, RadioItem, Separator, useMenuItem, useSelectableRow} from './rows';
+export type {PopoverMenuItemSelectEvent, UsePopoverMenuSelectableRowResult} from './rows';
 
 export {Sub, useIsAtActiveLevel, useSubBackButton, useSubTrigger} from './sub';
-export type {UseSubBackButtonResult, UseSubTriggerResult} from './sub';
+export type {UsePopoverMenuSubBackButtonResult, UsePopoverMenuSubTriggerResult} from './sub';
