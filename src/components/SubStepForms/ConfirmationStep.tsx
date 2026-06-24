@@ -73,7 +73,7 @@ function ConfirmationStep({
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
             {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}, index) => {
-                // `title` is the edited value — embedding it would shift the identifier across edits and miss the focus-return lookup. `description` is stable; index disambiguates.
+                // `description`+index is stable across edits (don't embed `title`). Limit: conditional row visibility re-keys items below — callers with reorderable rows should pass an explicit `id` (e.g. `INPUT_IDS.*`).
                 const stableId = id ?? `${description}-${index}`;
                 return (
                     <MenuItemWithTopDescription

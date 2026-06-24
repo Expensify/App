@@ -23,6 +23,10 @@ function ScreenLayout({
 
     useLayoutEffect(() => {
         const transitionStartListener = navigation.addListener('transitionStart', () => {
+            // End prior handle first — rapid back/forward fires `transitionStart` again before `transitionEnd`, stalling focus-return for up to 1s.
+            if (transitionHandleRef.current) {
+                TransitionTracker.endTransition(transitionHandleRef.current);
+            }
             transitionHandleRef.current = TransitionTracker.startTransition('navigation');
         });
         const transitionEndListener = navigation.addListener('transitionEnd', () => {
@@ -36,6 +40,10 @@ function ScreenLayout({
         return () => {
             transitionStartListener();
             transitionEndListener();
+            if (transitionHandleRef.current) {
+                TransitionTracker.endTransition(transitionHandleRef.current);
+                transitionHandleRef.current = null;
+            }
         };
     }, [navigation]);
 

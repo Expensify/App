@@ -14,6 +14,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {diffNavigationState} from '@libs/navigationStateDiff';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
+import setFifoEntry from './fifoMap';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
 
@@ -28,17 +29,8 @@ let lastMouseTrigger: HTMLElement | null = null;
 let lastInteractiveElement: HTMLElement | null = null;
 let lastMouseTriggerAt = 0;
 
-// Refresh insertion order on re-set so FIFO eviction doesn't drop a recently-active key.
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
-    triggerMap.delete(routeKey);
-    triggerMap.set(routeKey, entry);
-    while (triggerMap.size > TRIGGER_MAP_MAX) {
-        const oldest = triggerMap.keys().next().value;
-        if (oldest === undefined) {
-            break;
-        }
-        triggerMap.delete(oldest);
-    }
+    setFifoEntry(triggerMap, routeKey, entry, TRIGGER_MAP_MAX);
 }
 
 let prevState: NavigationState | undefined;

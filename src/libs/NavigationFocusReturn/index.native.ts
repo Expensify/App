@@ -11,6 +11,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {diffNavigationState} from '@libs/navigationStateDiff';
 import CONST from '@src/CONST';
+import setFifoEntry from './fifoMap';
 
 type TriggerEntry = {ref: RefObject<View | null>; identifier?: string};
 
@@ -26,19 +27,8 @@ let pendingRestore: {cancel: () => void} | null = null;
 let skipNextRestore = false;
 let stateUnsubscribe: (() => void) | null = null;
 
-/*
- * Delete-then-set so a re-set moves the key to the tail and FIFO eviction drops the truly oldest.
- */
 function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
-    triggerMap.delete(routeKey);
-    triggerMap.set(routeKey, entry);
-    while (triggerMap.size > TRIGGER_MAP_MAX) {
-        const oldest = triggerMap.keys().next().value;
-        if (oldest === undefined) {
-            break;
-        }
-        triggerMap.delete(oldest);
-    }
+    setFifoEntry(triggerMap, routeKey, entry, TRIGGER_MAP_MAX);
 }
 
 // Recorded unconditionally so cold-start presses survive the warm-up window. performance.now is monotonic — Date.now would corrupt the TTL on clock jumps.

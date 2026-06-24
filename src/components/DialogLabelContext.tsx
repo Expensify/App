@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useRef} from 'react';
+import React, {createContext, useContext, useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import isHTMLElement from '@libs/isHTMLElement';
 
@@ -72,6 +72,22 @@ function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps)
         labelStackRef.current = labelStackRef.current.filter((entry) => entry.id !== id);
         updateContainerLabel();
     };
+
+    // Re-apply on `role`/`aria-modal` change — viewport resize flips dialog semantics mid-session.
+    useEffect(() => {
+        if (typeof MutationObserver === 'undefined') {
+            return;
+        }
+        const node = containerRef.current;
+        if (!isHTMLElement(node)) {
+            return;
+        }
+        const observer = new MutationObserver(updateContainerLabel);
+        observer.observe(node, {attributes: true, attributeFilter: ['role', 'aria-modal']});
+        return () => {
+            observer.disconnect();
+        };
+    }, [containerRef, updateContainerLabel]);
 
     const claimInitialFocus = (): boolean => {
         if (initialFocusClaimedRef.current) {

@@ -23,7 +23,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
 /** Focuses the first interactive element inside the dialog after the RHP transition for screen reader announcement. */
 const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocusGate, skipDialogContainerFocus = false) => {
     useEffect(() => {
-        if (!isReady || !claimInitialFocusGate?.() || skipDialogContainerFocus) {
+        if (!isReady || skipDialogContainerFocus || !claimInitialFocusGate?.()) {
             return;
         }
         let rafId: number | null = null;

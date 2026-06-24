@@ -29,9 +29,10 @@ const {resetCycle: resetArbiter, tryClaim: arbiterClaim, Priorities: arbiterPrio
     tryClaim: (priority: 1 | 2 | 3) => boolean;
     Priorities: {INITIAL: 1; AUTO: 2; RETURN: 3};
 }>('../../src/libs/ScreenFocusArbiter.ts');
-const {teardownHadTabNavigation, setupHadTabNavigation} = require<{
+const {teardownHadTabNavigation, setupHadTabNavigation, resetForTests: resetHadTabNavigation} = require<{
     teardownHadTabNavigation: () => void;
     setupHadTabNavigation: () => void;
+    resetForTests: () => void;
 }>('../../src/libs/hadTabNavigation.ts');
 /* eslint-enable import/extensions */
 
@@ -87,6 +88,7 @@ beforeEach(() => {
     mockHasHoverSupport = true;
     mockIsScreenReaderKnownOff = false;
     teardownHadTabNavigation();
+    resetHadTabNavigation();
     setupHadTabNavigation();
 });
 

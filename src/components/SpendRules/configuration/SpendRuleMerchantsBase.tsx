@@ -82,7 +82,7 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                     />
                     {merchants.length > 0 ? (
                         merchants.map(({name, matchType}, index) => {
-                            // `name`/`matchType` are edited on the detail screen — index is the stable identity (already what the edit route uses).
+                            // Index is the stable identity (`name`/`matchType` are edited on the detail screen). Limit: delete + back-nav can focus the adjacent row — no per-merchant backend ID.
                             const rowId = `merchant-${index}`;
                             return (
                                 <MenuItemWithTopDescription

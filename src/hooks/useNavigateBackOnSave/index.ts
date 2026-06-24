@@ -1,37 +1,37 @@
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import type {Route} from '@src/ROUTES';
 
 /**
- * `navigateBack` — direct goBack(), focus restores. `armNavigateBack` — arms the next `isSaved` transition to dispatch goBack once;
- * does not navigate immediately. Pass `shouldSkipFocusRestore: true` only when the destination has a submit Enter a re-focused row would hijack.
+ * `navigateBack` = direct goBack. `armNavigateBack` = goBack on next save (or immediately if already saved). `shouldSkipFocusRestore: true` only when the destination's Enter shortcut would be hijacked by a re-focused row.
  */
 function useNavigateBackOnSave(
     isSaved: boolean,
     backTo: Route | undefined,
     {shouldSkipFocusRestore}: {shouldSkipFocusRestore: boolean},
 ): {navigateBack: () => void; armNavigateBack: () => void} {
-    const shouldNavigateAfterSaveRef = useRef(false);
+    const [armCount, setArmCount] = useState(0);
+    const lastProcessedArmRef = useRef(0);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
     const armNavigateBack = () => {
-        shouldNavigateAfterSaveRef.current = true;
+        setArmCount((count) => count + 1);
     };
 
     useEffect(() => {
-        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
+        if (!isSaved || armCount === lastProcessedArmRef.current) {
             return;
         }
-        shouldNavigateAfterSaveRef.current = false;
+        lastProcessedArmRef.current = armCount;
         if (shouldSkipFocusRestore) {
             skipNextFocusRestore();
         }
         navigateBack();
-    }, [isSaved, navigateBack, shouldSkipFocusRestore]);
+    }, [isSaved, armCount, navigateBack, shouldSkipFocusRestore]);
 
     return {navigateBack, armNavigateBack};
 }

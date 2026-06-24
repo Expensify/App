@@ -103,4 +103,23 @@ describe('useNavigateBackOnSave', () => {
         act(() => result.current.navigateBack());
         expect(mockGoBack).toHaveBeenCalledWith(other);
     });
+
+    it('navigates when `armNavigateBack` is called while `isSaved` is already true (draft-already-matches-stored: setIsSaved(true) is a no-op)', () => {
+        const {result} = renderSave(true);
+        act(() => result.current.armNavigateBack());
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockGoBack).toHaveBeenCalledWith(BACK_TO);
+    });
+
+    it('arms twice across two save cycles → navigates twice (monotonic arm counter consumes each arm exactly once)', () => {
+        const {result, rerender} = renderSave();
+        act(() => result.current.armNavigateBack());
+        rerender({isSaved: true});
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+        rerender({isSaved: false});
+        act(() => result.current.armNavigateBack());
+        rerender({isSaved: true});
+        expect(mockGoBack).toHaveBeenCalledTimes(2);
+    });
 });

@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 function GenericPressable({
     children,
     onPress,
+    focusKey,
     onLongPress,
     onKeyDown,
     disabled,
@@ -56,8 +57,9 @@ function GenericPressable({
     const internalRef = useRef<View | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
     const routeKey = useRouteKey();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` falls empty-string ids through to the next identity prop; the registry rescue must key off a stable identity prop, never the (often value-derived) accessibility label.
-    const focusIdentifier = rest.id || rest.nativeID || rest.testID || undefined;
+    // `focusKey` wins; identity props fall through. `||` so empty strings skip — never key off an empty prop.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const focusIdentifier = focusKey || rest.id || rest.nativeID || rest.testID || undefined;
 
     useEffect(() => {
         if (isScreenReaderKnownOff || !routeKey || !focusIdentifier) {

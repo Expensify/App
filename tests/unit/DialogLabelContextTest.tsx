@@ -177,6 +177,53 @@ describe('DialogLabelContext', () => {
             expect(result.current.claimInitialFocus()).toBe(false);
         });
 
+        it('re-applies aria-label when the container gains dialog semantics on viewport resize (MutationObserver path)', async () => {
+            // Set container before mount so the observer attaches on first commit.
+            const mockElement = document.createElement('div');
+            (testContainerRef as {current: unknown}).current = mockElement;
+
+            const {result, unmount} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
+
+            act(() => {
+                result.current.pushLabel('Settings');
+            });
+            expect(mockElement.hasAttribute('aria-label')).toBe(false);
+
+            await act(async () => {
+                mockElement.setAttribute('role', 'dialog');
+                mockElement.setAttribute('aria-modal', 'true');
+                await Promise.resolve();
+            });
+
+            expect(mockElement.getAttribute('aria-label')).toBe('Settings');
+            unmount();
+            (testContainerRef as {current: unknown}).current = null;
+        });
+
+        it('removes aria-label when the container loses dialog semantics (wide→narrow resize — symmetric to the narrow→wide path)', async () => {
+            const mockElement = document.createElement('div');
+            mockElement.setAttribute('role', 'dialog');
+            mockElement.setAttribute('aria-modal', 'true');
+            (testContainerRef as {current: unknown}).current = mockElement;
+
+            const {result, unmount} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
+
+            act(() => {
+                result.current.pushLabel('Settings');
+            });
+            expect(mockElement.getAttribute('aria-label')).toBe('Settings');
+
+            await act(async () => {
+                mockElement.removeAttribute('role');
+                mockElement.removeAttribute('aria-modal');
+                await Promise.resolve();
+            });
+
+            expect(mockElement.hasAttribute('aria-label')).toBe(false);
+            unmount();
+            (testContainerRef as {current: unknown}).current = null;
+        });
+
         it('assigns unique IDs to each pushed label', () => {
             const {result} = renderHook(() => useDialogLabelActions(), {wrapper});
 
