@@ -44,8 +44,6 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
     const currentColumns = !searchResults?.data

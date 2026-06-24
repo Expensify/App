@@ -8411,15 +8411,6 @@ describe('SearchUIUtils', () => {
                 category: 'Advertising',
                 policyID,
             };
-            const policyCategories = {
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
-                    Advertising: {
-                        name: 'Advertising',
-                        enabled: true,
-                        'GL Code': '10',
-                    },
-                },
-            };
             const defaultVisibleColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
 
             let columns = SearchUIUtils.getColumnsToShow({
@@ -8462,26 +8453,6 @@ describe('SearchUIUtils', () => {
                 transactionID: 'tag-gl-code',
                 tag: 'Engineering:Roadshow',
                 policyID,
-            };
-            const policyTags = {
-                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: {
-                    Department: {
-                        name: 'Department',
-                        orderWeight: 0,
-                        required: false,
-                        tags: {
-                            Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
-                        },
-                    },
-                    Project: {
-                        name: 'Project',
-                        orderWeight: 1,
-                        required: false,
-                        tags: {
-                            Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '5678'},
-                        },
-                    },
-                },
             };
             const defaultVisibleColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
 

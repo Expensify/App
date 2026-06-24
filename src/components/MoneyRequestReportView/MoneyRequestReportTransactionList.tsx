@@ -419,8 +419,6 @@ function MoneyRequestReportTransactionList({
         reportDetailsColumns,
         report?.currency,
         isTaxEnabled,
-        policyCategories,
-        policyTagLists,
     ]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
