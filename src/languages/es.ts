@@ -1625,13 +1625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
-        submitReportTo: {
-            subtitle: 'Elige a un miembro del espacio de trabajo o introduce la dirección de correo electrónico de quien debería recibir este envío.',
-            emailLabel: 'Dirección de correo electrónico',
-            workspaceMembers: 'Miembros del espacio de trabajo',
-            sendExpense: 'Envía tu gasto a cualquier persona',
-            sendExpenseSubtitle: 'Invita a cualquiera a Expensify usando su dirección de correo electrónico o número de teléfono.',
-        },
         changeApprover: {
             title: 'Cambiar aprobador',
             header: (workflowSettingLink) =>
@@ -2528,6 +2521,7 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsTitle: 'Aprobaciones',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `gastos de ${members}, y el aprobador es ${approvers}`,
         addApprovalButton: 'Añadir flujo de aprobación',
+        loadMoreWorkflows: ({count}: {count: number}) => `Cargar ${count} más`,
         editWorkflowAction: 'Editar',
         findWorkflow: 'Buscar flujo de trabajo',
         addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
@@ -3512,6 +3506,7 @@ ${amount} para ${merchant} - ${date}`,
             companyName: 'Por favor, introduce un nombre comercial legal válido',
             addressCity: 'Por favor, introduce una ciudad válida',
             addressStreet: 'Por favor, introduce una dirección válida que no sea un apartado postal',
+            physicalAddressRequired: 'Se requiere una dirección física. No se aceptan apartados postales ni buzones de correo.',
             addressState: 'Por favor, selecciona un estado',
             incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
             incorporationState: 'Por favor, selecciona una estado válido',
@@ -3733,12 +3728,14 @@ ${amount} para ${merchant} - ${date}`,
         legalFirstName: 'Nombre',
         legalLastName: 'Apellidos',
         legalName: 'Nombre legal',
+        legalNameSubtitle: 'Por favor, introduce tu nombre legal completo tal como aparece en tu documento de identidad.',
         enterYourDateOfBirth: '¿Cuál es tu fecha de nacimiento?',
         enterTheLast4: '¿Cuáles son los últimos 4 dígitos de tu número de la seguridad social?',
         dontWorry: 'No te preocupes, no hacemos verificaciones de crédito personales.',
         last4SSN: 'Últimos 4 dígitos de tu SSN',
         enterYourAddress: '¿Cuál es tu dirección?',
         address: 'Dirección',
+        addressSubtitle: 'Se requiere una dirección física. No se aceptan apartados postales ni buzones de correo.',
         letsDoubleCheck: 'Revisemos que todo esté bien',
         byAddingThisBankAccount: 'Añadiendo esta cuenta bancaria, confirmas que has leído, entendido y aceptado',
         whatsYourLegalName: '¿Cuál es tu nombre legal?',
@@ -3874,6 +3871,7 @@ ${amount} para ${merchant} - ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'La ley nos exige verificar la identidad de cualquier persona que posea más del 25% de la empresa.',
         companyOwner: 'Dueño de la empresa',
         enterLegalFirstAndLastName: '¿Cuál es el nombre legal del dueño?',
+        legalNameSubtitle: 'Por favor, introduce el nombre legal completo del propietario tal como aparece en su documento de identidad.',
         legalFirstName: 'Nombre legal',
         legalLastName: 'Apellidos legales',
         enterTheDateOfBirthOfTheOwner: '¿Cuál es la fecha de nacimiento del dueño?',
@@ -4361,6 +4359,8 @@ ${amount} para ${merchant} - ${date}`,
             },
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Propietario';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4368,7 +4368,7 @@ ${amount} para ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Administrador de tarjetas';
+                        return 'Admin. de tarjeta';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Administrador de personas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
@@ -4947,6 +4947,16 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'No asignar',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importado como etiquetas',
                     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importado como campos de informe',
+                },
+                expenseTypeGlaMappings: 'Asignaciones de GLA por tipo de gasto',
+                expenseTypeGlaMappingsDescription: 'Las asignaciones de GLA de tipo de gasto de FinancialForce se importan en Expensify como categorías.',
+                tagsMappedTo: 'Las etiquetas deben asignarse a',
+                milestones: 'Hitos',
+                milestonesDescription: 'Cuando está habilitado, los hitos asociados con proyectos PSA se sincronizan en Expensify.',
+                parentTagMappingTypes: {
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS]: 'Proyectos y asignaciones',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS]: 'Proyectos',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Asignaciones',
                 },
             },
         },
@@ -6199,6 +6209,7 @@ ${amount} para ${merchant} - ${date}`,
             syncWithHR: (providerName: string) => `Sincronizar con ${providerName}`,
             makeCardAdmin: () => ({one: 'Hacer administrador de tarjetas', other: 'Hacer administradores de tarjetas'}),
             cardAdmins: 'Administradores de tarjetas',
+            members: 'Miembros',
         },
         accounting: {
             settings: 'configuración',

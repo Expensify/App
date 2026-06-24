@@ -1660,13 +1660,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
-        submitReportTo: {
-            subtitle: 'Wählen Sie ein Arbeitsbereichsmitglied aus oder geben Sie die E-Mail-Adresse der Person ein, die diese Einreichung erhalten soll.',
-            emailLabel: 'E-Mail-Adresse',
-            workspaceMembers: 'Workspace-Mitglieder',
-            sendExpense: 'Senden Sie Ihre Ausgabe an jede beliebige Person',
-            sendExpenseSubtitle: 'Laden Sie jede beliebige Person zu Expensify ein, indem Sie ihre E-Mail-Adresse oder Telefonnummer verwenden.',
-        },
         changeApprover: {
             title: 'Genehmigende Person ändern',
             header: (workflowSettingLink: string) =>
@@ -2659,6 +2652,7 @@ ${amount} für ${merchant} – ${date}`,
         addApprovalsTitle: 'Genehmigungen',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `Ausgaben von ${members} und die genehmigende Person ist ${approvers}`,
         addApprovalButton: 'Genehmigungsablauf hinzufügen',
+        loadMoreWorkflows: ({count}: {count: number}) => `${count} weitere laden`,
         editWorkflowAction: 'Bearbeiten',
         findWorkflow: 'Workflow suchen',
         addApprovalTip: 'Dieser Standard-Workflow gilt für alle Mitglieder, sofern kein spezifischerer Workflow vorhanden ist.',
@@ -3634,6 +3628,7 @@ ${amount} für ${merchant} – ${date}`,
             companyName: 'Bitte gib einen gültigen Unternehmensnamen ein',
             addressCity: 'Bitte eine gültige Stadt eingeben',
             addressStreet: 'Bitte gib eine gültige Straßenadresse ein',
+            physicalAddressRequired: 'Eine physische Adresse ist erforderlich. Postfächer und Postweiterleitungsdienste werden nicht akzeptiert.',
             addressState: 'Bitte wähle einen gültigen Bundesstaat aus',
             incorporationDateFuture: 'Das Gründungsdatum darf nicht in der Zukunft liegen',
             incorporationState: 'Bitte wähle einen gültigen Bundesstaat aus',
@@ -3853,12 +3848,14 @@ ${amount} für ${merchant} – ${date}`,
         legalFirstName: 'Rechtlicher Vorname',
         legalLastName: 'Rechtlicher Nachname',
         legalName: 'Rechtlicher Name',
+        legalNameSubtitle: 'Bitte geben Sie Ihren vollständigen rechtlichen Namen ein, wie er in Ihrem Ausweis erscheint.',
         enterYourDateOfBirth: 'Wie ist dein Geburtsdatum?',
         enterTheLast4: 'Wie lauten die letzten vier Ziffern Ihrer Sozialversicherungsnummer?',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
         last4SSN: 'Letzte 4 Ziffern der SSN',
         enterYourAddress: 'Wie lautet deine Adresse?',
         address: 'Adresse',
+        addressSubtitle: 'Eine physische Adresse ist erforderlich. Postfächer und Postweiterleitungsdienste werden nicht akzeptiert.',
         letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
         byAddingThisBankAccount: 'Durch Hinzufügen dieses Bankkontos bestätigst du, dass du Folgendes gelesen hast, verstehst und akzeptierst',
         whatsYourLegalName: 'Wie lautet Ihr gesetzlicher Name?',
@@ -3994,6 +3991,7 @@ ${amount} für ${merchant} – ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'Vorschriften verpflichten uns, die Identität jeder Person zu überprüfen, die mehr als 25 % des Unternehmens besitzt.',
         companyOwner: 'Unternehmensinhaber',
         enterLegalFirstAndLastName: 'Wie lautet der gesetzliche Name der*des Eigentümer*in?',
+        legalNameSubtitle: 'Bitte gib den vollständigen rechtlichen Namen des Eigentümers ein, wie er in seinem Ausweis erscheint.',
         legalFirstName: 'Rechtlicher Vorname',
         legalLastName: 'Rechtlicher Nachname',
         enterTheDateOfBirthOfTheOwner: 'Wie lautet das Geburtsdatum des Eigentümers?',
@@ -4478,6 +4476,8 @@ ${amount} für ${merchant} – ${date}`,
             auditorAlternateText: 'Berichte anzeigen und kommentieren.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Eigentümer';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Workspace-Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4485,9 +4485,9 @@ ${amount} für ${merchant} – ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Kartenadministrator';
+                        return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personenverwaltung';
+                        return 'Personen-Admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -5066,6 +5066,16 @@ ${amount} für ${merchant} – ${date}`,
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Nicht zuordnen',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Als Tags importiert',
                     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Als Berichtsfelder importiert',
+                },
+                expenseTypeGlaMappings: 'Ausgabentyp-GLA-Zuordnungen',
+                expenseTypeGlaMappingsDescription: 'FinancialForce Expense Type GLA-Zuordnungen werden als Kategorien in Expensify importiert.',
+                tagsMappedTo: 'Tags sollten zugeordnet werden zu',
+                milestones: 'Meilensteine',
+                milestonesDescription: 'Wenn aktiviert, werden mit PSA-Projekten verknüpfte Meilensteine mit Expensify synchronisiert.',
+                parentTagMappingTypes: {
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS]: 'Projekte und Zuweisungen',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS]: 'Projekte',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Zuweisungen',
                 },
             },
         },
@@ -6365,6 +6375,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             syncWithHR: (providerName: string) => `Mit ${providerName} synchronisieren`,
             makeCardAdmin: () => ({one: 'Zum Karten-Admin machen', other: 'Karten-Admins festlegen'}),
             cardAdmins: 'Karten-Admins',
+            members: 'Mitglieder',
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -9812,7 +9823,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
