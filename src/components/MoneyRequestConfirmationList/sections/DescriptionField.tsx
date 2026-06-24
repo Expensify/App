@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,9 +50,10 @@ function DescriptionField({
     policy,
     onSubmitForm,
 }: DescriptionFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const inputRef = useRef<BaseTextInputRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -102,9 +104,11 @@ function DescriptionField({
                         {isNewManualExpenseFlowEnabled && !isReadOnly ? (
                             <View style={[styles.mh4, styles.mv2]}>
                                 <TextInput
+                                    ref={inputRef}
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
+                                    onFocus={() => scrollFocusedInputIntoView?.(inputRef.current)}
                                     submitBehavior="blurAndSubmit"
                                     onSubmitEditing={onSubmitForm}
                                     label={translate('common.description')}

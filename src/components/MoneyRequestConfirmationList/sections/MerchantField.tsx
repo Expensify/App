@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,9 +45,10 @@ function MerchantField({
     reportID,
     reportActionID,
 }: MerchantFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const inputRef = useRef<BaseTextInputRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -105,9 +107,11 @@ function MerchantField({
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
+                    ref={inputRef}
                     value={displayMerchantValue}
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
+                    onFocus={() => scrollFocusedInputIntoView?.(inputRef.current)}
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
