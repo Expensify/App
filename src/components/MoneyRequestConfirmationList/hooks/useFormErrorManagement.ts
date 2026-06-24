@@ -67,6 +67,9 @@ type UseFormErrorManagementParams = {
 
     /** Whether splits are rendered read-only (suppresses some field errors) */
     shouldShowReadOnlySplits: boolean;
+
+    /** Whether the new manual expense flow is enabled (amount/date errors surface inline) */
+    isNewManualExpenseFlowEnabled: boolean;
 };
 
 type UseFormErrorManagementResult = {
@@ -108,7 +111,8 @@ type UseFormErrorManagementResult = {
  * controllers, and derives merchant validity, the violation-fixed flag, and the user-
  * visible error message. `shouldDisplayFieldError` is gated on edit-split-bill mode so
  * field-level errors only render in that flow. `errorMessage` prefers `routeError`,
- * then suppresses the missingAttendees violation when attendees aren't applicable.
+ * then suppresses errors that are already surfaced inline (missingAttendees, the tax amount
+ * error, and the manual-flow amount/date required/invalid errors) so they don't show twice.
  */
 function useFormErrorManagement({
     transaction,
@@ -129,6 +133,7 @@ function useFormErrorManagement({
     routeError,
     isTypeSplit,
     shouldShowReadOnlySplits,
+    isNewManualExpenseFlowEnabled,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -230,6 +235,11 @@ function useFormErrorManagement({
         }
         // The tax amount error is a parameterized message surfaced inline on the tax amount field, so skip it here.
         if (formError === 'iou.error.invalidTaxAmount') {
+            return undefined;
+        }
+        // In the new manual expense flow the amount/date fields surface these required/invalid errors inline, so don't
+        // repeat them at the bottom of the form (which would show "This field is required" twice).
+        if (isNewManualExpenseFlowEnabled && (formError === 'common.error.fieldRequired' || formError === 'common.error.invalidAmount')) {
             return undefined;
         }
         return formError ? translate(formError) : undefined;
