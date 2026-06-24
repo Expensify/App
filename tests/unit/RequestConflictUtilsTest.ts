@@ -44,7 +44,7 @@ describe('RequestConflictUtils', () => {
     });
 
     it.each([
-        ['push when accountIDList differs', {emailList: '', accountIDList: '483'}, {emailList: '', accountIDList: ''}, {type: 'push'}],
+        ['push when accountIDList differs', {emailList: '', accountIDList: '483'}, {emailList: '', accountIDList: ''}, {type: 'noAction'}],
         ['replace when accountIDList matches', {emailList: '', accountIDList: '483'}, {emailList: '', accountIDList: '483'}, {type: 'replace', index: 0}],
         ['replace when optional participant lists are empty', {}, {emailList: '', accountIDList: ''}, {type: 'replace', index: 0}],
     ])('resolveOpenReportDuplicationConflictAction should %s', (_description, queuedData, nextData, expectedConflictAction) => {
@@ -227,6 +227,18 @@ describe('RequestConflictUtils', () => {
             const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
             const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '10,20'} as never);
             expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
+        });
+
+        it('should return noAction when queued request has participants but new follow-up request has empty participant strings', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '483'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', emailList: '', accountIDList: ''} as never);
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('should push when accountIDList genuinely differs (distinct active lists)', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '483'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '484'} as never);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
         });
     });
 

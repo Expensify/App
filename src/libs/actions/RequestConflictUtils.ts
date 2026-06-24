@@ -88,10 +88,7 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
 
         const isExactParticipantMatch = (request.data?.emailList ?? '') === (parameters.emailList ?? '') && (request.data?.accountIDList ?? '') === (parameters.accountIDList ?? '');
 
-        // True only if the caller completely omitted the participant keys (e.g., a simple follow-up request)
-        const isNewParticipantsUndefined = parameters.emailList === undefined && parameters.accountIDList === undefined;
-
-        if (isExactParticipantMatch || (!queuedHasParticipants && newHasParticipants) || (queuedHasParticipants && isNewParticipantsUndefined)) {
+        if (isExactParticipantMatch || (!queuedHasParticipants && newHasParticipants) || (queuedHasParticipants && !newHasParticipants)) {
             // If the previous request had guided setup data, we can safely ignore the new request
             if (request.data.guidedSetupData) {
                 return {
