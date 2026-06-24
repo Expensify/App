@@ -16,4 +16,4 @@ type UseScrollToFocusedInputResult = {
 
 type UseScrollToFocusedInput = (listRef: RefObject<Pick<FlashListRef<unknown>, 'scrollToOffset'> | null>, isKeyboardShown: boolean) => UseScrollToFocusedInputResult;
 
-export type {UseScrollToFocusedInput, UseScrollToFocusedInputResult};
+export default UseScrollToFocusedInput;
