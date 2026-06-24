@@ -16,6 +16,7 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
@@ -51,11 +52,13 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
+    getDefaultNotificationPreferenceForReport,
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
     getReportTransactions,
     isDraftReport,
+    isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
@@ -219,6 +222,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     participant?: Participant;
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    currentUserAccountID: number;
 };
 
 /** Builds the Onyx data for track expense */
@@ -233,6 +237,7 @@ function buildOnyxDataForTrackExpense({
     participant,
     isASAPSubmitBetaEnabled,
     quickAction,
+    currentUserAccountID,
 }: BuildOnyxDataForTrackExpenseParams): OnyxData<BuildOnyxDataForTrackExpenseKeys> {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -256,6 +261,9 @@ function buildOnyxDataForTrackExpense({
     const existingTransactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
     if (chatReport) {
+        const currentUserNotificationPreference = chatReport.participants?.[currentUserAccountID]?.notificationPreference;
+        const shouldUpdateSelfDMNotificationPreference = isSelfDMReport && isHiddenForCurrentUser(currentUserNotificationPreference);
+
         onyxData.optimisticData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -268,6 +276,17 @@ function buildOnyxDataForTrackExpense({
                     // do not update iouReportID if auto submit beta is enabled and it is a scan request
                     iouReportID: isASAPSubmitBetaEnabled && isScanRequest ? null : iouReport?.reportID,
                     lastVisibleActionCreated: shouldCreateNewMoneyRequestReport ? reportPreviewAction?.created : chatReport.lastVisibleActionCreated,
+                    ...(shouldUpdateSelfDMNotificationPreference
+                        ? {
+                              participants: {
+                                  ...chatReport.participants,
+                                  [currentUserAccountID]: {
+                                      ...chatReport.participants?.[currentUserAccountID],
+                                      notificationPreference: getDefaultNotificationPreferenceForReport(chatReport),
+                                  },
+                              },
+                          }
+                        : {}),
                 },
             },
             {
@@ -1144,6 +1163,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         retryParams,
         isASAPSubmitBetaEnabled,
         quickAction,
+        currentUserAccountID: currentUserAccountIDParam,
     });
 
     onyxData.optimisticData?.push(...(trackExpenseOnyxData.optimisticData ?? []));
@@ -2164,7 +2184,8 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
     // so let's track that conversion here
     if (isDraftPolicy) {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, currentUserAccountID, currentUser.email ?? '');
+        const workspaceCreatedEvent = getWorkspaceCreatedAnalyticsEvent(createdWorkspaceParams?.engagementChoice, createdWorkspaceParams?.companySize, currentUser.email ?? '');
+        GoogleTagManager.publishEvent(workspaceCreatedEvent, currentUserAccountID, currentUser.email ?? '');
     }
 }
 
@@ -2178,6 +2199,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         accountantParams,
         currentUser,
         reportActionsList,
+        personalDetailsList,
     } = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
 
@@ -2246,6 +2268,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             policyMemberAccountIDs,
             CONST.POLICY.ROLE.ADMIN,
             formatPhoneNumber,
+            personalDetailsList,
             {accountID: currentUserAccountID},
             undefined,
             undefined,
@@ -2272,7 +2295,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, formatPhoneNumber);
+        } = buildInviteToRoomOnyxData(chatReport, {[accountantEmail]: accountantAccountID}, personalDetailsList, formatPhoneNumber);
         onyxData.optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         onyxData.successData?.push(...inviteAccountantToRoomSuccessData);
         onyxData.failureData?.push(...inviteAccountantToRoomFailureData);
@@ -2332,6 +2355,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         previousOdometerDraft,
         delegateAccountID,
         reportActionsList,
+        personalDetailsList,
         currentUserLocalCurrency,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
@@ -2636,6 +2660,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 accountantParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
+                personalDetailsList,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;

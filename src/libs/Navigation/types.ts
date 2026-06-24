@@ -15,7 +15,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
@@ -177,6 +177,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
         /** cardID of selected card */
         cardID: string;
+
+        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
+        isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
         /** cardID of selected card */
@@ -424,6 +427,7 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         categoryId?: string;
+        reportID?: string;
         upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
     };
     [SCREENS.WORKSPACE.DOWNGRADE]: {
@@ -639,6 +643,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
         reportFieldID?: string;
@@ -663,6 +670,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
         policyID: string;
         reportFieldID: string;
+    };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: {
+        policyID: string;
+        currentType?: PolicyReportFieldType;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
@@ -710,6 +721,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_UNIT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {
@@ -1218,6 +1232,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
+
+        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
+        isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
         /** cardID of selected card */
@@ -1225,6 +1242,9 @@ type SettingsNavigatorParamList = {
 
         /** Reason for replacing the card */
         reason: ReplacementReason;
+
+        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
+        isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.WORKSPACE.TAX_CREATE]: {
@@ -1321,6 +1341,9 @@ type SettingsNavigatorParamList = {
         merchantIndex: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT]: {
@@ -1457,6 +1480,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
         policyID: string;
     };
@@ -1496,6 +1525,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_CUSTOM]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_NEW]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
     };
@@ -1515,6 +1547,10 @@ type SettingsNavigatorParamList = {
         ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_CURRENCIES]: {
         policyID: string;
         ruleID: string;
     };
@@ -1616,10 +1652,16 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
         policyID: string;
     };
-    [SCREENS.DOMAIN.VERIFY]: {
+    [SCREENS.DOMAIN.SAML_VERIFY]: {
         domainAccountID: number;
     };
-    [SCREENS.DOMAIN.VERIFIED]: {
+    [SCREENS.DOMAIN.SAML_VERIFIED]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBERS_VERIFY]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBERS_VERIFIED]: {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADMIN_DETAILS]: {
@@ -2906,40 +2948,18 @@ type OnboardingModalNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
     };
-    [SCREENS.ONBOARDING.ACCOUNTING]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
-    [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
-    [SCREENS.ONBOARDING.WORK_EMAIL]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
-    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
+    [SCREENS.ONBOARDING.ACCOUNTING]: undefined;
+    [SCREENS.ONBOARDING.INTERESTED_FEATURES]: undefined;
+    [SCREENS.ONBOARDING.WORK_EMAIL]: undefined;
+    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: undefined;
     [SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
     };
 };
 
-type ExplanationModalNavigatorParamList = {
-    [SCREENS.EXPLANATION_MODAL.ROOT]: undefined;
-};
-
 type MigratedUserModalNavigatorParamList = {
     [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
-};
-
-type TestDriveModalNavigatorParamList = {
-    [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
-        bossEmail?: string;
-    };
 };
 
 type TestDriveDemoNavigatorParamList = {
@@ -3109,9 +3129,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
-        [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
-        [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -3335,7 +3353,6 @@ export type {
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     TabNavigatorParamList,
-    ExplanationModalNavigatorParamList,
     FeatureTrainingNavigatorParamList,
     FlagCommentNavigatorParamList,
     FullScreenName,
@@ -3398,7 +3415,6 @@ export type {
     PolicyCopySettingsNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ScheduleCallParamList,
-    TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     TestDriveDemoNavigatorParamList,
     SplitExpenseParamList,

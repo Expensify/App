@@ -263,7 +263,7 @@ type GetTransactionSectionsParams = {
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
-    policyForMovingExpenses?: OnyxTypes.Policy;
+    isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
 };
 
@@ -561,8 +561,6 @@ type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
-type ArchivedReportsIDSet = ReadonlySet<string>;
-
 /** Return shape of `getSections`: row array, total row count, and whether any transaction is deleted (wide action column). */
 type GetSectionsResult = [
     (
@@ -597,7 +595,7 @@ type GetSectionsParams = {
     groupBy?: SearchGroupBy;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     currentSearch?: SearchKey;
-    archivedReportsIDList?: ArchivedReportsIDSet;
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
@@ -608,7 +606,7 @@ type GetSectionsParams = {
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     conciergeReportID: string | undefined;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
-    policyForMovingExpenses?: OnyxTypes.Policy;
+    isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
     reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'];
 };
@@ -2049,7 +2047,7 @@ function getTransactionsSections({
     bankAccountList,
     reportActions = {},
     queryJSON,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     optimisticTransactionID,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
     const {
@@ -2133,7 +2131,10 @@ function getTransactionsSections({
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
             const transactionAttendees = getAttendees(transactionItem, reportOwnerAsAttendee);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
+            // For unreported transactions, attendee tracking is gated by the policy-for-moving-expenses.
+            // The caller passes the precomputed boolean instead of the policy object so the screen-level
+            // getSections memo does not recompute when unrelated fields of that policy change.
+            const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
@@ -2505,7 +2506,7 @@ function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     conciergeReportID: string | undefined,
-    archivedReportsIDList?: ArchivedReportsIDSet,
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
@@ -2543,7 +2544,7 @@ function getTaskSections(
 
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
-                const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
+                const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -3586,7 +3587,7 @@ function getSections({
     groupBy,
     reportActions,
     currentSearch = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    archivedReportsIDList,
+    reportNameValuePairs,
     queryJSON,
     isActionLoadingSet,
     isOffline,
@@ -3597,7 +3598,7 @@ function getSections({
     visibleReportActionsData,
     conciergeReportID,
     onyxPersonalDetailsList,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     convertToDisplayString,
     optimisticTransactionID,
     reportAttributesDerivedValue,
@@ -3606,7 +3607,7 @@ function getSections({
         return [...getReportActionsSections(data, visibleReportActionsData, reportAttributesDerivedValue), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList, reportAttributesDerivedValue), false];
+        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -3664,7 +3665,7 @@ function getSections({
         bankAccountList,
         reportActions,
         queryJSON,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
         optimisticTransactionID,
     });
 }
@@ -6254,6 +6255,7 @@ export {
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
     isGroupedItemArray,
+    isGroupEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
@@ -6325,4 +6327,4 @@ export {
     splitGroupsIntoPairs,
     SKIPPED_SEARCH_FILTERS,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection, SearchFilter};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};

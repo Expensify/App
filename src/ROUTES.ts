@@ -17,7 +17,7 @@ import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {CompanyCardFeedWithDomainID} from './types/onyx';
-import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
+import type {ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
 type WorkspaceCompanyCardsAssignCardParams = {
@@ -639,6 +639,10 @@ const DYNAMIC_ROUTES = {
         path: 'rules/category',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
     },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY: {
+        path: 'rules/currency',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: {
         path: 'rules/max-amount',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
@@ -883,6 +887,10 @@ const DYNAMIC_ROUTES = {
         path: 'flag/:reportID/:reportActionID',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
+    },
+    WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
+        path: 'initial-list-value',
+        entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
     },
 } as const satisfies DynamicRoutes;
 
@@ -1316,11 +1324,13 @@ const ROUTES = {
     },
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged` as const,
+        getRoute: (cardID: string, isFromDomainCardDetail?: boolean) =>
+            `settings/wallet/card/${cardID}/report-card-lost-or-damaged${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-magic-code',
-        getRoute: (cardID: string, reason: ReplacementReason) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code` as const,
+        getRoute: (cardID: string, reason: ReplacementReason, isFromDomainCardDetail?: boolean) =>
+            `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-magic-code${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
     SETTINGS_WALLET_CARD_CHANGE_PIN: {
         route: 'settings/wallet/card/:cardID/change-pin',
@@ -1332,7 +1342,7 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
+        getRoute: (cardID: string, isFromDomainCardDetail?: boolean) => `settings/wallet/card/${cardID}/activate${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
@@ -2464,9 +2474,10 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string, upgradePlanType?: string) => {
-            const baseRoute = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
-            return getUrlWithBackToParam(upgradePlanType ? (`${baseRoute}?upgradePlanType=${upgradePlanType}` as const) : baseRoute, backTo);
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string) => {
+            const base = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
+            const urlWithParams = reportID || upgradePlanType ? getUrlWithParams(base, {reportID, upgradePlanType}) : base;
+            return getUrlWithBackToParam(urlWithParams, backTo);
         },
     },
     WORKSPACE_DOWNGRADE: {
@@ -2715,6 +2726,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/reports/listValues/:reportFieldID?',
         getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
+    WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR: {
+        route: 'workspaces/:policyID/reports/typeSelector/:currentType?',
+        getRoute: (policyID: string, currentType?: PolicyReportFieldType) => `workspaces/${policyID}/reports/typeSelector/${currentType ? encodeURIComponent(currentType) : ''}` as const,
+    },
     WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
         route: 'workspaces/:policyID/reports/addValue/:reportFieldID?',
         getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
@@ -2950,6 +2965,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/distance-rates/settings/unit',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/unit` as const,
     },
+    WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS: {
+        route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions` as const,
+    },
     WORKSPACE_DISTANCE_RATE_DETAILS: {
         route: 'workspaces/:policyID/distance-rates/:rateID',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}` as const,
@@ -3117,6 +3136,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/itemized-receipt-required-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/itemized-receipt-required-amount` as const,
     },
+    RULES_REQUIRE_RECEIPTS: {
+        route: 'workspaces/:policyID/rules/require-receipts',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-receipts` as const,
+    },
+    RULES_REQUIRE_FIELDS: {
+        route: 'workspaces/:policyID/rules/require-fields',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields` as const,
+    },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,
@@ -3140,6 +3167,10 @@ const ROUTES = {
     RULES_CUSTOM: {
         route: 'workspaces/:policyID/overview/policy',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/policy` as const,
+    },
+    RULES_NEW: {
+        route: 'workspaces/:policyID/rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/new` as const,
     },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
@@ -3168,6 +3199,10 @@ const ROUTES = {
     RULES_SPEND_MERCHANTS: {
         route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/merchants` as const,
+    },
+    RULES_SPEND_CURRENCIES: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/currencies',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/currencies` as const,
     },
     RULES_SPEND_MERCHANT_EDIT: {
         route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants/:merchantIndex',
@@ -3287,7 +3322,7 @@ const ROUTES = {
     ONBOARDING_ROOT: {
         route: 'onboarding',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
+        getRoute: () => 'onboarding' as const,
     },
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
@@ -3307,12 +3342,12 @@ const ROUTES = {
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
+        getRoute: () => 'onboarding/accounting' as const,
     },
     ONBOARDING_INTERESTED_FEATURES: {
         route: 'onboarding/interested-features',
 
-        getRoute: (userReportedIntegration?: string, backTo?: string) => getUrlWithBackToParam(`onboarding/interested-features?userReportedIntegration=${userReportedIntegration}`, backTo),
+        getRoute: () => 'onboarding/interested-features' as const,
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
@@ -3327,12 +3362,12 @@ const ROUTES = {
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email`, backTo),
+        getRoute: () => 'onboarding/work-email' as const,
     },
     ONBOARDING_WORK_EMAIL_VALIDATION: {
         route: 'onboarding/work-email-validation',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
+        getRoute: () => 'onboarding/work-email-validation' as const,
     },
     WORKSPACE_CURRENCY_SELECTION: {
         route: 'workspace/confirmation/currency',
@@ -3344,11 +3379,6 @@ const ROUTES = {
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
-    },
-    EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
-    TEST_DRIVE_MODAL_ROOT: {
-        route: 'onboarding/test-drive',
-        getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,
     },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
@@ -4078,13 +4108,21 @@ const ROUTES = {
         route: 'domain/:domainAccountID/saml',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
     },
-    DOMAIN_VERIFY: {
-        route: 'domain/:domainAccountID/verify',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verify` as const,
+    DOMAIN_SAML_VERIFY: {
+        route: 'domain/:domainAccountID/saml/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verify` as const,
     },
-    DOMAIN_VERIFIED: {
-        route: 'domain/:domainAccountID/verified',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/verified` as const,
+    DOMAIN_SAML_VERIFIED: {
+        route: 'domain/:domainAccountID/saml/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verified` as const,
+    },
+    DOMAIN_MEMBERS_VERIFY: {
+        route: 'domain/:domainAccountID/members/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verify` as const,
+    },
+    DOMAIN_MEMBERS_VERIFIED: {
+        route: 'domain/:domainAccountID/members/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verified` as const,
     },
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',
