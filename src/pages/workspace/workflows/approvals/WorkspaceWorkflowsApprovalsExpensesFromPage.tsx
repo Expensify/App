@@ -242,12 +242,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 }
             }
 
-            // Add search results that are not already workspace members
-            const searchResults = availableOptions.personalDetails.filter((option) => {
-                const isMember = policy?.employeeList?.[normalizeLogin(option.login)];
-                const isAlreadyInList = members.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login));
-                return !isMember && !isAlreadyInList;
-            });
+            // Add search results that aren't already in the list (selected approvers or userToInvite)
+            const searchResults = availableOptions.personalDetails.filter((option) => !members.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login)));
 
             for (const option of searchResults) {
                 members.push({
