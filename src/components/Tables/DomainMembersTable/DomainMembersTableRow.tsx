@@ -33,7 +33,12 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
-    const accessibilityLabel = [item.name, item.email, item.groupName].filter(Boolean).join(', ');
+    const shouldShowGroupInColumn = shouldShowGroupColumn && !shouldUseNarrowTableLayout;
+    let memberSubtitle = item.email;
+    if (shouldUseNarrowTableLayout && shouldShowGroupColumn) {
+        memberSubtitle = `${item.groupName} • ${item.email}`;
+    }
+    const accessibilityLabel = [item.name, shouldShowGroupColumn ? item.groupName : null, item.email].filter(Boolean).join(', ');
 
     const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
         styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
@@ -70,16 +75,18 @@ export default function DomainMembersTableRow({item, rowIndex, shouldUseNarrowTa
                                 shouldShowTooltip
                                 text={item.name}
                                 style={[styles.optionDisplayName, styles.pre]}
+                                numberOfLines={1}
                             />
                             <TextWithTooltip
                                 shouldShowTooltip
-                                text={item.email}
+                                text={memberSubtitle}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                numberOfLines={1}
                             />
                         </View>
                     </View>
 
-                    {shouldShowGroupColumn && (
+                    {shouldShowGroupInColumn && (
                         <View style={[styles.justifyContentCenter, styles.flex1]}>
                             <TextWithTooltip
                                 shouldShowTooltip

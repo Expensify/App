@@ -47,7 +47,7 @@ const ALL_MEMBERS_VALUE = 'all';
  * Clears stale group filter values when the filter is hidden or the selected group disappears from Onyx.
  */
 function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesKey}: {shouldShowGroupFilter: boolean; groupOptionValuesKey: string}) {
-    const {activeFilters, tableMethods} = useTableContext<DomainMemberRowData, DomainMembersTableColumnKey, DomainMembersTableFilterKey>();
+    const {activeFilters, tableMethods} = useTableContext<DomainMemberRowData, DomainMembersTableColumnKey>();
     const groupFilterValue = activeFilters.group;
 
     useEffect(() => {
