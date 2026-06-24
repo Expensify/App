@@ -46,8 +46,11 @@ function parseDate(value: string): Date | null {
 }
 
 /**
- * Backend semantics for "ooo {start} for N {unit}": the OOO ends at start + interval - 1 second.
- * For full-day units, the calendar end date is therefore start + interval - 1 day.
+ * Computes the calendar end date to display for a start date and duration, matching how the chronos
+ * backend turns "ooo {start} for N {unit}" into an end date: whole day, week, and month durations end
+ * on the last covered calendar day, while fractional day and hour durations carry the remaining time
+ * into the end day. Returns an empty string for an unparseable start date and the start date itself
+ * for a non-positive duration.
  */
 function computeEndDate(startDate: string, durationAmount: string, durationUnit: string): string {
     const start = parseDate(startDate);
