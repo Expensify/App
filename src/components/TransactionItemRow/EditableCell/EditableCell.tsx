@@ -10,7 +10,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useEditingCellActions} from './EditingCellContext';
+import {useEditingCellActions, useEditingCellState} from './EditingCellContext';
 
 type EditIconPosition = 'left' | 'right';
 
@@ -61,9 +61,11 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const {translate} = useLocalize();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const [isEditIconFocused, setIsEditIconFocused] = useState(false);
+    const [shouldSuppressEditIconHover, setShouldSuppressEditIconHover] = useState(false);
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
+    const {wasRecentlyEditingCell} = useEditingCellState();
     const isInteractive = useDeferredValue(true, false);
 
     useEffect(() => {
@@ -73,6 +75,14 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         setIsEditingCell(true);
         return () => setIsEditingCell(false);
     }, [isEditing, isEditable, setIsEditingCell]);
+
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        setIsEditIconFocused(false);
+        setShouldSuppressEditIconHover(true);
+    }, [wasRecentlyEditingCell]);
 
     const handleEditIconFocus = () => {
         setIsEditIconFocused(true);
@@ -118,9 +128,9 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <Hoverable>
+        <Hoverable onHoverIn={() => setShouldSuppressEditIconHover(false)}>
             {(isCellHovered) => {
-                const shouldShowEditIcon = isCellHovered || isEditIconFocused;
+                const shouldShowEditIcon = !shouldSuppressEditIconHover && (isCellHovered || isEditIconFocused);
 
                 return (
                     <View style={styles.editableCell}>
