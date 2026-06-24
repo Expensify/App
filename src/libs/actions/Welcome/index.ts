@@ -101,10 +101,6 @@ function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
 
-function setOnboardingTestDriveModalDismissed() {
-    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
-}
-
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
@@ -232,7 +228,6 @@ export {
     setOnboardingAccountingEnabled,
     setOnboardingInterestedFeaturesMap,
     setOnboardingPersonalTrackGoal,
-    setOnboardingTestDriveModalDismissed,
     addWorkEmailFormError,
     clearWorkEmailFormErrors,
 };
