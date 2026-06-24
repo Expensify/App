@@ -1,11 +1,11 @@
+import navigateToWorkspaceSettingsRoute from '@components/Search/SearchRouter/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import navigateToWorkspaceSettingsRoute from '@components/Search/SearchRouter/navigateToWorkspaceSettingsRoute';
 import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 

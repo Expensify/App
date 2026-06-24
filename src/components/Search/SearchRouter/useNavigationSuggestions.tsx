@@ -31,8 +31,15 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-// eslint-disable-next-line no-restricted-imports -- This mirrors the existing Book travel quick-create readiness check, which is billing/paid-policy specific.
-import {canSendInvoice as canSendInvoicePolicyUtils, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, isWorkspaceProvisionedForTravel, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    canSendInvoice as canSendInvoicePolicyUtils,
+    getDefaultChatEnabledPolicy,
+    getGroupPoliciesWhereReportCanBeCreated,
+    // eslint-disable-next-line no-restricted-imports -- This mirrors the existing Book travel quick-create readiness check, which is billing/paid-policy specific.
+    isPaidGroupPolicy,
+    isWorkspaceProvisionedForTravel,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
