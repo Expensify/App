@@ -49,7 +49,7 @@ function ChartCategoryYAxisLabels({labels, labelWidths, ellipsisWidth, fontSize,
 
         return (
             <Paragraph
-                key={`category-label-${label}-${index}`}
+                key={`category-label-${label}-${tickY}`}
                 paragraph={paraData.para}
                 x={x}
                 y={tickY - lineHeight / 2}

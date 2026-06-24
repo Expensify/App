@@ -6,19 +6,13 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 import {CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import BAR_INNER_PADDING, {HORIZONTAL_CHART_TOP_PADDING, HORIZONTAL_ROW_HEIGHT} from '@components/Charts/barChartConstants';
 import ChartCategoryYAxisLabels from '@components/Charts/components/ChartCategoryYAxisLabels';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import HorizontalBarSeries from '@components/Charts/components/HorizontalBarSeries';
-import BAR_INNER_PADDING, {HORIZONTAL_CHART_TOP_PADDING, HORIZONTAL_ROW_HEIGHT} from '@components/Charts/barChartConstants';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {
-    useChartFontManager,
-    useChartInteractions,
-    useChartLabelFormats,
-    useChartLabelMeasurements,
-    useDynamicYDomain,
-} from '@components/Charts/hooks';
+import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelMeasurements, useDynamicYDomain} from '@components/Charts/hooks';
 import {getFontLineMetrics, measureTextWidth, truncateLabel} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 import useTheme from '@hooks/useTheme';
@@ -143,6 +137,22 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
 
     const getBarColor = (index: number) => (useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(index));
 
+    if (isLoading || !fontMgr) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'HorizontalBarChartContent', isLoading, isFontLoading: !fontMgr};
+        return (
+            <View style={styles.chartActivityIndicator}>
+                <ActivityIndicator
+                    size="large"
+                    reasonAttributes={reasonAttributes}
+                />
+            </View>
+        );
+    }
+
+    if (data.length === 0) {
+        return null;
+    }
+
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => (
         <>
             <ChartCategoryYAxisLabels
@@ -167,22 +177,6 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
             />
         </>
     );
-
-    if (isLoading || !fontMgr) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'HorizontalBarChartContent', isLoading, isFontLoading: !fontMgr};
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator
-                    size="large"
-                    reasonAttributes={reasonAttributes}
-                />
-            </View>
-        );
-    }
-
-    if (data.length === 0) {
-        return null;
-    }
 
     return (
         <GestureDetector gesture={customGestures}>
@@ -239,4 +233,3 @@ function HorizontalBarChartContent({data, isLoading, yAxisUnit, yAxisUnitPositio
 }
 
 export default HorizontalBarChartContent;
-export type {HorizontalBarChartContentProps};

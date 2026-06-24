@@ -90,18 +90,27 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     const measurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
 
-    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth, shouldUseHorizontalBarChart} =
-        useChartLabelLayout({
-            data,
-            fontMgr,
-            fontSize: variables.iconSizeExtraSmall,
-            tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
-            labelAreaWidth: barAreaWidth,
-            firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
-            lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
-            measurements,
-            fallbackToHorizontalBar: true,
-        });
+    const {
+        labelRotation,
+        labelSkipInterval,
+        truncatedLabelWidths,
+        xAxisLabelHeight,
+        regularLabelMaxWidth,
+        firstLabelMaxWidth,
+        lastLabelMaxWidth,
+        ellipsisWidth,
+        shouldUseHorizontalBarChart,
+    } = useChartLabelLayout({
+        data,
+        fontMgr,
+        fontSize: variables.iconSizeExtraSmall,
+        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
+        labelAreaWidth: barAreaWidth,
+        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
+        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
+        measurements,
+        fallbackToHorizontalBar: true,
+    });
 
     const {formatValue} = useChartLabelFormats({
         data,

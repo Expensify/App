@@ -193,7 +193,12 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
                 const ox = pointOX.get();
                 const oy = pointOY.get();
                 const lookupValues = matchIndexByY ? oy : ox;
-                const lookupCoord = matchIndexByY ? e.y : e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
+                let lookupCoord = e.x;
+                if (matchIndexByY) {
+                    lookupCoord = e.y;
+                } else if (e.y >= bottom && resolveLabelTouchX) {
+                    lookupCoord = resolveLabelTouchX(e.x, e.y);
+                }
                 const idx = findClosestPoint(lookupValues, lookupCoord);
                 if (idx >= 0) {
                     chartInteractionState.matchedIndex.set(idx);
@@ -215,7 +220,12 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
                     const ox = pointOX.get();
                     const oy = pointOY.get();
                     const lookupValues = matchIndexByY ? oy : ox;
-                    const lookupCoord = matchIndexByY ? e.y : e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
+                    let lookupCoord = e.x;
+                    if (matchIndexByY) {
+                        lookupCoord = e.y;
+                    } else if (e.y >= bottom && resolveLabelTouchX) {
+                        lookupCoord = resolveLabelTouchX(e.x, e.y);
+                    }
                     const idx = findClosestPoint(lookupValues, lookupCoord);
                     if (idx >= 0) {
                         chartInteractionState.matchedIndex.set(idx);

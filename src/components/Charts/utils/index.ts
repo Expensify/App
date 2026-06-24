@@ -1,11 +1,42 @@
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
-import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {NonUniformRRect, SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 import variables from '@styles/variables';
 
+type RoundedCorners = {
+    topLeft?: number;
+    topRight?: number;
+    bottomRight?: number;
+    bottomLeft?: number;
+};
+
 /** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
+
+/**
+ * Builds a Skia non-uniform rounded rect for chart bars.
+ * Mirrors victory-native's bar corner geometry so horizontal bars match vertical bar styling.
+ */
+function createRoundedRectPath(x: number, y: number, barWidth: number, barHeight: number, roundedCorners: RoundedCorners, yValue: number): NonUniformRRect {
+    const corners = {...roundedCorners};
+    if (Number(yValue) < 0) {
+        [corners.topLeft, corners.topRight, corners.bottomLeft, corners.bottomRight] = [corners.bottomLeft, corners.bottomRight, corners.topLeft, corners.topRight];
+    }
+
+    const topLeft = Math.min(Math.ceil(barWidth) / 2, corners.topLeft ?? 0);
+    const topRight = Math.min(Math.ceil(barWidth) / 2, corners.topRight ?? 0);
+    const bottomLeft = Math.min(Math.ceil(barWidth) / 2, corners.bottomLeft ?? 0);
+    const bottomRight = Math.min(Math.ceil(barWidth) / 2, corners.bottomRight ?? 0);
+
+    return {
+        rect: {x, y, width: barWidth, height: barHeight},
+        topLeft: {x: topLeft, y: topLeft},
+        topRight: {x: topRight, y: topRight},
+        bottomRight: {x: bottomRight, y: bottomRight},
+        bottomLeft: {x: bottomLeft, y: bottomLeft},
+    };
+}
 
 /**
  * Builds a Skia paragraph for chart labels.
@@ -471,6 +502,7 @@ function getYAxisLabelWidth(rawDataMax: number, rawDataMin: number, tickCount: n
 
 export {
     buildChartParagraph,
+    createRoundedRectPath,
     canFontRenderText,
     getAdditionalOffset,
     measureTextWidth,

@@ -2,8 +2,7 @@ import {Path, Skia} from '@shopify/react-native-skia';
 import React from 'react';
 import type {ChartBounds, PointsArray, Scale} from 'victory-native';
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
-// eslint-disable-next-line import/no-internal-modules -- reuses victory-native bar corner geometry
-import {createRoundedRectPath} from 'victory-native/dist/utils/createRoundedRectPath';
+import {createRoundedRectPath} from '@components/Charts/utils';
 
 type HorizontalBarSeriesProps = {
     points: PointsArray;
@@ -25,7 +24,7 @@ function HorizontalBarSeries({points, chartBounds, xScale, getBarColor, barCount
     const barWidth = groupWidth * (1 - BAR_INNER_PADDING);
     const xZero = xScale(0);
 
-    const barPaths = points.map((point) => {
+    const barPaths = points.map((point, index) => {
         if (typeof point.x !== 'number' || typeof point.y !== 'number') {
             return null;
         }
@@ -38,20 +37,20 @@ function HorizontalBarSeries({points, chartBounds, xScale, getBarColor, barCount
         const yTop = point.y - barWidth / 2;
         const path = Skia.Path.Make();
         path.addRRect(createRoundedRectPath(xZero, yTop, barLength, barWidth, HORIZONTAL_BAR_CORNER_RADIUS, Number(point.xValue ?? 0)));
-        return path;
+        return {path, index};
     });
 
-    return barPaths.map((barPath, index) => {
+    return barPaths.map((barPath) => {
         if (!barPath) {
             return null;
         }
 
         return (
             <Path
-                // eslint-disable-next-line react/no-array-index-key -- bar order is stable for the chart lifetime
-                key={`horizontal-bar-${index}`}
-                path={barPath}
-                color={getBarColor(index)}
+                key={`horizontal-bar-${barPath.index}`}
+                path={barPath.path}
+                color={getBarColor(barPath.index)}
+                // eslint-disable-next-line react/style-prop-object -- Skia Path uses string style values, not React Native style objects
                 style="fill"
             />
         );
