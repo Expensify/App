@@ -287,6 +287,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     email: stashedSession?.email,
                     stashedCredentials,
                     stashedSession,
+                    creationDate: stashedSession?.creationDate,
                 });
 
             if (!response?.authToken || !response?.encryptedAuthToken) {
@@ -738,9 +739,10 @@ type RestoreDelegateSessionParams = {
     email?: string;
     stashedCredentials?: Credentials;
     stashedSession?: Session;
+    creationDate?: number;
 };
 
-function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email, stashedCredentials, stashedSession}: RestoreDelegateSessionParams) {
+function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email, stashedCredentials, stashedSession, creationDate = new Date().getTime()}: RestoreDelegateSessionParams) {
     // Write SESSION before the clear: SESSION is in KEYS_TO_PRESERVE_DELEGATE_ACCESS, so clearing
     // preserves the value at clear time. If we cleared first, an interrupted flow would leave
     // SESSION holding the prior delegate-restricted auth token. See Expensify/App#80073.
@@ -750,6 +752,7 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
         email,
         authToken,
         encryptedAuthToken,
+        creationDate,
     })
         .then(() => {
             NetworkStore.setAuthToken(authToken ?? null);
