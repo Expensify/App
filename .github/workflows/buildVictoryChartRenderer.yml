@@ -51,7 +51,7 @@ jobs:
       - name: Log victory-chart-renderer build failure
         if: failure() || cancelled()
         run: |
-          echo "::error::victory-chart-renderer Linux x64 build did not succeed for release ${{ inputs.release-tag }}. GitHub Release will not include victory-chart-renderer-linux-x64."
+          echo "::error::victory-chart-renderer Linux x64 build did not succeed for release ${{ inputs.release-tag }}. The deploy GitHub Release will not be created."
 
       - name: Announce victory-chart-renderer build failure in Slack
         if: failure() || cancelled()
@@ -63,8 +63,26 @@ jobs:
             {
               channel: '#announce',
               attachments: [{
-                color: 'warning',
-                text: `⚠️ ${process.env.AS_REPO} <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|victory-chart-renderer build> failed for deploy release <https://github.com/Expensify/App/releases/tag/${{ inputs.release-tag }}|${{ inputs.release-tag }}>. victory-chart-renderer-linux-x64 will not be attached.`,
+                color: '#DB4545',
+                text: `💥 ${process.env.AS_REPO} <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|victory-chart-renderer build> failed for deploy release <https://github.com/Expensify/App/releases/tag/${{ inputs.release-tag }}|${{ inputs.release-tag }}>. The deploy GitHub Release was blocked.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Announce victory-chart-renderer build failure in deployer Slack
+        if: failure()
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: '#DB4545',
+                text: `💥 ${process.env.AS_REPO} <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|victory-chart-renderer build> failed for deploy release <https://github.com/Expensify/App/releases/tag/${{ inputs.release-tag }}|${{ inputs.release-tag }}>. The deploy GitHub Release was blocked.`,
               }]
             }
         env:

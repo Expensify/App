@@ -116,6 +116,9 @@ type Decision = {
 type OriginalMessageSmartScanFailed = {
     /** Fields that are missing */
     missingFields: string[];
+
+    /** LLM-friendly explanation of the scan failure that activates the Explain button */
+    reasoning?: string;
 };
 
 /** Model of `add comment` report action */
@@ -583,7 +586,10 @@ type OriginalMessagePolicyChangeLog = {
     /** Rate amount in cents for the custom unit rate */
     rate?: number;
 
-    /** Unit of the custom unit (e.g. "mi", "km") */
+    /**
+     * Distance unit ('mi' or 'km'). Used by custom-unit rate change logs and
+     * commuter-exclusion change logs.
+     */
     unit?: string;
 
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
