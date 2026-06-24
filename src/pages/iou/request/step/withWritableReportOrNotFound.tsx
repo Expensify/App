@@ -5,7 +5,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {clearActiveInvalidMoneyRequestRoute, setActiveInvalidMoneyRequestRoute} from '@libs/Navigation/guards/InvalidMoneyRequestModalGuard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -88,10 +87,6 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
-        const canWriteToReport = canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived);
-        const shouldShowNotFoundPage = iouTypeParamIsInvalid || !canWriteToReport;
-        const shouldShowLoadingIndicator = isEditing && isLoadingApp;
-        const shouldRenderNotFoundPage = !shouldShowLoadingIndicator && shouldShowNotFoundPage;
 
         useEffect(() => {
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
@@ -101,17 +96,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
-        useEffect(() => {
-            if (!shouldRenderNotFoundPage) {
-                clearActiveInvalidMoneyRequestRoute(route.key);
-                return;
-            }
-
-            setActiveInvalidMoneyRequestRoute(route.key);
-            return () => clearActiveInvalidMoneyRequestRoute(route.key);
-        }, [route.key, shouldRenderNotFoundPage]);
-
-        if (shouldShowLoadingIndicator) {
+        if (isEditing && isLoadingApp) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
                 context: 'withWritableReportOrNotFound',
                 isLoadingApp,
@@ -119,7 +104,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }
 
-        if (shouldRenderNotFoundPage) {
+        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {
             return <NotFoundPage onBackButtonPress={dismissMoneyRequestModal} />;
         }
 
