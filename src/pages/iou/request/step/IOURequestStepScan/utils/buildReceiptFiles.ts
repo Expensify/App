@@ -71,7 +71,7 @@ function buildReceiptFiles({
         const receiptTraceId = mintAndStampReceiptTraceId(file);
         logReceiptCaptured({file, captureSource, receiptTraceId});
         receiptFiles.push({file, source, transactionID});
-        setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+        setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type, false, false, undefined, receiptTraceId);
     }
 
     return receiptFiles;
