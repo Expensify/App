@@ -178,19 +178,19 @@ function NewChatConfirmPage() {
                 isOptimisticPersonalDetail: true,
             };
         }
-        navigateToAndCreateGroupChat(
+        navigateToAndCreateGroupChat({
             participantsPersonalDetails,
-            newGroupDraft.reportName ?? '',
-            personalData.login ?? '',
-            optimisticReportID.current,
+            reportName: newGroupDraft.reportName ?? '',
+            currentUserLogin: personalData.login ?? '',
+            optimisticReportID: optimisticReportID.current,
             introSelected,
-            guidedSetupAndTourStatus?.isSelfTourViewed,
-            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
-            personalData.accountID,
-            newGroupDraft.avatarUri ?? '',
+            currentUserAccountID: personalData.accountID,
+            avatarUri: newGroupDraft.avatarUri ?? '',
             avatarFile,
-        );
+        });
     };
 
     return (
