@@ -130,7 +130,7 @@ function WorkspaceCompanyCardsTable({
     // When the last feed is removed, card data already implies no feed (isNoFeed); lastSelectedFeed Onyx metadata can still report loading after optimistic clear.
     const isLoadingFeed =
         !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || (!isNoFeed && isLoadingOnyxValue(lastSelectedFeedMetadata)) || !!selectedFeedStatus?.isLoading);
-    const isLoadingCards = !hasCards ? isLoadingOnyxValue(cardListMetadata) : false;
+    const isLoadingCards = !hasCards && isLoadingOnyxValue(cardListMetadata);
     const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
 
     const isLoading = isLoadingPage || isLoadingFeed;
