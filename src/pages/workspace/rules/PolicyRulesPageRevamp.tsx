@@ -251,6 +251,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         openPolicyRulesPage(policyID);
     }, [policyID]);
 
+    useEffect(() => {
+        const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.map((rule) => rule.keyForList));
+        setSelectedExpenseDefaultKeys((prev) => prev.filter((key) => validExpenseDefaultKeys.has(key)));
+    }, [expenseDefaultsTableData]);
+
+    useEffect(() => {
+        const validSpendRuleKeys = new Set(spendRulesTableData.map((rule) => rule.keyForList));
+        setSelectedSpendRuleKeys((prev) => prev.filter((key) => validSpendRuleKeys.has(key)));
+    }, [spendRulesTableData]);
+
     let selectedRuleKeys: string[];
     if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
         selectedRuleKeys = selectedSpendRuleKeys;

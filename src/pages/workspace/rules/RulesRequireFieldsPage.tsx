@@ -1,6 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -44,12 +45,12 @@ function RulesRequireFieldsPage({
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagToggleDisabled = !policy?.areTagsEnabled || !hasEnabledTags;
 
-    const initialCategoryRequired = !!policy?.requiresCategory;
-    const initialTagRequired = !!policy?.requiresTag;
-
-    const [categoryRequired, setCategoryRequired] = useState(initialCategoryRequired);
-    const [tagRequired, setTagRequired] = useState(initialTagRequired);
+    const [categoryRequired, setCategoryRequired] = useState(false);
+    const [tagRequired, setTagRequired] = useState(false);
+    const [initialCategoryRequired, setInitialCategoryRequired] = useState(false);
+    const [initialTagRequired, setInitialTagRequired] = useState(false);
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
+    const isSavingRef = useRef(false);
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
@@ -61,20 +62,28 @@ function RulesRequireFieldsPage({
         }
 
         syncedPolicyIDRef.current = policy.id;
-        setCategoryRequired(!!policy.requiresCategory);
-        setTagRequired(!!policy.requiresTag);
+        const categoryRequiredValue = !!policy.requiresCategory;
+        const tagRequiredValue = !!policy.requiresTag;
+
+        setInitialCategoryRequired(categoryRequiredValue);
+        setInitialTagRequired(tagRequiredValue);
+        setCategoryRequired(categoryRequiredValue);
+        setTagRequired(tagRequiredValue);
     }, [policy?.id, policy?.isLoading, policy?.requiresCategory, policy?.requiresTag]);
 
-    const hasChanges = useMemo(
-        () => categoryRequired !== initialCategoryRequired || tagRequired !== initialTagRequired,
-        [categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired],
-    );
+    const hasChanges = categoryRequired !== initialCategoryRequired || tagRequired !== initialTagRequired;
 
     const handleSave = useCallback(() => {
+        if (isSavingRef.current) {
+            return;
+        }
+
         if (!hasChanges) {
             Navigation.goBack();
             return;
         }
+
+        isSavingRef.current = true;
 
         if (categoryRequired !== initialCategoryRequired) {
             setWorkspaceRequiresCategory(policyData, categoryRequired);
@@ -136,7 +145,11 @@ function RulesRequireFieldsPage({
                         onToggle={setTagRequired}
                     />
                 </ScrollView>
-                <View style={[styles.ph5, styles.pb5]}>
+                <FixedFooter
+                    addBottomSafeAreaPadding
+                    addOfflineIndicatorBottomSafeAreaPadding
+                    style={styles.ph5}
+                >
                     <Button
                         success
                         large
@@ -144,7 +157,7 @@ function RulesRequireFieldsPage({
                         onPress={handleSave}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_SAVE}
                     />
-                </View>
+                </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
