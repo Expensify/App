@@ -342,6 +342,7 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
         });
         expect(goToItem).not.toHaveBeenCalled();
@@ -363,6 +364,7 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             onHoldMenuOpen,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
         });
 
@@ -384,6 +386,7 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);

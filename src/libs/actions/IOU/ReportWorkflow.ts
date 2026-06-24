@@ -16,7 +16,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -115,14 +115,13 @@ function canApproveIOU(
     currentUserAccountID: number,
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
-    // TODO: Submit workspaces should show the APPROVE button and redirect to an upgrade modal instead of hiding it.
-    // This will be addressed as part of the Wave 3 "Upgrade on Approval" feature.
-    if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    if (!isExpenseReport(iouReport) || !policy || !(isPaidGroupPolicy(policy) || isSubmitWorkspace)) {
         return false;
     }
 
     const isOnSubmitAndClosePolicy = isSubmitAndClose(policy);
-    if (isOnSubmitAndClosePolicy) {
+    if (isOnSubmitAndClosePolicy && !isSubmitWorkspace) {
         return false;
     }
 
@@ -402,6 +401,18 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         expenseReportPolicy,
     } = params;
     if (!expenseReport) {
+        return;
+    }
+
+    // If this is a Submit workspace, approving requires upgrading first.
+    // IMPORTANT: gate by the workspace that owns the expense report (`expenseReportPolicy`) instead of `policy`,
+    // since some call sites pass `policy` as the active/personal policy rather than the report's workspace policy.
+    const policyToUpgrade = expenseReportPolicy ?? policy;
+    if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id) {
+        const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
+        const backTo = Navigation.getActiveRoute() || ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID);
+
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, expenseReport.reportID));
         return;
     }
 
