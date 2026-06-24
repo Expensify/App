@@ -5,6 +5,7 @@ import {setMoneyRequestTaxRate} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -251,40 +252,35 @@ describe('AmountSubmission', () => {
             mockSetDraftSplitTransaction.mockClear();
             mockUpdateMoneyRequestAmountAndCurrency.mockClear();
             mockSetTransactionReport.mockClear();
-            (setMoneyRequestTaxRate as jest.Mock).mockClear();
+            jest.mocked(setMoneyRequestTaxRate).mockClear();
         });
 
-        const taxPolicy: OnyxEntry<Policy> = {
-            id: 'policy-tax',
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            name: 'Tax Workspace',
-            owner: 'me@test.com',
+        const taxPolicy: Policy = {
+            ...createRandomPolicy(200, CONST.POLICY.TYPE.TEAM, 'Tax Workspace'),
             outputCurrency: CONST.CURRENCY.USD,
             taxRates: {
                 name: 'Tax',
-                defaultExternalID: 'id_DEFAULT',
-                foreignTaxDefault: 'id_FOREIGN',
+                defaultExternalID: 'idDefault',
+                foreignTaxDefault: 'idForeign',
                 defaultValue: '5%',
                 taxes: {
-                    id_DEFAULT: {name: 'Default', value: '5%'},
-                    id_FOREIGN: {name: 'Foreign', value: '10%'},
-                    id_MANUAL: {name: 'Manual', value: '7%'},
+                    idDefault: {name: 'Default', value: '5%'},
+                    idForeign: {name: 'Foreign', value: '10%'},
+                    idManual: {name: 'Manual', value: '7%'},
                 },
             },
-        } as Policy;
+        };
 
-        const buildTaxTransaction = (taxCode: string): Transaction =>
-            ({
-                transactionID: 'tx-1',
-                amount: -1000,
-                currency: CONST.CURRENCY.USD,
-                created: '2024-01-01',
-                merchant: 'Test',
-                reportID: 'report-100',
-                comment: {},
-                taxCode,
-            }) as Transaction;
+        const buildTaxTransaction = (taxCode: string): Transaction => ({
+            transactionID: 'tx-1',
+            amount: -1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: 'Test',
+            reportID: 'report-100',
+            comment: {},
+            taxCode,
+        });
 
         it('applies the new currency default tax rate on create when currency changes and tax is the auto-applied default', () => {
             submitAmount(
@@ -292,13 +288,13 @@ describe('AmountSubmission', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     iouType: CONST.IOU.TYPE.SUBMIT,
                     policy: taxPolicy,
-                    transaction: buildTaxTransaction('id_DEFAULT'),
+                    transaction: buildTaxTransaction('idDefault'),
                     selectedCurrency: CONST.CURRENCY.EUR,
                     amount: '10',
                 }),
             );
 
-            expect(setMoneyRequestTaxRate).toHaveBeenCalledWith('tx-1', 'id_FOREIGN');
+            expect(setMoneyRequestTaxRate).toHaveBeenCalledWith('tx-1', 'idForeign');
         });
 
         it('preserves a manually selected tax rate on create when currency changes', () => {
@@ -307,7 +303,7 @@ describe('AmountSubmission', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     iouType: CONST.IOU.TYPE.SUBMIT,
                     policy: taxPolicy,
-                    transaction: buildTaxTransaction('id_MANUAL'),
+                    transaction: buildTaxTransaction('idManual'),
                     selectedCurrency: CONST.CURRENCY.EUR,
                     amount: '10',
                 }),
@@ -322,7 +318,7 @@ describe('AmountSubmission', () => {
                     action: CONST.IOU.ACTION.CREATE,
                     iouType: CONST.IOU.TYPE.SUBMIT,
                     policy: taxPolicy,
-                    transaction: buildTaxTransaction('id_DEFAULT'),
+                    transaction: buildTaxTransaction('idDefault'),
                     selectedCurrency: CONST.CURRENCY.USD,
                     amount: '10',
                 }),
