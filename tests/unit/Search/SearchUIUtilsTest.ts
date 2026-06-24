@@ -8426,7 +8426,6 @@ describe('SearchUIUtils', () => {
                 currentAccountID: submitterAccountID,
                 data: [transactionWithCategoryGLCode],
                 visibleColumns: defaultVisibleColumns,
-                policyCategories,
             });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
@@ -8436,7 +8435,6 @@ describe('SearchUIUtils', () => {
                 currentAccountID: submitterAccountID,
                 data: [transactionWithCategoryGLCode],
                 visibleColumns: [...defaultVisibleColumns, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE],
-                policyCategories,
             });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE);
@@ -8491,7 +8489,6 @@ describe('SearchUIUtils', () => {
                 currentAccountID: submitterAccountID,
                 data: [transactionWithTagGLCode],
                 visibleColumns: defaultVisibleColumns,
-                policyTags,
             });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
@@ -8501,7 +8498,6 @@ describe('SearchUIUtils', () => {
                 currentAccountID: submitterAccountID,
                 data: [transactionWithTagGLCode],
                 visibleColumns: [...defaultVisibleColumns, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE],
-                policyTags,
             });
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE);
@@ -8510,7 +8506,6 @@ describe('SearchUIUtils', () => {
                 currentAccountID: submitterAccountID,
                 data: [{...transactionWithTagGLCode, tag: 'TagWithoutGLCode'}],
                 visibleColumns: [...defaultVisibleColumns, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE],
-                policyTags,
             });
 
             // Selected but the tag has no GL code: the column still shows because it's enabled, so a

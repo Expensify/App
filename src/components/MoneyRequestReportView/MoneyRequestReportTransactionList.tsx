@@ -409,8 +409,6 @@ function MoneyRequestReportTransactionList({
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
-            policyCategories,
-            policyTags: policyTagLists,
         });
     }, [
         transactions,

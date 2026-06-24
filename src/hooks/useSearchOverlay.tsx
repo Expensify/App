@@ -118,8 +118,6 @@ function useSearchOverlay({
             type: queryJSON.type,
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns,
-            policyCategories,
-            policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
         });
     })();

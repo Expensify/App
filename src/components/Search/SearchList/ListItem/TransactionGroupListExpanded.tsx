@@ -124,8 +124,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 data: transactionsSnapshot?.data,
                 visibleColumns,
                 type: transactionsSnapshot?.search.type,
-                policyCategories,
-                policyTags,
                 fallbackPolicyID: policyForMovingExpensesID,
             });
         }

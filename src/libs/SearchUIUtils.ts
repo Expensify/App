@@ -5601,8 +5601,6 @@ function getColumnsToShow({
     reportCurrency?: string;
     shouldUseStrictDefaultExpenseColumns?: boolean;
     isPolicyTaxEnabled?: boolean;
-    policyCategories?: PolicyCategoriesLookup;
-    policyTags?: PolicyTagsLookup;
     fallbackPolicyID?: string;
 }): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

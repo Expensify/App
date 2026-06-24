@@ -84,8 +84,6 @@ function ReportDetailsColumnsPage() {
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
-            policyCategories,
-            policyTags: policyTagLists,
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)

@@ -365,8 +365,6 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             type: searchDataType,
             groupBy: validGroupBy,
             shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
-            policyCategories,
-            policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
         });
     })();
