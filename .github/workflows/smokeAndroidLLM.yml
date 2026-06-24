@@ -1,0 +1,156 @@
+name: Android Smoke (agent-device · Phase 1, LLM-driven)
+
+# Phase-1 build-health canary: same emulator + APK + boot dance as
+# Phase 0, but the test steps are now plain English and an LLM driver
+# (Claude Sonnet) figures out which agent-device calls to make. A
+# committed replay cache at tests/smoke/cache/<test>.json keeps the
+# happy path deterministic and ~$0 in API spend; cache misses fall
+# back to the LLM, and final-tier failures (API down, LLM gives up)
+# fall back to a deterministic Phase-0-style bash recipe so an
+# Anthropic outage doesn't fail the build.
+#
+# Initial rollout: continue-on-error: true so this is non-blocking
+# while we compare reliability against Phase 0 over a 2-week window.
+# Once flake rate <= Phase 0's, flip to required and retire Phase 0.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    # Don't ignore tests/ or .github/ — Phase 1 fires on changes to
+    # the test cases, the runner scripts, and the workflow itself.
+    paths-ignore:
+      - docs/**
+      - help/**
+      - contributingGuides/**
+      - "**.md"
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-android-llm-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Android emulator smoke (LLM-driven)
+    if: ${{ github.actor != 'OSBotify' }}
+    # Non-blocking during the rollout window. The recommendation in the
+    # Phase 1 plan is to flip this to false (or remove the line) after
+    # 2 weeks if Phase 1's flake rate <= Phase 0's.
+    continue-on-error: true
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 35
+    env:
+      AGENT_DEVICE_VERSION: "0.15.2"
+      # Hard kill-switch: total input+output tokens accumulated across
+      # the run. Bounds runaway spend if a prompt or tool design
+      # accidentally explodes context. ~$1 worst-case at sonnet 4.6
+      # rates without prompt cache; in practice with prompt cache the
+      # happy path uses 5-10x less.
+      LLM_TOKEN_BUDGET: "200000"
+      ANTHROPIC_MODEL: "claude-sonnet-4-6"
+
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Verify KVM / fix permissions if needed
+        run: |
+          if ! ls -la /dev/kvm 2>/dev/null; then
+            echo "::error::No /dev/kvm on this runner — emulator will fall back to TCG and the job will time out"
+            exit 1
+          fi
+          if [ ! -w /dev/kvm ]; then
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+              | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+          fi
+
+      - name: Setup Java
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: "false"
+
+      - name: Install agent-device CLI
+        run: npm install -g "agent-device@${AGENT_DEVICE_VERSION}"
+
+      - name: Configure AWS credentials (Rock S3 cache)
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Install Android CMake 3.30.5 (Hermes pins this exact version)
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "cmake;3.30.5" 2>&1 | tail -5
+
+      - name: Build / fetch developmentDebug APK via Rock
+        env:
+          STANDALONE_NEW_DOT: "true"
+        run: npx rock build:android --variant developmentDebug
+
+      - name: AVD cache
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+            ~/.android/adbkey
+            ~/.android/adbkey.pub
+          key: avd-pixel8-api35-x86_64-v1-${{ hashFiles('.github/workflows/smokeAndroidLLM.yml') }}
+
+      - name: Prime AVD snapshot (cache miss only)
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_8
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: false
+          script: |
+            adb wait-for-device
+            until [ -n "$(adb shell getprop sys.boot_completed | tr -d '\r')" ]; do sleep 2; done
+            echo "AVD primed"
+
+      - name: Run smoke (LLM-driven)
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_8
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: npm run smoke:android:llm
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: smoke-android-llm-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,21 @@
+# Phase-2 LLM-driven iOS smoke — SignIn flow.
+#
+# Mirrors tests/smoke/android-signin.testcase.txt step-for-step.
+# The English steps and `expect:` predicates are platform-agnostic;
+# the runner picks the iOS Platform impl via PLATFORM=ios so the
+# boot dance + recovery uses xcrun simctl instead of adb.
+#
+# Cache file: tests/smoke/cache/ios-signin.testcase.json (recorded
+# by the first green iOS fork-test run, then committed).
+
+1. Wait for the app to fully load and the SignIn screen to appear.
+   expect: snapshot.contains_text("Phone or email")
+
+2. Enter "rustam.zeinalov@callstack.com" into the email/phone field.
+   expect: snapshot.field_with_text("rustam.zeinalov@callstack.com").exists
+
+3. Press the Continue button.
+   expect: appstate.foreground == "com.expensify.chat.dev"
+
+4. Wait for the magic-code screen to appear.
+   expect: snapshot.contains_text("Magic code")

@@ -1,0 +1,177 @@
+name: iOS Smoke (agent-device · Phase 2, LLM-driven)
+
+# Phase-2 build-health canary, iOS Simulator sibling of Phase 1's
+# smokeAndroidLLM.yml. Same engine (LLM-driven agent-device runner +
+# committed replay cache); platform selection switches the boot
+# dance + blocking-dialog recovery to xcrun simctl via the
+# IOSPlatform impl from agent-device-platform.ts.
+#
+# Initial rollout: continue-on-error: true so this is non-blocking
+# while we compare reliability against Phase 1 (Android) over a
+# 2-week window. Once flake rate is at parity, flip to required.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths-ignore:
+      - docs/**
+      - help/**
+      - contributingGuides/**
+      - "**.md"
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-ios-llm-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: iOS simulator smoke (LLM-driven)
+    if: ${{ github.actor != 'OSBotify' }}
+    continue-on-error: true
+    runs-on: blacksmith-12vcpu-macos-latest
+    timeout-minutes: 80
+    env:
+      AGENT_DEVICE_VERSION: "0.15.2"
+      LLM_TOKEN_BUDGET: "200000"
+      ANTHROPIC_MODEL: "claude-sonnet-4-6"
+      PLATFORM: "ios"
+      # Pin Xcode to match buildIOS.yml + remote-build-ios.yml so the
+      # smoke uses the same toolchain as the production build path.
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Select Xcode
+        run: sudo xcode-select -s "$DEVELOPER_DIR"
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: "false"
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Install agent-device CLI
+        run: npm install -g "agent-device@${AGENT_DEVICE_VERSION}"
+
+      - name: Configure AWS credentials (Rock S3 cache)
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: CocoaPods cache
+        # Match buildIOS.yml's cache key shape so we share a warm
+        # cache with the production iOS workflow when possible.
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: |
+            ios/Pods
+            ~/.cocoapods
+          key: ios-pods-${{ hashFiles('ios/Podfile.lock', 'ios/firebase.json') }}
+          restore-keys: |
+            ios-pods-
+
+      - name: DerivedData cache
+        # Large (~3–4 GB) but worth it — saves 15+ min of Xcode recompile
+        # on warm runs. Key on Podfile.lock + native source hash so a
+        # native module bump invalidates the cache.
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: ios/build
+          key: ios-deriveddata-${{ hashFiles('ios/Podfile.lock', 'ios/**/*.{m,mm,swift,h,c,cpp}') }}
+          restore-keys: |
+            ios-deriveddata-
+
+      - name: Pod install
+        env:
+          STANDALONE_NEW_DOT: "true"
+        run: npm run pod-install
+
+      - name: Build dev iOS simulator app
+        # Probe Rock first; fall back to vanilla xcodebuild if Rock
+        # doesn't yet support the sim variant. Matches Android's
+        # Rock-first pattern.
+        #
+        # The standalone NewDot dev scheme is "New Expensify Dev"
+        # (with spaces) and uses the "DebugDevelopment" build config
+        # — these are project conventions, not generic Xcode defaults.
+        # Find them via: ls ios/NewExpensify.xcodeproj/xcshareddata/xcschemes/
+        #
+        # `set -o pipefail` is critical: without it, `xcodebuild | xcbeautify`
+        # surfaces xcbeautify's exit code (always 0) and silently passes
+        # an xcodebuild failure, leaving downstream steps to wonder why
+        # the .app bundle doesn't exist.
+        env:
+          STANDALONE_NEW_DOT: "true"
+        run: |
+          set -eo pipefail
+          if npx rock --help 2>/dev/null | grep -q 'build:ios'; then
+            if npx rock build:ios --variant developmentDebug \
+                 --sdk iphonesimulator --active-arch-only; then
+              echo "rock build succeeded"
+              exit 0
+            fi
+            echo "rock failed; falling back to xcodebuild"
+          fi
+          xcodebuild \
+            -workspace ios/NewExpensify.xcworkspace \
+            -scheme "New Expensify Dev" \
+            -configuration DebugDevelopment \
+            -sdk iphonesimulator \
+            -derivedDataPath ios/build \
+            -arch arm64 \
+            ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcbeautify
+          # Defensive check: refuse to advance if the .app didn't
+          # materialise at the expected path.
+          # Product name follows the scheme name, not the target name.
+          # The "New Expensify Dev" scheme produces "New Expensify Dev.app"
+          # (with spaces) under DebugDevelopment-iphonesimulator/.
+          test -d "ios/build/Build/Products/DebugDevelopment-iphonesimulator/New Expensify Dev.app" \
+            || { echo "::error::xcodebuild succeeded but New Expensify Dev.app missing from DerivedData"; ls ios/build/Build/Products/DebugDevelopment-iphonesimulator/ 2>/dev/null; exit 1; }
+
+      - name: Boot iOS simulator
+        # Resolve to an iPhone 15 / latest available runtime. The
+        # IOSPlatform impl reads `xcrun simctl list devices --json`
+        # and picks the first booted device.
+        run: |
+          UDID=$(xcrun simctl list devices --json \
+            | jq -r '[.devices[][] | select(.name | test("iPhone 1[567]"; "i"))] | .[0].udid')
+          if [ -z "$UDID" ] || [ "$UDID" = "null" ]; then
+            UDID=$(xcrun simctl create smoke-iphone com.apple.CoreSimulator.SimDeviceType.iPhone-15 \
+              "$(xcrun simctl list runtimes --json | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable == true)] | .[-1].identifier')")
+          fi
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          echo "Booted $UDID"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+
+      - name: Run smoke (LLM-driven)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npm run smoke:ios:llm -- tests/smoke/ios-signin.testcase.txt
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: smoke-ios-llm-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
