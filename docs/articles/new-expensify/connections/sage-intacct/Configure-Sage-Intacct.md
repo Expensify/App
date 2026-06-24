@@ -1,7 +1,7 @@
 ---
 title: Configure Sage Intacct
 description: Configure import, export, and advanced sync settings for Expensify's Sage Intacct integration.
-keywords: [New Expensify, Sage Intacct settings, import configuration, export preferences, auto-sync, custom dimensions]
+keywords: [New Expensify, Sage Intacct settings, import configuration, export preferences, auto-sync, custom dimensions, travel invoicing, travel vendor, travel payable account]
 order: 3
 ---
 
@@ -130,6 +130,18 @@ Choose one of the following:
   - Optional: Set a default vendor for unmatched charges
 
 If you manage company cards in Expensify, you can map each card to a specific account for export.
+
+## How to configure Sage Intacct Travel Invoicing export settings
+
+If Expensify Travel's Central Invoicing feature is enabled for your workspace, you can configure where travel expenses are exported in Sage Intacct.
+
+1. Go to **Workspaces > [Workspace Name] > Accounting**
+2. Click **Export** under Sage Intacct
+3. Click **Export Expensify Travel Payable To**
+4. Select a **Travel vendor** for Expensify Travel expenses
+5. Select a **Travel payable account** for Expensify Travel expenses
+
+Travel expenses will export as credit card charges to the Sage Intacct account you specify.
 
 ---
 
