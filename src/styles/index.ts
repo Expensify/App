@@ -4,7 +4,7 @@ import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayerSpecification} from 'react-map-gl/mapbox';
 // eslint-disable-next-line no-restricted-imports
-import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import type {Animated, DimensionValue, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
 import type {SharedValue} from 'react-native-reanimated';
@@ -4524,6 +4524,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
+        rulesNewMenuItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            marginBottom: 8,
+            minHeight: variables.rulesNewMenuItemMinHeight,
+        },
+
         willChangeTransform: {
             willChange: 'transform',
         },
@@ -5498,6 +5508,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        cardRulesEmptyStateIllustration: {
+            width: variables.cardRulesEmptyStateIllustrationWidth,
+            height: variables.cardRulesEmptyStateIllustrationHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,
@@ -5509,8 +5524,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         expensifyCardEmptyIllustration: {
-            width: 280,
-            height: 172,
+            width: variables.expensifyCardEmptyIllustrationWidth,
+            height: variables.expensifyCardEmptyIllustrationHeight,
         },
 
         errorStateCardIllustration: {
@@ -5890,12 +5905,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        featureTrainingModalNavButtons: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            gap: variables.spacing2,
-        },
-
         twoColumnLayoutCol: {
             flexGrow: 1,
             flexShrink: 1,
@@ -6118,6 +6127,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.MONOSPACE,
             ...wordBreak.breakWord,
         },
+        copyableTextFieldMinHeight: {
+            minHeight: variables.componentSizeNormal + 32,
+        },
+
         copyableTextFieldButton: {
             width: 28,
             height: 28,
@@ -6601,13 +6614,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
         },
 
-        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
-            // On small/medium screens, we need to remove the top padding
-            paddingTop: 0,
-            // On larger screens, we need to prevent the modal from becoming too big
-            maxWidth: shouldUseNarrowLayout ? undefined : 500,
-        }),
-
         getMoneyRequestViewImage: (showBorderless: boolean) => ({
             ...spacing.mh5,
             overflow: 'hidden',
@@ -6617,6 +6623,27 @@ const dynamicStyles = (theme: ThemeColors) =>
             height: 180,
             maxWidth: '100%',
         }),
+
+        getCenteredModalOuterView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            }) as const,
+
+        getCenteredModalInnerView: (shouldUseNarrowLayout: boolean, width?: number, height?: DimensionValue) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : (width ?? variables.featureTrainingModalWidth),
+                // No default height - the card hugs its content (children must have intrinsic height)
+                height,
+                maxHeight: '100%' as const,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden' as const,
+                backgroundColor: theme.componentBG,
+            };
+        },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
