@@ -73,6 +73,28 @@ describe('getPendingReceiptRequests', () => {
 
         expect(getPendingReceiptRequests()).toEqual([]);
     });
+
+    it('reads the local path from a REPLACE_RECEIPT File shape that uses `uri` and `name` instead of `source`', () => {
+        mockedGetAll.mockReturnValue([buildRequest(WRITE_COMMANDS.REPLACE_RECEIPT, {uri: 'file:///replaced.jpg', name: 'replaced.jpg', type: 'image/jpeg'})]);
+
+        expect(getPendingReceiptRequests()).toEqual([{localPath: 'file:///replaced.jpg', filename: 'replaced.jpg', type: 'image/jpeg'}]);
+    });
+
+    it('picks up receipts on the other receipt-bearing commands (share, categorize, add-to-policy, send money)', () => {
+        mockedGetAll.mockReturnValue([
+            buildRequest(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, {source: 'file:///share.jpg', filename: 'share.jpg', type: 'image/jpeg'}),
+            buildRequest(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, {source: 'file:///categorize.jpg', filename: 'categorize.jpg', type: 'image/jpeg'}),
+            buildRequest(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, {source: 'file:///policy.jpg', filename: 'policy.jpg', type: 'image/jpeg'}),
+            buildRequest(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, {source: 'file:///send.jpg', filename: 'send.jpg', type: 'image/jpeg'}),
+        ]);
+
+        expect(getPendingReceiptRequests()).toEqual([
+            {localPath: 'file:///share.jpg', filename: 'share.jpg', type: 'image/jpeg'},
+            {localPath: 'file:///categorize.jpg', filename: 'categorize.jpg', type: 'image/jpeg'},
+            {localPath: 'file:///policy.jpg', filename: 'policy.jpg', type: 'image/jpeg'},
+            {localPath: 'file:///send.jpg', filename: 'send.jpg', type: 'image/jpeg'},
+        ]);
+    });
 });
 
 describe('saveReceiptsToGallery', () => {
