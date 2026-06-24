@@ -1,4 +1,4 @@
-import {addDays, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
+import {addDays, addHours, addMinutes, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
@@ -60,16 +60,24 @@ function computeEndDate(startDate: string, durationAmount: string, durationUnit:
         return startDate;
     }
     const whole = Math.floor(amount);
+    const fraction = amount - whole;
     switch (durationUnit) {
         case CONST.CHRONOS.OOO_DURATION_UNITS.DAY:
-            return format(addDays(start, Math.max(0, whole - 1)), CONST.DATE.FNS_FORMAT_STRING);
+            // Whole-day durations end on the last covered calendar day; a fractional day carries the remaining hours into the end day.
+            if (fraction === 0) {
+                return format(addDays(start, Math.max(0, whole - 1)), CONST.DATE.FNS_FORMAT_STRING);
+            }
+            return format(addHours(addDays(start, whole), Math.ceil(fraction * 24)), CONST.DATE.FNS_FORMAT_STRING);
         case CONST.CHRONOS.OOO_DURATION_UNITS.WEEK:
+            // The backend uses whole weeks only.
             return format(addDays(start, Math.max(0, whole * 7 - 1)), CONST.DATE.FNS_FORMAT_STRING);
         case CONST.CHRONOS.OOO_DURATION_UNITS.MONTH:
+            // The backend uses whole months only.
             return format(addDays(addMonths(start, whole), -1), CONST.DATE.FNS_FORMAT_STRING);
         case CONST.CHRONOS.OOO_DURATION_UNITS.HOUR:
         default:
-            return startDate;
+            // Hours add to the start time; the end day only advances once the added time crosses midnight.
+            return format(addMinutes(addHours(start, whole), Math.ceil(fraction * 60)), CONST.DATE.FNS_FORMAT_STRING);
     }
 }
 
