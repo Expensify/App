@@ -5999,6 +5999,7 @@ function getParentNavigationSubtitle(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
+    translate: LocalizedTranslate,
     isParentReportArchived = false,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): ParentNavigationSummaryParams {
@@ -6026,7 +6027,7 @@ function getParentNavigationSubtitle(
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD) {
         return {
-            reportName: getMessageOfOldDotReportAction(translateLocal, parentReportAction, false),
+            reportName: getMessageOfOldDotReportAction(translate, parentReportAction, false),
         };
     }
 

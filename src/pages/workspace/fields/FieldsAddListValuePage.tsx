@@ -44,16 +44,18 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
     const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
     const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
+    const draftListValues = formDraft?.[INPUT_IDS.LIST_VALUES];
+    const draftDisabledListValues = formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES];
 
     const listValues = useMemo(() => {
         let reportFieldListValues: string[];
         if (reportFieldID) {
             reportFieldListValues = Object.values(reportField?.values ?? {});
         } else {
-            reportFieldListValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
+            reportFieldListValues = draftListValues ?? [];
         }
         return reportFieldListValues;
-    }, [formDraft, reportField, reportFieldID]);
+    }, [draftListValues, reportField?.values, reportFieldID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
@@ -68,14 +70,14 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
             } else {
                 createReportFieldsListValue({
                     valueName: values[INPUT_IDS.VALUE_NAME],
-                    listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
-                    disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
+                    listValues: draftListValues ?? [],
+                    disabledListValues: draftDisabledListValues ?? [],
                 });
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [formDraft, policy, reportFieldID],
+        [draftDisabledListValues, draftListValues, policy, reportFieldID],
     );
 
     if (isReportFieldInvalid) {
