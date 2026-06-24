@@ -130,13 +130,17 @@ function isSubmitAction(
         return false;
     }
 
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
+    const reportTransactionsList = reportTransactions ?? [];
+    const isEveryReceiptBeingScanned = reportTransactionsList.length > 0 && reportTransactionsList.every((transaction) => isScanning(transaction));
 
-    if (isAnyReceiptBeingScanned) {
+    if (isEveryReceiptBeingScanned) {
         return false;
     }
 
-    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
+    const hasEverySmartScanFailedWithMissingFields =
+        reportTransactionsList.length > 0 && reportTransactionsList.every((transaction) => hasSmartScanFailedWithMissingFields([transaction], report));
+
+    if (hasEverySmartScanFailedWithMissingFields) {
         return false;
     }
 

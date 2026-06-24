@@ -252,6 +252,7 @@ function canSubmitReport(
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
     const hasScanFailTransactions = transactions.length > 0 && transactions.every((t) => isScanningTransaction(t));
+    const hasEverySmartScanFailedWithMissingFields = transactions.length > 0 && transactions.every((t) => hasSmartScanFailedWithMissingFields([t], report));
     const hasAnySubmissionBlockingViolations = transactions.some((transaction) =>
         hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, policy),
     );
@@ -264,7 +265,7 @@ function canSubmitReport(
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
         !hasAnySubmissionBlockingViolations &&
-        !hasSmartScanFailedWithMissingFields(transactions, report) &&
+        !hasEverySmartScanFailedWithMissingFields &&
         transactions.length > 0
     );
 }
