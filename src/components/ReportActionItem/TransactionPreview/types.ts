@@ -13,9 +13,6 @@ type TransactionPreviewProps = {
     /** The active reportID linked to the transaction */
     iouReportID: string | undefined;
 
-    /** The associated chatReport */
-    chatReportID: string | undefined;
-
     /** The associated chat report */
     chatReport: OnyxEntry<Report>;
 

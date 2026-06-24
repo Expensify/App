@@ -13,11 +13,13 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
@@ -102,6 +104,7 @@ function PayActionButton({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
@@ -192,6 +195,7 @@ function PayActionButton({
                     betas,
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
+                    chatReportActions: getChatReportActions(payAsBusiness),
                 });
             } else {
                 payMoneyRequest({
@@ -211,6 +215,7 @@ function PayActionButton({
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     onPaid: startAnimation,
+                    chatReportActions: getChatReportActions(false),
                 });
             }
         }
@@ -221,6 +226,8 @@ function PayActionButton({
             onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
+            isDEWApproval={hasDynamicExternalWorkflow(policy)}
+            reportID={iouReportID}
             canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
             onAnimationFinish={stopAnimation}
             chatReportID={chatReportID}
