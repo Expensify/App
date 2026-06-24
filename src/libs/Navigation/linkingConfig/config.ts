@@ -53,15 +53,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
-                    path: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
-                    exact: true,
-                },
-            },
-        },
-
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_DRIVE_DEMO.ROOT]: {
