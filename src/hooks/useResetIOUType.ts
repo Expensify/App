@@ -6,6 +6,7 @@ import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {setTransactionReport} from '@userActions/Transaction';
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -126,6 +127,18 @@ function useResetIOUType({
             draftTransactionIDs,
             defaultParticipants,
         });
+
+        // Set the transaction reportID early for global-create flows with resolved default
+        // participants. This ensures destinationReportID is defined from the confirmation's
+        // first render, preventing the pre-insert useEffect from seeing an undefined-to-value
+        // transition that would tear down and fail to re-fire the pre-insert.
+        if (isFromGlobalCreate && defaultParticipants && defaultParticipants.length > 0) {
+            const firstParticipant = defaultParticipants.at(0);
+            const resolvedReportID = firstParticipant?.isSelfDM ? CONST.REPORT.UNREPORTED_REPORT_ID : firstParticipant?.reportID;
+            if (resolvedReportID) {
+                setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: resolvedReportID}, true);
+            }
+        }
 
         // Layer odometer draft fields onto the freshly-rebuilt transaction. The merge queues after
         // initMoneyRequest's Onyx.set, so the odometer fields land on top.
