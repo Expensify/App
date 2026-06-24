@@ -24,6 +24,7 @@ import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -203,6 +204,8 @@ function IOURequestStepConfirmation({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
@@ -282,8 +285,8 @@ function IOURequestStepConfirmation({
         const transactionParticipants = transaction?.participants ?? [];
         const hasTransactionParticipants = transactionParticipants.length > 0;
         const hasDefaultParticipants = defaultParticipants.length > 0;
-        return !hasTransactionParticipants && !hasDefaultParticipants && isManualRequest;
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isManualRequest]);
+        return !hasTransactionParticipants && !hasDefaultParticipants && isNewManualExpenseFlowEnabled && isManualRequest;
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants.length, isNewManualExpenseFlowEnabled, isManualRequest]);
     const activeTransactionID = transaction?.transactionID;
     const [manuallyOpenedParticipantPickerForTransactionID, setManuallyOpenedParticipantPickerForTransactionID] = useState<string | undefined>();
     const [dismissedAutoOpenParticipantPickerForTransactionID, setDismissedAutoOpenParticipantPickerForTransactionID] = useState<string | undefined>();
@@ -341,7 +344,7 @@ function IOURequestStepConfirmation({
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
             navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isManualRequest, navigation]);
+    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
 
     const isPolicyExpenseChat = useMemo(() => {
         const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
@@ -590,12 +593,6 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        // If the user came from Test Drive modal, we need to take him back there
-        if (transaction?.receipt?.isTestDriveReceipt && (transaction.participants?.length ?? 0) > 0) {
-            Navigation.goBack(ROUTES.TEST_DRIVE_MODAL_ROOT.getRoute(transaction.participants?.at(0)?.login));
-            return;
-        }
-
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
@@ -604,8 +601,6 @@ function IOURequestStepConfirmation({
         isCreatingTrackExpense,
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
-        transaction?.receipt?.isTestDriveReceipt,
-        transaction?.participants,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
         requestType,
@@ -875,18 +870,20 @@ function IOURequestStepConfirmation({
                             />
                         )}
                     </SubmitExpenseOrchestrator>
-                    <ParticipantPicker
-                        participants={participants}
-                        iouType={participantPickerIOUType}
-                        action={action}
-                        isPerDiemRequest={isPerDiemRequest}
-                        isTimeRequest={isTimeRequest}
-                        isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                        onParticipantsAdded={handleParticipantsAdded}
-                        onFinish={closeParticipantPicker}
-                        isVisible={isParticipantPickerVisible}
-                        onClose={closeParticipantPicker}
-                    />
+                    {isNewManualExpenseFlowEnabled && (
+                        <ParticipantPicker
+                            participants={participants}
+                            iouType={participantPickerIOUType}
+                            action={action}
+                            isPerDiemRequest={isPerDiemRequest}
+                            isTimeRequest={isTimeRequest}
+                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            onParticipantsAdded={handleParticipantsAdded}
+                            onFinish={closeParticipantPicker}
+                            isVisible={isParticipantPickerVisible}
+                            onClose={closeParticipantPicker}
+                        />
+                    )}
                 </View>
             </DragAndDropProvider>
         </ScreenWrapper>

@@ -2288,6 +2288,44 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
     return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
 
+/**
+ * Returns the query used to fetch footer totals in a separate snapshot from the user-facing search,
+ * dropping any grouping so grouped list header/row totals are shown in the original currency.
+ *
+ * targetCurrency scopes the returned hash so the footer-conversion snapshot can't collide with (and
+ * overwrite) the live search snapshot, keeping the live search in its original currency.
+ */
+function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>, targetCurrency?: string): Readonly<SearchQueryJSON> | undefined {
+    const hasGroupCurrencyFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY);
+    if (!queryJSON.groupBy && !hasGroupCurrencyFilter) {
+        if (!targetCurrency) {
+            return queryJSON;
+        }
+        return {...queryJSON, hash: hashText(`${queryJSON.hash}:${targetCurrency}`, 2 ** 32)};
+    }
+
+    const defaultQueryJSON = getDefaultSearchQueryJSON();
+
+    // Sort only affects totals when a limit is set. Without a limit, reset sort so equivalent footer
+    // total queries can reuse the existing ungrouped snapshot instead of making another request.
+    const shouldPreserveSort = queryJSON.limit !== undefined;
+    const flatQueryJSON = {
+        ...queryJSON,
+        groupBy: undefined,
+        view: defaultQueryJSON.view,
+        sortBy: shouldPreserveSort ? queryJSON.sortBy : defaultQueryJSON.sortBy,
+        sortOrder: shouldPreserveSort ? queryJSON.sortOrder : defaultQueryJSON.sortOrder,
+        flatFilters: queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY),
+    };
+
+    const flatQuery = buildSearchQueryJSON(buildSearchQueryString(flatQueryJSON));
+    if (!flatQuery || !targetCurrency) {
+        return flatQuery;
+    }
+
+    return {...flatQuery, hash: hashText(`${flatQuery.hash}:${targetCurrency}`, 2 ** 32)};
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
@@ -2326,6 +2364,7 @@ export {
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
+    buildFlatQueryWithoutGroupBy,
     getLastRouteByName,
     getParamsState,
     getRoutes,
