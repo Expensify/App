@@ -328,13 +328,21 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     if (!currentUser) {
         return;
     }
+    const currentUserEmail = 'email' in currentUser && typeof currentUser.email === 'string' ? currentUser.email : '';
+    const login = currentUser.login ? currentUser.login : currentUserEmail;
+    const displayName = currentUser.displayName ? currentUser.displayName : login;
+
+    if (!login && !displayName) {
+        return;
+    }
+
     const initialAttendee: Attendee = {
-        email: currentUser?.login ?? '',
-        login: currentUser?.login ?? '',
-        displayName: currentUser.displayName ?? '',
+        email: login,
+        login,
+        displayName,
         avatarUrl: SafeString(currentUser.avatar),
         accountID: currentUser.accountID,
-        text: currentUser.login,
+        text: displayName,
         selected: true,
         reportID,
     };
