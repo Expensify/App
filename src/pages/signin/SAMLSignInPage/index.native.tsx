@@ -25,6 +25,16 @@ function SAMLSignInPage() {
     const {translate} = useLocalize();
     const hasOpenedAuthSession = useRef(false);
 
+    // Keep refs for the latest Onyx values so the browser callback always reads fresh state
+    const accountRef = useRef(account);
+    const credentialsRef = useRef(credentials);
+    useEffect(() => {
+        accountRef.current = account;
+    }, [account]);
+    useEffect(() => {
+        credentialsRef.current = credentials;
+    }, [credentials]);
+
     const handleExitSAMLFlow = useCallback(() => {
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
@@ -61,21 +71,25 @@ function SAMLSignInPage() {
                 Log.hmmm('SAMLSignInPage - Failed to parse JSON parameter', {error: parseError});
             }
 
-            if (!account?.isLoading && credentials?.login && shortLivedAuthToken) {
+            // Read the latest Onyx values from refs rather than the captured closure values
+            const currentAccount = accountRef.current;
+            const currentCredentials = credentialsRef.current;
+
+            if (!currentAccount?.isLoading && currentCredentials?.login && shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
                 signInWithShortLivedAuthToken(shortLivedAuthToken, true);
                 return;
             }
 
-            clearSignInData();
             setAccountError(translate('common.error.login'));
+            clearSignInData();
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
                 Navigation.navigate(ROUTES.HOME);
             });
         },
-        [credentials?.login, account?.isLoading, translate],
+        [translate],
     );
 
     useEffect(() => {
