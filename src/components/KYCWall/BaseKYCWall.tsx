@@ -25,7 +25,7 @@ import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {BankAccountList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -67,6 +67,7 @@ function KYCWall({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -150,6 +151,7 @@ function KYCWall({
                             filteredReportActions,
                             currentUserAccountID,
                             employeeLogin,
+                            doesSubmitterPersonalDetailExist ?? false,
                             reportTransactions,
                         );
                         if (inviteResult?.policyExpenseChatReportID) {
@@ -236,6 +238,7 @@ function KYCWall({
             currentUserAccountID,
             currentUserEmail,
             employeeLogin,
+            doesSubmitterPersonalDetailExist,
             introSelected,
             formatPhoneNumber,
             translate,

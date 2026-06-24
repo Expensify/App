@@ -889,7 +889,7 @@
 "../../src/libs/actions/Report/MarkAllMessageAsRead.tsx"	"no-restricted-syntax"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	3
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/reportAction.originalMessage"	1
-"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
+"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../src/libs/actions/Report/index.ts"	"no-restricted-syntax"	10
 "../../src/libs/actions/Report/index.ts"	"rulesdir/no-onyx-connect"	4
 "../../src/libs/actions/ReportLayout.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -914,7 +914,7 @@
 "../../src/libs/actions/Transaction.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
 "../../src/libs/actions/Transaction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/Transaction.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/Transaction.ts"	"rulesdir/no-onyx-connect"	2
+"../../src/libs/actions/Transaction.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/TransactionEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/Travel.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TravelInvoicing.ts"	"no-restricted-syntax"	3
@@ -1287,7 +1287,6 @@
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/WorkspacesListPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/AccountingContext/default.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -1793,7 +1792,7 @@
 "../../tests/unit/PersistedRequests.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/unit/PersonalDetailsSelectorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/PolicyChangeLogContentTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../tests/unit/PolicySelectorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	22
+"../../tests/unit/PolicySelectorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../tests/unit/PolicyUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	111
 "../../tests/unit/PopoverMenuV2Test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/PressResponderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
