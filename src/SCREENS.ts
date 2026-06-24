@@ -975,9 +975,6 @@ const SCREENS = {
         ROOT: 'MigratedUserWelcomeModal_Root',
     },
 
-    TEST_DRIVE_MODAL: {
-        ROOT: 'TestDrive_Modal_Root',
-    },
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },

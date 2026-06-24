@@ -221,7 +221,6 @@ import {
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -2523,16 +2522,6 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportAr
 
 function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     return !!reportNameValuePairs?.private_isArchived;
-}
-
-function buildArchivedReportsIDSet(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet {
-    const archivedReportsIDSet = new Set<string>();
-    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
-        if (isArchivedReport(value)) {
-            archivedReportsIDSet.add(key);
-        }
-    }
-    return archivedReportsIDSet;
 }
 
 /**
@@ -5478,12 +5467,12 @@ function shouldShowRBRForMissingSmartscanFields(iouReport: OnyxEntry<Report>, io
 function getTransactionReportName({
     translate,
     reportAction,
-    transactions,
+    linkedTransaction,
     report,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
-    transactions?: Transaction[];
+    linkedTransaction: OnyxEntry<Transaction>;
     report: OnyxEntry<Report>;
 }): string {
     if (reportAction && isReversedTransaction(reportAction)) {
@@ -5494,36 +5483,34 @@ function getTransactionReportName({
         return translate('parentReportAction.deletedExpense');
     }
 
-    const transaction = reportAction ? getLinkedTransaction(reportAction, transactions) : transactions?.at(0);
-
-    if (isEmptyObject(transaction)) {
+    if (isEmptyObject(linkedTransaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
         return isTrackExpenseAction(reportAction) ? translate('iou.createExpense') : translate('iou.expense');
     }
 
-    if (isScanning(transaction)) {
+    if (isScanning(linkedTransaction)) {
         return translate('iou.receiptScanning', {count: 1});
     }
 
-    if (hasMissingSmartscanFieldsTransactionUtils(transaction, report)) {
+    if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
         return translate('iou.receiptMissingDetails');
     }
-    if (isFetchingWaypointsFromServer(transaction) && getMerchant(transaction) === translate('iou.fieldPending')) {
+    if (isFetchingWaypointsFromServer(linkedTransaction) && getMerchant(linkedTransaction) === translate('iou.fieldPending')) {
         return translate('iou.fieldPending');
     }
 
     // The unit does not matter as we are only interested in whether the distance is zero or not
-    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) && !hasReceiptTransactionUtils(transaction)) {
+    if (isMapDistanceRequest(linkedTransaction) && !getDistanceInMeters(linkedTransaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) && !hasReceiptTransactionUtils(linkedTransaction)) {
         return translate('violations.noRoute');
     }
 
     if (isSentMoneyReportAction(reportAction)) {
-        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, transaction);
+        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, linkedTransaction);
     }
 
-    const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-    const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
-    const comment = getMerchantOrDescription(transaction);
+    const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+    const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
+    const comment = getMerchantOrDescription(linkedTransaction);
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
@@ -13192,7 +13179,6 @@ export {
     buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
-    buildArchivedReportsIDSet,
     buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
