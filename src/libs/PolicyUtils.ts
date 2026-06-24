@@ -52,9 +52,8 @@ import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
-import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
-import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -713,56 +712,6 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
         memberEmailsToAccountIDs[email] = Number(personalDetail.accountID);
     }
     return memberEmailsToAccountIDs;
-}
-
-/**
- * Resolves the accountID for a submit-to recipient chosen in the submit-to popover.
- * Uses personal details first, then the workspace employee list (same source as ReportSubmitToContent).
- * When the member is in employeeList but not yet in personal details, returns a stable optimistic accountID.
- */
-function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, employeeList: PolicyEmployeeList | undefined): number | undefined {
-    const trimmed = managerEmail?.trim();
-    if (!trimmed) {
-        return undefined;
-    }
-
-    const fromPersonalDetails = getKnownAccountIDByLogin(trimmed);
-    if (fromPersonalDetails !== undefined) {
-        return fromPersonalDetails;
-    }
-
-    if (!employeeList) {
-        return undefined;
-    }
-
-    const normalizedEmail = trimmed.toLowerCase();
-    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
-
-    for (const [email, accountID] of Object.entries(memberAccountIDs)) {
-        if (email.toLowerCase() === normalizedEmail) {
-            return accountID;
-        }
-    }
-
-    for (const [listKey, employee] of Object.entries(employeeList)) {
-        const employeeEmail = (employee.email ?? listKey).trim();
-        const listKeyNormalized = listKey.trim().toLowerCase();
-        const employeeEmailNormalized = employeeEmail.toLowerCase();
-
-        if (employeeEmailNormalized !== normalizedEmail && listKeyNormalized !== normalizedEmail) {
-            continue;
-        }
-
-        const accountIDFromMap = memberAccountIDs[employeeEmail] ?? memberAccountIDs[listKey];
-
-        if (accountIDFromMap !== undefined) {
-            return accountIDFromMap;
-        }
-
-        return generateAccountID(trimmed);
-    }
-
-    return undefined;
 }
 
 /**
@@ -1683,24 +1632,6 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
     const managerAccountID = getManagerAccountID(policy, expenseReport);
     return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
-}
-
-/**
- * Returns the email the expense report should submit to per workspace approval config
- * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
- */
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
-    const defaultApprover = getDefaultApprover(policy).trim();
-    if (!expenseReport) {
-        return defaultApprover;
-    }
-
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-    if (!isValidAccountRoute(submitToAccountID)) {
-        return defaultApprover;
-    }
-
-    return getLoginsByAccountIDs([submitToAccountID]).at(0)?.trim() ?? defaultApprover;
 }
 
 /**
@@ -2685,7 +2616,6 @@ export {
     getIneligibleInvitees,
     getExcludedUsers,
     getMemberAccountIDsForWorkspace,
-    getAccountIDForSubmitManagerEmail,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     getExpensifyTeamExclusions,
@@ -2820,7 +2750,6 @@ export {
     hasOtherControlWorkspaces,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
     getManagerAccountEmail,
-    getSubmitToEmail,
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,

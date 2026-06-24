@@ -28,7 +28,6 @@ import {
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
     getSubmitToAccountID,
-    getSubmitToEmail,
     getTagApproverRule,
     getTagGLCode,
     getTagList,
@@ -1057,26 +1056,6 @@ describe('PolicyUtils', () => {
             const result = getManagerAccountID(policy, report);
 
             expect(result).toBe(adminAccountID);
-        });
-
-        it('should return submitsTo email from workspace approval config', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: undefined,
-                employeeList: {
-                    [employeeEmail]: {
-                        email: employeeEmail,
-                        submitsTo: adminEmail,
-                    },
-                },
-            };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-            };
-
-            expect(getSubmitToEmail(policy, report)).toBe(adminEmail);
         });
 
         it('should return the default approver', () => {

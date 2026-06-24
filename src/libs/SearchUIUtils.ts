@@ -564,8 +564,6 @@ type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
-type ArchivedReportsIDSet = ReadonlySet<string>;
-
 /** Return shape of `getSections`: row array, total row count, and whether any transaction is deleted (wide action column). */
 type GetSectionsResult = [
     (
@@ -600,7 +598,7 @@ type GetSectionsParams = {
     groupBy?: SearchGroupBy;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     currentSearch?: SearchKey;
-    archivedReportsIDList?: ArchivedReportsIDSet;
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
     isOffline?: boolean;
@@ -2513,7 +2511,7 @@ function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     conciergeReportID: string | undefined,
-    archivedReportsIDList?: ArchivedReportsIDSet,
+    reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
@@ -2551,7 +2549,7 @@ function getTaskSections(
 
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
-                const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
+                const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = getReportName(parentReport, reportAttributesDerivedValue);
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -3594,7 +3592,7 @@ function getSections({
     groupBy,
     reportActions,
     currentSearch = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    archivedReportsIDList,
+    reportNameValuePairs,
     queryJSON,
     isActionLoadingSet,
     isOffline,
@@ -3614,7 +3612,7 @@ function getSections({
         return [...getReportActionsSections(data, visibleReportActionsData, reportAttributesDerivedValue), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList, reportAttributesDerivedValue), false];
+        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -6396,4 +6394,4 @@ export {
     splitGroupsIntoPairs,
     SKIPPED_SEARCH_FILTERS,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection, SearchFilter};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
