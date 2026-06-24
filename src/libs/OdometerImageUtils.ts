@@ -31,7 +31,7 @@ function getOdometerImageIdentity(image: FileObject | string | null | undefined)
     if (image.lastModified !== undefined) {
         return `${base}|${image.lastModified}`;
     }
-    // No lastModified: only native's durable file:// uri is a safe disambiguator. On web the uri is a volatile blob:
+    // No lastModified: only native's durable file:// uri is a safe way to tell images apart. On web the uri is a volatile blob:
     // that re-mints on resume/reload, so name|size alone keeps the identity stable and avoids a false discard prompt.
     return getPlatform() === CONST.PLATFORM.WEB ? base : `${base}|${image.uri ?? ''}`;
 }
