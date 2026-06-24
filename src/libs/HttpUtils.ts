@@ -1,4 +1,3 @@
-import {prefetchOnAppStart} from 'react-native-nitro-fetch';
 import type {fetch as nitroFetch} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -13,11 +12,10 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
-import Log from './Log';
 import {setLoadTestParameters} from './Network/LoadTestState';
-import PREFETCH_QUERIES from './PrefetchQueries';
+import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
+import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
-import registerPrefetchTokenRefresh from './registerPrefetchTokenRefresh';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
@@ -79,15 +77,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     const command = url.match(APICommandRegex)?.[1];
 
-    // Prefetch the request on next app start if the prefetch key is present in the headers
-    // This allows to fetch the request natively before the JS bundle is loaded. Once the request with this prefetch key is made, it will already be cached and served from the cache.
-    const prefetchKey = command && PREFETCH_QUERIES.has(command) ? command : undefined;
-
-    const prefetchHeaders = prefetchKey
-        ? {
-              prefetchKey,
-          }
-        : undefined;
+    const {prefetchKey, prefetchHeaders} = preparePrefetchRequest(command);
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
@@ -102,12 +92,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     };
 
-    if (prefetchKey) {
-        registerPrefetchTokenRefresh();
-        prefetchOnAppStart(url, fetchParams).catch((error) => {
-            Log.warn(`[HttpUtils] prefetchOnAppStart failed for ${command}`, {error, fetchParams, url});
-        });
-    }
+    registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
     return fetch(url, fetchParams)
         .then((response) => {

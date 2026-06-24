@@ -3,6 +3,6 @@
  * Keeping this empty also prevents the `prefetchKey` request header from being added on web, which would otherwise
  * trigger a CORS preflight on cross-origin requests.
  */
-const PREFETCH_QUERIES = new Set<string>();
+const PrefetchQueries = new Set<string>();
 
-export default PREFETCH_QUERIES;
+export default PrefetchQueries;
