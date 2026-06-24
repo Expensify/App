@@ -55,13 +55,19 @@ jest.mock('@userActions/IOU/ReportWorkflow', () => ({
     approveMoneyRequest: jest.fn(),
 }));
 
-jest.mock('@libs/ReportUtils', () => ({
-    __esModule: true,
-    hasHeldExpensesFromTransactions: jest.fn(() => false),
-    hasUpdatedTotal: jest.fn(() => true),
-    hasViolations: jest.fn(() => false),
-    isInvoiceReport: jest.fn(() => false),
-}));
+jest.mock('@libs/ReportUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/ReportUtils');
+    return {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ...actual,
+        __esModule: true,
+        hasHeldExpensesFromTransactions: jest.fn(() => false),
+        hasUpdatedTotal: jest.fn(() => true),
+        hasViolations: jest.fn(() => false),
+        isInvoiceReport: jest.fn(() => false),
+    };
+});
 
 jest.mock('@libs/MoneyRequestReportUtils', () => ({
     __esModule: true,
@@ -102,6 +108,7 @@ function renderPayActionButton(onHoldMenuOpen: jest.Mock) {
         <PayActionButton
             iouReportID={TEST_IOU_REPORT_ID}
             chatReportID={TEST_CHAT_REPORT_ID}
+            chatReport={chatReport}
             isPaidAnimationRunning={false}
             isApprovedAnimationRunning={false}
             stopAnimation={jest.fn()}
