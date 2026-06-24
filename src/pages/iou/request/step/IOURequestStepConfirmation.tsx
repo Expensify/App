@@ -500,14 +500,22 @@ function IOURequestStepConfirmation({
             }
 
             Navigation.removePreInsertedFullscreenIfNeeded();
+
+            // Allow the pre-insert to re-fire when dependencies change (e.g. destinationReportID
+            // transitions from undefined to a valid ID after setTransactionReport resolves).
+            // Without this reset, the guard would permanently block re-firing after the first
+            // pre-insert was torn down due to a dependency change.
+            hasPreInsertFired.current = false;
         };
         // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
         // this screen instance. isTransactionReady and destinationReportID may each flip once
         // (false -> true / undefined -> ID) as data loads asynchronously, re-triggering the effect.
-        // hasPreInsertFired prevents double-firing. Note: if destinationReportID were to change
-        // from one valid ID to another (extremely unlikely with Onyx), the pre-insert would not
-        // re-fire. This is acceptable because the pre-inserted route is already correct for
-        // the original destination, and the submit handler will navigate correctly regardless.
+        // The hasPreInsertFired reset enables at most one additional re-fire when
+        // destinationReportID transitions from undefined to a valid ID. If destinationReportID
+        // were to change from one valid ID to another (extremely unlikely with Onyx), the
+        // pre-insert would re-fire once more, which is acceptable since the cleanup removes the
+        // stale route first. Oscillation is not possible because setTransactionReport only fires
+        // once during resetIOUTypeIfChanged.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTransactionReady, destinationReportID]);
 
