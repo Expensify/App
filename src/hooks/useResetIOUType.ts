@@ -4,6 +4,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {resolveEarlyReportID} from '@libs/IOUUtils';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -11,7 +12,6 @@ import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
@@ -178,21 +178,4 @@ function useResetIOUType({
     return onTabSelected;
 }
 
-/**
- * Resolves the reportID that should be set on the transaction draft for
- * global-create flows with default participants. Returns undefined when
- * no early set is needed (non-global-create or empty participants).
- */
-function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Participant[] | undefined): string | undefined {
-    if (!isFromGlobalCreate || !participants || participants.length === 0) {
-        return undefined;
-    }
-    const firstParticipant = participants.at(0);
-    if (firstParticipant?.isSelfDM) {
-        return CONST.REPORT.UNREPORTED_REPORT_ID;
-    }
-    return firstParticipant?.reportID;
-}
-
 export default useResetIOUType;
-export {resolveEarlyReportID};
