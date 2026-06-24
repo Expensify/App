@@ -44,6 +44,7 @@ function MoneyRequestReportPreview({
     iouReportID,
     policyID,
     chatReportID,
+    chatReport,
     action,
     isHovered = false,
     isWhisper = false,
@@ -60,7 +61,6 @@ function MoneyRequestReportPreview({
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
@@ -241,7 +241,7 @@ function MoneyRequestReportPreview({
         const transactionIOUAction = getIOUActionForReportID(item.reportID, item.transactionID);
         return (
             <TransactionPreview
-                chatReportID={chatReportID}
+                chatReport={chatReport}
                 action={transactionIOUAction}
                 contextAction={action}
                 reportID={item.reportID}
