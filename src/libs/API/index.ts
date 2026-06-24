@@ -197,13 +197,9 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
 }
 
 /**
- * Writes a ReconnectApp while collapsing it against any reconnect already in flight or queued. Unlike
- * writeWithNoDuplicatesConflictAction, the resolver also consults the ongoing request and decides by
- * coverage (how far back a reconnect re-fetches), so a redundant reconnect is dropped while a wider one
- * runs after. A live OpenApp counts as covering an incoming reconnect, since it re-fetches everything.
- * getOngoingRequest() is read inside the resolver closure so both evaluation passes (prepareRequest's
- * read-only optimistic-data check and the authoritative push) agree. OpenApp itself does not use this:
- * it dedupes through the generic writeWithNoDuplicatesConflictAction at its own call site.
+ * Writes a ReconnectApp through the coverage-based reconnect resolver. See the Conflict Resolution section
+ * of contributingGuides/SEQUENTIAL_QUEUE.md. getOngoingRequest() is read inside the closure so both
+ * evaluation passes see the same in-flight request.
  */
 function writeWithNoDuplicatesReconnectConflictAction<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,

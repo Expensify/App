@@ -125,12 +125,11 @@ function isReconnectFamilyRequest(request: AnyRequest | null | undefined): reque
 }
 
 /**
- * Read the `updateIDFrom` coverage marker off untyped reconnect params via `in`-narrowing (no cast),
- * so the incoming request the API builds carries the same value the resolver reads. Returns it raw;
- * `reconnectCoverageFrom` below is the single place that interprets it as a coverage number.
+ * Read the `updateIDFrom` coverage marker off untyped reconnect params. Returns the number, or undefined
+ * when the param is missing or not a number.
  */
-function readUpdateIDFrom(params: unknown): unknown {
-    if (typeof params === 'object' && params !== null && 'updateIDFrom' in params) {
+function readUpdateIDFrom(params: unknown): number | undefined {
+    if (typeof params === 'object' && params !== null && 'updateIDFrom' in params && typeof params.updateIDFrom === 'number') {
         return params.updateIDFrom;
     }
     return undefined;
@@ -147,17 +146,9 @@ function reconnectCoverageFrom(request: AnyRequest): number {
 }
 
 /**
- * Duplicate-conflict resolver for an incoming ReconnectApp. Unlike the generic resolver it also
- * consults the in-flight (`ongoingRequest`) request, and decides by coverage rather than by command
- * name: an incoming reconnect already covered by one in flight or queued is dropped (`noAction`),
- * while a wider one is pushed to run after. This closes the in-flight dedupe gap the generic resolver
- * leaves open (it scans the waiting queue only) and is the durable convergence point for reconnect
- * deduping. Preserve and extend it in the SequentialQueue refactor; do not delete it.
- *
- * A live OpenApp counts as covering an incoming ReconnectApp, since OpenApp re-fetches everything, so
- * a reconnect that lands while an OpenApp is live is dropped. OpenApp itself does not use this
- * resolver. It dedupes through the generic resolver (a queue-only `replace`) at its own call site,
- * because its `successData` carries caller-specific preservation writes that coverage cannot see.
+ * Coverage-based duplicate resolver for an incoming ReconnectApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md for how coverage and the ongoing-request check decide the outcome.
+ * Preserve it in the SequentialQueue refactor.
  */
 function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, incomingRequest: AnyRequest): ConflictActionData {
     const incomingCoverage = reconnectCoverageFrom(incomingRequest);
