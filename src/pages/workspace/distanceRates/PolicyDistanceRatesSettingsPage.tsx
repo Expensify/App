@@ -121,7 +121,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && policy?.commuterExclusions?.fixedDistance != null
                                                 ? translate('workspace.distanceRates.commuterExclusions.summaryFixedDistance', {
                                                       distance: policy.commuterExclusions.fixedDistance,
-                                                      unit: defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                                                      unit: policy.commuterExclusions.fixedDistanceUnit ?? defaultUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                                                   })
                                                 : translate('workspace.distanceRates.commuterExclusions.summaryDisabled')
                                         }
