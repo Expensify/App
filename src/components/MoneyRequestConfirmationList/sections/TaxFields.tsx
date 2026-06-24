@@ -42,7 +42,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -90,18 +90,18 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     };
 
     useEffect(() => {
-        if (numberFormRef?.current && numberFormRef.current.getNumber() === taxAmountInput) {
+        if (!isNewManualExpenseFlowEnabled || (numberFormRef?.current && numberFormRef.current.getNumber() === taxAmountInput)) {
             return;
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-    }, [taxAmountInput]);
+    }, [isNewManualExpenseFlowEnabled, taxAmountInput]);
 
     useEffect(() => {
-        if (formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
+        if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
             return;
         }
         clearFormErrors(['iou.error.invalidTaxAmount']);
-    }, [formError, taxAmount, maxTaxAmount, clearFormErrors]);
+    }, [isNewManualExpenseFlowEnabled, formError, taxAmount, maxTaxAmount, clearFormErrors]);
 
     return (
         <>
@@ -125,7 +125,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
             />
-            {canModifyTaxFields ? (
+            {isNewManualExpenseFlowEnabled && canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
                         numberFormRef={numberFormRef}
