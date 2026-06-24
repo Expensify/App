@@ -130,7 +130,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
 
     const startDateAsDate = parseDate(startDate);
 
-    const onDurationUnitSelected = (item: ValuePickerItem) => {
+    const handleDurationUnitChange = (item: ValuePickerItem) => {
         if (item.value) {
             lastEditedRef.current = 'duration';
             setSelectedDurationUnit(item.value);
@@ -318,7 +318,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         selectedItem={durationUnitItems.find((item) => item.value === selectedDurationUnit)}
                         items={durationUnitItems}
                         onClose={() => setIsDurationUnitModalVisible(false)}
-                        onItemSelected={onDurationUnitSelected}
+                        onItemSelected={handleDurationUnitChange}
                         onBackdropPress={Navigation.dismissModal}
                         shouldEnableKeyboardAvoidingView={false}
                     />
