@@ -2,17 +2,15 @@ import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
-import ContextMenuItem from '@components/ContextMenuItem';
+import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import Hoverable from '@components/Hoverable';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Clipboard from '@libs/Clipboard';
 import CONST from '@src/CONST';
 
 /**
@@ -51,7 +49,6 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark']);
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
     const isLast = defaultRendererProps.renderIndex === defaultRendererProps.renderLength - 1;
@@ -100,14 +97,12 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                         </PressableWithoutFeedback>
                         {isHovered && !!codeText && (
                             <View style={[styles.pAbsolute, {top: 4, right: 4}]}>
-                                <ContextMenuItem
-                                    isMini
-                                    icon={icons.Copy}
-                                    successIcon={icons.Checkmark}
-                                    text={translate('common.copyToClipboard')}
-                                    successText={translate('common.copied')}
-                                    onPress={() => Clipboard.setString(codeText)}
-                                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.COPY_CODE}
+                                <CopyTextToClipboard
+                                    urlToCopy={codeText}
+                                    styles={styles.copyableTextFieldButton}
+                                    iconStyles={styles.t0}
+                                    shouldHaveActiveBackground
+                                    shouldUseButtonBackground
                                 />
                             </View>
                         )}
