@@ -57,7 +57,7 @@ function computeEndDate(startDate: string, durationAmount: string, durationUnit:
     if (!start) {
         return '';
     }
-    const sanitized = replaceCommasWithPeriod((durationAmount ?? '').trim());
+    const sanitized = replaceCommasWithPeriod(durationAmount.trim());
     const amount = Number.parseFloat(sanitized);
     if (!Number.isFinite(amount) || amount <= 0) {
         return startDate;
