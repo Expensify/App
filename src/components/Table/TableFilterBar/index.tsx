@@ -5,7 +5,8 @@ import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useTableContext} from '@components/Table/TableContext';
 import TableSearchBar from '@components/Table/TableSearchBar';
 import useThemeStyles from '@hooks/useThemeStyles';
-import TableFilterTrigger from './FilterTrigger';
+import TableFilterPopoverComponent from './TableFilterPopoverComponent';
+import TableFilterTrigger from './TableFilterTrigger';
 
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
@@ -32,7 +33,7 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
                     key={filter.key}
                     label={'Hello World'}
                     value={''}
-                    PopoverComponent={() => <></>}
+                    PopoverComponent={TableFilterPopoverComponent}
                     onClosePress={() => {}}
                 />
             ))}

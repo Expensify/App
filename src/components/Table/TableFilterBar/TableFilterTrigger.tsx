@@ -2,16 +2,14 @@ import React from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
-import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import {useTableContext} from '@components/Table/TableContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 
 export default function TableFilterTrigger() {
     const theme = useTheme();
@@ -28,7 +26,7 @@ export default function TableFilterTrigger() {
 
     return (
         <FilterPopupButton
-            PopoverComponent={FilterPopoverComponent}
+            PopoverComponent={TableFilterPopoverComponent}
             renderButton={({ref, isExpanded, onPress}) => {
                 if (shouldUseNarrowTableLayout) {
                     return (
@@ -60,59 +58,6 @@ export default function TableFilterTrigger() {
                         style={isExpanded && styles.buttonHoveredBG}
                     />
                 );
-            }}
-        />
-    );
-}
-
-function FilterPopoverComponent({closeOverlay}: PopoverComponentProps) {
-    const {filterConfig, activeFilters, tableMethods} = useTableContext();
-    const filterKey = Object.keys(filterConfig ?? {}).at(0);
-
-    if (!filterKey || !filterConfig) {
-        return null;
-    }
-
-    const config = filterConfig[filterKey];
-    const items = config.options.map((option) => ({
-        text: option.label,
-        value: option.value,
-    }));
-
-    if (config.filterType === CONST.TABLES.FILTER_TYPE.MULTI_SELECT) {
-        const selectedValues = Array.isArray(activeFilters[filterKey]) ? activeFilters[filterKey] : [];
-        const value = items.filter((item) => selectedValues.includes(item.value));
-
-        return (
-            <MultiSelectPopup
-                label={filterKey}
-                items={items}
-                value={value}
-                closeOverlay={closeOverlay}
-                onChange={(selectedItems) => {
-                    tableMethods.updateFilter({
-                        key: filterKey,
-                        value: selectedItems.map((item) => item.value),
-                    });
-                }}
-            />
-        );
-    }
-
-    const value = items.find((item) => item.value === activeFilters[filterKey]);
-
-    return (
-        <SingleSelectPopup
-            label={config.showLabel ? filterKey : undefined}
-            defaultValue={config.default}
-            items={items}
-            value={value}
-            closeOverlay={closeOverlay}
-            onChange={(selectedItem) => {
-                tableMethods.updateFilter({
-                    key: filterKey,
-                    value: selectedItem?.value ?? null,
-                });
             }}
         />
     );

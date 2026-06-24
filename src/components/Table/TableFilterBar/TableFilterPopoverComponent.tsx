@@ -4,7 +4,7 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import {useTableContext} from '@components/Table/TableContext';
 import CONST from '@src/CONST';
 
-export default function FilterPopoverComponent({closeOverlay}: PopoverComponentProps) {
+export default function TableFilterPopoverComponent({closeOverlay}: PopoverComponentProps) {
     const {filterConfig, activeFilters, tableMethods} = useTableContext();
     const filterKey = Object.keys(filterConfig ?? {}).at(0);
 
