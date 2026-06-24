@@ -1428,7 +1428,6 @@ function getGuidedSetupDataForOpenReport(
         onboardingMessage,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         isSelfTourViewed,
-        hasCompletedGuidedSetupFlow,
     });
 
     if (!onboardingData) {
