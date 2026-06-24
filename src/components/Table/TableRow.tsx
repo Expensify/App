@@ -198,6 +198,25 @@ export default function TableRow({
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+                onMouseDown={(e) => {
+                    const target = e?.target;
+
+                    if (!(target instanceof HTMLElement)) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    if (target.tagName === CONST.ELEMENT_NAME.INPUT) {
+                        return;
+                    }
+
+                    if (target.closest('[role="switch"]') || target.closest('[role="checkbox"]')) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    e.preventDefault();
+                }}
                 onPress={(event) => handleRowPress(event)}
                 onLongPress={handleRowLongPress}
                 {...props}

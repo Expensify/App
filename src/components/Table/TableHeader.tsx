@@ -72,8 +72,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     }
 
     const selectableRows = processedData.filter((row) => !row.disabled && !row.isDisabledCheckbox);
+    const hasSelectableRows = selectableRows.length > 0;
     let isSelectionIndeterminate = false;
-    let isEverySelectableRowSelected = selectableRows.length > 0;
+    let isEverySelectableRowSelected = hasSelectableRows;
 
     // We exclude disabled rows from the 'select all' behavior, so if a disabled row is not selected, we still
     // consider all active rows to be selected
@@ -110,6 +111,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                     {!!isSelectionCheckboxVisible && (
                         <Checkbox
                             containerStyle={styles.m0}
+                            disabled={!hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
@@ -132,6 +134,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 <>
                     {!!selectionEnabled && (
                         <Checkbox
+                            disabled={!hasSelectableRows}
                             isChecked={isEverySelectableRowSelected}
                             isIndeterminate={isSelectionIndeterminate && !isEverySelectableRowSelected}
                             onPress={tableMethods.handleSelectAll}
