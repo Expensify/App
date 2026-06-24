@@ -4861,7 +4861,6 @@ export {
     getExportIntegrationMessageHTML,
     getUpdateRoomDescriptionMessage,
     getRoomAvatarUpdatedMessage,
-    getMessageOfOldDotReportAction,
     didMessageMentionCurrentUser,
     getForwardedReportActionMessage,
     getPolicyChangeLogAddEmployeeMessage,
