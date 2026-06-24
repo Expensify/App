@@ -9,10 +9,10 @@ import fileDownload from './fileDownload';
 import addTrailingForwardSlash from './UrlUtils';
 
 type ExpensifyCardStatementFeed = {
-    /** Set only when the settlement belongs to a single workspace; omitted for settlements that span workspaces. */
+    /** Set only when the search is filtered to one workspace, which scopes the statement to it. */
     policyID?: string;
     feedCountry?: string;
-    /** Expensify Card feed identity; absent when the settlement spans more than one feed. */
+    /** The feed these settlements belong to. */
     fundID?: number;
     entryIDs: number[];
 };
@@ -23,7 +23,7 @@ type ExpensifyCardStatementSelection = {
 };
 
 type ExpensifyCardStatementParams = {
-    /** Set only when scoping the statement to a single workspace; omitted to export the whole settlement. */
+    /** Set to scope the statement to one workspace; omitted to export the whole settlement. */
     policyID?: string;
     feedCountry?: string;
     entryIDs: number[];
@@ -61,9 +61,8 @@ const STATEMENT_SCOPE_FILTER_KEYS = new Set<string>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
 ]);
 
-// The statement is unscoped (the whole settlement) by default. We only scope it to a workspace when the user has
-// explicitly filtered the search by a single workspace, in which case the on-screen rows are that workspace's share
-// and the PDF should match. Returns the filtered policyID, or undefined when there is no single-workspace filter.
+// Returns the single workspace the search is filtered to, or undefined. We scope the statement to a workspace only
+// when the user filtered by one, so the PDF matches the on-screen rows; otherwise the whole settlement is exported.
 // policyID is a root-level search key (like type/groupBy), so it lives on queryJSON.policyID, not in flatFilters.
 function getScopedPolicyID(queryJSON: SearchQueryJSON | undefined): string | undefined {
     const policyID = queryJSON?.policyID;
@@ -147,13 +146,10 @@ function getExpensifyCardStatementSelection(
         return undefined;
     }
 
-    // The statement is the whole settlement (unscoped) by default; we only scope it to a workspace when the user
-    // explicitly filtered the search by a single workspace.
     const scopedPolicyID = getScopedPolicyID(queryJSON);
 
-    // Group selected settlements by feed. A statement covers one feed, so settlements from more than one feed can't
-    // share a statement. The feed identity is fundID; a single program (feedCountry) can have multiple feeds (one per
-    // workspace provisioning), so fundID - not feedCountry - is the grouping key.
+    // A statement covers one feed, so group the selected settlements by feed and reject a selection that spans more
+    // than one. The feed is identified by fundID, not feedCountry: one program can have several feeds.
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
     for (const settlementGroup of selectedSettlementGroups) {
         const feedKey = settlementGroup.fundID !== undefined ? String(settlementGroup.fundID) : '';
@@ -185,8 +181,7 @@ function getExpensifyCardStatementSelection(
 function getExpensifyCardStatementParamsFromFeed(feed: ExpensifyCardStatementFeed): ExpensifyCardStatementParams {
     const entryIDs = [...feed.entryIDs];
 
-    // fundID is only used to group settlements into feeds on the client; the export is identified by entryIDs +
-    // policyID + feedCountry, so it is intentionally not forwarded to the action.
+    // fundID is only a client-side grouping key; the export itself is identified by entryIDs, so it is not forwarded.
     return {
         policyID: feed.policyID,
         feedCountry: feed.feedCountry,

@@ -181,7 +181,7 @@ type SearchWithdrawalIDGroup = {
     /** Expensify Card program for the grouped settlement */
     feedCountry?: string;
 
-    /** Expensify Card feed identity for the grouped settlement; absent when the settlement spans more than one feed */
+    /** The feed the settlement belongs to; absent when it spans more than one feed */
     fundID?: number;
 };
 
