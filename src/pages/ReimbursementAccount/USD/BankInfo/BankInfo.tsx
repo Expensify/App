@@ -38,17 +38,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
-
-    const pendingDeleteBankAccountIDRef = useRef<number | undefined>(undefined);
-    const handleSubmitSuccess = () => {
-        if (pendingDeleteBankAccountIDRef.current) {
-            deletePaymentBankAccount(pendingDeleteBankAccountIDRef.current, undefined);
-            pendingDeleteBankAccountIDRef.current = undefined;
-        }
-        onSubmit?.();
-    };
-
-    const markSubmitting = useReimbursementAccountSubmitCallback(handleSubmitSuccess);
+    const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
 
     const redirectedFromPlaidToManualRef = useRef(false);
     const values = getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {});
@@ -81,9 +71,9 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             const previousPlaidAccountID = reimbursementAccount?.achData?.plaidAccountID;
             const newPlaidAccountID = data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID];
             const plaidAccountIDChanged = !!bankAccountID && !!previousPlaidAccountID && previousPlaidAccountID !== newPlaidAccountID;
-
-            // Defer deleting the previous pending bank account until the new connect succeeds
-            pendingDeleteBankAccountIDRef.current = plaidAccountIDChanged ? bankAccountID : undefined;
+            if (plaidAccountIDChanged) {
+                deletePaymentBankAccount(bankAccountID, undefined);
+            }
             connectBankAccountWithPlaid(
                 plaidAccountIDChanged ? CONST.DEFAULT_NUMBER_ID : bankAccountID,
                 {
