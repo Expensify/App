@@ -1,6 +1,5 @@
 import React from 'react';
-import type {ReactNode} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useTableContext} from '@components/Table/TableContext';
@@ -84,16 +83,16 @@ function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButton
     }
 
     return (
-        <View {...props}>
-            <FlatList
-                horizontal
-                data={filterItems}
-                keyExtractor={(item) => item.key}
-                renderItem={({item}) => <FilterItemRenderer item={item} />}
-                contentContainerStyle={[styles.flexRow, styles.gap2, styles.alignItemsCenter, contentContainerStyle]}
-                showsHorizontalScrollIndicator={false}
-                CellRendererComponent={CellRendererComponent}
-            />
+        <View
+            {...props}
+            style={styles.maxWidth100Percentage}
+        >
+            {filterItems.map((item) => (
+                <FilterItemRenderer
+                    key={item.key}
+                    item={item}
+                />
+            ))}
         </View>
     );
 }
@@ -124,23 +123,6 @@ function FilterItemRenderer({item}: FilterItemRendererProps) {
             caretWrapperStyle={styles.gap2}
             medium
         />
-    );
-}
-
-/**
- * Custom cell renderer for responsive layout adjustments.
- */
-function CellRendererComponent({children, style, ...props}: {children: ReactNode; style: StyleProp<ViewStyle>}) {
-    const styles = useThemeStyles();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-    return (
-        <View
-            {...props}
-            style={[style, shouldShowResponsiveLayout && styles.flex1]}
-        >
-            {children}
-        </View>
     );
 }
 

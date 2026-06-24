@@ -260,7 +260,7 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
+            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, styles.flexWrap, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
                 <Table.SearchBar
                     label={translate('workspace.people.findMember')}
                     style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
