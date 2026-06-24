@@ -8541,6 +8541,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCategories-BulkActionsDropdown',
             },
             TAGS: {
+                ROW: 'WorkspaceTags-Row',
                 ADD_BUTTON: 'WorkspaceTags-AddButton',
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
