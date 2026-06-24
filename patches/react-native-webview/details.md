@@ -29,3 +29,22 @@
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR introducing patch: 🛑
+
+### [react-native-webview+13.16.0+003+certificate-pinning-android.patch](react-native-webview+13.16.0+003+certificate-pinning-android.patch)
+
+- Reason:
+  
+    ```
+    Adds certificate pinning monitoring to the Android WebView. Android WebView does not expose a
+    server-trust challenge delegate like iOS WKWebView, so the patch calls
+    WebViewCertificateMonitor.validateCertificate() via reflection from RNCWebViewClient.onPageFinished.
+    The monitor extracts the X509 certificate from WebView.getCertificate(), computes the SPKI
+    SHA-256 hash of the leaf public key, and reports mismatches to Sentry. This closes the
+    monitor-mode gap where Android WebView traffic was unmonitored (unlike iOS which monitors via
+    TrustKit in the +002 patch). In debug builds the monitor is not initialized so the reflection
+    call is a no-op.
+    ```
+  
+- Upstream PR/issue: 🛑
+- E/App issue: 🛑
+- PR introducing patch: 🛑

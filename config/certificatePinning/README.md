@@ -31,23 +31,57 @@ To flip to enforce mode, update **all** of:
 |-------|----------|-----------|------|
 | URLSession (`fetch()`, blob-util, etc.) | iOS | TrustKit URLSession swizzling | `ios/CertificatePinning.swift` |
 | URLSession (OldDot + NewDot HybridApp) | iOS | TrustKit URLSession swizzling | `Mobile-Expensify/iOS/Expensify/ExpensifyAppDelegate.m` |
-| OkHttp (`fetch()`, blob-util, RN networking) | Android | OkHttp `CertificatePinner` | `android/app/src/main/java/com/expensify/chat/CertificatePinning.kt` |
+| OkHttp (`fetch()`, blob-util, RN networking) | Android | OkHttp `CertificatePinner` interceptor | `android/app/src/main/java/com/expensify/chat/CertificatePinning.kt` |
 | OkHttp (OldDot HybridApp) | Android | OkHttp `CertificatePinner` | `Mobile-Expensify/Android/.../ExpensifyCertificatePinner.java` |
-| HttpURLConnection / Glide | Android | `<pin-set>` (enforce mode only) | `network_security_config_enforce.xml` |
-| HttpURLConnection / Glide (HybridApp) | Android | `<pin-set>` (enforce mode only) | `Mobile-Expensify/Android/res/xml/network_security_config_enforce.xml` |
-| WebView | Android | `<pin-set>` (enforce mode only) | `network_security_config_enforce.xml` |
-| WebView (WKWebView) | iOS | TrustKit validator in challenge handler | `patches/react-native-webview+13.16.0.patch` |
+| Fresco (RN Image component) | Android | Uses OkHttp via `OkHttpClientProvider` | (covered by OkHttp row above) |
+| HttpURLConnection | Android | Wrapping `HostnameVerifier` (monitor) / `<pin-set>` (enforce) | `CertificatePinning.kt` / `network_security_config_enforce.xml` |
+| HttpURLConnection (HybridApp) | Android | Wrapping `HostnameVerifier` (monitor) / `<pin-set>` (enforce) | `ExpensifyCertificatePinner.java` / `network_security_config_enforce.xml` |
+| Glide (OldDot/HybridApp) | Android | Via `HttpURLConnection` `HostnameVerifier` (monitor) / `<pin-set>` (enforce) | `ExpensifyCertificatePinner.java` / `network_security_config_enforce.xml` |
+| WebView (YAPL OldDot) | Android | SPKI hash check after page load (monitor) / `<pin-set>` (enforce) | `WebViewCertificateMonitor.java` / `network_security_config_enforce.xml` |
+| WebView | Android | SPKI hash check after page load (monitor) / `<pin-set>` (enforce) | `WebViewCertificateMonitor.kt` + webview patch / `network_security_config_enforce.xml` |
+| WebView (WKWebView) | iOS | TrustKit validator in challenge handler | `patches/react-native-webview+13.16.0+002+certificate-pinning.patch` |
 | WebView (OldDot HybridApp) | iOS | TrustKit validator in challenge handler | `Mobile-Expensify/iOS/Expensify/Libraries/YAPL-Cocoa/Elements/YAPLWKWebView.m` |
+
+### Monitor-mode coverage notes
+
+Android's `<pin-set>` in `network_security_config.xml` is binary — it either enforces or is absent.
+There is no OS-level monitor-only mode. During the monitor rollout the `<pin-set>` is absent, so
+alternative monitors fill the gap:
+
+#### Standalone NewDot
+
+| Android channel | Monitor mode | Enforce mode |
+|-----------------|-------------|-------------|
+| OkHttp (fetch, blob-util, RN networking) | OkHttp interceptor in `CertificatePinning.kt` | OkHttp `CertificatePinner` + reporting interceptor |
+| Fresco (React Native Image) | Via OkHttp (same client from `OkHttpClientProvider`) | Via OkHttp |
+| WebView (react-native-webview) | `WebViewCertificateMonitor.kt` (SPKI check on leaf cert after page load) | `<pin-set>` in `network_security_config_enforce.xml` |
+| HttpURLConnection | Wrapping `HostnameVerifier` in `CertificatePinning.kt` | `<pin-set>` in `network_security_config_enforce.xml` |
+
+#### HybridApp (OldDot + NewDot)
+
+| Android channel | Monitor mode | Enforce mode |
+|-----------------|-------------|-------------|
+| OkHttp (YAPL API, crash reporter) | OkHttp interceptor in `ExpensifyCertificatePinner.java` | OkHttp `CertificatePinner` + reporting interceptor |
+| OkHttp (fetch, blob-util, RN networking) | OkHttp interceptor in `CertificatePinning.kt` | OkHttp `CertificatePinner` + reporting interceptor |
+| WebView (YAPL OldDot) | `WebViewCertificateMonitor.java` (SPKI check after page load) | `<pin-set>` in `network_security_config_enforce.xml` |
+| WebView (react-native-webview) | `WebViewCertificateMonitor` (via patch + reflection) | `<pin-set>` in `network_security_config_enforce.xml` |
+| HttpURLConnection (downloads, Pusher) | Wrapping `HostnameVerifier` in `ExpensifyCertificatePinner.java` | `<pin-set>` in `network_security_config_enforce.xml` |
+| Glide (image loading) | Via `HttpURLConnection` `HostnameVerifier` (Glide uses HttpURLConnection by default) | `<pin-set>` in `network_security_config_enforce.xml` |
+
+On iOS, TrustKit's `kTSKEnforcePinning: @NO` provides native monitor-only support for all
+URLSession traffic, and the react-native-webview patch routes WKWebView challenges through
+TrustKit's validator, so all channels are monitored on both platforms.
 
 Pinning is **disabled in debug builds** on every layer (Android `BuildConfig.DEBUG` / debug
 `network_security_config_debug.xml`, iOS `#if DEBUG`) so local dev and debugging proxies keep working.
 
 ## Sentry reporting
 
-Pin failures are reported from the **native** pinning layer (TrustKit callback on iOS, OkHttp monitor
-interceptor on Android), tagged with:
+Pin failures are reported from the **native** pinning layer (TrustKit callback on iOS, monitor
+interceptors on Android), tagged with:
 - `certificate_pinning_host` — the hostname that failed validation
 - `certificate_pinning_mode` — `monitor` or `enforce`
+- `certificate_pinning_channel` — (Android only) the networking channel: `OkHttp`, `HttpURLConnection`, or `WebView`
 
 Reporting requires early native Sentry initialization via `SentryNativeSDKManager` in
 `AppDelegate.swift` / `MainApplication.kt` (standalone NewDot) or
