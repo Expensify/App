@@ -116,7 +116,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 accessibilityLabel={translate('workspace.distanceRates.commuterExclusions.distanceLabel')}
                 value={fixedDistanceInput}
                 onChangeText={(value) => {
-                    setFixedDistanceInput(value.replace(/\D/g, ''));
+                    setFixedDistanceInput(value.replaceAll(/\D/g, ''));
                     if (inlineError) {
                         setInlineError('');
                     }
