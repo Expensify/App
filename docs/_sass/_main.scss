@@ -188,7 +188,7 @@ button,
 input,
 select,
 textarea {
-    line-height: 1.33;
+    line-height: 1.4;
     font-weight: 400;
     font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 16px;
@@ -244,12 +244,9 @@ button {
 
 #lhn {
     position: fixed;
-    background-color: var(--color-highlightBG);
+    background-color: var(--color-appBG);
     box-sizing: border-box;
     z-index: 1;
-    border-right-color: var(--color-borders);
-    border-right-width: 1px;
-    border-style: solid;
     width: 100%;
     height: auto;
     &.expanded {
@@ -360,6 +357,7 @@ button {
     min-height: 100vh;
     margin-left: 0;
     padding: 80px 24px 0px 24px;
+    background-color: var(--color-appBG);
 
     @include breakpoint($breakpoint-tablet) {
         margin-left: 320px;
@@ -387,7 +385,9 @@ button {
 
     h1 {
         &.title {
-            font-size: 2.25em;
+            font-size: 36px;
+            line-height: 1.15;
+            font-weight: 500;
             flex: 1;
         }
     }
@@ -397,6 +397,8 @@ button {
     }
 
     .article {
+        color: var(--color-text-body);
+
         .hidden {
             display: none;
         }
@@ -474,9 +476,11 @@ button {
         }
 
         h2 {
-            font-size: 1.125em;
+            font-size: 21px;
+            line-height: 1.33;
             font-weight: 500;
             font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+            color: var(--color-text);
         }
 
         h3 {
@@ -852,10 +856,12 @@ button {
     font-weight: 700;
     cursor: pointer;
     color: var(--color-text);
-    background-color: var(--color-highlightBG);
+    background-color: var(--color-surface);
+    box-shadow: var(--color-card-shadow);
 
     &:hover {
-        background-color: var(--color-row-hover);
+        background-color: var(--color-surface);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.02), 0 3px 6px rgba(0, 0, 0, 0.04);
     }
 
     .row {
@@ -1374,7 +1380,7 @@ button {
         cursor: default;
 
         &:hover {
-            background-color: var(--color-highlightBG);
+            background-color: var(--color-surface);
         }
 
         .icon {
@@ -1579,7 +1585,7 @@ button {
     border-style: solid;
     border-width: 1px;
     border-color: var(--color-borders);
-    background-color: transparent;
+    background-color: var(--color-surface);
     border-radius: 4px;
     text-align: center;
     padding: 6px 12px;

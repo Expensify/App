@@ -25,6 +25,7 @@
     min-height: 52px;
     box-sizing: border-box;
     cursor: text;
+    background-color: var(--color-surface);
 
     &:focus-within {
         border-color: var(--color-button-success-background);
@@ -147,7 +148,6 @@
 .lhn-search-input-wrapper {
     height: 52px;
     min-height: 52px;
-    background-color: var(--color-appBG);
 }
 
 .search-no-results,

@@ -1,17 +1,20 @@
 :root {
     --color-text: #002e22;
+    --color-text-body: #465751;
     --color-button-text: #FCFBF9;
     --color-text-supporting: #76847e;
     --color-icons: #a2a9a3;
-    --color-borders: #e6e1da;
+    --color-borders: #ebe6df;
     --color-highlightBG: #f8f4f0;
     --color-row-hover: #f2ede7;
-    --color-appBG: #fcfbf9;
+    --color-appBG: #faf8f5;
+    --color-surface: #ffffff;
+    --color-card-shadow: 0 8px 16px rgba(0, 0, 0, 0.01), 0 3px 6px rgba(0, 0, 0, 0.02);
     --color-success: #03d47c;
     --color-accent: #03d47c;
     --color-link: #0164BF;
     --color-link-hovered: #0676DE;
-    --color-button-background: #e6e1da;
+    --color-button-background: #ebe6df;
     --color-button-background-hover: #d8d1c7;
     --color-button-success-background: #03d47c;
     --color-button-success-background-hover: #00a862;
@@ -23,6 +26,7 @@
 @media (prefers-color-scheme: dark) {
     :root {
         --color-text: #e7ece9;
+        --color-text-body: #e7ece9;
         --color-button-text: #E7ECE9;
         --color-text-supporting: #afbbb0;
         --color-icons: #8b9c8f;
@@ -30,6 +34,8 @@
         --color-highlightBG: #072419;
         --color-row-hover: #0a2e25;
         --color-appBG: #061b09;
+        --color-surface: #072419;
+        --color-card-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
         --color-success: #03d47c;
         --color-accent: #03d47c;
         --color-link: #5ab0ff;
