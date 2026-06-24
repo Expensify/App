@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {Ref} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
@@ -175,36 +175,29 @@ function SignInPage({ref}: SignInPageProps) {
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
     const [pendingSAMLRedirectLogin, setPendingSAMLRedirectLogin] = useState<string | undefined>();
     const previousCredentialsLogin = usePrevious(credentials?.login);
-    const setPendingSAMLRedirectForLogin = useCallback((login: string) => setPendingSAMLRedirectLogin(login), []);
 
     const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
+    const hasCredentialsLoginChanged = !!credentials?.login && !!previousCredentialsLogin && previousCredentialsLogin !== credentials.login;
+    const shouldResetSAMLLoginState = !credentials?.login || hasCredentialsLoginChanged;
+
     useEffect(() => {
-        if (!credentials?.login) {
-            if (isUsingMagicCode) {
-                setIsUsingMagicCode(false);
-            }
-            if (hasInitiatedSAMLLogin) {
-                setHasInitiatedSAMLLogin(false);
-            }
+        if (!shouldResetSAMLLoginState) {
             return;
         }
 
-        if (!previousCredentialsLogin || previousCredentialsLogin === credentials.login) {
-            return;
-        }
+        setPendingSAMLRedirectLogin(undefined);
 
-        // If the login changes, reset the user's SAML login preferences
         if (isUsingMagicCode) {
             setIsUsingMagicCode(false);
         }
         if (hasInitiatedSAMLLogin) {
             setHasInitiatedSAMLLogin(false);
         }
-    }, [credentials?.login, previousCredentialsLogin, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+    }, [shouldResetSAMLLoginState, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
 
     const hasPendingSAMLRedirect = !!credentials?.login && pendingSAMLRedirectLogin === credentials.login;
 
@@ -357,7 +350,7 @@ function SignInPage({ref}: SignInPageProps) {
                         isVisible={shouldShowLoginForm}
                         submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
                         scrollPageToTop={scrollSignInPageToTop}
-                        onSignInAttempt={setPendingSAMLRedirectForLogin}
+                        onSignInAttempt={setPendingSAMLRedirectLogin}
                     />
                     {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
                     {shouldShowValidateCodeForm && (
