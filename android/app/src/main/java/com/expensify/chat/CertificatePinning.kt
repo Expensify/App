@@ -69,6 +69,7 @@ object CertificatePinning {
             val clientBuilder = OkHttpClientProvider.createClientBuilder()
             if (ENFORCE_PINNING) {
                 clientBuilder.certificatePinner(certificatePinner)
+                clientBuilder.addInterceptor(CertificatePinningEnforceReportingInterceptor())
             } else {
                 clientBuilder.addNetworkInterceptor(CertificatePinningMonitorInterceptor(certificatePinner))
             }
@@ -88,6 +89,26 @@ object CertificatePinning {
             scope.setTag(CERTIFICATE_PINNING_HOST_TAG, hostname)
             scope.setTag(CERTIFICATE_PINNING_MODE_TAG, if (ENFORCE_PINNING) "enforce" else "monitor")
             scope.setExtra("url", redactUrl(url))
+        }
+    }
+
+    /**
+     * Application-level interceptor that catches pin failures thrown by [CertificatePinner] during
+     * connection setup, reports them to Sentry, and re-throws so the request still fails.
+     * This keeps telemetry flowing in enforce mode, matching iOS TrustKit behaviour.
+     */
+    private class CertificatePinningEnforceReportingInterceptor : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            try {
+                return chain.proceed(chain.request())
+            } catch (error: SSLPeerUnverifiedException) {
+                reportPinningFailure(
+                    hostname = chain.request().url.host,
+                    url = chain.request().url,
+                    message = error.message ?: "Certificate pinning validation failed",
+                )
+                throw error
+            }
         }
     }
 
