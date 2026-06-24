@@ -445,7 +445,7 @@ const SCREENS = {
     },
 
     SETTINGS_CATEGORIES: {
-        SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
+        DYNAMIC_SETTINGS_CATEGORY_SETTINGS: 'Dynamic_Settings_Category_Settings',
         DYNAMIC_SETTINGS_CATEGORIES_SETTINGS: 'Dynamic_Settings_Categories_Settings',
         DYNAMIC_SETTINGS_CATEGORY_CREATE: 'Dynamic_Settings_Category_Create',
         DYNAMIC_SETTINGS_CATEGORY_EDIT: 'Dynamic_Settings_Category_Edit',
@@ -777,7 +777,7 @@ const SCREENS = {
         INVITE_MESSAGE_APPROVER: 'Workspace_Invite_Message_Approver',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
-        TAGS_SETTINGS: 'Tags_Settings',
+        DYNAMIC_TAGS_SETTINGS: 'Dynamic_Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
         TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
@@ -806,7 +806,7 @@ const SCREENS = {
         TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
         TAX_CREATE: 'Workspace_Tax_Create',
         TAX_CREATE_VALUE: 'Workspace_Tax_Create_Value',
-        TAG_CREATE: 'Tag_Create',
+        DYNAMIC_TAG_CREATE: 'Dynamic_Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
         TAG_APPROVER: 'Tag_Approver',
         TAG_LIST_VIEW: 'Tag_List_View',
