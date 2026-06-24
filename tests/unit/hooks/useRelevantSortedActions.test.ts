@@ -8,6 +8,7 @@ const onyxData: Record<string, unknown> = {};
 
 const mockUseOnyx = jest.fn((key: string, options?: {selector?: (value: unknown) => unknown}) => {
     const value = onyxData[key];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test mock needs to pass unknown data through the selector
     const selectedValue = options?.selector ? options.selector(value as never) : value;
     return [selectedValue];
 });
@@ -237,6 +238,8 @@ describe('useRelevantSortedActions', () => {
 
         renderHook(() => useRelevantSortedActions(['report1']));
 
-        expect(mockUseOnyx).toHaveBeenCalledWith(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, expect.objectContaining({selector: expect.any(Function)}));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.any() returns AsymmetricMatcher typed as any
+        const selectorMatcher = expect.any(Function);
+        expect(mockUseOnyx).toHaveBeenCalledWith(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, expect.objectContaining({selector: selectorMatcher}));
     });
 });
