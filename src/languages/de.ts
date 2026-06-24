@@ -85,6 +85,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachment: 'Anhang',
         attachments: 'Anhänge',
         center: 'Zentrieren',
+        resetMapToNorth: 'Karte nach Norden ausrichten',
         from: 'Von',
         to: 'AnAn',
         in: 'In',
@@ -314,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Weniger anzeigen',
         plusMore: ({count}: {count: number}) => `+${count} weitere`,
         merchant: 'Händler',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Suchen Sie ${merchant} auf Google`,
         change: 'Ändern',
         category: 'Kategorie',
         vendor: 'Anbieter',
@@ -1064,6 +1067,12 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `${count} weitere anzeigen`,
+        recentlyAddedSection: {
+            title: 'Kürzlich hinzugefügt',
+            viewAll: 'Alle Ausgaben anzeigen',
+            emptyStateTitle: 'Keine aktuellen Ausgaben',
+            emptyStateMessage: 'Erstellen Sie eine oder ziehen Sie eine Quittung hierher',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2838,7 +2847,7 @@ ${amount} für ${merchant} – ${date}`,
     },
     agentsPage: {
         title: 'Agenten',
-        subtitle: `<muted-text>Erstellen Sie Agents, die Ihren Workflow übernehmen. Überspringen Sie die manuelle Arbeit und gewinnen Sie Stunden Ihres Tages zurück. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Weitere Infos</a>.</muted-text>`,
+        subtitle: `<muted-text>Agents übernehmen Ihre Workflows für Sie, sodass Sie täglich Stunden zurückgewinnen. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Mehr erfahren</a>.</muted-text>`,
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {
             title: 'Keine Agenten erstellt',
@@ -3361,9 +3370,6 @@ ${amount} für ${merchant} – ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Machen Sie eine [Probefahrt](${testDriveURL})` : 'Mach eine Probefahrt'),
             embeddedDemoIframeTitle: 'Testversion',
-            employeeFakeReceipt: {
-                description: 'Mein Probefahrtbeleg!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Geld zurückzubekommen ist so einfach wie das Senden einer Nachricht. Gehen wir die Grundlagen durch.',
@@ -4411,7 +4417,7 @@ ${amount} für ${merchant} – ${date}`,
             defaultNote: `Belege, die an ${CONST.EMAIL.RECEIPTS} gesendet werden, erscheinen in diesem Workspace.`,
             deleteConfirmation: 'Möchten Sie diesen Workspace wirklich löschen?',
             deleteWithCardsConfirmation: 'Möchtest du diesen Workspace wirklich löschen? Dadurch werden alle Kartenfeeds und zugewiesenen Karten entfernt.',
-            deleteOpenExpensifyCardsError: 'Ihr Unternehmen hat noch aktive Expensify Cards.',
+            deleteOpenExpensifyCardsError: 'Ihre Firma hat noch Expensify Karten. Bitte <concierge-link>wenden Sie sich an Concierge</concierge-link>, um sie zu entfernen.',
             outstandingBalanceWarning:
                 'Sie haben einen offenen Saldo, der beglichen werden muss, bevor Sie Ihren letzten Workspace löschen können. Bitte gehen Sie zu Ihren Abonnementeinstellungen, um die Zahlung abzuschließen.',
             settleBalance: 'Zu Abo wechseln',
@@ -4981,6 +4987,12 @@ ${amount} für ${merchant} – ${date}`,
             autoSyncDescription: 'Expensify wird jeden Tag automatisch mit Certinia synchronisiert.',
             syncReimbursedReportsDescription:
                 'Wenn diese Option aktiviert ist, wird jedes Mal, wenn eine zu zahlende Rechnung in FFA bezahlt wird, der zugehörige Expensify-Bericht automatisch als erstattet markiert.',
+            taxNonBillable: 'Steuer als nicht abrechenbar exportieren',
+            taxNonBillableDescription:
+                'Beim Exportieren abrechenbarer Ausgaben, die mit Steuersätzen aus Expensify codiert sind, wird der Steueranteil beim Export nach Certinia PSA als nicht abrechenbar markiert.',
+            foreignCurrencyAmount: 'Betrag in Fremdwährung exportieren',
+            foreignCurrencyAmountDescription:
+                'Wenn Sie erstattungsfähige Ausgaben als Spesenabrechnungen exportieren, exportieren wir den ursprünglichen Fremdwährungsbetrag jeder Transaktion nach Certinia, falls vorhanden.',
             exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Certinia exportiert werden.',
             payableInvoices: 'Fällige Rechnungen',
             exportStatus: {
@@ -5047,6 +5059,16 @@ ${amount} für ${merchant} – ${date}`,
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Nicht zuordnen',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Als Tags importiert',
                     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Als Berichtsfelder importiert',
+                },
+                expenseTypeGlaMappings: 'Ausgabentyp-GLA-Zuordnungen',
+                expenseTypeGlaMappingsDescription: 'FinancialForce Expense Type GLA-Zuordnungen werden als Kategorien in Expensify importiert.',
+                tagsMappedTo: 'Tags sollten zugeordnet werden zu',
+                milestones: 'Meilensteine',
+                milestonesDescription: 'Wenn aktiviert, werden mit PSA-Projekten verknüpfte Meilensteine mit Expensify synchronisiert.',
+                parentTagMappingTypes: {
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS]: 'Projekte und Zuweisungen',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS]: 'Projekte',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Zuweisungen',
                 },
             },
         },
@@ -6744,8 +6766,20 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         distanceRates: {
             oopsNotSoFast: 'Ups! Nicht so schnell ...',
             workspaceNeeds: 'Ein Arbeitsbereich benötigt mindestens einen aktivierten Entfernungssatz.',
+            commuterExclusions: {
+                title: 'Arbeitswege ausschließen',
+                summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
+                summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `${distance} ${unit} pro Abrechnung ausschließen`,
+                optionDisabledTitle: 'Pendelfahrten nicht ausschließen',
+                optionDisabledHelp: 'Es wird kein Ausschluss für den Arbeitsweg angewendet.',
+                optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
+                optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
+                distanceLabel: 'Entfernung',
+                errors: {distanceMustBePositive: 'Die Entfernung muss größer als 0 sein.'},
+            },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
+            emptyRates: {title: 'Noch keine Entfernungssätze', subtitle: 'Fügen Sie einen Satz hinzu, um Kilometer mit individuellen Sätzen zu erstatten.'},
             rate: 'Bewerten',
             addRate: 'Satz hinzufügen',
             findRate: 'Kurs finden',
@@ -7054,6 +7088,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Genehmigungen sind in den Collect- und Control-Tarifen verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            approvalSubmitReport: {
+                title: 'Berichte genehmigen',
+                description:
+                    'Prüfen, genehmigen und Ausgaben an einem Ort im Blick behalten. Genehmigungs-Workflows helfen Ihnen, Kosten zu kontrollieren, Unternehmensrichtlinien durchzusetzen und Ihre Mitarbeitenden schneller zu erstatten.',
+                onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+                    `<muted-text>Genehmigungs-Workflows sind nur im Collect-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> pro aktivem Mitglied und Monat.</muted-text>`,
+            },
             companyCardSubmit: {
                 title: 'Firmenkarten',
                 description: `Bringe deine eigene Firmenkarte zu Expensify, um automatische Importe, automatische Kategorisierung, anpassbare Regeln und integrierte Abstimmung zu erhalten.`,
@@ -7270,6 +7311,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 saveAnyway: 'Trotzdem speichern',
                 applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
                 findRule: 'Händlerregel finden',
+                expenseDefaultsTitle: 'Standardausgaben',
+                expenseDefaultsSubtitle: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
+                ifAnyExpenseMatches: 'Wenn eine Ausgabe übereinstimmt:',
+                thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -7416,12 +7461,33 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
                 }) =>
                     `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blockiert' : 'Erlaubt'} ${shownCount > 1 ? 'Kategorien' : 'Kategorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
+                defaultRuleSummary: 'Kategorien einschließlich Erwachsenendienste, Geldautomaten, Glücksspiel und ...',
+                findRule: 'Regel suchen',
+                defaultSection: 'Standard',
+                customRulesSection: 'Benutzerdefinierte Regeln',
+                tableColumnType: 'Typ',
+                tableColumnCard: 'Karte',
+                tableColumnRule: 'Regel',
+                cardRulesUpsell: {
+                    title: 'Holen Sie sich die Expensify Karte und kontrollieren Sie Ausgaben',
+                    subtitle:
+                        'Mit der Expensify Karte können Sie Höchstbeträge festlegen, bestimmte Händler oder Arten von Käufen erlauben oder sperren. Außerdem erhalten Sie 2 % Cashback.',
+                    cta: 'Karte bestellen',
+                },
+                restrictCardSpendTitle: 'Kartenausgaben beschränken',
+                restrictCardSpendSubtitle: 'Ausgaben direkt am Verkaufsort blockieren oder begrenzen.',
+                ifAnyCardMatches: 'Wenn eine Karte übereinstimmt:',
+                thenDoThisAtPointOfSale: 'Machen Sie dann Folgendes am Verkaufspunkt:',
+                setRestrictions: 'Einschränkungen festlegen',
+                merchantRestrictions: 'Händlerbeschränkungen',
+                blockedMerchant: 'Gesperrter Händler',
+                blockedMerchantTypes: 'Gesperrte Händlertypen',
+                maxAmountAbove: ({amount}: {amount: string}) => `über ${amount}`,
                 restrictMerchants: 'Händler einschränken',
                 merchantTypes: 'Händlerarten',
                 allowedMerchants: 'Zugelassene Händler',
                 allowedMerchantTypes: 'Zulässige Händlerarten',
                 blockedMerchants: 'Blockierte Händler',
-                blockedMerchantTypes: 'Gesperrte Händlerarten',
                 currencies: 'Währungen',
                 permittedCurrencies: 'Zulässige Währungen',
                 allCurrencies: 'Alle Währungen',
@@ -7451,6 +7517,73 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 agentCreatedTitle: 'RuleBot wurde zu Ihrem Arbeitsbereich hinzugefügt!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
+            },
+            tabs: {general: 'Allgemein', cardRestrictions: 'Karteneinschränkungen', expenseDefaults: 'Standardausgaben'},
+            bulkActions: {
+                deleteMultiple: () => ({
+                    one: 'Regel löschen',
+                    other: 'Regeln löschen',
+                }),
+                deleteMultipleConfirmation: () => ({
+                    one: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
+                    other: 'Sind Sie sicher, dass Sie diese Regeln löschen möchten?',
+                }),
+            },
+            generalTab: {
+                title: 'Grundregeln',
+                subtitle: 'Allgemeine Regeln zur Ausgabenkontrolle',
+                expensesOlderThan: 'Ausgaben kennzeichnen, die älter sind als',
+                expensesAboveAmount: 'Ausgaben über Betrag kennzeichnen',
+                flagReceiptLineItems: 'Belegpositionen kennzeichnen',
+                receiptRequirements: 'Belege erforderlich',
+                receiptRequirementsSummary: ({regularAmount, itemizedAmount}: {regularAmount?: string; itemizedAmount?: string}) => {
+                    if (regularAmount && itemizedAmount) {
+                        return `Regulär über ${regularAmount}, aufgeschlüsselt über ${itemizedAmount}`;
+                    }
+                    if (regularAmount) {
+                        return `Regulär über ${regularAmount}, keine Einzelaufstellung erforderlich`;
+                    }
+                    if (itemizedAmount) {
+                        return `Nicht regelmäßig mit Einzelposten abrechnen, wenn über ${itemizedAmount}`;
+                    }
+                    return 'Belege nicht erforderlich';
+                },
+                requireFieldsForAllExpenses: 'Felder für alle Ausgaben erforderlich machen',
+                cashExpenses: 'Barzahlungsausgaben',
+                cashExpensesReimbursableByDefault: 'Standardmäßig erstattungsfähig',
+                cashExpensesNonReimbursableByDefault: 'Standardmäßig nicht erstattungsfähig',
+                cashExpensesAlwaysReimbursable: 'Immer erstattungsfähig',
+                cashExpensesAlwaysNonReimbursable: 'Immer nicht erstattungsfähig',
+                billableExpenses: 'Abrechenbare Spesen',
+                billableExpensesBillable: 'Bar auslegbar und Kreditkarte auslegbar',
+                billableExpensesNonBillable: 'Barzahlungen und Kreditkarten nicht verrechenbar',
+            },
+            requireReceipts: {
+                title: 'Belege erforderlich',
+                description: 'Belege verlangen, wenn die Ausgaben diesen Betrag überschreiten, es sei denn, eine Kategorienregel hebt dies auf.',
+                requireReceipt: 'Beleg erforderlich',
+                requireItemizedReceipt: 'Einzelne Positionen auf Beleg erforderlich',
+                requireAboveAmount: 'Obigen Betrag anfordern',
+                saveRule: 'Regel speichern',
+                emptyAmountError: 'Geben Sie vor dem Speichern einen gültigen Betrag ein',
+            },
+            requireFields: {title: 'Felder für alle Ausgaben erforderlich machen', category: 'Kategorie', tag: 'Tag', save: 'Regel speichern'},
+            newRule: {
+                title: 'Neue Regel',
+                subtitle: 'Was möchten Sie tun?',
+                restrictCardSpend: 'Kartenausgaben beschränken',
+                restrictCardSpendDescription: 'Ausgaben am Verkaufsort blockieren oder begrenzen',
+                applyExpenseDefaults: 'Standardspesen übernehmen',
+                applyExpenseDefaultsDescription: 'Felder aktualisieren, ohne dass die einreichende Person etwas tun muss',
+            },
+            expenseDefaultsTable: {
+                tableColumnType: 'Typ',
+                tableColumnCondition: 'Bedingung',
+                tableColumnRule: 'Regel',
+                findRule: 'Regel suchen',
+                rename: 'Umbenennen',
+                update: 'Aktualisieren',
+                merchantIs: (merchant: string) => `Händler ist „${merchant}“`,
             },
         },
         planTypePage: {
@@ -8036,6 +8169,22 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
+        commuterExclusions: {
+            changedToFixedDistance: 'hat das Ausschließen von Pendelstrecken in eine feste Entfernung pro Antrag geändert',
+            setFixedDistance: ({distance, unit}: {distance: number; unit: string}) => {
+                const isSingular = distance === 1;
+                let unitLabel: string;
+                if (unit === 'mi') {
+                    unitLabel = isSingular ? 'Meile' : 'Meilen';
+                } else {
+                    unitLabel = isSingular ? 'Kilometer' : 'Kilometer';
+                }
+                return `feste Distanz von ${distance} ${unitLabel} pro Antrag ausschließen`;
+            },
+            changedFixedDistance: ({newDistance, oldDistance, unit}: {newDistance: number; oldDistance: number; unit: string}) =>
+                `feste Entfernungsausschlussgrenze auf ${newDistance} ${unit} pro Antrag geändert (zuvor ${oldDistance} ${unit})`,
+            disabled: 'Ausschluss von Pendelstrecken für Distanzsätze deaktiviert',
+        },
         updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `Erstattungmethode zu „${newReimbursementChoice}“ geändert (vorher „${oldReimbursementChoice}“)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Vorabgenehmigung von Arbeitsbereich-Beitrittsanfragen`,
@@ -9632,18 +9781,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         quickAction: {
             takeATwoMinuteTestDrive: 'Mach eine 2-minütige Probefahrt',
         },
-        modal: {
-            title: 'Probier uns aus',
-            description: 'Machen Sie eine kurze Produkttour, um sich schnell zurechtzufinden.',
-            confirmText: 'Testversion starten',
-            helpText: 'Überspringen',
-            employee: {
-                description:
-                    '<muted-text>Verschaffe deinem Team <strong>3 kostenlose Monate Expensify!</strong> Gib unten einfach die E-Mail-Adresse deiner oder deines Vorgesetzten ein und sende eine Testausgabe.</muted-text>',
-                email: 'Gib die E-Mail-Adresse deiner Chefin/deines Chefs ein',
-                error: 'Dieses Mitglied besitzt einen Arbeitsbereich, bitte gib ein neues Mitglied zum Testen ein.',
-            },
-        },
         banner: {
             currentlyTestDrivingExpensify: 'Du testest Expensify gerade ausprobieren',
             readyForTheRealThing: 'Bereit für das Richtige?',
@@ -9675,6 +9812,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
+        pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
+        readyPartialBody: ({count, total}: {count: number; total: number}) =>
+            `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
+
         close: 'Close',
     },
     domain: {
