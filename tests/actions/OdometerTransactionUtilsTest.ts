@@ -421,11 +421,12 @@ describe('actions/OdometerTransactionUtils', () => {
             expect(getOdometerImageIdentity(null)).toBe('');
         });
 
-        // A non-user blob re-mint (base64 -> blob on resume/reload) keeps name + size and only changes the uri, so
-        // the identity must stay equal - this is what lets the discard guard stay silent on a re-mint
-        it('is invariant under a blob re-mint (same name + size, new uri)', () => {
-            const original = {uri: 'blob:abc', name: 'a.jpg', type: 'image/jpeg', size: 1234};
-            const reminted = {uri: 'blob:xyz', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+        // A non-user blob re-mint (base64 -> blob on resume/reload) keeps name + size + lastModified (web File objects
+        // always carry lastModified, and it is restored from the draft on re-mint) and only changes the uri, so the
+        // identity must stay equal - this is what lets the discard guard stay silent on a re-mint
+        it('is invariant under a blob re-mint (same name + size + lastModified, new uri)', () => {
+            const original = {uri: 'blob:abc', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 1000};
+            const reminted = {uri: 'blob:xyz', name: 'a.jpg', type: 'image/jpeg', size: 1234, lastModified: 1000};
             expect(getOdometerImageIdentity(reminted)).toBe(getOdometerImageIdentity(original));
         });
 
@@ -455,6 +456,15 @@ describe('actions/OdometerTransactionUtils', () => {
 
         it('uses the uri string directly for native images', () => {
             expect(getOdometerImageIdentity('file:///path/to/a.jpg')).toBe('file:///path/to/a.jpg');
+        });
+
+        // Native image objects have no lastModified, so name|size alone would collide for two different files that
+        // happen to share both. The durable file:// uri (unique per selection) disambiguates them so the discard guard
+        // still fires on the swap.
+        it('changes when a native (no lastModified) swap shares name + size but has a different uri', () => {
+            const a = {uri: 'file:///path/to/a_111.jpg', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+            const b = {uri: 'file:///path/to/a_222.jpg', name: 'a.jpg', type: 'image/jpeg', size: 1234};
+            expect(getOdometerImageIdentity(b)).not.toBe(getOdometerImageIdentity(a));
         });
     });
 });
