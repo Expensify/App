@@ -38,7 +38,7 @@ function findWorkspaceSidebarRoute(route: NavigationRouteWithState | undefined):
 
     const routes = route.state?.routes ?? [];
     for (let index = routes.length - 1; index >= 0; index--) {
-        const workspaceSidebarRoute = findWorkspaceSidebarRoute(routes[index]);
+        const workspaceSidebarRoute = findWorkspaceSidebarRoute(routes.at(index));
         if (workspaceSidebarRoute) {
             return workspaceSidebarRoute;
         }
@@ -54,7 +54,7 @@ function getActiveWorkspaceSidebarRoute(): {sidebarRoute: NavigationRouteWithSta
 
     const routes = (navigationRef.getRootState() as {routes?: NavigationRouteWithState[]}).routes ?? [];
     for (let index = routes.length - 1; index >= 0; index--) {
-        const workspaceSidebarRoute = findWorkspaceSidebarRoute(routes[index]);
+        const workspaceSidebarRoute = findWorkspaceSidebarRoute(routes.at(index));
         if (workspaceSidebarRoute) {
             return workspaceSidebarRoute;
         }

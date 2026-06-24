@@ -30,7 +30,7 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {canSendInvoice as canSendInvoicePolicyUtils, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice as canSendInvoicePolicyUtils, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
@@ -201,6 +201,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [cardFeedErrors] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS);
     const currentUserLogin = currentUserPersonalDetails.login ?? sessionEmail ?? '';
+    const activePolicyEntry = Array.isArray(activePolicy) ? undefined : activePolicy;
     const reportID = useMemo(() => generateReportID(), []);
 
     const spendContext = useMemo(
@@ -377,11 +378,8 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     ]);
 
     const allPoliciesCollection = (allPolicies ?? {}) as OnyxCollection<OnyxTypes.Policy>;
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPoliciesCollection, isBetaEnabled(CONST.BETAS.SUBMIT_2026));
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(
-        groupPoliciesWithChatEnabled as Array<OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>>,
-        activePolicy as OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    );
+    const groupPoliciesWithChatEnabled = [...getGroupPoliciesWhereReportCanBeCreated(allPoliciesCollection, isBetaEnabled(CONST.BETAS.SUBMIT_2026))];
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicyEntry);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
         onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -414,17 +412,17 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     });
 
     const canSendInvoice = canSendInvoicePolicyUtils(allPoliciesCollection, sessionEmail);
-    const isTravelVisible = !!activePolicy?.isTravelEnabled;
+    const isTravelVisible = !!activePolicyEntry?.isTravelEnabled;
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
+    const isPolicyProvisioned = activePolicyEntry?.travelSettings?.spotnanaCompanyID ?? activePolicyEntry?.travelSettings?.associatedTravelDomainAccountID;
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const shouldOpenTravelDirectly =
         !isBlockedFromSpotnanaTravel &&
         !!primaryContactMethod &&
         !Str.isSMSLogin(primaryContactMethod) &&
-        isPaidGroupPolicy(activePolicy) &&
-        (activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned));
+        isGroupPolicy(activePolicyEntry) &&
+        (activePolicyEntry?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned));
 
     const shouldShowNewWorkspaceButton = !isRestrictedPolicyCreation && Object.values(allPoliciesCollection ?? {}).every((policy) => !shouldShowPolicy(policy, !!isOffline, sessionEmail));
 
@@ -482,10 +480,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     action: () =>
                         interceptAnonymousUser(() => {
                             if (shouldOpenTravelDirectly) {
-                                openTravelDotLink(activePolicy?.id);
+                                openTravelDotLink(activePolicyEntry?.id);
                                 return;
                             }
-                            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
+                            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicyEntry?.id));
                         }),
                     keyForList: 'create_travel',
                 },
@@ -500,7 +498,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 .filter((item) => item.visible)
                 .map((item) => ({text: item.text, singleIcon: item.icon, action: item.action, keyForList: item.keyForList, matchTerms: [item.text]})),
         [
-            activePolicy?.id,
+            activePolicyEntry?.id,
             canSendInvoice,
             createReport,
             draftTransactionIDs,
@@ -539,7 +537,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             };
         };
 
-        return [...topLevelItems, ...spendItems, ...accountItems, ...workspaceItems, ...createItems].map(buildItem).filter(Boolean).slice(0, MAX_NAVIGATION_SUGGESTIONS) as SearchQueryItem[];
+        return [...topLevelItems, ...spendItems, ...accountItems, ...workspaceItems, ...createItems]
+            .map(buildItem)
+            .filter((item): item is SearchQueryItem => !!item)
+            .slice(0, MAX_NAVIGATION_SUGGESTIONS);
     }, [accountItems, createItems, query, spendItems, topLevelItems, workspaceItems]);
 }
 

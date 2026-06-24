@@ -115,7 +115,7 @@ function getWorkspaceMenuItems({
         !isEmptyObject(policy?.errorFields?.outputCurrency ?? {}) ||
         !isEmptyObject(policy?.errorFields?.address ?? {});
 
-    const policyFeatureStates = {
+    const policyFeatureStates: Partial<Record<PolicyFeatureName, boolean | undefined>> = {
         [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]: policy?.areWorkflowsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: policy?.areCategoriesEnabled,
@@ -132,7 +132,7 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
-    } as Record<PolicyFeatureName, boolean | undefined>;
+    };
 
     const items: WorkspaceMenuItem[] = [
         {
