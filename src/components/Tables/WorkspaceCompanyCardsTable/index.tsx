@@ -383,7 +383,7 @@ function WorkspaceCompanyCardsTable({
             initialSortColumn="member"
             title={translate('workspace.common.companyCards')}
             ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
-            ListEmptyComponent={<WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
+            ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
             {!shouldUseNarrowTableLayout && ListHeader}
 
