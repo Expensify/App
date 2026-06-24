@@ -65,7 +65,6 @@ type TableFilterButtonsProps = ViewProps & {
  * ```
  */
 function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButtonsProps) {
-    const styles = useThemeStyles();
     const {
         filterConfig: filterConfigs,
         activeFilters: filters,
@@ -83,10 +82,7 @@ function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButton
     }
 
     return (
-        <View
-            {...props}
-            style={styles.maxWidth100Percentage}
-        >
+        <View {...props}>
             {filterItems.map((item) => (
                 <FilterItemRenderer
                     key={item.key}
@@ -112,6 +108,7 @@ function FilterItemRenderer({item}: FilterItemRendererProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldShowResponsiveLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+
     return (
         <DropdownButton
             label={item.label}
