@@ -108,25 +108,13 @@ function getOnboardingStep(onboardingPath: string | undefined, hasCompletedOnboa
         return;
     }
 
-    if (onboardingPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route)) {
+    const normalizedOnboardingPath = onboardingPath.replace(/^\/+/, '').split('?')[0];
+
+    if (normalizedOnboardingPath === ROUTES.ONBOARDING_ACCOUNTING.route) {
         return 'accounting';
     }
 
-    const onboardingRoutes = [
-        ROUTES.ONBOARDING_ROOT.route,
-        ROUTES.ONBOARDING_WORK_EMAIL.route,
-        ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route,
-        ROUTES.ONBOARDING_PRIVATE_DOMAIN.route,
-        ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
-        ROUTES.ONBOARDING_WORKSPACES.route,
-        ROUTES.ONBOARDING_PURPOSE.route,
-        ROUTES.ONBOARDING_EMPLOYEES.route,
-        ROUTES.ONBOARDING_INTERESTED_FEATURES.route,
-        ROUTES.WORKSPACE_CONFIRMATION.route,
-        ROUTES.WORKSPACE_CURRENCY_SELECTION.route,
-    ];
-
-    if (onboardingRoutes.some((route) => onboardingPath.includes(route))) {
+    if (normalizedOnboardingPath === ROUTES.ONBOARDING_ROOT.route || normalizedOnboardingPath.startsWith(`${ROUTES.ONBOARDING_ROOT.route}/`)) {
         return 'registration';
     }
 }

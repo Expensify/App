@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import getEnvironment from './libs/Environment/getEnvironment';
 import useOnyx from './hooks/useOnyx';
+import getEnvironment from './libs/Environment/getEnvironment';
 import FS from './libs/Fullstory';
 import type {FullstoryUserVars} from './libs/Fullstory/types';
 import {buildFullstoryUserVars} from './libs/Fullstory/utils';

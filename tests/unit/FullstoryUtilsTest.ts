@@ -75,4 +75,8 @@ describe('FullstoryUtils', () => {
     it('returns completed onboarding step when flow is finished', () => {
         expect(getOnboardingStep('/settings/workspaces', true)).toBe('completed');
     });
+
+    it('does not treat unrelated paths containing onboarding as registration', () => {
+        expect(getOnboardingStep('/settings/onboarding-foo')).toBeUndefined();
+    });
 });
