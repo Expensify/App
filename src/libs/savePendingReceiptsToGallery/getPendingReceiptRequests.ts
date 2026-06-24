@@ -53,4 +53,3 @@ function getPendingReceiptRequests(): PendingReceipt[] {
 }
 
 export default getPendingReceiptRequests;
-export {RECEIPT_BEARING_COMMANDS};
