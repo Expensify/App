@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getIsP2PForAmount, getReportOrReportDraftForAmount, submitAmount} from '@pages/iou/request/step/AmountSubmission';
+import {setMoneyRequestTaxRate} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
@@ -250,6 +251,84 @@ describe('AmountSubmission', () => {
             mockSetDraftSplitTransaction.mockClear();
             mockUpdateMoneyRequestAmountAndCurrency.mockClear();
             mockSetTransactionReport.mockClear();
+            (setMoneyRequestTaxRate as jest.Mock).mockClear();
+        });
+
+        const taxPolicy: OnyxEntry<Policy> = {
+            id: 'policy-tax',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            name: 'Tax Workspace',
+            owner: 'me@test.com',
+            outputCurrency: CONST.CURRENCY.USD,
+            taxRates: {
+                name: 'Tax',
+                defaultExternalID: 'id_DEFAULT',
+                foreignTaxDefault: 'id_FOREIGN',
+                defaultValue: '5%',
+                taxes: {
+                    id_DEFAULT: {name: 'Default', value: '5%'},
+                    id_FOREIGN: {name: 'Foreign', value: '10%'},
+                    id_MANUAL: {name: 'Manual', value: '7%'},
+                },
+            },
+        } as Policy;
+
+        const buildTaxTransaction = (taxCode: string): Transaction =>
+            ({
+                transactionID: 'tx-1',
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                created: '2024-01-01',
+                merchant: 'Test',
+                reportID: 'report-100',
+                comment: {},
+                taxCode,
+            }) as Transaction;
+
+        it('applies the new currency default tax rate on create when currency changes and tax is the auto-applied default', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('id_DEFAULT'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).toHaveBeenCalledWith('tx-1', 'id_FOREIGN');
+        });
+
+        it('preserves a manually selected tax rate on create when currency changes', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('id_MANUAL'),
+                    selectedCurrency: CONST.CURRENCY.EUR,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).not.toHaveBeenCalled();
+        });
+
+        it('does not change the tax rate on create when the currency is unchanged', () => {
+            submitAmount(
+                buildBaseArgs({
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    policy: taxPolicy,
+                    transaction: buildTaxTransaction('id_DEFAULT'),
+                    selectedCurrency: CONST.CURRENCY.USD,
+                    amount: '10',
+                }),
+            );
+
+            expect(setMoneyRequestTaxRate).not.toHaveBeenCalled();
         });
 
         it('calls sendMoneyElsewhere on non-edit + skip-confirm + PAY (non-wallet)', () => {
