@@ -533,6 +533,8 @@ jobs:
       - name: Submit previous production build to 100%
         run: bundle exec fastlane ios complete_hybrid_rollout
         continue-on-error: true
+        env:
+          APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Submit production build for App Store review and a slow rollout
         run: bundle exec fastlane ios submit_hybrid_for_rollout

@@ -28,6 +28,9 @@ import useEnvironment from './useEnvironment';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import {findSplitPolicyForCustomUnit, getSplitEffectivePolicy} from './useSplitEffectivePolicy';
 
 type UseDeleteTransactionsParams = {
     /** Report object (optional, can be used for context) */
@@ -79,6 +82,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
 
@@ -152,7 +158,17 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseEditTransaction.reportID}`];
                 const selfDMReport = isSelfDM(report) ? report : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
                 const splitExpenseEditTransactionReport = transactionReport ?? selfDMReport;
-                initSplitExpense(splitExpenseEditTransaction, policy, splitExpenseEditTransactionReport, currentUserPersonalDetails.accountID, {
+                // We intentionally don't pass `searchSnapshotPolicy` here (unlike the on-page split flow in
+                // `useSplitEffectivePolicy`). This preserves the pre-refactor behavior: `initSplitExpense` resolved
+                // the policy from the report policy and the transaction's customUnit only, never from a search-results
+                // snapshot. The snapshot-aware branch lives on the split pages, where the mileage rate is rendered.
+                const splitEffectivePolicy = getSplitEffectivePolicy({
+                    policy,
+                    transaction: splitExpenseEditTransaction,
+                    policyForCustomUnit: findSplitPolicyForCustomUnit(allPolicies, splitExpenseEditTransaction),
+                    fallbackPolicy: policyForMovingExpenses,
+                });
+                initSplitExpense(splitExpenseEditTransaction, splitExpenseEditTransactionReport, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {
                     navigateToEditSplitExpense: true,
                     isProduction,
                 });
@@ -352,6 +368,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyTags,
             personalDetails,
             selfDMReportID,
+            allPolicies,
+            policyForMovingExpenses,
+            restrictedActionPolicyID,
             getSplitExpenseEditTransactionOnDelete,
             isOffline,
             isProduction,
