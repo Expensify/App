@@ -100,8 +100,9 @@ export default function useSelection<DataType extends TableData>({
         prevSelectionModeEnabledRef.current = isSelectionModeEnabled;
     }, [isSelectionModeEnabled, onRowSelectionChange]);
 
-    // When the table unmounts, clear the selection
-    useEffect(() => () => onRowSelectionChange?.([]), [onRowSelectionChange]);
+    // When the table unmounts, clear the selection. Should only run on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => () => onRowSelectionChange?.([]), []);
 
     /**
      * Clear all of the currently selected keys
