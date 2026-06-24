@@ -58,8 +58,8 @@ jest.mock('@userActions/IOU/ReportWorkflow', () => ({
 jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@libs/ReportUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ...actual,
         __esModule: true,
         hasHeldExpensesFromTransactions: jest.fn(() => false),
