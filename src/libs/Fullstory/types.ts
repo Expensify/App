@@ -53,8 +53,7 @@ type FullstoryEventPropertiesMap = {
         onb_step?: FullstoryUserVars['onb_step'];
         element_label?: string;
         checked_box?: boolean;
-        // cspell:disable-next-line
-        toggle_swith_on?: boolean;
+        toggle_switch_on?: boolean;
         result_type?: string;
         action_status?: string;
         position?: number;
