@@ -18,7 +18,7 @@ import useOnyx from './useOnyx';
 
 type UseHoldRejectActionsParams = {
     reportID: string | undefined;
-    onHoldEducationalOpen: () => void;
+    onHoldEducationalOpen: (transactionThreadReportID: string) => void;
     onRejectModalOpen: (action: RejectModalAction) => void;
 };
 
@@ -37,7 +37,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
+    const {iouTransactionID, requestParentReportAction, transactionThreadReportID} = useMoneyReportTransactionThread();
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const {chatReport: chatIOUReport} = useGetIOUReportFromReportAction(requestParentReportAction);
@@ -71,8 +71,8 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
                 if (isDismissed || isChatReportDM) {
                     changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
-                } else if (isReportSubmitter) {
-                    onHoldEducationalOpen();
+                } else if (isReportSubmitter && transactionThreadReportID) {
+                    onHoldEducationalOpen(transactionThreadReportID);
                 } else {
                     onRejectModalOpen(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
                 }

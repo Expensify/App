@@ -8,10 +8,13 @@ import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
 import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
@@ -100,7 +103,9 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const contextValue = {
         openHoldMenu,
         openPDFDownload: () => setIsPDFModalVisible(true),
-        openHoldEducational: () => educationalModalsRef.current?.openHoldEducational(),
+        openHoldEducational: (transactionThreadReportID: string) => {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.HOLD_EDUCATIONAL.getRoute(transactionThreadReportID)), {waitForTransition: true});
+        },
         openRejectModal: (action: RejectModalAction) => educationalModalsRef.current?.openRejectModal(action),
         showOfflineModal,
         showDownloadErrorModal,

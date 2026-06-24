@@ -2455,6 +2455,8 @@ type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
     [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
+    [SCREENS.DYNAMIC_HOLD_EDUCATIONAL_ROOT]: {transactionThreadReportID: string};
+    [SCREENS.DYNAMIC_HOLD_EDUCATIONAL_BULK_ROOT]: undefined;
 };
 
 type ReferralDetailsNavigatorParamList = {

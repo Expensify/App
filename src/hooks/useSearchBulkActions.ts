@@ -38,8 +38,8 @@ import {
     submitMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
-import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -83,7 +83,7 @@ import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -389,7 +389,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
     const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
     const {showConfirmModal} = useConfirmModal();
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
     > | null>(null);
@@ -1812,7 +1811,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (isDismissed) {
                         navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
                     } else if (areAllTransactionsFromSubmitter) {
-                        setIsHoldEducationalModalVisible(true);
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.HOLD_EDUCATIONAL_BULK.path), {waitForTransition: true});
                     } else {
                         setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
                     }
@@ -2100,14 +2099,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         clearSelectedTransactions();
     }, [clearSelectedTransactions]);
 
-    const dismissModalAndUpdateUseHold = useCallback(() => {
-        setIsHoldEducationalModalVisible(false);
-        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
-        if (hash && selectedTransactionsKeys.length > 0) {
-            navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
-        }
-    }, [hash, selectedTransactionsKeys.length, isOffline]);
-
     const dismissRejectModalBasedOnAction = useCallback(() => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
@@ -2144,7 +2135,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         confirmPayment: stableOnBulkPaySelected,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
-        isHoldEducationalModalVisible,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
@@ -2155,7 +2145,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         handlePdfModalHide,
         activeExportID,
         handleExportModalClose,
-        dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,

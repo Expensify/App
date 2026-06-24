@@ -1,11 +1,9 @@
-import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import React, {useImperativeHandle, useState} from 'react';
 import type {Ref} from 'react';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {changeMoneyRequestHoldStatus, rejectMoneyRequestReason} from '@libs/ReportUtils';
@@ -14,7 +12,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadContext';
 
 type RejectModalAction = ValueOf<
@@ -25,7 +22,6 @@ type RejectModalAction = ValueOf<
 >;
 
 type MoneyReportHeaderEducationalModalsHandle = {
-    openHoldEducational: () => void;
     openRejectModal: (action: RejectModalAction) => void;
 };
 
@@ -35,11 +31,9 @@ type MoneyReportHeaderEducationalModalsProps = {
 };
 
 function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEducationalModalsProps) {
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<RejectModalAction | null>(null);
 
     const {isOffline} = useNetwork();
-    const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
 
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -48,17 +42,8 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
 
     useImperativeHandle(ref, () => ({
-        openHoldEducational: () => setIsHoldEducationalModalVisible(true),
         openRejectModal: (action: RejectModalAction) => setRejectModalAction(action),
     }));
-
-    const dismissModalAndUpdateUseHold = () => {
-        setIsHoldEducationalModalVisible(false);
-        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
-        if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
-        }
-    };
 
     const dismissRejectModalBasedOnAction = () => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
@@ -89,21 +74,14 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
         setRejectModalAction(null);
     };
 
+    if (!rejectModalAction) {
+        return undefined;
+    }
     return (
-        <>
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissModalAndUpdateUseHold}
-                    onConfirm={dismissModalAndUpdateUseHold}
-                />
-            )}
-        </>
+        <HoldOrRejectEducationalModal
+            onClose={dismissRejectModalBasedOnAction}
+            onConfirm={dismissRejectModalBasedOnAction}
+        />
     );
 }
 

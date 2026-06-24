@@ -174,6 +174,15 @@ const DYNAMIC_ROUTES = {
             SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT,
         ],
     },
+    HOLD_EDUCATIONAL: {
+        path: 'hold-educational/:transactionThreadReportID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (transactionThreadReportID: string) => `hold-educational/${transactionThreadReportID}` as const,
+    },
+    HOLD_EDUCATIONAL_BULK: {
+        path: 'hold-educational-bulk',
+        entryScreens: [SCREENS.SEARCH.ROOT],
+    },
     EDIT_REPORT_FIELD: {
         path: 'edit/policyField/:policyID/:fieldID',
         entryScreens: [

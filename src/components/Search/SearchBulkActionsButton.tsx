@@ -6,7 +6,6 @@ import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -63,7 +62,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         confirmPayment,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
-        isHoldEducationalModalVisible,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
@@ -74,7 +72,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handlePdfModalHide,
         activeExportID,
         handleExportModalClose,
-        dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
@@ -268,12 +265,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
                     onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissModalAndUpdateUseHold}
-                    onConfirm={dismissModalAndUpdateUseHold}
                 />
             )}
             {!!activeExportID && (

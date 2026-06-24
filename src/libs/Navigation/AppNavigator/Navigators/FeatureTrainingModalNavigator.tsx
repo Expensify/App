@@ -1,6 +1,8 @@
 import React from 'react';
 import AutoSubmitModal from '@components/AutoSubmitModal';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import HoldSubmitterEducationalBulkModal from '@components/HoldSubmitterEducationalModal/HoldSubmitterEducationalBulkModal';
+import HoldSubmitterEducationalSingleModal from '@components/HoldSubmitterEducationalModal/HoldSubmitterEducationalSingleModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -35,6 +37,14 @@ function FeatureTrainingModalNavigator() {
                 <Stack.Screen
                     name={SCREENS.AUTO_SUBMIT_ROOT}
                     component={AutoSubmitModal}
+                />
+                <Stack.Screen
+                    name={SCREENS.DYNAMIC_HOLD_EDUCATIONAL_ROOT}
+                    component={HoldSubmitterEducationalSingleModal}
+                />
+                <Stack.Screen
+                    name={SCREENS.DYNAMIC_HOLD_EDUCATIONAL_BULK_ROOT}
+                    component={HoldSubmitterEducationalBulkModal}
                 />
             </Stack.Navigator>
         </NoDropZone>
