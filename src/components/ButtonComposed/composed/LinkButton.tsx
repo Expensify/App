@@ -55,7 +55,6 @@ function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonText
  * Like `Button`, content is composed via children using the same primitives:
  *   - `LinkButton.Icon`
  *   - `LinkButton.Text`
- *   - `LinkButton.DoubleLineText`
  *   - `LinkButton.KeyboardShortcut`
  *
  * @example
