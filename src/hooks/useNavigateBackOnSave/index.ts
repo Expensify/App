@@ -32,7 +32,12 @@ function useNavigateBackOnSave(
         }
         prevSavedRef.current = isSaved;
 
-        if (!isArmed || !isSaved || hasNavigatedThisCycleRef.current) {
+        if (!isArmed || !isSaved) {
+            return;
+        }
+        // Clear the stale arm so it can't auto-fire on the next isSaved cycle.
+        if (hasNavigatedThisCycleRef.current) {
+            setIsArmed(false);
             return;
         }
         hasNavigatedThisCycleRef.current = true;

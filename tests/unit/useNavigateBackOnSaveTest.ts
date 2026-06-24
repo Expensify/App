@@ -143,6 +143,22 @@ describe('useNavigateBackOnSave', () => {
         expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
+    it('an intra-cycle re-arm is cleared so it cannot auto-fire on the next isSaved cycle (effect clears stale `isArmed` on the hasNavigated bail)', () => {
+        const {result, rerender} = renderSave();
+        act(() => result.current.armNavigateBack());
+        rerender({isSaved: true});
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+        // Intra-cycle re-arm: the effect must clear the stale `isArmed` so it doesn't survive into the next cycle.
+        act(() => result.current.armNavigateBack());
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+        // Fresh `isSaved` false→true edge resets `hasNavigated`. Without the bail-path clear, the leftover `isArmed=true` would auto-fire here.
+        rerender({isSaved: false});
+        rerender({isSaved: true});
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
     it('snapshots `backTo` at arm time — a later prop change cannot strand the user (e.g. parent clears route.params between arm and save)', () => {
         const initial = 'settings/profile' as Route;
         const later = 'settings/wallet' as Route;

@@ -89,9 +89,34 @@ function captureTriggerForRoute(routeKey: string): void {
 // Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
 function resolveLiveRefFromRegistry(routeKey: string, identifier: string): RefObject<View | null> | null {
     const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
-    const liveRefs = Array.from(pressableRegistry.get(rawRouteKey)?.get(identifier) ?? []).filter((candidate) => candidate.current);
-    const acceptCollision = COLLISION_TOLERANT_IDENTIFIERS.has(identifier);
-    return liveRefs.length === 1 || (acceptCollision && liveRefs.length > 1) ? (liveRefs.at(0) ?? null) : null;
+    const refs = pressableRegistry.get(rawRouteKey)?.get(identifier);
+    if (!refs || refs.size === 0) {
+        return null;
+    }
+    // Fast path: single registration. Skip the Array.from + filter allocation in the common case.
+    if (refs.size === 1) {
+        const sole = refs.values().next().value;
+        return sole?.current ? sole : null;
+    }
+    // Multi-registration: a single live ref always wins; multi-live only resolves when on the collision-tolerant allowlist.
+    let firstLive: RefObject<View | null> | null = null;
+    let liveCount = 0;
+    for (const ref of refs) {
+        if (!ref.current) {
+            continue;
+        }
+        liveCount += 1;
+        if (!firstLive) {
+            firstLive = ref;
+        }
+    }
+    if (liveCount === 1) {
+        return firstLive;
+    }
+    if (liveCount > 1 && COLLISION_TOLERANT_IDENTIFIERS.has(identifier)) {
+        return firstLive;
+    }
+    return null;
 }
 
 /*

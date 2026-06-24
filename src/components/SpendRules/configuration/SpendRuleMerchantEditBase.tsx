@@ -73,10 +73,10 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
 
         if (!trimmedMerchantName) {
             if (!isNew) {
+                skipNextFocusRestore();
                 const updatedMerchantNames = merchantNames.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 const updatedMerchantMatchTypes = merchantMatchTypes.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
-                skipNextFocusRestore();
             }
             goBack();
             return;

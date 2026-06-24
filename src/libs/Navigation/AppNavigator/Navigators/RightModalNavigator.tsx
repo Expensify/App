@@ -114,9 +114,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     // Callback ref so DialogLabelProvider's observer re-attaches if Animated.View remounts across the breakpoint.
     const [containerNode, setContainerNode] = useState<View | null>(null);
-    const containerCallbackRef = useCallback((node: View | null) => {
+    const setContainerNodeFromRef = (node: View | null) => {
         setContainerNode(node);
-    }, []);
+    };
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
     const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
@@ -229,7 +229,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
                 <Animated.View
-                    ref={containerCallbackRef}
+                    ref={setContainerNodeFromRef}
                     role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
                     aria-modal={isSmallScreenWidth ? undefined : true}
                     style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}

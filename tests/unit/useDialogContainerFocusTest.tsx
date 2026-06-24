@@ -51,4 +51,15 @@ describe('useDialogContainerFocus — short-circuit order', () => {
         renderHook(() => useDialogContainerFocus(ref, false, gate, false));
         expect(gate).not.toHaveBeenCalled();
     });
+
+    it('does not schedule `runAfterTransitions` when the gate returns false (claim was already consumed by another path)', () => {
+        const ref = createRef<View>();
+        const gate = jest.fn(() => false);
+        // eslint-disable-next-line import/extensions
+        const TransitionTracker = require<{default: {runAfterTransitions: jest.Mock}}>('../../src/libs/Navigation/TransitionTracker').default;
+
+        renderHook(() => useDialogContainerFocus(ref, true, gate, false));
+        expect(gate).toHaveBeenCalledTimes(1);
+        expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
+    });
 });
