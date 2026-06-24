@@ -62,6 +62,16 @@ If you already have a verified business bank account, you can share it to anothe
 
 ---
 
+## What personal details to enter when connecting your bank account
+
+When you start setup, enter your personal details:
+
+1. **Legal name** — Enter your full legal name exactly as it appears on your ID. Entering a nickname or shortened name can cause verification to fail or be delayed.
+2. **Date of birth** and the **last four digits of your Social Security Number**.
+3. **Home address** — Must be a physical US address. PO boxes and mail drops are not accepted, so you'll need to enter a physical address before you can continue.
+
+---
+
 ## How to verify your identity with a US-issued photo ID
 
 After entering your personal details, complete identity verification:
@@ -77,7 +87,7 @@ Your ID must be issued in the US with an expiration date in the future.
 
 Provide the following company information:
 
-1. **Company address** — Must be a physical US address. PO Boxes or mail drop addresses will be flagged for review and may delay verification.
+1. **Company address** — Must be a physical US address. PO boxes and mail drops are not accepted, so you'll need to enter a physical address before you can continue.
 2. **Tax Identification Number (TIN)** — Assigned by the IRS.
 3. **Company website** — Required to access most Expensify payment features.
 4. **Industry Classification Code** — Find the list of codes at [census.gov/naics](https://www.census.gov/naics/?input=software&year=2022).
