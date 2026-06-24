@@ -42,6 +42,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
@@ -819,8 +820,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (approvedReportCount > 0) {
             playSound(SOUNDS.SUCCESS);
-            InteractionManager.runAfterInteractions(() => {
-                clearSelectedTransactions();
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    clearSelectedTransactions();
+                },
             });
         }
     }, [
