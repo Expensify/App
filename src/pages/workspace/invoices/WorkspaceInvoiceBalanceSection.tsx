@@ -26,6 +26,7 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
             titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={styles.pt5}
             subtitleMuted
+            containerStyles={{marginHorizontal: 0}}
         >
             <MenuItemWithTopDescription
                 description={translate('walletPage.balance')}

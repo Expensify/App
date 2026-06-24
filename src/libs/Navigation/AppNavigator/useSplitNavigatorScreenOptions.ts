@@ -24,7 +24,7 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
     },
 };
 
-const useSplitNavigatorScreenOptions = () => {
+const useSplitNavigatorScreenOptions = (sidebarWidth: number = variables.sideBarWithLHBWidth, shouldShowSidebarBorder = true) => {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -43,9 +43,9 @@ const useSplitNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
-                    width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
-                    marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWithLHBWidth,
-                    ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
+                    width: shouldUseNarrowLayout ? '100%' : sidebarWidth,
+                    marginLeft: shouldUseNarrowLayout ? 0 : -sidebarWidth,
+                    ...(shouldUseNarrowLayout || !shouldShowSidebarBorder ? {} : themeStyles.borderRight),
                 },
             },
         },

@@ -8,7 +8,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import {clearPendingExpenseAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +63,7 @@ function AnimatedSubmitButton({
     const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_SUBMITTED_DURATION;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);
-    const height = useSharedValue<number>(variables.componentSizeNormal);
+    const height = useSharedValue<number>(44);
     const [canShow, setCanShow] = useState(true);
     const [minWidth, setMinWidth] = useState<number>(0);
     const [isShowingLoading, setIsShowingLoading] = useState(false);
@@ -111,7 +110,7 @@ function AnimatedSubmitButton({
             setMinWidth(0);
             setCanShow(true);
             setIsShowingLoading(false);
-            height.set(variables.componentSizeNormal);
+            height.set(44);
             buttonMarginTop.set(0);
             return;
         }
@@ -164,6 +163,7 @@ function AnimatedSubmitButton({
                     exiting={buttonAnimation}
                 >
                     <Button
+                        large
                         success={success}
                         text={showLoading ? text : translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted')}
                         isLoading={showLoading}
@@ -175,6 +175,7 @@ function AnimatedSubmitButton({
             )}
             {!isAnimationRunning && (
                 <Button
+                    large
                     success={success}
                     text={text}
                     onPress={onPress}

@@ -2207,6 +2207,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [NAVIGATORS.INSIGHTS_NAVIGATOR]: {
+                    screens: {
+                        [SCREENS.INSIGHTS.ROOT]: {
+                            path: 'insights/:tab?',
+                            exact: true,
+                        },
+                    },
+                },
                 [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
                     screens: {
                         [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,

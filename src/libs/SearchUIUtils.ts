@@ -95,7 +95,6 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
-import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
 import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
@@ -106,7 +105,6 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
-import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -140,7 +138,6 @@ import {
     canDeleteMoneyRequestReport,
     canUserPerformWriteAction,
     findSelfDMReportID,
-    generateReportID,
     getIcons,
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
@@ -4472,20 +4469,14 @@ type TypeMenuSectionsParams = {
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>;
     isOffline: boolean;
     defaultExpensifyCard: CardFeedForDisplay | undefined;
-    draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
-    const {currentUserEmail, currentUserAccountID, cardFeedsByPolicy, defaultCardFeed, policies, savedSearches, isOffline, defaultExpensifyCard, draftTransactionIDs, isTrackIntentUser} =
-        params;
+    const {currentUserEmail, currentUserAccountID, cardFeedsByPolicy, defaultCardFeed, policies, savedSearches, isOffline, defaultExpensifyCard, isTrackIntentUser} = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
-    const {
-        visibility: suggestedSearchesVisibility,
-        hasGroupPoliciesWithExpenseChat,
-        shouldShowExpensifyCard,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
+    const {visibility: suggestedSearchesVisibility, shouldShowExpensifyCard} = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
@@ -4511,19 +4502,6 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                     emptyState: {
                         title: 'search.searchResults.emptySubmitResults.title',
                         subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                        buttons: hasGroupPoliciesWithExpenseChat
-                            ? [
-                                  {
-                                      success: true,
-                                      buttonText: 'report.newReport.createExpense',
-                                      buttonAction: () => {
-                                          interceptAnonymousUser(() => {
-                                              startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
-                                          });
-                                      },
-                                  },
-                              ]
-                            : [],
                     },
                 });
             }
@@ -4625,39 +4603,6 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             };
 
             typeMenuSections.push(savedSection);
-        }
-    }
-
-    // Insights section
-    {
-        const insightsSection: SearchTypeMenuSection = {
-            translationPath: 'search.tabs.insights',
-            menuItems: [],
-        };
-
-        const insightsSearchKeys = [
-            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            ...(!isTrackIntentWithWorkflowsDisabled ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
-            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-        ];
-
-        for (const key of insightsSearchKeys) {
-            if (!suggestedSearchesVisibility[key]) {
-                continue;
-            }
-
-            insightsSection.menuItems.push({
-                ...suggestedSearches[key],
-                emptyState: {
-                    title: 'search.searchResults.emptyResults.title',
-                    subtitle: 'search.searchResults.emptyResults.subtitle',
-                },
-            });
-        }
-
-        if (insightsSection.menuItems.length > 0) {
-            typeMenuSections.push(insightsSection);
         }
     }
 

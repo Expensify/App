@@ -169,6 +169,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             titleStyles={[styles.accountSettingsSectionTitle, policy?.pendingAction && styles.opacitySemiTransparent]}
             subtitleTextStyles={policy?.pendingAction ? styles.opacitySemiTransparent : undefined}
             subtitleMuted
+            containerStyles={{marginHorizontal: 0}}
         >
             {optionItems.map(({title, subtitle, shouldParseSubtitle, isActive, subMenuItems, showLockIcon, disabled, disabledAction, onToggle, pendingAction}, index) => {
                 const showBorderBottom = index !== optionItems.length - 1;

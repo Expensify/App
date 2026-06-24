@@ -129,7 +129,15 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
             onPress={onPress}
             wrapperStyle={styles.w100}
             hoverStyle={styles.hoveredComponentBG}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, styles.ph3, styles.w100, shouldShowSeparator && styles.borderBottom]}
+            style={[
+                styles.flexRow,
+                styles.alignItemsCenter,
+                styles.gap3,
+                styles.pv3,
+                styles.ph3,
+                styles.w100,
+                shouldShowSeparator && [styles.borderBottom, {borderColor: theme.borderLight}],
+            ]}
         >
             {({hovered}) => renderRowContent(hovered)}
         </PressableWithFeedback>

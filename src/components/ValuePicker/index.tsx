@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import useIsCenteredRHPModal from '@libs/Navigation/AppNavigator/useIsCenteredRHPModal';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {ValuePickerItem, ValuePickerProps} from './types';
@@ -22,7 +23,9 @@ function ValuePicker({
     addBottomSafeAreaPadding = true,
     disableKeyboardShortcuts = false,
     alternateNumberOfSupportedLines,
+    onRequestOpenInline,
 }: ValuePickerProps) {
+    const isCenteredModal = useIsCenteredRHPModal();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -42,6 +45,9 @@ function ValuePicker({
 
     const selectedItem = items?.find((item) => item.value === value);
 
+    // Inside a centered RHP modal, render the selection list inline via the parent step instead of opening a second modal.
+    const shouldRenderInline = isCenteredModal && !!onRequestOpenInline;
+
     return (
         <View>
             {shouldShowModal ? (
@@ -52,25 +58,27 @@ function ValuePicker({
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={selectedItem?.label || placeholder || ''}
                         description={label}
-                        onPress={showPickerModal}
+                        onPress={() => (shouldRenderInline ? onRequestOpenInline?.({label, items, selectedItem, onItemSelected: updateInput, shouldShowTooltips}) : showPickerModal())}
                         furtherDetails={furtherDetails}
                         brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={errorText}
                         forwardedFSClass={forwardedFSClass}
                     />
-                    <ValueSelectorModal
-                        isVisible={isPickerVisible}
-                        label={label}
-                        selectedItem={selectedItem}
-                        items={items}
-                        onClose={hidePickerModal}
-                        onItemSelected={updateInput}
-                        shouldShowTooltips={shouldShowTooltips}
-                        onBackdropPress={Navigation.dismissModal}
-                        shouldEnableKeyboardAvoidingView={false}
-                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-                        alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
-                    />
+                    {!shouldRenderInline && (
+                        <ValueSelectorModal
+                            isVisible={isPickerVisible}
+                            label={label}
+                            selectedItem={selectedItem}
+                            items={items}
+                            onClose={hidePickerModal}
+                            onItemSelected={updateInput}
+                            shouldShowTooltips={shouldShowTooltips}
+                            onBackdropPress={Navigation.dismissModal}
+                            shouldEnableKeyboardAvoidingView={false}
+                            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                            alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
+                        />
+                    )}
                 </>
             ) : (
                 <ValueSelectionList

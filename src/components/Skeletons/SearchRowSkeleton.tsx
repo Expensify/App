@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {Circle} from 'react-native-svg';
 import SkeletonRect from '@components/SkeletonRect';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getPlatform from '@libs/getPlatform';
@@ -54,6 +55,7 @@ function SearchRowSkeleton({
     shouldUseNarrowLayout: shouldUseNarrowLayoutProp,
 }: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
     // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
@@ -68,8 +70,8 @@ function SearchRowSkeleton({
             <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
                     itemViewHeight={100}
-                    itemViewStyle={[styles.highlightBG, styles.mr0]}
-                    itemContainerStyle={styles.borderBottom}
+                    itemViewStyle={[styles.appBG, styles.mr0]}
+                    itemContainerStyle={[styles.borderBottom, {borderColor: theme.borderLight}]}
                     style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
@@ -133,10 +135,10 @@ function SearchRowSkeleton({
                 fixedNumItems={fixedNumItems}
                 gradientOpacityEnabled={gradientOpacityEnabled}
                 onLayout={onLayout}
-                itemViewStyle={[styles.highlightBG, styles.mr0]}
+                itemViewStyle={[styles.appBG, styles.mr0]}
                 itemViewHeight={variables.tableRowHeight}
-                itemContainerStyle={styles.borderBottom}
-                style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
+                itemContainerStyle={[styles.borderBottom, {borderColor: theme.borderLight}]}
+                style={[styles.mh5, styles.overflowHidden]}
                 renderSkeletonItem={() => (
                     <>
                         <SkeletonRect

@@ -44,6 +44,7 @@ function SubscriptionPlan() {
         <Section
             renderTitle={renderTitle}
             isCentralPane
+            containerStyles={{marginHorizontal: 0}}
         >
             <SubscriptionPlanCard subscriptionPlan={subscriptionPlan} />
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>

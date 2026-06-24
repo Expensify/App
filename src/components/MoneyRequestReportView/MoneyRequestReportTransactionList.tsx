@@ -755,11 +755,11 @@ function MoneyRequestReportTransactionList({
           })
         : resolvedTransactions.map((transaction) => renderTransactionItem(transaction));
 
-    const narrowListWrapper = shouldUseNarrowLayout ? [styles.highlightBG, styles.tableTopRadius, styles.tableBottomRadius, styles.overflowHidden] : undefined;
+    const narrowListWrapper = shouldUseNarrowLayout ? [styles.appBG, styles.overflowHidden] : undefined;
 
     const transactionListContent = (
         <View
-            style={[listHorizontalPadding, shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
+            style={[!shouldUseNarrowLayout && listHorizontalPadding, shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
             onLayout={onLayout}
         >
             {narrowListWrapper ? <View style={narrowListWrapper}>{transactionItems}</View> : transactionItems}
@@ -782,10 +782,11 @@ function MoneyRequestReportTransactionList({
                 style={[
                     styles.dFlex,
                     styles.flexRow,
-                    !isDesktopTableLayout && styles.pl5,
-                    isDesktopTableLayout ? styles.pr11 : styles.pr16,
+                    isDesktopTableLayout ? styles.ph3 : styles.pl5,
+                    isDesktopTableLayout && styles.mh5,
+                    !isDesktopTableLayout && styles.pr16,
                     styles.alignItemsCenter,
-                    isDesktopTableLayout && [styles.highlightBG, styles.tableTopRadius, styles.mh5],
+                    isDesktopTableLayout && styles.appBG,
                     StyleUtils.getSelectedBorderBottomStyle(selectedTransactionIDs.length > 0),
                 ]}
             >
@@ -796,7 +797,7 @@ function MoneyRequestReportTransactionList({
                         styles.alignItemsCenter,
                         styles.pv2,
                         !isDesktopTableLayout && styles.pr4,
-                        StyleUtils.getPaddingLeft(variables.w12),
+                        !isDesktopTableLayout && StyleUtils.getPaddingLeft(variables.w12),
                         isDesktopTableLayout && {minHeight: variables.tableGroupRowHeight},
                     ]}
                 >

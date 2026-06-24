@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMostRecentActiveDEWApproveFailedAction} from '@libs/ReportActionsUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, ReportMetadata} from '@src/types/onyx';
@@ -79,7 +78,7 @@ function AnimatedSettlementButton({
     const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);
-    const height = useSharedValue<number>(variables.componentSizeNormal);
+    const height = useSharedValue<number>(44);
     const [canShow, setCanShow] = useState(true);
     const [minWidth, setMinWidth] = useState<number>(0);
 
@@ -94,7 +93,7 @@ function AnimatedSettlementButton({
     const finishAnimationAndReset = () => {
         setMinWidth(0);
         setCanShow(true);
-        height.set(variables.componentSizeNormal);
+        height.set(44);
         buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
         onAnimationFinish();
     };
@@ -165,6 +164,7 @@ function AnimatedSettlementButton({
                     exiting={buttonAnimation}
                 >
                     <Button
+                        large
                         text={isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}
                         isLoading={isDEWApprovalLoading}
                         success

@@ -6,6 +6,7 @@ import {PickerAvoidingView} from 'react-native-picker-select';
 import {useInputBlurActions, useInputBlurState} from '@components/InputBlurContext';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
+import GlobalNavBarHeightContext from '@components/Navigation/GlobalNavBar/GlobalNavBarHeightContext';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -65,6 +66,9 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
         shouldEnableMinHeight?: boolean;
 
+        /** Skip subtracting the global nav bar height from the KAV. Use for screens whose ScreenWrapper is rendered inside a container that already accounts for the nav bar (e.g. Home). */
+        shouldDisableGlobalNavBarHeightOffset?: boolean;
+
         /** Whether to avoid scroll on virtual viewport */
         shouldAvoidScrollOnVirtualViewport?: boolean;
 
@@ -103,6 +107,7 @@ function ScreenWrapperContainer({
     shouldEnableKeyboardAvoidingView = true,
     shouldEnableMaxHeight = false,
     shouldEnableMinHeight = false,
+    shouldDisableGlobalNavBarHeightOffset = false,
     shouldEnablePickerAvoiding = true,
     shouldDismissKeyboardBeforeClose = true,
     shouldAvoidScrollOnVirtualViewport = true,
@@ -119,8 +124,9 @@ function ScreenWrapperContainer({
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
-    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-    const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
+    const globalNavBarHeight = useContext(GlobalNavBarHeightContext);
+    const maxHeight = shouldEnableMaxHeight ? windowHeight - globalNavBarHeight : undefined;
+    const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight - globalNavBarHeight : undefined;
     const {isBlurred} = useInputBlurState();
     const {setIsBlurred} = useInputBlurActions();
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
@@ -224,7 +230,13 @@ function ScreenWrapperContainer({
                 {...keyboardDismissPanResponder.panHandlers}
             >
                 <KeyboardAvoidingView
-                    style={[styles.w100, styles.h100, !isBlurred ? {maxHeight} : undefined, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
+                    style={[
+                        styles.w100,
+                        // eslint-disable-next-line no-nested-ternary
+                        shouldDisableGlobalNavBarHeightOffset ? styles.h100 : globalNavBarHeight > 0 ? {height: `calc(100% - ${globalNavBarHeight}px)`} : styles.h100,
+                        !isBlurred ? {maxHeight} : undefined,
+                        isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {},
+                    ]}
                     behavior={keyboardAvoidingViewBehavior}
                     enabled={shouldEnableKeyboardAvoidingView}
                     // Whether the mobile offline indicator or the content in general

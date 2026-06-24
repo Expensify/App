@@ -142,6 +142,7 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
             subtitle={translate('workspace.rules.spendRules.subtitle')}
             isCentralPane
             subtitleMuted
+            containerStyles={{marginHorizontal: 0}}
         >
             {cardRules.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
                 <SearchBar

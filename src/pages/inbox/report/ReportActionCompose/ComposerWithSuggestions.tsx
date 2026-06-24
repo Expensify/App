@@ -1064,7 +1064,7 @@ function ComposerWithSuggestions({
     return (
         <>
             <View
-                style={[containerComposeStyles, styles.textInputComposeBorder]}
+                style={containerComposeStyles}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}

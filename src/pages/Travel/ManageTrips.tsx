@@ -71,6 +71,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         subtitle={translate('travel.subtitle')}
                         illustration={isReduceMotionEnabled ? illustrations.EmptyStateTravel : LottieAnimations.TripsEmptyState}
                         illustrationStyle={isReduceMotionEnabled ? [styles.mv4, {width: variables.tripsIllustrationW, height: variables.tripsIllustrationH}] : [styles.mv4]}
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.blue600}
                         titleStyles={styles.textHeadlineH1}
                         contentPaddingOnLargeScreens={styles.p5}

@@ -151,8 +151,8 @@ function ForYouSection() {
                 <BaseWidgetItem
                     key={key}
                     icon={icon}
-                    iconBackgroundColor={iconBackgroundColor ?? theme.widgetIconBG}
-                    iconFill={iconFill ?? theme.widgetIconFill}
+                    transparentIconBackground
+                    iconFill={theme.icon}
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
                     onCtaPress={handler}

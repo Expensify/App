@@ -208,6 +208,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFal
     return (
         <Section
             isCentralPane
+            containerStyles={{marginHorizontal: 0}}
             title={translate('workspace.rules.individualExpenseRules.title')}
             renderSubtitle={() => (
                 <IndividualExpenseRulesSectionSubtitle

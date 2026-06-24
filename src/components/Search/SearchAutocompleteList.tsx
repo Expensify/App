@@ -662,6 +662,7 @@ function SearchAutocompleteList({
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
+            showScrollIndicator={false}
             shouldSingleExecuteRowSelect
             ref={setListRef}
             initialScrollIndex={0}

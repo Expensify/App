@@ -16,6 +16,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,7 +35,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'ChartPie']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -45,6 +46,13 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
             return;
         }
         Navigation.navigate(ROUTES.HOME);
+    };
+
+    const navigateToInsights = () => {
+        if (selectedTab === NAVIGATION_TABS.INSIGHTS) {
+            return;
+        }
+        Navigation.navigate(ROUTES.INSIGHTS_SPEND_OVER_TIME.getRoute());
     };
 
     const navigateToSettings = () => {
@@ -69,21 +77,9 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     testID="NavigationTabBar"
                 >
                     <View style={styles.flex1}>
-                        <PressableWithFeedback
-                            role={CONST.ROLE.LINK}
-                            accessibilityLabel={translate('common.home')}
-                            accessible
-                            testID="ExpensifyLogoButton"
-                            onPress={navigateToNewDotHome}
-                            wrapperStyle={styles.leftNavigationTabBarItem}
-                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
-                        >
-                            <ImageSVG
-                                style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
-                                src={expensifyIcons.ExpensifyAppIcon}
-                                aria-hidden
-                            />
-                        </PressableWithFeedback>
+                        <View style={{height: variables.navigationTabBarSize}}>
+                            <NavigationTabBarFloatingActionButton />
+                        </View>
                         <PressableWithFeedback
                             onPress={navigateToNewDotHome}
                             role={CONST.ROLE.TAB}
@@ -108,6 +104,22 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             selectedTab={selectedTab}
                             isWideLayout
                         />
+                        <PressableWithFeedback
+                            onPress={navigateToInsights}
+                            role={CONST.ROLE.TAB}
+                            accessibilityLabel={translate('common.insights')}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                        >
+                            {({hovered}) => (
+                                <TabBarItem
+                                    icon={expensifyIcons.ChartPie}
+                                    label={translate('common.insights')}
+                                    isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                                    isHovered={hovered}
+                                />
+                            )}
+                        </PressableWithFeedback>
                         <WorkspacesTabButton
                             selectedTab={selectedTab}
                             isWideLayout
@@ -118,9 +130,21 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                             onPress={navigateToSettings}
                         />
                     </View>
-                    <View style={styles.leftNavigationTabBarFAB}>
-                        <NavigationTabBarFloatingActionButton />
-                    </View>
+                    <PressableWithFeedback
+                        role={CONST.ROLE.LINK}
+                        accessibilityLabel={translate('common.home')}
+                        accessible
+                        testID="ExpensifyLogoButton"
+                        onPress={navigateToNewDotHome}
+                        wrapperStyle={styles.leftNavigationTabBarItem}
+                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
+                    >
+                        <ImageSVG
+                            style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
+                            src={expensifyIcons.ExpensifyAppIcon}
+                            aria-hidden
+                        />
+                    </PressableWithFeedback>
                 </View>
             </>
         );
@@ -155,14 +179,23 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
+                <PressableWithFeedback
+                    onPress={navigateToInsights}
+                    role={CONST.ROLE.TAB}
+                    accessibilityLabel={translate('common.insights')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                >
+                    <TabBarItem
+                        icon={expensifyIcons.ChartPie}
+                        label={translate('common.insights')}
+                        isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                    />
+                </PressableWithFeedback>
                 <WorkspacesTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}
-                />
-                <NavigationTabBarAvatar
-                    style={styles.navigationTabBarItem}
-                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                    onPress={navigateToSettings}
                 />
             </View>
 

@@ -6569,7 +6569,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
@@ -6653,7 +6652,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -6726,7 +6724,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: true,
             });
 
@@ -6798,7 +6795,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: true,
             });
 
@@ -6855,7 +6851,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -6899,7 +6894,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -6919,7 +6913,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -6946,7 +6939,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -6973,7 +6965,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: true,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7004,7 +6995,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7049,7 +7039,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7097,7 +7086,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7140,7 +7128,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7176,7 +7163,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
@@ -7232,7 +7218,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7275,7 +7260,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7344,7 +7328,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7417,7 +7400,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7493,7 +7475,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
 
@@ -7516,7 +7497,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             })
                 .map((section) => section.menuItems)
@@ -7589,7 +7569,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));

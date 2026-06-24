@@ -8,7 +8,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -39,7 +39,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const headerIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
@@ -91,7 +90,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.rooms')}
-                    icon={illustrations.Hashtag}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
@@ -107,21 +105,22 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     )}
                 </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            success
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
-                            style={styles.w100}
-                        />
-                    </View>
-                )}
-
                 <WorkspaceRoomsTable
                     rooms={rooms}
                     highlightedReportID={highlightedReportID}
+                    headerComponent={
+                        shouldUseNarrowLayout ? (
+                            <View style={[styles.ph5, styles.pb3]}>
+                                <Button
+                                    success
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                                    icon={headerIcons.Plus}
+                                    text={translate('common.create')}
+                                    style={styles.w100}
+                                />
+                            </View>
+                        ) : undefined
+                    }
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

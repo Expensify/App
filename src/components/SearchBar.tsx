@@ -20,9 +20,12 @@ type SearchBarProps = {
     style?: StyleProp<ViewStyle>;
     shouldShowEmptyState?: boolean;
     emptyStateContainerStyle?: StyleProp<ViewStyle>;
+
+    /** When true, renders a shorter, bordered variant (matches the Spend page header search input). */
+    compact?: boolean;
 };
 
-function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
+function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle, compact = false}: SearchBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -34,9 +37,10 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
 
     return (
         <>
-            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout && !isInLandscapeMode), style]}>
+            <View style={[!compact && styles.searchBarMargin, !compact && styles.searchBarWidth(shouldUseNarrowLayout && !isInLandscapeMode), style]}>
                 <TextInput
-                    label={label}
+                    label={compact ? '' : label}
+                    placeholder={compact ? label : undefined}
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}
                     value={inputValue}
@@ -44,11 +48,13 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
                     inputMode={CONST.INPUT_MODE.TEXT}
                     selectTextOnFocus
                     spellCheck={false}
-                    icon={inputValue?.length ? undefined : (icon ?? expensifyIcons.MagnifyingGlass)}
+                    icon={compact || inputValue?.length ? undefined : (icon ?? expensifyIcons.MagnifyingGlass)}
                     iconContainerStyle={styles.p0}
                     onSubmitEditing={() => onSubmitEditing?.(inputValue)}
                     shouldShowClearButton
                     shouldHideClearButton={!inputValue?.length}
+                    touchableInputWrapperStyle={compact ? styles.searchBarCompactWrapper : undefined}
+                    inputStyle={compact ? styles.searchBarCompactInput : undefined}
                 />
             </View>
             {shouldAnnounceNoResults && (

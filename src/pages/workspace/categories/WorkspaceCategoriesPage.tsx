@@ -20,7 +20,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -88,7 +88,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
     const genericIllustration = useGenericEmptyStateIllustration();
 
     const {
@@ -651,7 +650,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                    icon={!selectionModeHeader ? illustrations.FolderOpen : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
@@ -684,32 +682,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
 
                 {!isLoading && (
-                    <>
-                        {hasVisibleCategories && (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
-                                    <ImportedFromAccountingSoftware
-                                        policyID={policyId}
-                                        currentConnectionName={currentConnectionName}
-                                        connectedIntegration={connectedIntegration}
-                                        translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
-                                    />
-                                ) : (
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                                )}
-                            </View>
-                        )}
-
-                        <WorkspaceCategoriesTable
-                            categories={categoryRows}
-                            selectionEnabled={canWriteCategories}
-                            selectedKeys={selectedCategoryKeys}
-                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
-                            shouldShowApproverColumn={shouldShowApproverColumn}
-                            onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
-                            EmptyStateComponent={emptyStateContent}
-                        />
-                    </>
+                    <WorkspaceCategoriesTable
+                        categories={categoryRows}
+                        selectionEnabled={canWriteCategories}
+                        selectedKeys={selectedCategoryKeys}
+                        shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
+                        onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
+                        EmptyStateComponent={emptyStateContent}
+                        headerComponent={hasVisibleCategories ? headerContent : undefined}
+                    />
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

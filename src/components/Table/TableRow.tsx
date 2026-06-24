@@ -100,10 +100,10 @@ export default function TableRow({
 
     const tableRowPressableStyles = [
         styles.mh5,
-        styles.highlightBG,
-        styles.userSelectNone,
-        !isFirstRow && styles.borderTop,
-        isLastRow && styles.tableBottomRadius,
+        styles.appBG,
+        interactive && styles.userSelectNone,
+        !isFirstRow && [styles.borderTop, {borderColor: theme.borderLight}],
+        isLastRow && [styles.borderBottom, {borderColor: theme.borderLight}],
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
@@ -115,7 +115,6 @@ export default function TableRow({
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         animatedHighlightStyle,
-        isLastRow && styles.tableBottomRadius,
     ];
 
     const tableRowContentStyles = [

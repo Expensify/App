@@ -40,6 +40,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
 
+    /** Whether to show the vertical scroll indicator */
+    showScrollIndicator?: boolean;
+
     /** Custom content to display in the header of list component. */
     customListHeaderContent?: React.JSX.Element | null;
 

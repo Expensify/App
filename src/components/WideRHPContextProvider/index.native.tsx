@@ -7,15 +7,11 @@ import {defaultWideRHPActionsContextValue, defaultWideRHPStateContextValue} from
 import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
 
 const secondOverlayWideRHPProgress = new Animated.Value(0);
-const secondOverlayRHPOnWideRHPProgress = new Animated.Value(0);
-const secondOverlayRHPOnSuperWideRHPProgress = new Animated.Value(0);
-const thirdOverlayProgress = new Animated.Value(0);
 
 const animatedReceiptPaneRHPWidth = new Animated.Value(0);
 const animatedWideRHPWidth = new Animated.Value(0);
 const animatedSuperWideRHPWidth = new Animated.Value(0);
 
-const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(0);
 const modalStackOverlayWideRHPPositionLeft = new Animated.Value(0);
 
 const expandedRHPProgress = new Animated.Value(0);
@@ -45,12 +41,8 @@ export {
     animatedSuperWideRHPWidth,
     animatedWideRHPWidth,
     expandedRHPProgress,
-    modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayRHPOnSuperWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
     secondOverlayWideRHPProgress,
-    thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
 };

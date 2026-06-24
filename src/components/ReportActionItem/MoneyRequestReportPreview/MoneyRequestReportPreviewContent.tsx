@@ -641,8 +641,8 @@ function MoneyRequestReportPreviewContent({
                         style={[
                             styles.flexRow,
                             styles.justifyContentBetween,
-                            StyleUtils.getBackgroundColorStyle(theme.cardBG),
-                            shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                            StyleUtils.getBackgroundColorStyle(theme.appBG),
+                            styles.borderedContentCardLarge,
                             isReportDeleted && styles.pointerEventsNone,
                         ]}
                         role={getButtonRole(true)}
@@ -652,7 +652,7 @@ function MoneyRequestReportPreviewContent({
                     >
                         <View
                             style={[
-                                StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                                StyleUtils.getBackgroundColorStyle(theme.appBG),
                                 styles.reportContainerBorderRadius,
                                 styles.w100,
                                 (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
@@ -666,7 +666,7 @@ function MoneyRequestReportPreviewContent({
                                                 <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                     <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                         <Text
-                                                            style={[styles.headerText]}
+                                                            style={[styles.headerText, styles.textStrong]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
                                                             {getReportName(iouReport, reportAttributes) || action.childReportName}

@@ -70,6 +70,9 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         shouldUseCustomBackdrop?: boolean;
 
+        /** Force the standard backdrop to render even when the modal type would normally suppress it (e.g. POPOVER). */
+        shouldForceBackdrop?: boolean;
+
         /** Unique id for the modal */
         modalId?: number;
 

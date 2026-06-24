@@ -71,9 +71,11 @@ function PolicyDistanceRatesPage({
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteDistanceRates, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
+    const canSelectMultiple = canWriteDistanceRates && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const {asset: CarIce} = useMemoizedLazyAsset(() => loadIllustration('CarIce' as IllustrationName));
     const genericIllustration = useGenericEmptyStateIllustration();
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
+    const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit?.rates]);
 
     const selectableRates = useMemo(
@@ -268,16 +270,16 @@ function PolicyDistanceRatesPage({
 
     const dismissErrorByID = useCallback(
         (rateID: string) => {
-            if (!customUnit?.customUnitID) {
+            if (!customUnitID) {
                 return;
             }
             if (customUnitRates[rateID]?.errors) {
-                clearDeleteDistanceRateError(policyID, customUnit.customUnitID, rateID);
+                clearDeleteDistanceRateError(policyID, customUnitID, rateID);
                 return;
             }
-            clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, rateID);
+            clearCreateDistanceRateItemAndError(policyID, customUnitID, rateID);
         },
-        [customUnit?.customUnitID, customUnitRates, policyID],
+        [customUnitID, customUnitRates, policyID],
     );
 
     const openRateDetailsByID = useCallback(
@@ -477,7 +479,6 @@ function PolicyDistanceRatesPage({
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
-                    icon={!selectionModeHeader ? CarIce : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -502,20 +503,20 @@ function PolicyDistanceRatesPage({
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {ratesData.length > 0 && (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                            </View>
-                        )}
-                        <WorkspaceDistanceRatesTable
-                            ratesData={ratesData}
-                            selectionEnabled={canWriteDistanceRates}
-                            selectedKeys={selectedDistanceRates}
-                            onRowSelectionChange={setSelectedDistanceRates}
-                            EmptyStateComponent={emptyStateContent}
-                        />
-                    </>
+                    <WorkspaceDistanceRatesTable
+                        ratesData={ratesData}
+                        selectionEnabled={canWriteDistanceRates}
+                        selectedKeys={selectedDistanceRates}
+                        onRowSelectionChange={setSelectedDistanceRates}
+                        EmptyStateComponent={emptyStateContent}
+                        headerComponent={
+                            ratesData.length > 0 ? (
+                                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                                </View>
+                            ) : undefined
+                        }
+                    />
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

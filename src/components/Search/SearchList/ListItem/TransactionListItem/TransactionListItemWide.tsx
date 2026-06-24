@@ -126,7 +126,7 @@ function TransactionListItemWide<TItem extends ListItem>({
 
     const pressableStyle = [
         styles.transactionListItemStyle,
-        isSelected && styles.activeComponentBG,
+        isSelected && styles.searchRowSelectedBG,
         {
             ...styles.flexRow,
             ...styles.justifyContentBetween,
@@ -139,7 +139,7 @@ function TransactionListItemWide<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isSelected ? theme.searchRowSelectedBG : theme.appBG,
         shouldApplyOtherStyles: false,
     });
 
@@ -155,17 +155,17 @@ function TransactionListItemWide<TItem extends ListItem>({
                 isNested
                 onMouseDown={handleOnMouseDown}
                 onHoverIn={handleOnHoverIn}
-                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && {backgroundColor: theme.hoverLight}, isSelected && styles.searchRowSelectedBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.searchRowSelectedBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
+                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -192,7 +192,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionColumnWide={transactionItem.isActionColumnWide}
                         shouldShowCheckbox={!!canSelectMultiple}
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                        style={[styles.p3, styles.pv2, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
+                        style={[styles.p3, styles.pv2, styles.noBorderRadius]}
                         violations={transactionViolations}
                         onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                         isHover={hovered}

@@ -90,8 +90,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                 styles.pv2,
                 styles.ph3,
                 styles.mh5,
-                styles.highlightBG,
+                styles.appBG,
                 styles.borderBottom,
+                {borderColor: theme.borderLight},
                 styles.tableTopRadius,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
                 styles.dFlex,

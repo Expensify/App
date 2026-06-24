@@ -100,7 +100,7 @@ function ApprovalWorkflowSection({
     return (
         <View
             accessibilityLabel={accessibilityLabel}
-            style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3]}
+            style={[styles.borderedContentCard, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.mt6, styles.mbn3]}
         >
             <View style={[styles.flex1]}>
                 {approvalWorkflow.isDefault && (

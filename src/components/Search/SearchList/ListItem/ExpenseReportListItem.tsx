@@ -301,10 +301,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         () => [
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth && styles.pv3,
-            isLargeScreenWidth && styles.ph3,
+            isLargeScreenWidth ? styles.ph3 : styles.ph5,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
-            isSelected && styles.activeComponentBG,
+            isSelected && styles.searchRowSelectedBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
             isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
@@ -327,7 +327,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isSelected ? theme.searchRowSelectedBG : theme.appBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -381,7 +381,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>
+                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textSupporting]}>
                     {translate('reportViolations.reportContainsExpensesWithViolations')}
                 </Text>
             </View>
@@ -417,15 +417,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
-            hoverStyle={isSelected && styles.activeComponentBG}
+            hoverStyle={isSelected && styles.searchRowSelectedBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                isLargeScreenWidth && styles.mh5,
                 animatedHighlightStyle,
                 isPendingDelete && styles.cursorDisabled,
-                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
-                !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
-                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
+                !isLargeScreenWidth && StyleUtils.getSelectedBorderBottomStyle(isSelected),
             ]}
             accessible={false}
             shouldShowRightCaret={false}

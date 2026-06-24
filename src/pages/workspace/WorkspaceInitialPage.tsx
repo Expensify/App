@@ -53,6 +53,7 @@ import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -498,6 +499,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
                 />
 
                 <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14]}>
@@ -522,6 +524,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     interactive={!hasPolicyCreationError}
                                     title={translate(item.translationKey)}
                                     icon={item.icon}
+                                    iconWidth={variables.iconSizeSmall}
+                                    iconHeight={variables.iconSizeSmall}
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}

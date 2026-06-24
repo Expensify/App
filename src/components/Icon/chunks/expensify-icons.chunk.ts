@@ -194,6 +194,7 @@ import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
+import ChartPie from '@assets/images/piechart.svg';
 import Pin from '@assets/images/pin.svg';
 import PlaneCircleSlash from '@assets/images/plane-circle-slash.svg';
 import Plane from '@assets/images/plane.svg';
@@ -380,6 +381,7 @@ const Expensicons = {
     FreezeCard,
     Fullscreen,
     Folder,
+    ChartPie,
     Tag,
     MultiTag,
     Coins,

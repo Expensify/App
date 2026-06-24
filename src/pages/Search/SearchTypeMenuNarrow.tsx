@@ -55,7 +55,7 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
     return (
         <View
             ref={containerRef}
-            style={[styles.appBG]}
+            style={[styles.appBG, styles.pt1]}
         >
             <TabSelectorContextProvider activeTabKey={activeTabKey}>
                 <TabSelectorBase

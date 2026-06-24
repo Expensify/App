@@ -256,7 +256,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Any additional styles to apply to the subtitle */
         subtitleStyle?: StyleProp<ViewStyle>;
 
-        /** Should the title show with normal font weight (not bold) */
+        /** Whether the title renders with normal weight. Defaults to true; pass false to opt into bold. */
         shouldShowBasicTitle?: boolean;
 
         /** Should we truncate the title */
@@ -300,6 +300,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Should we remove the hover background color of the menu item */
         shouldRemoveHoverBackground?: boolean;
+
+        /** Use sidebar selection palette: hoverComponentBG for focused/selected, cardBG for hover */
+        shouldUseSidebarSelectionStyle?: boolean;
 
         rightIconAccountID?: number | string;
 
@@ -539,7 +542,7 @@ function MenuItem({
     titleContainerStyle,
     subtitle,
     subtitleStyle,
-    shouldShowBasicTitle,
+    shouldShowBasicTitle = true,
     rightLabelIcon,
     label,
     shouldTruncateTitle = false,
@@ -561,6 +564,7 @@ function MenuItem({
     shouldGreyOutWhenDisabled = true,
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
+    shouldUseSidebarSelectionStyle = false,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -673,7 +677,9 @@ function MenuItem({
             styles.flexShrink1,
             styles.popoverMenuText,
             iconLeftPadding,
-            shouldShowBasicTitle ? {} : styles.textStrong,
+            shouldShowBasicTitle || (shouldUseSidebarSelectionStyle && !focused) ? {} : styles.textStrong,
+            // eslint-disable-next-line no-nested-ternary
+            focused ? styles.textStrong : shouldUseSidebarSelectionStyle ? {color: theme.textSupporting} : {},
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
@@ -876,6 +882,8 @@ function MenuItem({
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        shouldUseSidebarSelectionStyle && focused && {backgroundColor: theme.hoverComponentBG},
+                                        shouldUseSidebarSelectionStyle && isHovered && !focused && !pressed && interactive && {backgroundColor: theme.hoverLight},
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}

@@ -8,6 +8,7 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -35,6 +36,8 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
+    const firstName = useCurrentUserPersonalDetails()?.firstName?.trim();
+    const breadcrumbLabel = !shouldUseNarrowLayout && firstName ? `Welcome, ${firstName}` : translate('common.home');
 
     // This hook signals that the app is ready to be opened after HomePage mounts
     // to make sure everything loads properly
@@ -51,20 +54,38 @@ function HomePage() {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="HomePage"
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
+                    shouldDisableGlobalNavBarHeightOffset
                     bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
                     bottomContentStyle={styles.overflowVisible}
                 >
-                    <TopBar
-                        breadcrumbLabel={translate('common.home')}
-                        shouldShowLoadingBar={isForYouLoading}
-                        shouldDisplayHelpButton
-                    />
+                    {shouldUseNarrowLayout && (
+                        <TopBar
+                            breadcrumbLabel={breadcrumbLabel}
+                            shouldShowLoadingBar={isForYouLoading}
+                            shouldDisplayHelpButton
+                            shouldRemoveHorizontalMargin
+                            shouldDisplayAccountAvatar
+                        />
+                    )}
                     <ScrollView
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                     >
-                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
+                        {!shouldUseNarrowLayout && (
+                            <TopBar
+                                breadcrumbLabel={breadcrumbLabel}
+                                shouldShowLoadingBar={isForYouLoading}
+                                shouldDisplayHelpButton
+                                shouldRemoveHorizontalMargin
+                                shouldDisplayAccountAvatar
+                            />
+                        )}
+                        {!shouldUseNarrowLayout && (
+                            <View style={styles.homePageCenteredContent}>
+                                <QuickCreationActionsBar />
+                            </View>
+                        )}
+                        <View style={[styles.homePageCenteredContent, styles.homePageMainLayout(shouldUseNarrowLayout)]}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                             {shouldUseNarrowLayout ? (
                                 <>

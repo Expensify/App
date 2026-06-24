@@ -15,7 +15,9 @@ type ThemeColors = {
     highlightBG: Color;
     messageHighlightBG: Color;
     border: Color;
+    borderLight: Color;
     borderLighter: Color;
+    hoverLight: Color;
     borderFocus: Color;
     icon: Color;
     iconMenu: Color;
@@ -37,6 +39,8 @@ type ThemeColors = {
     buttonHoveredBG: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
+    buttonSecondarySuccessBG: Color;
+    buttonSecondarySuccessHoveredBG: Color;
     buttonDangerText: Color;
     danger: Color;
     dangerHover: Color;
@@ -57,6 +61,7 @@ type ThemeColors = {
     componentBG: Color;
     hoverComponentBG: Color;
     activeComponentBG: Color;
+    searchRowSelectedBG: Color;
     signInSidebar: Color;
     sidebar: Color;
     sidebarHover: Color;
@@ -110,6 +115,8 @@ type ThemeColors = {
     trialBannerBackgroundColor: Color;
     widgetIconBG: Color;
     widgetIconFill: Color;
+    widgetIconUrgentBG: Color;
+    widgetIconUrgentFill: Color;
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;

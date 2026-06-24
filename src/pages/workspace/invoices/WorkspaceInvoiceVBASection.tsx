@@ -256,6 +256,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             isCentralPane
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
+            containerStyles={{marginHorizontal: 0}}
         >
             <PaymentMethodList
                 onPress={onBankAccountRowPressed}

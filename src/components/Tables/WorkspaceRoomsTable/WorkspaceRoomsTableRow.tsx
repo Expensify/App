@@ -85,7 +85,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                             <Icon
                                 src={icons.ArrowRight}
                                 fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                additionalStyles={[styles.alignSelfCenter]}
                                 width={variables.iconSizeNormal}
                                 height={variables.iconSizeNormal}
                             />
@@ -117,7 +117,7 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                                 <Icon
                                     src={icons.ArrowRight}
                                     fill={theme.icon}
-                                    additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                    additionalStyles={[styles.alignSelfCenter]}
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                 />

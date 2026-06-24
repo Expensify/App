@@ -77,6 +77,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDisableHoverStyle,
     selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
+    showScrollIndicator = true,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -332,7 +333,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         triggerScrollEvent();
                     }}
                     indicatorStyle="white"
-                    showsVerticalScrollIndicator
+                    showsVerticalScrollIndicator={showScrollIndicator}
                     keyboardShouldPersistTaps="always"
                     ListHeaderComponent={customListHeaderContent}
                     ListFooterComponent={listFooterContent}

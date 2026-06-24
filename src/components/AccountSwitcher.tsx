@@ -242,19 +242,19 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             source={currentUserPersonalDetails?.avatar}
                             fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                         />
-                        <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
+                        <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, {gap: 2}]}>
                             <View style={[styles.flexRow, styles.gap1]}>
                                 {doesDisplayNameContainEmojis ? (
                                     <Text numberOfLines={1}>
                                         <TextWithEmojiFragment
                                             message={displayName}
-                                            style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                            style={[styles.textBold, styles.fontSizeNormal, styles.flexShrink1, styles.lineHeightXLarge]}
                                         />
                                     </Text>
                                 ) : (
                                     <Text
                                         numberOfLines={1}
-                                        style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                        style={[styles.textBold, styles.fontSizeNormal, styles.flexShrink1, styles.lineHeightXLarge]}
                                     >
                                         {formatPhoneNumber(displayName)}
                                     </Text>

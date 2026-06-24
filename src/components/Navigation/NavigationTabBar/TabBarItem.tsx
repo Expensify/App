@@ -13,6 +13,7 @@ type TabBarItemProps = {
     isSelected: boolean;
     isHovered?: boolean;
     statusIndicatorColor?: string;
+    statusIndicatorBorderColor?: string;
     numberOfLines?: number;
 };
 
@@ -26,7 +27,7 @@ function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<
     return theme.icon;
 }
 
-function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2}: TabBarItemProps) {
+function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, statusIndicatorBorderColor, numberOfLines = 2}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -40,7 +41,14 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                     height={variables.iconBottomBar}
                 />
                 {!!statusIndicatorColor && (
-                    <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
+                    <View
+                        style={[
+                            styles.navigationTabBarStatusIndicator,
+                            styles.statusIndicatorColor(statusIndicatorColor),
+                            !!statusIndicatorBorderColor && {borderColor: statusIndicatorBorderColor},
+                            isHovered && {borderColor: theme.sidebarHover},
+                        ]}
+                    />
                 )}
             </View>
             <Text

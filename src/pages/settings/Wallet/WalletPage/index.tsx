@@ -47,6 +47,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
+import variables from '@styles/variables';
 import {
     deletePaymentBankAccount,
     openPersonalBankAccountSetupView,
@@ -92,7 +93,9 @@ function WalletPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
@@ -133,7 +136,10 @@ function WalletPage() {
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
     const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
-    const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', shouldShowLoadingSpinner};
+    const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WalletPage',
+        shouldShowLoadingSpinner,
+    };
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -231,10 +237,16 @@ function WalletPage() {
             return;
         }
         if (accountPolicyID) {
-            navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
+            navigateToBankAccountRoute({
+                policyID: accountPolicyID,
+                backTo: ROUTES.SETTINGS_WALLET,
+            });
             return;
         }
-        navigateToBankAccountRoute({bankAccountID, backTo: ROUTES.SETTINGS_WALLET});
+        navigateToBankAccountRoute({
+            bankAccountID,
+            backTo: ROUTES.SETTINGS_WALLET,
+        });
     };
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
@@ -379,7 +391,13 @@ function WalletPage() {
 
         if (result.action === ModalActions.CONFIRM) {
             const savedColumnLayout = savedColumnLayouts?.[selectedCard.cardID];
-            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports, savedColumnLayout});
+            deletePersonalCard({
+                cardID: selectedCard.cardID,
+                card: selectedCard,
+                allTransactions,
+                allReports,
+                savedColumnLayout,
+            });
         }
         setSelectedCard(undefined);
     }, [selectedCard, showConfirmModal, translate, allTransactions, allReports, savedColumnLayouts]);
@@ -431,14 +449,21 @@ function WalletPage() {
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
-        <HeaderWithBackButton
-            title={translate('common.wallet')}
-            icon={illustrations.MoneyIntoWallet}
-            shouldUseHeadlineHeader
-            shouldShowBackButton={shouldUseNarrowLayout}
-            shouldDisplaySearchRouter
-            shouldDisplayHelpButton
-        />
+        <View
+            style={{
+                width: '100%',
+                maxWidth: variables.cardMaxWidth,
+                alignSelf: 'center',
+            }}
+        >
+            <HeaderWithBackButton
+                title={translate('common.wallet')}
+                shouldUseHeadlineHeader
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+            />
+        </View>
     );
 
     const bottomMountItem = useMemo(
@@ -660,7 +685,10 @@ function WalletPage() {
     }, [bottomMountItem, confirmDeleteCard, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'WalletPage',
+            isLoadingApp: !!isLoadingApp,
+        };
         return (
             <ScreenWrapper
                 testID="WalletPage"
@@ -684,7 +712,18 @@ function WalletPage() {
         >
             {headerWithBackButton}
             <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                        {
+                            width: '100%',
+                            maxWidth: variables.cardMaxWidth,
+                            alignSelf: 'center',
+                            paddingHorizontal: 20,
+                        },
+                    ]}
+                >
                     <OfflineWithFeedback
                         style={styles.flex1}
                         contentContainerStyle={styles.flex1}
@@ -700,6 +739,7 @@ function WalletPage() {
                             titleStyles={styles.accountSettingsSectionTitle}
                             illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                             illustrationBackgroundColor="#411103"
+                            containerStyles={{marginHorizontal: 0}}
                             {...walletIllustration}
                         >
                             <PaymentMethodList
@@ -709,6 +749,7 @@ function WalletPage() {
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
+                                shouldShowBasicTitle
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
@@ -719,11 +760,13 @@ function WalletPage() {
                             isCentralPane
                             subtitleMuted
                             titleStyles={styles.accountSettingsSectionTitle}
+                            containerStyles={{marginHorizontal: 0}}
                         >
                             <>
                                 <PaymentMethodList
                                     shouldShowAddBankAccount={false}
                                     shouldShowAssignedCards
+                                    shouldShowBasicTitle
                                     onPress={assignedCardPressed}
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
@@ -736,6 +779,7 @@ function WalletPage() {
                                         icon={icons.Plus}
                                         wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
+                                        shouldShowBasicTitle
                                     />
                                 </View>
                             </>
@@ -747,6 +791,7 @@ function WalletPage() {
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
                                     wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
+                                    shouldShowBasicTitle
                                 />
                             </View>
                             {!hasAssignedCard && (
@@ -760,7 +805,7 @@ function WalletPage() {
                                         wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                                         title={translate('personalCard.lookingForCompanyCards')}
                                         description={translate('personalCard.lookingForCompanyCardsDescription')}
-                                        titleStyle={styles.textStrong}
+                                        shouldShowBasicTitle
                                         onPress={openCompanyCardFlow}
                                     />
                                 </View>
@@ -774,6 +819,7 @@ function WalletPage() {
                                 subtitleMuted
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={shouldShowLoadingSpinner ? styles.mt7 : styles.mt5}
+                                containerStyles={{marginHorizontal: 0}}
                             >
                                 <>
                                     {shouldShowLoadingSpinner && (
@@ -839,6 +885,7 @@ function WalletPage() {
                                                             shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
                                                         ]}
                                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_BALANCE}
+                                                        shouldShowBasicTitle
                                                     />
                                                 );
                                             }
@@ -892,6 +939,7 @@ function WalletPage() {
                                                         shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
                                                     ]}
                                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
+                                                    shouldShowBasicTitle
                                                 />
                                             );
                                         }}

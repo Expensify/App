@@ -139,6 +139,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
     return (
         <Section
             isCentralPane
+            containerStyles={{marginHorizontal: 0}}
             renderTitle={renderTitle}
             subtitle={translate('workspace.rules.merchantRules.subtitle')}
             subtitleMuted

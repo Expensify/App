@@ -67,6 +67,9 @@ type PaymentMethodListItemProps = {
 
     /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
+
+    /** Render the MenuItem title with normal weight rather than bold */
+    shouldShowBasicTitle?: boolean;
 };
 
 function dismissError(item: PaymentMethodItem) {
@@ -110,7 +113,7 @@ function isAccountNeedingAction(account: PaymentMethodItem) {
     return isAccountInSetupState(account) || !!account.isMissingPersonalInfo;
 }
 
-function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
+function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle, shouldShowBasicTitle = false}: PaymentMethodListItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'FreezeCard', 'QuestionMark']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -242,6 +245,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 interactive={item.interactive}
                 brickRoadIndicator={item.brickRoadIndicator}
                 success={item.isMethodActive}
+                shouldShowBasicTitle={shouldShowBasicTitle}
             />
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>

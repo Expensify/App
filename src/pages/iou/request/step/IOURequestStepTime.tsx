@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -7,6 +7,8 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import TimeModalPicker from '@components/TimeModalPicker';
+import type {InlineTimePickerConfig} from '@components/TimeModalPicker';
+import TimePicker from '@components/TimePicker/TimePicker';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -63,6 +65,8 @@ function IOURequestStepTime({
     });
 
     const {translate} = useLocalize();
+    // When set (centered RHP modal), the time picker is rendered inline here over the still-mounted form instead of in a second modal.
+    const [activeTimePicker, setActiveTimePicker] = useState<InlineTimePickerConfig | null>(null);
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
@@ -151,54 +155,74 @@ function IOURequestStepTime({
         );
     }
 
+    const headerTitle = activeTimePicker?.label ?? (backTo ? translate('iou.time') : tabTitles[iouType]);
+
     return (
+        // While editing a time field inside a centered RHP modal, the picker renders over the (still-mounted) form so onInputChange stays valid.
         <StepScreenWrapper
-            headerTitle={backTo ? translate('iou.time') : tabTitles[iouType]}
-            onBackButtonPress={navigateBack}
+            headerTitle={headerTitle}
+            onBackButtonPress={activeTimePicker ? () => setActiveTimePicker(null) : navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
             testID="IOURequestStepTime"
             includeSafeAreaPaddingBottom
         >
-            <FormProvider
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM}
-                validate={validate}
-                onSubmit={updateTime}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <InputWrapper
-                    InputComponent={DatePicker}
-                    inputID={INPUT_IDS.START_DATE}
-                    label={translate('iou.startDate')}
-                    defaultValue={currentStartDate}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                />
-                <View style={[styles.mt2, styles.mhn5]}>
+            <View style={[styles.flex1, styles.pRelative]}>
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM}
+                    validate={validate}
+                    onSubmit={updateTime}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
                     <InputWrapper
-                        InputComponent={TimeModalPicker}
-                        inputID={INPUT_IDS.START_TIME}
-                        label={translate('iou.startTime')}
-                        defaultValue={currentDateAttributes?.start}
+                        InputComponent={DatePicker}
+                        inputID={INPUT_IDS.START_DATE}
+                        label={translate('iou.startDate')}
+                        defaultValue={currentStartDate}
+                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     />
-                </View>
-                <InputWrapper
-                    InputComponent={DatePicker}
-                    inputID={INPUT_IDS.END_DATE}
-                    label={translate('iou.endDate')}
-                    defaultValue={currentEndDate}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                />
-                <View style={[styles.mt2, styles.mhn5]}>
+                    <View style={[styles.mt2, styles.mhn5]}>
+                        <InputWrapper
+                            InputComponent={TimeModalPicker}
+                            inputID={INPUT_IDS.START_TIME}
+                            label={translate('iou.startTime')}
+                            defaultValue={currentDateAttributes?.start}
+                            onRequestOpenInline={setActiveTimePicker}
+                        />
+                    </View>
                     <InputWrapper
-                        InputComponent={TimeModalPicker}
-                        inputID={INPUT_IDS.END_TIME}
-                        label={translate('iou.endTime')}
-                        defaultValue={currentDateAttributes?.end}
+                        InputComponent={DatePicker}
+                        inputID={INPUT_IDS.END_DATE}
+                        label={translate('iou.endDate')}
+                        defaultValue={currentEndDate}
+                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     />
-                </View>
-            </FormProvider>
+                    <View style={[styles.mt2, styles.mhn5]}>
+                        <InputWrapper
+                            InputComponent={TimeModalPicker}
+                            inputID={INPUT_IDS.END_TIME}
+                            label={translate('iou.endTime')}
+                            defaultValue={currentDateAttributes?.end}
+                            onRequestOpenInline={setActiveTimePicker}
+                        />
+                    </View>
+                </FormProvider>
+                {!!activeTimePicker && (
+                    // Overlay the picker on the still-mounted form so its onInputChange stays valid.
+                    <View style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.b0, styles.appBG]}>
+                        <TimePicker
+                            defaultValue={activeTimePicker.value}
+                            onSubmit={(time) => {
+                                activeTimePicker.onSubmit(time);
+                                setActiveTimePicker(null);
+                            }}
+                            shouldValidateFutureTime={false}
+                        />
+                    </View>
+                )}
+            </View>
         </StepScreenWrapper>
     );
 }

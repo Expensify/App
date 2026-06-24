@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -6,6 +6,7 @@ import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
+import GlobalNavBarHeightContext from '@components/Navigation/GlobalNavBar/GlobalNavBarHeightContext';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -87,6 +88,7 @@ function HeaderWithBackButton({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isGlobalNavBarVisible = useContext(GlobalNavBarHeightContext) > 0;
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -148,7 +150,7 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.topBarLabel]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
                 isScreenHeader
@@ -168,7 +170,7 @@ function HeaderWithBackButton({
         styles.headerProgressBar,
         styles.headerProgressBarContainer,
         styles.headerProgressBarFill,
-        styles.textHeadlineH2,
+        styles.topBarLabel,
         subtitle,
         title,
         titleColor,
@@ -279,7 +281,8 @@ function HeaderWithBackButton({
                 )}
                 {!!policyAvatar && (
                     <Avatar
-                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        size={CONST.AVATAR_SIZE.SMALL}
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)), styles.mr3]}
                         source={policyAvatar?.source}
                         name={policyAvatar?.name}
                         avatarID={policyAvatar?.id}
@@ -365,8 +368,8 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
-                {shouldDisplaySearchRouter && <SearchButton />}
-                {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplaySearchRouter && !isGlobalNavBarVisible && <SearchButton />}
+                {shouldDisplayHelpButton && !isGlobalNavBarVisible && <SidePanelButton />}
             </View>
         </View>
     );

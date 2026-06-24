@@ -131,7 +131,6 @@ function AgentsPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
-                icon={illustrations.AiBot}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldUseHeadlineHeader

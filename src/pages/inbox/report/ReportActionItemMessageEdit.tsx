@@ -408,7 +408,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                         onCancel={deleteDraft}
                         style={[styles.justifyContentEnd, styles.mb1]}
                     />
-                    <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
+                    <View style={StyleUtils.getContainerComposeStyles()}>
                         <Composer
                             multiline
                             ref={(el) => {

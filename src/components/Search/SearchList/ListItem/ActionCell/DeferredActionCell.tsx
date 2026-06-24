@@ -28,7 +28,7 @@ function DeferredActionCell(actionCellProps: DeferredActionCellProps) {
         return (
             <Button
                 text={text}
-                small={!actionCellProps.extraSmall}
+                medium={!actionCellProps.extraSmall}
                 extraSmall={actionCellProps.extraSmall}
                 style={[styles.w100, styles.pointerEventsNone]}
                 isDisabled

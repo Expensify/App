@@ -113,7 +113,7 @@ function TransactionItemRow({
         transactionThreadReportIDProp ?? (reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined);
     const transactionAttendees = useAttendees(transactionItem);
 
-    const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
+    const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.searchRowSelectedBG : EMPTY_ACTIVE_STYLE;
     const merchant = getMerchantName(transactionItem, translate);
 
     const getMissingFieldError = () => {

@@ -68,7 +68,7 @@ function FreeTrialSection() {
     return (
         <WidgetContainer
             title={title}
-            containerStyles={{backgroundColor: theme.trialBannerBackgroundColor}}
+            containerStyles={{backgroundColor: theme.trialBannerBackgroundColor, borderColor: theme.trialBannerBackgroundColor}}
         >
             <PressableWithoutFeedback
                 accessibilityLabel={bodyText}
@@ -89,7 +89,7 @@ function FreeTrialSection() {
                     <Button
                         text={ctaText}
                         onPress={onCtaPress}
-                        small
+                        medium
                         style={styles.widgetItemButton}
                         success
                     />

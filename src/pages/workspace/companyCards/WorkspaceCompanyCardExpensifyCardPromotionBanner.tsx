@@ -65,7 +65,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
     }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, onReadOnlyAction]);
 
     return (
-        <View style={[styles.ph4, styles.mb4]}>
+        <View style={[styles.mb4]}>
             <BillingBanner
                 icon={illustrations.CreditCardsNewGreen}
                 title={translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}

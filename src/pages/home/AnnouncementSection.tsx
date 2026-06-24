@@ -1,6 +1,6 @@
+import {format, parseISO} from 'date-fns';
 import React from 'react';
 import {Linking} from 'react-native';
-import DateIcon from '@components/DateIcon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import WidgetContainer from '@components/WidgetContainer';
 import useLocalize from '@hooks/useLocalize';
@@ -30,12 +30,10 @@ function AnnouncementSection() {
             {announcements.map((announcement) => (
                 <MenuItemWithTopDescription
                     key={announcement.title}
-                    description={announcement.subtitle}
+                    description={`${format(parseISO(announcement.publishedDate), 'MMM d')} ${CONST.DOT_SEPARATOR} ${announcement.subtitle}`}
                     title={announcement.title}
-                    titleStyle={styles.textBold}
                     onPress={() => Linking.openURL(announcement.url)}
                     shouldShowRightIcon
-                    leftComponent={<DateIcon date={announcement.publishedDate} />}
                     wrapperStyle={[styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                     hasSubMenuItems
                     viewMode={CONST.OPTION_MODE.COMPACT}

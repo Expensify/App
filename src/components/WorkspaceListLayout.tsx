@@ -1,4 +1,3 @@
-import type {PropsWithChildren} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -7,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -16,10 +16,11 @@ import OfflineIndicator from './OfflineIndicator';
 import ScreenWrapper from './ScreenWrapper';
 import TabSelectorBase from './TabSelector/TabSelectorBase';
 
-type WorkspaceListLayoutProps = PropsWithChildren<{
+type WorkspaceListLayoutProps = {
+    children: React.ReactNode | ((headerComponent: React.ReactElement) => React.ReactNode);
     headerButton?: React.ReactNode;
     activeTabKey: 'workspaces' | 'domains';
-}>;
+};
 
 export default function WorkspaceListLayout({children, activeTabKey, headerButton}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
@@ -60,10 +61,41 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
         Navigation.navigate(matchingNavigationOption.route);
     };
 
+    const shouldRenderHeaderInTable = typeof children === 'function';
+    const renderHeaderContent = (shouldShowHeaderButton: boolean) => (
+        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+            <TabSelectorBase
+                tabs={navigationOptions}
+                activeTabKey={activeTabKey}
+                onTabPress={onTabPress}
+            />
+            {shouldShowHeaderButton && headerButton}
+        </View>
+    );
+    const renderHeader = (shouldShowHeaderButton: boolean) => {
+        if (shouldRenderHeaderInTable) {
+            return null;
+        }
+
+        return renderHeaderContent(shouldShowHeaderButton);
+    };
+    const headerComponent = renderHeaderContent(true);
+    let content: React.ReactNode = (
+        <>
+            {renderHeader(shouldDisplayButtonsInSeparateLine)}
+            {children}
+        </>
+    );
+
+    if (shouldRenderHeaderInTable) {
+        content = (children as (headerComponent: React.ReactElement) => React.ReactNode)(headerComponent);
+    }
+
     return (
         <ScreenWrapper
             testID={testID}
             shouldEnableMaxHeight
+            shouldDisableGlobalNavBarHeightOffset
             shouldEnablePickerAvoiding={false}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContentStyle={styles.overflowVisible}
@@ -74,21 +106,15 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
                     <TopBarWithLoadingBar
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
+                        shouldRemoveHorizontalMargin
                     >
-                        <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>
+                        {!shouldRenderHeaderInTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
                     </TopBarWithLoadingBar>
 
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
-                        <TabSelectorBase
-                            tabs={navigationOptions}
-                            activeTabKey={activeTabKey}
-                            onTabPress={onTabPress}
-                        />
-                        {shouldDisplayButtonsInSeparateLine && headerButton}
+                    <View style={[styles.flex1, {width: '100%', maxWidth: variables.contentMaxWidth, alignSelf: 'center'}]}>
+                        {content}
+                        {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
                     </View>
-
-                    {children}
-                    {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
                 </View>
             </View>
         </ScreenWrapper>

@@ -19,7 +19,7 @@ const loadDomainGroupsPage = () => require<ReactComponentModule>('../../../../pa
 const Split = createSplitNavigator<DomainSplitNavigatorParamList>();
 
 function DomainSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR>) {
-    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(undefined, false);
     const styles = useThemeStyles();
 
     return (

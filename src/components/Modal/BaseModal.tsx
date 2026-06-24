@@ -68,6 +68,7 @@ function BaseModal({
     shouldApplySidePanelOffset: shouldApplySidePanelOffsetProp,
     hasBackdrop,
     backdropOpacity,
+    shouldForceBackdrop = false,
     shouldDisableBottomSafeAreaPadding = false,
     shouldIgnoreBackHandlerDuringTransition = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
@@ -285,7 +286,7 @@ function BaseModal({
     const isFullWidthNarrowSheet =
         (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
     const backdropOpacityAdjusted =
-        hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
+        !shouldForceBackdrop && (hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet) // right_docked modals and full-width narrow sheets shouldn't add a backdrop behind them
             ? 0
             : backdropOpacity;
 

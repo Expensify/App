@@ -162,6 +162,7 @@ modules/*/lib/
 
 # Claude local settings
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # Playwright
 .playwright-output/

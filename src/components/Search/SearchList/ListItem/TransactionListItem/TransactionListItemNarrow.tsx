@@ -60,13 +60,20 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         onSelectRow(item, transactionPreviewData, event);
     };
 
-    const pressableStyle = [styles.transactionListItemStyle, styles.p4, styles.noBorderRadius, isSelected && styles.activeComponentBG, {...styles.flexColumn, ...styles.alignItemsStretch}];
+    const pressableStyle = [
+        styles.transactionListItemStyle,
+        styles.ph5,
+        styles.pv4,
+        styles.noBorderRadius,
+        isSelected && styles.searchRowSelectedBG,
+        {...styles.flexColumn, ...styles.alignItemsStretch},
+    ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isSelected ? theme.searchRowSelectedBG : theme.appBG,
         shouldApplyOtherStyles: true,
     });
 
@@ -80,25 +87,17 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && {backgroundColor: theme.hoverLight}, isSelected && styles.searchRowSelectedBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.searchRowSelectedBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[
-                    styles.mh5,
-                    styles.flex1,
-                    animatedHighlightStyle,
-                    styles.userSelectNone,
-                    isFirstItem && styles.tableTopRadius,
-                    isLastItem && styles.tableBottomRadius,
-                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
-                ]}
+                wrapperStyle={[styles.flex1, animatedHighlightStyle, styles.userSelectNone, StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
             >
                 {() => (
                     <>

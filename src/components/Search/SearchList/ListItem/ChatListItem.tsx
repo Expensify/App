@@ -40,7 +40,7 @@ function ChatListItem<TItem extends ListItem>({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: theme.appBG,
     });
     const pressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -49,7 +49,7 @@ function ChatListItem<TItem extends ListItem>({
         styles.overflowHidden,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
-        isSelected && styles.activeComponentBG,
+        isSelected && styles.searchRowSelectedBG,
         styles.mh0,
         item.cursorStyle,
     ];
@@ -76,7 +76,7 @@ function ChatListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            hoverStyle={isSelected && styles.activeComponentBG}
+            hoverStyle={isSelected && styles.searchRowSelectedBG}
             forwardedFSClass={fsClass}
         >
             <ReportActionItem

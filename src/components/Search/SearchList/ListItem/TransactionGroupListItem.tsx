@@ -219,7 +219,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isItemSelected ? theme.searchRowSelectedBG : theme.appBG,
         shouldApplyOtherStyles: false,
     });
 
@@ -229,9 +229,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ...styles.tableRowHeight,
             borderRadius: 0,
             paddingVertical: variables.tableGroupRowPaddingVertical,
-            ...(isLastItem ? styles.tableBottomRadius : {}),
         },
-        isItemSelected && styles.activeComponentBG,
+        isItemSelected && styles.searchRowSelectedBG,
     ];
     const pressableRef = useRef<View>(null);
 
@@ -543,26 +542,20 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                hoverStyle={[!isExpanded && !item.isDisabled && {backgroundColor: theme.hoverLight}, isItemSelected && styles.searchRowSelectedBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.searchRowSelectedBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    styles.mh5,
+                    isLargeScreenWidth && styles.mh5,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth
-                        ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
-                        : [
-                              isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
-                              isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                              !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
-                          ],
+                    isLargeScreenWidth ? StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected) : StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
                 ]}
             >
                 {({hovered}) => (
@@ -571,7 +564,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             isExpanded={isExpanded}
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
-                            expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
+                            expandButtonStyle={isLargeScreenWidth ? [styles.pv2, styles.pr5] : styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
                             borderBottomStyle={isLargeScreenWidth ? styles.borderNone : isItemSelected && {borderColor: theme.buttonHoveredBG}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}

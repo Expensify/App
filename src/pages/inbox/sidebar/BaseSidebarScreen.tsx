@@ -57,6 +57,7 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
+                        shouldDisplayAccountAvatar
                     />
                     {!shouldShowSkeleton && <InboxTabSelector />}
                     <View style={[styles.flex1]}>

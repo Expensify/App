@@ -85,13 +85,14 @@ function MoneyRequestReportGroupHeader({
         ? [
               {minHeight: variables.tableGroupRowHeight},
               styles.justifyContentCenter,
-              styles.highlightBG,
+              styles.appBG,
               styles.pv2,
               styles.ph3,
               styles.borderBottom,
+              {borderColor: theme.borderLight},
               isSelected && {borderColor: theme.buttonHoveredBG},
           ]
-        : [styles.ph4, styles.pv3, styles.borderBottom];
+        : [styles.appBG, styles.ph5, styles.pv3, styles.borderBottom, {borderColor: theme.borderLight}];
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>

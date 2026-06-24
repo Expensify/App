@@ -668,7 +668,7 @@ function TransactionItemRowWide({
             </View>
             {!!shouldShowBottomBorder && (
                 <View style={bgActiveStyles}>
-                    <View style={styles.ph3}>
+                    <View style={styles.ph5}>
                         <View style={[StyleUtils.getSelectedBorderBottomStyle(isSelected)]} />
                     </View>
                 </View>

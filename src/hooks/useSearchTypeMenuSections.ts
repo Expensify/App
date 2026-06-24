@@ -1,5 +1,4 @@
 import {defaultExpensifyCardSelector} from '@selectors/Card';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
@@ -66,7 +65,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
@@ -109,7 +107,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
-                draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
             }),
         [
@@ -121,7 +118,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             allPolicies,
             savedSearches,
             isOffline,
-            draftTransactionIDs,
             isTrackIntentUser,
         ],
     );

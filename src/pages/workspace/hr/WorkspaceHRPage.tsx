@@ -9,7 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
@@ -50,7 +50,6 @@ function WorkspaceHRPage({
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
-    const illustrations = useMemoizedLazyIllustrations(['NewUser']);
     const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number} | undefined>();
     const {showConfirmModal} = useConfirmModal();
 
@@ -128,15 +127,22 @@ function WorkspaceHRPage({
                         onDone={() => setActiveHRFlow(undefined)}
                     />
                 )}
-                <HeaderWithBackButton
-                    icon={illustrations.NewUser}
-                    title={translate('workspace.hr.title')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                    <HeaderWithBackButton
+                        title={translate('workspace.hr.title')}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldUseHeadlineHeader
+                        onBackButtonPress={() => Navigation.goBack()}
+                    />
+                </View>
                 <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <View
+                        style={[
+                            styles.flex1,
+                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                            {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                        ]}
+                    >
                         <Section
                             title={translate('workspace.hr.connections')}
                             subtitle={translate('workspace.hr.connectionsSubtitle')}
@@ -144,6 +150,7 @@ function WorkspaceHRPage({
                             subtitleMuted
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
+                            containerStyles={{marginHorizontal: 0}}
                         >
                             <View>
                                 {connectedCards.map((card) => (

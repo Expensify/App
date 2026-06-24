@@ -64,6 +64,9 @@ type FeatureListProps = {
     /** Whether the button should be disabled */
     isButtonDisabled?: boolean;
 
+    /** Override styles for the outer Section container (e.g. to zero out marginHorizontal). */
+    containerStyles?: StyleProp<ViewStyle>;
+
     /** Additional styles to apply to the CTA button inner container */
     buttonInnerStyles?: StyleProp<ViewStyle>;
 
@@ -89,6 +92,7 @@ function FeatureList({
     buttonInnerStyles,
     buttonHoverStyles,
     renderSubtitle,
+    containerStyles,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -106,6 +110,7 @@ function FeatureList({
             illustrationContainerStyle={illustrationContainerStyle}
             contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
             renderSubtitle={renderSubtitle}
+            containerStyles={containerStyles}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>

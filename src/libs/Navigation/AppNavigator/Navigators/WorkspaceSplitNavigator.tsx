@@ -40,7 +40,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
 function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
-    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(undefined, false);
     const styles = useThemeStyles();
 
     return (

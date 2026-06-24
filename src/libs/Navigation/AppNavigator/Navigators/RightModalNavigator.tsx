@@ -3,18 +3,10 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {
-    animatedWideRHPWidth,
-    expandedRHPProgress,
-    secondOverlayRHPOnSuperWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
-    secondOverlayWideRHPProgress,
-    thirdOverlayProgress,
-    useWideRHPActions,
-    useWideRHPState,
-} from '@components/WideRHPContextProvider';
+import {animatedWideRHPWidth, expandedRHPProgress, secondOverlayWideRHPProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,6 +16,8 @@ import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
+import useCenteredRHPModalState from '@libs/Navigation/AppNavigator/useCenteredRHPModalState';
+import useCenteredRHPModalStyle from '@libs/Navigation/AppNavigator/useCenteredRHPModalStyle';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
@@ -68,7 +62,7 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
 }
 
 function SecondaryOverlay() {
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
+    const {shouldRenderSecondaryOverlayForWideRHP} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
 
     if (shouldRenderSecondaryOverlayForWideRHP) {
@@ -81,26 +75,7 @@ function SecondaryOverlay() {
         );
     }
 
-    if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                onPress={Navigation.dismissToPreviousRHP}
-            />
-        );
-    }
-
-    if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                onPress={Navigation.dismissToSuperWideRHP}
-            />
-        );
-    }
-
+    // Small RHPs over a wide/super-wide pane are centered modals with their own dim (see ModalStackNavigators), so no docked secondary overlay here.
     return null;
 }
 
@@ -114,12 +89,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const containerRef = useRef(null);
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
-    const {sidePanelOffset} = useSidePanelState();
 
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
     // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
@@ -151,6 +125,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             width: shouldUseNarrowLayout ? '100%' : animatedWidth,
         } as const;
     }, [animatedWidth, shouldUseNarrowLayout]);
+
+    // Render "small" RHPs (everything except the wide/super-wide expense & report panes) as a centered modal on wide layout.
+    const {isCenteredModal, hasWidePane, isFocusedOverWidePane} = useCenteredRHPModalState();
+    const centeredModalStyle = useCenteredRHPModalStyle();
+
+    let containerLayoutStyle: StyleProp<ViewStyle> = [styles.r0, styles.h100, animatedWidthStyle];
+    if (isFocusedOverWidePane) {
+        // Small RHP floating above a wide/super-wide pane: full-viewport container so the centered card isn't clipped.
+        containerLayoutStyle = [styles.t0, styles.l0, styles.r0, styles.b0];
+    } else if (isCenteredModal && !hasWidePane) {
+        // Standalone small RHP (no wide pane in the stack): the container itself is the centered box.
+        containerLayoutStyle = centeredModalStyle;
+    }
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
 
@@ -215,6 +202,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
+                {/* The original RHP dim, kept mounted even while a centered modal (with its own dim on top) is open, so closing the modal never blinks this one. */}
                 {!shouldUseNarrowLayout && (
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
@@ -227,7 +215,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     ref={containerRef}
                     role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
                     aria-modal={isSmallScreenWidth ? undefined : true}
-                    style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                    pointerEvents={isFocusedOverWidePane ? 'box-none' : undefined}
+                    style={[styles.pAbsolute, styles.overflowHidden, containerLayoutStyle]}
                 >
                     <DialogLabelProvider containerRef={containerRef}>
                         <Stack.Navigator
@@ -473,13 +462,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {/* Clicking on these overlays redirects you to the RHP screen below them. */}
                 {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
                 {!shouldUseNarrowLayout && <SecondaryOverlay />}
-                {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
-                    <Overlay
-                        progress={thirdOverlayProgress}
-                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                        onPress={Navigation.dismissToPreviousRHP}
-                    />
-                )}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

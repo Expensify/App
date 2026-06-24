@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {MenuData} from './InitialSettingsPage';
 
@@ -50,6 +51,8 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             title={keyTitle}
             icon={item.icon}
             iconType={item.iconType}
+            iconWidth={variables.iconSizeSmall}
+            iconHeight={variables.iconSizeSmall}
             disabled={isExecuting}
             onPress={onPress}
             iconStyles={item.iconStyles}
@@ -72,6 +75,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             iconRight={item.iconRight}
             shouldShowRightIcon={item.shouldShowRightIcon}
             shouldIconUseAutoWidthStyle
+            shouldUseSidebarSelectionStyle
         />
     );
 }

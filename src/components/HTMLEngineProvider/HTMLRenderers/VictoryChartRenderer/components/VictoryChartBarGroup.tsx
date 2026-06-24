@@ -37,7 +37,6 @@ function VictoryChartBarGroup({tnode, isHorizontal}: VictoryChartBarGroupProps) 
             withinGroupPadding={BAR_INNER_PADDING}
             roundedCorners={roundedCorners}
             barWidth={barWidth}
-            isHorizontal={isHorizontal}
         >
             {barChildren.map((child) => {
                 const yKey = getYKey(child);

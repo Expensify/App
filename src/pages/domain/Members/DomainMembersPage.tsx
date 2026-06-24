@@ -358,7 +358,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 getCustomListHeader={getCustomListHeader}
                 searchPlaceholder={translate('domain.members.findMember')}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
-                headerIcon={illustrations.Profile}
                 getCustomRowProps={getCustomRowProps}
                 headerContent={getHeaderButtons()}
                 selectedMembers={selectedMembers}

@@ -2980,8 +2980,13 @@ type TabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
+    [NAVIGATORS.INSIGHTS_NAVIGATOR]: NavigatorScreenParams<InsightsNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
+};
+
+type InsightsNavigatorParamList = {
+    [SCREENS.INSIGHTS.ROOT]: {tab?: string};
 };
 
 type SharedScreensParamList = {
@@ -3327,7 +3332,13 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof NAVIGATORS.TAB_NAVIGATOR | typeof SCREENS.HOME | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
+type FullScreenName =
+    | SplitNavigatorName
+    | SearchFullscreenNavigatorName
+    | typeof NAVIGATORS.TAB_NAVIGATOR
+    | typeof SCREENS.HOME
+    | typeof NAVIGATORS.WORKSPACE_NAVIGATOR
+    | typeof NAVIGATORS.INSIGHTS_NAVIGATOR;
 
 type WorkspaceNavigatorRouteName = keyof WorkspaceNavigatorParamList;
 
@@ -3392,6 +3403,7 @@ export type {
     SearchReportActionsParamList,
     SearchSavedSearchParamList,
     SearchFullscreenNavigatorParamList,
+    InsightsNavigatorParamList,
     SettingsNavigatorParamList,
     SettingsSplitNavigatorParamList,
     SignInNavigatorParamList,

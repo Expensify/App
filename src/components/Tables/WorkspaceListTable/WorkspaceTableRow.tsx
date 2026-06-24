@@ -127,7 +127,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                 onClose: item.dismissError,
             }}
         >
-            {({hovered}) => (
+            {() => (
                 <>
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
@@ -165,7 +165,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                             <Icon
                                 src={icons.ArrowRight}
                                 fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                additionalStyles={[styles.alignSelfCenter]}
                                 width={variables.iconSizeNormal}
                                 height={variables.iconSizeNormal}
                             />
@@ -223,7 +223,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 <Icon
                                     src={icons.ArrowRight}
                                     fill={theme.icon}
-                                    additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                    additionalStyles={[styles.alignSelfCenter]}
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                 />

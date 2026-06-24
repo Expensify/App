@@ -31,6 +31,7 @@ function HighlightableMenuItem({wrapperStyle, highlighted, ...restOfProps}: Prop
             {...restOfProps}
             outerWrapperStyle={animatedHighlightStyle}
             wrapperStyle={wrapperStyle}
+            shouldUseSidebarSelectionStyle
         />
     );
 }

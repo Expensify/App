@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -140,6 +141,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     title={domainName}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
                 />
 
                 <ScrollView contentContainerStyle={styles.flexColumn}>
@@ -154,6 +156,8 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 disabled={isExecuting}
                                 title={translate(item.translationKey)}
                                 icon={item.icon}
+                                iconWidth={variables.iconSizeSmall}
+                                iconHeight={variables.iconSizeSmall}
                                 onPress={item.action}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}

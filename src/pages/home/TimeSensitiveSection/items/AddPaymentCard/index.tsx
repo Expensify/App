@@ -13,8 +13,8 @@ function AddPaymentCard() {
     return (
         <BaseWidgetItem
             icon={icons.CreditCard}
-            iconBackgroundColor={theme.widgetIconBG}
-            iconFill={theme.widgetIconFill}
+            transparentIconBackground
+            iconFill={theme.icon}
             title={translate('homePage.timeSensitiveSection.addPaymentCard.title')}
             subtitle={translate('homePage.timeSensitiveSection.addPaymentCard.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addPaymentCard.cta')}

@@ -40,7 +40,7 @@ type WorkspaceExpensifyCardPageEmptyStateProps = {
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
-    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration']);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'ExpensifyCardIllustration']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -123,13 +123,13 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            icon={illustrations.HandCard}
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
             policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
             addBottomSafeAreaPadding
+            shouldCenterContent
         >
             <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
                 <FeatureList
@@ -164,7 +164,9 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
+                    illustrationContainerStyle={{marginTop: 12, marginHorizontal: 12, borderRadius: 8, overflow: 'hidden', width: 'auto', alignSelf: 'stretch'}}
                     titleStyles={styles.textHeadlineH1}
+                    containerStyles={{marginHorizontal: 0}}
                     buttonInnerStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
                     buttonHoverStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
                 />

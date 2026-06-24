@@ -720,7 +720,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             height: variables.bottomTabHeight,
             borderTopWidth: 1,
-            borderTopColor: theme.border,
+            borderTopColor: theme.borderLight,
             backgroundColor: theme.appBG,
         },
 
@@ -751,9 +751,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             width: variables.navigationTabBarSize,
             justifyContent: 'space-between',
-            borderRightWidth: 1,
-            borderRightColor: theme.border,
-            backgroundColor: theme.appBG,
+            backgroundColor: theme.hoverLight,
         },
 
         leftNavigationTabBarItem: {
@@ -813,7 +811,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeSmall,
             minWidth: variables.componentSizeSmall,
-            paddingHorizontal: 12,
+            paddingHorizontal: 10,
             backgroundColor: theme.buttonDefaultBG,
         },
 
@@ -827,16 +825,16 @@ const staticStyles = (theme: ThemeColors) =>
 
         buttonMedium: {
             borderRadius: variables.buttonBorderRadius,
-            minHeight: variables.componentSizeNormal,
-            minWidth: variables.componentSizeNormal,
-            paddingHorizontal: 16,
+            minHeight: 32,
+            minWidth: 32,
+            paddingHorizontal: 12,
             backgroundColor: theme.buttonDefaultBG,
         },
 
         buttonLarge: {
             borderRadius: variables.buttonBorderRadius,
-            minHeight: variables.componentSizeLarge,
-            minWidth: variables.componentSizeLarge,
+            minHeight: 44,
+            minWidth: 44,
             paddingHorizontal: 20,
             backgroundColor: theme.buttonDefaultBG,
         },
@@ -986,11 +984,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         hoveredComponentBG: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
         },
 
         activeComponentBG: {
             backgroundColor: theme.activeComponentBG,
+        },
+
+        searchRowSelectedBG: {
+            backgroundColor: theme.searchRowSelectedBG,
         },
 
         messagesRowHeight: {
@@ -1764,8 +1766,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
-            borderRightWidth: 1,
-            borderColor: theme.border,
             overflow: 'hidden',
         },
 
@@ -1849,6 +1849,7 @@ const staticStyles = (theme: ThemeColors) =>
         topBarLabel: {
             color: theme.text,
             fontSize: variables.fontSizeXLarge,
+            lineHeight: 28,
             ...headlineFont,
         },
 
@@ -2098,7 +2099,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyDomainListStaticIllustrationStyle: {
             width: 274,
-            height: 178,
+            height: 164,
         },
 
         appContent: {
@@ -2239,7 +2240,7 @@ const staticStyles = (theme: ThemeColors) =>
         chatItemComposeBox: {
             backgroundColor: theme.componentBG,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusRounded,
+            borderRadius: variables.componentBorderRadius,
             minHeight: variables.componentSizeMedium,
         },
 
@@ -2329,11 +2330,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 5,
             ...flex.flexRow,
             flex: 1,
-        },
-
-        textInputComposeBorder: {
-            borderLeftWidth: 1,
-            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -2640,6 +2636,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadius,
         },
 
+        searchTableWrapper: {
+            overflow: 'hidden',
+        },
+
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },
@@ -2672,7 +2672,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderRight: {
             borderRightWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
         },
 
         borderLeft: {
@@ -2957,8 +2957,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -2983,13 +2981,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderedContentCard: {
             borderWidth: 1,
-            borderColor: theme.border,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.borderLight,
+            borderRadius: variables.componentBorderRadiusLarge,
         },
 
         borderedContentCardLarge: {
             borderWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
@@ -3285,7 +3283,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBox: {
-            backgroundColor: theme.cardBG,
+            backgroundColor: theme.appBG,
             borderRadius: variables.componentBorderRadiusLarge,
             maxWidth: variables.reportPreviewMaxWidth,
             width: '100%',
@@ -3394,7 +3392,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         smallEditIconWorkspace: {
-            borderColor: theme.cardBG,
+            borderColor: theme.appBG,
         },
 
         smallEditIconAccount: {
@@ -3569,7 +3567,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchRouterTextInputContainer: {
-            borderRadius: variables.componentBorderRadiusSmall,
+            borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
             borderBottomWidth: 1,
             paddingHorizontal: 8,
@@ -3615,11 +3613,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchListHeaderTableStyle: {
-            backgroundColor: theme.highlightBG,
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            backgroundColor: theme.appBG,
             borderBottomWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
             minHeight: 36,
             paddingBottom: 8,
         },
@@ -3836,7 +3832,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
         },
 
         receiptsSubmitButtonLandscape: {
@@ -3851,7 +3847,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
         },
 
         isDraggingOver: {
@@ -3859,8 +3855,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         cardSectionContainer: {
-            backgroundColor: theme.cardBG,
+            backgroundColor: theme.appBG,
             borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -3869,8 +3867,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetContainer: {
-            backgroundColor: theme.cardBG,
+            backgroundColor: theme.appBG,
             borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
             overflow: 'hidden',
         },
 
@@ -3886,7 +3886,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.text,
@@ -3927,15 +3927,9 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
-        quickCreationActionsBarButtonText: {
-            fontSize: variables.fontSizeSmall,
-            lineHeight: 14,
-        },
-
         homePageContentContainer: {
             flexGrow: 1,
             paddingTop: 0,
-            paddingHorizontal: 20,
             paddingBottom: 20,
         },
 
@@ -3946,6 +3940,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionIllustrationContainer: {
             height: variables.sectionIllustrationHeight,
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: 8,
+            overflow: 'hidden',
+            width: 'auto',
+            alignSelf: 'stretch',
         },
 
         twoFAIllustration: {
@@ -4518,8 +4518,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         purposeMenuItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: 8,
-            paddingHorizontal: 8,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
+            paddingLeft: 8,
+            paddingRight: 20,
             alignItems: 'center',
             marginBottom: 8,
         },
@@ -4608,7 +4611,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         reportPreviewBoxHoverBorder: {
             borderColor: theme.cardBG,
-            backgroundColor: theme.cardBG,
+            backgroundColor: theme.appBG,
         },
 
         reportPreviewBoxHoverBorderColor: {
@@ -4766,7 +4769,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         profilePageAvatar: {
-            borderColor: theme.highlightBG,
+            borderColor: theme.appBG,
         },
 
         settlementButtonListContainer: {
@@ -4829,7 +4832,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestAttachReceiptThumbnail: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
             borderWidth: 0,
             width: '100%',
         },
@@ -5206,9 +5209,7 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        workspaceSection: {
-            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
-        },
+        workspaceSection: {},
 
         workspaceSectionMobile: {
             width: '100%',
@@ -5216,8 +5217,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         workspaceSectionMoreFeaturesItem: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.appBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
             paddingHorizontal: 16,
             paddingVertical: 20,
             minWidth: 350,
@@ -5230,7 +5233,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
             paddingHorizontal: 16,
             paddingVertical: 20,
             flexGrow: 1,
@@ -5241,7 +5246,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         onboardingInterestedFeaturesItem: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
             padding: 16,
             display: 'flex',
             flexDirection: 'row',
@@ -5913,7 +5920,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         thumbnailImageContainerHover: {
-            backgroundColor: theme.hoverComponentBG,
+            backgroundColor: theme.hoverLight,
         },
 
         thumbnailImageContainerHighlight: {
@@ -5956,6 +5963,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: animatedWideRHPWidth,
+            overflow: 'hidden',
         },
 
         superWideRHPExtendedCardInterpolatorStyles: {
@@ -5963,6 +5971,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: animatedSuperWideRHPWidth,
+            overflow: 'hidden',
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
@@ -5970,6 +5979,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: variables.sideBarWidth,
+            overflow: 'hidden',
         },
 
         flexibleHeight: {
@@ -5986,7 +5996,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedReceiptPaneRHPWidth,
             height: '100%',
             borderRightWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
         },
 
         wideRHPDropZoneContainer: {
@@ -6100,6 +6110,14 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             marginBottom: 20,
         },
+        searchBarCompactWrapper: {
+            height: variables.searchBarCompactHeight,
+            width: variables.searchBarCompactWidth,
+        },
+        searchBarCompactInput: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: undefined,
+        },
         loadingMessage: {
             alignItems: 'center',
             position: 'absolute',
@@ -6188,7 +6206,7 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.appBG,
             borderRadius: variables.componentBorderRadiusLarge,
             padding: 20,
             minHeight: CHART_CONTENT_MIN_HEIGHT,
@@ -6228,6 +6246,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.appBG,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
         },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
@@ -6269,13 +6290,6 @@ const staticStyles = (theme: ThemeColors) =>
         dateIconSize: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
-        },
-        homeWidgetIconContainer: {
-            width: variables.iconSizeExtraLarge,
-            height: variables.iconSizeExtraLarge,
-            borderRadius: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
         },
     }) satisfies StaticStyles;
 
@@ -6348,12 +6362,13 @@ const dynamicStyles = (theme: ThemeColors) =>
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
             }) satisfies ViewStyle,
 
-        createMenuPositionSidebar: (windowHeight: number) =>
+        createMenuPositionSidebar: (windowHeight: number, isFabAtTop: boolean) =>
             ({
                 horizontal: 16,
-                // Menu should be displayed 8px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (16px) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (8px)
-                vertical: windowHeight - 16 - variables.componentSizeNormal - 8,
+                // Wide layout: FAB sits in a navigationTabBarSize (72) slot at the top of the sidebar, centered with pv4 padding.
+                // Bottom of the FAB icon is at navigationTabBarSize - 16 (pv4 padding) = 56px, plus an 8px gap below it.
+                // Narrow layout: FAB is at the bottom; the menu opens above it.
+                vertical: isFabAtTop ? variables.navigationTabBarSize - 16 + 8 : windowHeight - 16 - variables.componentSizeNormal - 8,
             }) satisfies AnchorPosition,
 
         createMenuPositionSearchBar: (windowHeight: number) =>
@@ -6445,7 +6460,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
@@ -6669,9 +6685,17 @@ const dynamicStyles = (theme: ThemeColors) =>
             };
         },
 
-        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => ({
+            ...(shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: 8,
+            overflow: 'hidden' as const,
+            width: 'auto' as const,
+            alignSelf: 'stretch' as const,
+        }),
 
-        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
             paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
@@ -6853,14 +6877,14 @@ const plainStyles = (theme: ThemeColors) =>
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
+        getWidgetItemIconContainerStyle: () =>
             ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: variables.componentBorderRadiusNormal,
                 width: variables.componentSizeNormal,
                 height: variables.componentSizeNormal,
-                backgroundColor,
+                backgroundColor: theme.highlightBG,
             }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
@@ -6873,6 +6897,13 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+        homePageCenteredContent: {
+            width: '100%',
+            maxWidth: variables.contentMaxWidth,
+            alignSelf: 'center',
+            paddingHorizontal: 20,
+        } satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
 import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +38,6 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -105,7 +104,6 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 <HeaderWithBackButton
                     title={translate('domain.groups.title')}
                     onBackButtonPress={Navigation.popToSidebar}
-                    icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                 >

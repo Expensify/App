@@ -125,6 +125,7 @@ function MoneyRequestReportTransactionItemBody({
 }: MoneyRequestReportTransactionItemBodyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isEditingCell} = useEditingCellState();
 
@@ -152,10 +153,7 @@ function MoneyRequestReportTransactionItemBody({
     }, [scrollToNewTransaction, shouldBeHighlighted]);
 
     return (
-        <OfflineWithFeedback
-            pendingAction={pendingAction}
-            style={!shouldUseNarrowLayout && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]}
-        >
+        <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={() => {
@@ -178,7 +176,7 @@ function MoneyRequestReportTransactionItemBody({
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
-                hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!isPendingDelete && {backgroundColor: theme.hoverLight}, isSelected && styles.searchRowSelectedBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onPressIn={() => {
                     wasEditingOnMouseDownRef.current = isEditingCell;
@@ -192,7 +190,7 @@ function MoneyRequestReportTransactionItemBody({
                 }}
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
+                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -212,7 +210,7 @@ function MoneyRequestReportTransactionItemBody({
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
                         isDisabled={isPendingDelete}
-                        style={!shouldUseNarrowLayout ? [styles.p3, styles.pv2, styles.noBorderRadius] : [styles.p4, styles.noBorderRadius]}
+                        style={!shouldUseNarrowLayout ? [styles.p3, styles.pv2, styles.noBorderRadius] : [styles.ph5, styles.pv4, styles.noBorderRadius]}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
                         }}
@@ -265,7 +263,7 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
         borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
         shouldHighlight: props.shouldBeHighlighted,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: theme.appBG,
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
 

@@ -2,8 +2,8 @@ import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
@@ -24,6 +24,7 @@ type FixPolicyConnectionProps = {
 
 function FixPolicyConnection({connectionName, policyID, policyName, integrationName}: FixPolicyConnectionProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     const subtitle = policyName
@@ -36,8 +37,8 @@ function FixPolicyConnection({connectionName, policyID, policyName, integrationN
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
+            transparentIconBackground
+            iconFill={theme.icon}
             title={translate('homePage.timeSensitiveSection.fixPolicyConnection.title', {integrationName})}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}

@@ -17,6 +17,7 @@ import {hasIssuedExpensifyCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -111,7 +112,13 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
     };
 
     return (
-        <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+        <View
+            style={[
+                styles.mt3,
+                shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                {maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20, width: '100%'},
+            ]}
+        >
             {shouldShowExpensifyCardPromotionBanner && (
                 <WorkspaceCompanyCardExpensifyCardPromotionBanner
                     policy={policy}
@@ -134,6 +141,7 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
                 illustrationContainerStyle={styles.getEmptyStateCompanyCardsIllustrationContainer(shouldUseNarrowLayout)}
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
+                containerStyles={{marginHorizontal: 0}}
             />
             {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
         </View>

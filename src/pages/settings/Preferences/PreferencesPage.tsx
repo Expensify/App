@@ -9,7 +9,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -21,6 +20,7 @@ import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import {getBaseTheme} from '@styles/theme/utils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +30,6 @@ import usePreferencesSectionIllustration from './usePreferencesSectionIllustrati
 
 function PreferencesPage() {
     const {getCurrencySymbol} = useCurrencyListActions();
-    const illustrations = useMemoizedLazyIllustrations(['Gears']);
     const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
@@ -58,21 +57,29 @@ function PreferencesPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="PreferencesPage"
         >
-            <HeaderWithBackButton
-                title={translate('common.preferences')}
-                icon={illustrations.Gears}
-                shouldUseHeadlineHeader
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-            />
+            <View style={{width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center'}}>
+                <HeaderWithBackButton
+                    title={translate('common.preferences')}
+                    shouldUseHeadlineHeader
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    onBackButtonPress={Navigation.goBack}
+                />
+            </View>
             <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <View
+                    style={[
+                        styles.flex1,
+                        shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                        {width: '100%', maxWidth: variables.cardMaxWidth, alignSelf: 'center', paddingHorizontal: 20},
+                    ]}
+                >
                     <Section
                         title={translate('preferencesPage.appSection.title')}
                         titleStyles={styles.accountSettingsSectionTitle}
                         isCentralPane
+                        containerStyles={{marginHorizontal: 0}}
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.blue500}
                         {...preferencesIllustration}

@@ -148,7 +148,7 @@ function RecentlyAddedSection() {
                 <View style={[shouldUseNarrowLayout ? [styles.mh5, styles.mb2] : [styles.mh8, styles.mb5], styles.br2, styles.overflowHidden]}>
                     {/* The column header only applies to the wide table layout; narrow rows use a stacked layout. */}
                     {!shouldUseNarrowLayout && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv2, styles.ph3, styles.borderBottom]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv2, styles.ph3, styles.borderBottom, {borderColor: theme.borderLight}]}>
                             <View style={[StyleUtils.getWidthStyle(variables.w28), styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 <Icon
                                     src={icons.Receipt}
