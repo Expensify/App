@@ -239,6 +239,25 @@ function WorkspacesListPage() {
         return () => handle.cancel();
     }, [duplicateWorkspace?.policyID, isFocused, workspaceRows.length]);
 
+    // Scroll to the top when the list gets its first workspace, so it's visible. On web, returning from the create
+    // flow restores the scroll position the empty list had (it was scrolled down to reach the "New workspace" button),
+    // which would otherwise hide the new row — so reset after the navigation transition, once that restore has run.
+    const wasWorkspaceListEmptyRef = useRef(workspaceRows.length === 0);
+    useEffect(() => {
+        if (workspaceRows.length === 0) {
+            wasWorkspaceListEmptyRef.current = true;
+            return;
+        }
+        if (!wasWorkspaceListEmptyRef.current || !isFocused) {
+            return;
+        }
+        wasWorkspaceListEmptyRef.current = false;
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => tableRef.current?.scrollToOffset({offset: 0, animated: false}),
+        });
+        return () => handle.cancel();
+    }, [workspaceRows.length, isFocused]);
+
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
             success
