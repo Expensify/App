@@ -1,21 +1,20 @@
 import type {InspectionEvent, Observer} from 'xstate';
 
 /**
- * Wraps the inspector's observer so that each `@xstate.actor` registration is held back until a
- * later inspection event arrives for the same session, which keeps "ghost" actors out of the
- * inspector.
+ * Holds back each `@xstate.actor` registration until a later inspection event arrives for the same
+ * session, which keeps "ghost" actors out of the inspector.
  *
- * A ghost appears because `useMachine` calls `createActor` during render, and XState announces the
- * actor to inspectors in the Actor constructor, before `start()` runs. Whenever React discards a
- * render pass and runs it again, for example under Strict Mode or a machine hot reload, the
- * discarded pass leaves an actor that was registered but never started. The Stately UI would
- * otherwise show that actor forever, stuck in its initial state. Because a registration that never
- * receives a later event is never forwarded, those ghosts stay hidden, while a real actor emits its
- * first snapshot on start and therefore has its registration forwarded immediately and in order.
+ * A ghost appears because `useMachine` calls `createActor` during render, which registers the actor
+ * with the inspector immediately. A render that React discards, under Strict Mode or a hot reload,
+ * leaves an actor that was registered but never started, which the Stately UI would otherwise show
+ * forever. A real actor is started and emits follow-up events that flush its held-back registration,
+ * while a ghost is never started, emits nothing more, and stays hidden.
  *
  * This filter is a workaround for an upstream limitation tracked at https://github.com/statelyai/inspect/issues/58.
+ *
+ * @param downstreamObserver Receives the forwarded inspection events. It is the Stately inspector's `inspect` observer from `createBrowserInspector().inspect`.
  */
-function filterGhostActorRegistrations(target: Observer<InspectionEvent>): Observer<InspectionEvent> {
+function filterGhostActorRegistrations(downstreamObserver: Observer<InspectionEvent>): Observer<InspectionEvent> {
     const pendingRegistrations = new Map<string, InspectionEvent>();
 
     const flushRegistration = (sessionId: string | undefined) => {
@@ -27,7 +26,7 @@ function filterGhostActorRegistrations(target: Observer<InspectionEvent>): Obser
             return;
         }
         pendingRegistrations.delete(sessionId);
-        target.next?.(registration);
+        downstreamObserver.next?.(registration);
     };
 
     return {
@@ -43,12 +42,11 @@ function filterGhostActorRegistrations(target: Observer<InspectionEvent>): Obser
                 // as well, so the inspector can attribute the event to the correct actor.
                 flushRegistration(event.sourceRef?.sessionId);
             }
-            target.next?.(event);
+            downstreamObserver.next?.(event);
         },
-        error: (err) => target.error?.(err),
-        complete: () => target.complete?.(),
+        error: (err) => downstreamObserver.error?.(err),
+        complete: () => downstreamObserver.complete?.(),
     };
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {filterGhostActorRegistrations};
+export default filterGhostActorRegistrations;
