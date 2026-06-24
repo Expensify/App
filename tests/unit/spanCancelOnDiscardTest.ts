@@ -5,7 +5,9 @@ import CONST from '@src/CONST';
 const mockCancelSpan = jest.fn();
 
 jest.mock('@libs/telemetry/activeSpans', () => ({
-    cancelSpan: (...args: unknown[]) => mockCancelSpan(...args),
+    cancelSpan: (...args: unknown[]) => {
+        mockCancelSpan(...args);
+    },
     endSpanWithAttributes: jest.fn(),
     getSpan: jest.fn(() => ({setAttribute: jest.fn()})),
     startSpan: jest.fn(() => ({setAttributes: jest.fn()})),
