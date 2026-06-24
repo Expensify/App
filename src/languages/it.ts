@@ -1659,6 +1659,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Sposta nel report',
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
+        submitReportTo: {
+            subtitle: 'Scegli un membro dello spazio di lavoro o inserisci l’indirizzo email di chi deve ricevere questa richiesta.',
+            emailLabel: 'Indirizzo email',
+            workspaceMembers: 'Membri dell’area di lavoro',
+            sendExpense: 'Invia la tua spesa a chiunque',
+            sendExpenseSubtitle: 'Invita chiunque su Expensify usando il suo indirizzo email o numero di telefono.',
+        },
         changeApprover: {
             title: 'Cambia approvatore',
             header: (workflowSettingLink: string) =>

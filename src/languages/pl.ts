@@ -1654,6 +1654,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
+        submitReportTo: {
+            subtitle: 'Wybierz członka przestrzeni roboczej lub wpisz adres e‑mail osoby, która powinna otrzymać to zgłoszenie.',
+            emailLabel: 'Adres e-mail',
+            workspaceMembers: 'Członkowie przestrzeni roboczej',
+            sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
+            sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
+        },
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
             header: (workflowSettingLink: string) =>

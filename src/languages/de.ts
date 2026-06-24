@@ -1660,6 +1660,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
+        submitReportTo: {
+            subtitle: 'Wählen Sie ein Arbeitsbereichsmitglied aus oder geben Sie die E-Mail-Adresse der Person ein, die diese Einreichung erhalten soll.',
+            emailLabel: 'E-Mail-Adresse',
+            workspaceMembers: 'Workspace-Mitglieder',
+            sendExpense: 'Senden Sie Ihre Ausgabe an jede beliebige Person',
+            sendExpenseSubtitle: 'Laden Sie jede beliebige Person zu Expensify ein, indem Sie ihre E-Mail-Adresse oder Telefonnummer verwenden.',
+        },
         changeApprover: {
             title: 'Genehmigende Person ändern',
             header: (workflowSettingLink: string) =>
