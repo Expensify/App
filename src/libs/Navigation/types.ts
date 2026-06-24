@@ -686,9 +686,10 @@ type SettingsNavigatorParamList = {
         accountID: string;
         customFieldType: CustomFieldType;
     };
-    [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
+    [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: {
         policyID: string;
         accountID: number;
+        error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };

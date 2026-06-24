@@ -15,9 +15,9 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS>;
+type DynamicWorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS>;
 
-function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPageProps) {
+function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerChangeSuccessPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -44,7 +44,7 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
             policyID={policyID}
             shouldBeBlocked={!shouldShowRef.current}
         >
-            <ScreenWrapper testID="WorkspaceOwnerChangeSuccessPage">
+            <ScreenWrapper testID="DynamicWorkspaceOwnerChangeSuccessPage">
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={closePage}
@@ -63,4 +63,4 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
     );
 }
 
-export default WorkspaceOwnerChangeSuccessPage;
+export default DynamicWorkspaceOwnerChangeSuccessPage;

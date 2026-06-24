@@ -1007,9 +1007,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
-                        [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
-                            path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_SUCCESS]: DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path,
                         [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.route,
                         },

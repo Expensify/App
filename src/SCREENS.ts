@@ -856,7 +856,7 @@ const SCREENS = {
         MEMBER_CUSTOM_FIELD: 'Workspace_Member_Custom_Field',
         MEMBER_NEW_CARD: 'Workspace_Member_NewCard',
         OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
-        OWNER_CHANGE_SUCCESS: 'Workspace_Owner_Change_Success',
+        DYNAMIC_OWNER_CHANGE_SUCCESS: 'Dynamic_Workspace_Owner_Change_Success',
         OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
         DISTANCE_RATES: 'Distance_Rates',
         TRAVEL: 'Travel',

@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import shouldShowChangeWorkspaceOwnerPage from '@libs/shouldShowChangeWorkspaceOwnerPage';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -19,7 +20,7 @@ import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceOwnerChangeCheck from './WorkspaceOwnerChangeCheck';
 import WorkspaceOwnerPaymentCardForm from './WorkspaceOwnerPaymentCardForm';
@@ -60,9 +61,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: Works
         }
 
         if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
-            // no errors - show a success page
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.getRoute(policyID, accountID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path), {forceReplace: true});
             return;
         }
 
