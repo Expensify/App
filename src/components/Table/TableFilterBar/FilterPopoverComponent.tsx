@@ -1,0 +1,58 @@
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import {useTableContext} from '@components/Table/TableContext';
+import CONST from '@src/CONST';
+
+export default function FilterPopoverComponent({closeOverlay}: PopoverComponentProps) {
+    const {filterConfig, activeFilters, tableMethods} = useTableContext();
+    const filterKey = Object.keys(filterConfig ?? {}).at(0);
+
+    if (!filterKey || !filterConfig) {
+        return null;
+    }
+
+    const config = filterConfig[filterKey];
+    const items = config.options.map((option) => ({
+        text: option.label,
+        value: option.value,
+    }));
+
+    if (config.filterType === CONST.TABLES.FILTER_TYPE.MULTI_SELECT) {
+        const selectedValues = Array.isArray(activeFilters[filterKey]) ? activeFilters[filterKey] : [];
+        const value = items.filter((item) => selectedValues.includes(item.value));
+
+        return (
+            <MultiSelectPopup
+                label={filterKey}
+                items={items}
+                value={value}
+                closeOverlay={closeOverlay}
+                onChange={(selectedItems) => {
+                    tableMethods.updateFilter({
+                        key: filterKey,
+                        value: selectedItems.map((item) => item.value),
+                    });
+                }}
+            />
+        );
+    }
+
+    const value = items.find((item) => item.value === activeFilters[filterKey]);
+
+    return (
+        <SingleSelectPopup
+            label={config.showLabel ? filterKey : undefined}
+            defaultValue={config.default}
+            items={items}
+            value={value}
+            closeOverlay={closeOverlay}
+            onChange={(selectedItem) => {
+                tableMethods.updateFilter({
+                    key: filterKey,
+                    value: selectedItem?.value ?? null,
+                });
+            }}
+        />
+    );
+}
