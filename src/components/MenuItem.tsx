@@ -1167,7 +1167,6 @@ function MenuItem({
                                                             StyleUtils.getMenuItemIconStyle(true),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
-                                                            !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,
                                                             styles.alignItemsEnd,
                                                             rightIconWrapperStyle,
                                                         ]}
