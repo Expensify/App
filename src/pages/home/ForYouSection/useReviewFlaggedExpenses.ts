@@ -1,6 +1,8 @@
+import {useIsFocused} from '@react-navigation/core';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useOnyx from '@hooks/useOnyx';
+import usePreviousDefined from '@hooks/usePreviousDefined';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -24,6 +26,9 @@ type FlaggedExpense = {
     /** ID of the parent expense report */
     reportID: string;
 };
+
+/** Stable empty reference returned before the first focused scan, so the row never depends on a fresh `[]`. */
+const EMPTY_FLAGGED_EXPENSES: FlaggedExpense[] = [];
 
 /**
  * Returns true when this report is an OPEN/OPEN expense report owned by the current user.
@@ -123,8 +128,13 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isFocused = useIsFocused();
 
-    const flaggedExpenses = getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session);
+    // Skip the O(n) flagged-expense scan while Home is blurred. usePreviousDefined keeps the
+    // last computed result so the row never flashes empty when Home is re-focused, and the count refreshes
+    // live on re-focus
+    const freshFlaggedExpenses = isFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session) : undefined;
+    const flaggedExpenses = usePreviousDefined(freshFlaggedExpenses) ?? EMPTY_FLAGGED_EXPENSES;
 
     const firstFlaggedExpense = flaggedExpenses.at(0);
     const firstReportID = firstFlaggedExpense?.reportID;
@@ -132,9 +142,7 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
 
     // Load the first flagged expense's parent report, its actions, and the transaction itself so the shared
     // navigation hook can resolve (or optimistically create) the transaction thread.
-    const [firstFlaggedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(firstReportID)}`);
     const [firstFlaggedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(firstReportID)}`);
-    const [firstFlaggedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(firstTransactionID)}`);
 
     const navigateToTransactionThread = useNavigateToTransactionThread();
 
@@ -142,6 +150,8 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
         if (!firstTransactionID || !firstReportID) {
             return;
         }
+        const firstFlaggedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstReportID}`];
+        const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`];
         navigateToTransactionThread({
             transactionID: firstTransactionID,
             reportActions: Object.values(firstFlaggedReportActions ?? {}),
