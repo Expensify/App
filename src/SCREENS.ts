@@ -276,7 +276,7 @@ const SCREENS = {
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR: 'Dynamic_Settings_Subscription_Payment_Card_Currency_Selector',
             CANCEL_SUBSCRIPTION: 'Settings_Subscription_CancelSubscription',
-            SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Settings_Subscription_DowngradeBlocked',
+            DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Dynamic_Settings_Subscription_DowngradeBlocked',
         },
     },
     TWO_FACTOR_AUTH: {
@@ -445,7 +445,7 @@ const SCREENS = {
     },
 
     SETTINGS_CATEGORIES: {
-        SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
+        DYNAMIC_SETTINGS_CATEGORY_SETTINGS: 'Dynamic_Settings_Category_Settings',
         DYNAMIC_SETTINGS_CATEGORIES_SETTINGS: 'Dynamic_Settings_Categories_Settings',
         DYNAMIC_SETTINGS_CATEGORY_CREATE: 'Dynamic_Settings_Category_Create',
         DYNAMIC_SETTINGS_CATEGORY_EDIT: 'Dynamic_Settings_Category_Edit',
@@ -531,7 +531,7 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
+    WORKSPACE_CONFIRMATION: {DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
     POLICY_COPY_SETTINGS: {
         ROOT: 'Policy_Copy_Settings_Root',
@@ -777,7 +777,7 @@ const SCREENS = {
         INVITE_MESSAGE_APPROVER: 'Workspace_Invite_Message_Approver',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
-        TAGS_SETTINGS: 'Tags_Settings',
+        DYNAMIC_TAGS_SETTINGS: 'Dynamic_Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
         TAGS_IMPORT_MULTI_LEVEL_SETTINGS: 'Tags_Import_Multi_Level_Settings',
@@ -806,7 +806,7 @@ const SCREENS = {
         TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
         TAX_CREATE: 'Workspace_Tax_Create',
         TAX_CREATE_VALUE: 'Workspace_Tax_Create_Value',
-        TAG_CREATE: 'Tag_Create',
+        DYNAMIC_TAG_CREATE: 'Dynamic_Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
         TAG_APPROVER: 'Tag_Approver',
         TAG_LIST_VIEW: 'Tag_List_View',
@@ -968,16 +968,13 @@ const SCREENS = {
     },
 
     CURRENCY: {
-        SELECTION: 'Currency_Selection',
+        DYNAMIC_SELECTION: 'Dynamic_Currency_Selection',
     },
 
     MIGRATED_USER_WELCOME_MODAL: {
-        ROOT: 'MigratedUserWelcomeModal_Root',
+        DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
     },
 
-    TEST_DRIVE_MODAL: {
-        ROOT: 'TestDrive_Modal_Root',
-    },
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },
