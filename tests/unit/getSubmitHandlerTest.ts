@@ -321,6 +321,20 @@ describe('getSubmitHandler', () => {
         ).toBe(SUBMIT_HANDLER.DEFAULT);
     });
 
+    it('returns DEFAULT for destination-report flows (TRACK) from unrecognized tab even with canDismissFromSearch', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    navigatesToDestinationReport: true,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DEFAULT);
+    });
+
     it('does not use unrecognized-tab fallback when report is topmost split', () => {
         expect(
             getSubmitHandler(
