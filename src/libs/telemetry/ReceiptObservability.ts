@@ -1,4 +1,4 @@
-import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
+import {getAll as getAllPersistedRequests, getOngoingRequest} from '@libs/actions/PersistedRequests';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -120,7 +120,13 @@ function logReceiptQueueSnapshot(trigger: ReceiptSnapshotTrigger) {
     const now = Date.now();
     const pendingTransactionIDs = new Set<string>();
 
-    for (const request of getAllPersistedRequests()) {
+    // Include the ongoing request. Once processNextRequest() moves a receipt from the persisted queue into the ongoing
+    // slot it is the one actively uploading, but it no longer shows up in getAll(). Without this it would be skipped here
+    // and then dropped from the timing map by the cleanup below.
+    const ongoingRequest = getOngoingRequest();
+    const requests = ongoingRequest ? [ongoingRequest, ...getAllPersistedRequests()] : getAllPersistedRequests();
+
+    for (const request of requests) {
         if (!RECEIPT_BEARING_COMMANDS.has(request.command)) {
             continue;
         }

@@ -77,13 +77,16 @@ describe('ReceiptObservability', () => {
 
     describe('logReceiptQueueSnapshot', () => {
         let getAllSpy: jest.SpyInstance;
+        let getOngoingRequestSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            getAllSpy = jest.spyOn(PersistedRequests, 'getAll');
+            getAllSpy = jest.spyOn(PersistedRequests, 'getAll').mockReturnValue([]);
+            getOngoingRequestSpy = jest.spyOn(PersistedRequests, 'getOngoingRequest').mockReturnValue(null);
         });
 
         afterEach(() => {
             getAllSpy.mockRestore();
+            getOngoingRequestSpy.mockRestore();
         });
 
         it('emits one [Receipt] snapshot line per pending receipt and skips non-receipt requests', () => {
@@ -117,6 +120,21 @@ describe('ReceiptObservability', () => {
 
             // Then no snapshot line is emitted (zero noise in the common case)
             expect(logLines.filter((line) => line.params.event === 'snapshot')).toHaveLength(0);
+        });
+
+        it('includes the receipt promoted to the ongoing request slot', () => {
+            // Given one receipt uploading in the ongoing slot and another still waiting in the queue
+            getOngoingRequestSpy.mockReturnValue(receiptRequest('100', 'trace-A'));
+            getAllSpy.mockReturnValue([receiptRequest('200', 'trace-B')]);
+
+            // When we snapshot the queue at sign-out
+            logReceiptQueueSnapshot('signOut');
+
+            // Then the uploading receipt is captured alongside the queued one
+            const snapshots = logLines.filter((line) => line.params.event === 'snapshot');
+            expect(snapshots).toHaveLength(2);
+            expect(snapshots.map((snapshot) => snapshot.params.receiptTraceId)).toEqual(expect.arrayContaining(['trace-A', 'trace-B']));
+            expect(snapshots.map((snapshot) => snapshot.params.transactionID)).toEqual(expect.arrayContaining(['100', '200']));
         });
     });
 });
