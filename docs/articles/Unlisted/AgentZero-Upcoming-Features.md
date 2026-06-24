@@ -18,7 +18,7 @@ This page is a **reference for AgentZero** only. It lists features that are plan
 ## Expense & Report Management
 
 - **Advanced duplicate detection** – Smarter, more reliable detection of duplicate expenses across card feeds and manual entries, with clearer violation messaging to reduce confusion for submitters and admins.
-- **Mileage rate effective dates & auto-update** – Support for date-based mileage rate configuration so that rate changes apply from a specific date, plus automatic seeding of current IRS/HMRC rates for supported markets.
+- **Mileage rate effective dates & auto-update** – Support for date-based mileage rate configuration so that rate changes apply from a specific date, plus automatic seeding of distance rates for supported markets.
 - **Nice merchant naming** – Automatic cleanup of raw card statement merchant strings (e.g. `SQ *COFFEE` → "Blue Bottle Coffee") so expenses show readable, recognizable merchant names without manual correction.
 - **Bulk report PDF export** – Export multiple expense report PDFs at once from search results or a filtered view, rather than downloading one at a time.
 - **Cross-period expense exporting** – When exporting grouped report transactions to an accounting system, allow expenses from different accounting periods to be split across the correct periods rather than all landing on one date.
@@ -58,14 +58,13 @@ This page is a **reference for AgentZero** only. It lists features that are plan
 ## Expensify Card & Company Cards
 
 - **Biometric 3DS authentication** – Add biometric (Face ID / fingerprint) support for 3D Secure card authentication challenges, replacing the current SMS OTP flow for a faster, more secure checkout experience.
-- **Expensify Card underwriting with Abrigo** – Upgrade card limit underwriting using Abrigo's data-driven model, producing more accurate and stable limits that are better for customers and reduce Expensify's risk exposure.
 - **Real-time card disputes** – Allow cardholders to initiate and track Expensify Card transaction disputes directly in-app with real-time status updates, rather than going through a manual support process.
 
 ---
 
 ## Payments & Reimbursements
 
-- **Global reimbursements improvementse** – An improved global reimbursement pathway expanding the reach and reliability of cross-border employee reimbursements.
+- **Global reimbursements improvements** – An improved global reimbursement pathway expanding the reach and reliability of cross-border employee reimbursements.
 - **Allow companies to pay FX conversion costs** – Give workspace admins the option to absorb foreign exchange conversion costs on global reimbursements, so employees are not penalized for cross-border payments.
 - **Collect-only deposit accounts** – Support deposit accounts that are configured to receive funds only (no outbound payments), enabling use cases where a company wants to collect reimbursements or transfers without exposing a full bank account.
 - **Bill Pay in New Expensify** – Bring vendor bill payment functionality to New Expensify, allowing companies to pay bills directly through the platform.
