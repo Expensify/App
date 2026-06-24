@@ -161,10 +161,15 @@ const expensifyCardStatementQueryJSON: SearchQueryJSON = {
     hash: 67890,
     recentSearchHash: 67890,
     similarSearchHash: 67890,
+    // A single policyID: filter scopes the statement to that workspace, so the action receives policyID 'policy1'.
     flatFilters: [
         {
             key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD}],
+        },
+        {
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'policy1'}],
         },
     ],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -175,6 +180,19 @@ const expensifyCardStatementQueryJSON: SearchQueryJSON = {
     view: CONST.SEARCH.VIEW.TABLE,
     policyID: ['policy1'],
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
+};
+
+// Default statement view with no workspace filter, so the statement is the whole (unscoped) settlement.
+const unscopedExpensifyCardStatementQueryJSON: SearchQueryJSON = {
+    ...expensifyCardStatementQueryJSON,
+    inputQuery: 'type:expense withdrawal-type:expensify-card withdrawn>=2026-05-01 withdrawn<=2026-05-31 groupBy:withdrawal-id',
+    flatFilters: [
+        {
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+            filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD}],
+        },
+    ],
+    policyID: undefined,
 };
 
 function makeCurrentSearchResults(groups: Record<string, SearchWithdrawalIDGroup>): SearchResults {
@@ -640,8 +658,9 @@ describe('useSearchBulkActions - Download as PDF', () => {
             secondTxn: makeSelectedTransaction({groupKey: secondGroupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            [firstGroupKey]: makeSettlementGroup({entryID: 123, total: 100}),
-            [secondGroupKey]: makeSettlementGroup({entryID: 456, total: 200, accountNumber: '5678', debitPosted: '2026-05-30', policyID: 'policy2'}),
+            // Two different feeds (different fundID) can't share one statement, even under the same program.
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, total: 100, feedCountry: 'US', fundID: 1}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, total: 200, accountNumber: '5678', debitPosted: '2026-05-30', feedCountry: 'US', fundID: 2}),
         });
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
@@ -659,24 +678,29 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(result.current.isExpensifyCardStatementMultiFeedAlertVisible).toBe(true);
     });
 
-    it('should not offer Export as PDF for a mixed-workspace settlement', async () => {
+    it('should export a cross-workspace settlement as the whole settlement (no policyID)', async () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         mockSelectedTransactions = {
             firstTxn: makeSelectedTransaction({groupKey, reportID: undefined}),
         };
         mockCurrentSearchResults = makeCurrentSearchResults({
-            // A mixed-workspace settlement has no single policyID/feedCountry.
-            [groupKey]: makeSettlementGroup({total: 100, policyID: undefined, feedCountry: undefined}),
+            // A cross-workspace settlement has no single policyID; it is still exportable as the whole settlement.
+            [groupKey]: makeSettlementGroup({total: 100, policyID: undefined}),
         });
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expensifyCardStatementQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: unscopedExpensifyCardStatementQueryJSON}));
 
-        // A settlement with no policyID can't be scoped to a workspace, so the export option is never shown for it.
         await waitFor(() => {
-            expect(result.current.headerButtonsOptions).toBeDefined();
+            expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
-        expect(getDownloadStatementPDFOption(result.current.headerButtonsOptions)).toBeUndefined();
-        expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
+
+        const exportAsPDFOption = getDownloadStatementPDFOption(result.current.headerButtonsOptions);
+        await act(async () => {
+            await exportAsPDFOption?.onSelected?.();
+        });
+
+        // No policyID is sent, so the backend returns the whole settlement.
+        expect(getExpensifyCardStatementPDF).toHaveBeenCalledWith(undefined, 'US', [123]);
     });
 
     it('should not offer Export as PDF when all matching items are selected', async () => {

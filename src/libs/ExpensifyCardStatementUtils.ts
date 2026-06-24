@@ -6,12 +6,14 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getOldDotURLFromEnvironment} from './Environment/Environment';
 import type EnvironmentType from './Environment/getEnvironment/types';
 import fileDownload from './fileDownload';
-import {getSettlementStatus} from './SearchUIUtils';
 import addTrailingForwardSlash from './UrlUtils';
 
 type ExpensifyCardStatementFeed = {
-    policyID: string;
+    /** Set only when the settlement belongs to a single workspace; omitted for settlements that span workspaces. */
+    policyID?: string;
     feedCountry?: string;
+    /** Expensify Card feed identity; absent when the settlement spans more than one feed. */
+    fundID?: number;
     entryIDs: number[];
 };
 
@@ -21,7 +23,8 @@ type ExpensifyCardStatementSelection = {
 };
 
 type ExpensifyCardStatementParams = {
-    policyID: string;
+    /** Set only when scoping the statement to a single workspace; omitted to export the whole settlement. */
+    policyID?: string;
     feedCountry?: string;
     entryIDs: number[];
     /** Set from the server response after GetExpensifyCardStatementPDF returns. */
@@ -58,6 +61,18 @@ const STATEMENT_SCOPE_FILTER_KEYS = new Set<string>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
 ]);
 
+// The statement is unscoped (the whole settlement) by default. We only scope it to a workspace when the user has
+// explicitly filtered the search by a single workspace, in which case the on-screen rows are that workspace's share
+// and the PDF should match. Returns the filtered policyID, or undefined when there is no single-workspace filter.
+// policyID is a root-level search key (like type/groupBy), so it lives on queryJSON.policyID, not in flatFilters.
+function getScopedPolicyID(queryJSON: SearchQueryJSON | undefined): string | undefined {
+    const policyID = queryJSON?.policyID;
+    if (typeof policyID === 'string') {
+        return policyID;
+    }
+    return policyID?.length === 1 ? policyID.at(0) : undefined;
+}
+
 function hasOnlyStatementScopeFilters(queryJSON: SearchQueryJSON | undefined): boolean {
     if (!queryJSON) {
         return true;
@@ -78,10 +93,7 @@ function isWithdrawalIDGroup(value: SearchResultDataType[keyof SearchResultDataT
     return typeof value === 'object' && value !== null && 'entryID' in value && typeof value.entryID === 'number';
 }
 
-// A settlement that is exportable: it belongs to exactly one workspace, so its policyID is guaranteed present.
-type ExportableSettlementGroup = SearchWithdrawalIDGroup & {policyID: string};
-
-function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): ExportableSettlementGroup[] {
+function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchWithdrawalIDGroup[] {
     if (!searchData) {
         return [];
     }
@@ -104,21 +116,12 @@ function getSelectedSettlementGroups(selectedTransactions: SelectedTransactions,
         }
     }
 
-    const settlementGroups: ExportableSettlementGroup[] = [];
+    const settlementGroups: SearchWithdrawalIDGroup[] = [];
     for (const [key, value] of Object.entries(searchData)) {
-        if (!selectedGroupKeys.has(key) || !isWithdrawalIDGroup(value) || getSettlementStatus(value.state) === CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
+        if (!selectedGroupKeys.has(key) || !isWithdrawalIDGroup(value)) {
             continue;
         }
-
-        const {policyID} = value;
-
-        // A settlement that bills more than one workspace has no single policyID to scope the statement to, so the
-        // backend omits it. Such a settlement can't be exported by a workspace admin without leaking the other
-        // workspaces' expenses, so it isn't exportable - skip it like a failed settlement.
-        if (!policyID) {
-            continue;
-        }
-        settlementGroups.push({...value, policyID});
+        settlementGroups.push(value);
     }
 
     return settlementGroups;
@@ -144,9 +147,16 @@ function getExpensifyCardStatementSelection(
         return undefined;
     }
 
+    // The statement is the whole settlement (unscoped) by default; we only scope it to a workspace when the user
+    // explicitly filtered the search by a single workspace.
+    const scopedPolicyID = getScopedPolicyID(queryJSON);
+
+    // Group selected settlements by feed. A statement covers one feed, so settlements from more than one feed can't
+    // share a statement. The feed identity is fundID; a single program (feedCountry) can have multiple feeds (one per
+    // workspace provisioning), so fundID - not feedCountry - is the grouping key.
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
     for (const settlementGroup of selectedSettlementGroups) {
-        const feedKey = `${settlementGroup.policyID}:${settlementGroup.feedCountry ?? ''}`;
+        const feedKey = settlementGroup.fundID !== undefined ? String(settlementGroup.fundID) : '';
         const existingFeed = feedsByKey.get(feedKey);
         if (existingFeed) {
             existingFeed.entryIDs.push(settlementGroup.entryID);
@@ -154,8 +164,9 @@ function getExpensifyCardStatementSelection(
         }
 
         feedsByKey.set(feedKey, {
-            policyID: settlementGroup.policyID,
+            policyID: scopedPolicyID,
             feedCountry: settlementGroup.feedCountry,
+            fundID: settlementGroup.fundID,
             entryIDs: [settlementGroup.entryID],
         });
     }
@@ -173,6 +184,9 @@ function getExpensifyCardStatementSelection(
 
 function getExpensifyCardStatementParamsFromFeed(feed: ExpensifyCardStatementFeed): ExpensifyCardStatementParams {
     const entryIDs = [...feed.entryIDs];
+
+    // fundID is only used to group settlements into feeds on the client; the export is identified by entryIDs +
+    // policyID + feedCountry, so it is intentionally not forwarded to the action.
     return {
         policyID: feed.policyID,
         feedCountry: feed.feedCountry,
