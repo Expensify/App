@@ -1,6 +1,6 @@
 import {policyIDsWithEmptyReportsSelector} from '@selectors/Report';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -39,6 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceListItem = {
@@ -83,13 +84,18 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    const [todos] = useOnyx(ONYXKEYS.DERIVED.TODOS);
-    const transactionsByReportID = todos?.transactionsByReportID;
+    const transactionsByReportID: Record<string, Transaction[]> = {};
+    for (const transaction of Object.values(allTransactions ?? {})) {
+        if (!transaction?.reportID) {
+            continue;
+        }
+        if (!transactionsByReportID[transaction.reportID]) {
+            transactionsByReportID[transaction.reportID] = [];
+        }
+        transactionsByReportID[transaction.reportID].push(transaction);
+    }
 
-    const policiesWithEmptyReportsForAccountSelector = useMemo(
-        () => policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID ?? {}, !!hasDismissedEmptyReportsConfirmation),
-        [accountID, transactionsByReportID, hasDismissedEmptyReportsConfirmation],
-    );
+    const policiesWithEmptyReportsForAccountSelector = policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID, !!hasDismissedEmptyReportsConfirmation);
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policiesWithEmptyReportsForAccountSelector});
 
     const navigateToNewReport = (optimisticReportID: string) => {
