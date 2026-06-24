@@ -49,7 +49,7 @@ function parseDate(value: string): Date | null {
  * Computes the calendar end date to display for a start date and duration, matching how the chronos
  * backend turns "ooo {start} for N {unit}" into an end date: whole day, week, and month durations end
  * on the last covered calendar day, while fractional day and hour durations carry the remaining time
- * into the end day. Returns an empty string for an unparseable start date and the start date itself
+ * into the end day. Returns an empty string for an invalid start date and the start date itself
  * for a non-positive duration.
  */
 function computeEndDate(startDate: string, durationAmount: string, durationUnit: string): string {
