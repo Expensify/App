@@ -389,7 +389,12 @@ button {
             line-height: 1.15;
             font-weight: 500;
             flex: 1;
+            margin-bottom: 0;
         }
+    }
+
+    .article-toc-content.article {
+        max-width: 720px;
     }
 
     h1.homepage-title {
@@ -398,6 +403,27 @@ button {
 
     .article {
         color: var(--color-text-body);
+
+        hr {
+            background: var(--color-borders);
+            border: none;
+            display: block;
+            width: 100%;
+            height: 1px;
+            margin: 48px 0;
+        }
+
+        p {
+            padding-bottom: 0;
+            margin: 0 0 16px 0;
+        }
+
+        ul,
+        ol {
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-bottom: 0;
+        }
 
         .hidden {
             display: none;
@@ -415,7 +441,17 @@ button {
         }
 
         li {
-            padding-bottom: 4px;
+            padding-bottom: 8px;
+
+            &:last-child {
+                padding-bottom: 0;
+            }
+        }
+
+        li > ul,
+        li > ol {
+            margin-top: 8px;
+            margin-bottom: 0;
         }
 
         ol {
@@ -427,7 +463,8 @@ button {
         }
 
         table {
-            margin-bottom: 20px;
+            margin-top: 8px;
+            margin-bottom: 28px;
             border-radius: 8px;
 
             // Box shadow is used here because border-radius and border-collapse don't work together. It leads to double borders.
@@ -472,7 +509,18 @@ button {
         h1,
         summary {
             font-size: 1.5em;
-            padding: 20px 0 12px 0;
+            margin-top: 40px;
+            padding: 0 0 12px 0;
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+
+        hr + h1,
+        hr + summary {
+            margin-top: 0;
+            padding-top: 0;
         }
 
         h2 {
@@ -481,38 +529,86 @@ button {
             font-weight: 500;
             font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
             color: var(--color-text);
+            margin-top: 32px;
+            margin-bottom: 12px;
+            padding: 0 0 10px 0;
+            border-bottom: 1px solid var(--color-borders);
+        }
+
+        h1 + h2,
+        hr + h1 + h2 {
+            margin-top: 24px;
         }
 
         h3 {
             font-size: 1em;
             font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-top: 24px;
+            margin-bottom: 8px;
+            padding: 0;
         }
 
-        h2,
-        h3 {
-            margin: 0;
-            padding: 12px 0 12px 0;
+        p + h2,
+        ul + h2,
+        ol + h2,
+        table + h2,
+        pre + h2,
+        blockquote + h2,
+        .info + h2,
+        details + h2 {
+            margin-top: 40px;
+        }
+
+        h1 + p,
+        h2 + p,
+        h3 + p {
+            margin-top: 4px;
+        }
+
+        details {
+            margin: 12px 0 24px;
+        }
+
+        pre {
+            margin-top: 12px;
+            margin-bottom: 24px;
         }
 
         blockquote {
-            margin-top: 20px;
+            margin-top: 16px;
             margin-bottom: 20px;
-            padding-top: 20px;
-            padding-left: 5%;
-            border-left: 5px solid var(--color-button-background-hover);
+            padding: 4px 0 4px 16px;
+            border-left: 4px solid var(--color-borders);
+            color: var(--color-text-body);
 
-            em:before {
-                content: '\“\a';
-                white-space: pre;
-                font-size: 60px;
-                line-height: 1em;
-                color: var(--color-accent);
+            p {
+                padding-bottom: 0;
+                margin: 0 0 8px 0;
+                font-size: inherit;
+                font-family: inherit;
+                line-height: inherit;
+                opacity: 1;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
             }
 
             p:first-child {
-                font-size: large;
-                font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
-                opacity: 0.8;
+                font-size: inherit;
+                font-family: inherit;
+                font-weight: inherit;
+                opacity: 1;
+            }
+
+            em:before {
+                content: none;
+            }
+
+            strong {
+                font-weight: 700;
             }
         }
 
@@ -523,7 +619,8 @@ button {
             gap: 20px;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 20px;
+            margin-top: 8px;
+            margin-bottom: 28px;
             justify-content: space-between;
             * > ol,
             ul {
@@ -561,7 +658,8 @@ button {
 
         .info {
             padding: 12px;
-            margin-bottom: 20px;
+            margin-top: 8px;
+            margin-bottom: 24px;
             border-radius: 8px;
             background-color: var(--color-highlightBG);
             color: var(--color-text);
@@ -586,7 +684,8 @@ button {
 
         .video-container {
             position: relative;
-            margin-bottom: 20px;
+            margin-top: 8px;
+            margin-bottom: 28px;
         }
 
         .video-js {
@@ -1445,7 +1544,9 @@ button {
 
 .get-help {
     flex-wrap: wrap;
-    margin-top: 40px;
+    margin-top: 56px;
+    padding-top: 32px;
+    border-top: 1px solid var(--color-borders);
 }
 
 .disable-scrollbar {
@@ -1560,7 +1661,11 @@ button {
 .title-platform-tabs {
     display: flex;
     justify-content: space-between;
-    padding-bottom: 20px;
+    max-width: 720px;
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--color-borders);
+
     h1 {
         padding: 0;
     }
