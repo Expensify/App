@@ -118,6 +118,10 @@ export default function useSelection<DataType extends TableData>({
      * on or off
      */
     const handleSingleRowSelection = (keyForList: string) => {
+        if (!selectableKeys.includes(keyForList)) {
+            return;
+        }
+
         const keyIndex = selectedKeys.indexOf(keyForList);
         const isCurrentlySelected = keyIndex !== -1;
 

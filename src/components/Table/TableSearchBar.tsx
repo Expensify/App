@@ -1,6 +1,8 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {useTableContext} from './TableContext';
@@ -43,10 +45,22 @@ type TableSearchBarProps = {
 function TableSearchBar({label, style}: TableSearchBarProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+    const inputRef = useRef<BaseTextInputRef>(null);
     const {
         activeSearchString,
+        processedData,
         tableMethods: {updateSearchString},
     } = useTableContext();
+
+    const hasActiveSearchString = activeSearchString.length > 0;
+
+    useLayoutEffect(() => {
+        if (!hasActiveSearchString || isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        inputRef.current?.focus?.();
+    }, [hasActiveSearchString, processedData]);
 
     useEffect(() => {
         return () => updateSearchString('');
@@ -56,6 +70,7 @@ function TableSearchBar({label, style}: TableSearchBarProps) {
 
     return (
         <SearchBar
+            ref={inputRef}
             label={label}
             style={[styles.mnw200, style]}
             inputValue={activeSearchString}
