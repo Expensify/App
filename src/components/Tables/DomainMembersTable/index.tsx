@@ -5,7 +5,6 @@ import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemI
 import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -54,7 +53,6 @@ export default function DomainMembersTable({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const shouldShowSearchBar = members.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -127,29 +125,12 @@ export default function DomainMembersTable({
             {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
-                    {(shouldShowGroupFilter || shouldShowSearchBar) && (
-                        <View style={[styles.mh5, styles.gap3, styles.mb5, shouldDisplayButtonsInSeparateLine ? styles.flexColumn : styles.flexRow]}>
-                            {shouldShowGroupFilter && (
-                                <View
-                                    style={[
-                                        shouldDisplayButtonsInSeparateLine && styles.w100,
-                                        shouldShowSearchBar && !shouldDisplayButtonsInSeparateLine && styles.h13,
-                                        shouldShowSearchBar && !shouldDisplayButtonsInSeparateLine && styles.justifyContentCenter,
-                                    ]}
-                                >
-                                    <Table.FilterButtons />
-                                </View>
-                            )}
-                            {shouldShowSearchBar && (
-                                <View style={[shouldDisplayButtonsInSeparateLine ? styles.w100 : styles.flex1]}>
-                                    <Table.SearchBar
-                                        label={translate('domain.members.findMember')}
-                                        style={[styles.flex1, styles.mh0, styles.mb0]}
-                                    />
-                                </View>
-                            )}
+                    {shouldShowGroupFilter && (
+                        <View style={[styles.mh5, styles.mb3]}>
+                            <Table.FilterButtons />
                         </View>
                     )}
+                    {shouldShowSearchBar && <Table.SearchBar label={translate('domain.members.findMember')} />}
                     <Table.Header />
                     <Table.Body />
                 </>
