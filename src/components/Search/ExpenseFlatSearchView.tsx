@@ -1,5 +1,5 @@
 import type {FlashListRef} from '@shopify/flash-list';
-import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -98,6 +98,8 @@ type ExpenseFlatSearchViewProps = {
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
+const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
 /**
  * The flat-expense Search list (Slice S5, callstack-internal/expensify-issues#2547).
  *
@@ -155,109 +157,80 @@ function ExpenseFlatSearchView({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const undeleteTransactions = useUndeleteTransactions();
 
-    const handleUndelete = useCallback((transaction: Transaction) => undeleteTransactions([transaction]), [undeleteTransactions]);
+    const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
     // Flat lists have no group children to skip, so visibility is computed straight off the rendered rows.
-    const isItemVisible = useCallback((item: SearchListItem) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline, [isOffline]);
-    const firstVisibleIndex = useMemo(() => data.findIndex(isItemVisible), [data, isItemVisible]);
-    const lastVisibleIndex = useMemo(() => data.findLastIndex(isItemVisible), [data, isItemVisible]);
+    const isItemVisible = (item: SearchListItem) => !isRowDeleted(item) || isOffline;
+    const firstVisibleIndex = data.findIndex(isItemVisible);
+    const lastVisibleIndex = data.findLastIndex(isItemVisible);
 
     // Flat-expense selection counts: no empty groups, no group flattening — a single pass over the rows.
-    const selectedItemsLength = useMemo(
-        () => data.reduce((acc, item) => acc + (item?.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0),
-        [data, selectedTransactions],
-    );
-    const totalItems = useMemo(() => data.filter((item) => !('pendingAction' in item) || item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length, [data]);
+    const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
+    const totalItems = data.filter((item) => !isRowDeleted(item)).length;
 
     const {onLongPressRow, modal} = useRowLongPressMenu({shouldPreventLongPressRow: false, isSmallScreenWidth, isMobileSelectionModeEnabled});
 
     // In mobile selection mode a row tap toggles selection. This must live inside the providers (not in the
     // router) because the `toggle` it reads is the default no-op outside SearchWriteActionsProvider; here it
     // resolves to the real action.
-    const handleSelectRow = useCallback(
-        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
-            if (isMobileSelectionModeEnabled) {
-                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    return;
-                }
-                toggle(item);
+    const handleSelectRow = (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+        if (isMobileSelectionModeEnabled) {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
-            onSelectRow(item, transactionPreviewData, event);
-        },
-        [isMobileSelectionModeEnabled, toggle, onSelectRow],
-    );
+            toggle(item);
+            return;
+        }
+        onSelectRow(item, transactionPreviewData, event);
+    };
 
-    const scrollToListIndex = useCallback(
-        (index: number, animated = true) => {
-            const item = data.at(index);
-            if (!listRef.current || !item || index === -1) {
-                return;
-            }
-            listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
-        },
-        [data],
-    );
+    const scrollToListIndex = (index: number, animated = true) => {
+        const item = data.at(index);
+        if (!listRef.current || !item || index === -1) {
+            return;
+        }
+        listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
+    };
 
     useScrollRestoration(listRef);
 
     // Flat data maps 1:1 to the rendered list, so highlight-scroll-to-index is the same as scroll-to-data-index.
     useImperativeHandle(ref, () => ({scrollToIndex: scrollToListIndex}), [scrollToListIndex]);
 
-    const renderItem = useCallback(
-        (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
-            const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            // Flat view always animates row exits, so the only gate is excluding the last row.
-            const shouldApplyAnimation = index < data.length - 1;
+    const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+        const isDisabled = isRowDeleted(item);
+        // Flat view always animates row exits, so the only gate is excluding the last row.
+        const shouldApplyAnimation = index < data.length - 1;
 
-            return (
-                <AnimatedExitRow
-                    shouldApplyAnimation={shouldApplyAnimation}
-                    hasItemsBeingRemoved={hasItemsBeingRemoved}
-                >
-                    <TransactionListItem
-                        showTooltip
-                        isFocused={isItemFocused}
-                        onSelectRow={handleSelectRow}
-                        onLongPressRow={onLongPressRow}
-                        onSelectionButtonPress={toggle}
-                        canSelectMultiple={canSelectMultiple}
-                        item={item}
-                        columns={columns}
-                        isDisabled={isDisabled}
-                        lastPaymentMethod={lastPaymentMethod}
-                        personalPolicyID={personalPolicyID}
-                        userBillingGracePeriodEnds={userBillingGracePeriodEnds}
-                        ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        onFocus={onFocus}
-                        onUndelete={handleUndelete}
-                        keyForList={item.keyForList}
-                        isFirstItem={index === firstVisibleIndex}
-                        isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-                    />
-                </AnimatedExitRow>
-            );
-        },
-        [
-            data.length,
-            hasItemsBeingRemoved,
-            handleSelectRow,
-            onLongPressRow,
-            toggle,
-            canSelectMultiple,
-            columns,
-            lastPaymentMethod,
-            personalPolicyID,
-            userBillingGracePeriodEnds,
-            ownerBillingGracePeriodEnd,
-            nonPersonalAndWorkspaceCards,
-            handleUndelete,
-            firstVisibleIndex,
-            lastVisibleIndex,
-            ListFooterComponent,
-        ],
-    );
+        return (
+            <AnimatedExitRow
+                shouldApplyAnimation={shouldApplyAnimation}
+                hasItemsBeingRemoved={hasItemsBeingRemoved}
+            >
+                <TransactionListItem
+                    showTooltip
+                    isFocused={isItemFocused}
+                    onSelectRow={handleSelectRow}
+                    onLongPressRow={onLongPressRow}
+                    onSelectionButtonPress={toggle}
+                    canSelectMultiple={canSelectMultiple}
+                    item={item}
+                    columns={columns}
+                    isDisabled={isDisabled}
+                    lastPaymentMethod={lastPaymentMethod}
+                    personalPolicyID={personalPolicyID}
+                    userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                    ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
+                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                    onFocus={onFocus}
+                    onUndelete={handleUndelete}
+                    keyForList={item.keyForList}
+                    isFirstItem={index === firstVisibleIndex}
+                    isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                />
+            </AnimatedExitRow>
+        );
+    };
 
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
