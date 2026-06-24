@@ -856,6 +856,11 @@ describe('PersonalDetailsUtils', () => {
             },
         };
 
+        it('should return an empty array if accountIDs is undefined', () => {
+            const result = newGetPersonalDetailsByIDs(undefined, personalDetails);
+            expect(result).toEqual([]);
+        });
+
         it('should return an empty array if accountIDs is empty', () => {
             const result = newGetPersonalDetailsByIDs([], personalDetails);
             expect(result).toEqual([]);
@@ -887,6 +892,11 @@ describe('PersonalDetailsUtils', () => {
                 displayName: 'User Two',
             },
         };
+
+        it('should return an empty object if accountIDs is undefined', () => {
+            const result = getPersonalDetailsListByIDs(undefined, personalDetails);
+            expect(result).toEqual({});
+        });
 
         it('should return an empty object if accountIDs is empty', () => {
             const result = getPersonalDetailsListByIDs([], personalDetails);
