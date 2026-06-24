@@ -11,10 +11,10 @@ type UseMoneyRequestPolicyTagsParams = {
 };
 
 function useMoneyRequestPolicyTags({existingIOUReportPolicyID, moneyRequestReportID, parentChatReportPolicyID, participantReportID}: UseMoneyRequestPolicyTagsParams): PolicyTagLists {
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
-    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
+    const [moneyRequestReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`, {selector: (report) => report?.policyID});
+    const [participantReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`, {selector: (report) => report?.policyID});
 
-    const iouReportPolicyID = existingIOUReportPolicyID ?? moneyRequestReport?.policyID ?? parentChatReportPolicyID ?? participantReport?.policyID;
+    const iouReportPolicyID = existingIOUReportPolicyID ?? moneyRequestReportPolicyID ?? parentChatReportPolicyID ?? participantReportPolicyID;
 
     const [policyTags = getEmptyObject<PolicyTagLists>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
 
