@@ -21,7 +21,9 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -33,6 +35,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -64,7 +67,7 @@ import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -148,6 +151,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -341,7 +347,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, policy, report, accountID, {isProduction});
+                initSplitExpense(transaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE]: {
@@ -525,13 +531,15 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 const iouType = isExpenseReport(parentReport) ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.TRACK;
                 if (shouldNavigateToUpgradePath && reportID) {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType,
-                            transactionID: transaction.transactionID,
-                            reportID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action: CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                transactionID: transaction.transactionID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                            }),
+                        ),
                     );
                     return;
                 }
