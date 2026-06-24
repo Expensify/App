@@ -22,6 +22,12 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockNavigateToTransactionThread = jest.fn();
 jest.mock('@hooks/useNavigateToTransactionThread', () => jest.fn(() => mockNavigateToTransactionThread));
 
+// ForYouSection only mounts ReviewFlaggedExpensesLoader (which runs the flagged-expense scan) while the Home
+// tab is the active tab. The test harness has no root navigation state, so mock the focus hook with a
+// toggleable flag: default focused so the review row renders, flip it to exercise the blurred/unmount path.
+let mockIsHomeTabFocused = true;
+jest.mock('@hooks/useIsHomeTabFocused', () => jest.fn(() => mockIsHomeTabFocused));
+
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string, params?: Record<string, unknown>) => {
@@ -123,6 +129,7 @@ describe('ForYouSection', () => {
     });
 
     beforeEach(async () => {
+        mockIsHomeTabFocused = true;
         mockUseResponsiveLayout.mockReturnValue({
             shouldUseNarrowLayout: false,
             isSmallScreenWidth: false,
@@ -258,6 +265,41 @@ describe('ForYouSection', () => {
             // We look for any rendered element whose `icon` prop is the RECEIPT_SEARCH_ASSET reference.
             const matchingNodes = unsafeRoot.findAll((node) => node.props && (node.props as {icon?: unknown}).icon === RECEIPT_SEARCH_ASSET);
             expect(matchingNodes.length).toBeGreaterThan(0);
+        });
+
+        it('does not surface flagged expenses while the Home tab is blurred (loader not mounted)', async () => {
+            mockIsHomeTabFocused = false;
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(/homePage\.forYouSection\.reviewExpenses/)).not.toBeOnTheScreen();
+        });
+
+        it('keeps the last flagged count after the Home tab is blurred (no flash to empty)', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const {rerender} = renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();
+
+            // Leaving the Home tab unmounts the loader; the parent retains the last reported value in state,
+            // so the row keeps its count instead of flashing back to the empty state.
+            mockIsHomeTabFocused = false;
+            rerender(<ForYouSection />);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();
         });
     });
 
