@@ -28,7 +28,6 @@ import {
     getPolicyEmployeeAccountIDs,
     getRateDisplayValue,
     getSubmitToAccountID,
-    getSubmitToEmail,
     getTagApproverRule,
     getTagList,
     getTagListByOrderWeight,
@@ -46,6 +45,7 @@ import {
     hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
+    isMergeHRCompleteSetupNeededSelector,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isXeroActiveMatchingSource,
@@ -1059,26 +1059,6 @@ describe('PolicyUtils', () => {
             const result = getManagerAccountID(policy, report);
 
             expect(result).toBe(adminAccountID);
-        });
-
-        it('should return submitsTo email from workspace approval config', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: undefined,
-                employeeList: {
-                    [employeeEmail]: {
-                        email: employeeEmail,
-                        submitsTo: adminEmail,
-                    },
-                },
-            };
-            const report: Report = {
-                ...createRandomReport(0, undefined),
-                ownerAccountID: employeeAccountID,
-            };
-
-            expect(getSubmitToEmail(policy, report)).toBe(adminEmail);
         });
 
         it('should return the default approver', () => {
@@ -3636,6 +3616,50 @@ describe('PolicyUtils', () => {
         it('returns only Expensify emails when the employee list is undefined', () => {
             const result = getExcludedUsers(undefined);
             expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
+        });
+    });
+
+    describe('isMergeHRCompleteSetupNeededSelector', () => {
+        // Only the fields read by the selector are modeled here; `Object.assign` attaches the connection
+        // to a real policy without an unsafe cast.
+        type MergeHRTestConnection = {
+            lastSync?: {syncStatus?: string};
+            data?: {groups?: unknown[]};
+            config?: {groups?: unknown[] | null};
+        };
+        const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
+        const mergeHRBase = {
+            lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+            data: {groups: [{id: 'g1', name: 'Engineering'}]},
+        };
+
+        it('returns false when policy is undefined', () => {
+            expect(isMergeHRCompleteSetupNeededSelector(undefined)).toBe(false);
+        });
+
+        it('returns false when policy has no merge_hris connection', () => {
+            const policy = createRandomPolicy(1);
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+        });
+
+        it('returns false when sync is not done', () => {
+            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING}});
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+        });
+
+        it('returns false when sync is done but there are no groups', () => {
+            const policy = buildMergeHRPolicy(3, {...mergeHRBase, data: {groups: []}});
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+        });
+
+        it('returns false when setup is already complete (groups configured)', () => {
+            const policy = buildMergeHRPolicy(4, {...mergeHRBase, config: {groups: ['g1']}});
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+        });
+
+        it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
+            const policy = buildMergeHRPolicy(5, mergeHRBase);
+            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
     });
 });
