@@ -178,11 +178,7 @@ function getRecalculatedDistanceRateIDForExpenseDate({
     }
 
     const currentMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy});
-    if (!currentMileageRate) {
-        return undefined;
-    }
-
-    if (currentMileageRate.enabled !== false && DistanceRequestUtils.isRateEligibleForDate(currentMileageRate, expenseDate)) {
+    if (currentMileageRate && currentMileageRate.enabled !== false && DistanceRequestUtils.isRateEligibleForDate(currentMileageRate, expenseDate)) {
         return undefined;
     }
 
@@ -1238,8 +1234,8 @@ function updateMoneyRequestDistanceRate({
     }
     const {params, onyxData} = data;
     // `taxAmount`, `taxCode`, and optionally `created` only need to be updated in the optimistic data, so we need to remove them from the params
-    const {taxAmount, taxCode, created: createdParam, ...paramsWithoutTaxUpdated} = params;
-    const paramsForAPI = createdParam ? {...paramsWithoutTaxUpdated, created: createdParam} : paramsWithoutTaxUpdated;
+    const {taxAmount, taxCode, created: createdParam, ...paramsWithoutOptimisticOnlyData} = params;
+    const paramsForAPI = createdParam ? {...paramsWithoutOptimisticOnlyData, created: createdParam} : paramsWithoutOptimisticOnlyData;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsForAPI, onyxData);
 }
 

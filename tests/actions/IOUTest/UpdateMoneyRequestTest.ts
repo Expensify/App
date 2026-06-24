@@ -1814,6 +1814,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 reportID: expenseReportID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
             };
             const transactionThread: Report = {
                 ...createRandomReport(2, undefined),
@@ -1890,8 +1891,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 policy,
                 policyTags: {},
                 policyCategories: {},
-                currentUserAccountIDParam: 1,
-                currentUserEmailParam: 'test@test.com',
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
                 isASAPSubmitBetaEnabled: false,
                 parentReportNextStep: undefined,
                 isOffline: false,
@@ -1906,119 +1907,28 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     customUnitRateID: rate2026,
                     created: '2026-06-15',
                 }),
-                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                            value: expect.objectContaining({
+                                modifiedCreated: '2026-06-15',
+                                comment: expect.objectContaining({
+                                    customUnit: expect.objectContaining({
+                                        customUnitRateID: rate2026,
+                                    }),
+                                }),
+                            }),
+                        }),
+                    ]),
+                }),
             );
             expect(writeSpy).toHaveBeenCalledTimes(1);
 
             writeSpy.mockRestore();
         });
 
-        it('optimistically updates modifiedCreated when a date change also switches the mileage rate', async () => {
-            const transactionID = 'distance_date_rate_switch_optimistic';
-            const transactionThreadReportID = 'thread_date_rate_switch_optimistic';
-            const expenseReportID = 'expense_report_date_rate_switch_optimistic';
-            const policyID = 'policy_date_rate_switch_optimistic';
-            const rate2025 = 'rate_2025';
-            const rate2026 = 'rate_2026';
-            const newDate = '2026-06-15';
-
-            const expenseReport: Report = {
-                ...createRandomReport(1, undefined),
-                reportID: expenseReportID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
-            };
-            const transactionThread: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: transactionThreadReportID,
-                parentReportID: expenseReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const transaction: Transaction = {
-                ...createRandomTransaction(3),
-                transactionID,
-                reportID: expenseReportID,
-                amount: 5000,
-                currency: CONST.CURRENCY.USD,
-                created: '2025-06-15',
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                comment: {
-                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                        quantity: 10,
-                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                        customUnitRateID: rate2025,
-                    },
-                },
-            };
-            const policy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                id: policyID,
-                type: CONST.POLICY.TYPE.CORPORATE,
-                customUnits: {
-                    unitId: {
-                        attributes: {unit: 'mi'},
-                        customUnitID: 'unitId',
-                        defaultCategory: 'Car',
-                        enabled: true,
-                        name: 'Distance',
-                        rates: {
-                            [rate2025]: {
-                                currency: 'USD',
-                                customUnitRateID: rate2025,
-                                enabled: true,
-                                name: '2025 mileage',
-                                rate: 65.5,
-                                startDate: '2025-01-01',
-                                endDate: '2025-12-31',
-                            },
-                            [rate2026]: {
-                                currency: 'USD',
-                                customUnitRateID: rate2026,
-                                enabled: true,
-                                name: '2026 mileage',
-                                rate: 70,
-                                startDate: '2026-01-01',
-                                endDate: '2026-12-31',
-                            },
-                        },
-                    },
-                },
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThread);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await waitForBatchedUpdates();
-
-            updateMoneyRequestDate({
-                transactionID,
-                transactionThreadReport: transactionThread,
-                parentReport: expenseReport,
-                transactions: {},
-                transactionViolations: {},
-                value: newDate,
-                policy,
-                policyTags: {},
-                policyCategories: {},
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
-                isASAPSubmitBetaEnabled: false,
-                parentReportNextStep: undefined,
-                isOffline: false,
-                delegateAccountID: undefined,
-            });
-
-            await waitForBatchedUpdates();
-
-            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-            expect(transactionAfter?.modifiedCreated).toBe(newDate);
-            expect(transactionAfter?.comment?.customUnit?.customUnitRateID).toBe(rate2026);
-        });
-
-        it('calls UpdateMoneyRequestDate only when the current rate remains eligible for the new date even if another rate was last selected', async () => {
+        it('calls UpdateMoneyRequestDate only when the current rate remains eligible for the new date', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date-only update path.
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_same_rate';
@@ -2121,8 +2031,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             writeSpy.mockRestore();
         });
 
-        it('calls UpdateMoneyRequestDate only when the current rate is missing from the policy', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify date-only update path.
+        it('calls UpdateMoneyRequestDistanceRate when the current rate is missing from the policy', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify distance rate update path.
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             const transactionID = 'distance_date_orphan_rate';
             const transactionThreadReportID = 'thread_date_orphan_rate';
@@ -2130,6 +2040,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const policyID = 'policy_date_orphan_rate';
             const orphanedRateID = 'rate_removed';
             const activeRateID = 'rate_active';
+            const newDate = '2025-06-20';
 
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
@@ -2197,7 +2108,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 parentReport: expenseReport,
                 transactions: {},
                 transactionViolations: {},
-                value: '2025-06-20',
+                value: newDate,
                 policy,
                 policyTags: {},
                 policyCategories: {},
@@ -2209,8 +2120,17 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 delegateAccountID: undefined,
             });
 
-            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.objectContaining({transactionID, created: '2025-06-20'}), expect.anything());
-            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, expect.anything(), expect.anything());
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, expect.anything(), expect.anything());
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+                expect.objectContaining({
+                    transactionID,
+                    customUnitRateID: activeRateID,
+                    created: newDate,
+                }),
+                expect.anything(),
+            );
+            expect(writeSpy).toHaveBeenCalledTimes(1);
 
             writeSpy.mockRestore();
         });
