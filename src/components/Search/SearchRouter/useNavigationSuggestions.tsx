@@ -74,6 +74,7 @@ type WorkspaceContextProps = {
 };
 
 const MAX_NAVIGATION_SUGGESTIONS = 8;
+const EXCLUDED_SETTINGS_ITEMS = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
 
 function WorkspaceContext({policy}: WorkspaceContextProps) {
     const styles = useThemeStyles();
@@ -294,12 +295,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
         [icons, spendContext, translate, typeMenuSections],
     );
 
-    const excludedSettingsItems = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
-
     const accountItems = useMemo(
         () =>
             [...accountMenuItemsData.items, ...generalMenuItemsData.items]
-                .filter((item) => !excludedSettingsItems.has(item.translationKey))
+                .filter((item) => !EXCLUDED_SETTINGS_ITEMS.has(item.translationKey))
                 .map((item) => {
                     const itemText = translate(item.translationKey);
                     return {
@@ -410,7 +409,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             });
         },
         groupPoliciesWithChatEnabled,
-        onNavigateToWorkspaceSelection: () => navigateToCreateReportWorkspaceSelection({forceReplace: isReportInSearch}),
+        onNavigateToWorkspaceSelection: () => navigateToCreateReportWorkspaceSelection({forceReplace: isOnSearchMoneyRequestReportPage()}),
         shouldHandleNavigationBack: false,
     });
 
@@ -502,23 +501,16 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 .map((item) => ({text: item.text, singleIcon: item.icon, action: item.action, keyForList: item.keyForList, matchTerms: [item.text]})),
         [
             activePolicy?.id,
-            allPoliciesCollection,
-            allBetas,
             canSendInvoice,
             createReport,
             draftTransactionIDs,
             icons,
             isCreateReportVisible,
-            isOffline,
-            isRestrictedPolicyCreation,
             isTravelVisible,
-            primaryContactMethod,
             reportID,
-            sessionEmail,
             shouldOpenTravelDirectly,
             shouldShowNewWorkspaceButton,
             translate,
-            travelSettings?.hasAcceptedTerms,
         ],
     );
 

@@ -401,4 +401,3 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: PersonalDeta
 }
 
 export default useInitialSettingsPageMenuData;
-export type {Menu, MenuData, SettingsTopLevelScreens};

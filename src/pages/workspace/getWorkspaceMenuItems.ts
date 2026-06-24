@@ -364,4 +364,3 @@ function getWorkspaceMenuItems({
 }
 
 export default getWorkspaceMenuItems;
-export type {WorkspaceMenuItem, WorkspaceMenuIconMap};
