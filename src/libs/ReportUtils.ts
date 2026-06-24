@@ -221,7 +221,6 @@ import {
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
 import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
-import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -2413,7 +2412,13 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
  * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
  * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
  */
-function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, excludeReportID?: string, archivedReportsIDSet?: ArchivedReportsIDSet): OnyxEntry<Report> {
+function findLastAccessedReport(
+    ignoreDomainRooms: boolean,
+    openOnAdminRoom = false,
+    excludeReportID?: string,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+): OnyxEntry<Report> {
+    const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
     let reportsValues = Object.values(deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
@@ -2450,7 +2455,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
     reportsValues =
         reportsValues.filter((report) => {
             const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`;
-            const isArchived = archivedReportsIDSet ? archivedReportsIDSet.has(reportNameValuePairsKey) : isArchivedReport(allReportNameValuePair?.[reportNameValuePairsKey]);
+            const isArchived = isArchivedReport(reportNameValuePairsCollection?.[reportNameValuePairsKey]);
             return !isSystemChat(report) && !isArchived;
         }) ?? [];
 
@@ -2517,23 +2522,6 @@ function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportAr
 
 function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
     return !!reportNameValuePairs?.private_isArchived;
-}
-
-function isReportArchivedByID(archivedReportsIDSet: ArchivedReportsIDSet, reportID?: string): boolean {
-    if (!reportID) {
-        return false;
-    }
-    return archivedReportsIDSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
-}
-
-function buildArchivedReportsIDSet(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): ArchivedReportsIDSet {
-    const archivedReportsIDSet = new Set<string>();
-    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
-        if (isArchivedReport(value)) {
-            archivedReportsIDSet.add(key);
-        }
-    }
-    return archivedReportsIDSet;
 }
 
 /**
@@ -5072,7 +5060,7 @@ function canEditFieldOfMoneyRequest({
     transaction,
     report,
     policy,
-    archivedReportsIDSet,
+    reportNameValuePairs,
 }: {
     reportAction: OnyxInputOrEntry<ReportAction>;
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
@@ -5083,7 +5071,7 @@ function canEditFieldOfMoneyRequest({
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    archivedReportsIDSet?: ArchivedReportsIDSet;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
 }): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
@@ -5184,9 +5172,7 @@ function canEditFieldOfMoneyRequest({
             return true;
         }
 
-        const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
-
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportIDs)) {
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
             return false;
         }
 
@@ -5201,7 +5187,7 @@ function canEditFieldOfMoneyRequest({
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
                     moneyRequestReport?.ownerAccountID,
-                    archivedReportIDs,
+                    reportNameValuePairs,
                     outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
                 ).length > 0
             );
@@ -5215,14 +5201,14 @@ function canEditFieldOfMoneyRequest({
         }
 
         // Check the cheaper condition first
-        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, archivedReportIDs)) {
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, reportNameValuePairs)) {
             return true;
         }
 
         // Check if there are multiple outstanding reports across policies
         let outstandingReportsCount = 0;
         for (const currentPolicy of policiesArray) {
-            const reports = getOutstandingReportsForUser(currentPolicy.id, moneyRequestReport?.ownerAccountID, archivedReportIDs, outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {});
+            const reports = getOutstandingReportsForUser(currentPolicy.id, moneyRequestReport?.ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {});
             outstandingReportsCount += reports.length;
 
             // Short-circuit once we find more than 1
@@ -5481,12 +5467,12 @@ function shouldShowRBRForMissingSmartscanFields(iouReport: OnyxEntry<Report>, io
 function getTransactionReportName({
     translate,
     reportAction,
-    transactions,
+    linkedTransaction,
     report,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
-    transactions?: Transaction[];
+    linkedTransaction: OnyxEntry<Transaction>;
     report: OnyxEntry<Report>;
 }): string {
     if (reportAction && isReversedTransaction(reportAction)) {
@@ -5497,36 +5483,34 @@ function getTransactionReportName({
         return translate('parentReportAction.deletedExpense');
     }
 
-    const transaction = reportAction ? getLinkedTransaction(reportAction, transactions) : transactions?.at(0);
-
-    if (isEmptyObject(transaction)) {
+    if (isEmptyObject(linkedTransaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
         return isTrackExpenseAction(reportAction) ? translate('iou.createExpense') : translate('iou.expense');
     }
 
-    if (isScanning(transaction)) {
+    if (isScanning(linkedTransaction)) {
         return translate('iou.receiptScanning', {count: 1});
     }
 
-    if (hasMissingSmartscanFieldsTransactionUtils(transaction, report)) {
+    if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
         return translate('iou.receiptMissingDetails');
     }
-    if (isFetchingWaypointsFromServer(transaction) && getMerchant(transaction) === translate('iou.fieldPending')) {
+    if (isFetchingWaypointsFromServer(linkedTransaction) && getMerchant(linkedTransaction) === translate('iou.fieldPending')) {
         return translate('iou.fieldPending');
     }
 
     // The unit does not matter as we are only interested in whether the distance is zero or not
-    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) && !hasReceiptTransactionUtils(transaction)) {
+    if (isMapDistanceRequest(linkedTransaction) && !getDistanceInMeters(linkedTransaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) && !hasReceiptTransactionUtils(linkedTransaction)) {
         return translate('violations.noRoute');
     }
 
     if (isSentMoneyReportAction(reportAction)) {
-        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, transaction);
+        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, linkedTransaction);
     }
 
-    const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-    const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
-    const comment = getMerchantOrDescription(transaction);
+    const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+    const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
+    const comment = getMerchantOrDescription(linkedTransaction);
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
@@ -8774,48 +8758,6 @@ function isEmptyReport(report: OnyxEntry<Report>, isReportArchived: boolean | un
     return generateIsEmptyReport(report, isReportArchived);
 }
 
-type ReportEmptyStateSummary = Pick<
-    Report,
-    'policyID' | 'ownerAccountID' | 'type' | 'stateNum' | 'statusNum' | 'total' | 'nonReimbursableTotal' | 'pendingAction' | 'pendingFields' | 'errors'
-> &
-    Pick<Report, 'reportID'>;
-
-function toReportEmptyStateSummary(report: Report | null | undefined): ReportEmptyStateSummary | undefined {
-    if (!report) {
-        return undefined;
-    }
-
-    return {
-        reportID: report.reportID,
-        policyID: report.policyID ?? undefined,
-        ownerAccountID: report.ownerAccountID ?? undefined,
-        type: report.type ?? undefined,
-        stateNum: report.stateNum ?? undefined,
-        statusNum: report.statusNum ?? undefined,
-        total: report.total ?? undefined,
-        nonReimbursableTotal: report.nonReimbursableTotal ?? undefined,
-        pendingAction: report.pendingAction ?? undefined,
-        pendingFields: report.pendingFields ?? undefined,
-        errors: report.errors ?? undefined,
-    };
-}
-
-function getReportSummariesForEmptyCheck(reports: OnyxCollection<Report> | undefined): ReportEmptyStateSummary[] {
-    if (!reports) {
-        return [];
-    }
-
-    const result: ReportEmptyStateSummary[] = [];
-    for (const report of Object.values(reports)) {
-        const summary = toReportEmptyStateSummary(report);
-
-        if (summary) {
-            result.push(summary);
-        }
-    }
-    return result;
-}
-
 /**
  * Checks if there are any empty (no transactions) open expense reports for a specific policy and user.
  * An empty report is defined as having zero transactions.
@@ -8827,14 +8769,12 @@ function hasEmptyReportsForPolicy(
     reportIDsWithActiveTransactions: Record<string, boolean>,
     accountID?: number,
 ): boolean {
-    if (!accountID || !policyID) {
+    if (!accountID || !policyID || !reports) {
         return false;
     }
 
-    const summaries = getReportSummariesForEmptyCheck(reports);
-
-    return summaries.some((report) => {
-        if (!report.reportID || !report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
+    return Object.values(reports).some((report) => {
+        if (!report?.reportID || !report.policyID || report.policyID !== policyID || report.ownerAccountID !== accountID) {
             return false;
         }
 
@@ -8864,15 +8804,14 @@ function getPolicyIDsWithEmptyReportsForAccount(
     accountID: number | undefined,
     reportsTransactionsParam: Record<string, Transaction[]>,
 ): Record<string, boolean> {
-    if (!accountID) {
+    if (!accountID || !reports) {
         return {};
     }
 
-    const summaries = getReportSummariesForEmptyCheck(reports);
     const policyLookup: Record<string, boolean> = {};
 
-    for (const report of summaries) {
-        if (!report.reportID || !report.policyID || report.ownerAccountID !== accountID) {
+    for (const report of Object.values(reports)) {
+        if (!report?.reportID || !report.policyID || report.ownerAccountID !== accountID) {
             continue;
         }
 
@@ -11460,7 +11399,7 @@ function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    archivedReportsIDSet?: ArchivedReportsIDSet,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     allowSubmitted = true,
 ): boolean {
     if (
@@ -11474,8 +11413,8 @@ function isReportOutstanding(
     ) {
         return false;
     }
-    const reportNameValuePair = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    if (archivedReportsIDSet ? isReportArchivedByID(archivedReportsIDSet, iouReport.reportID) : isArchivedReport(reportNameValuePair)) {
+    const reportNameValuePair = (reportNameValuePairs ?? allReportNameValuePair)?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    if (isArchivedReport(reportNameValuePair)) {
         return false;
     }
     const currentRoute = navigationRef.getCurrentRoute();
@@ -11498,19 +11437,17 @@ function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    archivedReportsIDSet?: ArchivedReportsIDSet,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports: OnyxCollection<Report> = deprecatedAllReports,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
-    const archivedReportIDs = archivedReportsIDSet ?? buildArchivedReportsIDSet(allReportNameValuePair);
-
     if (!reports) {
         return [];
     }
     return Object.values(reports).filter(
         (report) =>
             report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            isReportOutstanding(report, policyID, archivedReportIDs, allowSubmitted) &&
+            isReportOutstanding(report, policyID, reportNameValuePairs, allowSubmitted) &&
             report?.ownerAccountID === reportOwnerAccountID,
     );
 }
@@ -11585,8 +11522,6 @@ type PrepareOnboardingOnyxDataParams = {
     onboardingPurposeSelected?: OnboardingPurpose;
     // TODO: isSelfTourViewed will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
-    // TODO: hasCompletedGuidedSetupFlow will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
-    hasCompletedGuidedSetupFlow?: boolean;
 };
 
 function prepareOnboardingOnyxData({
@@ -11601,7 +11536,6 @@ function prepareOnboardingOnyxData({
     isInvitedAccountant,
     onboardingPurposeSelected,
     isSelfTourViewed,
-    hasCompletedGuidedSetupFlow,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -11671,7 +11605,7 @@ function prepareOnboardingOnyxData({
         workspaceTagsLink: `${environmentURL}/${ROUTES.WORKSPACE_TAGS.getRoute(onboardingPolicyID)}`,
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
         workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
-        workspaceConfirmationLink: `${environmentURL}/${ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)}`,
+        workspaceConfirmationLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)}`,
         testDriveURL: `${environmentURL}/${testDriveURL}`,
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
@@ -12070,7 +12004,7 @@ function prepareOnboardingOnyxData({
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlow ?? onboarding?.hasCompletedGuidedSetupFlow ?? null},
+            value: {hasCompletedGuidedSetupFlow: false},
         });
     }
 
@@ -13245,7 +13179,6 @@ export {
     buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
-    buildArchivedReportsIDSet,
     buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
@@ -13386,7 +13319,6 @@ export {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
-    isReportArchivedByID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,
