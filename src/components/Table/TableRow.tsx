@@ -33,9 +33,6 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** Whether or not the row should animate in highlighted */
     shouldAnimateInHighlight?: boolean;
 
-    /** The loading component to render within the table row when the row is loading */
-    LoadingComponent?: React.ComponentType;
-
     /** Attributes for when the client is offline and there is an error related to the table row */
     offlineWithFeedback?: OfflineWithFeedbackProps;
 
@@ -51,7 +48,6 @@ export default function TableRow({
     sentryLabel,
     interactive,
     shouldAnimateInHighlight,
-    LoadingComponent,
     onPress,
     offlineWithFeedback,
     checkboxReplacementElement,
