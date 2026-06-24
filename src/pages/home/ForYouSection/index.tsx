@@ -1,7 +1,8 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
+import useIsHomeTabFocused from '@hooks/useIsHomeTabFocused';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +20,11 @@ import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
-import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
+import ReviewFlaggedExpensesLoader from './ReviewFlaggedExpensesLoader';
+import type {ReviewFlaggedExpenses} from './useReviewFlaggedExpenses';
+
+/** Default while the Home tab has never been active this session, so the review row stays hidden. */
+const DEFAULT_FLAGGED_EXPENSES: ReviewFlaggedExpenses = {count: 0, reviewExpenses: () => {}};
 
 function ForYouSection() {
     const styles = useThemeStyles();
@@ -35,7 +40,12 @@ function ForYouSection() {
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
-    const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
+
+    // The flagged-expense scan subscribes to whole collections, so it is loaded by a child mounted only while
+    // the Home tab is active. We hold its latest result here so the value survives that child's
+    // unmount when the user briefly leaves and returns to the Home tab.
+    const isHomeTabFocused = useIsHomeTabFocused();
+    const [{count: flaggedExpensesCount, reviewExpenses}, setFlaggedExpenses] = useState<ReviewFlaggedExpenses>(DEFAULT_FLAGGED_EXPENSES);
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
@@ -178,7 +188,12 @@ function ForYouSection() {
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
 
-    return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
+    return (
+        <WidgetContainer title={translate('homePage.forYou')}>
+            {isHomeTabFocused && <ReviewFlaggedExpensesLoader onChange={setFlaggedExpenses} />}
+            {renderContent()}
+        </WidgetContainer>
+    );
 }
 
 export default ForYouSection;

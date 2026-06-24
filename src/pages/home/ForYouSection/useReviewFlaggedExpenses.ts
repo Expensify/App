@@ -1,8 +1,6 @@
-import {useIsFocused} from '@react-navigation/core';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useOnyx from '@hooks/useOnyx';
-import usePreviousDefined from '@hooks/usePreviousDefined';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -26,9 +24,6 @@ type FlaggedExpense = {
     /** ID of the parent expense report */
     reportID: string;
 };
-
-/** Stable empty reference returned before the first focused scan, so the row never depends on a fresh `[]`. */
-const EMPTY_FLAGGED_EXPENSES: FlaggedExpense[] = [];
 
 /**
  * Returns true when this report is an OPEN/OPEN expense report owned by the current user.
@@ -121,6 +116,7 @@ function getFlaggedExpenses(
  * user's OPEN expense reports for flagged transactions, then reads the first flagged expense's report, report
  * actions, and transaction, and exposes a bound handler that navigates to the transaction thread
  * (single-expense RHP + review carousel).
+ *
  */
 function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -128,13 +124,8 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const isFocused = useIsFocused();
 
-    // Skip the O(n) flagged-expense scan while Home is blurred. usePreviousDefined keeps the
-    // last computed result so the row never flashes empty when Home is re-focused, and the count refreshes
-    // live on re-focus
-    const freshFlaggedExpenses = isFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session) : undefined;
-    const flaggedExpenses = usePreviousDefined(freshFlaggedExpenses) ?? EMPTY_FLAGGED_EXPENSES;
+    const flaggedExpenses = getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session);
 
     const firstFlaggedExpense = flaggedExpenses.at(0);
     const firstReportID = firstFlaggedExpense?.reportID;
@@ -167,3 +158,4 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
 
 export default useReviewFlaggedExpenses;
 export {getFlaggedExpenses};
+export type {ReviewFlaggedExpenses};
