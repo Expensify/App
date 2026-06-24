@@ -98,7 +98,7 @@ function buildSavedSearchMenuItem({
 
 function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const isFocused = useIsFocused();
@@ -151,22 +151,24 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const tooltipWrapperStyle = [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper];
 
     const savedSearchesMenuItems = savedSearches
-        ? Object.entries(savedSearches).map(([key, item], index) =>
-              buildSavedSearchMenuItem({
-                  item,
-                  key,
-                  index,
-                  hash,
-                  title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
-                  getOverflowMenu,
-                  shouldShowSavedSearchTooltip,
-                  hideSavedSearchTooltip,
-                  renderSavedSearchTooltip,
-                  itemStyle,
-                  tooltipWrapperStyle,
-                  isCopied: copiedHash === Number(key),
-              }),
-          )
+        ? Object.entries(savedSearches)
+              .map(([key, item], index) =>
+                  buildSavedSearchMenuItem({
+                      item,
+                      key,
+                      index,
+                      hash,
+                      title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
+                      getOverflowMenu,
+                      shouldShowSavedSearchTooltip,
+                      hideSavedSearchTooltip,
+                      renderSavedSearchTooltip,
+                      itemStyle,
+                      tooltipWrapperStyle,
+                      isCopied: copiedHash === Number(key),
+                  }),
+              )
+              .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
         : [];
 
     if (isVisuallyCollapsed) {
