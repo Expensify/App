@@ -376,10 +376,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             // report), restore that report as the underlay so cold-reload doesn't drop the expense
             // view behind the RHP. getDefaultFullScreenRoute already encodes this — and falls back to
             // INBOX-only when the report isn't loaded locally, matching the prior fallback.
-            const underlay =
-                focusedRoute && isRouteWithReportID(focusedRoute)
-                    ? getDefaultFullScreenRoute(focusedRoute)
-                    : getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
+            const underlay = focusedRoute && isRouteWithReportID(focusedRoute) ? getDefaultFullScreenRoute(focusedRoute) : getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
             return getRoutesWithIndex([underlay, ...currentState.routes]);
         }
 
