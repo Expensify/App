@@ -8,7 +8,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    IntroSelected,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -185,6 +184,7 @@ type ComputeReportName = {
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     conciergeReportID?: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
+    isTrackIntentUser: boolean | undefined;
 };
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -194,15 +194,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value;
-    },
-});
-
-let introSelected: OnyxEntry<IntroSelected>;
-// eslint-disable-next-line rulesdir/no-onyx-connect -- NextStepUtils is a pure utility called from action files that cannot use hooks
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        introSelected = value;
     },
 });
 
@@ -436,6 +427,7 @@ function computeReportNameBasedOnReportAction(
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+    isTrackIntentUser: boolean | undefined,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -451,7 +443,7 @@ function computeReportNameBasedOnReportAction(
         }
         if (
             shouldShowMarkAsDone({
-                isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                isTrackIntentUser,
                 policy: reportPolicy,
                 report: parentReport,
             })
@@ -937,6 +929,7 @@ function computeReportName({
     allPolicyTags,
     conciergeReportID,
     reportAttributes,
+    isTrackIntentUser,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -955,6 +948,7 @@ function computeReportName({
         parentReport,
         personalDetailsList,
         reportAttributes,
+        isTrackIntentUser,
     );
 
     if (parentReportActionBasedName) {
@@ -980,6 +974,7 @@ function computeReportName({
             currentUserLogin,
             conciergeReportID,
             reportAttributes,
+            isTrackIntentUser,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
