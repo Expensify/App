@@ -13,6 +13,7 @@ import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -68,17 +69,24 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     }, [backPath]);
 
     return (
-        <ValidateCodeActionContent
-            isLoading={issueNewCard?.isLoading}
-            title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
-            sendValidateCode={() => requestValidateCodeAction()}
-            validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
-            handleSubmitForm={handleSubmit}
-            validateError={validateError}
-            clearError={() => clearIssueNewCardError(policyID)}
-            onClose={handleClose}
-        />
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <ValidateCodeActionContent
+                isLoading={issueNewCard?.isLoading}
+                title={translate('cardPage.validateCardTitle')}
+                descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
+                sendValidateCode={() => requestValidateCodeAction()}
+                validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
+                handleSubmitForm={handleSubmit}
+                validateError={validateError}
+                clearError={() => clearIssueNewCardError(policyID)}
+                onClose={handleClose}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 
