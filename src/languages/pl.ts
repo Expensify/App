@@ -972,6 +972,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portfel',
             },
             validateAccount: {title: 'Zweryfikuj swoje konto', subtitle: 'Konto', cta: 'Zatwierdź'},
+            addHomeAddress: {
+                title: 'Dodaj adres domowy',
+                subtitle: 'Twój administrator włączył wykluczenia dojazdów dla wydatków za dystans. Dodaj adres domowy, abyśmy mogli je zastosować do twoich roszczeń.',
+                cta: 'Dodaj adres',
+            },
             fixFailedBilling: {title: 'Nie mogliśmy obciążyć zapisanej karty', subtitle: 'Subskrypcja'},
             unlockBankAccount: {
                 workspaceTitle: 'Twoje firmowe konto bankowe zostało zablokowane',
@@ -1202,6 +1207,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Utwórz wydatek czasowy',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Wymagany adres domowy',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Zanim zaczniesz rejestrować dystans, musisz dodać swój adres domowy do prywatnego profilu. ${workspaceName} używa tego adresu do odliczeń dojazdów.`
+                    : 'Zanim zaczniesz rejestrować dystans, musisz dodać swój adres domowy do prywatnego profilu. Ta przestrzeń robocza używa tego adresu do odliczeń dojazdów.',
+            cta: 'Dodaj adres domowy',
+        },
         amount: 'Kwota',
         percent: 'Procent',
         date: 'Data',
@@ -6731,11 +6744,24 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 summaryDisabled: 'Bez wykluczenia dojazdów',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Wyklucz ${distance} ${unit} na zgłoszenie`,
                 optionDisabledTitle: 'Nie wykluczaj dojazdów',
-                optionDisabledHelp: 'Nie zastosowano wyłączenia dojazdów.',
+                optionDisabledHelp: 'Z roszczeń nie jest usuwany żaden dojazd.',
                 optionFixedDistanceTitle: 'Wyklucz stały dystans na każde rozliczenie',
                 optionFixedDistanceHelp: 'Odejmij tę samą odległość dojazdu od każdego rozliczenia. Najlepsze dla osób, które składają jedno rozliczenie na każdy dzień pracy.',
                 distanceLabel: 'Dystans',
-                errors: {distanceMustBePositive: 'Dystans musi być większy niż 0.'},
+                summaryHomeAndOffice: 'Użyj lokalizacji domu i biura',
+                optionHomeAndOfficeTitle: 'Oblicz na podstawie domu i biura',
+                optionHomeAndOfficeHelp: 'Użyj adresu domowego, modelu pracy i przypisania biura członka do obliczenia wykluczeń dojazdów.',
+                workspaceAddressRequired: {
+                    title: 'Nie tak szybko...',
+                    promptStart: 'Nie możesz włączyć ustawienia oblicz na podstawie domu i biura, dopóki nie dodasz adresu biura w sekcji ',
+                    linkText: 'Przegląd',
+                    promptEnd: '.',
+                    cta: 'Rozumiem',
+                },
+                errors: {
+                    distanceMustBePositive: 'Dystans musi być większy niż 0.',
+                    invalidAddress: 'Wprowadź prawidłowy adres',
+                },
             },
             distance: 'Dystans',
             centrallyManage: 'Centralnie zarządzaj stawkami, śledź w milach lub kilometrach i ustaw domyślną kategorię.',

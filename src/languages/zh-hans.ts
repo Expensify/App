@@ -941,6 +941,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
             validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
+            addHomeAddress: {
+                title: '添加家庭地址',
+                subtitle: '您的管理员已为距离支出启用了通勤排除。请添加家庭地址，以便将其应用于您的申报。',
+                cta: '添加地址',
+            },
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -1159,6 +1164,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: '创建工时报销',
     },
     iou: {
+        homeAddressRequired: {
+            title: '需要家庭地址',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `在记录距离之前，您需要在私人资料中添加家庭地址。${workspaceName} 将此地址用于通勤扣除。`
+                    : '在记录距离之前，您需要在私人资料中添加家庭地址。此工作区将此地址用于通勤扣除。',
+            cta: '添加家庭地址',
+        },
         amount: '金额',
         percent: '百分比',
         date: '日期',
@@ -6557,11 +6570,24 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 summaryDisabled: '不排除通勤',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `每次报销排除 ${distance} ${unit}`,
                 optionDisabledTitle: '不要排除通勤',
-                optionDisabledHelp: '未应用通勤排除规则。',
+                optionDisabledHelp: '不会从申报中扣除任何通勤距离。',
                 optionFixedDistanceTitle: '为每笔报销排除固定距离',
                 optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
                 distanceLabel: '距离',
-                errors: {distanceMustBePositive: '距离必须大于 0。'},
+                summaryHomeAndOffice: '使用家庭和办公室位置',
+                optionHomeAndOfficeTitle: '按家庭和办公室计算',
+                optionHomeAndOfficeHelp: '使用成员的家庭地址、工作安排和办公室分配来计算通勤排除。',
+                workspaceAddressRequired: {
+                    title: '等一下...',
+                    promptStart: '在你在',
+                    linkText: '概览',
+                    promptEnd: '中添加办公室地址之前，无法启用按家庭和办公室计算的设置。',
+                    cta: '知道了',
+                },
+                errors: {
+                    distanceMustBePositive: '距离必须大于 0。',
+                    invalidAddress: '请输入有效地址',
+                },
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',

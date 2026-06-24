@@ -974,6 +974,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portefeuille',
             },
             validateAccount: {title: 'Validez votre compte', subtitle: 'Compte', cta: 'Valider'},
+            addHomeAddress: {
+                title: 'Ajouter une adresse personnelle',
+                subtitle:
+                    'Votre administrateur a activé les exclusions de trajet pour les dépenses de distance. Ajoutez une adresse personnelle pour que nous puissions les appliquer à vos réclamations.',
+                cta: 'Ajouter une adresse',
+            },
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Votre compte bancaire professionnel a été verrouillé',
@@ -1208,6 +1214,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Créer une dépense de temps',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Adresse personnelle requise',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Avant de pouvoir suivre la distance, vous devez ajouter votre adresse personnelle à votre profil privé. ${workspaceName} utilise cette adresse pour les déductions de trajet.`
+                    : 'Avant de pouvoir suivre la distance, vous devez ajouter votre adresse personnelle à votre profil privé. Cet espace de travail utilise cette adresse pour les déductions de trajet.',
+            cta: 'Ajouter une adresse personnelle',
+        },
         amount: 'Montant',
         percent: 'Pourcentage',
         date: 'Date',
@@ -6798,11 +6812,24 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 summaryDisabled: 'Pas d’exclusion du trajet domicile-travail',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclure ${distance} ${unit} par demande`,
                 optionDisabledTitle: 'Ne pas exclure les trajets domicile-travail',
-                optionDisabledHelp: 'Aucune exclusion de trajet domicile-travail n’est appliquée.',
+                optionDisabledHelp: 'Aucun trajet n’est retiré des réclamations.',
                 optionFixedDistanceTitle: 'Exclure une distance fixe par demande',
                 optionFixedDistanceHelp: 'Soustraire la même distance de trajet domicile-travail de chaque demande. Idéal pour les membres qui soumettent une demande par jour de travail.',
                 distanceLabel: 'Distance',
-                errors: {distanceMustBePositive: 'La distance doit être supérieure à 0.'},
+                summaryHomeAndOffice: 'Utiliser les emplacements du domicile et du bureau',
+                optionHomeAndOfficeTitle: 'Calculer par domicile et bureau',
+                optionHomeAndOfficeHelp: 'Utilise l’adresse personnelle, le mode de travail et l’affectation au bureau du membre pour calculer les exclusions de trajet.',
+                workspaceAddressRequired: {
+                    title: 'Pas si vite...',
+                    promptStart: 'Vous ne pouvez pas activer le calcul par domicile et bureau tant que vous n’avez pas ajouté une adresse de bureau dans ',
+                    linkText: 'Vue d’ensemble',
+                    promptEnd: '.',
+                    cta: 'Compris',
+                },
+                errors: {
+                    distanceMustBePositive: 'La distance doit être supérieure à 0.',
+                    invalidAddress: 'Veuillez saisir une adresse valide',
+                },
             },
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',

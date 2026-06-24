@@ -8,6 +8,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
 import AddressPage from '@pages/AddressPage';
 import {updateAddress} from '@userActions/Policy/Policy';
+import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -52,6 +53,11 @@ function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProp
         Navigation.goBack(backPath);
     };
 
+    // When the policy uses homeAndOffice commuter exclusions, the workspace address backs the
+    // per-member commute calculation. A partial/invalid address would silently break that, so
+    // promote the zip code to a required field on top of the form's standard required set.
+    const requiresFullAddressForExclusions = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+
     return (
         <AddressPage
             backTo={backPath}
@@ -59,6 +65,7 @@ function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProp
             isLoadingApp={false}
             updateAddress={updatePolicyAddress}
             title={translate('common.companyAddress')}
+            shouldRequireZip={requiresFullAddressForExclusions}
         />
     );
 }

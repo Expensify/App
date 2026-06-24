@@ -970,6 +970,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portemonnee',
             },
             validateAccount: {title: 'Valideer je account', subtitle: 'Account', cta: 'Valideren'},
+            addHomeAddress: {
+                title: 'Voeg een huisadres toe',
+                subtitle: 'Je beheerder heeft woon-werkuitsluitingen voor afstandsuitgaven ingeschakeld. Voeg een huisadres toe zodat we deze op je claims kunnen toepassen.',
+                cta: 'Adres toevoegen',
+            },
             fixFailedBilling: {title: 'We konden je kaart in ons bestand niet belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Je zakelijke bankrekening is geblokkeerd',
@@ -1202,6 +1207,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Tijdkosten aanmaken',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Huisadres is vereist',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Voordat je afstand kunt registreren, moet je je huisadres toevoegen aan je privéprofiel. ${workspaceName} gebruikt dit adres voor woon-werkaftrekken.`
+                    : 'Voordat je afstand kunt registreren, moet je je huisadres toevoegen aan je privéprofiel. Deze werkruimte gebruikt dit adres voor woon-werkaftrekken.',
+            cta: 'Huisadres toevoegen',
+        },
         amount: 'Bedrag',
         percent: 'Procent',
         date: 'Datum',
@@ -6737,11 +6750,24 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 summaryDisabled: 'Geen woon-werkuitzondering',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Sluit ${distance} ${unit} per declaratie uit`,
                 optionDisabledTitle: 'Woon-werkverkeer niet uitsluiten',
-                optionDisabledHelp: 'Er is geen woon-werkuitzondering toegepast.',
+                optionDisabledHelp: 'Geen woon-werkverkeer wordt uit claims verwijderd.',
                 optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
                 optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
                 distanceLabel: 'Afstand',
-                errors: {distanceMustBePositive: 'Afstand moet groter zijn dan 0.'},
+                summaryHomeAndOffice: 'Gebruik thuis- en kantoorlocaties',
+                optionHomeAndOfficeTitle: 'Berekenen via huis en kantoor',
+                optionHomeAndOfficeHelp: 'Gebruik het huisadres, de werkregeling en de kantoorindeling van het lid om woon-werkuitsluitingen te berekenen.',
+                workspaceAddressRequired: {
+                    title: 'Niet zo snel...',
+                    promptStart: 'Je kunt de instelling Berekenen via huis en kantoor pas inschakelen nadat je een kantooradres hebt toegevoegd in ',
+                    linkText: 'Overzicht',
+                    promptEnd: '.',
+                    cta: 'Begrepen',
+                },
+                errors: {
+                    distanceMustBePositive: 'Afstand moet groter zijn dan 0.',
+                    invalidAddress: 'Voer een geldig adres in',
+                },
             },
             distance: 'Afstand',
             centrallyManage: 'Beheer tarieven centraal, volg in mijlen of kilometers en stel een standaardcategorie in.',

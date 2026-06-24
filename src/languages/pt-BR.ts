@@ -970,6 +970,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Carteira',
             },
             validateAccount: {title: 'Valide sua conta', subtitle: 'Conta', cta: 'Validar'},
+            addHomeAddress: {
+                title: 'Adicione um endereço residencial',
+                subtitle: 'Seu administrador habilitou exclusões de trajeto para despesas de distância. Adicione um endereço residencial para que possamos aplicá-las às suas solicitações.',
+                cta: 'Adicionar endereço',
+            },
             fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
             unlockBankAccount: {
                 workspaceTitle: 'Sua conta bancária comercial foi bloqueada',
@@ -1202,6 +1207,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Criar despesa de tempo',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Endereço residencial obrigatório',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Antes de registrar distância, você precisa adicionar seu endereço residencial ao seu perfil privado. ${workspaceName} usa este endereço para deduções de trajeto.`
+                    : 'Antes de registrar distância, você precisa adicionar seu endereço residencial ao seu perfil privado. Este espaço de trabalho usa este endereço para deduções de trajeto.',
+            cta: 'Adicionar endereço residencial',
+        },
         amount: 'Valor',
         percent: 'Porcentagem',
         date: 'Data',
@@ -6732,11 +6745,24 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 summaryDisabled: 'Sem exclusão de deslocamento',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por solicitação`,
                 optionDisabledTitle: 'Não excluir deslocamentos de casa para o trabalho',
-                optionDisabledHelp: 'Nenhuma exclusão de deslocamento é aplicada.',
+                optionDisabledHelp: 'Nenhum trajeto é removido das solicitações.',
                 optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
                 optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
                 distanceLabel: 'Distância',
-                errors: {distanceMustBePositive: 'A distância deve ser maior que 0.'},
+                summaryHomeAndOffice: 'Usar locais de casa e escritório',
+                optionHomeAndOfficeTitle: 'Calcular por casa e escritório',
+                optionHomeAndOfficeHelp: 'Use o endereço residencial, o regime de trabalho e a alocação de escritório do membro para calcular as exclusões de trajeto.',
+                workspaceAddressRequired: {
+                    title: 'Espere um momento...',
+                    promptStart: 'Você não pode ativar a configuração calcular por casa e escritório enquanto não adicionar um endereço de escritório em ',
+                    linkText: 'Visão geral',
+                    promptEnd: '.',
+                    cta: 'Entendi',
+                },
+                errors: {
+                    distanceMustBePositive: 'A distância deve ser maior que 0.',
+                    invalidAddress: 'Insira um endereço válido',
+                },
             },
             distance: 'Distância',
             centrallyManage: 'Gerencie tarifas centralmente, acompanhe em milhas ou quilômetros e defina uma categoria padrão.',

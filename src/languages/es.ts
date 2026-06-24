@@ -931,6 +931,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Cuenta',
                 cta: 'Validar',
             },
+            addHomeAddress: {
+                title: 'Añade una dirección de casa',
+                subtitle:
+                    'Tu administrador habilitó exclusiones de desplazamientos para los gastos por distancia. Añade una dirección de casa para que podamos aplicarlas a tus reclamaciones.',
+                cta: 'Añadir dirección',
+            },
             fixFailedBilling: {
                 title: 'No pudimos cobrar a la tarjeta registrada.',
                 subtitle: 'Suscripción',
@@ -1169,6 +1175,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Crear gasto de tiempo',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Se requiere la dirección de casa',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Antes de registrar distancia, debes añadir tu dirección de casa a tu perfil privado. ${workspaceName} usa esta dirección para las deducciones de desplazamientos.`
+                    : 'Antes de registrar distancia, debes añadir tu dirección de casa a tu perfil privado. Este espacio de trabajo usa esta dirección para las deducciones de desplazamientos.',
+            cta: 'Añadir dirección de casa',
+        },
         amount: 'Importe',
         percent: 'Porcentaje',
         date: 'Fecha',
@@ -6687,12 +6701,25 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Excluir desplazamientos al trabajo',
                 summaryDisabled: 'Sin exclusión por desplazamiento al trabajo',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por reclamación`,
+                summaryHomeAndOffice: 'Usar las ubicaciones de casa y oficina',
                 optionDisabledTitle: 'No excluir los desplazamientos al trabajo',
-                optionDisabledHelp: 'No se aplica ninguna exclusión de desplazamiento.',
+                optionDisabledHelp: 'No se elimina ningún desplazamiento de las reclamaciones.',
                 optionFixedDistanceTitle: 'Excluir una distancia fija por reclamación',
                 optionFixedDistanceHelp: 'Resta la misma distancia de desplazamiento de cada solicitud. Ideal para personas que envían una solicitud por día laborable.',
+                optionHomeAndOfficeTitle: 'Calcular por casa y oficina',
+                optionHomeAndOfficeHelp: 'Usa la dirección de casa, el arreglo de trabajo y la asignación de oficina del miembro para calcular las exclusiones de desplazamientos.',
                 distanceLabel: 'Distancia',
-                errors: {distanceMustBePositive: 'La distancia debe ser mayor que 0.'},
+                workspaceAddressRequired: {
+                    title: 'Espera un momento...',
+                    promptStart: 'No puedes activar el cálculo por casa y oficina hasta que añadas una dirección de oficina en ',
+                    linkText: 'Vista general',
+                    promptEnd: '.',
+                    cta: 'Entendido',
+                },
+                errors: {
+                    distanceMustBePositive: 'La distancia debe ser mayor que 0.',
+                    invalidAddress: 'Introduce una dirección válida',
+                },
             },
             distance: 'Distancia',
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',

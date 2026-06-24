@@ -62,6 +62,13 @@ type AddressFormProps = {
 
     /** Whether the form submit button should be enabled when offline */
     enabledWhenOffline?: boolean;
+
+    /**
+     * Whether to force the zip/postal code to be present. Defaults to off because most consumers
+     * treat it as optional, but workspace addresses backing the homeAndOffice commuter exclusions
+     * method require a complete address so the distance can be computed reliably.
+     */
+    shouldRequireZip?: boolean;
 };
 
 function AddressForm({
@@ -78,6 +85,7 @@ function AddressForm({
     zip = '',
     shouldHideCountrySelector = false,
     enabledWhenOffline: enabledWhenOfflineProp = true,
+    shouldRequireZip = false,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -103,7 +111,8 @@ function AddressForm({
             const errors: Errors & {
                 zipPostCode?: string | string[];
             } = {};
-            const requiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
+            const baseRequiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
+            const requiredFields = shouldRequireZip ? ([...baseRequiredFields, 'zipPostCode'] as const) : baseRequiredFields;
 
             // Check "State" dropdown is a valid state if selected Country is USA
             if (values.country === CONST.COUNTRY.US && !values.state) {
@@ -157,7 +166,7 @@ function AddressForm({
 
             return errors;
         },
-        [translate, shouldHideCountrySelector, country],
+        [translate, shouldHideCountrySelector, country, shouldRequireZip],
     );
 
     return (

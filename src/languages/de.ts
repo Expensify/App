@@ -971,6 +971,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet',
             },
             validateAccount: {title: 'Bestätigen Sie Ihr Konto', subtitle: 'Konto', cta: 'Bestätigen'},
+            addHomeAddress: {
+                title: 'Heimadresse hinzufügen',
+                subtitle: 'Dein Administrator hat Pendlerausschlüsse für Distanzausgaben aktiviert. Füge eine Heimadresse hinzu, damit wir sie auf deine Abrechnungen anwenden können.',
+                cta: 'Adresse hinzufügen',
+            },
             fixFailedBilling: {title: 'Wir konnten Ihre hinterlegte Karte nicht belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Ihr Geschäftskonto wurde gesperrt',
@@ -1204,6 +1209,14 @@ const translations: TranslationDeepObject<typeof en> = {
         createTimeExpense: 'Zeitaufwand erstellen',
     },
     iou: {
+        homeAddressRequired: {
+            title: 'Heimadresse erforderlich',
+            prompt: ({workspaceName}: {workspaceName: string}) =>
+                workspaceName
+                    ? `Bevor du Distanz erfassen kannst, musst du deine Heimadresse zu deinem privaten Profil hinzufügen. ${workspaceName} verwendet diese Adresse für Pendlerabzüge.`
+                    : 'Bevor du Distanz erfassen kannst, musst du deine Heimadresse zu deinem privaten Profil hinzufügen. Dieser Arbeitsbereich verwendet diese Adresse für Pendlerabzüge.',
+            cta: 'Heimadresse hinzufügen',
+        },
         amount: 'Betrag',
         percent: 'Prozent',
         date: 'Datum',
@@ -6772,11 +6785,24 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 summaryDisabled: 'Kein Ausschluss von Pendelstrecken',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `${distance} ${unit} pro Abrechnung ausschließen`,
                 optionDisabledTitle: 'Pendelfahrten nicht ausschließen',
-                optionDisabledHelp: 'Es wird kein Ausschluss für den Arbeitsweg angewendet.',
+                optionDisabledHelp: 'Keine Pendelstrecke wird aus Abrechnungen entfernt.',
                 optionFixedDistanceTitle: 'Eine feste Entfernung pro Antrag ausschließen',
                 optionFixedDistanceHelp: 'Ziehen Sie die gleiche Pendelstrecke von jeder Abrechnung ab. Am besten für Mitglieder geeignet, die eine Abrechnung pro Arbeitstag einreichen.',
                 distanceLabel: 'Entfernung',
-                errors: {distanceMustBePositive: 'Die Entfernung muss größer als 0 sein.'},
+                summaryHomeAndOffice: 'Heim- und Bürostandorte verwenden',
+                optionHomeAndOfficeTitle: 'Nach Zuhause und Büro berechnen',
+                optionHomeAndOfficeHelp: 'Verwende die Heimadresse, das Arbeitsmodell und die Bürozuweisung des Mitglieds, um Pendelausschlüsse zu berechnen.',
+                workspaceAddressRequired: {
+                    title: 'Nicht so schnell...',
+                    promptStart: 'Du kannst die Berechnung nach Zuhause und Büro erst aktivieren, wenn du in ',
+                    linkText: 'Übersicht',
+                    promptEnd: ' eine Büroadresse hinzugefügt hast.',
+                    cta: 'Verstanden',
+                },
+                errors: {
+                    distanceMustBePositive: 'Die Entfernung muss größer als 0 sein.',
+                    invalidAddress: 'Bitte gib eine gültige Adresse ein',
+                },
             },
             distance: 'Entfernung',
             centrallyManage: 'Tarife zentral verwalten, in Meilen oder Kilometern nachverfolgen und eine Standardkategorie festlegen.',
