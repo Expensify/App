@@ -154,7 +154,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 ctaText={translate('domain.verifyDomain.title')}
                                 ctaAccessibilityLabel={translate('domain.verifyDomain.title')}
                                 onCtaPress={() => {
-                                    Navigation.navigate(ROUTES.DOMAIN_VERIFY.getRoute(domainAccountID));
+                                    Navigation.navigate(ROUTES.DOMAIN_SAML_VERIFY.getRoute(domainAccountID));
                                 }}
                                 illustrationBackgroundColor={colors.blue700}
                                 illustration={illustrations.LaptopOnDeskWithCoffeeAndKey}
