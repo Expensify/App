@@ -1117,6 +1117,8 @@ const translations = {
             customizeCategories: 'Customize accounting categories',
             inviteAccountant: 'Invite your accountant',
             linkCompanyCards: 'Link company cards',
+            issueExpensifyCards: 'Issue Expensify cards',
+            issueExpensifyCardsSubtitle: 'Customize controls and streamline spending',
             setupRules: 'Set up spend rules',
         },
         upcomingTravel: 'Upcoming travel',

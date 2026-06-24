@@ -26,7 +26,9 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLay
 const useResponsiveLayoutMock = jest.requireMock<jest.Mock>('@hooks/useResponsiveLayout');
 
 jest.mock('@userActions/Policy/Category', () => ({enablePolicyCategories: jest.fn()}));
-jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
+jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enableExpensifyCard: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
+
+const {enableCompanyCards, enableExpensifyCard} = jest.requireMock<{enableCompanyCards: jest.Mock; enableExpensifyCard: jest.Mock}>('@userActions/Policy/Policy');
 
 const POLICY_ID = '1';
 
@@ -618,6 +620,100 @@ describe('useGettingStartedItems', () => {
 
             const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
             expect(companyCardsItem?.isComplete).toBe(false);
+        });
+    });
+
+    describe('row 3 (Expensify Card variant) - Issue Expensify cards', () => {
+        const WORKSPACE_ACCOUNT_ID = 12345;
+
+        it('should show "Issue Expensify cards" (and not "Link company cards") when Expensify Card is enabled and Company cards is not', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
+            const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
+            expect(expensifyCardItem).toBeDefined();
+            expect(companyCardsItem).toBeUndefined();
+        });
+
+        it('should carry the subtitle and navigate to the workspace Expensify Card route', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
+            expect(expensifyCardItem?.route).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID));
+            expect(expensifyCardItem?.subtitle).toBeTruthy();
+        });
+
+        it('should wire enableFeature to enableExpensifyCard and never re-enable company cards', async () => {
+            enableCompanyCards.mockClear();
+            enableExpensifyCard.mockClear();
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
+            expensifyCardItem?.enableFeature?.();
+            expect(enableExpensifyCard).toHaveBeenCalledWith(POLICY_ID, true, false);
+            expect(enableCompanyCards).not.toHaveBeenCalled();
+        });
+
+        it('should be not completed when the workspace has no Expensify card provisioned', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
+            expect(expensifyCardItem?.isComplete).toBe(false);
+        });
+
+        it('should be completed once the workspace card list contains an issued Expensify Card', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${WORKSPACE_ACCOUNT_ID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+                '1234': {cardID: 1234, bank: CONST.EXPENSIFY_CARD.BANK, state: CONST.EXPENSIFY_CARD.STATE.OPEN},
+            });
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: false, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
+            expect(expensifyCardItem?.isComplete).toBe(true);
+        });
+
+        it('should keep "Link company cards" when both Company cards and Expensify Card are enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: true, areExpensifyCardsEnabled: true, policyAccountID: WORKSPACE_ACCOUNT_ID},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
+
+            const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
+            const expensifyCardItem = result.current.items.find((item) => item.key === 'issueExpensifyCards');
+            expect(companyCardsItem).toBeDefined();
+            expect(expensifyCardItem).toBeUndefined();
         });
     });
 
