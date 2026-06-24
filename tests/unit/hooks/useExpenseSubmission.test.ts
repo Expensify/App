@@ -233,7 +233,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 reportActionID: 'linked-action-1',
                 originalMessage: {
                     IOUTransactionID: EXISTING_TRACKED_TRANSACTION_ID,
-                    IOUReportID: 'tracked-report-1',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             });
@@ -289,7 +288,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 childReportID: 'tracked-per-diem-thread-1',
                 originalMessage: {
                     IOUTransactionID: existingTrackedTransactionID,
-                    IOUReportID: 'tracked-per-diem-report-1',
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             });

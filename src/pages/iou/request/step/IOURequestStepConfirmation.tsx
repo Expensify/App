@@ -441,6 +441,7 @@ function IOURequestStepConfirmation({
     const isMRReport = isMoneyRequestReport(report);
     const destinationReportID =
         backToReport ?? (isPerDiemRequest && isMRReport && Navigation.getTopmostReportId() !== report?.reportID ? report?.chatReportID : report?.reportID) ?? selfDMReportID;
+    const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
 
     useEffect(() => {
         if (hasPreInsertFired.current || !isTransactionReady || !getIsNarrowLayout()) {
@@ -470,7 +471,7 @@ function IOURequestStepConfirmation({
         const hasValidDestination = !!destinationReportID && Navigation.getTopmostReportId() !== destinationReportID;
 
         // The report must be in Onyx so the pre-inserted screen can render immediately.
-        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID)?.reportID;
+        const isDestinationReportLoaded = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID;
 
         const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
 
@@ -572,7 +573,7 @@ function IOURequestStepConfirmation({
                 Navigation.goBack();
                 return;
             }
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport));
             return;
         }
 
@@ -592,12 +593,6 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        // If the user came from Test Drive modal, we need to take him back there
-        if (transaction?.receipt?.isTestDriveReceipt && (transaction.participants?.length ?? 0) > 0) {
-            Navigation.goBack(ROUTES.TEST_DRIVE_MODAL_ROOT.getRoute(transaction.participants?.at(0)?.login));
-            return;
-        }
-
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
@@ -606,8 +601,6 @@ function IOURequestStepConfirmation({
         isCreatingTrackExpense,
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
-        transaction?.receipt?.isTestDriveReceipt,
-        transaction?.participants,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
         requestType,
@@ -783,6 +776,8 @@ function IOURequestStepConfirmation({
                             title={headerTitle}
                             subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                             onBackButtonPress={navigateBack}
+                            /** Skip focus of the first interactive element in the header to make sure that Enter key submits the expense on the confirmation page instead of navigating back.  */
+                            shouldSkipFocusAfterTransition
                         >
                             {hasMultipleTransactions ? (
                                 <PrevNextButtons
