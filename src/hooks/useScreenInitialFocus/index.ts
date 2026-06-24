@@ -1,6 +1,7 @@
 import {useContext, useEffect, useRef} from 'react';
 import {useDialogLabelData} from '@components/DialogLabelContext';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+import Accessibility from '@libs/Accessibility';
 import claimInitialFocus from '@libs/claimInitialFocus';
 import hasHoverSupport from '@libs/DeviceCapabilities/hasHoverSupport';
 import {MAX_INITIAL_FOCUS_FRAMES} from '@libs/focusReturnTimings';
@@ -31,6 +32,7 @@ const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {
     const {isInsideDialog} = useDialogLabelData();
     const claimedRef = useRef(false);
     const skip = options?.skip ?? false;
+    const claimOnlyForScreenReader = options?.claimOnlyForScreenReader ?? false;
 
     useEffect(() => {
         if (skip || isInsideDialog) {
@@ -47,6 +49,9 @@ const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {
             return;
         }
         if (hasHoverSupport() && !getHadTabNavigation()) {
+            return;
+        }
+        if (claimOnlyForScreenReader && Accessibility.isScreenReaderKnownOff()) {
             return;
         }
         let rafId: number | null = null;
@@ -69,7 +74,7 @@ const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {
             }
             cancelAnimationFrame(rafId);
         };
-    }, [skip, isInsideDialog, status?.didScreenTransitionEnd, node]);
+    }, [skip, claimOnlyForScreenReader, isInsideDialog, status?.didScreenTransitionEnd, node]);
 };
 
 export default useScreenInitialFocus;
