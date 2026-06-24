@@ -1,8 +1,8 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter} from 'react-native';
 import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
@@ -112,7 +112,7 @@ const loadSearchSavePage = () => require<ReactComponentModule>('../../../../page
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    // Callback ref so DialogLabelProvider's MutationObserver re-attaches when Animated.View remounts across the breakpoint.
+    // Callback ref so DialogLabelProvider's observer re-attaches if Animated.View remounts across the breakpoint.
     const [containerNode, setContainerNode] = useState<View | null>(null);
     const containerCallbackRef = useCallback((node: View | null) => {
         setContainerNode(node);

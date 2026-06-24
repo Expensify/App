@@ -47,9 +47,6 @@ type PressableProps = RNPressableProps &
          */
         onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-        /** Stable identifier for the native focus-return registry rescue, independent of `id`/`nativeID`/`testID`; falls back to those when omitted. */
-        focusKey?: string;
-
         /**
          * Specifies keyboard shortcut to trigger onPressHandler
          * @example {shortcutKey: 'a', modifiers: ['ctrl', 'shift'], descriptionKey: 'keyboardShortcut.description'}

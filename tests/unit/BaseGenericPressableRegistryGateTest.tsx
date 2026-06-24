@@ -39,7 +39,7 @@ jest.mock('@hooks/useSingleExecution', () => ({
 }));
 
 const GenericPressable = require<{
-    default: React.ComponentType<{id?: string; nativeID?: string; testID?: string; focusKey?: string; onPress?: () => void; children?: React.ReactNode}>;
+    default: React.ComponentType<{id?: string; nativeID?: string; testID?: string; onPress?: () => void; children?: React.ReactNode}>;
 }>('../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable').default;
 
 const ROUTE_KEY = 'route-A';
@@ -111,22 +111,7 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
         expect(mockRegisterPressable).not.toHaveBeenCalled();
     });
 
-    it('uses explicit `focusKey` over `id`/`testID` so production focus identity is independent of test infrastructure', () => {
-        mockIsScreenReaderKnownOff = false;
-        renderInsideRoute(
-            <GenericPressable
-                focusKey="legal-name-row"
-                id="row-1"
-                testID="row-1-shared-by-tests"
-                onPress={() => {}}
-            />,
-        );
-        expect(mockRegisterPressable).toHaveBeenCalledTimes(1);
-        const callArgs = mockRegisterPressable.mock.calls.at(0);
-        expect(callArgs?.[1]).toBe('legal-name-row');
-    });
-
-    it('falls through `id → nativeID → testID` when `focusKey` is absent (backward-compat with existing callers)', () => {
+    it('prefers `id` when `id`/`nativeID`/`testID` are all set', () => {
         mockIsScreenReaderKnownOff = false;
         renderInsideRoute(
             <GenericPressable

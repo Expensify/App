@@ -111,7 +111,7 @@ describe('useNavigateBackOnSave', () => {
         expect(mockGoBack).toHaveBeenCalledWith(BACK_TO);
     });
 
-    it('re-arming after a successful navigate is a no-op (one-shot — the component is unmounting; further arms must not pop past the destination)', () => {
+    it('a fresh save cycle (isSaved false → true) re-opens the gate so a long-lived consumer can navigate again after re-arming', () => {
         const {result, rerender} = renderSave();
         act(() => result.current.armNavigateBack());
         rerender({isSaved: true});
@@ -120,15 +120,43 @@ describe('useNavigateBackOnSave', () => {
         rerender({isSaved: false});
         act(() => result.current.armNavigateBack());
         rerender({isSaved: true});
-        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockGoBack).toHaveBeenCalledTimes(2);
     });
 
-    it('double-tap on save while already saved navigates exactly once (defends the one-shot invariant against rapid repeat arms)', () => {
+    it('double-tap on save while already saved navigates exactly once (defends the within-cycle invariant against rapid repeat arms)', () => {
         const {result} = renderSave(true);
         act(() => {
             result.current.armNavigateBack();
             result.current.armNavigateBack();
         });
         expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('within a single save cycle, repeat arms after the first navigate are no-ops (no double-pop)', () => {
+        const {result, rerender} = renderSave();
+        act(() => result.current.armNavigateBack());
+        rerender({isSaved: true});
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+        // No `isSaved` cycle reset: a second arm should be ignored.
+        act(() => result.current.armNavigateBack());
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('snapshots `backTo` at arm time — a later prop change cannot strand the user (e.g. parent clears route.params between arm and save)', () => {
+        const initial = 'settings/profile' as Route;
+        const later = 'settings/wallet' as Route;
+
+        const {result, rerender} = renderHook(({isSaved, backTo}: {isSaved: boolean; backTo: Route | undefined}) => useNavigateBackOnSave(isSaved, backTo, {shouldSkipFocusRestore: false}), {
+            initialProps: {isSaved: false as boolean, backTo: initial as Route | undefined},
+        });
+
+        act(() => result.current.armNavigateBack());
+        // The parent clears/changes backTo before the save flips.
+        rerender({isSaved: false, backTo: later});
+        rerender({isSaved: true, backTo: later});
+
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockGoBack).toHaveBeenCalledWith(initial);
     });
 });

@@ -82,12 +82,12 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                     />
                     {merchants.length > 0 ? (
                         merchants.map(({name, matchType}, index) => {
-                            // Content-bound key (no array index) so delete-in-middle unmounts the right instance and the focus-return rescue can't mis-target a shifted neighbour.
-                            const rowKey = `merchant-${matchType ?? 'unset'}-${name}`;
+                            // `name`/`matchType` are edited on the detail screen — keying by content would remount the row on save and lose the captured focus-return target. No per-merchant backend ID.
+                            const rowId = `merchant-${index}`;
                             return (
                                 <MenuItemWithTopDescription
-                                    key={rowKey}
-                                    pressableTestID={rowKey}
+                                    key={rowId}
+                                    pressableTestID={rowId}
                                     description={
                                         matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
                                             ? translate('workspace.rules.spendRules.merchantExactlyMatches')

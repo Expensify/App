@@ -44,7 +44,6 @@ function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps
     }, [containerNode]);
 
     const updateContainerLabel = () => {
-        // `aria-label` is a DOM contract; bail before any node access on native.
         if (typeof document === 'undefined') {
             return;
         }
@@ -53,7 +52,7 @@ function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps
         if (!isHTMLElement(node)) {
             return;
         }
-        // aria-label on a container without dialog semantics is ignored by screen readers; skip the set on mobile where the RHP has no dialog role.
+        // aria-label on a container without dialog semantics is ignored; skip the set on mobile where the RHP has no dialog role.
         const hasDialogSemantics = node.getAttribute('role') === 'dialog' || node.getAttribute('aria-modal') === 'true';
         if (!hasDialogSemantics) {
             node.removeAttribute('aria-label');
@@ -79,13 +78,14 @@ function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps
         updateContainerLabel();
     };
 
-    // Re-apply on `role`/`aria-modal` change — viewport resize flips dialog semantics mid-session. Re-runs on node swap so a fresh Animated.View gets a fresh observer.
+    // Observe `role`/`aria-modal` so a viewport-resize flip re-applies the label; the initial call back-fills labels pushed by child effects before this parent effect ran.
     useEffect(() => {
         if (typeof MutationObserver === 'undefined' || !isHTMLElement(containerNode)) {
             return;
         }
         const observer = new MutationObserver(updateContainerLabel);
         observer.observe(containerNode, {attributes: true, attributeFilter: ['role', 'aria-modal']});
+        updateContainerLabel();
         return () => {
             observer.disconnect();
         };

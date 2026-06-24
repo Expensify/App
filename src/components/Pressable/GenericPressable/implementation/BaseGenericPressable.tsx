@@ -18,7 +18,6 @@ import CONST from '@src/CONST';
 function GenericPressable({
     children,
     onPress,
-    focusKey,
     onLongPress,
     onKeyDown,
     disabled,
@@ -57,9 +56,9 @@ function GenericPressable({
     const internalRef = useRef<View | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
     const routeKey = useRouteKey();
-    // `focusKey` wins; identity props fall through. `||` so empty strings skip — never key off an empty prop.
+    // `||` so empty strings skip — never key off an empty prop.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const focusIdentifier = focusKey || rest.id || rest.nativeID || rest.testID || undefined;
+    const focusIdentifier = rest.id || rest.nativeID || rest.testID || undefined;
 
     useEffect(() => {
         if (isScreenReaderKnownOff || !routeKey || !focusIdentifier) {

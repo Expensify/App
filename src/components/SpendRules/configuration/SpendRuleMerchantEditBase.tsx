@@ -15,6 +15,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,6 +76,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
                 const updatedMerchantNames = merchantNames.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 const updatedMerchantMatchTypes = merchantMatchTypes.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
+                skipNextFocusRestore();
             }
             goBack();
             return;
