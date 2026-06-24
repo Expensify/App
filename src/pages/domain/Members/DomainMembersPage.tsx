@@ -136,7 +136,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     useSearchBackPress({
         onClearSelection: clearSelectedMembers,
-        onNavigationCallBack: () => Navigation.popToSidebar(),
+        onNavigationCallBack: () => Navigation.goBack(),
     });
 
     const handleForceCloseAccount = () => {
@@ -343,7 +343,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 headerContent={getHeaderButtons()}
                 selectedMembers={selectedMembers}
                 setSelectedMembers={setSelectedMembers}
-                canSelectMultiple={canSelectMultiple}
                 useSelectionModeHeader={selectionModeHeader}
                 filterConfig={filterConfig}
                 isItemInFilter={isItemInFilter}

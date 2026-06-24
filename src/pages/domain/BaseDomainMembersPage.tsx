@@ -31,13 +31,10 @@ type BaseDomainMembersPageProps = {
     /** Icon displayed in the header of the tab */
     headerIcon?: IconAsset;
 
-    /** Allow multiple members to be selected at the same time. Defaults to false. */
-    canSelectMultiple?: boolean;
-
-    /** Stores list of selected members. Only works with canSelectMultiple === true. */
+    /** Stores list of selected members */
     selectedMembers?: string[];
 
-    /** Setter for a list of selected members. Only works with canSelectMultiple === true. */
+    /** Setter for a list of selected members */
     setSelectedMembers?: React.Dispatch<React.SetStateAction<string[]>>;
 
     /** Whether the selection mode header should be shown (changes title and hides icon) */
@@ -73,7 +70,6 @@ function BaseDomainMembersPage({
     headerIcon,
     selectedMembers = [],
     setSelectedMembers,
-    canSelectMultiple = false,
     useSelectionModeHeader,
     onBackButtonPress,
     filterConfig,
@@ -120,7 +116,7 @@ function BaseDomainMembersPage({
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <DomainMembersTable
                     members={members}
-                    selectionEnabled={canSelectMultiple}
+                    selectionEnabled
                     selectedKeys={selectedMembers}
                     onRowSelectionChange={setSelectedMembers ?? (() => undefined)}
                     shouldShowGroupColumn={shouldShowGroupColumn}
