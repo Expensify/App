@@ -4,6 +4,7 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -145,6 +146,7 @@ function ExpenseFlatSearchView({
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const prevDataLength = usePrevious(data.length);
@@ -186,6 +188,10 @@ function ExpenseFlatSearchView({
     const scrollToListIndex = (index: number, animated = true) => {
         const item = data.at(index);
         if (!listRef.current || !item || index === -1) {
+            return;
+        }
+        // Mirror SearchList: don't scroll while a row's cell is being inline-edited, which would blur/move it mid-edit.
+        if (isEditingCell || wasRecentlyEditingCell) {
             return;
         }
         listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
