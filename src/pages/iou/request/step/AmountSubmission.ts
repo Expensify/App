@@ -264,8 +264,16 @@ function submitAmount({
 
         setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput, hasReceipt(transaction));
 
-        if (isMovingTransactionFromTrackExpense(action)) {
-            const taxCode = selectedCurrency !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
+        // When the currency changes, re-apply the default tax rate for the new currency so the confirmation page and the
+        // created expense reflect the currency-appropriate default (e.g. the foreign default for a foreign currency).
+        // Only do this when the current tax code is still the auto-applied default for the previous currency, so a tax
+        // rate the user manually selected is preserved across the currency change.
+        const previousCurrency = getCurrency(transaction);
+        const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousCurrency);
+        const isCurrentTaxAutoDefault = !transaction?.taxCode || transaction?.taxCode === previousDefaultTaxCode;
+
+        if (isMovingTransactionFromTrackExpense(action) || (selectedCurrency !== previousCurrency && isCurrentTaxAutoDefault)) {
+            const taxCode = getDefaultTaxCode(policy, transaction, selectedCurrency);
             if (taxCode) {
                 setMoneyRequestTaxRate(transactionID, taxCode);
                 const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
