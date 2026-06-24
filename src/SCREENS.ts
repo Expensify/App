@@ -531,7 +531,7 @@ const SCREENS = {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
+    WORKSPACE_CONFIRMATION: {DYNAMIC_ROOT: 'Dynamic_Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
     POLICY_COPY_SETTINGS: {
         ROOT: 'Policy_Copy_Settings_Root',
@@ -968,11 +968,11 @@ const SCREENS = {
     },
 
     CURRENCY: {
-        SELECTION: 'Currency_Selection',
+        DYNAMIC_SELECTION: 'Dynamic_Currency_Selection',
     },
 
     MIGRATED_USER_WELCOME_MODAL: {
-        ROOT: 'MigratedUserWelcomeModal_Root',
+        DYNAMIC_ROOT: 'Dynamic_MigratedUserWelcomeModal_Root',
     },
 
     TEST_DRIVE_DEMO: {

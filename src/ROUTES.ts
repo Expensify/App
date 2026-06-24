@@ -121,7 +121,19 @@ const DYNAMIC_ROUTES = {
     },
     OWNER_SELECTOR: {
         path: 'owner-selector',
-        entryScreens: [],
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
+    },
+    WORKSPACE_CONFIRMATION: {
+        path: 'workspace/confirmation',
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.SETTINGS.ROOT],
+    },
+    WORKSPACE_CONFIRMATION_CURRENCY: {
+        path: 'currency',
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
+    },
+    MIGRATED_USER_WELCOME: {
+        path: 'migrated-user-welcome',
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
     },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
@@ -3369,11 +3381,6 @@ const ROUTES = {
 
         getRoute: () => 'onboarding/work-email-validation' as const,
     },
-    WORKSPACE_CURRENCY_SELECTION: {
-        route: 'workspace/confirmation/currency',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation/currency`, backTo),
-    },
     ONBOARDING_PERSONAL_TRACK_GOAL: {
         route: 'onboarding/personaltrackcase',
 
@@ -3382,18 +3389,7 @@ const ROUTES = {
     },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
-    WORKSPACE_CONFIRMATION: {
-        route: 'workspace/confirmation',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
-    },
-    WORKSPACE_CONFIRMATION_OWNER_SELECTOR: 'workspace/confirmation/owner-selector',
     WORKSPACE_CONFIRMATION_SUCCESS: 'workspace/confirmation/success',
-    MIGRATED_USER_WELCOME_MODAL: {
-        route: 'onboarding/migrated-user-welcome',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/migrated-user-welcome', backTo, false),
-    },
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
