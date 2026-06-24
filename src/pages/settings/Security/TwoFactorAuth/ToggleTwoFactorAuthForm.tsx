@@ -27,7 +27,7 @@ type BaseTwoFactorAuthFormProps = {
 function ToggleTwoFactorAuthForm({validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true, ref}: BaseTwoFactorAuthFormProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
-    const shouldKeepTwoFactorAuthFlowOpen = AccountUtils.isForced2FAOnboardingSetup(account, hasCompletedGuidedSetupFlow);
+    const shouldKeepTwoFactorAuthFlowOpen = AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
     const shouldClearData = (account?.needsTwoFactorAuthSetup ?? false) && !shouldKeepTwoFactorAuthFlowOpen;
     const shouldAllowRecoveryCode = validateInsteadOfDisable === false;
 

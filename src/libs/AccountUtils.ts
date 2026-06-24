@@ -33,7 +33,7 @@ function shouldShowRequire2FAPage(account: OnyxEntry<Account>, hasCompletedGuide
  * (domain-migration / required-2FA-before-onboarding scenario).
  */
 function isForced2FAOnboardingSetup(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
-    return !!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlow;
+    return !!account?.requiresTwoFactorAuth && !!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlow;
 }
 
 function hasValidateCodeExtendedAccess(account: OnyxEntry<Account>): boolean {
