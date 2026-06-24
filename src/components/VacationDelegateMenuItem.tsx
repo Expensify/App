@@ -1,6 +1,7 @@
 import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -36,6 +37,7 @@ type VacationDelegateSectionProps = {
 function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const personalDetailsByLogin = usePersonalDetailsByLogin();
 
@@ -61,6 +63,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                     iconType={CONST.ICON_TYPE_AVATAR}
                     numberOfLinesDescription={1}
                     shouldShowRightIcon
+                    disabled={isOffline}
                     onPress={onPress}
                 />
             </OfflineWithFeedback>
@@ -69,6 +72,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
         <MenuItem
             description={translate('common.vacationDelegate')}
             shouldShowRightIcon
+            disabled={isOffline}
             onPress={onPress}
         />
     );
