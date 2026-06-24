@@ -742,6 +742,7 @@ function MoneyRequestReportPreviewContent({
                                             <ReportPreviewActionButton
                                                 iouReportID={iouReportID}
                                                 chatReportID={chatReportID}
+                                                chatReport={chatReport}
                                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                                                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}

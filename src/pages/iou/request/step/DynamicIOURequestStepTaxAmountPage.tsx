@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -21,7 +22,7 @@ import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -30,7 +31,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT> & {
+type IOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT> & {
     transaction: OnyxEntry<Transaction>;
 };
 
@@ -51,7 +52,7 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Pol
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID},
     },
     transaction,
     report,
@@ -76,6 +77,9 @@ function IOURequestStepTaxAmountPage({
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path);
+    const shouldReturnToPreviousScreen = backPath !== ROUTES.HOME;
+    const isEditingOrReturning = isEditing || shouldReturnToPreviousScreen;
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionDetails = getTransactionDetails(currentTransaction);
@@ -95,7 +99,7 @@ function IOURequestStepTaxAmountPage({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
@@ -135,8 +139,8 @@ function IOURequestStepTaxAmountPage({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
-        if (backTo) {
-            Navigation.goBack(backTo);
+        if (shouldReturnToPreviousScreen) {
+            navigateBack();
             return;
         }
 
@@ -159,15 +163,15 @@ function IOURequestStepTaxAmountPage({
         <StepScreenWrapper
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
-            testID="IOURequestStepTaxAmountPage"
-            shouldShowWrapper={!!(backTo || isEditing)}
+            testID="DynamicIOURequestStepTaxAmountPage"
+            shouldShowWrapper={isEditingOrReturning}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={!!(backTo || isEditing)}
+                isEditing={isEditingOrReturning}
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
-                taxAmount={getTaxAmount(currentTransaction, policy, currency, decimals, !!(backTo || isEditing))}
+                taxAmount={getTaxAmount(currentTransaction, policy, currency, decimals, isEditingOrReturning)}
                 ref={(e) => {
                     textInput.current = e;
                 }}
@@ -181,8 +185,8 @@ function IOURequestStepTaxAmountPage({
     );
 }
 
-const IOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);
+const DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);
 
-const IOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxAmountPageWithWritableReportOrNotFound);
+const DynamicIOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound);
 
-export default IOURequestStepTaxAmountPageWithFullTransactionOrNotFound;
+export default DynamicIOURequestStepTaxAmountPageWithFullTransactionOrNotFound;
