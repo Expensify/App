@@ -237,12 +237,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
     const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
 
-    // The current user can never be the recipient of a money request, so an expense whose only recipient resolves to
-    // the current user (or the self-DM) must be a self-DM track expense — exactly what the old flow produces by
-    // navigating to the confirmation with the TRACK iouType. In the new flow that iouType conversion happens via an
-    // async navigation.setParams, so by submit time the route iouType can still be CREATE/SUBMIT and we'd otherwise
-    // fall through to requestMoney and hit "you cannot request money from yourself". Derive the destination from the
-    // resolved participant instead of the (racy) route iouType so both flows behave the same.
     const soleSelectedParticipant = selectedParticipants.length === 1 ? selectedParticipants.at(0) : undefined;
     const isSelfDMDestination =
         iouType !== CONST.IOU.TYPE.SPLIT &&
