@@ -128,7 +128,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const {showConfirmModal} = useConfirmModal();
-    const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
+    // The backend sends areApprovalsLockedByExpensifyCard so roles without Expensify Card access can lock the
+    // approval toggle without receiving card data. Fall back to deriving it from the card list for older payloads.
+    const isSmartLimitEnabled = policy?.areApprovalsLockedByExpensifyCard ?? isSmartLimitEnabledUtil(workspaceCards);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
