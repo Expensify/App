@@ -83,6 +83,74 @@ describe('reportTransactionsAndViolations derived value', () => {
         expect(result[reportID]).toBeUndefined();
     });
 
+    it('does not carry empty currentValue buckets into a full recompute', () => {
+        const staleReportID = '91016-stale-empty-report';
+        const reportID = '91016-full-recompute';
+        const transactionID = '91016-full-recompute-transaction';
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+        const transaction: Transaction = {
+            transactionID,
+            reportID,
+            amount: 8700,
+            currency: CONST.CURRENCY.EUR,
+            merchant: 'Merchant',
+            created: '2026-06-10',
+        };
+
+        const result = reportTransactionsAndViolationsConfig.compute([{[transactionKey]: transaction}, {}], {
+            currentValue: {
+                [staleReportID]: {
+                    transactions: {},
+                    violations: {},
+                },
+            },
+            sourceValues: undefined,
+        });
+
+        expect(result[staleReportID]).toBeUndefined();
+        expect(result[reportID]?.transactions[transactionKey]).toBe(transaction);
+    });
+
+    it('does not carry deleted transactions from currentValue into a full recompute', () => {
+        const reportID = '91016-non-empty-report';
+        const deletedTransactionID = '91016-deleted-transaction';
+        const remainingTransactionID = '91016-remaining-transaction';
+        const deletedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}` as const;
+        const remainingTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${remainingTransactionID}` as const;
+        const deletedTransaction: Transaction = {
+            transactionID: deletedTransactionID,
+            reportID,
+            amount: 8700,
+            currency: CONST.CURRENCY.EUR,
+            merchant: 'Deleted merchant',
+            created: '2026-06-10',
+        };
+        const remainingTransaction: Transaction = {
+            transactionID: remainingTransactionID,
+            reportID,
+            amount: 4200,
+            currency: CONST.CURRENCY.EUR,
+            merchant: 'Remaining merchant',
+            created: '2026-06-10',
+        };
+
+        const result = reportTransactionsAndViolationsConfig.compute([{[remainingTransactionKey]: remainingTransaction}, {}], {
+            currentValue: {
+                [reportID]: {
+                    transactions: {
+                        [deletedTransactionKey]: deletedTransaction,
+                        [remainingTransactionKey]: remainingTransaction,
+                    },
+                    violations: {},
+                },
+            },
+            sourceValues: undefined,
+        });
+
+        expect(result[reportID]?.transactions[deletedTransactionKey]).toBeUndefined();
+        expect(result[reportID]?.transactions[remainingTransactionKey]).toBe(remainingTransaction);
+    });
+
     it('skips violation-only updates when the affected transaction is unavailable', () => {
         const transactionID = '91016-missing-transaction';
         const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;

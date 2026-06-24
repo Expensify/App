@@ -15,12 +15,15 @@ export default createOnyxDerivedValueConfig({
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
     compute: ([transactions, violations], context) => {
         const {sourceValues, currentValue} = context;
-        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
 
         // If there is a source value for transactions or transaction violations, we need to process only the transactions that have been updated or added
         // If not, we need to process all transactions
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
+        const isPartialUpdate = !!transactionsUpdates || !!transactionViolationsUpdates;
+        // Full recomputes should rebuild from the transaction source so stale derived buckets or deleted transactions are not carried forward.
+        // Partial updates still start from currentValue so violation-only refreshes can preserve report membership when this tab has an incomplete transaction snapshot.
+        const reportTransactionsAndViolations = isPartialUpdate && currentValue ? {...currentValue} : {};
 
         if (!transactions) {
             if (transactionViolationsUpdates) {
@@ -69,6 +72,20 @@ export default createOnyxDerivedValueConfig({
             delete reportTransactionsAndViolations[reportID];
             clonedReportIDs.delete(reportID);
         };
+
+        if (!isPartialUpdate) {
+            for (const transactionKey of Object.keys(transactionReportIDMapping)) {
+                delete transactionReportIDMapping[transactionKey];
+            }
+
+            for (const transactionKey of Object.keys(transactionToReportIDMap)) {
+                delete transactionToReportIDMap[transactionKey];
+            }
+        } else {
+            for (const transactionKey of Object.keys(reportTransactionsAndViolations)) {
+                deleteReportIfEmpty(transactionKey);
+            }
+        }
 
         if (!transactionsUpdates && transactionViolationsUpdates) {
             transactionsToProcess = transactionsToProcess.filter((transactionKey) => {
