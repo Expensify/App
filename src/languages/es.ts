@@ -6785,6 +6785,7 @@ ${amount} para ${merchant} - ${date}`,
             workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
             yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de monedas soportadas</a>.`,
             chooseAnExisting: 'Elige una cuenta bancaria existente para pagar gastos o añade una nueva.',
+            changeBankAccount: 'Cambiar cuenta bancaria',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir la propiedad',

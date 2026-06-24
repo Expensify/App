@@ -18,7 +18,7 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import {setReimbursementAccountLoading} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,14 +36,26 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isChangingBankAccount = route.params?.source === CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT;
+    const connectedAccountBankAccountID = policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
+        if (isChangingBankAccount) {
+            prepareNewBankAccountSetup(policyCurrency);
+        }
+
         setReimbursementAccountLoading(true);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(appendParam(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}), 'stepToOpen', REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW));
+            Navigation.navigate(
+                appendParam(
+                    ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(isChangingBankAccount ? {policyID: undefined} : {policyID, backTo}),
+                    'stepToOpen',
+                    REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
+                ),
+            );
         });
     };
 
@@ -104,6 +116,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                     filterCurrency={policyCurrency}
                     excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
+                    excludeBankAccountID={isChangingBankAccount ? connectedAccountBankAccountID : undefined}
                     shouldHideDefaultBadge
                 />
             </ScrollView>

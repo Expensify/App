@@ -7019,6 +7019,7 @@ const translations = {
             workspaceCurrencyNotSupported: 'Workspace currency not supported',
             yourWorkspace: `Your workspace is set to an unsupported currency. View the <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">list of supported currencies</a>.`,
             chooseAnExisting: 'Choose an existing bank account to pay expenses or add a new one.',
+            changeBankAccount: 'Change bank account',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transfer owner',
