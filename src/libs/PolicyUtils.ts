@@ -47,14 +47,13 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import {isAnyHRConnected} from './HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
-import {getAccountIDsByLogins, getKnownAccountIDByLogin, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
-import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -539,6 +538,11 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     return undefined;
 }
 
+/**
+ * Returns whether the Merge HR setup still needs to be completed for a policy.
+ */
+const isMergeHRCompleteSetupNeededSelector = (policy: OnyxEntry<Policy>) => isMergeHRCompleteSetupNeeded(policy);
+
 function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string, shouldCheckGlobalPolicyRole = true): string | undefined {
     if (shouldCheckGlobalPolicyRole && policy?.role) {
         return policy.role;
@@ -713,56 +717,6 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
         memberEmailsToAccountIDs[email] = Number(personalDetail.accountID);
     }
     return memberEmailsToAccountIDs;
-}
-
-/**
- * Resolves the accountID for a submit-to recipient chosen in the submit-to popover.
- * Uses personal details first, then the workspace employee list (same source as ReportSubmitToContent).
- * When the member is in employeeList but not yet in personal details, returns a stable optimistic accountID.
- */
-function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, employeeList: PolicyEmployeeList | undefined): number | undefined {
-    const trimmed = managerEmail?.trim();
-    if (!trimmed) {
-        return undefined;
-    }
-
-    const fromPersonalDetails = getKnownAccountIDByLogin(trimmed);
-    if (fromPersonalDetails !== undefined) {
-        return fromPersonalDetails;
-    }
-
-    if (!employeeList) {
-        return undefined;
-    }
-
-    const normalizedEmail = trimmed.toLowerCase();
-    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
-
-    for (const [email, accountID] of Object.entries(memberAccountIDs)) {
-        if (email.toLowerCase() === normalizedEmail) {
-            return accountID;
-        }
-    }
-
-    for (const [listKey, employee] of Object.entries(employeeList)) {
-        const employeeEmail = (employee.email ?? listKey).trim();
-        const listKeyNormalized = listKey.trim().toLowerCase();
-        const employeeEmailNormalized = employeeEmail.toLowerCase();
-
-        if (employeeEmailNormalized !== normalizedEmail && listKeyNormalized !== normalizedEmail) {
-            continue;
-        }
-
-        const accountIDFromMap = memberAccountIDs[employeeEmail] ?? memberAccountIDs[listKey];
-
-        if (accountIDFromMap !== undefined) {
-            return accountIDFromMap;
-        }
-
-        return generateAccountID(trimmed);
-    }
-
-    return undefined;
 }
 
 /**
@@ -1647,24 +1601,6 @@ function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEn
 }
 
 /**
- * Returns the email the expense report should submit to per workspace approval config
- * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
- */
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
-    const defaultApprover = getDefaultApprover(policy).trim();
-    if (!expenseReport) {
-        return defaultApprover;
-    }
-
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-    if (!isValidAccountRoute(submitToAccountID)) {
-        return defaultApprover;
-    }
-
-    return getLoginsByAccountIDs([submitToAccountID]).at(0)?.trim() ?? defaultApprover;
-}
-
-/**
  * Returns the email of the account to forward the report to depending on the approver's approval limit.
  * Used for advanced approval mode only.
  */
@@ -2120,42 +2056,108 @@ function getConnectedIntegration(policy: Policy | undefined, connectionNames: re
 }
 
 /**
- * QBO vendor feature gate. Returns true when the workspace has the `vendorMatching` beta enabled
- * AND QBO is connected with an individual card transaction non-reimbursable export type — the only
- * scope the Vendor field is shown for. Mirrors `QuickbooksOnline::hasVendorFeature` on the PHP side
- * so the App and backend agree on which workspaces see the field.
+ * True when the QBO connection is exporting non-reimbursables to a card account, which is the
+ * mode that scopes the vendor field on QBO.
+ */
+function isQBOVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const destination = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config?.nonReimbursableExpensesExportDestination;
+    return destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || destination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+}
+
+/**
+ * True when the Sage Intacct connection is exporting non-reimbursables as Credit Card Charge, which
+ * is the mode that scopes the vendor field on Intacct.
+ */
+function isIntacctVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config?.export?.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE;
+}
+
+/**
+ * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
+ * enabled AND a supported accounting integration is connected with a non-reimbursable export type
+ * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
+ * side so the App and backend agree on which workspaces see the field.
+ *
+ * Supported integrations:
+ *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1)
+ *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2)
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!isVendorMatchingBetaEnabled || !policy) {
         return false;
     }
-    const qboConnection = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
-    if (!qboConnection) {
-        return false;
+    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy);
+}
+
+/**
+ * Returns the vendor list imported into the workspace from whichever connected integration scopes
+ * the vendor field for this workspace (QBO or Sage Intacct). Empty array when no integration is
+ * connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector RHP
+ * and inactive-vendor lookups.
+ *
+ * Selection mirrors `hasVendorFeature`: each branch is gated on the integration's own
+ * non-reimbursable export destination, so a dual-connected workspace (e.g. mid-migration with stale
+ * QBO data + active Intacct) returns vendors from the integration whose export mode actually drives
+ * vendor matching, not whichever connection happens to be populated first.
+ *
+ * The shape is normalized to `Vendor` (id + name). For Intacct's `SageIntacctDataElementWithValue`,
+ * the human-readable label lives in `value` (Intacct's `name` is an internal code), matching how
+ * `getSageIntacctVendors` and `getDefaultVendorName` populate the existing Intacct export UI.
+ */
+function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    if (!policy) {
+        return [];
     }
-    const exportDestination = qboConnection.config?.nonReimbursableExpensesExportDestination;
-    return exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD || exportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD;
+    if (isQBOVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
+    }
+    if (isIntacctVendorMatchingActive(policy)) {
+        const intacctVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors ?? [];
+        return intacctVendors.map((vendor) => ({id: vendor.id, name: vendor.value, currency: '', email: ''}));
+    }
+    return [];
 }
 
 /**
- * Returns the QBO vendor list imported into the workspace (empty array when QBO isn't connected or
- * the sync hasn't populated vendors yet). Source of truth for the workspace Vendors tab and the
- * vendor selector RHP.
+ * Look up a single matching vendor by `externalID`, scoped to the active vendor-matching
+ * integration. Returns undefined when the ID isn't found in the active list (the inactive-vendor
+ * violation case — see `getViolationsOnyxData`).
  */
-function getQBOVendors(policy: OnyxEntry<Policy>): Vendor[] {
-    return policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors ?? [];
-}
-
-/**
- * Look up a single QBO vendor by `externalID`. Used to resolve the vendor name for display when
- * only the ID is stored on the transaction NVP. Returns undefined when the ID isn't found
- * (which happens after a vendor is deleted from QBO — see the inactive-vendor violation).
- */
-function getQBOVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+function getMatchingVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
     if (!vendorID) {
         return undefined;
     }
-    return getQBOVendors(policy).find((vendor) => vendor.id === vendorID);
+    return getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
+/**
+ * Resolve a stored vendor ID to a display vendor. Prefers the active vendor-matching integration
+ * (delegating to `getMatchingVendors`) so a freshly-selected vendor in the dual-connected state
+ * never gets overshadowed by a stale entry with the same ID on the inactive integration. Falls
+ * back to a permissive search across every connection's vendor data (QBO then Intacct) so
+ * historical lookups keep working after an admin switches the workspace's non-reimbursable export
+ * mode away from the vendor-matching mode — rendering a vendor name stored on a past transaction
+ * or modified-expense action must not regress to the raw external ID. Use `getMatchingVendorByID`
+ * instead when the caller is enforcing the active-integration scope (e.g. the inactive-vendor
+ * violation check).
+ */
+function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined): Vendor | undefined {
+    if (!policy || !vendorID) {
+        return undefined;
+    }
+    const activeMatch = getMatchingVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (activeMatch) {
+        return activeMatch;
+    }
+    const qboVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (qboVendor) {
+        return qboVendor;
+    }
+    const intacctVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (intacctVendor) {
+        return {id: intacctVendor.id, name: intacctVendor.value, currency: '', email: ''};
+    }
+    return undefined;
 }
 
 function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
@@ -2571,15 +2573,15 @@ export {
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
-    getQBOVendorByID,
-    getQBOVendors,
+    findVendorByID,
+    getMatchingVendorByID,
+    getMatchingVendors,
     hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getExcludedUsers,
     getMemberAccountIDsForWorkspace,
-    getAccountIDForSubmitManagerEmail,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     getExpensifyTeamExclusions,
@@ -2714,7 +2716,6 @@ export {
     hasOtherControlWorkspaces,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
     getManagerAccountEmail,
-    getSubmitToEmail,
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
@@ -2748,6 +2749,7 @@ export {
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     hasAnyPaidPolicy,
+    isMergeHRCompleteSetupNeededSelector,
 };
 
 export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};
