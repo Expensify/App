@@ -191,7 +191,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
           })
         : false;
 
-    const originalSelectableCount = data.filter((item) => !item.disabled).length;
+    const originalSelectableCount = data.filter((item) => !item.disabled && !item.isDisabledCheckbox).length;
     const {
         middleware: selectionMiddleware,
         methods: selectionMethods,

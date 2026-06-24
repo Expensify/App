@@ -13,8 +13,11 @@ type TableData = {
     /** A unique identifier for the row */
     keyForList: string;
 
-    /** Whether or not the row is disabled. Prevents row selection when the row is disabled */
+    /** Whether or not the row is disabled. Prevents row interaction and selection when the row is disabled */
     disabled?: boolean;
+
+    /** Whether or not the row's selection checkbox is disabled. The row remains interactive */
+    isDisabledCheckbox?: boolean;
 };
 
 /**
