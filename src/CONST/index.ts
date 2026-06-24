@@ -6651,43 +6651,65 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
         },
+        /**
+         * Single source of truth for which transaction-level columns are available in each column-picker surface:
+         * - `search`: the Spend/Search picker (`/search` → Display → Edit columns), read via `TYPE_CUSTOM_COLUMNS.EXPENSE`.
+         * - `reportView`: the single-report picker (`r/:reportID/settings/columns`), read via `REPORT_DETAILS_CUSTOM_COLUMNS`.
+         *
+         * Both `TYPE_CUSTOM_COLUMNS.EXPENSE` and `REPORT_DETAILS_CUSTOM_COLUMNS` are derived from this map (preserving
+         * this declaration order), so adding a new column forces a single, deliberate availability decision here instead
+         * of silently drifting between two hand-maintained lists. A guard test (`tests/unit/Search/ColumnAvailabilityTest.ts`)
+         * asserts every expense-relevant `TABLE_COLUMNS` value is classified here or explicitly owned by another surface.
+         *
+         * Rule of thumb for `reportView`: a column belongs in the single-report view only if its value can differ between
+         * expenses within the same report. Report-level values (identical on every row) stay Search-only.
+         */
+        get COLUMN_AVAILABILITY() {
+            return {
+                RECEIPT: {column: this.TABLE_COLUMNS.RECEIPT, search: true, reportView: true},
+                DATE: {column: this.TABLE_COLUMNS.DATE, search: true, reportView: true},
+                STATUS: {column: this.TABLE_COLUMNS.STATUS, search: true, reportView: false},
+                SUBMITTED: {column: this.TABLE_COLUMNS.SUBMITTED, search: true, reportView: false},
+                APPROVED: {column: this.TABLE_COLUMNS.APPROVED, search: true, reportView: false},
+                POSTED: {column: this.TABLE_COLUMNS.POSTED, search: true, reportView: true},
+                EXPORTED: {column: this.TABLE_COLUMNS.EXPORTED, search: true, reportView: false},
+                MERCHANT: {column: this.TABLE_COLUMNS.MERCHANT, search: true, reportView: true},
+                DESCRIPTION: {column: this.TABLE_COLUMNS.DESCRIPTION, search: true, reportView: true},
+                FROM: {column: this.TABLE_COLUMNS.FROM, search: true, reportView: false},
+                TO: {column: this.TABLE_COLUMNS.TO, search: true, reportView: false},
+                POLICY_NAME: {column: this.TABLE_COLUMNS.POLICY_NAME, search: true, reportView: false},
+                CARD: {column: this.TABLE_COLUMNS.CARD, search: true, reportView: true},
+                CATEGORY: {column: this.TABLE_COLUMNS.CATEGORY, search: true, reportView: true},
+                CATEGORY_GL_CODE: {column: this.TABLE_COLUMNS.CATEGORY_GL_CODE, search: true, reportView: true},
+                ATTENDEES: {column: this.TABLE_COLUMNS.ATTENDEES, search: true, reportView: true},
+                TOTAL_PER_ATTENDEE: {column: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, search: true, reportView: true},
+                TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
+                EXCHANGE_RATE: {column: this.TABLE_COLUMNS.EXCHANGE_RATE, search: true, reportView: true},
+                ORIGINAL_AMOUNT: {column: this.TABLE_COLUMNS.ORIGINAL_AMOUNT, search: true, reportView: true},
+                REPORT_ID: {column: this.TABLE_COLUMNS.REPORT_ID, search: true, reportView: false},
+                BASE_62_REPORT_ID: {column: this.TABLE_COLUMNS.BASE_62_REPORT_ID, search: true, reportView: false},
+                REIMBURSABLE: {column: this.TABLE_COLUMNS.REIMBURSABLE, search: true, reportView: true},
+                BILLABLE: {column: this.TABLE_COLUMNS.BILLABLE, search: true, reportView: true},
+                MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
+                TAX_CODE: {column: this.TABLE_COLUMNS.TAX_CODE, search: true, reportView: true},
+                TAX_RATE: {column: this.TABLE_COLUMNS.TAX_RATE, search: true, reportView: true},
+                TAX_AMOUNT: {column: this.TABLE_COLUMNS.TAX_AMOUNT, search: true, reportView: true},
+                TITLE: {column: this.TABLE_COLUMNS.TITLE, search: true, reportView: false},
+                AMOUNT: {column: this.TABLE_COLUMNS.TOTAL_AMOUNT, search: true, reportView: true},
+                TOTAL: {column: this.TABLE_COLUMNS.TOTAL, search: false, reportView: true},
+                EXPORTED_TO: {column: this.TABLE_COLUMNS.EXPORTED_TO, search: true, reportView: false},
+                ACTION: {column: this.TABLE_COLUMNS.ACTION, search: true, reportView: false},
+                WITHDRAWAL_ID: {column: this.TABLE_COLUMNS.WITHDRAWAL_ID, search: true, reportView: true},
+            };
+        },
         get TYPE_CUSTOM_COLUMNS() {
             return {
-                EXPENSE: {
-                    RECEIPT: this.TABLE_COLUMNS.RECEIPT,
-                    DATE: this.TABLE_COLUMNS.DATE,
-                    STATUS: this.TABLE_COLUMNS.STATUS,
-                    SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
-                    APPROVED: this.TABLE_COLUMNS.APPROVED,
-                    POSTED: this.TABLE_COLUMNS.POSTED,
-                    EXPORTED: this.TABLE_COLUMNS.EXPORTED,
-                    MERCHANT: this.TABLE_COLUMNS.MERCHANT,
-                    DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
-                    FROM: this.TABLE_COLUMNS.FROM,
-                    TO: this.TABLE_COLUMNS.TO,
-                    POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
-                    CARD: this.TABLE_COLUMNS.CARD,
-                    CATEGORY: this.TABLE_COLUMNS.CATEGORY,
-                    CATEGORY_GL_CODE: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
-                    ATTENDEES: this.TABLE_COLUMNS.ATTENDEES,
-                    TOTAL_PER_ATTENDEE: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
-                    TAG: this.TABLE_COLUMNS.TAG,
-                    EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
-                    ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-                    REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
-                    BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
-                    REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
-                    BILLABLE: this.TABLE_COLUMNS.BILLABLE,
-                    MCC: this.TABLE_COLUMNS.MCC,
-                    TAX_CODE: this.TABLE_COLUMNS.TAX_CODE,
-                    TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
-                    TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                    TITLE: this.TABLE_COLUMNS.TITLE,
-                    AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                    EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
-                    ACTION: this.TABLE_COLUMNS.ACTION,
-                    WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
-                },
+                // Derived from COLUMN_AVAILABILITY: every column flagged `search`, in declaration order.
+                EXPENSE: Object.fromEntries(
+                    Object.entries(this.COLUMN_AVAILABILITY)
+                        .filter(([, availability]) => availability.search)
+                        .map(([key, availability]) => [key, availability.column] as const),
+                ),
                 EXPENSE_REPORT: {
                     AVATAR: this.TABLE_COLUMNS.AVATAR,
                     DATE: this.TABLE_COLUMNS.DATE,
@@ -6713,27 +6735,13 @@ const CONST = {
                 CHAT: {},
             };
         },
+        // Derived from COLUMN_AVAILABILITY: every column flagged `reportView`, in declaration order.
         get REPORT_DETAILS_CUSTOM_COLUMNS() {
-            return {
-                RECEIPT: this.TABLE_COLUMNS.RECEIPT,
-                DATE: this.TABLE_COLUMNS.DATE,
-                MERCHANT: this.TABLE_COLUMNS.MERCHANT,
-                DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
-                CARD: this.TABLE_COLUMNS.CARD,
-                CATEGORY: this.TABLE_COLUMNS.CATEGORY,
-                CATEGORY_GL_CODE: this.TABLE_COLUMNS.CATEGORY_GL_CODE,
-                TAG: this.TABLE_COLUMNS.TAG,
-                EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
-                REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
-                BILLABLE: this.TABLE_COLUMNS.BILLABLE,
-                MCC: this.TABLE_COLUMNS.MCC,
-                TAX_CODE: this.TABLE_COLUMNS.TAX_CODE,
-                TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
-                TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
-                AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
-                TOTAL: this.TABLE_COLUMNS.TOTAL,
-                WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
-            };
+            return Object.fromEntries(
+                Object.entries(this.COLUMN_AVAILABILITY)
+                    .filter(([, availability]) => availability.reportView)
+                    .map(([key, availability]) => [key, availability.column] as const),
+            );
         },
         get GROUP_CUSTOM_COLUMNS() {
             return {
