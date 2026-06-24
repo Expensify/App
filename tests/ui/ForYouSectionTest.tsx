@@ -22,9 +22,9 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockNavigateToTransactionThread = jest.fn();
 jest.mock('@hooks/useNavigateToTransactionThread', () => jest.fn(() => mockNavigateToTransactionThread));
 
-// ForYouSection only mounts ReviewFlaggedExpensesLoader (which runs the flagged-expense scan) while the Home
-// tab is the active tab. The test harness has no root navigation state, so mock the focus hook with a
-// toggleable flag: default focused so the review row renders, flip it to exercise the blurred/unmount path.
+// useReviewFlaggedExpenses runs the flagged-expense scan only while the Home tab is the active tab. The test
+// harness has no root navigation state, so mock the focus hook with a toggleable flag: default focused so the
+// review row renders, flip it to exercise the blurred path (scan skipped, last count retained).
 let mockIsHomeTabFocused = true;
 jest.mock('@hooks/useIsHomeTabFocused', () => jest.fn(() => mockIsHomeTabFocused));
 
@@ -267,7 +267,7 @@ describe('ForYouSection', () => {
             expect(matchingNodes.length).toBeGreaterThan(0);
         });
 
-        it('does not surface flagged expenses while the Home tab is blurred (loader not mounted)', async () => {
+        it('does not surface flagged expenses while the Home tab is blurred (scan skipped)', async () => {
             mockIsHomeTabFocused = false;
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
@@ -293,8 +293,8 @@ describe('ForYouSection', () => {
 
             expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();
 
-            // Leaving the Home tab unmounts the loader; the parent retains the last reported value in state,
-            // so the row keeps its count instead of flashing back to the empty state.
+            // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
+            // in state, so the row keeps its count instead of flashing back to the empty state.
             mockIsHomeTabFocused = false;
             rerender(<ForYouSection />);
             await waitForBatchedUpdatesWithAct();

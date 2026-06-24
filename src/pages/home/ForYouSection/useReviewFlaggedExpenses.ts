@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
 import useOnyx from '@hooks/useOnyx';
@@ -112,38 +113,44 @@ function getFlaggedExpenses(
 }
 
 /**
- * Encapsulates the data plumbing for the "Review X expenses" row in the For You section: it scans the current
- * user's OPEN expense reports for flagged transactions, then reads the first flagged expense's report, report
- * actions, and transaction, and exposes a bound handler that navigates to the transaction thread
- * (single-expense RHP + review carousel).
+ * Powers the "Review X expenses" row: scans the current user's OPEN expense reports for flagged transactions
+ * and exposes a handler that opens the first one's transaction thread (single-expense RHP + review carousel).
+ *
+ * `isHomeTabFocused` gates the O(n) scan — while the Home tab is blurred it is skipped and the row keeps its
+ * last count. The Onyx subscriptions stay live (they cannot be paused) but only trigger a cheap re-render.
  */
-function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
+function useReviewFlaggedExpenses(isHomeTabFocused: boolean): ReviewFlaggedExpenses {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const flaggedExpenses = getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session);
+    const flaggedExpenses = isHomeTabFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session) : undefined;
 
-    const firstFlaggedExpense = flaggedExpenses.at(0);
-    const firstReportID = firstFlaggedExpense?.reportID;
-    const firstTransactionID = firstFlaggedExpense?.transactionID;
+    // Retain the count across blur via "adjust state during render". It's a primitive, so this guard can't loop
+    // and doesn't depend on the scan being referentially stable.
+    const [count, setCount] = useState(0);
+    if (flaggedExpenses && flaggedExpenses.length !== count) {
+        setCount(flaggedExpenses.length);
+    }
 
-    // Load the first flagged expense's report actions so the shared navigation hook can resolve (or
-    // optimistically create) its transaction thread.
+    // First flagged expense's report actions, for the navigation hook. Resolved only while focused.
+    const firstReportID = flaggedExpenses?.at(0)?.reportID;
     const [firstFlaggedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(firstReportID)}`);
 
     const navigateToTransactionThread = useNavigateToTransactionThread();
 
     const reviewExpenses = () => {
-        if (!firstTransactionID || !firstReportID) {
+        // The row is only pressable while focused, so the live scan result is available here.
+        const firstFlaggedExpense = flaggedExpenses?.at(0);
+        if (!flaggedExpenses || !firstFlaggedExpense) {
             return;
         }
-        const firstFlaggedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstReportID}`];
-        const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`];
+        const firstFlaggedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstFlaggedExpense.reportID}`];
+        const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstFlaggedExpense.transactionID}`];
         navigateToTransactionThread({
-            transactionID: firstTransactionID,
+            transactionID: firstFlaggedExpense.transactionID,
             reportActions: Object.values(firstFlaggedReportActions ?? {}),
             report: firstFlaggedReport,
             transaction: firstFlaggedTransaction,
@@ -152,7 +159,7 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
         });
     };
 
-    return {count: flaggedExpenses.length, reviewExpenses};
+    return {count, reviewExpenses};
 }
 
 export default useReviewFlaggedExpenses;

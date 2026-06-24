@@ -56,7 +56,7 @@ describe('useReviewFlaggedExpenses', () => {
     });
 
     it('returns count 0 and a no-op handler when nothing is flagged', async () => {
-        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        const {result} = renderHook(() => useReviewFlaggedExpenses(true));
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.count).toBe(0);
@@ -74,7 +74,7 @@ describe('useReviewFlaggedExpenses', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        const {result} = renderHook(() => useReviewFlaggedExpenses(true));
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.count).toBe(3);
@@ -94,7 +94,7 @@ describe('useReviewFlaggedExpenses', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        const {result} = renderHook(() => useReviewFlaggedExpenses(true));
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.count).toBe(2);
@@ -114,5 +114,80 @@ describe('useReviewFlaggedExpenses', () => {
                 backTo: ROUTES.HOME,
             }),
         );
+    });
+
+    it('updates the count live while the Home tab stays focused', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses(true));
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.count).toBe(1);
+
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't2', reportID: 'r2'});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.count).toBe(2);
+    });
+
+    it('skips the scan and reports count 0 while the Home tab is blurred before any focused scan', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses(false));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result.current.count).toBe(0);
+
+        act(() => {
+            result.current.reviewExpenses();
+        });
+
+        expect(mockNavigateToTransactionThread).not.toHaveBeenCalled();
+    });
+
+    it('retains the last focused count after the Home tab is blurred', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result, rerender} = renderHook(({focused}) => useReviewFlaggedExpenses(focused), {initialProps: {focused: true}});
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.count).toBe(2);
+
+        // Blurring keeps the last computed count instead of flashing back to 0.
+        rerender({focused: false});
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.count).toBe(2);
+    });
+
+    it('ignores changes while blurred and recomputes once the Home tab is refocused', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result, rerender} = renderHook(({focused}) => useReviewFlaggedExpenses(focused), {initialProps: {focused: true}});
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.count).toBe(1);
+
+        // A new flagged expense arrives while blurred: the scan is skipped, so the count stays cached.
+        rerender({focused: false});
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't2', reportID: 'r2'});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.count).toBe(1);
+
+        // Refocusing re-runs the scan and the count catches up.
+        rerender({focused: true});
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.count).toBe(2);
     });
 });
