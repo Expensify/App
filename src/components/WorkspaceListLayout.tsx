@@ -6,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -94,6 +95,7 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
         <ScreenWrapper
             testID={testID}
             shouldEnableMaxHeight
+            shouldDisableGlobalNavBarHeightOffset
             shouldEnablePickerAvoiding={false}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContentStyle={styles.overflowVisible}
@@ -104,12 +106,15 @@ export default function WorkspaceListLayout({children, activeTabKey, headerButto
                     <TopBarWithLoadingBar
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
+                        shouldRemoveHorizontalMargin
                     >
                         {!shouldRenderHeaderInTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
                     </TopBarWithLoadingBar>
 
-                    {content}
-                    {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
+                    <View style={[styles.flex1, {width: '100%', maxWidth: variables.contentMaxWidth, alignSelf: 'center'}]}>
+                        {content}
+                        {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
+                    </View>
                 </View>
             </View>
         </ScreenWrapper>
