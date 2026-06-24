@@ -1,41 +1,8 @@
-import type {InspectionEvent, Observer} from 'xstate';
+import type {InspectionEvent} from 'xstate';
 import createBufferedObserver from './createBufferedObserver';
+import createDeferredStart from './createDeferredStart';
+import type {LoadedInspector} from './types';
 import type XStateInspector from './types';
-
-type LoadedInspector = {
-    inspect: Observer<InspectionEvent>;
-    start: () => void;
-};
-
-/**
- * Bridges the dev-menu button, which fires synchronously, to the asynchronously loaded inspector. A
- * press made before the chunk resolves is remembered and replayed on load, so the window still opens.
- * If the chunk fails to load, the returned function stays a no-op.
- */
-function createDeferredStart(ready: Promise<LoadedInspector>): () => void {
-    let start: (() => void) | undefined;
-    let isStartRequested = false;
-
-    ready.then(
-        (inspector) => {
-            start = inspector.start;
-            if (isStartRequested) {
-                start();
-            }
-        },
-        () => {
-            // The inspector chunk failed to load, so leave start() as a no-op.
-        },
-    );
-
-    return () => {
-        if (start) {
-            start();
-            return;
-        }
-        isStartRequested = true;
-    };
-}
 
 /**
  * Builds the dev-only inspector handle. The dynamic `import()` calls stay inline under the `__DEV__`

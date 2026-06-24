@@ -1,6 +1,16 @@
 import type {InspectionEvent, Observer} from 'xstate';
 
 /**
+ * The resolved handle for the dynamically imported Stately inspector. Both `inspect`, the observer
+ * wired into actors, and `start`, which opens the visualizer window, exist only once the inspector
+ * chunk has loaded, which is why they arrive together through a promise.
+ */
+type LoadedInspector = {
+    inspect: Observer<InspectionEvent>;
+    start: () => void;
+};
+
+/**
  * A dev-only handle for the Stately inspector. The `inspect` observer is wired into an actor when
  * the actor is created, and it must already exist before the first event so that the full history is
  * captured. The `start` function opens the visualizer window on demand, and it is undefined wherever
@@ -12,3 +22,4 @@ type XStateInspector = {
 };
 
 export default XStateInspector;
+export type {LoadedInspector};
