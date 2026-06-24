@@ -1,5 +1,5 @@
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import {useLayoutEffect, useMemo} from 'react';
+import {useLayoutEffect} from 'react';
 import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -94,10 +94,12 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const duplicateTransactionIDs = useMemo(() => (isEditing && transactionID ? [transactionID] : []), [isEditing, transactionID]);
+    const duplicateTransactionIDs = isEditing && transactionID ? [transactionID] : [];
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(duplicateTransactionIDs);
 
     useLayoutEffect(() => {
+        // Mutating the parent-owned ref is intentional: the screen's submit handler reads the latest snapshot at click time
+        // without re-rendering. useLayoutEffect (not useEffect) ensures the write lands before paint, so a fast submit cannot read stale data.
         // eslint-disable-next-line no-param-reassign
         submitDataRef.current = {
             delegateAccountID,
