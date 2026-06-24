@@ -6753,7 +6753,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 optionFixedDistanceTitle: 'Escludi una distanza fissa per richiesta',
                 optionFixedDistanceHelp: 'Detrai la stessa distanza del tragitto casa-lavoro da ogni richiesta. Ideale per chi invia una richiesta per ogni giorno lavorativo.',
                 distanceLabel: 'Distanza',
-                errors: {distanceMustBePositive: 'La distanza deve essere maggiore di 0.'},
+                errors: {distanceMustBePositive: 'La distanza deve essere un numero intero positivo.'},
             },
             distance: 'Distanza',
             centrallyManage: 'Gestisci centralmente le tariffe, monitora in miglia o chilometri e imposta una categoria predefinita.',
