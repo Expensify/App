@@ -126,6 +126,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 suffixStyle={styles.colorMuted}
                 role={CONST.ROLE.PRESENTATION}
                 autoFocus={existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}
+                onSubmitEditing={onSave}
             />
         </View>
     );
@@ -179,6 +180,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                         shouldSingleExecuteRowSelect
                         shouldUpdateFocusedIndex
                         alternateNumberOfSupportedLines={2}
+                        disableKeyboardShortcuts
                     />
                 </OfflineWithFeedback>
                 <FixedFooter addBottomSafeAreaPadding>
