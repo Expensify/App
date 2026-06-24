@@ -73,7 +73,8 @@ If you haven't done any intentional edits outside of `src/` (like adding new dep
 - Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ### Expensify Employees
-If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
+- To point the **Development Emulator** at your local VM, follow [these steps](https://stackoverflow.com/c/expensify/questions/7699).
+- You must configure the local dev email account; follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/23537/23538#23538).
 
 ## Enabling Prebuilt React Native Artifacts
 

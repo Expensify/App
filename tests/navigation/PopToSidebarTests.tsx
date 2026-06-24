@@ -14,7 +14,6 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
-jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -33,22 +32,34 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
                                     index: 3,
                                     routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
                                         {
-                                            name: SCREENS.SETTINGS.ROOT,
+                                            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 3,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SETTINGS.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.ABOUT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                                                    },
+                                                    {
+                                                        name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.SETTINGS.ABOUT,
-                                        },
-                                        {
-                                            name: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                                        },
-                                        {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
-                                        },
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -57,7 +68,8 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                 />,
             );
 
-            const settingsSplitBeforePopToSidebar = navigationRef.current?.getRootState().routes.at(-1);
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const settingsSplitBeforePopToSidebar = tabState?.routes.at(3);
             expect(settingsSplitBeforePopToSidebar?.state?.index).toBe(3);
 
             // When we pop with LHN on top of stack
@@ -66,7 +78,8 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
             });
 
             // Then all screens should be popped of the stack and only settings root left
-            const settingsSplitAfterPopToSidebar = navigationRef.current?.getRootState().routes.at(-1);
+            const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const settingsSplitAfterPopToSidebar = tabStateAfter?.routes.at(3);
             expect(settingsSplitAfterPopToSidebar?.state?.index).toBe(0);
             expect(settingsSplitAfterPopToSidebar?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
@@ -80,21 +93,33 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                         index: 0,
                         routes: [
                             {
-                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 2,
+                                    index: 1,
                                     routes: [
+                                        {name: SCREENS.HOME},
                                         {
-                                            name: SCREENS.INBOX,
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 2,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.INBOX,
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '1'},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '2'},
+                                                    },
+                                                ],
+                                            },
                                         },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '1'},
-                                        },
-                                        {
-                                            name: SCREENS.REPORT,
-                                            params: {reportID: '2'},
-                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
                                 },
                             },
@@ -103,17 +128,20 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                 />,
             );
 
-            const lastSplitBeforeNavigate = navigationRef.current?.getRootState().routes.at(-1);
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const lastSplitBeforeNavigate = tabState?.routes.at(tabState?.index ?? 0);
             expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
             act(() => {
                 Navigation.navigate(ROUTES.SETTINGS_ABOUT);
             });
 
-            const lastSplitAfterNavigate = navigationRef.current?.getRootState().routes.at(-1);
-            expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
-            expect(lastSplitAfterNavigate?.state?.index).toBe(0);
-            expect(lastSplitAfterNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
+            // Cross-tab navigate pushes a new TAB_NAVIGATOR on top (for swipe-back UX),
+            // with SETTINGS_SPLIT_NAVIGATOR active and SETTINGS.ABOUT in its nested stack.
+            const pushedTabState = navigationRef.current?.getRootState().routes.at(-1)?.state;
+            const activeTabAfterNav = pushedTabState?.routes.at(pushedTabState?.index ?? 0);
+            expect(activeTabAfterNav?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            expect(activeTabAfterNav?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
 
             // When we pop to sidebar without LHN on top of stack
             act(() => {
@@ -121,9 +149,10 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
             });
 
             // Then the top screen should be replaced with LHN
-            const lastSplitAfterPopToSidebar = navigationRef.current?.getRootState().routes.at(-1);
-            expect(lastSplitAfterPopToSidebar?.state?.index).toBe(0);
-            expect(lastSplitAfterPopToSidebar?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
+            const tabStateAfterPop = navigationRef.current?.getRootState().routes.at(-1)?.state;
+            const activeTabAfterPop = tabStateAfterPop?.routes.at(tabStateAfterPop?.index ?? 0);
+            expect(activeTabAfterPop?.state?.index).toBe(0);
+            expect(activeTabAfterPop?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
     });
 });

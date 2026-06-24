@@ -15,6 +15,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
 // Mock RenderHTML component
@@ -61,16 +63,18 @@ describe('ContactMethodsPage', () => {
         const defaultEmail = 'default@example.com';
         const otherEmail = 'other@example.com';
         Onyx.merge(ONYXKEYS.SESSION, {email: defaultEmail});
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [defaultEmail]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${defaultEmail}`]: {
+                partnerID: 1,
                 partnerUserID: defaultEmail,
                 validatedDate: '2024-01-01',
             },
-            [otherEmail]: {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '',
                 errorFields: {
-                    error: {field: 'dummy'},
+                    addedLogin: {field: 'dummy'},
                 },
             },
         });
@@ -89,13 +93,17 @@ describe('ContactMethodsPage', () => {
         expect(node).toHaveTextContent('error-brickRoadIndicator');
 
         // Verify that RBR disappears
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [otherEmail]: {
+        await Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '2024-02-02',
                 errorFields: null,
             },
         });
+
+        // Wait for Onyx to notify the component's useOnyx subscriber before asserting
+        await waitForBatchedUpdates();
 
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);
@@ -110,12 +118,14 @@ describe('ContactMethodsPage', () => {
         const defaultEmail = 'default@example.com';
         const otherEmail = 'other@example.com';
         Onyx.merge(ONYXKEYS.SESSION, {email: defaultEmail});
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [defaultEmail]: {
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${defaultEmail}`]: {
+                partnerID: 1,
                 partnerUserID: defaultEmail,
                 validatedDate: '2024-01-01',
             },
-            [otherEmail]: {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '',
             },
@@ -134,17 +144,20 @@ describe('ContactMethodsPage', () => {
         expect(node).toHaveTextContent('info-brickRoadIndicator');
 
         // Verify that GBR disappears
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [otherEmail]: {
+        await Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${otherEmail}`]: {
+                partnerID: 1,
                 partnerUserID: otherEmail,
                 validatedDate: '2024-02-02',
             },
         });
 
+        // Wait for Onyx to notify the component's useOnyx subscriber before asserting
+        await waitForBatchedUpdates();
+
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);
 
-            // ContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
             expect(node).toHaveTextContent('none-brickRoadIndicator');
         });
     });

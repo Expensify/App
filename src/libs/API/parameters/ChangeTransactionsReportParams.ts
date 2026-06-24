@@ -18,6 +18,7 @@ type ChangeTransactionsReportParams = {
     transactionList: string;
     reportID: string;
     transactionIDToReportActionAndThreadData: string; // A map of transactionID to TransactionThreadInfo
+    transactionIDToUpdatedCustomUnitRateID?: string; // A JSON map of transactionID to the new customUnitRateID (for distance expenses moving to a workspace with an invalid rate)
 };
 
 export type {ChangeTransactionsReportParams, TransactionThreadInfo};

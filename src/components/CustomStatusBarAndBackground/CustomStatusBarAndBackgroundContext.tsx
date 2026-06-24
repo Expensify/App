@@ -27,10 +27,4 @@ function useCustomStatusBarAndBackgroundActions(): CustomStatusBarAndBackgroundA
     return useContext(CustomStatusBarAndBackgroundActionsContext);
 }
 
-export {
-    CustomStatusBarAndBackgroundActionsContext,
-    CustomStatusBarAndBackgroundProvider,
-    CustomStatusBarAndBackgroundStateContext,
-    useCustomStatusBarAndBackgroundActions,
-    useCustomStatusBarAndBackgroundState,
-};
+export {CustomStatusBarAndBackgroundProvider, useCustomStatusBarAndBackgroundActions, useCustomStatusBarAndBackgroundState};

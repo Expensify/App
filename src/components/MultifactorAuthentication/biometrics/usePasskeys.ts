@@ -14,6 +14,7 @@ import {
     PASSKEY_AUTH_TYPE,
 } from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
 import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
 import CONST from '@src/CONST';
@@ -56,11 +57,9 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             credential = await createPasskeyCredential(publicKeyOptions);
         } catch (error) {
-            const {reason, message} = decodeWebAuthnError(error);
             await onResult({
                 success: false,
-                reason,
-                message,
+                error: decodeWebAuthnError(error),
             });
             return;
         }
@@ -68,7 +67,7 @@ function usePasskeys(): UseBiometricsReturn {
         if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+                error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE, 'Registration credential response is not AuthenticatorAttestationResponse'),
             });
             return;
         }
@@ -96,7 +95,6 @@ function usePasskeys(): UseBiometricsReturn {
 
         await onResult({
             success: true,
-            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
             keyInfo: {
                 rawId: credentialId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
@@ -121,9 +119,13 @@ function usePasskeys(): UseBiometricsReturn {
         });
 
         if (reconciled.length === 0) {
+            await deleteLocalKeysForAccount();
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.REGISTRATION_REQUIRED,
+                error: createLocalMFAError(
+                    VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
+                    'No local passkey credentials match challenge allowCredentials, credentials cleared',
+                ),
             });
             return;
         }
@@ -135,11 +137,9 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             assertion = await authenticateWithPasskey(publicKeyOptions);
         } catch (error) {
-            const {reason, message} = decodeWebAuthnError(error);
             await onResult({
                 success: false,
-                reason,
-                message,
+                error: decodeWebAuthnError(error),
             });
             return;
         }
@@ -147,7 +147,7 @@ function usePasskeys(): UseBiometricsReturn {
         if (!(assertion.response instanceof AuthenticatorAssertionResponse)) {
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+                error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE, 'Authentication assertion response is not AuthenticatorAssertionResponse'),
             });
             return;
         }
@@ -159,7 +159,6 @@ function usePasskeys(): UseBiometricsReturn {
 
         await onResult({
             success: true,
-            reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
             signedChallenge: {
                 rawId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
@@ -182,7 +181,7 @@ function usePasskeys(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
-        deviceCheckFailureReason: VALUES.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
+        deviceCheckFailureReason: VALUES.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

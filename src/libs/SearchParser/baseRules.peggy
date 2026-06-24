@@ -46,6 +46,9 @@ expenseType
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
+withdrawalStatus
+  = "withdrawalStatus"
+  / "withdrawal-status"i { return "withdrawalStatus"; }
 withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }

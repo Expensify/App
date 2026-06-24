@@ -8,20 +8,26 @@ import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/Me
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
 import {translateLocal} from '../utils/TestHelper';
 
 // Mock Navigation to avoid actual navigation calls
 jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRoute: jest.fn(),
     getReportRHPActiveRoute: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
 }));
+
+const MOCK_BASE_ROUTE = 'r/123';
 
 // Mock showContextMenu to verify it's called with correct parameters
 jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
@@ -43,7 +49,6 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
         function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
             return (
                 <Component
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     currentUserPersonalDetails={{
                         accountID: 1,
@@ -113,7 +118,6 @@ function withProvider(children: ReactNode, overrides: ContextMenuStateOverrides 
                 value={{
                     anchor: null,
                     report: overrides.report,
-                    isReportArchived: false,
                     action: overrides.action,
                     isDisabled: overrides.isDisabled ?? true,
                     shouldDisplayContextMenu: overrides.shouldDisplayContextMenu ?? false,
@@ -167,6 +171,8 @@ describe('MentionUserRenderer', () => {
         mockPersonalDetails = {};
         IntlStore.load(CONST.LOCALES.DEFAULT);
         jest.clearAllMocks();
+        (Navigation.getActiveRoute as jest.Mock).mockReturnValue(MOCK_BASE_ROUTE);
+        (Navigation.getReportRHPActiveRoute as jest.Mock).mockReturnValue(MOCK_BASE_ROUTE);
     });
 
     test('renders phone number (not displayName) when user has phone login', () => {
@@ -235,7 +241,7 @@ describe('MentionUserRenderer', () => {
         renderMention({tnode});
         const mention = screen.getByTestId('mention-user');
         fireEvent(mention, 'press', {preventDefault: jest.fn()});
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.PROFILE.getRoute(103));
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(103), MOCK_BASE_ROUTE));
     });
 
     test('navigates with mention text as fallback when no accountID', () => {
@@ -259,7 +265,7 @@ describe('MentionUserRenderer', () => {
         // Verify navigation to own profile works
         const mention = screen.getByTestId('mention-user');
         fireEvent(mention, 'press', {preventDefault: jest.fn()});
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.PROFILE.getRoute(1));
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(1), MOCK_BASE_ROUTE));
     });
 
     test('uses displayName when login is empty', () => {

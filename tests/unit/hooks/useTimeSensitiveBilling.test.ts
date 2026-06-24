@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {hasCardExpiredError, hasInsufficientFundsError} from '@libs/SubscriptionUtils';

@@ -71,10 +71,4 @@ function useVolumeActions() {
     return context;
 }
 
-function useVolumeContext() {
-    const state = useVolumeState();
-    const actions = useVolumeActions();
-    return {...state, ...actions};
-}
-
-export {VolumeContextProvider, useVolumeContext, useVolumeState, useVolumeActions};
+export {VolumeContextProvider, useVolumeState, useVolumeActions};

@@ -2329,4 +2329,4 @@ type MiscPnr = {
     sourceStatus: string;
 };
 
-export type {TripData, Pnr, PnrTraveler, PnrData, AirPnr, HotelPnr, CarPnr, RailPnr, LimoPnr, MiscPnr};
+export type {TripData, Pnr, PnrTraveler, PnrData, AirPnr, HotelPnr, CarPnr, RailPnr};

@@ -16,7 +16,6 @@ const story = {
 };
 
 function Template(props: BannerProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Banner {...props} />;
 }
 

@@ -3,9 +3,9 @@ import type {SignatureResult} from '@sbaiahmed1/react-native-biometrics';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {getErrorMessage} from '@libs/ErrorUtils';
-import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryErrorToReason, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {buildSigningData, decodeLibraryError, getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
+import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
@@ -53,12 +53,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             }
             return Base64URL.base64ToBase64url(entry.publicKey);
         } catch (error) {
-            let reason = mapLibraryErrorToReason(error);
-            if (reason === undefined) {
-                reason = VALUES.REASON.HSM.GENERIC;
-            }
-            const errorMessage = getErrorMessage(error);
-            addMFABreadcrumb('Failed to get local credential ID', {reason, message: errorMessage}, 'error');
+            addMFABreadcrumb('Failed to get local credential ID', decodeLibraryError(error), 'error');
             return undefined;
         }
     };
@@ -73,12 +68,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             const keyAlias = getKeyAlias(accountID);
             await deleteKeys(keyAlias);
         } catch (error) {
-            let reason = mapLibraryErrorToReason(error);
-            if (reason === undefined) {
-                reason = VALUES.REASON.HSM.GENERIC;
-            }
-            const errorMessage = getErrorMessage(error);
-            addMFABreadcrumb('Failed to delete local keys', {reason, message: errorMessage}, 'error');
+            addMFABreadcrumb('Failed to delete local keys', decodeLibraryError(error), 'error');
         }
     };
 
@@ -113,18 +103,12 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
 
             await onResult({
                 success: true,
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
                 keyInfo,
             });
         } catch (error) {
-            let reason = mapLibraryErrorToReason(error);
-            if (reason === undefined) {
-                reason = VALUES.REASON.HSM.KEY_CREATION_FAILED;
-            }
             onResult({
                 success: false,
-                reason,
-                message: getErrorMessage(error),
+                error: decodeLibraryError(error),
             });
         }
     };
@@ -139,7 +123,10 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
 
             if (!isCredentialAllowed(credentialID, allowedIDs)) {
                 await deleteLocalKeysForAccount();
-                onResult({success: false, reason: VALUES.REASON.HSM.KEY_NOT_FOUND});
+                onResult({
+                    success: false,
+                    error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL, 'Local HSM credential not in challenge allowCredentials, keys deleted'),
+                });
                 return;
             }
 
@@ -156,27 +143,25 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             });
 
             if (!hasValidSignature(signResult)) {
-                let failReason = mapSignErrorCodeToReason(signResult.errorCode);
-                if (failReason === undefined) {
-                    failReason = VALUES.REASON.HSM.GENERIC;
-                }
+                const failReason = mapSignErrorCodeToReason(signResult.errorCode) ?? VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED;
                 onResult({
                     success: false,
-                    reason: failReason,
-                    message: failReason === VALUES.REASON.HSM.GENERIC ? signResult.errorCode : undefined,
+                    error: createLocalMFAError(failReason, `Error Code: ${signResult.errorCode}`),
                 });
                 return;
             }
 
             const authType = mapAuthTypeNumber(signResult.authType);
             if (!authType) {
-                onResult({success: false, reason: VALUES.REASON.GENERIC.BAD_REQUEST});
+                onResult({
+                    success: false,
+                    error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED_AUTH_TYPE, `Unrecognized auth type from HSM sign result: ${signResult.authType}`),
+                });
                 return;
             }
 
             await onResult({
                 success: true,
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
                 signedChallenge: {
                     rawId: credentialID,
                     type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
@@ -189,14 +174,9 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 authenticationMethod: authType,
             });
         } catch (error) {
-            let reason = mapLibraryErrorToReason(error);
-            if (reason === undefined) {
-                reason = VALUES.REASON.HSM.GENERIC;
-            }
             onResult({
                 success: false,
-                reason,
-                message: getErrorMessage(error),
+                error: decodeLibraryError(error),
             });
         }
     };
@@ -209,7 +189,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
-        deviceCheckFailureReason: VALUES.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
+        deviceCheckFailureReason: VALUES.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

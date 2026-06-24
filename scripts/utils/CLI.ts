@@ -34,14 +34,16 @@ type StringArg<T = unknown> = CLIArg & {
 
 /**
  * A positional argument is just a string arg, but also must be assigned a name which we will eventually expose the CLI consumer.
+ * If `variadic` is true, this must be the last positional arg and it collects all remaining positional args into a string[].
  */
 type PositionalArg<T = unknown> = StringArg<T> & {
     name: string;
+    variadic?: true;
 };
 
 /**
  * This type represents the config for a CLI.
- * Note: this utility does not yet support variadic args of any kind.
+ * The last positional arg can be marked `variadic: true` to collect all remaining positional args into a string[].
  */
 type CLIConfig = NonEmptyObject<{
     /**
@@ -87,9 +89,10 @@ type ParsedNamedArgs<NamedArgs extends CLIConfig['namedArgs']> = {
 
 /**
  * Record of positional args after parsing.
+ * Variadic args are parsed as string[]; all others use InferStringArgParsedValue.
  */
 type ParsedPositionalArgs<PositionalArgs extends CLIConfig['positionalArgs']> = {
-    [K in NonNullable<PositionalArgs>[number] as K['name']]: InferStringArgParsedValue<K>;
+    [K in NonNullable<PositionalArgs>[number] as K['name']]: K extends {variadic: true} ? string[] : InferStringArgParsedValue<K>;
 };
 
 /**
@@ -217,6 +220,19 @@ class CLI<TConfig extends CLIConfig> {
                     if (spec === undefined) {
                         throw new Error(`Unexpected arg: ${rawArg}`);
                     }
+                    if (spec.variadic) {
+                        // Variadic: collect this and all remaining non-flag args into an array
+                        const collected: string[] = [];
+                        for (let j = i; j < rawArgs.length; j++) {
+                            const remaining = rawArgs.at(j);
+                            if (remaining === undefined || remaining.startsWith('--')) {
+                                break;
+                            }
+                            collected.push(remaining);
+                        }
+                        parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = collected as ValueOf<typeof parsedPositionalArgs>;
+                        break;
+                    }
                     parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = CLI.parseStringArg(rawArg, spec.name, spec) as ValueOf<typeof parsedPositionalArgs>;
                     positionalIndex++;
                 }
@@ -265,6 +281,8 @@ class CLI<TConfig extends CLIConfig> {
                 if (!(spec.name in parsedPositionalArgs)) {
                     if (spec.default !== undefined) {
                         parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = spec.default as ValueOf<typeof parsedPositionalArgs>;
+                    } else if (spec.variadic) {
+                        parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = [] as ValueOf<typeof parsedPositionalArgs>;
                     } else {
                         throw new Error(`Missing required positional argument --${spec.name}`);
                     }
@@ -291,7 +309,12 @@ class CLI<TConfig extends CLIConfig> {
     private printHelp(): void {
         const {flags = {}, namedArgs = {}, positionalArgs = []} = this.config;
         const scriptName = process.argv.at(1) ?? 'script.ts';
-        const positionalUsage = positionalArgs.map((arg) => (arg.default === undefined ? `<${arg.name}>` : `[${arg.name}]`)).join(' ');
+        const positionalUsage = positionalArgs
+            .map((arg) => {
+                const label = arg.variadic ? `${arg.name}...` : arg.name;
+                return arg.default === undefined ? `<${label}>` : `[${label}]`;
+            })
+            .join(' ');
         const namedArgUsage = Object.keys(namedArgs)
             .map((key) => `[--${key} <value>]`)
             .join(' ');

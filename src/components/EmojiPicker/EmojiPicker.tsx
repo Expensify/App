@@ -7,6 +7,8 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -116,7 +118,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
         // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
-        KeyboardUtils.dismiss(true).then(() =>
+        KeyboardUtils.dismiss({shouldSkipSafari: true}).then(() =>
             calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
                 close(() => {
                     onWillShow?.();
@@ -235,6 +237,15 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         };
     }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
 
+    // Only add the bottom safe-area padding when the keyboard is hidden. When the search keyboard is shown it already
+    // covers the bottom inset, so adding the padding on top of it leaves an unwanted gap above the keyboard.
+    // Use isKeyboardActive (toggles on keyboardWillShow/WillHide) rather than isKeyboardShown (toggles on
+    // keyboardDidShow/DidHide) so the padding changes in sync with the modal's keyboard-avoidance animation. Keying it
+    // on isKeyboardShown removes/re-adds the padding only after the keyboard animation finishes, which abruptly changes
+    // the picker height a beat behind the modal motion and makes the picker bounce.
+    const {isKeyboardActive} = useKeyboardState();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: !isKeyboardActive});
+
     return (
         <PopoverWithMeasuredContent
             shouldHandleNavigationBack={isMobileChrome()}
@@ -263,10 +274,11 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSkipRemeasurement
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <Activity mode={isEmojiPickerVisible ? 'visible' : 'hidden'}>
-                    <View>
+                    <View style={bottomSafeAreaPaddingStyle}>
                         <EmojiPickerMenu
                             onEmojiSelected={selectEmoji}
                             activeEmoji={activeEmoji.current}

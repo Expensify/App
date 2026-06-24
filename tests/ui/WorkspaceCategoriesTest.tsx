@@ -27,7 +27,7 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 // This mock simulates that behavior synchronously so that the showConfirmModal
 // promise resolves correctly in tests.
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
 
     return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
@@ -138,9 +138,8 @@ describe('WorkspaceCategories', () => {
             expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
         });
 
-        // Select categories to delete by clicking their checkboxes
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+        // Select categories to delete
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 
@@ -244,9 +243,8 @@ describe('WorkspaceCategories', () => {
             expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
         });
 
-        // Select categories to delete by clicking their checkboxes
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+        // Select categories to disable
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 

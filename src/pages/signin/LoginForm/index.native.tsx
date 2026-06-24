@@ -29,7 +29,6 @@ function LoginForm({scrollPageToTop, ref, ...rest}: LoginFormProps) {
 
     return (
         <BaseLoginForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             scrollPageToTop={scrollPageToTop}
             ref={loginFormRef}

@@ -8,7 +8,6 @@ import Lightbox from '@components/Lightbox';
 import CONST from '@src/CONST';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- __esModule is required by Jest to properly mock ES modules with default exports
 jest.mock('@components/Image', () => {
     const MockReact = require('react') as typeof React;
     const {View} = require('react-native') as {View: typeof RNView};
@@ -20,25 +19,20 @@ jest.mock('@components/Image', () => {
         });
     }
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
         __esModule: true,
         default: MockReact.memo(MockImage),
     };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- __esModule is required by Jest to properly mock ES modules with default exports
 jest.mock('@components/Lightbox/numberOfConcurrentLightboxes', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
     __esModule: true,
     default: 3,
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- __esModule is required by Jest to properly mock ES modules with default exports
 jest.mock('@components/MultiGestureCanvas', () => {
     const MockReact = require('react') as typeof React;
     const {View} = require('react-native') as {View: typeof RNView};
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention -- __esModule is required by Jest to properly mock ES modules with default exports
         __esModule: true,
         default: ({children}: {children: React.ReactNode}) => MockReact.createElement(View, {testID: 'multi-gesture-canvas'}, children),
         DEFAULT_ZOOM_RANGE: {min: 1, max: 5},

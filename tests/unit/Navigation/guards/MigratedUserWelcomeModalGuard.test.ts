@@ -1,13 +1,24 @@
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
-import MigratedUserWelcomeModalGuard, {resetSessionFlag} from '@libs/Navigation/guards/MigratedUserWelcomeModalGuard';
+import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged, resetDismissedProductTrainingState, resetSessionFlag} from '@libs/Navigation/guards/MigratedUserWelcomeModalGuard';
 import type {GuardContext} from '@libs/Navigation/guards/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
+
+const migratedUserWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, ROUTES.HOME);
+
+const mockNavigate = jest.fn();
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: (...args: unknown[]) => {
+        mockNavigate(...args);
+    },
+    getActiveRoute: () => 'home',
+}));
 
 describe('MigratedUserWelcomeModalGuard', () => {
     const mockState: NavigationState = {
@@ -31,8 +42,12 @@ describe('MigratedUserWelcomeModalGuard', () => {
     };
 
     beforeEach(async () => {
-        await Onyx.clear();
+        // Reset module-level session/loading state first so stale values from
+        // previous tests don't trigger navigation during Onyx.clear() callbacks
+        onSessionOrLoadingAppChanged(undefined, true);
         resetSessionFlag();
+        mockNavigate.mockClear();
+        await Onyx.clear();
         await waitForBatchedUpdates();
     });
 
@@ -51,6 +66,36 @@ describe('MigratedUserWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
+    it('should allow when nudge migration is set but NVP_DISMISSED_PRODUCT_TRAINING has not loaded yet (race condition)', async () => {
+        // Simulate the race condition: NVP_TRY_NEW_DOT has arrived but
+        // NVP_DISMISSED_PRODUCT_TRAINING has not yet been delivered by Onyx.
+        // This happens on large accounts (e.g. copilot sessions) where OpenApp takes
+        // 20-30 seconds and the user navigates before the full Onyx payload is processed.
+        await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            nudgeMigration: {
+                timestamp: new Date(),
+                cohort: 'test',
+            },
+        });
+
+        // Merge a placeholder so Onyx.clear() in the next beforeEach sees a real value
+        // change and re-fires the NVP_DISMISSED_PRODUCT_TRAINING callback (Onyx skips
+        // the callback when the value was already undefined on both sides of clear()).
+        await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {});
+        await waitForBatchedUpdates();
+
+        // Reset module-level state to replicate the window where NVP_DISMISSED_PRODUCT_TRAINING
+        // has not yet been delivered — i.e. isDismissedProductTrainingLoaded is still false.
+        // This is the exact moment the race condition strikes.
+        resetDismissedProductTrainingState();
+
+        // evaluate must return ALLOW while the dismissal NVP is still in-flight,
+        // regardless of whether the user previously dismissed the modal. Without the
+        // isDismissedProductTrainingLoaded guard this would incorrectly return REDIRECT.
+        const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should redirect when user has been added to nudge migration and modal not dismissed', async () => {
         await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
             nudgeMigration: {
@@ -63,7 +108,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
         const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
         expect(result.type).toBe('REDIRECT');
         if (result.type === 'REDIRECT') {
-            expect(result.route).toBe(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
+            expect(result.route).toBe(migratedUserWelcomeRoute);
         }
     });
 
@@ -114,11 +159,11 @@ describe('MigratedUserWelcomeModalGuard', () => {
         const modalState: NavigationState = {
             key: 'root',
             index: 0,
-            routeNames: [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT],
+            routeNames: [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT],
             routes: [
                 {
                     key: 'migratedUserModal',
-                    name: SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
+                    name: SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
                 },
             ],
             stale: false,
@@ -143,11 +188,11 @@ describe('MigratedUserWelcomeModalGuard', () => {
             payload: {
                 key: 'root',
                 index: 0,
-                routeNames: [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT],
+                routeNames: [SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT],
                 routes: [
                     {
                         key: 'migratedUserModal',
-                        name: SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT,
+                        name: SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
                     },
                 ],
                 stale: false,
@@ -322,6 +367,123 @@ describe('MigratedUserWelcomeModalGuard', () => {
 
             const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalBelowHome, tabSwitchAction, defaultContext);
             expect(result.type).not.toBe('BLOCK');
+        });
+    });
+
+    describe('onSessionOrLoadingAppChanged (proactive navigation)', () => {
+        it('should navigate when all conditions are met (session, not loading, nudge migration, training loaded, not dismissed)', async () => {
+            // Set up nudge migration (session is not set yet, so no navigation here)
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            // Now signal that session is ready and app is done loading
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+
+            expect(mockNavigate).toHaveBeenCalledWith(migratedUserWelcomeRoute);
+        });
+
+        it('should not navigate when app is still loading', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, true);
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should not navigate when there is no session', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            onSessionOrLoadingAppChanged(undefined, false);
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should not navigate when user has not been added to nudge migration', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: null,
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should not navigate when modal was already dismissed', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                migratedUserWelcomeModal: {
+                    timestamp: new Date().toISOString(),
+                    dismissedMethod: 'click',
+                },
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should only navigate once even if called multiple times', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+
+            expect(mockNavigate).toHaveBeenCalledTimes(1);
+        });
+
+        it('should navigate via Onyx NVP_DISMISSED_PRODUCT_TRAINING callback when session is already set', async () => {
+            // Set session first
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            mockNavigate.mockClear();
+
+            // Set up nudge migration and dismissed product training (modal not dismissed)
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // The NVP_TRY_NEW_DOT callback triggers navigateToMigratedUserWelcomeModalIfReady
+            // which should navigate because all conditions are met
+            expect(mockNavigate).toHaveBeenCalledWith(migratedUserWelcomeRoute);
         });
     });
 });

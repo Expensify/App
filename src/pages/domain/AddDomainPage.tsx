@@ -58,8 +58,9 @@ function AddDomainPage() {
         const accountID = Object.values(allDomains ?? {})?.find(
             (domain) => domain && submittedDomainName.current && Str.caseInsensitiveEquals(Str.extractEmailDomain(domain.email), submittedDomainName.current),
         )?.accountID;
+
         if (accountID) {
-            Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true}));
         }
     }, [form?.hasCreationSucceeded, allDomains]);
 
@@ -72,7 +73,7 @@ function AddDomainPage() {
         <ScreenWrapper testID="AddDomainPage">
             <HeaderWithBackButton
                 title={translate('domain.addDomain.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.getRoute())}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.getRoute())}
             />
             <ScrollView
                 contentContainerStyle={[styles.ph5, styles.pt3, styles.flexGrow1, styles.gap5]}

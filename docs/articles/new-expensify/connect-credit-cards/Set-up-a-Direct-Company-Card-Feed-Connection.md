@@ -9,7 +9,7 @@ internalScope: Audience is Workspace Admins. Covers connecting a company card fe
 
 Setting up a direct company card feed connection allows you to automatically import card transactions into Expensify.
 
-You can connect company cards using a direct connection with your bank, or through Plaid, depending on your bank and country.
+You can connect company cards using a direct connection with your bank, or through Plaid, depending on your bank and country. If your bank isn't supported, you can also [learn how to import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet).
 
 ---
 
@@ -60,6 +60,17 @@ Some banks have specific requirements for successful connections:
 ---
 
 # FAQ
+
+## Why don't newly issued cards appear in the assignment list?
+
+Direct feeds cache the card list when first connected. If your bank issues new cards after the initial setup, they won't appear automatically. To refresh the card list:
+
+1. Go to **Workspaces > [Workspace Name] > Company cards**.
+2. Click **Settings** in the top-right corner.
+3. Click **Assign new cards**.
+4. Complete the bank re-authentication to pull the latest cards from your bank.
+
+New cards will then be available for assignment.
 
 ## How do I fix a broken company card feed connection?
 

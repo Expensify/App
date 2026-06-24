@@ -19,6 +19,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import variables from '@styles/variables';
+import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
@@ -26,6 +28,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MerchantRulesSectionProps = {
     policyID: string;
+    canWriteRules: boolean;
+    showReadOnlyModal: () => void;
 };
 
 type FieldLabels = {
@@ -68,7 +72,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     return actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
 }
 
-function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
+function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: MerchantRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -163,12 +167,13 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                 <OfflineWithFeedback
                                     pendingAction={rule.pendingAction}
                                     errors={rule.errors}
+                                    onClose={() => clearPolicyCodingRuleErrors(policyID, rule.ruleID, rule)}
                                 >
                                     <MenuItemWithTopDescription
                                         description={matchDescription}
                                         title={ruleDescription}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
-                                        descriptionTextStyle={[styles.textNormalThemeText]}
+                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
@@ -187,8 +192,14 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 icon={expensifyIcons.Plus}
                 iconHeight={20}
                 iconWidth={20}
-                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
-                onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}
+                onPress={() => {
+                    if (!canWriteRules) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+                }}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
             />
         </Section>

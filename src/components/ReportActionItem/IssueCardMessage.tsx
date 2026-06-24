@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,17 +24,21 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
     policyID: string | undefined;
-    shouldNavigateToCardDetails: boolean;
 };
 
-function IssueCardMessage({action, policyID, shouldNavigateToCardDetails}: IssueCardMessageProps) {
+function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const session = useSession();
     const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
-    const expensifyCard = useGetExpensifyCardFromReportAction({reportAction: action, policyID});
+    const expensifyCard = useGetExpensifyCardFromReportAction({
+        reportAction: action,
+        policyID,
+    });
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
     const cardList = useNonPersonalCardList();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const shouldNavigateToCardDetails = isPolicyAdmin(policy);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const companyCard = cardList?.[(getOriginalMessage(action) as IssueNewCardOriginalMessage)?.cardID];
     const shouldShowAddMissingDetailsButton =

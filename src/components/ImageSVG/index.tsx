@@ -30,7 +30,6 @@ function ImageSVG({src, width = '100%', height = '100%', fill, hovered = false, 
             hovered={`${hovered}`}
             pressed={`${pressed}`}
             aria-hidden={ariaHidden}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...additionalProps}
         />
     );

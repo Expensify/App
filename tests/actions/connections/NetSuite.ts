@@ -1,8 +1,12 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
-import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import {
+    connectPolicyToNetSuite,
+    updateNetSuiteTokens,
+    updateNetSuiteTravelInvoicingJournalPostingPreference,
+    updateNetSuiteTravelInvoicingPayableAccount,
+} from '@libs/actions/connections/NetSuiteCommands';
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -155,6 +159,82 @@ describe('actions/connections/NetSuite', () => {
         it('returns false for unverified connection without auth error', () => {
             const policy = createPolicy({isAuthError: false, verified: false});
             expect(shouldUseUpdateNetSuiteTokens(policy)).toBe(false);
+        });
+    });
+
+    describe('updateNetSuiteTravelInvoicingPayableAccount', () => {
+        it('writes the UpdateNetSuiteTravelInvoicingPayableAccount command with the bankAccountID', () => {
+            updateNetSuiteTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {command} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
+
+            const call = writeSpy.mock.calls.at(0);
+
+            const params = call?.[1] as {bankAccountID: string; policyID: string};
+            expect(params.policyID).toBe(MOCK_POLICY_ID);
+            expect(params.bankAccountID).toBe('account-123');
+        });
+
+        it('merges travelInvoicingPayableAccountID optimistically onto the NetSuite options config', () => {
+            updateNetSuiteTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {onyxData} = getFirstWriteCall();
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
+            expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
+
+            const value = optimisticUpdate?.value as {connections: {netsuite: {options: {config: Record<string, unknown>}}}};
+            expect(value.connections.netsuite.options.config[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe('account-123');
+        });
+    });
+
+    describe('updateNetSuiteTravelInvoicingJournalPostingPreference', () => {
+        it('writes the UpdateNetSuiteTravelInvoicingJournalPostingPreference command with the posting preference', () => {
+            updateNetSuiteTravelInvoicingJournalPostingPreference(
+                MOCK_POLICY_ID,
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
+            );
+
+            const {command} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE);
+
+            const call = writeSpy.mock.calls.at(0);
+            const params = call?.[1] as {value: string; policyID: string};
+            expect(params.policyID).toBe(MOCK_POLICY_ID);
+            expect(params.value).toBe(CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE);
+        });
+
+        it('merges travelInvoicingJournalPostingPreference optimistically onto the NetSuite options config', () => {
+            updateNetSuiteTravelInvoicingJournalPostingPreference(
+                MOCK_POLICY_ID,
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
+            );
+
+            const {onyxData} = getFirstWriteCall();
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
+            expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
+
+            const value = optimisticUpdate?.value as {connections: {netsuite: {options: {config: Record<string, unknown>}}}};
+            expect(value.connections.netsuite.options.config[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE]).toBe(
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
+            );
+        });
+
+        it('reverts travelInvoicingJournalPostingPreference to the old value on failure', () => {
+            updateNetSuiteTravelInvoicingJournalPostingPreference(
+                MOCK_POLICY_ID,
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
+            );
+
+            const {onyxData} = getFirstWriteCall();
+            const failureUpdate = onyxData?.failureData?.at(0);
+            const value = failureUpdate?.value as {connections: {netsuite: {options: {config: Record<string, unknown>}}}};
+            expect(value.connections.netsuite.options.config[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE]).toBe(
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
+            );
         });
     });
 });

@@ -1,5 +1,5 @@
-import lodashMapKeys from 'lodash/mapKeys';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 /**
@@ -10,7 +10,14 @@ import useOnyx from './useOnyx';
  */
 function usePersonalDetailsByEmail() {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const result = personalDetails ? lodashMapKeys(personalDetails, (value, key) => value?.login ?? key) : undefined;
+    if (!personalDetails) {
+        return undefined;
+    }
+
+    const result: PersonalDetailsList = {};
+    for (const [key, value] of Object.entries(personalDetails)) {
+        result[value?.login ?? key] = value;
+    }
 
     return result;
 }

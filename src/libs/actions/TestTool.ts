@@ -2,6 +2,7 @@ import throttle from 'lodash/throttle';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -35,8 +36,10 @@ const throttledToggle = throttle(
             }
             return;
         }
+        const isAuthenticated = navigationRef.current?.getRootState()?.routes.some((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const backToRoute = isAuthenticated ? Navigation.getActiveRoute() : ROUTES.ROOT;
         const openTestToolsModal = () => {
-            setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL.getRoute(Navigation.getActiveRoute())), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
+            setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL.getRoute(backToRoute)), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
         };
         // Dismiss any current modal before showing test tools modal
         // We need to handle test drive modal differently using Navigation.goBack() to properly clean up its navigation state

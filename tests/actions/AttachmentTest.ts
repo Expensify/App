@@ -69,7 +69,7 @@ describe('AttachmentStorage', () => {
         };
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1});
+        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
 
         await waitForBatchedUpdates();
 
@@ -101,7 +101,15 @@ describe('AttachmentStorage', () => {
         const markdownTextLinkAttachment = `![](${sourceURL})`;
 
         // Then send the comment
-        addComment({report: {reportID}, notifyReportID: reportID, ancestors: [], text: markdownTextLinkAttachment, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: 1});
+        addComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            text: markdownTextLinkAttachment,
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -149,7 +157,15 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then send the comment
-        addComment({report: {reportID}, notifyReportID: reportID, ancestors: [], text: markdownTextLinkAttachment, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: 1});
+        addComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            text: markdownTextLinkAttachment,
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -213,7 +229,7 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then upload the attachment
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1});
+        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: fileData, currentUserAccountID: 1, delegateAccountID: undefined});
 
         await waitForBatchedUpdates();
 
@@ -268,7 +284,15 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then send the comment
-        addComment({report: {reportID}, notifyReportID: reportID, ancestors: [], text: markdownTextLinkAttachment, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: 1});
+        addComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            text: markdownTextLinkAttachment,
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+        });
 
         await waitForBatchedUpdates();
 
@@ -330,8 +354,16 @@ describe('AttachmentStorage', () => {
         await waitForBatchedUpdates();
 
         // Then send both markdown & attachment files
-        addComment({report: {reportID}, notifyReportID: reportID, ancestors: [], text: markdownCommentText, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID: 1});
-        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: attachmentFiles, currentUserAccountID: 1});
+        addComment({
+            report: {reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            text: markdownCommentText,
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 1,
+            delegateAccountID: undefined,
+        });
+        addAttachmentWithComment({report: {reportID}, notifyReportID: reportID, ancestors: [], attachments: attachmentFiles, currentUserAccountID: 1, delegateAccountID: undefined});
 
         await waitForBatchedUpdates();
 

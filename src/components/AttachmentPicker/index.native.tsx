@@ -20,12 +20,32 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
+
+const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
+    pdf: String(types.pdf),
+    doc: String(types.doc),
+    docx: String(types.docx),
+    zip: String(types.zip),
+    txt: String(types.plainText),
+    json: String(types.json),
+    xls: String(types.xls),
+    xlsx: String(types.xlsx),
+    jpg: String(types.images),
+    jpeg: String(types.images),
+    png: String(types.images),
+    gif: String(types.images),
+    heif: String(types.images),
+    heic: String(types.images),
+    tif: String(types.images),
+    tiff: String(types.images),
+};
 
 type LocalCopy = {
     name: string | null;
@@ -89,7 +109,7 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
  * send to the xhr will be handled properly.
  */
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
-    const fileName = fileData.name || 'chat_attachment';
+    const fileName = fileData.name || CONST.DEFAULT_ATTACHMENT_FILENAME;
     const fileResult: FileObject = {
         name: cleanFileName(fileName),
         type: fileData.type,
@@ -99,14 +119,25 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
         size: fileData.size,
     };
 
-    if (fileResult.size) {
-        return Promise.resolve(fileResult);
-    }
+    const fileWithSize = fileResult.size
+        ? Promise.resolve(fileResult)
+        : RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+              fileResult.size = stats.size;
+              return fileResult;
+          });
 
-    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
-        fileResult.size = stats.size;
-        return fileResult;
-    });
+    // Move the file out of the cache directory (which the OS can purge) into durable storage so it
+    // survives an app force-kill while the upload is queued offline. `source` is what prepareRequestPayload
+    // re-reads on offline replay, so it must point at the durable path too. On failure
+    // moveReceiptToDurableStorage returns the original URI, so the catch is just a safeguard.
+    return fileWithSize.then((file) =>
+        moveReceiptToDurableStorage(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
+            .then((durableUri) => ({...file, uri: durableUri, source: durableUri}) as FileObject)
+            .catch((error: unknown) => {
+                Log.warn('[AttachmentPicker] Failed to move attachment to durable storage, using original URI', {error});
+                return file;
+            }),
+    );
 };
 
 /**
@@ -121,8 +152,10 @@ function AttachmentPicker({
     shouldHideCameraOption = false,
     shouldValidateImage = true,
     shouldHideGalleryOption = false,
+    acceptedFileTypes,
     fileLimit = 1,
     onOpenPicker,
+    shouldSkipAttachmentTypeModal = false,
 }: AttachmentPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
@@ -251,8 +284,25 @@ function AttachmentPicker({
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
+        let pickerTypes: string[];
+        if (acceptedFileTypes && acceptedFileTypes.length > 0) {
+            const mappedTypes = acceptedFileTypes.reduce<string[]>((result, extension) => {
+                const nativeType = EXTENSION_TO_NATIVE_TYPE[String(extension)];
+                if (nativeType !== undefined && !result.includes(nativeType)) {
+                    result.push(nativeType);
+                }
+                return result;
+            }, []);
+            // If any extension has no native type mapping, fall back to allFiles so those
+            // file types remain selectable. Downstream validation handles the type check.
+            const hasUnmappedExtensions = acceptedFileTypes.some((ext) => EXTENSION_TO_NATIVE_TYPE[String(ext)] === undefined);
+            pickerTypes = mappedTypes.length > 0 && !hasUnmappedExtensions ? mappedTypes : [types.allFiles];
+        } else {
+            pickerTypes = [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles];
+        }
+
         const pickedFiles = await pick({
-            type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
+            type: pickerTypes,
             allowMultiSelection: fileLimit !== 1,
         });
 
@@ -269,7 +319,7 @@ function AttachmentPicker({
         return pickedFiles.map((file) => {
             const localCopy = localCopies.find((copy) => copy.sourceUri === file.uri);
 
-            if (!localCopy || localCopy.status !== 'success') {
+            if (localCopy?.status !== 'success') {
                 throw new Error("Couldn't create local file copy");
             }
 
@@ -280,7 +330,7 @@ function AttachmentPicker({
                 type: file.type,
             };
         });
-    }, [fileLimit, type]);
+    }, [acceptedFileTypes, fileLimit, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
@@ -335,19 +385,6 @@ function AttachmentPicker({
         },
         [showGeneralAlert, showImageCorruptionAlert, translate],
     );
-
-    /**
-     * Opens the attachment modal
-     *
-     * @param onPickedHandler A callback that will be called with the selected attachment
-     * @param onCanceledHandler A callback that will be called without a selected attachment
-     */
-    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
-        completeAttachmentSelection.current = onPickedHandler;
-        onCanceled.current = onCanceledHandler;
-        onClosed.current = onClosedHandler;
-        setIsVisible(true);
-    };
 
     /**
      * Closes the attachment modal
@@ -441,6 +478,33 @@ function AttachmentPicker({
         },
         [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
+
+    /**
+     * Opens the attachment modal, or directly launches the document picker when shouldSkipAttachmentTypeModal is true.
+     */
+    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
+        completeAttachmentSelection.current = onPickedHandler;
+        onCanceled.current = onCanceledHandler;
+        onClosed.current = onClosedHandler;
+
+        if (shouldSkipAttachmentTypeModal) {
+            onOpenPicker?.();
+            showDocumentPicker()
+                .catch((error: Error) => {
+                    if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                        return;
+                    }
+                    showGeneralAlert(error.message);
+                    throw error;
+                })
+                .then((result) => pickAttachment(result))
+                .catch(console.error)
+                .finally(() => onClosedHandler());
+            return;
+        }
+
+        setIsVisible(true);
+    };
 
     /**
      * Setup native attachment selection to start after this popover closes

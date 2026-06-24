@@ -58,4 +58,3 @@ function getSubmitExpenseScenario({
 }
 
 export default getSubmitExpenseScenario;
-export type {GetSubmitExpenseScenarioParams};

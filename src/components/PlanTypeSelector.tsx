@@ -10,7 +10,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import Text from './Text';
 
 type PlanTypeItem = {
@@ -110,7 +110,7 @@ function PlanTypeSelector({errorText = '', value: planType, onInputChange = () =
                     <Text style={[styles.ph5, styles.pb4, styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.planTypePage.description')}</Text>
                     <SelectionList
                         data={planTypeOptions}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={handlePlanTypeSelect}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={planTypeOptions.find((option) => option.isSelected)?.keyForList}

@@ -51,8 +51,6 @@ export {
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayWideRHPProgress,
     thirdOverlayProgress,
-    WideRHPStateContext,
-    WideRHPActionsContext,
     useWideRHPState,
     useWideRHPActions,
 };

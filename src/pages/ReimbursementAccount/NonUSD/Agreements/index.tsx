@@ -49,7 +49,6 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isFinishingCorpayBankAccountOnboarding || !reimbursementAccount?.isSuccess) {
             return;
         }

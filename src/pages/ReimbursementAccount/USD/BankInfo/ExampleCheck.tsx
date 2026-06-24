@@ -13,6 +13,7 @@ function ExampleCheckImage() {
 
     return (
         <Image
+            accessibilityIgnoresInvertColors
             resizeMode="contain"
             style={[styles.exampleCheckImage, styles.mb5]}
             source={isSpanish ? illustrations.ExampleCheckES : illustrations.ExampleCheckEN}

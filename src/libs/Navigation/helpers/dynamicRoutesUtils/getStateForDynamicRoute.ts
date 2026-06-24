@@ -67,10 +67,14 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
     const buildNestedState = (routes: string[], currentIndex: number): RouteNode => {
         const currentRoute = routes.at(currentIndex);
 
-        // If this is the last route, create leaf node with path and merged params
+        // If this is the last route, create leaf node with path and merged params.
+        // Filter out undefined values so absent optional path params don't surface as
+        // explicit `{key: undefined}` entries in the navigation state.
         if (currentIndex === routes.length - 1) {
-            const mergedParams = parentRouteParams || params ? {...(parentRouteParams ?? {}), ...(params ?? {})} : undefined;
-            const paramsSpread = mergedParams ? {params: mergedParams} : {};
+            const mergedParams = {...(parentRouteParams ?? {}), ...(params ?? {})};
+            const cleanedParams = Object.fromEntries(Object.entries(mergedParams).filter(([, v]) => v !== undefined));
+            const paramsSpread = cleanedParams && Object.keys(cleanedParams).length > 0 ? {params: cleanedParams} : {};
+
             return {
                 name: currentRoute ?? '',
                 path,

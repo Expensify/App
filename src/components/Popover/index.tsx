@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
+import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import {usePopoverActions, usePopoverState} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,7 +24,7 @@ function Popover(props: PopoverProps) {
         fullscreen,
         onLayout,
         animationOutTiming,
-        animationInTiming = CONST.ANIMATED_TRANSITION,
+        animationInTiming = CONST.MENU_ANIMATION_DURATION,
         disableAnimation = true,
         withoutOverlay = false,
         anchorPosition = {},
@@ -31,6 +32,7 @@ function Popover(props: PopoverProps) {
         animationIn = 'fadeIn',
         animationOut = 'fadeOut',
         shouldCloseWhenBrowserNavigationChanged = true,
+        enableEdgeToEdgeBottomSafeAreaPadding,
     } = props;
 
     // We need to use isSmallScreenWidth to apply the correct modal type and popoverAnchorPosition
@@ -59,6 +61,11 @@ function Popover(props: PopoverProps) {
             if (!isVisible) {
                 return;
             }
+            // A nested Modal closing itself fires history.back() to drop its guard entry;
+            // that popstate is not a real user navigation, so skip closing.
+            if (isInternalPopstateInProgress()) {
+                return;
+            }
             onClose?.();
         };
         window.addEventListener('popstate', listener);
@@ -78,7 +85,6 @@ function Popover(props: PopoverProps) {
     if (!fullscreen && !shouldUseNarrowLayout) {
         return createPortal(
             <Modal
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 onClose={onCloseWithPopoverContext}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
@@ -88,6 +94,7 @@ function Popover(props: PopoverProps) {
                 onLayout={onLayout}
                 animationIn={animationIn}
                 animationOut={animationOut}
+                enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
             />,
             document.body,
         );
@@ -96,7 +103,6 @@ function Popover(props: PopoverProps) {
     if (withoutOverlay && !shouldUseNarrowLayout) {
         return createPortal(
             <PopoverWithoutOverlay
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 withoutOverlayRef={withoutOverlayRef}
                 animationIn={animationIn}
@@ -108,7 +114,6 @@ function Popover(props: PopoverProps) {
 
     return (
         <Modal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onClose={onCloseWithPopoverContext}
             shouldHandleNavigationBack={props.shouldHandleNavigationBack}
@@ -120,6 +125,7 @@ function Popover(props: PopoverProps) {
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
         />
     );
 }

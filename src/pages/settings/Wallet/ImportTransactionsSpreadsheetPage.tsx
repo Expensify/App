@@ -9,10 +9,7 @@ type ImportTransactionsSpreadsheetPageProps = PlatformStackScreenProps<SettingsN
 
 function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadsheetPageProps) {
     const {cardID} = route.params ?? {};
-
-    // If cardID is provided, we're adding transactions to an existing card,
-    // otherwise we're creating a new card
-    const backTo = cardID ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS;
+    const backTo = cardID ? undefined : ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS;
 
     return (
         <ImportSpreadsheet

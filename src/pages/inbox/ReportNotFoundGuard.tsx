@@ -25,7 +25,7 @@ type ReportNotFoundGuardProps = {
  * all "obvious" not-found cases (invalid path, report missing after load).
  *
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const route = useRoute();
     const styles = useThemeStyles();
@@ -37,7 +37,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
-    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
@@ -50,7 +50,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists));
 
     useEffect(() => {
@@ -113,7 +112,7 @@ type ReportNotFoundInnerGuardProps = {
  * Inner guard for transaction threads only. Subscribes to the expensive
  * parentReportMetadata and parentReportAction to detect deleted parent actions.
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundInnerGuardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -122,17 +121,17 @@ function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundIn
     const reportIDFromRoute = getNonEmptyStringOnyxID(reportIDFromPath);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
+    const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const parentReportAction = useParentReportAction(report);
 
     const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
         parentReportID: report?.parentReportID,
         parentReportActionID: report?.parentReportActionID,
         parentReportAction,
-        parentReportMetadata,
+        parentReportLoadingState,
         isOffline,
     });
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = isParentActionDeleted || isParentActionMissingAfterLoad;
 
     useEffect(() => {

@@ -52,7 +52,9 @@
             "mcp__sentry__search_events",
             "mcp__sentry__search_issue_events",
             "mcp__sentry__search_issues",
-            "mcp__sentry__whoami"
+            "mcp__sentry__whoami",
+            "Bash(agent-device *)",
+            "Bash(echo \"$(npm root -g)/agent-device/skills/agent-device\")"
         ]
     },
     "enabledPlugins": {

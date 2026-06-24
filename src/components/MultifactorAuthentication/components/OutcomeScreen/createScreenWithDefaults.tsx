@@ -35,7 +35,6 @@ function createScreenWithDefaults<P extends Record<string, unknown>>(Component: 
     function Screen(overrideProps: Partial<P>) {
         const mergedProps: P = {...defaultProps, ...overrideProps};
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return <Component {...mergedProps} />;
     }
 

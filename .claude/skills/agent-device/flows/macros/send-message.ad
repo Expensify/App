@@ -1,0 +1,9 @@
+# @desc   Send a chat message from inside an already-open chat. Reusable helper for setting up state in other flows. Does not navigate or open a chat - assumes the composer is visible. For the QA scenario that exercises the ManualSendMessage Sentry span, see flows/tests/send-message.ad.
+# @pre    label="Write something..." editable=true
+# @post   label="Write something..." editable=true
+# @tag    chat
+# @param  MESSAGE Message text to send in the currently open chat.
+
+is exists "label=\"Write something...\" editable=true"
+fill "label=\"Write something...\" editable=true" "${MESSAGE}"
+press "role=\"button\" label=\"Send\" || label=\"Send\""

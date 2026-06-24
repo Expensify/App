@@ -7,7 +7,6 @@ function SearchInputSelectionWrapper({selection, ref, skipSkeleton: _skipSkeleto
         <SearchAutocompleteInput
             selection={selection}
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

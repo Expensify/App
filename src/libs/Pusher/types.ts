@@ -37,6 +37,36 @@ type ConciergeReasoningEvent = {
     reasoning: string;
     agentZeroRequestID: string;
     loopCount: number;
+    /**
+     * Persona accountID the reasoning should be attributed to — Concierge for Concierge runs,
+     * the custom agent's accountID for agent runs. Optional for backward compatibility; absent
+     * payloads default to Concierge.
+     */
+    actorAccountID?: number;
+};
+
+type ConciergeDraftEvent = {
+    reportID: string;
+    reportActionID: string;
+    streamSessionID: string;
+    sequence: number;
+    status: 'started' | 'updated' | 'completed' | 'failed' | 'cleared';
+    created: string;
+    bodyMarkdown?: string;
+    finalRenderedHTML?: string;
+    startedAt?: string;
+    terminalReason?: string;
+    updatedAt?: string;
+    /**
+     * Persona accountID the streamed draft should be attributed to — Concierge for Concierge
+     * runs, the custom agent's accountID for agent runs. Optional for backward compatibility;
+     * absent payloads default to Concierge.
+     */
+    actorAccountID?: number;
+};
+
+type ConciergeDraftEventsEvent = {
+    events: ConciergeDraftEvent[];
 };
 
 type PusherEventMap = {
@@ -44,6 +74,12 @@ type PusherEventMap = {
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
     [TYPE.PONG]: PingPongEvent;
     [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
+    [TYPE.CONCIERGE_DRAFT_EVENTS]: ConciergeDraftEventsEvent;
+    [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_UPDATED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_COMPLETED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_FAILED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_CLEARED]: ConciergeDraftEvent;
 };
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
@@ -102,7 +138,8 @@ export type {
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
     PingPongEvent,
-    ConciergeReasoningEvent,
+    ConciergeDraftEvent,
+    ConciergeDraftEventsEvent,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,

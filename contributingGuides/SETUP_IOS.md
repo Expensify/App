@@ -80,7 +80,8 @@ For an M1 Mac, read this [Stack Overflow post](https://stackoverflow.com/questio
 If you want to run the app on an actual physical iOS device, please follow the instructions [here](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BUILD_APP_ON_PHYSICAL_IOS_DEVICE.md).
 
 ### Expensify Employees
-If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
+- To point the **Development Simulator** at your local VM, follow [these steps](https://stackoverflow.com/c/expensify/questions/7699).
+- You must configure the local dev email account; follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/23537/23538#23538).
 
 ## Push Notifications Setup
 

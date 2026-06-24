@@ -10,8 +10,10 @@ import {setNewRoomFormLoading} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
+import type {WorkspaceNewRoomPageRef} from './workspace/WorkspaceNewRoomPage';
 
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
@@ -21,7 +23,7 @@ function NewChatSelectorPage() {
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
     const chatPageInputRef = useRef<AnimatedTextInputRef | null>(null);
-    const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);
+    const roomPageInputRef = useRef<WorkspaceNewRoomPageRef | null>(null);
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
@@ -42,7 +44,11 @@ function NewChatSelectorPage() {
             if (index === 0) {
                 chatPageInputRef.current?.focus();
             } else if (index === 1) {
-                roomPageInputRef.current?.focus();
+                if (roomPageInputRef.current?.isValidInput?.()) {
+                    roomPageInputRef.current?.focus?.();
+                } else {
+                    KeyboardUtils.dismiss();
+                }
             }
         });
     };

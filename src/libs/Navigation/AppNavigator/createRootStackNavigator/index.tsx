@@ -5,12 +5,12 @@ import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerE
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState, PlatformStackRouterFactory} from '@libs/Navigation/PlatformStackNavigation/types';
 import RootStackRouter from './RootStackRouter';
 import useCustomRootStackNavigatorState from './useCustomRootStackNavigatorState';
 
 const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootStackNavigator', {
-    createRouter: addRootHistoryRouterExtension(RootStackRouter),
+    createRouter: addRootHistoryRouterExtension(RootStackRouter as PlatformStackRouterFactory<ParamListBase>),
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomEffects: useNavigationResetOnLayoutChange,
     useCustomState: useCustomRootStackNavigatorState,

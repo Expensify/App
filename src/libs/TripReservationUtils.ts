@@ -348,6 +348,9 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
     return reservationList;
 }
 
+// Drop Trainline URN-style codes so the trip UI doesn't render them as station labels.
+const getRailStationShortName = (code: string | undefined) => (code && !code.startsWith('urn:') ? code : '');
+
 function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
     const reservationList: ReservationItem[] = [];
 
@@ -374,13 +377,13 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIte
                     start: {
                         date: leg.departAt.iso8601,
                         longName: leg.originInfo.name,
-                        shortName: leg.originInfo.code,
+                        shortName: getRailStationShortName(leg.originInfo.code),
                         cityName: leg.originInfo.cityName,
                     },
                     end: {
                         date: leg.arriveAt.iso8601,
                         longName: leg.destinationInfo.name,
-                        shortName: leg.destinationInfo.code,
+                        shortName: getRailStationShortName(leg.destinationInfo.code),
                         cityName: leg.destinationInfo.cityName,
                     },
                     route: {
@@ -483,13 +486,13 @@ function getReservationsFromTripReport(tripReport?: Report, transactions?: Trans
     return [];
 }
 
-function formatAirportInfo(reservationTimeDetails: ReservationTimeDetails, hideAirportCode = false): string {
-    const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
-    let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
-
-    shortName = longName && shortName ? `(${shortName})` : shortName;
-
-    return !hideAirportCode ? `${longName}${shortName}` : longName;
+function formatTransitLocationLabel(reservationTimeDetails: ReservationTimeDetails, hideShortCode = false): string {
+    const longName = reservationTimeDetails?.longName ?? '';
+    const shortName = reservationTimeDetails?.shortName ?? '';
+    if (hideShortCode || !shortName) {
+        return longName;
+    }
+    return longName ? `${longName} (${shortName})` : `(${shortName})`;
 }
 
 function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationPNRData[] {
@@ -572,7 +575,7 @@ export {
     getReservationsFromTripReport,
     getTripTotal,
     getReservationDetailsFromSequence,
-    formatAirportInfo,
+    formatTransitLocationLabel,
     getPNRReservationDataFromTripReport,
     getAirReservations,
     isPnrCancelled,

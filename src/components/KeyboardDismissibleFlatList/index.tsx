@@ -18,7 +18,6 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ref, 
 
     return (
         <AnimatedFlatListWithCellRenderer
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={ref}
             onScroll={onScroll}

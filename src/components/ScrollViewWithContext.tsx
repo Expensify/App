@@ -51,7 +51,6 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ..
 
     return (
         <ScrollView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={scrollViewRef}
             onScroll={setContextScrollPosition}

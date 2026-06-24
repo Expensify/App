@@ -145,7 +145,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
             </View>
             {!requiresTwoFactorAuth && (
                 <View style={[styles.mln5, styles.mrn5, styles.mt3]}>
-                    <Enable2FACard policyID={policyID} />
+                    <Enable2FACard />
                 </View>
             )}
         </FormProvider>
