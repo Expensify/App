@@ -92,18 +92,28 @@ function DomainsListPage() {
             activeTabKey="domains"
             headerButton={headerButton}
         >
-            <View style={styles.flex1}>
-                {shouldShowLoadingIndicator && (
-                    <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={activityIndicatorReasonAttributes}
-                        />
-                    </View>
-                )}
+            {(headerComponent) => (
+                <View style={styles.flex1}>
+                    {shouldShowLoadingIndicator && (
+                        <>
+                            {headerComponent}
+                            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    reasonAttributes={activityIndicatorReasonAttributes}
+                                />
+                            </View>
+                        </>
+                    )}
 
-                {!shouldShowLoadingIndicator && <DomainListTable domains={domainRows} />}
-            </View>
+                    {!shouldShowLoadingIndicator && (
+                        <DomainListTable
+                            domains={domainRows}
+                            headerComponent={headerComponent}
+                        />
+                    )}
+                </View>
+            )}
         </WorkspaceListLayout>
     );
 }

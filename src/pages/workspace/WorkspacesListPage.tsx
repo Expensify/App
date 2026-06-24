@@ -281,35 +281,43 @@ function WorkspacesListPage() {
             activeTabKey="workspaces"
             headerButton={headerButton}
         >
-            {shouldShowLoadingIndicator ? (
-                <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacesListPage',
-                                isOffline,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
-                    />
-                </View>
-            ) : (
-                <WorkspaceListTable
-                    ref={tableRef}
-                    workspaces={workspaceRows}
-                    onDeleteWorkspace={setPolicyIDToDelete}
-                    pendingDeletePolicyID={policyIDToDelete}
-                    copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
-                />
+            {(headerComponent) => (
+                <>
+                    {shouldShowLoadingIndicator ? (
+                        <>
+                            {headerComponent}
+                            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    reasonAttributes={
+                                        {
+                                            context: 'WorkspacesListPage',
+                                            isOffline,
+                                        } satisfies SkeletonSpanReasonAttributes
+                                    }
+                                />
+                            </View>
+                        </>
+                    ) : (
+                        <WorkspaceListTable
+                            ref={tableRef}
+                            workspaces={workspaceRows}
+                            headerComponent={headerComponent}
+                            onDeleteWorkspace={setPolicyIDToDelete}
+                            pendingDeletePolicyID={policyIDToDelete}
+                            copySettingsEligibleTargets={copySettingsEligibleTargets ?? EMPTY_COPY_SETTINGS_ELIGIBLE_TARGETS}
+                        />
+                    )}
+                    {!!policyIDToDelete && (
+                        <DeleteWorkspaceFlow
+                            key={policyIDToDelete}
+                            policyID={policyIDToDelete}
+                            onDismiss={() => setPolicyIDToDelete(undefined)}
+                        />
+                    )}
+                    <CopyPolicySettingsProgressModal />
+                </>
             )}
-            {!!policyIDToDelete && (
-                <DeleteWorkspaceFlow
-                    key={policyIDToDelete}
-                    policyID={policyIDToDelete}
-                    onDismiss={() => setPolicyIDToDelete(undefined)}
-                />
-            )}
-            <CopyPolicySettingsProgressModal />
         </WorkspaceListLayout>
     );
 }

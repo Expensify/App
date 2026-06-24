@@ -1,4 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
@@ -9,6 +10,10 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TableData} from '.';
 import {useTableContext} from './TableContext';
+import TableHeader from './TableHeader';
+
+const TABLE_HEADER_KEY = '__table_header__';
+const TABLE_LIST_HEADER_KEY = '__table_list_header__';
 
 /**
  * Props for the TableBody component.
@@ -49,6 +54,8 @@ type TableBodyProps = ViewProps & {
 function TableBody<DataType extends TableData>({contentContainerStyle, style, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isListLoaded, setIsListLoaded] = React.useState(false);
+    const [stickyHeaderDataReady, setStickyHeaderDataReady] = React.useState<DataType[] | null>(null);
     const {
         processedData: filteredAndSortedData,
         activeSearchString,
@@ -57,9 +64,21 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         shouldUseNarrowTableLayout,
         hasActiveFilters,
         hasSearchString,
+        headerComponent,
         isEmptyResult,
+        shouldRenderStickyHeader,
     } = useTableContext<DataType>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+    const {
+        ListEmptyComponent,
+        ListHeaderComponent,
+        contentContainerStyle: listContentContainerStyle,
+        getItemType,
+        keyExtractor,
+        onLoad,
+        renderItem,
+        stickyHeaderIndices,
+        ...restListProps
+    } = listProps ?? {};
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -82,6 +101,74 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
+    // Synthetic sentinel rows used only to render the scrollable table header content and sticky table header;
+    // they are never passed to renderItem as real data.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const tableHeaderItem = {keyForList: TABLE_HEADER_KEY} as DataType;
+    // The scrollable list header sentinel uses the same row shape and is intercepted before consumer renderItem.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const tableListHeaderItem = {keyForList: TABLE_LIST_HEADER_KEY} as DataType;
+    const tableSyntheticHeaderItems = shouldRenderStickyHeader ? [tableListHeaderItem, tableHeaderItem] : [];
+    const stickyTableHeaderIndex = tableSyntheticHeaderItems.length - 1;
+    const listData = shouldRenderStickyHeader ? [...tableSyntheticHeaderItems, ...filteredAndSortedData] : filteredAndSortedData;
+    const getDataIndex = (index: number) => (shouldRenderStickyHeader ? index - tableSyntheticHeaderItems.length : index);
+    const isTableListHeaderItem = (index: number) => shouldRenderStickyHeader && index === 0;
+    const isTableHeaderItem = (index: number) => shouldRenderStickyHeader && index === stickyTableHeaderIndex;
+    const canRenderStickyHeader = shouldRenderStickyHeader && isListLoaded && stickyHeaderDataReady === filteredAndSortedData;
+
+    const renderListItem = (info: ListRenderItemInfo<DataType>) => {
+        if (isTableListHeaderItem(info.index)) {
+            return headerComponent ?? null;
+        }
+
+        if (isTableHeaderItem(info.index)) {
+            return (
+                <View style={styles.appBG}>
+                    <TableHeader />
+                </View>
+            );
+        }
+
+        return renderItem?.({...info, index: getDataIndex(info.index)}) ?? null;
+    };
+
+    const keyExtractorForList = (item: DataType, index: number) => {
+        if (isTableListHeaderItem(index)) {
+            return TABLE_LIST_HEADER_KEY;
+        }
+
+        if (isTableHeaderItem(index)) {
+            return TABLE_HEADER_KEY;
+        }
+
+        return keyExtractor?.(item, getDataIndex(index)) ?? item.keyForList;
+    };
+
+    const getItemTypeForList = (item: DataType, index: number, extraData: unknown) => {
+        if (isTableListHeaderItem(index)) {
+            return TABLE_LIST_HEADER_KEY;
+        }
+
+        if (isTableHeaderItem(index)) {
+            return TABLE_HEADER_KEY;
+        }
+
+        return getItemType?.(item, getDataIndex(index), extraData);
+    };
+    const handleLoad: NonNullable<typeof onLoad> = (info) => {
+        setIsListLoaded(true);
+        onLoad?.(info);
+    };
+
+    React.useEffect(() => {
+        if (!shouldRenderStickyHeader || !isListLoaded) {
+            return undefined;
+        }
+
+        const frame = requestAnimationFrame(() => setStickyHeaderDataReady(filteredAndSortedData));
+        return () => cancelAnimationFrame(frame);
+    }, [filteredAndSortedData, isListLoaded, shouldRenderStickyHeader]);
+
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
             <Text
@@ -100,13 +187,19 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         >
             <FlashList<DataType>
                 ref={listRef}
-                data={filteredAndSortedData}
+                data={listData}
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
+                ListHeaderComponent={shouldRenderStickyHeader ? undefined : (headerComponent ?? ListHeaderComponent)}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
+                onLoad={handleLoad}
+                stickyHeaderIndices={canRenderStickyHeader ? [stickyTableHeaderIndex] : stickyHeaderIndices}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
+                renderItem={renderListItem}
+                keyExtractor={keyExtractorForList}
+                getItemType={getItemTypeForList}
                 {...restListProps}
             />
         </View>
