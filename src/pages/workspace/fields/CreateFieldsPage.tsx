@@ -1,8 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
+import FormValueWatcher from '@components/Form/FormValueWatcher';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,7 +13,7 @@ import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
+import {setDraftValues} from '@libs/actions/FormActions';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,26 +29,27 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy, Report} from '@src/types/onyx';
+import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 
 type CreateFieldsPageProps = {
     policy: OnyxEntry<Policy>;
     policyID: string;
     isInvoiceField: boolean;
     listValuesRoute: Routes;
+    getTypeSelectorRoute: (policyID: string, currentType?: PolicyReportFieldType) => Routes;
+    initialListValueRoute: Routes;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
     testID: string;
 };
 
-const defaultDate = DateUtils.extractDate(new Date().toString());
-
-function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, featureName, testID}: CreateFieldsPageProps) {
+function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, getTypeSelectorRoute, initialListValueRoute, featureName, testID}: CreateFieldsPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const reportTypeForTarget = useMemo(() => (isInvoiceField ? CONST.REPORT.TYPE.INVOICE : CONST.REPORT.TYPE.EXPENSE), [isInvoiceField]);
-    const fieldTarget = useMemo(() => (isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE), [isInvoiceField]);
+    const reportTypeForTarget = isInvoiceField ? CONST.REPORT.TYPE.INVOICE : CONST.REPORT.TYPE.EXPENSE;
+    const fieldTarget = isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
 
     const policyReportIDsSelector = useCallback(
         (reports: OnyxCollection<Report>) =>
@@ -74,6 +76,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                 policyReportIDs,
                 isInvoiceField,
             });
+            setInitialCreateReportFieldsForm();
             Navigation.goBack();
         },
         [availableListValuesLength, formDraft, isInvoiceField, policy, policyReportIDs],
@@ -136,29 +139,12 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
         [fieldTarget, isInvoiceField, policy?.fieldList, translate],
     );
 
-    const handleOnValueCommitted = useCallback(
-        (inputValues: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => (initialValue: string) => {
-            const isFormula = hasFormulaPartsInInitialValue(initialValue);
-            if (isFormula) {
-                formRef.current?.resetForm({
-                    ...inputValues,
-                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.FORMULA,
-                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
-                });
-            } else {
-                formRef.current?.resetForm({
-                    ...inputValues,
-                    [INPUT_IDS.TYPE]: CONST.REPORT_FIELD_TYPES.TEXT,
-                    [INPUT_IDS.INITIAL_VALUE]: initialValue,
-                });
-            }
-        },
-        [],
-    );
-
-    useEffect(() => {
-        setInitialCreateReportFieldsForm();
-    }, []);
+    const handleOnValueCommitted = (initialValue: string) => {
+        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
+            [INPUT_IDS.TYPE]: hasFormulaPartsInInitialValue(initialValue) ? CONST.REPORT_FIELD_TYPES.FORMULA : CONST.REPORT_FIELD_TYPES.TEXT,
+            [INPUT_IDS.INITIAL_VALUE]: initialValue,
+        });
+    };
 
     const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
@@ -193,6 +179,15 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
+                            <FormValueWatcher
+                                values={inputValues}
+                                onValuesChange={(current, previous) => {
+                                    if (current[INPUT_IDS.TYPE] === previous[INPUT_IDS.TYPE]) {
+                                        return;
+                                    }
+                                    formRef.current?.resetForm(current);
+                                }}
+                            />
                             <InputWrapper
                                 InputComponent={TextPicker}
                                 inputID={INPUT_IDS.NAME}
@@ -207,29 +202,14 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                 required
                                 customValidate={validateName}
                                 shouldUseStrictHtmlTagValidation
+                                shouldSaveDraft
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
                                 inputID={INPUT_IDS.TYPE}
                                 label={translate('common.type')}
-                                subtitle={translate(isInvoiceField ? 'workspace.invoiceFields.typeInputSubtitle' : 'workspace.reportFields.typeInputSubtitle')}
                                 rightLabel={translate('common.required')}
-                                onTypeSelected={(type) => {
-                                    let initialValue;
-                                    if (type === CONST.REPORT_FIELD_TYPES.DATE) {
-                                        initialValue = defaultDate;
-                                    } else if (type === CONST.REPORT_FIELD_TYPES.FORMULA) {
-                                        initialValue = '{report:id}';
-                                    } else {
-                                        initialValue = '';
-                                    }
-
-                                    formRef.current?.resetForm({
-                                        ...inputValues,
-                                        type,
-                                        initialValue,
-                                    });
-                                }}
+                                route={getTypeSelectorRoute(policyID, inputValues[INPUT_IDS.TYPE] || undefined)}
                             />
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
@@ -253,7 +233,8 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                     maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
-                                    onValueCommitted={handleOnValueCommitted(inputValues)}
+                                    onValueCommitted={handleOnValueCommitted}
+                                    shouldSaveDraft
                                 />
                             )}
 
@@ -271,6 +252,8 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
                                     InputComponent={InitialListValueSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
+                                    route={initialListValueRoute}
+                                    shouldSaveDraft
                                 />
                             )}
                         </View>

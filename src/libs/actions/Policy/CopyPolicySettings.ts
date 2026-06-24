@@ -25,7 +25,8 @@ type Part =
     | 'perDiem'
     | 'invoices'
     | 'travel'
-    | 'timeTracking';
+    | 'timeTracking'
+    | 'receiptPartners';
 
 const PARTS_TO_POLICY_FIELDS = {
     overview: ['outputCurrency', 'address', 'description'],
@@ -56,14 +57,18 @@ const PARTS_TO_POLICY_FIELDS = {
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
-    travel: ['isTravelEnabled', 'travelSettings'],
+    // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
+    // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
+    // and must not be copied — each target is re-provisioned with its own entity by the backend.
+    travel: ['isTravelEnabled'],
     timeTracking: [],
+    receiptPartners: [],
 } as const satisfies Record<Part, ReadonlyArray<keyof Policy>>;
 
 type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
 
-function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): void {
-    Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
+function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): Promise<void> {
+    return Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
 }
 
 function clearCopyPolicySettings(): void {
@@ -117,6 +122,33 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
     return {customUnits: patch};
 }
 
+/** Replaces receiptPartners on the target; omits employees and ephemeral Uber UI state. */
+function buildReceiptPartnersPatch(sourcePolicy: Policy): Pick<Policy, 'receiptPartners'> | undefined {
+    const sourceReceiptPartners = sourcePolicy.receiptPartners;
+    if (!sourceReceiptPartners) {
+        return undefined;
+    }
+
+    const sourceUber = sourceReceiptPartners.uber;
+    const uberPatch = sourceUber
+        ? {
+              ...(sourceUber.enabled !== undefined ? {enabled: sourceUber.enabled} : {}),
+              ...(sourceUber.autoInvite !== undefined ? {autoInvite: sourceUber.autoInvite} : {}),
+              ...(sourceUber.autoRemove !== undefined ? {autoRemove: sourceUber.autoRemove} : {}),
+              ...(sourceUber.organizationID !== undefined ? {organizationID: sourceUber.organizationID} : {}),
+              ...(sourceUber.organizationName !== undefined ? {organizationName: sourceUber.organizationName} : {}),
+              ...(sourceUber.centralBillingAccountEmail !== undefined ? {centralBillingAccountEmail: sourceUber.centralBillingAccountEmail} : {}),
+          }
+        : undefined;
+
+    return {
+        receiptPartners: {
+            ...(sourceReceiptPartners.enabled !== undefined ? {enabled: sourceReceiptPartners.enabled} : {}),
+            ...(uberPatch ? {uber: uberPatch} : {}),
+        },
+    };
+}
+
 /** Merges source units.time onto the target without generating IDs. */
 function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | undefined {
     const sourceTime = sourcePolicy.units?.time;
@@ -127,10 +159,31 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
 }
 
 /**
- * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
- * mapping is handled separately (customUnits, timeTracking, categories, tags collection keys).
+ * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
+ * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
+ * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
+ * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
+ * target's existing travelSettings (like setWorkspaceTravelSettings) means a target that is not yet
+ * provisioned gets only {autoAddTripName} with no fabricated identity fields, so it is not treated
+ * as provisioned.
  */
-function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Policy> {
+function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
+    const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
+    if (sourceAutoAddTripName === undefined) {
+        return undefined;
+    }
+
+    // A target that is not yet provisioned has no travelSettings, so the spread yields just
+    // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
+    // provision time), so leaving them out here keeps the target from looking provisioned.
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
+}
+
+/**
+ * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
+ * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
+ */
+function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts: Part[]): Partial<Policy> {
     const patch: Partial<Policy> = {};
     const shouldCopyReportFields = parts.includes('reports');
     const shouldCopyInvoiceFields = parts.includes('invoices');
@@ -152,12 +205,14 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Pol
     }
 
     if (shouldCopyReportFields || shouldCopyInvoiceFields) {
-        patch.fieldList = Object.fromEntries(
-            Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => {
-                const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-                return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
-            }),
-        );
+        const shouldCopyField = (field: NonNullable<Policy['fieldList']>[string]) => {
+            const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
+        };
+        const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
+        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
+        const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
+        patch.fieldList = mergedFields.length > 0 ? Object.fromEntries(mergedFields) : sourcePolicy.fieldList;
     }
 
     return patch;
@@ -205,7 +260,6 @@ function buildCopyPolicySettingsData(
     const successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
 
-    const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, parts);
     const pendingFields = buildExpandedPendingFields(parts);
     const clearedPendingFields = buildClearedPendingFields(parts);
 
@@ -214,7 +268,9 @@ function buildCopyPolicySettingsData(
     const isDistanceSelected = parts.includes('distanceRates');
     const isPerDiemSelected = parts.includes('perDiem');
     const isTimeTrackingSelected = parts.includes('timeTracking');
+    const isReceiptPartnersSelected = parts.includes('receiptPartners');
     const isCodingRulesSelected = parts.includes('codingRules');
+    const isTravelSelected = parts.includes('travel');
     const timeTrackingPendingFields = isTimeTrackingSelected
         ? {
               isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -227,6 +283,8 @@ function buildCopyPolicySettingsData(
               timeTrackingDefaultRate: null,
           }
         : {};
+    const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
@@ -247,8 +305,11 @@ function buildCopyPolicySettingsData(
 
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
+        const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, targetPolicy, parts);
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
+        const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
+        const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
         const codingRulesPatch = isCodingRulesSelected
             ? {
                   rules: {
@@ -276,8 +337,10 @@ function buildCopyPolicySettingsData(
                           },
                       }
                     : {}),
+                ...(travelSettingsPatch ?? {}),
+                ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
                 ...codingRulesPatch,
-                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields},
+                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
             },
         });
 
@@ -286,7 +349,7 @@ function buildCopyPolicySettingsData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields},
+                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields},
                 errors: null,
             },
         });

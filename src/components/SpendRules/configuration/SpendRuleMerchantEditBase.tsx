@@ -12,6 +12,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -37,6 +38,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
+    const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
 
     const isNew = merchantIndex === ROUTES.NEW;
     const index = isNew ? -1 : Number(merchantIndex);
@@ -98,7 +100,8 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            shouldBeBlocked={!canWriteCardSpendRules}
         >
             <ScreenWrapper
                 testID="SpendRuleMerchantEditPage"

@@ -15,15 +15,9 @@ type SingleSelectItem<T> = {
     searchableText?: string;
 };
 
-type SingleSelectProps<T> = SearchFilterCommonProps & {
+type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefined> & {
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
-
-    /** The currently selected item */
-    value: SingleSelectItem<T> | undefined;
-
-    /** Function to call when changes are applied */
-    onChange: (item: SingleSelectItem<T> | undefined) => void;
 
     /** Whether the search input should be displayed */
     isSearchable?: boolean;
@@ -37,6 +31,7 @@ type SingleSelectProps<T> = SearchFilterCommonProps & {
     /** Custom height for each item in the list */
     itemHeight?: number;
 
+    shouldUseFixedPopoverHeight?: boolean;
     allowDeselect?: boolean;
     hasTitle?: boolean;
     hasHeader?: boolean;
@@ -53,6 +48,7 @@ function SingleSelect<T extends string>({
     hasTitle,
     hasHeader,
     itemHeight,
+    shouldUseFixedPopoverHeight,
     footer,
     allowDeselect,
     onChange,
@@ -127,6 +123,7 @@ function SingleSelect<T extends string>({
             hasTitle={hasTitle}
             isSearchable={isSearchable}
             itemHeight={itemHeight ?? variables.optionRowHeight}
+            shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList

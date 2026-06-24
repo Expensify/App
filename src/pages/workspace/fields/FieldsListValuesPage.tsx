@@ -41,6 +41,8 @@ import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -88,7 +90,9 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
-    const shouldUseInvoiceRoutes = isInvoicePage || reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    const expectedTarget = isInvoicePage ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
+    const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
+    const shouldUseInvoiceRoutes = isInvoicePage;
     const listInputSubtitleKey = shouldUseInvoiceRoutes ? 'workspace.invoiceFields.listInputSubtitle' : 'workspace.reportFields.listInputSubtitle';
     const findFieldKey = shouldUseInvoiceRoutes ? 'workspace.invoiceFields.findInvoiceField' : 'workspace.reportFields.findReportField';
     const emptyValuesSubtitleKey = shouldUseInvoiceRoutes ? 'workspace.invoiceFields.emptyInvoiceFieldsValues.subtitle' : 'workspace.reportFields.emptyReportFieldsValues.subtitle';
@@ -166,6 +170,10 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), [localeCompare]);
     const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
+    if (isReportFieldInvalid) {
+        return <NotFoundPage />;
+    }
 
     const filteredListValuesArray = filteredListValues.map((item) => item.value);
 

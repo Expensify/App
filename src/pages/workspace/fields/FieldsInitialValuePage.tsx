@@ -16,7 +16,7 @@ import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import {getReportFieldInitialValue, getUnsupportedReportFieldFormulaParts} from '@libs/WorkspaceReportFieldUtils';
+import {getReportFieldInitialValue, getUnsupportedReportFieldFormulaParts, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ReportFieldsInitialListValuePicker from '@pages/workspace/reports/InitialListValueSelector/ReportFieldsInitialListValuePicker';
@@ -31,10 +31,11 @@ type FieldsInitialValuePageProps = {
     policyID: string;
     reportFieldID: string;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+    expectedTarget: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>;
     testID: string;
 };
 
-function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, testID}: FieldsInitialValuePageProps) {
+function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, expectedTarget, testID}: FieldsInitialValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -96,7 +97,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, t
         [availableListValuesLength, isInvoiceField, reportField?.name, reportField?.type, policy?.fieldList, translate],
     );
 
-    if (!reportField) {
+    if (!reportField || !isReportFieldTargetValid(reportField, expectedTarget)) {
         return <NotFoundPage />;
     }
 
@@ -120,7 +121,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, t
                     title={translate('common.initialValue')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                {isListFieldType && !isInvoiceField && (
+                {isListFieldType && (
                     <View style={[styles.ph5, styles.pb4]}>
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>
                             {translate(isInvoiceField ? 'workspace.invoiceFields.listValuesInputSubtitle' : 'workspace.reportFields.listValuesInputSubtitle')}

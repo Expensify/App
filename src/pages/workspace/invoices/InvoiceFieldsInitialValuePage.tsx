@@ -22,6 +22,7 @@ function InvoiceFieldsInitialValuePage({
             policyID={policyID}
             reportFieldID={reportFieldID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
+            expectedTarget={CONST.REPORT_FIELD_TARGETS.INVOICE}
             testID="InvoiceFieldsInitialValuePage"
         />
     );

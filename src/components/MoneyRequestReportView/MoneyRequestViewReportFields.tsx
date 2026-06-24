@@ -20,6 +20,7 @@ import {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    isReportFieldTargetMatchingReport,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 import type {ThemeStyles} from '@styles/index';
@@ -49,10 +50,6 @@ type EnrichedPolicyReportField = {
     violation: ReportViolationName | undefined;
     violationTranslation: string;
 } & PolicyReportField;
-
-function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, field: PolicyReportField) {
-    return field.target === report?.type || (report?.type === CONST.REPORT.TYPE.EXPENSE && !field.target);
-}
 
 function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, styles: ThemeStyles, pendingAction?: PendingAction) {
     return (

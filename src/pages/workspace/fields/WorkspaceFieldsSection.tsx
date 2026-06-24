@@ -24,6 +24,7 @@ import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnecti
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -261,7 +262,10 @@ function WorkspaceFieldsSection({
                             </View>
                             {!hasAccountingConnections && canWrite && (
                                 <MenuItem
-                                    onPress={() => Navigation.navigate(createRoute)}
+                                    onPress={() => {
+                                        setInitialCreateReportFieldsForm();
+                                        Navigation.navigate(createRoute);
+                                    }}
                                     title={translate(addFieldKey)}
                                     icon={icons.Plus}
                                     style={[styles.sectionMenuItemTopDescription]}

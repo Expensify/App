@@ -369,6 +369,9 @@ type IssueNewCardData = {
 
         /** The maximum amount for the spend rule, if applicable (in cents) */
         maxAmount?: string;
+
+        /** The currencies to limit the rule to */
+        currencies?: string[];
     };
 };
 

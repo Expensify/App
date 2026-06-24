@@ -1,0 +1,809 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
+index 906dfbc..3489b6a 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
+@@ -52,6 +52,7 @@ import com.facebook.react.uimanager.style.BorderRadiusProp;
+ import com.facebook.react.uimanager.style.BorderStyle;
+ import com.facebook.react.uimanager.style.LogicalEdge;
+ import com.facebook.react.uimanager.style.Overflow;
++import com.facebook.react.views.text.internal.span.DrawCommandSpan;
+ import com.facebook.react.views.text.internal.span.ReactTagSpan;
+ import com.facebook.react.views.text.internal.span.TextInlineImageSpan;
+ import com.facebook.react.views.text.internal.span.TextInlineViewPlaceholderSpan;
+@@ -364,6 +365,27 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
+         BackgroundStyleApplicator.clipToPaddingBox(this, canvas);
+       }
+ 
++      // Draw custom DrawCommandSpan backgrounds before the text so they appear behind it.
++      Layout layout = getLayout();
++      if (spanned != null && layout != null) {
++        DrawCommandSpan[] drawSpans = spanned.getSpans(0, spanned.length(), DrawCommandSpan.class);
++        if (drawSpans.length > 0) {
++          int saveCount = canvas.save();
++          canvas.translate(getTotalPaddingLeft(), getTotalPaddingTop());
++          for (DrawCommandSpan span : drawSpans) {
++            span.onPreDraw(spanned.getSpanStart(span), spanned.getSpanEnd(span), canvas, layout);
++          }
++          canvas.restoreToCount(saveCount);
++        }
++      } else if (spanned != null) {
++        // getLayout() is null on this draw (typically right after setText() during view
++        // recycling, before the measure pass has rebuilt mLayout). super.onDraw below
++        // will call assumeLayout() and draw the text. Schedule another frame so the next
++        // onDraw — which will find a non-null layout — can paint the DrawCommandSpan
++        // backgrounds underneath. Without this the no-background frame becomes final state.
++        postInvalidateOnAnimation();
++      }
++
+       super.onDraw(canvas);
+     }
+   }
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+index 433afa5..0f1f176 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+@@ -68,6 +68,18 @@ public class TextAttributeProps private constructor() {
+   public var isBackgroundColorSet: Boolean = false
+     private set
+ 
++  public var borderTopLeftRadius: Float = Float.NaN
++    private set
++
++  public var borderTopRightRadius: Float = Float.NaN
++    private set
++
++  public var borderBottomLeftRadius: Float = Float.NaN
++    private set
++
++  public var borderBottomRightRadius: Float = Float.NaN
++    private set
++
+   public var opacity: Float = Float.NaN
+     private set
+ 
+@@ -376,6 +388,10 @@ public class TextAttributeProps private constructor() {
+     public const val TA_KEY_ROLE: Int = 26
+     public const val TA_KEY_TEXT_TRANSFORM: Int = 27
+     public const val TA_KEY_MAX_FONT_SIZE_MULTIPLIER: Int = 29
++    public const val TA_KEY_BORDER_TOP_LEFT_RADIUS: Int = 30
++    public const val TA_KEY_BORDER_TOP_RIGHT_RADIUS: Int = 31
++    public const val TA_KEY_BORDER_BOTTOM_LEFT_RADIUS: Int = 32
++    public const val TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS: Int = 33
+ 
+     public const val UNSET: Int = -1
+ 
+@@ -430,6 +446,14 @@ public class TextAttributeProps private constructor() {
+           TA_KEY_TEXT_TRANSFORM -> result.setTextTransform(entry.stringValue)
+           TA_KEY_MAX_FONT_SIZE_MULTIPLIER ->
+               result.maxFontSizeMultiplier = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_TOP_LEFT_RADIUS ->
++              result.borderTopLeftRadius = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_TOP_RIGHT_RADIUS ->
++              result.borderTopRightRadius = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_BOTTOM_LEFT_RADIUS ->
++              result.borderBottomLeftRadius = entry.doubleValue.toFloat()
++          TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS ->
++              result.borderBottomRightRadius = entry.doubleValue.toFloat()
+         }
+       }
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index 5a893fd..5e7895c 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+@@ -40,6 +40,7 @@ import com.facebook.react.views.text.internal.span.CustomLineHeightSpan
+ import com.facebook.react.views.text.internal.span.CustomStyleSpan
+ import com.facebook.react.views.text.internal.span.ReactAbsoluteSizeSpan
+ import com.facebook.react.views.text.internal.span.ReactBackgroundColorSpan
++import com.facebook.react.views.text.internal.span.ReactBackgroundDrawSpan
+ import com.facebook.react.views.text.internal.span.ReactClickableSpan
+ import com.facebook.react.views.text.internal.span.ReactForegroundColorSpan
+ import com.facebook.react.views.text.internal.span.ReactFragmentIndexSpan
+@@ -269,7 +270,23 @@ internal object TextLayoutManager {
+         }
+         if (textAttributes.isBackgroundColorSet) {
+           textAttributes.backgroundColor
+-              ?.let { ReactBackgroundColorSpan(it) }
++              ?.let {
++                val hasBorderRadius = !textAttributes.borderTopLeftRadius.isNaN() ||
++                    !textAttributes.borderTopRightRadius.isNaN() ||
++                    !textAttributes.borderBottomLeftRadius.isNaN() ||
++                    !textAttributes.borderBottomRightRadius.isNaN()
++                if (hasBorderRadius) {
++                  ReactBackgroundDrawSpan(
++                      it,
++                      PixelUtil.toPixelFromDIP(textAttributes.borderTopLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(textAttributes.borderTopRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(textAttributes.borderBottomLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(textAttributes.borderBottomRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                  )
++                } else {
++                  ReactBackgroundColorSpan(it)
++                }
++              }
+               ?.let { SetSpanOperation(start, end, it) }
+               ?.let { ops.add(it) }
+         }
+@@ -438,12 +455,25 @@ internal object TextLayoutManager {
+         }
+ 
+         if (fragment.props.isBackgroundColorSet) {
+-          spannable.setSpan(
+-              fragment.props.backgroundColor?.let { ReactBackgroundColorSpan(it) },
+-              start,
+-              end,
+-              spanFlags,
+-          )
++          val bgSpan =
++              fragment.props.backgroundColor?.let {
++                val hasBorderRadius = !fragment.props.borderTopLeftRadius.isNaN() ||
++                    !fragment.props.borderTopRightRadius.isNaN() ||
++                    !fragment.props.borderBottomLeftRadius.isNaN() ||
++                    !fragment.props.borderBottomRightRadius.isNaN()
++                if (hasBorderRadius) {
++                  ReactBackgroundDrawSpan(
++                      it,
++                      PixelUtil.toPixelFromDIP(fragment.props.borderTopLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(fragment.props.borderTopRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(fragment.props.borderBottomLeftRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                      PixelUtil.toPixelFromDIP(fragment.props.borderBottomRightRadius.takeIf { r -> !r.isNaN() } ?: 0f),
++                  )
++                } else {
++                  ReactBackgroundColorSpan(it)
++                }
++              }
++          spannable.setSpan(bgSpan, start, end, spanFlags)
+         }
+ 
+         if (!fragment.props.opacity.isNaN()) {
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/DrawCommandSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/DrawCommandSpan.kt
+new file mode 100644
+index 0000000..20d0f7b
+--- /dev/null
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/DrawCommandSpan.kt
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++package com.facebook.react.views.text.internal.span
++
++import android.graphics.Canvas
++import android.text.Layout
++import android.text.style.UpdateAppearance
++
++/**
++ * May be overriden to implement charater styles which are applied by [PreparedLayoutTextView]
++ * during the drawing of text, against the underlying Android canvas
++ */
++public abstract class DrawCommandSpan : UpdateAppearance, ReactSpan {
++  /**
++   * Called before the text is drawn. This happens after the Paragraph component has drawn its
++   * background, but may be called before text spans with their own background color are drawn.
++   */
++  public open fun onPreDraw(start: Int, end: Int, canvas: Canvas, layout: Layout): Unit = Unit
++
++  /** Called after the text is drawn, including some effects like text shadows */
++  public open fun onDraw(start: Int, end: Int, canvas: Canvas, layout: Layout): Unit = Unit
++}
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+new file mode 100644
+index 0000000..8194ea7
+--- /dev/null
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+@@ -0,0 +1,117 @@
++/* Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++package com.facebook.react.views.text.internal.span
++
++import android.graphics.Canvas
++import android.graphics.Paint
++import android.graphics.Path
++import android.graphics.RectF
++import android.text.Layout
++import androidx.annotation.ColorInt
++
++/**
++ * A [DrawCommandSpan] that draws a rounded-rectangle background behind inline text spans. When
++ * borderRadius is 0, this draws a plain rectangle identical to [ReactBackgroundColorSpan].
++ *
++ * For multiline spans, only the outer corners are rounded: left corners on the first line, right
++ * corners on the last line.
++ */
++internal class ReactBackgroundDrawSpan(
++    @ColorInt private val backgroundColor: Int,
++    private val borderTopLeftRadius: Float,
++    private val borderTopRightRadius: Float,
++    private val borderBottomLeftRadius: Float,
++    private val borderBottomRightRadius: Float,
++) : DrawCommandSpan() {
++
++  private val paint =
++      Paint().apply {
++        color = backgroundColor
++        isAntiAlias = true
++        style = Paint.Style.FILL
++      }
++
++  private val rectF = RectF()
++  private val path = Path()
++
++  override fun onPreDraw(start: Int, end: Int, canvas: Canvas, layout: Layout) {
++    if (start >= end) return
++
++    val startLine = layout.getLineForOffset(start)
++    val endLine = layout.getLineForOffset(end)
++
++    for (line in startLine..endLine) {
++      val lineStart = layout.getLineStart(line)
++      val lineEnd = layout.getLineEnd(line)
++
++      // When the span starts at or before this line, use the line's left edge.
++      // Otherwise use the actual character position of the span start.
++      val left =
++          if (start <= lineStart) {
++            layout.getLineLeft(line)
++          } else {
++            layout.getPrimaryHorizontal(start)
++          }
++
++      // When the span extends past this line, use the line's right edge.
++      // getLineEnd() returns the offset of the first char on the NEXT line for
++      // soft-wrapped lines, so getPrimaryHorizontal(lineEnd) would incorrectly
++      // give us the left margin of the next line instead of the right edge.
++      val right =
++          if (end >= lineEnd) {
++            layout.getLineRight(line)
++          } else {
++            layout.getPrimaryHorizontal(end)
++          }
++
++      val baseline = layout.getLineBaseline(line).toFloat()
++      val fm = layout.paint.fontMetrics
++      val top = baseline + fm.ascent
++      val bottom = baseline + fm.descent
++
++      val actualLeft = minOf(left, right)
++      val actualRight = maxOf(left, right)
++
++      rectF.set(actualLeft, top, actualRight, bottom)
++
++      val hasAnyRadius = borderTopLeftRadius != 0f || borderTopRightRadius != 0f ||
++          borderBottomLeftRadius != 0f || borderBottomRightRadius != 0f
++      if (!hasAnyRadius) {
++        canvas.drawRect(rectF, paint)
++      } else {
++        val isFirstLine = line == startLine
++        val isLastLine = line == endLine
++        drawSelectiveRoundRect(canvas, rectF, isFirstLine, isLastLine)
++      }
++    }
++  }
++
++  private fun drawSelectiveRoundRect(
++      canvas: Canvas,
++      rect: RectF,
++      isFirstLine: Boolean,
++      isLastLine: Boolean,
++  ) {
++    // First line rounds left corners, last line rounds right corners.
++    val topLeft = if (isFirstLine) borderTopLeftRadius else 0f
++    val bottomLeft = if (isFirstLine) borderBottomLeftRadius else 0f
++    val topRight = if (isLastLine) borderTopRightRadius else 0f
++    val bottomRight = if (isLastLine) borderBottomRightRadius else 0f
++
++    val radii =
++        floatArrayOf(
++            topLeft, topLeft,
++            topRight, topRight,
++            bottomRight, bottomRight,
++            bottomLeft, bottomLeft,
++        )
++
++    path.reset()
++    path.addRoundRect(rect, radii, Path.Direction.CW)
++    canvas.drawPath(path, paint)
++  }
++}
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+index 9cf89bf..6eb899f 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+@@ -27,6 +27,21 @@ void TextAttributes::apply(TextAttributes textAttributes) {
+       : backgroundColor;
+   opacity =
+       !std::isnan(textAttributes.opacity) ? textAttributes.opacity : opacity;
++  borderRadius = textAttributes.borderRadius.has_value()
++      ? textAttributes.borderRadius
++      : borderRadius;
++  borderTopLeftRadius = textAttributes.borderTopLeftRadius.has_value()
++      ? textAttributes.borderTopLeftRadius
++      : borderTopLeftRadius;
++  borderTopRightRadius = textAttributes.borderTopRightRadius.has_value()
++      ? textAttributes.borderTopRightRadius
++      : borderTopRightRadius;
++  borderBottomLeftRadius = textAttributes.borderBottomLeftRadius.has_value()
++      ? textAttributes.borderBottomLeftRadius
++      : borderBottomLeftRadius;
++  borderBottomRightRadius = textAttributes.borderBottomRightRadius.has_value()
++      ? textAttributes.borderBottomRightRadius
++      : borderBottomRightRadius;
+ 
+   // Font
+   fontFamily = !textAttributes.fontFamily.empty() ? textAttributes.fontFamily
+@@ -141,7 +156,12 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+              layoutDirection,
+              accessibilityRole,
+              role,
+-             textTransform) ==
++             textTransform,
++             borderRadius,
++             borderTopLeftRadius,
++             borderTopRightRadius,
++             borderBottomLeftRadius,
++             borderBottomRightRadius) ==
+       std::tie(
+              rhs.foregroundColor,
+              rhs.backgroundColor,
+@@ -164,7 +184,12 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+              rhs.layoutDirection,
+              rhs.accessibilityRole,
+              rhs.role,
+-             rhs.textTransform) &&
++             rhs.textTransform,
++             rhs.borderRadius,
++             rhs.borderTopLeftRadius,
++             rhs.borderTopRightRadius,
++             rhs.borderBottomLeftRadius,
++             rhs.borderBottomRightRadius) &&
+       floatEquality(maxFontSizeMultiplier, rhs.maxFontSizeMultiplier) &&
+       floatEquality(opacity, rhs.opacity) &&
+       floatEquality(fontSize, rhs.fontSize) &&
+@@ -199,6 +224,24 @@ SharedDebugStringConvertibleList TextAttributes::getDebugProps() const {
+       debugStringConvertibleItem(
+           "foregroundColor", foregroundColor, textAttributes.foregroundColor),
+       debugStringConvertibleItem("opacity", opacity, textAttributes.opacity),
++      debugStringConvertibleItem(
++          "borderRadius", borderRadius, textAttributes.borderRadius),
++      debugStringConvertibleItem(
++          "borderTopLeftRadius",
++          borderTopLeftRadius,
++          textAttributes.borderTopLeftRadius),
++      debugStringConvertibleItem(
++          "borderTopRightRadius",
++          borderTopRightRadius,
++          textAttributes.borderTopRightRadius),
++      debugStringConvertibleItem(
++          "borderBottomLeftRadius",
++          borderBottomLeftRadius,
++          textAttributes.borderBottomLeftRadius),
++      debugStringConvertibleItem(
++          "borderBottomRightRadius",
++          borderBottomRightRadius,
++          textAttributes.borderBottomRightRadius),
+ 
+       // Font
+       debugStringConvertibleItem(
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+index b664524..2eaa3bc 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+@@ -42,6 +42,11 @@ class TextAttributes : public DebugStringConvertible {
+   SharedColor foregroundColor{};
+   SharedColor backgroundColor{};
+   Float opacity{std::numeric_limits<Float>::quiet_NaN()};
++  std::optional<Float> borderRadius{};
++  std::optional<Float> borderTopLeftRadius{};
++  std::optional<Float> borderTopRightRadius{};
++  std::optional<Float> borderBottomLeftRadius{};
++  std::optional<Float> borderBottomRightRadius{};
+ 
+   // Font
+   std::string fontFamily{""};
+@@ -138,7 +143,12 @@ struct hash<facebook::react::TextAttributes> {
+         textAttributes.isPressable,
+         textAttributes.layoutDirection,
+         textAttributes.accessibilityRole,
+-        textAttributes.role);
++        textAttributes.role,
++        textAttributes.borderRadius,
++        textAttributes.borderTopLeftRadius,
++        textAttributes.borderTopRightRadius,
++        textAttributes.borderBottomLeftRadius,
++        textAttributes.borderBottomRightRadius);
+   }
+ };
+ } // namespace std
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
+index f771236..48c1fe2 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
+@@ -1027,6 +1027,10 @@ constexpr static MapBuffer::Key TA_KEY_ROLE = 26;
+ constexpr static MapBuffer::Key TA_KEY_TEXT_TRANSFORM = 27;
+ constexpr static MapBuffer::Key TA_KEY_ALIGNMENT_VERTICAL = 28;
+ constexpr static MapBuffer::Key TA_KEY_MAX_FONT_SIZE_MULTIPLIER = 29;
++constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_LEFT_RADIUS = 30;
++constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_RIGHT_RADIUS = 31;
++constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_LEFT_RADIUS = 32;
++constexpr static MapBuffer::Key TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS = 33;
+ 
+ // constants for ParagraphAttributes serialization
+ constexpr static MapBuffer::Key PA_KEY_MAX_NUMBER_OF_LINES = 0;
+@@ -1171,6 +1175,28 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
+   if (textAttributes.role.has_value()) {
+     builder.putInt(TA_KEY_ROLE, static_cast<int32_t>(*textAttributes.role));
+   }
++  {
++    const bool hasAny = textAttributes.borderRadius.has_value() ||
++        textAttributes.borderTopLeftRadius.has_value() ||
++        textAttributes.borderTopRightRadius.has_value() ||
++        textAttributes.borderBottomLeftRadius.has_value() ||
++        textAttributes.borderBottomRightRadius.has_value();
++    if (hasAny) {
++      const Float fallback = textAttributes.borderRadius.value_or(0.0f);
++      builder.putDouble(
++          TA_KEY_BORDER_TOP_LEFT_RADIUS,
++          textAttributes.borderTopLeftRadius.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_TOP_RIGHT_RADIUS,
++          textAttributes.borderTopRightRadius.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_BOTTOM_LEFT_RADIUS,
++          textAttributes.borderBottomLeftRadius.value_or(fallback));
++      builder.putDouble(
++          TA_KEY_BORDER_BOTTOM_RIGHT_RADIUS,
++          textAttributes.borderBottomRightRadius.value_or(fallback));
++    }
++  }
+   return builder.build();
+ }
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+index f20cd3c..44ef461 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+@@ -222,6 +222,36 @@ static TextAttributes convertRawProp(
+       "backgroundColor",
+       sourceTextAttributes.backgroundColor,
+       defaultTextAttributes.backgroundColor);
++  textAttributes.borderRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderRadius",
++      sourceTextAttributes.borderRadius,
++      defaultTextAttributes.borderRadius);
++  textAttributes.borderTopLeftRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderTopLeftRadius",
++      sourceTextAttributes.borderTopLeftRadius,
++      defaultTextAttributes.borderTopLeftRadius);
++  textAttributes.borderTopRightRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderTopRightRadius",
++      sourceTextAttributes.borderTopRightRadius,
++      defaultTextAttributes.borderTopRightRadius);
++  textAttributes.borderBottomLeftRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderBottomLeftRadius",
++      sourceTextAttributes.borderBottomLeftRadius,
++      defaultTextAttributes.borderBottomLeftRadius);
++  textAttributes.borderBottomRightRadius = convertRawProp(
++      context,
++      rawProps,
++      "borderBottomRightRadius",
++      sourceTextAttributes.borderBottomRightRadius,
++      defaultTextAttributes.borderBottomRightRadius);
+ 
+   return textAttributes;
+ }
+@@ -334,6 +364,16 @@ void BaseTextProps::setProp(
+         defaults, value, textAttributes, opacity, "opacity");
+     REBUILD_FIELD_SWITCH_CASE(
+         defaults, value, textAttributes, backgroundColor, "backgroundColor");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderRadius, "borderRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderTopLeftRadius, "borderTopLeftRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderTopRightRadius, "borderTopRightRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderBottomLeftRadius, "borderBottomLeftRadius");
++    REBUILD_FIELD_SWITCH_CASE(
++        defaults, value, textAttributes, borderBottomRightRadius, "borderBottomRightRadius");
+   }
+ }
+ 
+@@ -532,6 +572,44 @@ void BaseTextProps::appendTextAttributesProps(
+       oldProps->textAttributes.backgroundColor) {
+     result["backgroundColor"] = *textAttributes.backgroundColor;
+   }
++
++  if (textAttributes.borderRadius != oldProps->textAttributes.borderRadius) {
++    result["borderRadius"] = textAttributes.borderRadius.has_value()
++        ? textAttributes.borderRadius.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderTopLeftRadius !=
++      oldProps->textAttributes.borderTopLeftRadius) {
++    result["borderTopLeftRadius"] =
++        textAttributes.borderTopLeftRadius.has_value()
++        ? textAttributes.borderTopLeftRadius.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderTopRightRadius !=
++      oldProps->textAttributes.borderTopRightRadius) {
++    result["borderTopRightRadius"] =
++        textAttributes.borderTopRightRadius.has_value()
++        ? textAttributes.borderTopRightRadius.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderBottomLeftRadius !=
++      oldProps->textAttributes.borderBottomLeftRadius) {
++    result["borderBottomLeftRadius"] =
++        textAttributes.borderBottomLeftRadius.has_value()
++        ? textAttributes.borderBottomLeftRadius.value()
++        : folly::dynamic(nullptr);
++  }
++
++  if (textAttributes.borderBottomRightRadius !=
++      oldProps->textAttributes.borderBottomRightRadius) {
++    result["borderBottomRightRadius"] =
++        textAttributes.borderBottomRightRadius.has_value()
++        ? textAttributes.borderBottomRightRadius.value()
++        : folly::dynamic(nullptr);
++  }
+ }
+ 
+ #endif
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
+index dac572b..0c84815 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
+@@ -19,6 +19,9 @@ NSString *const RCTAttributedStringEventEmitterKey = @"EventEmitter";
+ // String representation of either `role` or `accessibilityRole`
+ NSString *const RCTTextAttributesAccessibilityRoleAttributeName = @"AccessibilityRole";
+ 
++// Custom attribute for border radius on inline text backgrounds
++NSString *const RCTTextBorderRadiusAttributeName = @"RCTTextBorderRadius";
++
+ /*
+  * Creates `NSTextAttributes` from given `facebook::react::TextAttributes`
+  */
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+index 520a24c..3bec610 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+@@ -178,8 +178,30 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+     attributes[NSForegroundColorAttributeName] = effectiveForegroundColor;
+   }
+ 
+-  if (textAttributes.backgroundColor || !isnan(textAttributes.opacity)) {
+-    attributes[NSBackgroundColorAttributeName] = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
++  {
++    const bool hasAnyRadius = textAttributes.borderRadius.has_value() ||
++        textAttributes.borderTopLeftRadius.has_value() ||
++        textAttributes.borderTopRightRadius.has_value() ||
++        textAttributes.borderBottomLeftRadius.has_value() ||
++        textAttributes.borderBottomRightRadius.has_value();
++
++    if (textAttributes.backgroundColor || !isnan(textAttributes.opacity)) {
++      UIColor *bgColor = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
++      if (hasAnyRadius) {
++        // Store color alongside radii and skip NSBackgroundColorAttributeName so
++        // NSLayoutManager doesn't draw a flat rect before our per-line rounded one.
++        const CGFloat fallback = textAttributes.borderRadius.value_or(0.0f);
++        attributes[RCTTextBorderRadiusAttributeName] = @[
++          bgColor,
++          @(textAttributes.borderTopLeftRadius.value_or(fallback)),
++          @(textAttributes.borderTopRightRadius.value_or(fallback)),
++          @(textAttributes.borderBottomLeftRadius.value_or(fallback)),
++          @(textAttributes.borderBottomRightRadius.value_or(fallback)),
++        ];
++      } else {
++        attributes[NSBackgroundColorAttributeName] = bgColor;
++      }
++    }
+   }
+ 
+   // Kerning
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+index ef50487..d82b6a7 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+@@ -8,6 +8,7 @@
+ #import "RCTTextLayoutManager.h"
+ 
+ #import "RCTAttributedTextUtils.h"
++#import "RCTTextLayoutManagerWithBorderRadius.h"
+ 
+ #import <React/NSTextStorage+FontScaling.h>
+ #import <React/RCTUtils.h>
+@@ -232,7 +233,7 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+       : NSLineBreakByClipping;
+   textContainer.maximumNumberOfLines = paragraphAttributes.maximumNumberOfLines;
+ 
+-  NSLayoutManager *layoutManager = [NSLayoutManager new];
++  NSLayoutManager *layoutManager = [RCTTextLayoutManagerWithBorderRadius new];
+   layoutManager.usesFontLeading = NO;
+   [layoutManager addTextContainer:textContainer];
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h
+new file mode 100644
+index 0000000..3ca52ac
+--- /dev/null
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h
+@@ -0,0 +1,23 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++#import <UIKit/UIKit.h>
++
++NS_ASSUME_NONNULL_BEGIN
++
++/**
++ * Custom NSLayoutManager subclass that draws rounded-rectangle backgrounds
++ * for inline text spans that have the RCTTextBorderRadius attribute set.
++ *
++ * For multiline spans, only the outer corners are rounded: left corners on the
++ * first line rect, right corners on the last line rect.
++ */
++@interface RCTTextLayoutManagerWithBorderRadius : NSLayoutManager
++
++@end
++
++NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
+new file mode 100644
+index 0000000..de879555fcff8965cbae03765ff445258880db95
+--- /dev/null
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
+@@ -0,0 +1,132 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++#import "RCTTextLayoutManagerWithBorderRadius.h"
++
++#import "RCTAttributedTextUtils.h"
++
++@implementation RCTTextLayoutManagerWithBorderRadius
++
++- (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin
++{
++  // Let super handle all spans that use NSBackgroundColorAttributeName (no border radius).
++  [super drawBackgroundForGlyphRange:glyphsToShow atPoint:origin];
++
++  NSRange charRange = [self characterRangeForGlyphRange:glyphsToShow actualGlyphRange:nil];
++
++  [self.textStorage enumerateAttribute:RCTTextBorderRadiusAttributeName
++                               inRange:charRange
++                               options:0
++                            usingBlock:^(id value, NSRange attrRange, BOOL *stop) {
++    if (!value) {
++      return;
++    }
++
++    // attrs is @[UIColor, tlRadius, trRadius, blRadius, brRadius]
++    NSArray *attrs = (NSArray *)value;
++    UIColor *color = attrs[0];
++    CGFloat tl = [attrs[1] floatValue];
++    CGFloat tr = [attrs[2] floatValue];
++    CGFloat bl = [attrs[3] floatValue];
++    CGFloat br = [attrs[4] floatValue];
++
++    NSRange spanGlyphRange = [self glyphRangeForCharacterRange:attrRange actualCharacterRange:nil];
++
++    __block NSUInteger totalLines = 0;
++    [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
++                                   usingBlock:^(CGRect r, CGRect u, NSTextContainer *tc, NSRange gr, BOOL *s) {
++      totalLines++;
++    }];
++
++    UIFont *font = [self.textStorage attribute:NSFontAttributeName
++                                       atIndex:attrRange.location
++                                effectiveRange:nil];
++
++    CGContextRef context = UIGraphicsGetCurrentContext();
++    if (!context) {
++      return;
++    }
++
++    CGContextSaveGState(context);
++    CGContextSetFillColorWithColor(context, color.CGColor);
++
++    __block NSUInteger lineIdx = 0;
++    [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
++                                   usingBlock:^(CGRect lineRect, CGRect usedRect, NSTextContainer *tc, NSRange lineGlyphRange, BOOL *s) {
++      NSRange intersected = NSIntersectionRange(spanGlyphRange, lineGlyphRange);
++      if (intersected.length == 0) {
++        lineIdx++;
++        return;
++      }
++
++      CGPoint startLoc = [self locationForGlyphAtIndex:intersected.location];
++
++      // Horizontal: hug the glyphs via caret positions (mirrors Android's getPrimaryHorizontal).
++      // boundingRectForGlyphRange includes trailing-whitespace/inter-glyph advance that scales
++      // with font size, which bleeds visibly past large (heading) text.
++      NSUInteger endGlyph = NSMaxRange(intersected);
++      CGFloat endX = (endGlyph < NSMaxRange(lineGlyphRange))
++          ? [self locationForGlyphAtIndex:endGlyph].x          // start of next glyph = tight right edge
++          : CGRectGetMaxX(usedRect) - lineRect.origin.x;       // span runs to line end → trailing-ws-trimmed edge
++
++      CGRect spanRect;
++      spanRect.origin.x = lineRect.origin.x + startLoc.x + origin.x;
++      spanRect.size.width = endX - startLoc.x;
++
++      // Vertical: usedRect fallback for the font==nil case, then font metrics override.
++      // font.lineHeight = ascender + |descender|, no leading. This creates a leading-sized gap
++      // between adjacent line backgrounds, matching web CSS.
++      spanRect.origin.y = usedRect.origin.y + origin.y;
++      spanRect.size.height = usedRect.size.height;
++
++      if (font && intersected.length > 0) {
++          CGFloat baseline = lineRect.origin.y + origin.y + startLoc.y;
++          spanRect.origin.y = baseline - font.ascender;
++          spanRect.size.height = font.lineHeight;
++      }
++
++      BOOL isFirst = (lineIdx == 0);
++      BOOL isLast  = (lineIdx == totalLines - 1);
++
++      CGFloat effectiveTL = isFirst ? tl : 0;
++      CGFloat effectiveBL = isFirst ? bl : 0;
++      CGFloat effectiveTR = isLast  ? tr : 0;
++      CGFloat effectiveBR = isLast  ? br : 0;
++
++      CGFloat x = CGRectGetMinX(spanRect);
++      CGFloat y = CGRectGetMinY(spanRect);
++      CGFloat w = CGRectGetWidth(spanRect);
++      CGFloat h = CGRectGetHeight(spanRect);
++
++      BOOL hasAnyRadius = tl > 0 || tr > 0 || bl > 0 || br > 0;
++      if (!hasAnyRadius) {
++        CGContextFillRect(context, spanRect);
++      } else {
++        CGMutablePathRef path = CGPathCreateMutable();
++        CGPathMoveToPoint(path, NULL, x + effectiveTL, y);
++        CGPathAddLineToPoint(path, NULL, x + w - effectiveTR, y);
++        CGPathAddArcToPoint(path, NULL, x + w, y, x + w, y + effectiveTR, effectiveTR);
++        CGPathAddLineToPoint(path, NULL, x + w, y + h - effectiveBR);
++        CGPathAddArcToPoint(path, NULL, x + w, y + h, x + w - effectiveBR, y + h, effectiveBR);
++        CGPathAddLineToPoint(path, NULL, x + effectiveBL, y + h);
++        CGPathAddArcToPoint(path, NULL, x, y + h, x, y + h - effectiveBL, effectiveBL);
++        CGPathAddLineToPoint(path, NULL, x, y + effectiveTL);
++        CGPathAddArcToPoint(path, NULL, x, y, x + effectiveTL, y, effectiveTL);
++        CGPathCloseSubpath(path);
++        CGContextAddPath(context, path);
++        CGContextFillPath(context);
++        CGPathRelease(path);
++      }
++
++      lineIdx++;
++    }];
++
++    CGContextRestoreGState(context);
++  }];
++}
++
++@end

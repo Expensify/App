@@ -17,7 +17,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
-import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
+import {isReportFieldTargetValid, validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {addReportFieldListValue, createReportFieldsListValue} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
@@ -31,26 +32,28 @@ type FieldsAddListValuePageProps = {
     reportFieldID?: string;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
     policyFeature: PolicyFeature;
+    expectedTarget: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>;
     testID: string;
 };
 
-function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, policyFeature, testID}: FieldsAddListValuePageProps) {
+function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, policyFeature, expectedTarget, testID}: FieldsAddListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {canWrite} = usePolicyFeatureWriteAccess(policy, policyFeature);
+    const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
+    const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
 
     const listValues = useMemo(() => {
         let reportFieldListValues: string[];
         if (reportFieldID) {
-            const reportFieldKey = getReportFieldKey(reportFieldID);
-            reportFieldListValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+            reportFieldListValues = Object.values(reportField?.values ?? {});
         } else {
             reportFieldListValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
         }
         return reportFieldListValues;
-    }, [formDraft, policy?.fieldList, reportFieldID]);
+    }, [formDraft, reportField, reportFieldID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
@@ -74,6 +77,10 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
         },
         [formDraft, policy, reportFieldID],
     );
+
+    if (isReportFieldInvalid) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper

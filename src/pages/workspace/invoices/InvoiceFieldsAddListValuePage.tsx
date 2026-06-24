@@ -22,6 +22,7 @@ function InvoiceFieldsAddListValuePage({
             reportFieldID={reportFieldID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            expectedTarget={CONST.REPORT_FIELD_TARGETS.INVOICE}
             testID="InvoiceFieldsAddListValuePage"
         />
     );
