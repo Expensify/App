@@ -57,8 +57,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
         [personalDetails, selectedReport?.ownerAccountID],
     );
-    const selectedReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport?.policyID}`];
-
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
     // When moving an expense that belongs to another user, or when the selection includes per diem
@@ -135,13 +133,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, betas, false, shouldDismissEmptyReportsConfirmation);
         selectReport(
             {
                 value: optimisticReport.reportID,
                 keyForList: optimisticReport.reportID,
-                policyID: policyForNewReport?.id,
+                policyID: policyForMovingExpenses?.id,
             },
             optimisticReport,
         );
@@ -155,7 +152,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        const restrictionPolicy = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
+        const restrictionPolicy = policyForMovingExpenses;
         if (
             restrictionPolicy &&
             shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)

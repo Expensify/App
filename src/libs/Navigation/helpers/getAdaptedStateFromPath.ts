@@ -12,6 +12,7 @@ import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
+import buildTabNavigatorNestedState from './buildTabNavigatorNestedState';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getDynamicRouteAdaptedState from './dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
@@ -30,9 +31,6 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
-
-/** All tab routes derived from the shared TAB_SCREENS constant. */
-const TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = TAB_SCREENS.map((name) => ({name}));
 
 /**
  * Screens that are registered in PublicScreens (unauthenticated navigator) and should not
@@ -56,17 +54,7 @@ const PUBLIC_SCREENS = new Set<string>([
  * Tab navigators require all routes in the state for proper rendering.
  */
 function getTabNavigatorState(selectedTabRoute: NavigationPartialRoute): NavigationPartialRoute {
-    const tabIndex = TAB_NAVIGATOR_ROUTES.findIndex((r) => r.name === selectedTabRoute.name);
-    const index = tabIndex >= 0 ? tabIndex : 0;
-
-    const routes = TAB_NAVIGATOR_ROUTES.map((route, i) => {
-        if (i === index && selectedTabRoute.state) {
-            return {...route, state: selectedTabRoute.state, params: selectedTabRoute.params};
-        }
-        return {...route};
-    });
-
-    return {name: NAVIGATORS.TAB_NAVIGATOR, state: {routes, index}};
+    return {name: NAVIGATORS.TAB_NAVIGATOR, state: buildTabNavigatorNestedState(selectedTabRoute)};
 }
 
 function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
@@ -309,11 +297,25 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 }
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
-    const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
+    let currentState = state;
+    const fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
 
-    // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
     if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {
-        const tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+        let tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+
+        // RN's getStateFromPath emits only the tab matched by the path, so the TAB_NAVIGATOR strip may be sparse.
+        // Rebuild the full strip around the active tab — consumers (e.g. REPLACE_FULLSCREEN_UNDER_RHP) expect every tab to be present.
+        // Only the active tab's nested state is carried over; any other tabs in a sparse strip are placeholders without state.
+        if (tabState?.routes && tabState.routes.length < TAB_SCREENS.length) {
+            const activeTabRoute = tabState.routes.at(tabState.index ?? tabState.routes.length - 1);
+            if (activeTabRoute) {
+                tabState = getTabNavigatorState(activeTabRoute as NavigationPartialRoute).state;
+                const normalizedRoutes = currentState.routes.map((r) => (r === fullScreenRoute ? {...r, state: tabState} : r));
+                currentState = {...currentState, routes: normalizedRoutes};
+            }
+        }
+
+        // If TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
         const wsNavRoute = tabState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
         if (wsNavRoute) {
             const wsNavState = wsNavRoute.state as PartialState<NavigationState> | undefined;
@@ -325,7 +327,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 const updatedTabRoutes = (tabState?.routes ?? []).map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedWsNavRoute : r)) as NavigationPartialRoute[];
                 const updatedTabState = {...tabState, routes: updatedTabRoutes};
                 const updatedFullScreenRoute = {...fullScreenRoute, state: updatedTabState};
-                const updatedRoutes = state.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
+                const updatedRoutes = currentState.routes.map((r) => (r.name === NAVIGATORS.TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
                 return getRoutesWithIndex(updatedRoutes);
             }
         }
@@ -333,11 +335,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(currentState);
 
-        let currentState = state;
         if (focusedRoute?.path && isDynamicRouteScreen(focusedRoute.name as Screen)) {
-            currentState = getDynamicRouteAdaptedState(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
+            currentState = getDynamicRouteAdaptedState(currentState, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
 
             // getDynamicRouteAdaptedState may have already resolved the full screen route.
             // In that case, skip the default full screen route injection below - the state is already complete.
@@ -388,7 +389,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         return getRoutesWithIndex([defaultFullScreenRoute, ...currentState.routes]);
     }
 
-    return state;
+    return currentState;
 }
 
 /**
