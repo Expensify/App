@@ -390,7 +390,14 @@ function SearchAutocompleteList({
         // instead of the client-side kind/recency order. Reports absent from the list sort to the end.
         if (searchResultReportIDs && searchResultReportIDs.length > 0) {
             const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
-            const rankOf = (option: OptionData) => (option.reportID === undefined ? Number.MAX_SAFE_INTEGER : (rankByReportID.get(option.reportID) ?? Number.MAX_SAFE_INTEGER));
+            const rankOf = (option: OptionData) => {
+                // The selfDM always sorts first when it matches — it's always in Onyx, so it ranks ahead of the server order
+                // (and need not be included in it).
+                if (option.isSelfDM) {
+                    return -1;
+                }
+                return option.reportID === undefined ? Number.MAX_SAFE_INTEGER : (rankByReportID.get(option.reportID) ?? Number.MAX_SAFE_INTEGER);
+            };
             reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
         }
 
