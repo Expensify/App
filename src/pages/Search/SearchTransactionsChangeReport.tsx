@@ -1,6 +1,4 @@
 import React, {useEffect, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
@@ -248,11 +246,7 @@ function SearchTransactionsChangeReport() {
             allTransactionViolation: transactionViolations,
             allReports,
         });
-        InteractionManager.runAfterInteractions(() => {
-            clearSelectedTransactions();
-        });
-
-        Navigation.goBack();
+        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
 
     const removeFromReport = () => {

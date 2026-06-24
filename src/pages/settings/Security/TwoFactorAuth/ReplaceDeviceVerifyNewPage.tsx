@@ -1,6 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
@@ -14,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getContactMethod} from '@libs/UserUtils';
 import {clearAccountMessages, replaceTwoFactorDevice} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -57,10 +57,12 @@ function ReplaceDeviceVerifyNewPage() {
     }, [account, account?.twoFactorAuthSecretKey]);
 
     const handleInputFocus = () => {
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                scrollViewRef.current?.scrollToEnd({animated: true});
-            });
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                requestAnimationFrame(() => {
+                    scrollViewRef.current?.scrollToEnd({animated: true});
+                });
+            },
         });
     };
 

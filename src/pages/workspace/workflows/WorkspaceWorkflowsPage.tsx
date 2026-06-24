@@ -1,8 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import Icon from '@components/Icon';
@@ -50,6 +49,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
@@ -192,9 +192,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => {
-            fetchData();
-        });
+        const handle = TransitionTracker.runAfterTransitions({callback: fetchData});
+        return handle.cancel;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

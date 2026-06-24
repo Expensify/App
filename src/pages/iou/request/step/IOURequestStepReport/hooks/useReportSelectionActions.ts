@@ -1,5 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
@@ -9,6 +7,7 @@ import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyReque
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -175,38 +174,41 @@ function useReportSelectionActions({
         }
 
         handleGoBack();
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                const participants = buildParticipants(report);
+        TransitionTracker.runAfterTransitions({
+            waitForUpcomingTransition: true,
+            callback: () => {
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    const participants = buildParticipants(report);
 
-                setTransactionReport(
-                    transaction.transactionID,
-                    {
-                        reportID: item.value,
-                        participants,
-                    },
-                    !isEditing,
-                );
+                    setTransactionReport(
+                        transaction.transactionID,
+                        {
+                            reportID: item.value,
+                            participants,
+                        },
+                        !isEditing,
+                    );
 
-                if (isEditing) {
-                    const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
-                    changeTransactionsReport({
-                        transactionIDs: [transaction.transactionID],
-                        isASAPSubmitBetaEnabled,
-                        accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        email: session?.email ?? '',
-                        newReport: report,
-                        policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                        reportNextStep: undefined,
-                        policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                        allTransactions,
-                        policyTagList,
-                        allTransactionViolation: transactionViolations,
-                        allReports,
-                    });
-                    removeTransaction(transaction.transactionID);
-                }
-            });
+                    if (isEditing) {
+                        const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+                        changeTransactionsReport({
+                            transactionIDs: [transaction.transactionID],
+                            isASAPSubmitBetaEnabled,
+                            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                            email: session?.email ?? '',
+                            newReport: report,
+                            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                            reportNextStep: undefined,
+                            policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                            allTransactions,
+                            policyTagList,
+                            allTransactionViolation: transactionViolations,
+                            allReports,
+                        });
+                        removeTransaction(transaction.transactionID);
+                    }
+                });
+            },
         });
     };
 
@@ -214,21 +216,22 @@ function useReportSelectionActions({
         if (!transaction) {
             return;
         }
-        Navigation.dismissToSuperWideRHP();
-        InteractionManager.runAfterInteractions(() => {
-            const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
-            changeTransactionsReport({
-                transactionIDs: [transaction.transactionID],
-                isASAPSubmitBetaEnabled,
-                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                email: session?.email ?? '',
-                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-                allTransactions,
-                policyTagList,
-                allTransactionViolation: transactionViolations,
-                allReports,
-            });
-            removeTransaction(transaction.transactionID);
+        Navigation.dismissToSuperWideRHP({
+            afterTransition: () => {
+                const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
+                changeTransactionsReport({
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+                    allTransactions,
+                    policyTagList,
+                    allTransactionViolation: transactionViolations,
+                    allReports,
+                });
+                removeTransaction(transaction.transactionID);
+            },
         });
     };
 
