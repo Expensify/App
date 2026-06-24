@@ -13,19 +13,36 @@ type TableFilterBarProps = PropsWithChildren<{
 
 export default function TableFilterBar({label, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
-    const {filterConfig} = useTableContext();
+    const {filterConfig, activeFilters} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
     const actionColumnVisible = hasFiltersAvailable || !!children;
 
-    return (
-        <View style={[styles.w100, styles.flexRow, styles.gap3, styles.justifyContentBetween, styles.pb3, styles.ph5]}>
-            <TableSearchBar label={label} />
+    const appliedFilters = Object.entries(activeFilters ?? {}).map(([key, value]) => ({
+        key,
+        value,
+        config: filterConfig?.[key],
+    }));
 
-            {actionColumnVisible && (
-                <View style={[styles.flexRow, styles.gap1]}>
-                    <TableFilterTrigger />
-                    {children}
+    return (
+        <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
+            <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween]}>
+                <TableSearchBar label={label} />
+
+                {actionColumnVisible && (
+                    <View style={[styles.flexRow, styles.gap1]}>
+                        <TableFilterTrigger />
+                        {children}
+                    </View>
+                )}
+            </View>
+
+            {/* Filters here */}
+            {!!appliedFilters.length && (
+                <View style={[styles.flexRow, styles.gap2, styles.flexWrap]}>
+                    {appliedFilters.map((filter) => (
+                        <></>
+                    ))}
                 </View>
             )}
         </View>
