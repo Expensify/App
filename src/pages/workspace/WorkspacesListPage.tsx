@@ -22,6 +22,7 @@ import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearDuplicateWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import openInternalRouteInNewTab from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,7 +42,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {createDisplayDetailsByAccountIDsSelector} from '@src/selectors/PersonalDetails';
 import type {CopySettingsEligibleTargets} from '@src/selectors/Policy';
@@ -239,13 +240,32 @@ function WorkspacesListPage() {
         return () => handle.cancel();
     }, [duplicateWorkspace?.policyID, isFocused, workspaceRows.length]);
 
+    // Scroll to the top when the list gets its first workspace, so it's visible. On web, returning from the create
+    // flow restores the scroll position the empty list had (it was scrolled down to reach the "New workspace" button),
+    // which would otherwise hide the new row — so reset after the navigation transition, once that restore has run.
+    const wasWorkspaceListEmptyRef = useRef(workspaceRows.length === 0);
+    useEffect(() => {
+        if (workspaceRows.length === 0) {
+            wasWorkspaceListEmptyRef.current = true;
+            return;
+        }
+        if (!wasWorkspaceListEmptyRef.current || !isFocused) {
+            return;
+        }
+        wasWorkspaceListEmptyRef.current = false;
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => tableRef.current?.scrollToOffset({offset: 0, animated: false}),
+        });
+        return () => handle.cancel();
+    }, [workspaceRows.length, isFocused]);
+
     const headerButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
             success
             accessibilityLabel={translate('common.new')}
             text={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)))}
             icon={icons.Plus}
         />
     );

@@ -1,7 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
@@ -54,7 +53,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
         selector: (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) => createOutstandingReportsForPolicySelector(policyID)(derived),
     });
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     // Self-resolved narrow slice of the transaction; replaces the previously prop-drilled `transaction` object.
     const transactionState = useTransactionSelector(transactionID, reportFieldTransactionStateSelector);
@@ -74,11 +73,11 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
-    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, archivedReportsIDSet, false)) || isUnreported;
+    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, reportNameValuePairs, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
-    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, archivedReportsIDSet, outstandingReportsForPolicy ?? {}, false).sort((a, b) =>
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort((a, b) =>
         localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
     );
 
