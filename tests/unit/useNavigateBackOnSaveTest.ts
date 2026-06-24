@@ -111,7 +111,7 @@ describe('useNavigateBackOnSave', () => {
         expect(mockGoBack).toHaveBeenCalledWith(BACK_TO);
     });
 
-    it('arms twice across two save cycles → navigates twice (monotonic arm counter consumes each arm exactly once)', () => {
+    it('re-arming after a successful navigate is a no-op (one-shot — the component is unmounting; further arms must not pop past the destination)', () => {
         const {result, rerender} = renderSave();
         act(() => result.current.armNavigateBack());
         rerender({isSaved: true});
@@ -120,6 +120,15 @@ describe('useNavigateBackOnSave', () => {
         rerender({isSaved: false});
         act(() => result.current.armNavigateBack());
         rerender({isSaved: true});
-        expect(mockGoBack).toHaveBeenCalledTimes(2);
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('double-tap on save while already saved navigates exactly once (defends the one-shot invariant against rapid repeat arms)', () => {
+        const {result} = renderSave(true);
+        act(() => {
+            result.current.armNavigateBack();
+            result.current.armNavigateBack();
+        });
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 });

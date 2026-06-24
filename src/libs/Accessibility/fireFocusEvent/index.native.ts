@@ -3,7 +3,7 @@ import {AccessibilityInfo} from 'react-native';
 import type {Text as RNText, View} from 'react-native';
 import Log from '@libs/Log';
 
-/** Catches stale-handle throws (Android-only — iOS silently no-ops) so the orchestrator isn't aborted; not a success signal — recovery is via the parallel registry-rescue in `restoreTriggerForRoute`. */
+/** Catches stale-handle throws so the orchestrator isn't aborted on Android; iOS silently no-ops on a stale handle. */
 function fireFocusEvent(view: View | RNText): void {
     try {
         AccessibilityInfo.sendAccessibilityEvent(view, 'focus');

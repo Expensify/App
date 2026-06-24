@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useEffect, useRef} from 'react';
+import React, {createContext, useContext, useEffect, useLayoutEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import isHTMLElement from '@libs/isHTMLElement';
 
@@ -28,14 +28,20 @@ const DialogLabelActionsContext = createContext<DialogLabelActions>({
 
 type DialogLabelProviderProps = {
     children: React.ReactNode;
-    containerRef: React.RefObject<View | null>;
+    /** Pass via `useState`/callback-ref so the provider observes node identity changes; a `RefObject` would pin the MutationObserver to the original node across Animated.View remounts. */
+    containerNode: View | HTMLElement | null;
 };
 
 // Title-stack and initial-focus claim are co-located: each pushLabel re-arms the focus claim so a sub-screen re-receives initial focus.
-function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps) {
+function DialogLabelProvider({children, containerNode}: DialogLabelProviderProps) {
     const nextIdRef = useRef(0);
     const labelStackRef = useRef<LabelEntry[]>([]);
     const initialFocusClaimedRef = useRef(false);
+    // Stable RefObject for `.current` consumers (e.g. useDialogContainerFocus reads inside a rAF after node swaps).
+    const containerRef = useRef<View | null>(null);
+    useLayoutEffect(() => {
+        containerRef.current = (containerNode as View | null) ?? null;
+    }, [containerNode]);
 
     const updateContainerLabel = () => {
         // `aria-label` is a DOM contract; bail before any node access on native.
@@ -73,21 +79,17 @@ function DialogLabelProvider({children, containerRef}: DialogLabelProviderProps)
         updateContainerLabel();
     };
 
-    // Re-apply on `role`/`aria-modal` change — viewport resize flips dialog semantics mid-session.
+    // Re-apply on `role`/`aria-modal` change — viewport resize flips dialog semantics mid-session. Re-runs on node swap so a fresh Animated.View gets a fresh observer.
     useEffect(() => {
-        if (typeof MutationObserver === 'undefined') {
-            return;
-        }
-        const node = containerRef.current;
-        if (!isHTMLElement(node)) {
+        if (typeof MutationObserver === 'undefined' || !isHTMLElement(containerNode)) {
             return;
         }
         const observer = new MutationObserver(updateContainerLabel);
-        observer.observe(node, {attributes: true, attributeFilter: ['role', 'aria-modal']});
+        observer.observe(containerNode, {attributes: true, attributeFilter: ['role', 'aria-modal']});
         return () => {
             observer.disconnect();
         };
-    }, [containerRef, updateContainerLabel]);
+    }, [containerNode, updateContainerLabel]);
 
     const claimInitialFocus = (): boolean => {
         if (initialFocusClaimedRef.current) {

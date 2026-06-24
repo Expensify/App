@@ -27,10 +27,6 @@ let pendingRestore: {cancel: () => void} | null = null;
 let skipNextRestore = false;
 let stateUnsubscribe: (() => void) | null = null;
 
-function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
-    setFifoEntry(triggerMap, routeKey, entry, TRIGGER_MAP_MAX);
-}
-
 // Recorded unconditionally so cold-start presses survive the warm-up window. performance.now is monotonic — Date.now would corrupt the TTL on clock jumps.
 function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: string): void {
     lastPressedTriggerRef = ref;
@@ -87,7 +83,7 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!lastPressedTriggerRef || performance.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
         return;
     }
-    setTriggerEntry(routeKey, {ref: lastPressedTriggerRef, identifier: lastPressedTriggerIdentifier ?? undefined});
+    setFifoEntry(triggerMap, routeKey, {ref: lastPressedTriggerRef, identifier: lastPressedTriggerIdentifier ?? undefined}, TRIGGER_MAP_MAX);
 }
 
 // Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
@@ -99,23 +95,17 @@ function resolveLiveRefFromRegistry(routeKey: string, identifier: string): RefOb
 }
 
 /*
- * Fast path = captured ref still alive. Rescue = ref nulled by `react-native-screens` detach; resolve via the registry's live re-registration.
- * Assumes detach nulls the JS ref — if a future RN/screens version detaches without nulling, the captured handle stays truthy + stale, no rescue runs. Re-verify on-device after react-native-screens upgrades.
+ * Registry-first: a fresh re-registration wins over the captured ref because the captured native handle
+ * can stale-out across detach without nulling the JS ref. Falls back to the captured ref when the registry misses.
  */
 function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
         return null;
     }
-    let ref: RefObject<View | null> = entry.ref;
-    let view = ref.current;
-    if (!view && entry.identifier) {
-        const liveRef = resolveLiveRefFromRegistry(routeKey, entry.identifier);
-        if (liveRef?.current) {
-            ref = liveRef;
-            view = liveRef.current;
-        }
-    }
+    const liveRef = entry.identifier ? resolveLiveRefFromRegistry(routeKey, entry.identifier) : null;
+    const ref = liveRef ?? entry.ref;
+    const view = ref.current;
     if (!view) {
         return null;
     }

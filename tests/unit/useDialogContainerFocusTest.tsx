@@ -16,6 +16,10 @@ const useDialogContainerFocus = require<{
 }>('../../src/hooks/useDialogContainerFocus/index.ts').default;
 /* eslint-enable import/extensions */
 
+beforeEach(() => {
+    jest.clearAllMocks();
+});
+
 describe('useDialogContainerFocus — short-circuit order', () => {
     it('does NOT invoke `claimInitialFocusGate` when `skipDialogContainerFocus` is true (gate is one-shot — bail path must not burn it)', () => {
         const ref = createRef<View>();

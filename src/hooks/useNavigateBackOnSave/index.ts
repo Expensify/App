@@ -4,34 +4,37 @@ import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import type {Route} from '@src/ROUTES';
 
 /**
- * `navigateBack` = direct goBack. `armNavigateBack` = goBack on next save (or immediately if already saved). `shouldSkipFocusRestore: true` only when the destination's Enter shortcut would be hijacked by a re-focused row.
+ * `navigateBack` = direct goBack. `armNavigateBack` = goBack on next save (or immediately if already saved). One-shot — repeat arms are no-ops so a double-tap can't pop past the destination. `shouldSkipFocusRestore: true` only when the destination's Enter shortcut would be hijacked by a re-focused row.
  */
 function useNavigateBackOnSave(
     isSaved: boolean,
     backTo: Route | undefined,
     {shouldSkipFocusRestore}: {shouldSkipFocusRestore: boolean},
 ): {navigateBack: () => void; armNavigateBack: () => void} {
-    const [armCount, setArmCount] = useState(0);
-    const lastProcessedArmRef = useRef(0);
+    const [isArmed, setIsArmed] = useState(false);
+    const hasNavigatedRef = useRef(false);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
     const armNavigateBack = () => {
-        setArmCount((count) => count + 1);
+        if (hasNavigatedRef.current) {
+            return;
+        }
+        setIsArmed(true);
     };
 
     useEffect(() => {
-        if (!isSaved || armCount === lastProcessedArmRef.current) {
+        if (!isArmed || !isSaved || hasNavigatedRef.current) {
             return;
         }
-        lastProcessedArmRef.current = armCount;
+        hasNavigatedRef.current = true;
         if (shouldSkipFocusRestore) {
             skipNextFocusRestore();
         }
         navigateBack();
-    }, [isSaved, armCount, navigateBack, shouldSkipFocusRestore]);
+    }, [isArmed, isSaved, navigateBack, shouldSkipFocusRestore]);
 
     return {navigateBack, armNavigateBack};
 }

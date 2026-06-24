@@ -72,9 +72,9 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}, index) => {
-                // `description`+index is stable across edits (don't embed `title`). Limit: conditional row visibility re-keys items below — callers with reorderable rows should pass an explicit `id` (e.g. `INPUT_IDS.*`).
-                const stableId = id ?? `${description}-${index}`;
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => {
+                // Content-bound key (no array index) so a conditionally-hidden row above doesn't re-key items below. Duplicate descriptions collide — pass an explicit `id` (e.g. `INPUT_IDS.*`).
+                const stableId = id ?? description;
                 return (
                     <MenuItemWithTopDescription
                         key={stableId}

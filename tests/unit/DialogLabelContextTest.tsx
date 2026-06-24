@@ -1,14 +1,17 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React, {createRef} from 'react';
+import React from 'react';
 import type {PropsWithChildren} from 'react';
-import type {View} from 'react-native';
 import {DialogLabelProvider, useDialogLabelActions, useDialogLabelData} from '@components/DialogLabelContext';
 
-const testContainerRef = createRef<View>();
+let currentContainerNode: HTMLElement | null = null;
 
 function wrapper({children}: PropsWithChildren) {
-    return <DialogLabelProvider containerRef={testContainerRef}>{children}</DialogLabelProvider>;
+    return <DialogLabelProvider containerNode={currentContainerNode}>{children}</DialogLabelProvider>;
 }
+
+beforeEach(() => {
+    currentContainerNode = null;
+});
 
 describe('DialogLabelContext', () => {
     describe('outside provider', () => {
@@ -178,10 +181,8 @@ describe('DialogLabelContext', () => {
         });
 
         it('re-applies aria-label when the container gains dialog semantics on viewport resize (MutationObserver path)', async () => {
-            // Set container before mount so the observer attaches on first commit.
             const mockElement = document.createElement('div');
-            (testContainerRef as {current: unknown}).current = mockElement;
-
+            currentContainerNode = mockElement;
             const {result, unmount} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
@@ -197,15 +198,13 @@ describe('DialogLabelContext', () => {
 
             expect(mockElement.getAttribute('aria-label')).toBe('Settings');
             unmount();
-            (testContainerRef as {current: unknown}).current = null;
         });
 
         it('removes aria-label when the container loses dialog semantics (wide→narrow resize — symmetric to the narrow→wide path)', async () => {
             const mockElement = document.createElement('div');
             mockElement.setAttribute('role', 'dialog');
             mockElement.setAttribute('aria-modal', 'true');
-            (testContainerRef as {current: unknown}).current = mockElement;
-
+            currentContainerNode = mockElement;
             const {result, unmount} = renderHook(() => ({...useDialogLabelData(), ...useDialogLabelActions()}), {wrapper});
 
             act(() => {
@@ -221,7 +220,6 @@ describe('DialogLabelContext', () => {
 
             expect(mockElement.hasAttribute('aria-label')).toBe(false);
             unmount();
-            (testContainerRef as {current: unknown}).current = null;
         });
 
         it('assigns unique IDs to each pushed label', () => {

@@ -82,12 +82,12 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                     />
                     {merchants.length > 0 ? (
                         merchants.map(({name, matchType}, index) => {
-                            // Index is the stable identity (`name`/`matchType` are edited on the detail screen). Limit: delete + back-nav can focus the adjacent row — no per-merchant backend ID.
-                            const rowId = `merchant-${index}`;
+                            // Content-bound key (no array index) so delete-in-middle unmounts the right instance and the focus-return rescue can't mis-target a shifted neighbour.
+                            const rowKey = `merchant-${matchType ?? 'unset'}-${name}`;
                             return (
                                 <MenuItemWithTopDescription
-                                    key={rowId}
-                                    pressableTestID={rowId}
+                                    key={rowKey}
+                                    pressableTestID={rowKey}
                                     description={
                                         matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
                                             ? translate('workspace.rules.spendRules.merchantExactlyMatches')

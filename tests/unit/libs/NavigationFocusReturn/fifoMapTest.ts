@@ -40,7 +40,7 @@ describe('setFifoEntry', () => {
         expect(map.has('b')).toBe(false);
     });
 
-    it('treats maxSize <= 0 as a single-element cap, evicting on every insert', () => {
+    it('treats maxSize <= 0 as a zero-element cap, evicting on every insert so the map never retains entries', () => {
         const map = new Map<string, number>();
         setFifoEntry(map, 'a', 1, 0);
         expect(map.size).toBe(0);
