@@ -371,7 +371,15 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         const isRightModalNavigator = currentState.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
         if (isRightModalNavigator) {
-            return getRoutesWithIndex([getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}), ...currentState.routes]);
+            // When the focused RHP route carries a reportID (e.g. an IOU step on a transaction-thread
+            // report), restore that report as the underlay so cold-reload doesn't drop the expense
+            // view behind the RHP. getDefaultFullScreenRoute already encodes this — and falls back to
+            // INBOX-only when the report isn't loaded locally, matching the prior fallback.
+            const underlay =
+                focusedRoute && isRouteWithReportID(focusedRoute)
+                    ? getDefaultFullScreenRoute(focusedRoute)
+                    : getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
+            return getRoutesWithIndex([underlay, ...currentState.routes]);
         }
 
         // Public screens (e.g. ValidateLogin) exist in both PublicScreens and AuthScreens navigators.
