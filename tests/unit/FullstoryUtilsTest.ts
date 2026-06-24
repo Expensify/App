@@ -23,11 +23,6 @@ describe('FullstoryUtils', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 companySize: '1-10',
             },
-            loginList: {
-                test: {
-                    partnerName: 'google.com',
-                },
-            },
             onboarding: {
                 hasCompletedGuidedSetupFlow: false,
                 signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
@@ -59,7 +54,6 @@ describe('FullstoryUtils', () => {
             free_trial_status: 'active',
             plan_type: 'collect',
             paid_member: true,
-            auth_method: 'google',
         });
         expect(userVars.days_till_trial_end).toBeGreaterThan(0);
     });
@@ -78,5 +72,28 @@ describe('FullstoryUtils', () => {
 
     it('does not treat unrelated paths containing onboarding as registration', () => {
         expect(getOnboardingStep('/settings/onboarding-foo')).toBeUndefined();
+    });
+
+    it('prefers active policies when deriving the user role', () => {
+        const role = buildFullstoryUserVars({
+            account: {isFromPublicDomain: true},
+            activePolicy: undefined,
+            introSelected: undefined,
+            onboarding: undefined,
+            onboardingCompanySize: undefined,
+            onboardingLastVisitedPath: undefined,
+            onboardingPurposeSelected: undefined,
+            policies: {
+                policy_1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Inactive Workspace'),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            },
+            session: {email: 'test@test.com'},
+            userMetadata: {},
+        });
+
+        expect(role.user_role).toBe('member');
     });
 });

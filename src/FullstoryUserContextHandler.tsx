@@ -6,14 +6,12 @@ import FS from './libs/Fullstory';
 import type {FullstoryUserVars} from './libs/Fullstory/types';
 import {buildFullstoryUserVars} from './libs/Fullstory/utils';
 import {shallowCompare} from './libs/ObjectUtils';
-import {expensifyLoginsSelector} from './libs/UserUtils';
 import ONYXKEYS from './ONYXKEYS';
 
 function FullstoryUserContextHandler() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [onboardingLastVisitedPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
@@ -23,19 +21,6 @@ function FullstoryUserContextHandler() {
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
 
     const activePolicy = activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined;
-    const userVars = buildFullstoryUserVars({
-        account,
-        activePolicy,
-        introSelected,
-        loginList,
-        onboarding,
-        onboardingCompanySize,
-        onboardingLastVisitedPath,
-        onboardingPurposeSelected,
-        policies,
-        session,
-        userMetadata,
-    });
 
     const previousUserVars = useRef<OnyxEntry<FullstoryUserVars>>(undefined);
 
@@ -64,6 +49,19 @@ function FullstoryUserContextHandler() {
                             return;
                         }
 
+                        const userVars = buildFullstoryUserVars({
+                            account,
+                            activePolicy,
+                            introSelected,
+                            onboarding,
+                            onboardingCompanySize,
+                            onboardingLastVisitedPath,
+                            onboardingPurposeSelected,
+                            policies,
+                            session,
+                            userMetadata,
+                        });
+
                         if (shallowCompare(previousUserVars.current, userVars)) {
                             return;
                         }
@@ -89,7 +87,7 @@ function FullstoryUserContextHandler() {
                 clearTimeout(retryTimeoutID);
             }
         };
-    }, [userMetadata, userVars]);
+    }, [account, activePolicy, introSelected, onboarding, onboardingCompanySize, onboardingLastVisitedPath, onboardingPurposeSelected, policies, session, userMetadata]);
 
     return null;
 }

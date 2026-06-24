@@ -4,7 +4,7 @@ import {filterObject} from '@libs/ObjectUtils';
 import {getActivePolicies, isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Account, IntroSelected, LoginList, Onboarding, Policy, Session, UserMetadata} from '@src/types/onyx';
+import type {Account, IntroSelected, Onboarding, Policy, Session, UserMetadata} from '@src/types/onyx';
 import FS from '.';
 import type {FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars} from './types';
 
@@ -16,7 +16,6 @@ type BuildFullstoryUserVarsParams = {
     account: OnyxEntry<Account>;
     activePolicy: OnyxEntry<Policy>;
     introSelected: OnyxEntry<IntroSelected>;
-    loginList: OnyxEntry<LoginList>;
     onboarding: OnyxEntry<Onboarding>;
     onboardingCompanySize: OnyxEntry<string>;
     onboardingLastVisitedPath: OnyxEntry<string>;
@@ -108,7 +107,11 @@ function getOnboardingStep(onboardingPath: string | undefined, hasCompletedOnboa
         return;
     }
 
-    const normalizedOnboardingPath = onboardingPath.replace(/^\/+/, '').split('?')[0];
+    const normalizedOnboardingPath = onboardingPath.replace(/^\/+/, '').split('?').at(0);
+
+    if (!normalizedOnboardingPath) {
+        return;
+    }
 
     if (normalizedOnboardingPath === ROUTES.ONBOARDING_ACCOUNTING.route) {
         return 'accounting';
@@ -119,10 +122,10 @@ function getOnboardingStep(onboardingPath: string | undefined, hasCompletedOnboa
     }
 }
 
-function getUserRole(policies: OnyxCollection<Policy> | undefined): FullstoryUserVars['user_role'] {
+function getUserRole(activePolicies: Policy[]): FullstoryUserVars['user_role'] {
     let userRole: FullstoryUserVars['user_role'] = 'member';
 
-    for (const policy of Object.values(policies ?? {})) {
+    for (const policy of activePolicies) {
         if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
             return 'admin';
         }
@@ -132,21 +135,6 @@ function getUserRole(policies: OnyxCollection<Policy> | undefined): FullstoryUse
     }
 
     return userRole;
-}
-
-function getAuthMethod(loginList: OnyxEntry<LoginList>): FullstoryUserVars['auth_method'] {
-    const normalizedPartnerNames = Object.values(loginList ?? {})
-        .map((login) => login?.partnerName?.toLowerCase())
-        .filter(Boolean);
-
-    if (normalizedPartnerNames.some((partnerName) => partnerName?.includes('google'))) {
-        return 'google';
-    }
-    if (normalizedPartnerNames.some((partnerName) => partnerName?.includes('apple'))) {
-        return 'apple';
-    }
-
-    return 'email';
 }
 
 function getPlanType(policies: Policy[]): FullstoryUserVars['plan_type'] {
@@ -162,7 +150,6 @@ function buildFullstoryUserVars({
     account,
     activePolicy,
     introSelected,
-    loginList,
     onboarding,
     onboardingCompanySize,
     onboardingLastVisitedPath,
@@ -190,7 +177,7 @@ function buildFullstoryUserVars({
             user_status: userStatus,
             has_completed_onboarding: hasCompletedOnboarding,
             onb_step: getOnboardingStep(onboardingLastVisitedPath, hasCompletedOnboarding),
-            user_role: getUserRole(policies),
+            user_role: getUserRole(activePolicies),
             workspace_state: activePolicies.length > 0 ? 'has_workspaces' : 'no_workspaces',
             workspace_count: activePolicies.length,
             workspace_member_count: activePolicy ? Object.keys(activePolicy.employeeList ?? {}).length : undefined,
@@ -199,7 +186,6 @@ function buildFullstoryUserVars({
             free_trial_status: getFreeTrialStatus(daysTillTrialEnd),
             plan_type: getPlanType(activePolicies),
             paid_member: userMetadata?.paidMember,
-            auth_method: getAuthMethod(loginList),
         } satisfies FullstoryUserVars,
         (_key, value) => value !== undefined,
     );
