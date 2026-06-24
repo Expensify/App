@@ -5866,9 +5866,11 @@ function getColumnsToShow({
         }
         if (hasTag) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
-            if (isTagGLCodeSelected && !isExpenseReportViewFromIOUReport && getTagGLCode(getPolicyTagsForPolicyID(policyTags, transactionPolicyID), getTag(transaction))) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE] = true;
-            }
+        }
+        // Once the Tag GL code column is selected, keep it visible even when the loaded rows have no GL
+        // code — otherwise sorting (which floats empty values to the top) makes the column vanish until scroll.
+        if (isTagGLCodeSelected && !isExpenseReportViewFromIOUReport) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE] = true;
         }
 
         // Data-presence checks for columns that are hidden when empty.

@@ -8457,7 +8457,7 @@ describe('SearchUIUtils', () => {
             expect(categoryGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE);
         });
 
-        test('Should only show Tag GL Code when that column is selected and at least one transaction resolves a tag GL code', () => {
+        test('Should show Tag GL Code whenever that column is selected, even when no transaction resolves a tag GL code', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithTagGLCode = {
                 ...baseTransaction,
@@ -8513,7 +8513,9 @@ describe('SearchUIUtils', () => {
                 policyTags,
             });
 
-            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE);
+            // Selected but the tag has no GL code: the column still shows because it's enabled, so a
+            // GL-code sort that floats empty values to the top doesn't make the column disappear.
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE);
         });
 
         test('Should offer sorting by Tag GL Code', () => {
