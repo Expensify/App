@@ -752,51 +752,6 @@ describe('pressable registry — identifier-based fallback', () => {
         expect(mockFireFocusEvent).toHaveBeenCalledWith(liveView);
     });
 
-    it('fires fast AND registry-rescue in parallel when a different live ref exists — covers iOS silent no-op + Android stale-handle throw without depending on a return-value probe', () => {
-        const staleView = fakeView('row');
-        const staleRef = fakeRef(staleView);
-        notifyPressedTrigger(staleRef, 'row');
-
-        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
-        handleStateChange(
-            stackState(1, [
-                {key: 'A', name: 'A'},
-                {key: 'B', name: 'B'},
-            ]),
-        );
-
-        const liveView = fakeView('row-remount');
-        registerPressable('A', 'row', fakeRef(liveView));
-
-        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
-        flushTransitions();
-
-        expect(mockFireFocusEvent).toHaveBeenCalledTimes(2);
-        expect(mockFireFocusEvent).toHaveBeenNthCalledWith(1, staleView);
-        expect(mockFireFocusEvent).toHaveBeenNthCalledWith(2, liveView);
-    });
-
-    it('excludes `entry.ref` from registry candidates so the rescue cannot re-pick the captured stale ref (insertion-order Set would otherwise return it for collision-tolerant identifiers)', () => {
-        const capturedView = fakeView('back-button');
-        const capturedRef = fakeRef(capturedView);
-        notifyPressedTrigger(capturedRef, 'backButton');
-        registerPressable('A', 'backButton', capturedRef);
-
-        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
-        handleStateChange(
-            stackState(1, [
-                {key: 'A', name: 'A'},
-                {key: 'B', name: 'B'},
-            ]),
-        );
-
-        handleStateChange(stackState(0, [{key: 'A', name: 'A'}]));
-        flushTransitions();
-
-        expect(mockFireFocusEvent).toHaveBeenCalledTimes(1);
-        expect(mockFireFocusEvent).toHaveBeenCalledWith(capturedView);
-    });
-
     it('rAF retry rescues focus when re-attach lags transitionEnd', () => {
         const detachedRef = fakeRef(fakeView('row'));
         notifyPressedTrigger(detachedRef, 'row');

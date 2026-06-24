@@ -100,34 +100,37 @@ function captureTriggerForRoute(routeKey: string): void {
     setTriggerEntry(routeKey, {ref: lastPressedTriggerRef, identifier: lastPressedTriggerIdentifier ?? undefined});
 }
 
-/* Strip the compound-key suffix because pressables register under the raw route key. `excludeRef` filters the captured ref so the rescue can't re-pick it. */
-function resolveLiveRefFromRegistry(routeKey: string, identifier: string, excludeRef: RefObject<View | null>): RefObject<View | null> | null {
+// Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
+function resolveLiveRefFromRegistry(routeKey: string, identifier: string): RefObject<View | null> | null {
     const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
-    const liveRefs = Array.from(pressableRegistry.get(rawRouteKey)?.get(identifier) ?? []).filter((candidate) => candidate.current && candidate !== excludeRef);
+    const liveRefs = Array.from(pressableRegistry.get(rawRouteKey)?.get(identifier) ?? []).filter((candidate) => candidate.current);
     const acceptCollision = COLLISION_TOLERANT_IDENTIFIERS.has(identifier);
     return liveRefs.length === 1 || (acceptCollision && liveRefs.length > 1) ? (liveRefs.at(0) ?? null) : null;
 }
 
-/* Fires fast + registry-rescue in parallel when a different live ref exists: iOS stale-handle silently no-ops (Android throws), so no return-value probe; screen readers process focus events idempotently. */
+/*
+ * Fast path = captured ref still alive. Rescue = ref nulled by `react-native-screens` detach; resolve via the registry's live re-registration.
+ * Assumes detach nulls the JS ref — if a future RN/screens version detaches without nulling, the captured handle stays truthy + stale, no rescue runs. Re-verify on-device after react-native-screens upgrades.
+ */
 function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
         return null;
     }
-    const fastView = entry.ref.current;
-    if (fastView) {
-        fireFocusEvent(fastView);
-    }
-    if (entry.identifier) {
-        const liveRef = resolveLiveRefFromRegistry(routeKey, entry.identifier, entry.ref);
-        const liveView = liveRef?.current;
-        if (liveRef && liveView) {
-            fireFocusEvent(liveView);
-            // Prefer the live ref so the Android `scheduleRefocus` re-fire lands on the fresh handle.
-            return liveRef;
+    let ref: RefObject<View | null> = entry.ref;
+    let view = ref.current;
+    if (!view && entry.identifier) {
+        const liveRef = resolveLiveRefFromRegistry(routeKey, entry.identifier);
+        if (liveRef?.current) {
+            ref = liveRef;
+            view = liveRef.current;
         }
     }
-    return fastView ? entry.ref : null;
+    if (!view) {
+        return null;
+    }
+    fireFocusEvent(view);
+    return ref;
 }
 
 function cancelPendingRestore(): void {
