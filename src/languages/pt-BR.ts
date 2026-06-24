@@ -4999,10 +4999,10 @@ ${amount} para ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Sincronize a conexão novamente depois que as empresas forem adicionadas no Certinia.',
             prerequisites: {
                 title: 'Antes de conectar',
-                installBundle: 'Instale o pacote do Expensify',
+                installBundle: 'Instalar o pacote do Expensify',
                 installBundlePSAHeader: 'Para conexões PSA/SRP:',
                 installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar o pacote do Expensify para PSA/SRP (versão ${version})</a>`,
+                    `Instale o pacote Expensify no Salesforce clicando neste link: <a href="${href}">Instalar pacote PSA/SRP Expensify (versão ${version})</a>`,
                 installBundleFFAHeader: 'Para conexões FFA:',
                 installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar o pacote do Expensify para FFA (versão ${version})</a>`,
@@ -9762,7 +9762,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

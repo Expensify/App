@@ -4872,10 +4872,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noCompaniesFoundDescription: '在 Certinia 中添加公司后，请再次同步连接。',
             prerequisites: {
                 title: '在你连接之前',
-                installBundle: '安装 Expensify 组件包',
-                installBundlePSAHeader: '对于 PSA/SRP 连接：',
+                installBundle: '安装 Expensify 捆绑包',
+                installBundlePSAHeader: '用于 PSA/SRP 连接：',
                 installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 PSA/SRP Expensify 组件包（版本 ${version}）</a>`,
+                    `通过点击此链接在 Salesforce 中安装 Expensify 包：<a href="${href}">安装 PSA/SRP Expensify 包（版本 ${version}）</a>`,
                 installBundleFFAHeader: '对于 FFA 连接：',
                 installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a>`,
@@ -9499,7 +9499,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

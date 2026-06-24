@@ -5004,7 +5004,7 @@ ${amount} dla ${merchant} - ${date}`,
                 installBundle: 'Zainstaluj pakiet Expensify',
                 installBundlePSAHeader: 'Dla połączeń PSA/SRP:',
                 installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet Expensify dla PSA/SRP (wersja ${version})</a>`,
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet PSA/SRP Expensify (wersja ${version})</a>`,
                 installBundleFFAHeader: 'Dla połączeń FFA:',
                 installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet Expensify dla FFA (wersja ${version})</a>`,
@@ -9758,7 +9758,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

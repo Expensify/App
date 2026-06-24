@@ -4971,11 +4971,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noCompaniesFoundDescription: 'Certinia に会社を追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
-                installBundle: 'Expensify バンドルをインストール',
+                installBundle: 'Expensify バンドルをインストールします',
                 installBundlePSAHeader: 'PSA/SRP 接続の場合：',
                 installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
-                    `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">PSA/SRP 用 Expensify バンドルをインストール（バージョン ${version}）</a>`,
-                installBundleFFAHeader: 'FFA 接続の場合：',
+                    `このリンクをクリックして Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">PSA/SRP Expensify バンドル（バージョン ${version}）をインストール</a>`,
+                installBundleFFAHeader: 'FFA 接続用:',
                 installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">FFA 用 Expensify バンドルをインストール（バージョン ${version}）</a>`,
                 installBundleConfirm: 'バンドルをインストールしました',
@@ -9682,7 +9682,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
