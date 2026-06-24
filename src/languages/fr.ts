@@ -5045,9 +5045,13 @@ ${amount} pour ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Veuillez synchroniser à nouveau la connexion après l’ajout des entreprises dans Certinia.',
             prerequisites: {
                 title: 'Avant de vous connecter',
-                installBundle: 'Pour les connexions FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle FFA Expensify (version ${version})</a>`,
+                installBundle: 'Installer le bundle Expensify',
+                installBundlePSAHeader: 'Pour les connexions PSA/SRP :',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify pour PSA/SRP (version ${version})</a>`,
+                installBundleFFAHeader: 'Pour les connexions FFA :',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify pour FFA (version ${version})</a>`,
                 installBundleConfirm: 'J’ai installé le paquet',
                 setupContacts: 'Configurer l’utilisateur et les contacts',
                 setupContactsBullet1:

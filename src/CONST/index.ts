@@ -3003,12 +3003,17 @@ const CONST = {
         STEP_INDEX_LIST: ['1', '2', '3'],
     },
 
-    /** Salesforce package install URLs for the FFA Expensify bundle (see help: Connect to Certinia). */
+    /** Salesforce package install URLs for the Certinia Expensify bundles (see help: Connect to Certinia). */
+    CERTINIA_PSA_BUNDLE_INSTALL_URL: {
+        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+        SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+    },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
+    CERTINIA_PSA_BUNDLE_VERSION: '1.3',
     CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {

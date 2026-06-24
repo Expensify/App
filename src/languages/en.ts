@@ -5129,8 +5129,12 @@ const translations = {
             noCompaniesFoundDescription: 'Please sync the connection again after companies are added in Certinia.',
             prerequisites: {
                 title: 'Before you connect',
-                installBundle: 'For FFA Connections',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                installBundle: 'Install the Expensify bundle',
+                installBundlePSAHeader: 'For PSA/SRP Connections:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install PSA/SRP Expensify Bundle (Version ${version})</a>`,
+                installBundleFFAHeader: 'For FFA Connections:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version ${version})</a>`,
                 installBundleConfirm: "I've installed the bundle",
                 setupContacts: 'Set up user and contacts',

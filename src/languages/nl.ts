@@ -5008,9 +5008,13 @@ ${amount} voor ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Synchroniseer de verbinding opnieuw nadat bedrijven zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
-                installBundle: 'Voor FFA-verbindingen',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">FFA Expensify-bundel installeren (versie ${version})</a>`,
+                installBundle: 'De Expensify-bundel installeren',
+                installBundlePSAHeader: 'Voor PSA/SRP-verbindingen:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Expensify-bundel voor PSA/SRP installeren (versie ${version})</a>`,
+                installBundleFFAHeader: 'Voor FFA-verbindingen:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Expensify-bundel voor FFA installeren (versie ${version})</a>`,
                 installBundleConfirm: 'Ik heb de bundel geïnstalleerd',
                 setupContacts: 'Gebruiker en contacten instellen',
                 setupContactsBullet1:
