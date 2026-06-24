@@ -626,32 +626,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         });
     }
 
-    if (!isDEWPolicy && expenseReport.parentReportID && expenseReport.parentReportActionID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
-            value: {
-                [expenseReport.parentReportActionID]: {
-                    childStateNum: predictedNextState,
-                    childStatusNum: predictedNextStatus,
-                    ...(nextApproverAccountID ? {childManagerAccountID: managerID} : {}),
-                },
-            },
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
-            value: {
-                [expenseReport.parentReportActionID]: {
-                    childStateNum: expenseReport.stateNum,
-                    childStatusNum: expenseReport.statusNum,
-                    ...(nextApproverAccountID ? {childManagerAccountID: expenseReport.managerID} : {}),
-                },
-            },
-        });
-    }
-
     if (shouldAddOptimisticApproveAction) {
         if (isDEWPolicy) {
             failureData.push({

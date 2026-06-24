@@ -3138,13 +3138,9 @@ describe('actions/IOU/ReportWorkflow', () => {
                 id: '2',
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             };
-            const reportPreviewActionID = 'preview-action-1';
-            const parentReportID = 'parent-report-1';
             const normalReport: Report = {
                 ...expenseReport,
                 reportID: '789',
-                parentReportID,
-                parentReportActionID: reportPreviewActionID,
                 managerID: managerAccountID,
             };
             const transaction = {
@@ -3161,16 +3157,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}${activeDEWPolicy.id}`]: activeDEWPolicy,
                 [`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`]: normalReport,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
-                    [reportPreviewActionID]: {
-                        reportActionID: reportPreviewActionID,
-                        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                        childReportID: normalReport.reportID,
-                        childStateNum: normalReport.stateNum,
-                        childStatusNum: normalReport.statusNum,
-                        childManagerAccountID: normalReport.managerID,
-                    },
-                },
             } as unknown as OnyxMultiSetInput)
                 .then(() => {
                     approveMoneyRequest({
@@ -3206,13 +3192,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                         reportMetadata: undefined,
                     });
                     expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
-
-                    return getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
-                })
-                .then((parentReportActions) => {
-                    expect(parentReportActions?.[reportPreviewActionID]?.childStateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
-                    expect(parentReportActions?.[reportPreviewActionID]?.childStatusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
-                    expect(parentReportActions?.[reportPreviewActionID]?.childManagerAccountID).toBe(adminAccountID);
                 });
         });
     });
