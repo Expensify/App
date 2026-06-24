@@ -1,4 +1,4 @@
-import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -67,19 +67,16 @@ import {
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
-import Navigation, {navigationRef} from '@navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {SaveSearch} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
@@ -127,7 +124,6 @@ function Search({
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
-    const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -355,38 +351,6 @@ function Search({
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
-
-    useEffect(() => {
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
-
-        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
-        if (!comingBackOnlineWithNoResults || hasErrors || (!isFocused && !isMigratedModalDisplayed) || searchResults?.search?.isLoading) {
-            return;
-        }
-
-        handleSearch({
-            queryJSON,
-            searchKey: currentSearchKey,
-            offset,
-            shouldCalculateTotals,
-            prevReportsLength: filteredDataLength,
-            isLoading: false,
-        });
-    }, [
-        currentSearchKey,
-        filteredDataLength,
-        handleSearch,
-        hasErrors,
-        isFocused,
-        isOffline,
-        offset,
-        prevIsOffline,
-        queryJSON,
-        searchResults?.data,
-        searchResults?.search?.isLoading,
-        shouldCalculateTotals,
-    ]);
 
     useEffect(() => {
         if (offset === 0 || offset === searchResults?.search?.offset || !isFocused || isOffline || searchResults?.search?.isLoading) {
