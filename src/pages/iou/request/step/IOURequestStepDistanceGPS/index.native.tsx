@@ -18,7 +18,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMoneyRequestParticipantOptions, setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
+import {setGPSTransactionDraftData} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -106,11 +106,7 @@ function IOURequestStepDistanceGPS({
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const participants = getMoneyRequestParticipantOptions(currentUserAccountIDParam, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived, reportDraft);
-    const policyTagList = useMoneyRequestPolicyTagsForReport({
-        report,
-        participantReportID: participants.at(0)?.reportID,
-    });
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
     const navigateToNextStep = () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const distance = getGPSConvertedDistance(gpsDraftDetails, unit);

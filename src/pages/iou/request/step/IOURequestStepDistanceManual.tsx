@@ -22,7 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMoneyRequestParticipantOptions, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -180,12 +180,7 @@ function IOURequestStepDistanceManual({
         Navigation.goBack(backTo);
     };
 
-    const participants = getMoneyRequestParticipantOptions(currentUserAccountIDParam, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived, reportDraft);
-
-    const policyTagList = useMoneyRequestPolicyTagsForReport({
-        report,
-        participantReportID: participants.at(0)?.reportID,
-    });
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const navigateToNextPage = (amount: string) => {
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
