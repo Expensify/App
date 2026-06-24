@@ -358,7 +358,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const accountMenuItemsData: Menu = {
         sectionStyle: styles.accountSettingsSectionContainer,
         sectionTranslationKey: 'initialSettingsPage.account',
-        items: accountItems,
+        items: accountItems.filter(item => item !== null),
     };
 
     let classicRedirectMenuItem: MenuData | null = null;
