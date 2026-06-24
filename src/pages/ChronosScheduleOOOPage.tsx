@@ -145,7 +145,10 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             // When the user's most recent intent was to pin an end date, keep that end date and recompute duration.
             if (endDate && lastEditedRef.current !== 'duration') {
                 const days = computeDurationDays(newStartDate, endDate);
-                if (days !== null) {
+                if (days === null) {
+                    // The new start date is after the pinned end date, so the range is no longer valid.
+                    setEndDate('');
+                } else {
                     setSelectedDurationUnit(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
                     setDurationAmount(String(days));
                     durationAmountRef.current?.updateNumber(String(days));
