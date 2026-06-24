@@ -96,7 +96,9 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             return;
         }
 
-        if (existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && existingCommuterExclusions?.fixedDistance === numeric) {
+        const isSameDistance = existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && existingCommuterExclusions?.fixedDistance === numeric;
+        const isSameUnit = existingCommuterExclusions?.fixedDistanceUnit === workspaceUnit;
+        if (isSameDistance && isSameUnit) {
             goBackToSettings();
             return;
         }
