@@ -1,7 +1,7 @@
 ---
 title: Complete a hotel stay using Consolidated Travel Billing
 description: Learn what happens after you book a hotel with Consolidated Travel Billing and how to handle payment verification at check-in.
-keywords: [expensify hotel booking payment, consolidated travel billing hotel check in, expensify travel hotel authorization, hotel cvv expensify]
+keywords: [expensify hotel booking payment, Consolidated Travel Billing hotel check in, expensify travel hotel authorization, hotel cvv expensify]
 internalScope: Audience is Workspace Members. Covers hotel booking verification and check-in flow when using Consolidated Travel Billing. Does not cover booking travel or admin setup.
 ---
 

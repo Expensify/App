@@ -1,7 +1,7 @@
 ---
 title: Book Travel Using Consolidated Travel Billing
 description: Learn how to book travel using your company’s Consolidated Travel Billing setup and pay without using a personal card.
-keywords: [book travel expensify, consolidated travel billing booking, expensify travel payment, use travel cvv]
+keywords: [book travel expensify, Consolidated Travel Billing booking, expensify travel payment, use travel cvv]
 internalScope: Audience is Workspace Members. Covers booking travel using Consolidated Travel Billing. Does not cover admin setup or settlement configuration.
 ---
 

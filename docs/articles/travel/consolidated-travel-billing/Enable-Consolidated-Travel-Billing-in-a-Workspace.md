@@ -1,7 +1,7 @@
 ---
 title: Enable Consolidated Travel Billing on a Workspace
 description: Turn on Consolidated Travel Billing to centrally pay for employee travel and settle expenses on a recurring schedule.
-keywords: [enable consolidated travel billing, expensify consolidated travel billing setup, central travel billing, workspace travel settings]
+keywords: [enable Consolidated Travel Billing, expensify Consolidated Travel Billing setup, central travel billing, workspace travel settings]
 internalScope: Audience is Workspace Admins. Covers enabling Consolidated Travel Billing and initial setup. Does not cover CVV usage, accounting mappings, or exporting statements.
 ---
 
