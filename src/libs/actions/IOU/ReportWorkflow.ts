@@ -1470,9 +1470,12 @@ function submitReport({
             value: {
                 ...parentReport,
                 // In case its a manager who force submitted the report, they are the next user who needs to take an action.
-                // On a Submit workspace the submitter is also their own report manager, but they can't approve their own
-                // expense, so there's no outstanding action for them — keep the green dot off in that case.
-                hasOutstandingChildRequest: isCurrentUserManager && !isSubmitterApproveBlockedOnSubmitWorkspace(policy, expenseReport.ownerAccountID, currentUserAccountIDParam),
+                // On a Submit workspace the submitter is also their own report manager but can't approve their own expense,
+                // so the report they just submitted is no longer outstanding for them. Recompute across the chat's remaining
+                // children (excluding this report) so the green dot is cleared only when nothing else still needs their action.
+                hasOutstandingChildRequest: isSubmitterApproveBlockedOnSubmitWorkspace(policy, expenseReport.ownerAccountID, currentUserAccountIDParam)
+                    ? hasOutstandingChildRequest(parentReport, expenseReport.reportID, currentUserEmailParam, currentUserAccountIDParam, getAllTransactionViolations(), undefined)
+                    : isCurrentUserManager,
                 iouReportID: null,
             },
         });

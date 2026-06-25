@@ -1629,6 +1629,123 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(optimisticParentReport?.iouReportID).toBeUndefined();
         });
 
+        it('keeps the workspace chat outstanding when another sibling report still needs action after a Submit-workspace self-submit', async () => {
+            const policyID = '1';
+            const workspaceChatReportID = '2';
+            const submittedReportID = '1';
+            const siblingReportID = '3';
+            const submitterAccountID = 100;
+            const submitterEmail = 'submitter@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+            });
+
+            const parentReport: Report = {
+                ...createRandomReport(Number(workspaceChatReportID), undefined),
+                reportID: workspaceChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+                policyID,
+                ownerAccountID: submitterAccountID,
+                managerID: submitterAccountID,
+                iouReportID: submittedReportID,
+                hasOutstandingChildRequest: true,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.SUBMIT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: submitterEmail,
+                owner: submitterEmail,
+                harvesting: {enabled: false},
+            };
+
+            // A second open report in the same workspace chat that the submitter still needs to submit
+            const siblingReport: Report = {
+                ...createRandomReport(Number(siblingReportID), undefined),
+                reportID: siblingReportID,
+                policyID,
+                parentReportID: workspaceChatReportID,
+                chatReportID: workspaceChatReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: submitterAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 500,
+                currency: CONST.CURRENCY.USD,
+            };
+            const siblingTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: siblingReportID,
+                amount: 500,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${siblingReportID}`, siblingReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${siblingTransaction.transactionID}`, siblingTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`, {
+                'preview-submitted': {
+                    reportActionID: 'preview-submitted',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    created: '2024-08-08 18:00:00.000',
+                    originalMessage: {linkedReportID: submittedReportID},
+                    message: [{type: 'TEXT', text: 'Submitted report preview'}],
+                },
+                'preview-sibling': {
+                    reportActionID: 'preview-sibling',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    created: '2024-08-08 19:00:00.000',
+                    originalMessage: {linkedReportID: siblingReportID},
+                    message: [{type: 'TEXT', text: 'Sibling report preview'}],
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const expenseReport: Report = {
+                ...createRandomReport(Number(submittedReportID), undefined),
+                reportID: submittedReportID,
+                policyID,
+                parentReportID: workspaceChatReportID,
+                chatReportID: workspaceChatReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: submitterAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            // Go offline so only the optimistic update is applied
+            mockFetch?.pause?.();
+            submitReport({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: submitterAccountID,
+                currentUserEmailParam: submitterEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // The sibling report still needs the submitter's action, so the green dot must stay on
+            const optimisticParentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`);
+            expect(optimisticParentReport?.hasOutstandingChildRequest).toBe(true);
+        });
+
         it('recomputes the submit approver for a retracted forwarded report', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
