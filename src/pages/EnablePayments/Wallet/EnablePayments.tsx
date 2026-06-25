@@ -77,7 +77,7 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
 
     const [hasFreshData] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA);
 
-    const urlPage = route.params?.page;
+    const currentPage = route.params?.page;
 
     useEffect(() => {
         if (isOffline) {
@@ -108,18 +108,22 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
         canonicalPage = pages.find((p) => p.serverSteps.includes(enablePaymentsStep))?.pageName;
     }
 
+    // Keep the URL in sync with the user's real wallet progress:
+    // - While the wallet data isn't fresh yet (shouldWaitForWalletData), skip the redirect since the canonical page can't be reliably derived.
+    // - Once the data is fresh, canonicalPage reflects the step the user actually needs to be on.
+    // - If the page in the URL doesn't match canonicalPage, redirect to the correct page.
     useEffect(() => {
         if (shouldWaitForWalletData) {
             return;
         }
 
-        if (!canonicalPage || urlPage === canonicalPage) {
+        if (!canonicalPage || currentPage === canonicalPage) {
             return;
         }
 
         // This is a URL correction, so replace the current route instead of pushing a duplicate instance of this screen.
         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute({page: canonicalPage}), {forceReplace: true});
-    }, [canonicalPage, shouldWaitForWalletData, urlPage]);
+    }, [canonicalPage, shouldWaitForWalletData, currentPage]);
 
     if (shouldWaitForWalletData) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
@@ -145,7 +149,7 @@ function EnablePaymentsPage({route}: EnablePaymentsPageProps) {
         );
     }
 
-    const currentEntry = pages.find((p) => p.pageName === urlPage) ?? pages.find((p) => p.pageName === canonicalPage);
+    const currentEntry = pages.find((p) => p.pageName === currentPage) ?? pages.find((p) => p.pageName === canonicalPage);
     const CurrentPage = currentEntry?.component;
     if (!CurrentPage) {
         return null;
