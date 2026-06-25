@@ -35,6 +35,7 @@ type WorkspaceAutoReportingMonthlyOffsetPageItem = {
 
 function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoReportingMonthlyOffsetProps) {
     const {translate, toLocaleOrdinal} = useLocalize();
+    const policyID = policy?.id;
     const offset = policy?.autoReportingOffset ?? 0;
     const [selectedOffset, setSelectedOffset] = useState<number | AutoReportingOffsetKeys>(offset);
     const [searchText, setSearchText] = useState('');
@@ -71,12 +72,12 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
     };
 
     const saveDayOfMonth = useCallback(() => {
-        if (!policy?.id) {
+        if (!policyID) {
             return;
         }
-        setWorkspaceAutoReportingMonthlyOffset(policy.id, selectedOffset, policy.autoReportingOffset);
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy.id));
-    }, [policy?.id, policy?.autoReportingOffset, selectedOffset]);
+        setWorkspaceAutoReportingMonthlyOffset(policyID, selectedOffset, policy?.autoReportingOffset);
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID));
+    }, [policyID, policy?.autoReportingOffset, selectedOffset]);
 
     const confirmButtonOptions = useMemo(
         () => ({

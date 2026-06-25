@@ -52,6 +52,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
 
     const {translate, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
+    const policyID = policy?.id;
 
     // The selection is kept in local draft state so the page no longer closes on input (WCAG 3.2.2); the change is
     // only persisted when the user taps Save below.
@@ -62,12 +63,12 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     };
 
     const saveAutoReportingFrequency = useCallback(() => {
-        if (!policy?.id || !selectedFrequency) {
+        if (!policyID || !selectedFrequency) {
             return;
         }
-        setWorkspaceAutoReportingFrequency(policy.id, selectedFrequency, policy.autoReportingFrequency, policy.harvesting);
+        setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting);
         Navigation.goBack();
-    }, [policy?.id, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency]);
+    }, [policyID, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency]);
 
     const confirmButtonOptions = useMemo(
         () => ({
