@@ -6,6 +6,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import Button from './Button';
 import Icon from './Icon';
 import InlineTextWithOptionalLink from './InlineTextWithOptionalLink';
@@ -43,6 +44,7 @@ function ConnectionStatusMessage({
     const statusMessageRowPadding = shouldIncludeHorizontalPadding ? {paddingLeft: 32, paddingRight: 32} : undefined;
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
+    const dangerTextStyle = theme.colorScheme === CONST.THEME.DARK ? styles.textLabelError : styles.badgeDangerText;
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
             {isDangerStatus && (
@@ -57,7 +59,7 @@ function ConnectionStatusMessage({
                 message={message ?? ''}
                 linkText={linkText}
                 onLinkPress={onLinkPress}
-                textStyle={[isDangerStatus ? styles.textLabelError : styles.textLabelSupporting, styles.flex1]}
+                textStyle={[isDangerStatus ? dangerTextStyle : styles.textLabelSupporting, styles.flex1]}
             />
         </View>
     );
