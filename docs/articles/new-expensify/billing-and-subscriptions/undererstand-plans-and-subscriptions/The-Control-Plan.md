@@ -15,14 +15,6 @@ In addition to core expense management features, Control includes advanced appro
 
 ---
 
-## Who can use the Control plan
-
-Any workspace can use the Control plan.
-
-Only the **billing owner** can change a workspace's plan.
-
----
-
 ## What the Control plan includes
 
 The Control plan includes advanced capabilities for managing expenses across larger teams and organizations, including:
