@@ -18,7 +18,6 @@ function useUndeleteTransactions() {
 
     return (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
-        const allTransactions = Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]));
 
         changeTransactionsReport({
             transactionIDs,
@@ -26,8 +25,8 @@ function useUndeleteTransactions() {
             accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: currentUserPersonalDetails.email ?? '',
             policy,
-            allTransactions,
             policyTagList,
+            transactions,
             allTransactionViolation: transactionViolations,
             allReports,
         });

@@ -1,10 +1,8 @@
 import {addDays, format, isValid, parse} from 'date-fns';
 import CONST from '@src/CONST';
 
-/**
- * Common date formats to try when parsing CSV dates. Order matters: more
- * specific / more common formats are tried first.
- */
+// Common date formats to try when parsing CSV dates
+// Order matters - more specific/common formats first
 const CSV_DATE_FORMATS = [
     'yyyy-MM-dd', // ISO format: 2025-11-02
     'MM/dd/yyyy', // US format: 11/02/2025
@@ -22,13 +20,7 @@ const CSV_DATE_FORMATS = [
 ];
 
 /**
- * Parses a date string from a variety of common CSV formats and returns it in
- * `yyyy-MM-dd`. Returns null when the input cannot be parsed as a date.
- *
- * The yyyy-MM-dd format is tried via `date-fns.parse` before falling back to
- * the native Date constructor so that bare ISO dates (e.g. `2024-01-15`) are
- * interpreted in the local timezone instead of being shifted by UTC midnight
- * in zones west of UTC.
+ * Parses a date string from various formats and returns it in yyyy-MM-dd format
  */
 function parseCSVDate(input: string): string | null {
     if (!input || typeof input !== 'string') {
@@ -37,11 +29,13 @@ function parseCSVDate(input: string): string | null {
 
     const trimmedInput = input.trim();
 
-    // Try the explicit formats first. The native `Date` constructor parses
-    // bare ISO dates (e.g. "2024-01-15") as UTC midnight, which would shift to
-    // the previous day in any zone west of UTC once formatted back. The
-    // format list starts with `yyyy-MM-dd` so those inputs are interpreted in
-    // local time and round-trip cleanly.
+    // Try native Date parsing first (handles ISO and some other formats)
+    let date = new Date(trimmedInput);
+    if (isValid(date) && !Number.isNaN(date.getTime())) {
+        return format(date, CONST.DATE.FNS_FORMAT_STRING);
+    }
+
+    // Try parsing with common date formats using date-fns
     for (const dateFormat of CSV_DATE_FORMATS) {
         const parsedDate = parse(trimmedInput, dateFormat, new Date());
         if (isValid(parsedDate)) {
@@ -49,36 +43,30 @@ function parseCSVDate(input: string): string | null {
         }
     }
 
-    // Fall back to the native Date constructor for anything else (ISO 8601
-    // date-time strings, RFC 2822, etc).
-    let date = new Date(trimmedInput);
-    if (isValid(date) && !Number.isNaN(date.getTime())) {
-        return format(date, CONST.DATE.FNS_FORMAT_STRING);
-    }
-
-    // If still unparsed, try just the first 10 characters in case the input
-    // is a longer string with a date prefix.
+    // If the date didn't parse, try taking just the first 10 characters
     if (trimmedInput.length > 10) {
         const shortInput = trimmedInput.substring(0, 10);
+        date = new Date(shortInput);
+        if (isValid(date) && !Number.isNaN(date.getTime())) {
+            return format(date, CONST.DATE.FNS_FORMAT_STRING);
+        }
+
+        // Also try format parsing on the shortened input
         for (const dateFormat of CSV_DATE_FORMATS) {
             const parsedDate = parse(shortInput, dateFormat, new Date());
             if (isValid(parsedDate)) {
                 return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
             }
         }
-        date = new Date(shortInput);
-        if (isValid(date) && !Number.isNaN(date.getTime())) {
-            return format(date, CONST.DATE.FNS_FORMAT_STRING);
-        }
     }
 
-    // Maybe it's an Excel serial date number. Excel stores dates serialized
-    // from January 1st 1900 (with 1/1/1900 being 1), and incorrectly treats
-    // 1900 as a leap year, so we subtract 2 days when converting.
+    // If it didn't parse, maybe it's an Excel date number
+    // Excel stores dates serialized from January 1st, 1900 (with 1/1/1900 being 1)
+    // Excel thinks that 1900 was a leap year and adds an extra day to account for that
     if (/^\d+$/.test(trimmedInput)) {
         const inputInt = parseInt(trimmedInput, 10);
         if (inputInt > 0 && inputInt < 100000) {
-            const excelEpoch = new Date(1900, 0, 1);
+            const excelEpoch = new Date(1900, 0, 1); // January 1, 1900
             const parsedDate = addDays(excelEpoch, inputInt - 2);
             if (isValid(parsedDate)) {
                 return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
