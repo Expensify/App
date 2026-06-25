@@ -162,6 +162,25 @@ function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest
         };
     }
 
+    // The incoming reconnect is wider than everything live, so drop the now-redundant narrower
+    // reconnects still waiting in the queue (never the in-flight one) to avoid an extra fetch.
+    const indicesToDelete = persistedRequests.reduce<number[]>((indices, request, index) => {
+        if (isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) > incomingCoverage) {
+            indices.push(index);
+        }
+        return indices;
+    }, []);
+
+    if (indicesToDelete.length > 0) {
+        return {
+            conflictAction: {
+                type: 'delete',
+                indices: indicesToDelete,
+                pushNewRequest: true,
+            },
+        };
+    }
+
     return {
         conflictAction: {
             type: 'push',

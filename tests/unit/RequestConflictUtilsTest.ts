@@ -236,21 +236,24 @@ describe('RequestConflictUtils', () => {
         const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
         const incrementalReconnect = (updateIDFrom: number): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP, data: {updateIDFrom}});
 
-        // The live reconnect-family request that is in flight or queued vs the incoming one, and whether
-        // the incoming one is redundant (dropped via noAction) or wider/distinct (pushed to run after).
+        // Redundant incoming reconnect is dropped (noAction); a wider one is pushed. A wider one also
+        // deletes a narrower request that is only queued (redundant now), but can't delete an in-flight one.
+        const drop = {conflictAction: {type: 'noAction'}};
+        const push = {conflictAction: {type: 'push'}};
+        const replaceQueued = {conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}};
         it.each([
-            ['full', 'full', 'noAction', fullReconnect(), fullReconnect()],
-            ['full', 'incremental', 'noAction', fullReconnect(), incrementalReconnect(500)],
-            ['incremental(500)', 'incremental(600)', 'noAction', incrementalReconnect(500), incrementalReconnect(600)],
-            ['incremental(500)', 'incremental(500)', 'noAction', incrementalReconnect(500), incrementalReconnect(500)],
-            ['incremental(500)', 'full', 'push', incrementalReconnect(500), fullReconnect()],
-            ['incremental(500)', 'incremental(400)', 'push', incrementalReconnect(500), incrementalReconnect(400)],
-            ['OpenApp', 'incremental', 'noAction', openApp(), incrementalReconnect(500)],
-        ])('live %s vs incoming reconnect %s -> %s', (_live, _incoming, expected, live: AnyRequest, incoming: AnyRequest) => {
-            // Decided against the in-flight (ongoing) request.
-            expect(resolveReconnectDuplicationConflictAction([], live, incoming)).toEqual({conflictAction: {type: expected}});
-            // And identically against a waiting-queue request, since the resolver treats both as "live".
-            expect(resolveReconnectDuplicationConflictAction([live], null, incoming)).toEqual({conflictAction: {type: expected}});
+            ['full', 'full', drop, drop, fullReconnect(), fullReconnect()],
+            ['full', 'incremental', drop, drop, fullReconnect(), incrementalReconnect(500)],
+            ['incremental(500)', 'incremental(600)', drop, drop, incrementalReconnect(500), incrementalReconnect(600)],
+            ['incremental(500)', 'incremental(500)', drop, drop, incrementalReconnect(500), incrementalReconnect(500)],
+            ['incremental(500)', 'full', push, replaceQueued, incrementalReconnect(500), fullReconnect()],
+            ['incremental(500)', 'incremental(400)', push, replaceQueued, incrementalReconnect(500), incrementalReconnect(400)],
+            ['OpenApp', 'incremental', drop, drop, openApp(), incrementalReconnect(500)],
+        ])('live %s vs incoming reconnect %s', (_live, _incoming, expectedOngoing, expectedQueued, live: AnyRequest, incoming: AnyRequest) => {
+            // Decided against the in-flight (ongoing) request, which can never be deleted.
+            expect(resolveReconnectDuplicationConflictAction([], live, incoming)).toEqual(expectedOngoing);
+            // And against a waiting-queue request, which a wider incoming one can replace.
+            expect(resolveReconnectDuplicationConflictAction([live], null, incoming)).toEqual(expectedQueued);
         });
 
         // OpenApp only ever appears on the live side here (it covers an incoming reconnect because it
