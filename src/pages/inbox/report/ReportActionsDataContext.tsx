@@ -4,9 +4,8 @@ import {isUnread} from '@libs/ReportUtils';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /**
- * Carries `contentData` (the pipeline outputs the list renders) from `ReportActionsSkeletonGuard` to
- * `ReportActionsListContent`, so the list renders from the same derivations as the skeleton decision
- * without re-subscribing. Ambient state (network, route, archived, concierge session) is read locally.
+ * Carries `contentData` from the guard to `ReportActionsListContent` so the list renders from the same
+ * derivations as the skeleton decision without re-subscribing.
  */
 const ReportActionsDataContext = createContext<ReportActionsContentData | null>(null);
 
@@ -35,13 +34,13 @@ function computeReportActionsSkeletonState(data: ReportActionsGuardData) {
         isLoadingInitialReportActions,
         hasOnceLoadedReportActions,
         isLoadingApp,
-        reportActions,
+        reportActionsLength,
         oldestUnreadReportAction,
-        reportPreviewAction,
-        sortedVisibleReportActions,
+        isSingleExpenseReport,
+        isMissingReportActions,
         isConciergeHiddenHistory,
         isConciergeMainDM,
-        allReportActions,
+        hasCachedReportActions,
         showConciergeSidePanelWelcome,
     } = data;
 
@@ -49,7 +48,7 @@ function computeReportActionsSkeletonState(data: ReportActionsGuardData) {
 
     // When opening an unread report, it is very likely that the message we will open to is not the latest,
     // which is the only one we will have in cache.
-    const isInitiallyLoadingReport = isReportUnread && !!isLoadingInitialReportActions && reportActions.length <= 1;
+    const isInitiallyLoadingReport = isReportUnread && !!isLoadingInitialReportActions && reportActionsLength <= 1;
 
     // Same for unread messages, we need to wait for the results from the OpenReport API call
     // if the oldest unread report action is not available yet. Only applies during the *first* load
@@ -61,10 +60,8 @@ function computeReportActionsSkeletonState(data: ReportActionsGuardData) {
     const isReportLoading = isInitiallyLoadingReport || isUnreadMessagePageLoadingInitially;
     const isReportReady = isOffline || !isReportLoading;
 
-    const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
     const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
-    const isMissingReportActions = sortedVisibleReportActions.length === 0;
 
     const shouldShowSkeletonForInitialLoad = !!isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
@@ -78,14 +75,14 @@ function computeReportActionsSkeletonState(data: ReportActionsGuardData) {
     // cached report actions persist in Onyx. For the main DM, render those cached
     // actions immediately (matching production) instead of flashing a skeleton on
     // every refresh; the side panel always opens fresh so it keeps gating on
-    // hasOnceLoadedReportActions only. allReportActions excludes the synthetic
-    // CREATED action that is always injected for Concierge, so it is empty only on
-    // a genuinely cold load with no cached history.
-    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !(isConciergeMainDM && allReportActions.length > 0) && !isOffline;
+    // hasOnceLoadedReportActions only. hasCachedReportActions is false only on a
+    // genuinely cold load with no cached history (it excludes the synthetic CREATED
+    // action that is always injected for Concierge).
+    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !(isConciergeMainDM && hasCachedReportActions) && !isOffline;
 
     const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
 
-    const hasDerivedValueTimingIssue = reportActions.length > 0 && isMissingReportActions;
+    const hasDerivedValueTimingIssue = reportActionsLength > 0 && isMissingReportActions;
 
     const shouldShowLoadingSkeleton = isLoadingOnyxValue(reportResult) || !report || !isReportReady || shouldShowInitialSkeleton;
     const shouldShowDerivedTimingSkeleton = (hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) && !showConciergeSidePanelWelcome;

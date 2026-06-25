@@ -5,7 +5,6 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {useCurrentReportIDState} from './useCurrentReportID';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -15,12 +14,10 @@ import useReportActionsVisibility from './useReportActionsVisibility';
 import useReportIsArchived from './useReportIsArchived';
 
 /**
- * Read/derive-only data pipeline for the report-actions list.
- *
- * Bundles every subscription + derivation needed for both the skeleton decision and the list render, so
- * the guard's decision and the content's render share one pipeline. Intentionally side-effect-free: NO
- * Onyx writes, navigation, telemetry, or session-start. `ReportActionsSkeletonGuard` calls this once and
- * provides the result via `ReportActionsDataContext`, so the content reads it instead of subscribing again.
+ * Single read/derive pipeline for the report-actions list: the subscriptions and derivations the skeleton
+ * decision and the list render both need, computed once. Side-effect-free (no writes/navigation/telemetry/
+ * session-start). The guard calls it once and passes `contentData` via `ReportActionsDataContext` so the
+ * content doesn't re-subscribe.
  */
 function useReportActionsData(reportID: string) {
     const {isOffline} = useNetworkWithOfflineStatus();
@@ -51,9 +48,8 @@ function useReportActionsData(reportID: string) {
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
 
-    const {currentReportID} = useCurrentReportIDState();
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
-    const {startSession, setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
+    const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
     const isReportArchived = useReportIsArchived(reportID);
@@ -96,17 +92,14 @@ function useReportActionsData(reportID: string) {
         setConciergeHadMessagesAtSessionStart,
     });
 
-    // hasOnceLoadedReportActions is RAM-only and resets to falsy on a page
-    // refresh, but cached report actions persist in Onyx. Gating the session
-    // start on it alone would leave sessionStartTime null until openReport
-    // returns, during which filterActions collapses the cached history down to
-    // just the synthetic CREATED action (an almost-empty chat flash). Start the
-    // session as soon as cached actions exist so messages render immediately on
-    // refresh, matching the concierge skeleton condition.
-    const canStartConciergeSession = !!hasOnceLoadedReportActions || allReportActions.length > 0;
+    const isMissingReportActions = sortedVisibleReportActions.length === 0;
+    const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
+    // allReportActions excludes the synthetic CREATED action always injected for Concierge, so this is
+    // false only on a genuinely cold load with no cached history.
+    const hasCachedReportActions = allReportActions.length > 0;
 
-    // Guard-only slice: skeleton decision + effects. Kept off the context so its churn (loading,
-    // app-load, concierge-session, navigation) never re-renders the list.
+    // Guard-only inputs to the skeleton decision (some also read by the guard's effect hooks). Off the
+    // context so its churn (loading, app-load, concierge-session, navigation) never re-renders the list.
     const guardData = {
         report,
         reportResult,
@@ -118,22 +111,18 @@ function useReportActionsData(reportID: string) {
         isLoadingInitialReportActions,
         hasOnceLoadedReportActions,
         isLoadingApp,
-        reportActions,
+        reportActionsLength: reportActions.length,
         oldestUnreadReportAction,
-        reportPreviewAction,
-        sortedVisibleReportActions,
+        isSingleExpenseReport,
+        isMissingReportActions,
         isConciergeHiddenHistory,
         isConciergeMainDM,
-        allReportActions,
+        hasCachedReportActions,
         showConciergeSidePanelWelcome,
-        canStartConciergeSession,
-        startSession,
-        currentReportID,
     };
 
-    // The only slice on the context: pipeline outputs the list renders. `report` and
-    // `hasOnceLoadedReportActions` stay here (already subscribed here; keeps `report` consistent with its
-    // derivations). Ambient state (network, route, archived, concierge session) is read locally instead.
+    // The only slice on the context, so it alone drives list re-renders. Ambient state (network, route,
+    // archived, concierge session) is read locally in the content instead of carried here.
     const contentData = {
         report,
         hasOnceLoadedReportActions,
