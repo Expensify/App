@@ -1,10 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
-import type {TabSelectorProps} from '@components/TabSelector/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -98,8 +97,6 @@ function DistanceRequestStartPage({
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
-    const tabBar = useCallback((tabBarProps: TabSelectorProps) => <TabSelector {...tabBarProps} />, []);
-
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
@@ -127,7 +124,7 @@ function DistanceRequestStartPage({
                         id={CONST.TAB.DISTANCE_REQUEST_TYPE}
                         defaultSelectedTab={defaultSelectedTab}
                         onTabSelected={resetIOUTypeIfChanged}
-                        tabBar={tabBar}
+                        tabBar={TabSelector}
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                         lazyLoadEnabled
