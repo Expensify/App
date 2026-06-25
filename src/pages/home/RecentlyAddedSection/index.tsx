@@ -131,6 +131,7 @@ function RecentlyAddedSection() {
                         text: translate('homePage.recentlyAddedSection.viewAll'),
                         icon: icons.Receipt,
                         onSelected: navigateToExpensesPage,
+                        shouldCallAfterModalHide: true,
                     },
                 ]}
             />
