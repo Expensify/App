@@ -87,7 +87,6 @@ import {getReportFromHoldRequestsOnyxData} from './Hold';
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     expenseReportPolicy: OnyxEntry<OnyxTypes.Policy>;
-    policy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
@@ -410,7 +409,6 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const {
         expenseReport,
-        policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -430,14 +428,11 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     }
 
     // If this is a Submit workspace, approving requires upgrading first.
-    // IMPORTANT: gate by the workspace that owns the expense report (`expenseReportPolicy`) instead of `policy`,
-    // since some call sites pass `policy` as the active/personal policy rather than the report's workspace policy.
-    const policyToUpgrade = expenseReportPolicy ?? policy;
-    if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id) {
+    if (isSubmitPolicy(expenseReportPolicy) && expenseReportPolicy?.id) {
         const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
         const backTo = Navigation.getActiveRoute() || ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID);
 
-        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, expenseReport.reportID));
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(expenseReportPolicy.id, upgradeFeatureAlias, backTo, expenseReport.reportID));
         return;
     }
 
@@ -451,13 +446,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const hasHeldExpenses = hasHeldExpensesReportUtils(reportTransactions);
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy, getAllTransactionViolations());
+    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, expenseReportPolicy, getAllTransactionViolations());
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
     const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
     const nextApproverAccountID = getNextApproverAccountID(expenseReport);
@@ -470,7 +465,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ? null
         : buildNextStepNew({
               report: expenseReport,
-              policy,
+              policy: expenseReportPolicy,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -481,7 +476,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ? null
         : buildOptimisticNextStep({
               report: expenseReport,
-              policy,
+              policy: expenseReportPolicy,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -725,7 +720,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             chatReport,
             iouReport: expenseReport,
             recipient: {accountID: expenseReport.ownerAccountID},
-            policy,
+            policy: expenseReportPolicy,
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
@@ -749,7 +744,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 currentUserEmailParam,
                 currentUserAccountIDParam,
                 expenseReport,
-                policy,
+                expenseReportPolicy,
                 // TODO: https://github.com/Expensify/App/issues/66512
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
