@@ -544,6 +544,7 @@
 "../../src/hooks/useProactiveAppReview.ts"	"react-hooks/purity"	1
 "../../src/hooks/useReceiptScanDrop.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useRestoreInputFocus/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
@@ -1292,7 +1293,6 @@
 "../../src/pages/workspace/WorkspaceResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/AccountingContext/default.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1418,7 +1418,6 @@
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/workspace/perDiem/WorkspacePerDiemPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/receiptPartners/EditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
