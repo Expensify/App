@@ -31,7 +31,7 @@ import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
 import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
-import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
+import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
@@ -64,9 +64,9 @@ function Expensify() {
     useDebugShortcut();
 
     useEffect(() => {
-        initializeMemoryTrackingTelemetry();
+        initializeTelemetryTrackers();
         return () => {
-            cleanupMemoryTrackingTelemetry();
+            cleanupTelemetryTrackers();
         };
     }, []);
 
