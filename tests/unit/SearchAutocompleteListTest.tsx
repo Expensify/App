@@ -134,7 +134,9 @@ const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
 
-const mockOnClose = jest.fn();
+const mockOnClose = jest.fn((afterClose?: () => void) => {
+    afterClose?.();
+});
 
 // Fake report options that getSearchOptions returns as recentReports.
 // These simulate local results available before any server search completes.

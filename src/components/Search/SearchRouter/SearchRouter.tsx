@@ -58,7 +58,7 @@ import useNavigationSuggestions from './useNavigationSuggestions';
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
 type SearchRouterProps = {
-    onRouterClose: () => void;
+    onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
     ref?: React.Ref<View>;
@@ -322,9 +322,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             if (isSearchQueryItem(item)) {
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.action) {
                     backHistory(() => {
-                        item.action?.();
+                        onRouterClose(item.action);
                     });
-                    onRouterClose();
                     return;
                 }
 

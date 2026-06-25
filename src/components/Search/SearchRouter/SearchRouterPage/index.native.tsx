@@ -6,6 +6,10 @@ import {useSearchRouterActions, useSearchRouterState} from '@components/Search/S
 function SearchRouterPage() {
     const {closeSearchRouter} = useSearchRouterActions();
     const {isSearchRouterDisplayed} = useSearchRouterState();
+    const closeSearchRouterAndRunAction = (afterClose?: () => void) => {
+        closeSearchRouter();
+        afterClose?.();
+    };
 
     return (
         <ScreenWrapper
@@ -16,7 +20,7 @@ function SearchRouterPage() {
             includeSafeAreaPaddingBottom
         >
             <SearchRouter
-                onRouterClose={closeSearchRouter}
+                onRouterClose={closeSearchRouterAndRunAction}
                 shouldHideInputCaret={false}
                 isSearchRouterDisplayed={isSearchRouterDisplayed}
             />
