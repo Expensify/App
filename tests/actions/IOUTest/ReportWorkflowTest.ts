@@ -1619,6 +1619,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Go offline so only the optimistic update is applied
             mockFetch?.pause?.();
             submitReport({
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
