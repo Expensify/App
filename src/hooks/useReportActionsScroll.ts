@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useContext, useEffect, useEffectEvent, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
@@ -279,23 +279,23 @@ function useReportActionsScroll({
     }, [actionIdToHighlight]);
 
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
-    const prevLastIOUActionWithErrorID = useRef(lastIOUActionWithError?.reportActionID);
+    const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
-    // Scroll to the bottom once when a new IOU action with an error appears.
-    // Record the id inside the transition callback (not before): a cancelled scroll must not consume the id,
-    // so the effect self-heals by rescheduling on the next pass even if a re-render cancels the pending handle.
-    useEffect(() => {
-        if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithErrorID.current) {
-            return;
+    // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked
+    // only when a new action arrives (keyed on lastAction), so loading older history never yanks a user who has
+    // scrolled up. useEffectEvent reads the latest error state without making it a trigger — that is what lets us
+    // drop the old react-hooks/exhaustive-deps disable. The !lastIOUActionWithError guard keeps a cleared error
+    // (retry succeeded / dismissed) from scrolling.
+    const scheduleScrollToNewError = useEffectEvent(() => {
+        if (!lastIOUActionWithError || lastIOUActionWithError.reportActionID === prevLastIOUActionWithError?.reportActionID) {
+            return undefined;
         }
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => {
-                prevLastIOUActionWithErrorID.current = lastIOUActionWithError?.reportActionID;
-                reportScrollManager.scrollToBottom();
-            },
-        });
-        return () => handle.cancel();
-    }, [lastIOUActionWithError?.reportActionID, reportScrollManager]);
+        return TransitionTracker.runAfterTransitions({callback: () => reportScrollManager.scrollToBottom()});
+    });
+    useEffect(() => {
+        const handle = scheduleScrollToNewError();
+        return () => handle?.cancel();
+    }, [lastAction]);
 
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
