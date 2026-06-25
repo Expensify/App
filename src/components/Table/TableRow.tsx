@@ -69,8 +69,7 @@ export default function TableRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- mobile selection mode is only for small screens, not RHP on wide layouts
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext();
 
     const item = processedData.at(rowIndex);
@@ -79,7 +78,7 @@ export default function TableRow({
     const isLastRow = rowIndex === rowCount - 1;
     const isDisabled = !!disabled || !!isLoading;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !isSmallScreenWidth);
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
 
     if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
@@ -158,7 +157,7 @@ export default function TableRow({
             return;
         }
 
-        if (!isSmallScreenWidth || !isMobileSelectionEnabled || !selectionEnabled) {
+        if (!shouldUseNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
             onPress?.();
             return;
         }

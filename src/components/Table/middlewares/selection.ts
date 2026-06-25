@@ -53,8 +53,7 @@ export default function useSelection<DataType extends TableData>({
     currentFilters,
     onRowSelectionChange,
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- mobile selection mode is only for small screens, not RHP on wide layouts
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
@@ -72,8 +71,8 @@ export default function useSelection<DataType extends TableData>({
 
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
-        const isMobileMissingSelectionMode = isSmallScreenWidth && !isSelectionModeEnabled && selectedKeys.length;
-        const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !isSmallScreenWidth;
+        const isMobileMissingSelectionMode = shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
+        const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !shouldUseNarrowLayout;
         const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && originalSelectableCount > 0;
 
         if (isMobileMissingSelectionMode) {
@@ -81,7 +80,7 @@ export default function useSelection<DataType extends TableData>({
         } else if (isDesktopWithoutSelectableKeys || isSelectionModeEnabledWithoutSelectableKeys) {
             turnOffMobileSelectionMode();
         }
-    }, [isSmallScreenWidth, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
+    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
 
     // When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
     const wasSelectionModeEnabled = usePrevious(isSelectionModeEnabled);
