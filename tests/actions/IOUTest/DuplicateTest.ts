@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {RenderAPI} from '@testing-library/react-native';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
@@ -24,13 +25,13 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
-import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -70,14 +71,7 @@ const RORY_ACCOUNT_ID = 3;
 OnyxUpdateManager();
 describe('actions/Duplicate', () => {
     beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
-            },
-        });
+        Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
@@ -85,8 +79,9 @@ describe('actions/Duplicate', () => {
 
     describe('mergeDuplicates', () => {
         let writeSpy: jest.SpyInstance;
+        let currencyListProvider: RenderAPI;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
 
@@ -103,10 +98,18 @@ describe('actions/Duplicate', () => {
                 }
                 return Promise.resolve();
             });
-            return Onyx.clear();
+            await Onyx.clear();
+            currencyListProvider = await initCurrencyListContext({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                },
+            });
         });
 
         afterEach(() => {
+            currencyListProvider.unmount();
             writeSpy.mockRestore();
         });
 
@@ -204,7 +207,16 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was updated
@@ -285,7 +297,12 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with empty duplicate list
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: []},
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was still updated
@@ -336,7 +353,15 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates without expense report
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: [],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: [],
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify function completed without errors
@@ -539,7 +564,16 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
@@ -639,7 +673,15 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with transactionThreadReportID
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify the optimistic transaction thread report was created
@@ -718,7 +760,15 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call mergeDuplicates with cross-report duplicates
-            mergeDuplicates({...mergeParams, currentUserLogin: RORY_EMAIL, currentUserAccountID: RORY_ACCOUNT_ID});
+            mergeDuplicates({
+                ...mergeParams,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: cross-report IOU action was soft-deleted
@@ -870,7 +920,14 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was updated
@@ -962,7 +1019,7 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates with undefined transactionID
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({...resolveParams, allTransactionViolations: {}});
             await waitForBatchedUpdates();
 
             // Then: Verify API was not called
@@ -1005,7 +1062,10 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates with empty duplicate list
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations},
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify main transaction was still updated
@@ -1062,7 +1122,13 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates without IOU actions
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicateViolations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify function completed without errors
@@ -1141,7 +1207,13 @@ describe('actions/Duplicate', () => {
             };
 
             // When: Call resolveDuplicates with cross-report duplicates
-            resolveDuplicates(resolveParams);
+            resolveDuplicates({
+                ...resolveParams,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
+                },
+            });
             await waitForBatchedUpdates();
 
             // Then: The cross-report duplicate transaction should be put on hold
@@ -2095,6 +2167,7 @@ describe('actions/Duplicate', () => {
                         transactionThreadReportIDMap: {
                             [transaction2.transactionID]: 'transactionThread-2',
                         },
+                        allTransactionViolations: {},
                     });
                     return waitForBatchedUpdates();
                 })

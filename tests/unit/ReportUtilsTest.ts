@@ -701,7 +701,7 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             // Tasks are sent to server via guidedSetupData; not added optimistically to avoid flash.
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             // No optimistic task report actions — server creates tasks from guidedSetupData.
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(0);
@@ -723,7 +723,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -742,7 +742,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -761,7 +761,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -780,7 +780,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -859,6 +859,29 @@ describe('ReportUtils', () => {
             });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
+        });
+
+        it('should include text message in guidedSetupData for MANAGE_TEAM so the server can post it', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'Welcome to Expensify',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            const messageEntries = result?.guidedSetupData.filter((d) => d.type === 'message');
+            expect(messageEntries?.length).toBeGreaterThanOrEqual(1);
+            expect(messageEntries?.[0]).toMatchObject({type: 'message', reportComment: 'Welcome to Expensify'});
+            // An optimistic entry would appear then vanish when the real server message replaces it.
+            const optimisticActions = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`);
+            expect(optimisticActions).toHaveLength(0);
         });
 
         it('includes avatar and accountID in optimistic Account Executive personal detail', async () => {
@@ -1067,8 +1090,8 @@ describe('ReportUtils', () => {
             expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
         });
 
-        it('should recognize inbAdminsWel as a valid onboarding RHP variant', () => {
-            expect(CONST.ONBOARDING_RHP_VARIANT.INB_ADMINS_WEL).toBe('inbAdminsWel');
+        it('should recognize inboxAdminsBespoke as a valid onboarding RHP variant', () => {
+            expect(CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE).toBe('inboxAdminsBespoke');
         });
     });
 
@@ -7831,8 +7854,10 @@ describe('ReportUtils', () => {
         });
 
         it('should not return an archived report even if it was most recently accessed', () => {
-            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]);
-            const result = findLastAccessedReport(false, false, undefined, archivedReportsIDSet);
+            const reportNameValuePairsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
+            };
+            const result = findLastAccessedReport(false, false, undefined, reportNameValuePairsCollection);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -8722,8 +8747,8 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            const archivedReportsIDSet = new Set<string>([`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
-            expect(isReportOutstanding(report, policy.id, archivedReportsIDSet)).toBe(false);
+            const reportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: '2024-01-01 00:00:00.000'}};
+            expect(isReportOutstanding(report, policy.id, reportNameValuePairs)).toBe(false);
         });
     });
 
@@ -12927,7 +12952,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction: undefined,
-                transactions: [transaction],
+                linkedTransaction: transaction,
                 report: mockTransactionReport,
             });
 
@@ -12947,7 +12972,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction: undefined,
-                transactions: [transaction],
+                linkedTransaction: transaction,
                 report: mockTransactionReport,
             });
 
@@ -12963,6 +12988,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction,
+                linkedTransaction: undefined,
                 report: mockTransactionReport,
             });
 
@@ -12977,6 +13003,7 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction,
+                linkedTransaction: undefined,
                 report: mockTransactionReport,
             });
 
@@ -12995,12 +13022,93 @@ describe('ReportUtils', () => {
             const result = getTransactionReportName({
                 translate: translateLocal,
                 reportAction: undefined,
-                transactions: [transaction],
+                linkedTransaction: transaction,
                 report: mockTransactionReport,
             });
 
             expect(result).toBeDefined();
             expect(typeof result).toBe('string');
+        });
+
+        test('returns expense fallback when linkedTransaction is empty and reportAction is not track expense', () => {
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: undefined,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('iou.expense'));
+        });
+
+        test('returns create expense fallback when linkedTransaction is empty and reportAction is track expense', () => {
+            const reportAction = createRandomReportAction(1);
+            jest.spyOn(require('@libs/ReportActionsUtils'), 'isTrackExpenseAction').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction,
+                linkedTransaction: undefined,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('iou.createExpense'));
+        });
+
+        test('returns scanning message when transaction is being scanned', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+            };
+            jest.spyOn(require('@libs/TransactionUtils'), 'isScanning').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('iou.receiptScanning', {count: 1}));
+        });
+
+        test('returns missing details message when smartscan fields are missing', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+            };
+            jest.spyOn(require('@libs/TransactionUtils'), 'hasMissingSmartscanFields').mockReturnValueOnce(true);
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toBe(translateLocal('iou.receiptMissingDetails'));
+        });
+
+        test('returns formatted amount and merchant for normal expense', () => {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: mockReportID,
+                merchant: 'Coffee Shop',
+                modifiedMerchant: '',
+                comment: {comment: ''},
+                amount: -2500,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            const result = getTransactionReportName({
+                translate: translateLocal,
+                reportAction: undefined,
+                linkedTransaction: transaction,
+                report: mockTransactionReport,
+            });
+
+            expect(result).toContain('Coffee Shop');
+            expect(result).toContain('$25.00');
         });
     });
 
