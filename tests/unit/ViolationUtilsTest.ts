@@ -2290,6 +2290,60 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
             });
 
+            it('backfills isSupplierViolation on an existing server-fired violation when Xero is the active matching source', () => {
+                // The backend can fire `inactiveVendor` directly (e.g. after a supplier deletion +
+                // sync) — that violation has no `data.isSupplierViolation` flag, so the render
+                // layer would default to the "Vendor" wording even though the rest of the Xero UI
+                // shows "Supplier". The reconciliation pass must stamp the flag on existing
+                // violations so the copy matches.
+                policy = policyWithXeroVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveVendorViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('does NOT backfill isSupplierViolation when Xero is connected but not the active matching source (QBO active)', () => {
+                // Dual-connected: QBO is in CC export mode (active matching source), Xero is also
+                // connected with supplier data. The existing violation should NOT get the supplier
+                // flag because QBO owns the vendor list and label here.
+                const xeroPolicyContacts = {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}};
+                policy = {
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-active', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {isConfigured: true},
+                            data: {contacts: xeroPolicyContacts},
+                        },
+                    },
+                } as unknown as Policy;
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveVendorViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).toContainEqual(inactiveVendorViolation);
+                expect(result.value).not.toContainEqual(inactiveSupplierViolation);
+            });
+
             it('removes an existing violation when the Xero supplier is restored in the contacts list', () => {
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcActive', isManuallySet: true}};

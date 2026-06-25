@@ -490,11 +490,11 @@ const ViolationsUtils = {
                     // No-op — supplier list not yet known for this workspace.
                 } else {
                     const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
+                    // Stamp Xero-specific copy on the violation so the render site can use the
+                    // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the
+                    // default "Vendor" wording.
+                    const isSupplierViolation = isXeroActiveMatchingSource(policy);
                     if (!matchedVendor && !hasInactiveVendorViolation) {
-                        // Stamp Xero-specific copy on the violation so the render site can use the
-                        // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the
-                        // default "Vendor" wording.
-                        const isSupplierViolation = isXeroActiveMatchingSource(policy);
                         newTransactionViolations.push({
                             name: CONST.VIOLATIONS.INACTIVE_VENDOR,
                             type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -503,6 +503,16 @@ const ViolationsUtils = {
                         });
                     } else if (matchedVendor && hasInactiveVendorViolation) {
                         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
+                    } else if (!matchedVendor && hasInactiveVendorViolation && isSupplierViolation) {
+                        // Backfill the supplier flag on an existing violation (e.g. server-fired
+                        // after a Xero contact deletion + sync, or persisted before this code path
+                        // existed). Without this, the render layer would default to the "Vendor"
+                        // wording even though the rest of the Xero UI uses "Supplier".
+                        newTransactionViolations = newTransactionViolations.map((violation) =>
+                            violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR && violation.data?.isSupplierViolation !== true
+                                ? {...violation, data: {...violation.data, isSupplierViolation: true}}
+                                : violation,
+                        );
                     }
                 }
             } else if (hasInactiveVendorViolation) {
