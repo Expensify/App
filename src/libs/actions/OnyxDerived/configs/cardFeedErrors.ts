@@ -29,7 +29,9 @@ function getShouldShowRBR(state: Partial<CardFeedErrorState>): boolean {
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CARD_FEED_ERRORS,
-    dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER],
+    // CURRENT_DATE (day-granularity) is a trigger-only dependency: it makes this value recompute when the day rolls over so the
+    // 90-day broken-connection grace period (isBrokenConnectionPastDismissThreshold) is re-evaluated even if no card/feed data changes.
+    dependencies: [ONYXKEYS.CARD_LIST, ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, ONYXKEYS.CURRENT_DATE],
     compute: ([globalCardList, allWorkspaceCards, cardFeeds]) => {
         const feedKeysWithCards = buildFeedKeysWithAssignedCards(allWorkspaceCards);
         const combinedCompanyCardFeeds = getCombinedCardFeedsFromAllFeeds(cardFeeds, undefined, feedKeysWithCards);
