@@ -1,10 +1,10 @@
 import {NavigationContainer} from '@react-navigation/native';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Table from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -775,8 +775,9 @@ describe('Table', () => {
     describe('combined search and filter', () => {
         it('should apply both search and filter together', () => {
             const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
 
-            const filterConfig: FilterConfig = {
+            const filterConfig: FilterConfig<'category'> = {
                 category: {
                     label: 'test',
                     filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
@@ -795,19 +796,26 @@ describe('Table', () => {
             };
 
             render(
-                <Table<TestItem, TestColumnKey>
-                    data={props.data}
-                    columns={props.columns}
-                    renderItem={props.renderItem}
-                    keyExtractor={props.keyExtractor}
-                    filters={filterConfig}
-                    isItemInFilter={isItemInFilter}
-                    isItemInSearch={props.isItemInSearch}
-                >
-                    <Table.FilterBar label="Search" />
-                    <Table.Body />
-                </Table>,
+                <NavigationContainer>
+                    <Table<TestItem, TestColumnKey, 'category'>
+                        ref={tableRef}
+                        data={props.data}
+                        columns={props.columns}
+                        renderItem={props.renderItem}
+                        keyExtractor={props.keyExtractor}
+                        filters={filterConfig}
+                        isItemInFilter={isItemInFilter}
+                        isItemInSearch={props.isItemInSearch}
+                    >
+                        <Table.FilterBar label="Search" />
+                        <Table.Body />
+                    </Table>
+                </NavigationContainer>,
             );
+
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['fruit']});
+            });
 
             const searchInput = screen.getByTestId('search-input');
 
