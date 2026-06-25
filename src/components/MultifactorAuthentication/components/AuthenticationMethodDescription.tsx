@@ -1,5 +1,5 @@
 import React from 'react';
-import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';

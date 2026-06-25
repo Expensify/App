@@ -6,6 +6,7 @@ import {
     resolveDuplicationConflictAction,
     resolveEditCommentWithNewAddCommentRequest,
     resolveEnableFeatureConflicts,
+    resolveOpenReportDuplicationConflictAction,
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
@@ -160,6 +161,44 @@ describe('RequestConflictUtils', () => {
                 indices: [0],
                 pushNewRequest: false,
             },
+        });
+    });
+
+    describe('resolveOpenReportDuplicationConflictAction', () => {
+        it('returns push when no matching OpenReport for the reportID exists in the queue', () => {
+            const persistedRequests = [{command: 'OpenApp'}, {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '2'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('returns noAction when the queued OpenReport carries guidedSetupData', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', guidedSetupData: '[{}]'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('returns noAction when the queued request carries accountIDList but the new one has no participants', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '10,20'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('replaces when the new request also carries an accountIDList', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '10,20'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '10,20'} as never);
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
+        });
+
+        it('replaces when neither queued nor new request has participants', () => {
+            const persistedRequests = [{command: 'OpenApp'}, {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1'} as never);
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 1}});
+        });
+
+        it('replaces when the queued request has no participants but the new request does', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
+            const result = resolveOpenReportDuplicationConflictAction(persistedRequests, {reportID: '1', accountIDList: '10,20'} as never);
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
         });
     });
 

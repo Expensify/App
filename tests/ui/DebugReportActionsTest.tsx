@@ -21,9 +21,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@src/libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-}));
+jest.mock('@src/libs/Navigation/Navigation');
 
 describe('DebugReportActions', () => {
     beforeAll(() => {

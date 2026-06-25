@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -27,9 +28,12 @@ type Props = {
 
     /** Whether the feed selector should render a loading skeleton */
     isLoading?: boolean;
+
+    /** Style for the wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false}: Props) {
+function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false, wrapperStyle}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
@@ -41,7 +45,7 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
-            wrapperStyle={styles.flexShrink1}
+            wrapperStyle={[styles.flexShrink1, wrapperStyle]}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
             sentryLabel="FeedSelector"

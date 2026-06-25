@@ -18,7 +18,6 @@ export default function withToggleVisibilityView<TProps>(WrappedComponent: Compo
                 collapsable={false}
             >
                 <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(rest as TProps)}
                     isVisible={isVisible}
                 />

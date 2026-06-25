@@ -7,13 +7,11 @@ import createRandomPolicy from '../../utils/collections/policies';
 const mockUseActiveAdminPolicies = jest.fn<Policy[], []>(() => []);
 
 jest.mock('@hooks/useActiveAdminPolicies', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => mockUseActiveAdminPolicies(),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         localeCompare: (a: string, b: string) => a.localeCompare(b),

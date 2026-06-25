@@ -3,6 +3,7 @@ import {useEffect} from 'react';
 import CONST from './CONST';
 import useOnyx from './hooks/useOnyx';
 import FS from './libs/Fullstory';
+import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
 
 /**
@@ -15,12 +16,18 @@ function FullstoryInitHandler() {
 
     useEffect(() => {
         FS.init(userMetadata);
-        FS.getSessionURL().then((url) => {
-            if (!url) {
-                return;
-            }
-            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {url});
-        });
+        FS.getSessionURL()
+            .then((url) => {
+                if (!url) {
+                    return;
+                }
+                Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {url});
+            })
+            .catch((error: unknown) => {
+                Log.warn('[FullstoryInitHandler] getSessionURL failed.', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            });
     }, [userMetadata]);
 
     return null;

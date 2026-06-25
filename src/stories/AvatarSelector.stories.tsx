@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React, {useState} from 'react';
 import type {AvatarSelectorProps} from '@components/AvatarSelector';
@@ -21,7 +20,6 @@ const story: Meta<typeof AvatarSelector> = {
 function Template(props: AvatarSelectorProps) {
     const [selected, setSelected] = useState(props.selectedID);
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <AvatarSelector
             {...props}

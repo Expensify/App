@@ -152,7 +152,6 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
         return () => {
             ignore = true;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- requestCameraPermission is defined inline so including it would cause an infinite loop
     }, [isTabActive]);
 
     useEffect(

@@ -9,9 +9,4 @@ type ImagePickerResponse = {
 
 type FileObject = Partial<File | ImagePickerResponse> & {getAsFile?: () => File | null};
 
-const isFileObjectWithGetAsFile = (item: FileObject): item is FileObject => {
-    return 'getAsFile' in item && typeof item.getAsFile === 'function' && item.getAsFile?.() !== null;
-};
-
 export type {FileObject, ImagePickerResponse};
-export {isFileObjectWithGetAsFile};

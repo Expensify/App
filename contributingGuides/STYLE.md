@@ -571,9 +571,7 @@ When you change the function id argument type to allow `undefined`, check if it 
 
 ```diff
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-        canEvict: false,
-    });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
 -   const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
 +   const parentReportAction = parentReportActions?.[report?.parentReportActionID];
 ```
@@ -1236,7 +1234,7 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
     <Text>Header Content</Text>
     <SelectionList
         sections={[{data}]}
-        ListItem={RadioListItem}
+        ListItem={SingleSelectListItem}
         onSelectRow={handleSelect}
     />
     <Button title="Submit" onPress={handleSubmit} />
@@ -1250,7 +1248,7 @@ The correct approach is to use the list component's built-in header and footer p
 ```jsx
 <SelectionList
     sections={[{item}]}
-    ListItem={RadioListItem}
+    ListItem={SingleSelectListItem}
     onSelectRow={handleSelect}
     listHeaderComponent={<Text>Header Content</Text>}
     listFooterComponent={<Button title="Submit" onPress={handleSubmit} />}
@@ -1263,7 +1261,7 @@ The correct approach is to use the list component's built-in header and footer p
     <Text>Header Content</Text>
     <FlashList
         data={data}
-        renderItem={RadioListItem}
+        renderItem={SingleSelectListItem}
         estimatedItemSize={variables.optionRowHeight}
         keyExtractor={keyExtractor}
     />

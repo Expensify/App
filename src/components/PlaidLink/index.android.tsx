@@ -19,7 +19,6 @@ function PlaidLink({onExit = () => {}, ...restProps}: PlaidLinkProps) {
                     onExit();
                 });
             }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
         />
     );

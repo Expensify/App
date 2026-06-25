@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';

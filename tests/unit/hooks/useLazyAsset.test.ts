@@ -33,9 +33,8 @@ jest.mock('@hooks/useLazyAsset', () => {
     const actual = jest.requireActual('@hooks/useLazyAsset');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         ...actual,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         default: actual.default,
@@ -314,7 +313,7 @@ describe('useMemoizedLazyAsset', () => {
 
     it('returns PlaceholderIcon while loading', () => {
         // Our Jest mock for PlaceholderIcon exports the component directly (no default)
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+
         const PlaceholderIcon = require('@components/Icon/PlaceholderIcon') as IconAsset;
         const importFn: () => Promise<{default: IconAsset}> = () => new Promise(() => {});
         const {result} = renderHook(() => useMemoizedLazyAsset(importFn));

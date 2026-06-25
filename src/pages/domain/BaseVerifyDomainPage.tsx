@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {PropsWithChildren} from 'react';
 import React, {useEffect} from 'react';
@@ -20,7 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,19 +64,19 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
-    useEffect(() => {
-        if (!doesDomainExist) {
+    useFocusEffect(() => {
+        if (!doesDomainExist || domain?.validated || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
-    }, [domainAccountID, domainName, doesDomainExist]);
+    });
 
     useEffect(() => {
-        if (!doesDomainExist) {
+        if (!doesDomainExist || domain?.validated) {
             return;
         }
         resetDomainValidationError(domainAccountID);
-    }, [domainAccountID, doesDomainExist]);
+    }, [domainAccountID, doesDomainExist, domain?.validated]);
 
     const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
     if (isLoadingDomain) {
@@ -90,6 +91,15 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 
+    if (domain.validated) {
+        return (
+            <NotFoundPage
+                onLinkPress={() => Navigation.dismissModal()}
+                shouldForceFullScreen
+            />
+        );
+    }
+
     return (
         <ScreenWrapper
             testID="BaseVerifyDomainPage"
@@ -98,7 +108,13 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         >
             <HeaderWithBackButton
                 title={translate('domain.verifyDomain.title')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => {
+                    if (navigationRef.current?.canGoBack()) {
+                        Navigation.goBack();
+                    } else {
+                        Navigation.popToSidebar();
+                    }
+                }}
             />
             <View style={[styles.ph5, styles.flex1]}>
                 <ScrollView
@@ -125,6 +141,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                                         <CopyableTextField
                                             value={domain.validateCode}
                                             isLoading={domain.isValidateCodeLoading}
+                                            style={styles.copyableTextFieldMinHeight}
                                         />
                                     )}
                                 </View>

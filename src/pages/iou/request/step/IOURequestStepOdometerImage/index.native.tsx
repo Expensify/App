@@ -23,6 +23,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -38,7 +40,6 @@ import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import variables from '@styles/variables';
-import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -114,8 +115,36 @@ function IOURequestStepOdometerImage({
         if (!file) {
             return;
         }
-        setMoneyRequestOdometerImage(transaction, imageType, getOdometerImageUri(file), isTransactionDraft, false);
-        navigateBack();
+
+        const sourceUri = getOdometerImageUri(file);
+        const filename = file.name ?? `odometer-${imageType}.jpg`;
+
+        if (!sourceUri) {
+            navigateBack();
+            return;
+        }
+
+        moveReceiptToDurableStorage(sourceUri, filename)
+            .then((durableUri) => {
+                setMoneyRequestOdometerImage(
+                    transaction,
+                    imageType,
+                    {
+                        uri: durableUri,
+                        name: filename,
+                        type: file.type ?? getMimeTypeFromUri(durableUri) ?? 'image/jpeg',
+                        size: file.size,
+                    },
+                    isTransactionDraft,
+                    false,
+                );
+            })
+            .catch((error: unknown) => {
+                Log.warn('Failed to move odometer receipt to durable storage', error instanceof Error ? error.message : String(error));
+            })
+            .finally(() => {
+                navigateBack();
+            });
     };
 
     const {validateFiles, ErrorModal} = useFilesValidation(handleImageSelected);
@@ -184,7 +213,7 @@ function IOURequestStepOdometerImage({
                                     {
                                         uri: source,
                                         name: filename,
-                                        type: (file as FileObject | undefined)?.type ?? 'image/jpeg',
+                                        type: (file as FileObject | undefined)?.type ?? getMimeTypeFromUri(source) ?? 'image/jpeg',
                                         size: (file as FileObject | undefined)?.size,
                                     },
                                     isTransactionDraft,
@@ -369,7 +398,6 @@ function IOURequestStepOdometerImage({
 
 IOURequestStepOdometerImage.displayName = 'IOURequestStepOdometerImage';
 
-// eslint-disable-next-line rulesdir/no-negated-variables -- withFullTransactionOrNotFound HOC requires this pattern
 const IOURequestStepOdometerImageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepOdometerImage);
 
 export default IOURequestStepOdometerImageWithFullTransactionOrNotFound;

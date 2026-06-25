@@ -9,7 +9,6 @@ function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
             <BaseOnboardingPurpose
                 shouldUseNativeStyles={false}
                 shouldEnableMaxHeight={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
         </OnboardingWrapper>

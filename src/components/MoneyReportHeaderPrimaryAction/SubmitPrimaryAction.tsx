@@ -1,8 +1,10 @@
 import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -15,9 +17,10 @@ import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
-import {getNextApproverAccountID, hasViolations as hasViolationsReportUtils, isReportOwner, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
+import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -43,6 +46,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -51,16 +55,16 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     const transactions = Object.values(reportTransactions);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy);
+    const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
     };
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
-    const isSubmitterSameAsNextApprover =
-        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
-    const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
+    const {showConfirmModal} = useConfirmModal();
+
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
         violations,
@@ -70,14 +74,26 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
         transactions,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+    });
 
-    const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const handleSubmit = () => {
         if (!moneyRequestReport || shouldBlockSubmit) {
             return;
         }
+
+        if (hasOnlyPendingCardTransactions(transactions)) {
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            return;
+        }
+
         confirmPendingRTERAndProceed(() => {
             submitReport({
                 expenseReport: moneyRequestReport,
@@ -109,11 +125,14 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
     return (
         <AnimatedSubmitButton
             success
-            text={translate('common.submit')}
+            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={handleSubmit}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
             isDisabled={shouldBlockSubmit}
+            isDEWSubmission={isDEWSubmission}
+            reportID={reportID}
         />
     );
 }

@@ -16,4 +16,3 @@ type ScreenWrapperOfflineIndicatorContextType = {
 const ScreenWrapperOfflineIndicatorContext = createContext<ScreenWrapperOfflineIndicatorContextType>({});
 
 export default ScreenWrapperOfflineIndicatorContext;
-export type {ScreenWrapperOfflineIndicatorContextType};

@@ -3,9 +3,10 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager, ScrollView, View} from 'react-native';
+import {Animated, ScrollView, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -47,8 +48,8 @@ type MoneyRequestReportViewProps = {
     /** The report */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** Metadata for report */
-    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+    /** Loading state for report */
+    reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
@@ -60,7 +61,7 @@ type MoneyRequestReportViewProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function goBackFromSearchMoneyRequest() {
+function goBackFromSearchMoneyRequest(options?: {afterTransition?: () => void}) {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
 
@@ -70,7 +71,7 @@ function goBackFromSearchMoneyRequest() {
     }
 
     if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
         return;
     }
 
@@ -80,11 +81,11 @@ function goBackFromSearchMoneyRequest() {
     }
 
     if (rootState.routes.length > 1) {
-        Navigation.goBack();
+        Navigation.goBack(undefined, options);
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}), options);
 }
 
 function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void; reasonAttributes: SkeletonSpanReasonAttributes}) {
@@ -104,7 +105,7 @@ function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: T
     );
 }
 
-function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -113,7 +114,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
+    const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
@@ -138,14 +139,13 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
 
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions, isOffline]);
+    const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : allReportErrors;
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
-        goBackFromSearchMoneyRequest();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
+        goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     }, [reportID]);
 
     // Special case handling a report that is a transaction thread
@@ -154,11 +154,11 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportMetadata, isOffline);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportLoadingState, isOffline);
 
     const shouldShowOpenReportLoadingSkeleton = !!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
-    const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
+    const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
@@ -247,7 +247,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
                 needsOffscreenAlphaCompositing
                 shouldShowErrorMessages={false}
             >
-                {reportHeaderView}
+                <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
@@ -273,10 +273,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
                     )}
                     <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                         {shouldDisplayMoneyRequestActionsList ? (
-                            <MoneyRequestReportActionsList
-                                reportID={reportID}
-                                onLayout={onLayout}
-                            />
+                            <MoneyRequestReportActionsList onLayout={onLayout} />
                         ) : (
                             <ReportActionsView
                                 reportID={reportID}

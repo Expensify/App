@@ -3,16 +3,17 @@ import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchSelector from '@hooks/useSearchSelector';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
+import {filterOption, getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import DelegatorList from './DelegatorList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import UserListItem from './SelectionList/ListItem/UserListItem';
@@ -66,95 +67,107 @@ function BaseVacationDelegateSelectionComponent({
         ...additionalExcludeLogins,
     };
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         excludeLogins,
+        includeUserToInvite: true,
         includeRecentReports: true,
-        getValidOptionsConfig: {
-            excludeLogins,
-            includeCurrentUser,
-        },
+        includeCurrentUser,
     });
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const sectionsList = [];
+    const sectionsList = (() => {
+        const list = [];
 
-    if (currentVacationDelegate && delegatePersonalDetails) {
-        sectionsList.push({
-            title: undefined,
-            sectionIndex: 0,
-            data: [
-                {
-                    ...delegatePersonalDetails,
-                    text: delegatePersonalDetails?.displayName ?? currentVacationDelegate,
-                    alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
-                    login: delegatePersonalDetails.login ?? currentVacationDelegate,
-                    keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
-                    isDisabled: false,
-                    isSelected: true,
-                    shouldShowSubscript: undefined,
-                    icons: [
-                        {
-                            source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
-                            name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
-                            type: CONST.ICON_TYPE_AVATAR,
-                            id: delegatePersonalDetails?.accountID,
-                        },
-                    ],
-                },
-            ],
-        });
-    }
+        const delegateOption =
+            currentVacationDelegate && delegatePersonalDetails
+                ? {
+                      ...delegatePersonalDetails,
+                      text: delegatePersonalDetails?.displayName ?? currentVacationDelegate,
+                      alternateText: delegatePersonalDetails?.login ?? currentVacationDelegate,
+                      login: delegatePersonalDetails.login ?? currentVacationDelegate,
+                      keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
+                      isDisabled: false,
+                      isSelected: true,
+                      shouldShowSubscript: undefined,
+                      icons: [
+                          {
+                              source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
+                              name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
+                              type: CONST.ICON_TYPE_AVATAR,
+                              id: delegatePersonalDetails?.accountID,
+                          },
+                      ],
+                  }
+                : undefined;
 
-    sectionsList.push({
-        title: translate('common.recents'),
-        sectionIndex: 1,
-        data: availableOptions.recentReports,
-    });
-    sectionsList.push({
-        title: translate('common.contacts'),
-        sectionIndex: 2,
-        data: availableOptions.personalDetails,
-    });
+        // Only pin the current delegate when it matches the search term, mirroring how the hook filters the other sections
+        if (delegateOption && filterOption(delegateOption, debouncedSearchTerm)) {
+            list.push({
+                title: undefined,
+                sectionIndex: 0,
+                data: [delegateOption],
+            });
+        }
 
-    if (availableOptions.userToInvite) {
-        sectionsList.push({
-            title: undefined,
-            sectionIndex: 3,
-            data: [availableOptions.userToInvite],
-        });
-    }
+        if (availableOptions.recentOptions.length) {
+            list.push({
+                title: translate('common.recents'),
+                sectionIndex: 1,
+                data: availableOptions.recentOptions,
+            });
+        }
+
+        if (availableOptions.personalDetails.length) {
+            list.push({
+                title: translate('common.contacts'),
+                sectionIndex: 2,
+                data: availableOptions.personalDetails,
+            });
+        }
+
+        if (availableOptions.userToInvite) {
+            list.push({
+                title: undefined,
+                sectionIndex: 3,
+                data: [availableOptions.userToInvite],
+            });
+        }
+
+        return list;
+    })();
 
     const sections = sectionsList.map((section) => ({
         ...section,
         data: (section.data ?? []).map((option) => ({
             ...option,
-            text: option.text ?? option.displayName ?? '',
+            text: option.text ?? '',
             alternateText: option.alternateText ?? option.login ?? undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
             isSelected: option.isSelected ?? undefined,
             login: option.login ?? undefined,
-            shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+            shouldShowSubscript: undefined,
         })),
     }));
+
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage = (() => {
+        if (sections.length > 0) {
+            return '';
+        }
+        return getHeaderMessage(translate, searchValue, countryCode);
+    })();
 
     const textInputOptions = {
         value: searchTerm,
         onChangeText: setSearchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        headerMessage: getHeaderMessage(
-            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-            !!availableOptions.userToInvite,
-            debouncedSearchTerm.trim(),
-            countryCode,
-            false,
-        ),
+        headerMessage,
     };
 
     return (
@@ -163,33 +176,34 @@ function BaseVacationDelegateSelectionComponent({
                 title={headerTitle}
                 onBackButtonPress={onBackButtonPress}
             />
-            {hasActiveDelegations ? (
-                <View style={styles.mt6}>
-                    <DelegatorList
-                        delegators={vacationDelegate?.delegatorFor}
-                        message={cannotSetDelegateMessage}
-                    />
-                </View>
-            ) : (
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
-                        ListItem={UserListItem}
-                        onSelectRow={(item) => {
-                            // Clear search to prevent "No results found" after selection
-                            setSearchTerm('');
+            <FullPageOfflineBlockingView>
+                {hasActiveDelegations ? (
+                    <View style={styles.mt6}>
+                        <DelegatorList
+                            delegators={vacationDelegate?.delegatorFor}
+                            message={cannotSetDelegateMessage}
+                        />
+                    </View>
+                ) : (
+                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <SelectionList
+                            sections={areOptionsInitialized ? sections : []}
+                            ListItem={UserListItem}
+                            onSelectRow={(item) => {
+                                // Clear search to prevent "No results found" after selection
+                                setSearchTerm('');
 
-                            onSelectRow(item);
-                        }}
-                        textInputOptions={textInputOptions}
-                        shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
-                        shouldSingleExecuteRowSelect
-                        shouldShowTextInput
-                    />
-                </View>
-            )}
+                                onSelectRow(item);
+                            }}
+                            textInputOptions={textInputOptions}
+                            shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                            isLoadingNewOptions={!!isSearchingForReports}
+                            shouldSingleExecuteRowSelect
+                            shouldShowTextInput
+                        />
+                    </View>
+                )}
+            </FullPageOfflineBlockingView>
         </>
     );
 }

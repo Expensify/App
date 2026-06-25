@@ -4,7 +4,10 @@ import {Image, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import Text from '@components/Text';
-import {defaultStyles} from '@src/styles';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+
+const defaultStyles = styles(defaultTheme);
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -35,6 +38,7 @@ function Default() {
                 <View style={[defaultStyles.w100, defaultStyles.h100, defaultStyles.justifyContentCenter, defaultStyles.alignItemsCenter]}>
                     {fileURL ? (
                         <Image
+                            accessibilityIgnoresInvertColors
                             source={{uri: fileURL}}
                             style={{
                                 width: 200,

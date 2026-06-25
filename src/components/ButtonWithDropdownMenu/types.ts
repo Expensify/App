@@ -8,8 +8,6 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
-
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
 type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
@@ -52,8 +50,15 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldShow?: boolean;
     /** Whether to show a loading spinner for this option */
     shouldShowLoadingSpinnerIcon?: boolean;
+    /** Whether to render a divider before this option */
+    addSeparatorBefore?: boolean;
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    /** Whether selecting this option should bypass the delete confirmation modal */
+    shouldSkipDeleteModal?: boolean;
+
+    /** Whether to ignore compact popover menu styling for this item */
+    shouldIgnoreCompactStyle?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
@@ -130,8 +135,8 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
 
-    /** Whether selected items should be marked as selected */
-    shouldShowSelectedItemCheck?: boolean;
+    /** Whether to show a radio button on each item to indicate which one is currently selected */
+    shouldShowRadioButton?: boolean;
 
     /** Used to locate the component in the tests */
     testID?: string;
@@ -172,7 +177,6 @@ type ButtonWithDropdownMenuRef = {
 };
 
 export type {
-    PaymentType,
     WorkspaceMemberBulkActionType,
     DomainMemberBulkActionType,
     RoomMemberBulkActionType,

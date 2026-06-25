@@ -51,5 +51,4 @@ function SelectedDateModifierHeader({isCompact, title, onBackPress}: SelectedDat
     );
 }
 
-export type {SelectedDateModifierHeaderProps};
 export default SelectedDateModifierHeader;

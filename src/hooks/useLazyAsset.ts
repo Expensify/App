@@ -89,7 +89,6 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} 
     const {asset, isLoaded} = useLazyAsset(stableImportFn, fallback);
 
     return {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         asset: (isLoaded ? asset : PlaceholderIcon) as T,
     };
 }
@@ -221,5 +220,5 @@ function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIco
     return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName[number], IconAsset>, [assets, namesList]);
 }
 
-export {useMemoizedLazyAsset, useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons, type LazyAssetResult};
+export {useMemoizedLazyAsset, useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons};
 export default useLazyAsset;

@@ -12,7 +12,6 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
 
     return (
         <BaseSelectionList
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
             // Ignore the focus if it's caused by a touch event on mobile chrome.

@@ -1,7 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
-// eslint-disable-next-line no-restricted-syntax
 import * as UserActions from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMethodDetailsPage';
@@ -12,7 +11,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -24,6 +23,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     goBack: jest.fn(),
 }));
 
@@ -60,8 +62,8 @@ const mockRoute = {
     },
 };
 const mockLoginList = {
-    [fakeEmail]: {
-        partnerName: 'expensify.com',
+    [`1_${fakeEmail}`]: {
+        partnerID: 1,
         partnerUserID: fakeEmail,
         validatedDate: 'fake-validatedDate',
     },
@@ -93,7 +95,7 @@ describe('ContactMethodDetailsPage', () => {
 
     it('should not call resetContactMethodValidateCodeSentState when we got a delete pending field', async () => {
         // Given a login list with a validated contact method
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, mockLoginList);
+        Onyx.merge(ONYXKEYS.LOGINS, mockLoginList);
         await waitForBatchedUpdates();
 
         // Given the page is rendered
@@ -115,9 +117,10 @@ describe('ContactMethodDetailsPage', () => {
 
     it('should not call resetContactMethodValidateCodeSentState when the login data has no partnerUserID', async () => {
         // Given a login list with a contact method that has no partnerUserID
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [fakeEmail]: {
-                partnerName: 'expensify.com',
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${fakeEmail}`]: {
+                partnerID: 1,
+
                 partnerUserID: '',
                 validatedDate: '',
             },
@@ -135,9 +138,10 @@ describe('ContactMethodDetailsPage', () => {
     it('calls Navigation.goBack when contact method becomes validated and screen is focused', async () => {
         Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail});
         Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-            [fakeEmail]: {
-                partnerName: 'expensify.com',
+        Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${fakeEmail}`]: {
+                partnerID: 1,
+
                 partnerUserID: fakeEmail,
                 validatedDate: '',
             },
@@ -148,9 +152,10 @@ describe('ContactMethodDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            Onyx.merge(ONYXKEYS.LOGIN_LIST, {
-                [fakeEmail]: {
-                    partnerName: 'expensify.com',
+            Onyx.merge(ONYXKEYS.LOGINS, {
+                [`1_${fakeEmail}`]: {
+                    partnerID: 1,
+
                     partnerUserID: fakeEmail,
                     validatedDate: '2024-01-01',
                 },

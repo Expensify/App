@@ -2,18 +2,20 @@ import React from 'react';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
+import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
 import type {SearchFilter} from '@libs/SearchUIUtils';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import CONST from '@src/CONST';
 import type {FilterItem} from './useSearchFiltersBar';
 
-type SearchDropdownProps = Omit<DropdownButtonProps, 'viewportOffsetTop'>;
+type DropdownProps = Pick<DropdownButtonProps, 'label' | 'PopoverComponent' | 'sentryLabel' | 'onClosePress'> & {
+    value: SearchFilter['value'];
+};
 
-function UserDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+function UserDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
     const users = useFilterUserValue(value);
     return (
         <DropdownButton
@@ -21,11 +23,12 @@ function UserDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropd
             value={users ?? []}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
+            onClosePress={onClosePress}
         />
     );
 }
 
-function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
     const workspaceValue = useFilterWorkspaceValue(value);
     return (
         <DropdownButton
@@ -33,35 +36,51 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel}: Search
             value={workspaceValue ?? []}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
+            onClosePress={onClosePress}
         />
     );
 }
 
-function CardDropdown({label, PopoverComponent, sentryLabel}: SearchDropdownProps) {
-    const cardValue = useFilterCardValue();
+function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+    const feedValue = useFilterFeedValue(value as string[]);
+    return (
+        <DropdownButton
+            label={label}
+            value={feedValue}
+            PopoverComponent={PopoverComponent}
+            sentryLabel={sentryLabel}
+            onClosePress={onClosePress}
+        />
+    );
+}
+
+function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+    const cardValue = useFilterCardValue(value as string[]);
     return (
         <DropdownButton
             label={label}
             value={cardValue}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
+            onClosePress={onClosePress}
         />
     );
 }
 
-function TaxRateDropdown({label, PopoverComponent, sentryLabel}: SearchDropdownProps) {
-    const taxRateValue = useFilterTaxRateValue();
+function TaxRateDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
+    const taxRateValue = useFilterTaxRateValue(value as string[]);
     return (
         <DropdownButton
             label={label}
             value={taxRateValue}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
+            onClosePress={onClosePress}
         />
     );
 }
 
-function ReportDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+function ReportDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
     const reportValue = useFilterReportValue(value);
     return (
         <DropdownButton
@@ -69,24 +88,25 @@ function ReportDropdown({label, value, PopoverComponent, sentryLabel}: SearchDro
             value={reportValue}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
+            onClosePress={onClosePress}
         />
     );
 }
 
-const FILTER_COMPONENT_MAP: Partial<Record<SearchAdvancedFiltersKey, React.ComponentType<SearchDropdownProps>>> = {
-    [FILTER_KEYS.FROM]: UserDropdown,
-    [FILTER_KEYS.TO]: UserDropdown,
-    [FILTER_KEYS.ATTENDEE]: UserDropdown,
-    [FILTER_KEYS.ASSIGNEE]: UserDropdown,
+const FILTER_COMPONENT_MAP: Partial<Record<SearchFilter['key'], React.ComponentType<DropdownProps>>> = {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: UserDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: UserDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: UserDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE]: UserDropdown,
 
-    [FILTER_KEYS.POLICY_ID]: WorkspaceDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID]: WorkspaceDropdown,
 
-    [FILTER_KEYS.FEED]: CardDropdown,
-    [FILTER_KEYS.CARD_ID]: CardDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: FeedDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID]: CardDropdown,
 
-    [FILTER_KEYS.TAX_RATE]: TaxRateDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: TaxRateDropdown,
 
-    [FILTER_KEYS.IN]: ReportDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.IN]: ReportDropdown,
 };
 
 function SearchFilterBar({item}: {item: SearchFilter & FilterItem}) {
@@ -98,6 +118,7 @@ function SearchFilterBar({item}: {item: SearchFilter & FilterItem}) {
             value={item.value}
             PopoverComponent={item.PopoverComponent}
             sentryLabel={item.sentryLabel}
+            onClosePress={item.onClosePress}
         />
     );
 }

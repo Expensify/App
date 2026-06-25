@@ -10,12 +10,26 @@ import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {closeSearch, openSearch} from './toggleSearch';
 
+// Module-level pending query used to seed the SearchRouter input on open.
+// Set before opening, peeked during SearchRouter render, cleared on mount.
+let pendingRouterQuery = '';
+
+function peekPendingRouterQuery(): string {
+    return pendingRouterQuery;
+}
+
+function clearPendingRouterQuery() {
+    pendingRouterQuery = '';
+}
+
+export {peekPendingRouterQuery, clearPendingRouterQuery};
+
 type SearchRouterStateContextType = {
     isSearchRouterDisplayed: boolean;
 };
 
 type SearchRouterActionsContextType = {
-    openSearchRouter: () => void;
+    openSearchRouter: (query?: string) => void;
     closeSearchRouter: () => void;
     toggleSearch: () => void;
     registerSearchPageInput: (ref: AnimatedTextInputRef) => void;
@@ -81,7 +95,8 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         });
     };
 
-    const openSearchRouter = () => {
+    const openSearchRouter = (query?: string) => {
+        pendingRouterQuery = query ?? '';
         if (isBrowserWithHistory) {
             window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
         }

@@ -72,6 +72,7 @@ function ReviewBillable() {
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setBillable}
+                selectedValue={reviewDuplicates?.billable}
             />
         </ScreenWrapper>
     );

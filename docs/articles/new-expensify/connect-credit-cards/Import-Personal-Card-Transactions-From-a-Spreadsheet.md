@@ -1,7 +1,7 @@
 ---
 title: Import personal card transactions from a spreadsheet
 description: Learn how Members can manually import personal card transactions using a spreadsheet in Wallet. 
-keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, Wallet, card feed, reimbursable, bring your own card, BYOC]
+keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, Wallet, card feed, reimbursable, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
 internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions via CSV. Does not cover company cards or Plaid connections.
 ---
 
@@ -22,7 +22,7 @@ Anyone can import personal card transactions using a spreadsheet file in their a
 ## How to import personal card transactions from a spreadsheet
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Wallet**.
-2. In the **Assigned Cards** section, choose **Import transactions**.
+2. In the **Cards** section, choose **Import transactions**.
 3.  Enter a display name and configure the currency, reimbursable state, and amount sign direction.
 3. Enter a display name and configure the currency, reimbursable state, and amount sign direction.
 5. Map your spreadsheet columns to the required fields (**Date**, **Merchant**, **Amount**).
@@ -61,9 +61,9 @@ Your file must include at least the following columns:
 
 You’ll see an error message and won’t be able to proceed until the issue is resolved.
 
-## Can I import additional spreadsheet later on the same card entry? 
+## Can I import additional transactions to the same card?
 
-No. To import additional transactions, you must repeat the import process.
+Yes. You can simply repeat the import process.
 
 ## Can I delete personal card spreadsheet imports? 
 

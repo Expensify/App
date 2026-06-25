@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {isSettled} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -39,6 +40,9 @@ type TransactionItemRowRBRInnerProps = {
 
     /** Error message for missing required fields in the transaction */
     missingFieldError?: string;
+
+    /** Whether to use the narrow (mobile) layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
 type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
@@ -46,9 +50,10 @@ type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
     transactionThreadReportID?: string;
 };
 
-function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRInnerProps) {
+function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError, shouldUseNarrowLayout}: TransactionItemRowRBRInnerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`);
@@ -58,23 +63,26 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const transactionThreadId = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)?.childReportID : undefined;
+    const iouAction = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID) : undefined;
+    const transactionThreadId = iouAction?.childReportID;
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const isMarkAsCash = parentReport && currentUserLogin && violations ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
-    const RBRMessages = ViolationsUtils.getRBRMessages(
+    const canEdit = wasActionTakenByCurrentUser(iouAction);
+    const RBRMessages = ViolationsUtils.getRBRMessages({
         transaction,
-        isSettled(report) ? [] : (violations ?? []),
+        transactionViolations: isSettled(report) ? [] : (violations ?? []),
         translate,
+        convertToDisplayString,
         missingFieldError,
-        Object.values(transactionThreadActions ?? {}),
-        policyTags,
+        transactionThreadActions: Object.values(transactionThreadActions ?? {}),
+        tags: policyTags,
         companyCardPageURL,
-        undefined,
         cardList,
-        isMarkAsCash,
-    );
+        isMarkAsCash: isMarkAsCash || undefined,
+        canEdit,
+    });
     const hasHTMLTags = HTML_TAG_PATTERN.test(RBRMessages);
 
     return (
@@ -91,12 +99,12 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
                 />
                 <View style={[styles.pre, styles.flexShrink1, {color: theme.danger}]}>
                     {hasHTMLTags ? (
-                        <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${RBRMessages}</rbr>`} />
+                        <RenderHTML html={`<rbr shouldShowEllipsis="1" ${shouldUseNarrowLayout ? '' : 'issmall'}>${RBRMessages}</rbr>`} />
                     ) : (
                         <Text
                             numberOfLines={1}
                             ellipsizeMode="tail"
-                            style={[styles.textLabelError, styles.textMicro]}
+                            style={[styles.textLabelError, shouldUseNarrowLayout ? styles.lh16 : styles.textMicro]}
                         >
                             {RBRMessages}
                         </Text>
@@ -107,7 +115,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     );
 }
 
-function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError, transactionThreadReportID}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError, transactionThreadReportID, shouldUseNarrowLayout}: TransactionItemRowRBRProps) {
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
 
     const hasThreadErrors = transactionThreadActions ? Object.values(transactionThreadActions).some((action) => !isEmptyObject(action.errors)) : false;
@@ -125,6 +133,7 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
             report={report}
             containerStyles={containerStyles}
             missingFieldError={missingFieldError}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
     );
 }

@@ -12,9 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/IOU';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
@@ -58,7 +59,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const allTransactions = useAllTransactions();
     const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
-    const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+    const [reportLoadingState = CONST.DEFAULT_REPORT_LOADING_STATE] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -92,7 +93,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         return transactionMain;
     }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
 
+    useRestartOnOdometerImagesFailure(isDraftTransaction && isOdometerDistanceRequest(transaction) ? transaction : undefined, reportID, iouTypeParam ?? CONST.IOU.TYPE.SUBMIT, backToReport);
+
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
@@ -233,10 +237,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, [receiptPath]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isTrackExpenseReportValue || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || readonly ? !transaction : moneyRequestReportID !== transaction?.reportID;
 
@@ -255,9 +258,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyTagList, policyCategories);
+        detachReceipt(transaction?.transactionID, policy, policyTagList, transactionViolations, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList]);
+    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList, transactionViolations]);
 
     /**
      * Remove odometer image and close the modal.
@@ -300,12 +303,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         source: durableUri,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
+                        transactionPolicyTagList: policyTagList,
+                        transactionViolations,
                         ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                     });
                 }
             });
         },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
     );
 
     const rotateReceipt = useCallback(() => {
@@ -629,7 +634,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             threeDotsMenuItems,
             isAuthTokenRequired,
             isTrackExpenseAction: isTrackExpenseActionValue,
-            isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
+            isLoading: !transaction && reportLoadingState?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
             shouldShowRotateButton: false,
@@ -650,7 +655,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isAuthTokenRequired,
             isTrackExpenseActionValue,
             transaction,
-            reportMetadata?.isLoadingInitialReportActions,
+            reportLoadingState?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             allowDownload,
             onDownloadAttachment,

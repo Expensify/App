@@ -24,7 +24,6 @@ type Contact = {
     imageData?: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface ContactsModule extends HybridObject<{ios: 'swift'; android: 'kotlin'}> {
     getAll(keys: ContactFields[]): Promise<Contact[]>;
 }

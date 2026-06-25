@@ -1,9 +1,7 @@
-import React from 'react';
-import TopLevelNavigationTabBar from '@components/Navigation/TopLevelNavigationTabBar';
-import type RootNavigatorExtraContentProps from './types';
-
-function RootNavigatorExtraContent({state}: RootNavigatorExtraContentProps) {
-    return <TopLevelNavigationTabBar state={state} />;
+// On mobile platforms, concierge is displayed as a separate page and the tab bar
+// is rendered by the TabNavigator, so there is no extra content to show here.
+function RootNavigatorExtraContent() {
+    return null;
 }
 
 export default RootNavigatorExtraContent;

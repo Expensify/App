@@ -1,4 +1,6 @@
 import React from 'react';
+import {View} from 'react-native';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,18 +33,29 @@ function LockAccountPage() {
     );
 
     const lockAccountPagePrompt = (
-        <>
-            <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
-            <Text>{translate('lockAccountPage.domainAdminsDescription')}</Text>
-        </>
+        <View style={[styles.renderHTML, styles.gap4]}>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.findYourSituation')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.lostCardOrCharges')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.unauthorizedAccess')} />
+            </View>
+            <View>
+                <RenderHTML html={translate('lockAccountPage.securityTeamFollowUp')} />
+            </View>
+        </View>
     );
 
     return (
         <LockAccountPageBase
             testID="LockAccountPage"
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_LOCK_ACCOUNT)}
+            onBackButtonPress={() => Navigation.goBack()}
             confirmModalPrompt={confirmModalPrompt}
             lockAccountPagePrompt={lockAccountPagePrompt}
+            lockButtonText={translate('lockAccountPage.lockMyAccount')}
             handleLockRequestFinish={handleLockRequestFinish}
         />
     );

@@ -14,7 +14,6 @@ jest.mock('@libs/ActiveClientManager', () => ({
 const mockShowModifiedExpenseNotification = jest.fn();
 const mockShowCommentNotification = jest.fn();
 jest.mock('@libs/Notification/LocalNotification', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         showModifiedExpenseNotification: (...args: unknown[]) => mockShowModifiedExpenseNotification(...args),
@@ -25,7 +24,6 @@ jest.mock('@libs/Notification/LocalNotification', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         getTopmostReportId: jest.fn(() => 'other-report-id'),
@@ -34,7 +32,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/Visibility', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         isVisible: jest.fn(() => false),

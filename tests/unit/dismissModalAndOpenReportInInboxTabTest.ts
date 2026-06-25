@@ -3,7 +3,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 const mockIsSearchTopmostFullScreenRoute = jest.fn();
 const mockIsReportOpenInRHP = jest.fn();
-const mockGetSpan = jest.fn();
+const mockGetTrackingState = jest.fn();
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute() as boolean);
 jest.mock('@libs/Navigation/helpers/isReportOpenInRHP', () => () => mockIsReportOpenInRHP() as boolean);
@@ -12,12 +12,10 @@ jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => 
     callback();
 });
 jest.mock('@libs/getIsNarrowLayout', () => () => false as boolean);
-jest.mock('@libs/telemetry/activeSpans', () => ({
-    getSpan: (...args: unknown[]) => mockGetSpan(...args) as boolean,
-}));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
-    setPendingSubmitFollowUpAction: jest.fn(),
+    isTracking: (...args: unknown[]) => mockGetTrackingState(...args) as boolean,
     endSubmitFollowUpActionSpan: jest.fn(),
+    setPendingSubmitFollowUpAction: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -38,7 +36,7 @@ jest.mock('@react-navigation/native');
 describe('dismissModalAndOpenReportInInboxTab', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetSpan.mockReturnValue(false);
+        mockGetTrackingState.mockReturnValue(null);
         mockIsReportOpenInRHP.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
     });

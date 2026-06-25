@@ -25,7 +25,10 @@ type SwitchProps = {
     showLockIcon?: boolean;
 
     /** Callback to fire when the switch is toggled in disabled state */
-    disabledAction?: () => void;
+    disabledAction?: () => void | Promise<void>;
+
+    /** Whether the switch is nested inside another pressable */
+    isNested?: boolean;
 };
 
 const OFFSET_X = {
@@ -33,7 +36,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction, isNested}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
@@ -99,7 +102,16 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     return (
         <PressableWithFeedback
             disabled={!disabledAction && disabled}
+            isNested={isNested}
             onPress={handleSwitchPress}
+            onMouseDown={(e) => {
+                if (!isNested) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+            }}
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}

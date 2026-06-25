@@ -149,7 +149,7 @@ function getPathFromState(state: State): string {
     const screenName = focusedRoute?.name ?? '';
 
     if (isDynamicRouteScreen(screenName as Screen)) {
-        return focusedRoute?.path ?? getPathFromStateWithDynamicRoute(state);
+        return getPathFromStateWithDynamicRoute(state);
     }
 
     return RNGetPathFromState(state, config);

@@ -25,7 +25,9 @@ function useDefaultFundID(policyID: string | undefined) {
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
-            const eligibleEntries = Object.entries(cardSettings ?? {}).filter(([key, settings]) => !!settings && !key.includes(workspaceAccountID.toString()));
+            const eligibleEntries = Object.entries(cardSettings ?? {}).filter(
+                ([key, settings]) => !!settings && !key.includes(workspaceAccountID.toString()) && settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
 
             if (policyID) {
                 const preferredMatch = eligibleEntries.find(([, settings]) => getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase());
@@ -52,7 +54,9 @@ function useDefaultFundID(policyID: string | undefined) {
         [getDomainFundID],
     );
 
-    if (lastSelectedExpensifyCardFeed && lastSelectedSettings?.paymentBankAccountID) {
+    const isFeedPendingDelete = lastSelectedCardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+    if (lastSelectedExpensifyCardFeed && lastSelectedSettings?.paymentBankAccountID && !isFeedPendingDelete) {
         return lastSelectedExpensifyCardFeed;
     }
 

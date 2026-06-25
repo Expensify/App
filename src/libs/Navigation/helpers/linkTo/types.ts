@@ -17,4 +17,4 @@ type LinkToOptions = {
     waitForTransition?: boolean;
 };
 
-export type {ActionPayload, LinkToOptions};
+export type {ActionPayload, ActionPayloadParams, LinkToOptions};

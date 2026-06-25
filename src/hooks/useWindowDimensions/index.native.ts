@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import {useSafeAreaFrame} from 'react-native-safe-area-context';
 import type WindowDimensions from './types';
 

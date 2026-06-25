@@ -25,7 +25,6 @@ const readFromOnyxDatabase: ReadFromOnyxDatabase = () =>
             const result =
                 // eslint-disable-next-line no-underscore-dangle
                 rows?._array.reduce<OnyxState>((acc, row) => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     acc[row?.record_key] = JSON.parse(row?.valueJSON) as unknown;
                     return acc;
                 }, {}) ?? {};

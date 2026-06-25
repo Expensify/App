@@ -3,12 +3,16 @@ import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+import type {TransactionPreviewData} from '@libs/actions/Search';
+import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type CONST from '@src/CONST';
 import type {
+    BankAccountList,
     BillingGraceEndPeriod,
+    CardFeeds,
+    CardList,
     LastPaymentMethod,
     PersonalDetails,
-    PersonalDetailsList,
     Policy,
     Report,
     ReportAction,
@@ -47,22 +51,8 @@ type SearchListActionProps = {
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    queryJSONHash?: number;
-
     /** The report data */
     report?: Report;
-
-    /** The user wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -118,9 +108,6 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
-        /** Whether the card feed has been deleted */
-        isCardFeedDeleted?: boolean;
-
         /** The original amount of the transaction */
         originalAmount?: number;
 
@@ -162,6 +149,11 @@ type TransactionListItemType = ListItem &
 
         isTaxAmountColumnWide: boolean;
 
+        /** Whether the action column should use its wider variant.
+         * This is true if at least one transaction in the dataset is deleted.
+         */
+        isActionColumnWide?: boolean;
+
         /** Key used internally by React */
         keyForList: string;
 
@@ -186,6 +178,18 @@ type TransactionListItemType = ListItem &
         /** The main action that can be performed for the transaction */
         action: SearchTransactionAction;
 
+        /** Whether the current user can pay this report */
+        canPay: boolean;
+
+        /** Whether the current user can approve this report */
+        canApprove: boolean;
+
+        /** Whether the current user can submit this report */
+        canSubmit: boolean;
+
+        /** Whether the current user can change the approver of this report */
+        canChangeApprover: boolean;
+
         /** The tax code of the transaction */
         taxCode?: string;
     };
@@ -205,6 +209,12 @@ type TransactionGroupListItemType = ListItem & {
 
     /** Whether the report was rejected (REJECTED or REJECTEDTOSUBMITTER) */
     isRejectedReport?: boolean;
+
+    /** Total value of transactions in the group */
+    total?: number;
+
+    /** Currency of the group total */
+    currency?: string;
 };
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;
@@ -261,6 +271,18 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The available actions that can be performed for the report */
         allActions?: SearchTransactionAction[];
 
+        /** Whether the current user can pay this report */
+        canPay: boolean;
+
+        /** Whether the current user can approve this report */
+        canApprove: boolean;
+
+        /** Whether the current user can submit this report */
+        canSubmit: boolean;
+
+        /** Whether the current user can change the approver of this report */
+        canChangeApprover: boolean;
+
         /** Pre-computed total display spend amount */
         totalDisplaySpend?: number;
 
@@ -272,6 +294,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** Whether the amount column should use the wide layout */
         isAmountColumnWide?: boolean;
+
+        /** Whether the action column should use its wider variant when any transaction in the dataset is deleted */
+        isActionColumnWide?: boolean;
 
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
@@ -292,9 +317,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type TaskListItemType = ListItem &
@@ -422,8 +444,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** Whether the item's action is loading */
         isLoading?: boolean;
         columns?: SearchColumnType[];
-        violations?: Record<string, TransactionViolations | undefined> | undefined;
-        customCardNames?: Record<number, string>;
+        /** Non-personal and workspace cards for company card display */
+        nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };
@@ -432,19 +454,20 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     SearchListActionProps & {
         groupBy?: SearchGroupBy;
         searchType?: SearchDataTypes;
-        policies?: OnyxCollection<Policy>;
         accountID?: number;
         columns?: SearchColumnType[];
         newTransactionID?: string;
-        violations?: Record<string, TransactionViolations | undefined> | undefined;
+        /** Non-personal and workspace cards for company card display */
+        nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'onUndelete'
+    'showTooltip' | 'canSelectMultiple' | 'onSelectionButtonPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
 > & {
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
     setTransactionsVisibleLimit: React.Dispatch<React.SetStateAction<number>>;
@@ -456,6 +479,58 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     isInSingleTransactionReport: boolean;
     searchTransactions: (pageSize?: number) => void;
     onLongPress: (transaction: TransactionListItemType) => void;
+    hideSearchTableHeader?: boolean;
+};
+
+const GROUP_ITEM_TYPES = {
+    GROUP_HEADER: 'group_header',
+    CHILDREN_CONTAINER: 'children_container',
+} as const;
+
+type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER};
+
+type GroupHeaderItemType =
+    | (TransactionReportGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMemberGroupListItemType & GroupHeaderListItemType)
+    | (TransactionCardGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWithdrawalIDGroupListItemType & GroupHeaderListItemType)
+    | (TransactionCategoryGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMerchantGroupListItemType & GroupHeaderListItemType)
+    | (TransactionTagGroupListItemType & GroupHeaderListItemType)
+    | (TransactionMonthGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
+    | (TransactionYearGroupListItemType & GroupHeaderListItemType)
+    | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
+    | (TransactionGroupListItemType & GroupHeaderListItemType);
+
+type GroupChildrenContainerItemType = TransactionGroupListItemType & {
+    listItemType: typeof GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+};
+
+function isGroupHeaderItem(item: SearchListItem): item is GroupHeaderItemType {
+    return 'listItemType' in item && item.listItemType === GROUP_ITEM_TYPES.GROUP_HEADER;
+}
+
+function isGroupChildrenContainerItem(item: SearchListItem): item is GroupChildrenContainerItemType {
+    return 'listItemType' in item && item.listItemType === GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+}
+
+type GroupChildrenContentProps = {
+    item: GroupChildrenContainerItemType;
+    isExpanded: boolean;
+    groupBy?: SearchGroupBy;
+    searchType?: SearchDataTypes;
+    columns?: SearchColumnType[];
+    canSelectMultiple: boolean;
+    onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    nonPersonalAndWorkspaceCards?: CardList;
+    onUndelete?: (transaction: Transaction) => void;
+    newTransactionID?: string;
+    bankAccountList?: OnyxEntry<BankAccountList>;
+    cardFeeds?: OnyxCollection<CardFeeds>;
+    conciergeReportID?: string;
 };
 
 type UnreportedExpenseListItemType = Transaction & {
@@ -490,4 +565,9 @@ export type {
     TransactionListItemProps,
     ReportActionListItemType,
     UnreportedExpenseListItemType,
+    GroupHeaderItemType,
+    GroupChildrenContainerItemType,
+    GroupChildrenContentProps,
 };
+
+export {GROUP_ITEM_TYPES, isGroupHeaderItem, isGroupChildrenContainerItem};

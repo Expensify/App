@@ -1,8 +1,6 @@
 import type {FormulaContext} from '@libs/Formula';
 import {compute, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, ReportActions, Transaction} from '@src/types/onyx';
@@ -504,6 +502,24 @@ describe('CustomFormula', () => {
                     currencyContext.report.currency = 'EUR';
                     const result = compute('{report:total:UNKNOWN}', currencyContext);
                     expect(result).toBe('{report:total:UNKNOWN}');
+                });
+
+                test('case-only source currency variations - should format like the canonical code', () => {
+                    currencyContext.report.currency = 'eur';
+                    const lowercase = compute('{report:total}', currencyContext);
+                    currencyContext.report.currency = 'EUR';
+                    const canonical = compute('{report:total}', currencyContext);
+                    expect(lowercase).toBe(canonical);
+                    expect(lowercase).not.toBe('{report:total}');
+                });
+
+                test('whitespace source currency variations - should format like the canonical code', () => {
+                    currencyContext.report.currency = '  USD  ';
+                    const padded = compute('{report:total}', currencyContext);
+                    currencyContext.report.currency = 'USD';
+                    const canonical = compute('{report:total}', currencyContext);
+                    expect(padded).toBe(canonical);
+                    expect(padded).not.toBe('{report:total}');
                 });
             });
         });

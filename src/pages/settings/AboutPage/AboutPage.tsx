@@ -1,7 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -181,7 +180,6 @@ function AboutPage() {
                         illustrationBackgroundColor={colors.yellow600}
                         titleStyles={styles.accountSettingsSectionTitle}
                         overlayContent={overlayContent}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...aboutIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>

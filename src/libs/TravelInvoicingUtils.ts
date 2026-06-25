@@ -7,6 +7,7 @@ import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSetti
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import fileDownload from './fileDownload';
+import {buildSecureDownloadURL} from './UrlUtils';
 
 /**
  * Checks whether Travel Invoicing is enabled based on the card settings.
@@ -65,7 +66,8 @@ function getTravelLimit(cardSettings: ExpensifyCardSettingsBase | undefined): nu
  */
 function hasOutstandingTravelBalance(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
     const currentBalance = cardSettings?.currentBalance ?? 0;
-    return currentBalance > 0;
+    const pendingSettlementAmount = cardSettings?.pendingSettlementAmount ?? 0;
+    return currentBalance > 0 || pendingSettlementAmount > 0;
 }
 
 /**
@@ -146,7 +148,7 @@ function downloadTravelInvoiceStatementPDF(
     encryptedAuthToken: string,
 ): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
-    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    const pdfURL = buildSecureDownloadURL({baseURL, secureType: CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT, fileName, downloadName: downloadFileName, email: currentUserEmail});
     return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
@@ -165,11 +167,10 @@ function getTravelInvoicingCard(cardList: OnyxEntry<CardList>) {
 
 /**
  * Checks if user is eligible to see Travel CVV in Wallet.
- * Requires: TRAVEL_INVOICING beta AND having a travel card.
+ * Requires having a travel card.
  */
-function isTravelCVVEligible(isTravelInvoicingBetaEnabled: boolean, cardList: OnyxEntry<CardList>): boolean {
-    const hasTravelCard = !!getTravelInvoicingCard(cardList);
-    return isTravelInvoicingBetaEnabled && hasTravelCard;
+function isTravelCVVEligible(cardList: OnyxEntry<CardList>): boolean {
+    return !!getTravelInvoicingCard(cardList);
 }
 
 export {
@@ -185,5 +186,3 @@ export {
     getTravelInvoicingCard,
     isTravelCVVEligible,
 };
-
-export type {TravelSettlementAccountInfo};

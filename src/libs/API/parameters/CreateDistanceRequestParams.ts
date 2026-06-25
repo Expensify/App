@@ -31,6 +31,7 @@ type CreateDistanceRequestParams = {
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
+    distanceRequestType?: string;
     customUnitPolicyID?: string;
 
     /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */

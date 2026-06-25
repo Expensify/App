@@ -1,7 +1,9 @@
 import {useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
@@ -10,25 +12,22 @@ import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import useRedirectToExpensifyClassic from './useRedirectToExpensifyClassic';
 
 function useScanActions() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
+    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [currentUserPersonalDetails.accountID], reports);
     const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector});
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, canUseAction, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
 
     // useState lazy initializer generates the ID once on mount and keeps it stable across renders
     const [reportID] = useState(() => generateReportID());
@@ -38,22 +37,20 @@ function useScanActions() {
 
     const startScan = () => {
         interceptAnonymousUser(() => {
-            if (shouldRedirectToExpensifyClassic) {
-                if (canRedirectToExpensifyClassic) {
-                    showRedirectToExpensifyClassicModal();
-                }
-                return;
-            }
             startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, true);
         });
     };
 
     const policyChatPolicyID = policyChatForActivePolicy?.policyID;
     const policyChatReportID = policyChatForActivePolicy?.reportID;
+    const [policyChatPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyChatForActivePolicy?.policyID)}`);
 
     const startQuickScan = () => {
         interceptAnonymousUser(() => {
-            if (policyChatPolicyID && shouldRestrictUserBillableActions(policyChatPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+            if (
+                policyChatPolicyID &&
+                shouldRestrictUserBillableActions(policyChatPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
+            ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatPolicyID));
                 return;
             }
@@ -64,7 +61,7 @@ function useScanActions() {
         });
     };
 
-    return {startScan, startQuickScan, canUseAction};
+    return {startScan, startQuickScan};
 }
 
 export default useScanActions;

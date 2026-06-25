@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -71,17 +71,17 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
             testID="WorkspaceTravelInvoicingSettlementFrequencyPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
+                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList<FrequencyItem>
                 data={data}
                 onSelectRow={selectFrequency}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={currentFrequency}
                 customListHeaderContent={
                     <Text style={[styles.mh5, styles.mv3]}>
-                        {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyDescription')}
+                        {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyDescription')}
                     </Text>
                 }
             />

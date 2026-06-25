@@ -115,13 +115,10 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        // Long press on the first tag to trigger the select action
-
-        fireEvent(screen.getByTestId(`base-list-item-Tag One`), 'onLongPress');
+        fireEvent(screen.getByText(FIRST_TAG), 'onLongPress');
 
         await waitForBatchedUpdatesWithAct();
 
-        // Wait for the "Select" option to appear
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('common.select'))).toBeOnTheScreen();
         });
@@ -161,10 +158,13 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
         const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
+
+        await waitFor(() => {
+            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
+        });
 
         fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {

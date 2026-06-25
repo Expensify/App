@@ -50,10 +50,10 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
 
     const threadMessages = useMemo(
         () => ({
-            count: (iouReportAction && iouReportAction?.childVisibleActionCount) ?? 0,
+            count: iouReportAction?.childVisibleActionCount ?? 0,
             isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
         }),
-        [iouReportAction, transactionReport],
+        [iouReportAction?.childVisibleActionCount, transactionReport],
     );
 
     const StyleUtils = useStyleUtils();

@@ -1,12 +1,13 @@
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
-
-const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+import {getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 /**
  * Given a plaintext query and a SubstitutionMap object,
- * this function will remove any substitution keys that do not appear in the query and return an updated object
+ * this function will remove any substitution keys that do not appear in the query and return an updated object.
+ * When the same filter+value appears multiple times (e.g. workspace:"A's Workspace" three times), each occurrence
+ * is assigned an index and we preserve keys baseKey (index 0), baseKey:1, baseKey:2, ... so multiple IDs are kept.
  *
  * Ex:
  * query: `Test from:John1`
@@ -24,17 +25,21 @@ function getUpdatedSubstitutionsMap(query: string, substitutions: SubstitutionMa
         return {};
     }
 
-    const autocompleteQueryKeys = searchAutocompleteQueryRanges.map((range) => getSubstitutionsKey(range.key, range.value));
+    // Assign occurrence index per (key, value) so we preserve indexed keys for duplicates (e.g. same workspace name)
+    const keyValueCount = new Map<string, number>();
+    const updatedSubstitutionMap: SubstitutionMap = {};
 
-    // Build a new substitutions map consisting of only the keys from old map, that appear in query
-    const updatedSubstitutionMap = autocompleteQueryKeys.reduce((map, key) => {
-        if (substitutions[key]) {
-            // eslint-disable-next-line no-param-reassign
-            map[key] = substitutions[key];
+    for (const range of searchAutocompleteQueryRanges) {
+        const baseKey = `${range.key}:${range.value}`;
+        const index = keyValueCount.get(baseKey) ?? 0;
+        keyValueCount.set(baseKey, index + 1);
+
+        const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+        const value = substitutions[fullKey] ?? (index === 0 ? substitutions[baseKey] : undefined);
+        if (value) {
+            updatedSubstitutionMap[fullKey] = value;
         }
-
-        return map;
-    }, {} as SubstitutionMap);
+    }
 
     return updatedSubstitutionMap;
 }

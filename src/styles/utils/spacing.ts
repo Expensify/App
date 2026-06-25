@@ -335,6 +335,10 @@ export default {
         marginTop: 36,
     },
 
+    mt10: {
+        marginTop: 40,
+    },
+
     mt11: {
         marginTop: 44,
     },
@@ -617,6 +621,10 @@ export default {
 
     pr1: {
         paddingRight: 4,
+    },
+
+    pr1half: {
+        paddingRight: 6,
     },
 
     pr2: {
@@ -904,5 +912,9 @@ export default {
     },
     maxHeight100Percentage: {
         maxHeight: '100%',
+    },
+
+    maxWidth100Percentage: {
+        maxWidth: '100%',
     },
 } satisfies Record<string, ViewStyle>;

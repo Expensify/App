@@ -2,7 +2,6 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-// eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetails from '@userActions/PersonalDetails';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
@@ -53,6 +52,21 @@ describe('useAutoUpdateTimezone', () => {
             },
             1,
         );
+    });
+
+    it('does not call update when selected timezone matches system timezone (with backwards compatibility)', () => {
+        setSystemTimezone('Asia/Calcutta');
+        mockUseCurrentUserPersonalDetails.mockReturnValue({
+            accountID: 1,
+            timezone: {
+                automatic: true,
+                selected: 'Asia/Kolkata',
+            },
+        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+
+        render(<TestComponent />);
+
+        expect(updateAutomaticTimezoneSpy).not.toHaveBeenCalled();
     });
 
     it('does not call update when selected matches system timezone', () => {

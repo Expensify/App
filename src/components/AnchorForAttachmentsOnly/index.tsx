@@ -7,7 +7,6 @@ import type AnchorForAttachmentsOnlyProps from './types';
 function AnchorForAttachmentsOnly(props: AnchorForAttachmentsOnlyProps) {
     return (
         <BaseAnchorForAttachmentsOnly
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}

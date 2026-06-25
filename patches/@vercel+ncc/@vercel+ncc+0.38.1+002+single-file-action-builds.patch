@@ -1,0 +1,20 @@
+diff --git a/node_modules/@vercel/ncc/dist/ncc/index.js b/node_modules/@vercel/ncc/dist/ncc/index.js
+index a4e5922..2539df6 100644
+--- a/node_modules/@vercel/ncc/dist/ncc/index.js
++++ b/node_modules/@vercel/ncc/dist/ncc/index.js
+@@ -1,7 +1,13 @@
+ const { readFileSync, writeFileSync } = require('fs'), { Script } = require('vm'), { wrap } = require('module');
+ const basename = __dirname + '/index.js';
+-const source = readFileSync(basename + '.cache.js', 'utf-8');
+-const cachedData = !process.pkg && require('process').platform !== 'win32' && readFileSync(basename + '.cache');
++let source = readFileSync(basename + '.cache.js', 'utf-8');
++let cachedData = !process.pkg && require('process').platform !== 'win32' && readFileSync(basename + '.cache');
++const compilerConfigNeedle = `if(typeof license==="string"&&license.length>0){plugins.push(new LicenseWebpackPlugin({outputFilename:license}))}const compiler=webpack({`;
++const compilerConfigReplacement = `if(typeof license==="string"&&license.length>0){plugins.push(new LicenseWebpackPlugin({outputFilename:license}))}plugins.push(new webpack.optimize.LimitChunkCountPlugin({maxChunks:1}));const compiler=webpack({`;
++if (source.includes(compilerConfigNeedle)) {
++  source = source.replace(compilerConfigNeedle, compilerConfigReplacement);
++  cachedData = undefined;
++}
+ const scriptOpts = { filename: basename + '.cache.js', columnOffset: -62 }
+ const script = new Script(wrap(source), cachedData ? Object.assign({ cachedData }, scriptOpts) : scriptOpts);
+ (script.runInThisContext())(exports, require, module, __filename, __dirname);

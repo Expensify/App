@@ -26,7 +26,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         shouldUseNarrowLayout: true,
@@ -35,7 +34,6 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 
 jest.mock('@hooks/useFilteredOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         options: {
@@ -51,19 +49,22 @@ jest.mock('@hooks/useFilteredOptions', () => ({
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({
-        recentReports: [
-            {
-                reportID: '10',
-                keyForList: '10',
-                text: 'Test Report',
-                alternateText: 'alternate text',
-                lastMessageText: 'last message',
-            },
-        ],
-        personalDetails: [],
-        currentUserOption: null,
-        userToInvite: null,
-        categoryOptions: [],
+        options: {
+            recentReports: [
+                {
+                    reportID: '10',
+                    keyForList: '10',
+                    text: 'Test Report',
+                    alternateText: 'alternate text',
+                    lastMessageText: 'last message',
+                },
+            ],
+            personalDetails: [],
+            currentUserOption: null,
+            userToInvite: null,
+            categoryOptions: [],
+        },
+        hasMore: false,
     })),
     combineOrderingOfReportsAndPersonalDetails: jest.fn(() => ({recentReports: [], personalDetails: []})),
     getAlternateText: jest.fn(),
@@ -100,12 +101,14 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
+
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
@@ -118,10 +121,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={undefined}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -141,12 +140,13 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
@@ -159,10 +159,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={undefined}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,

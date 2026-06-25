@@ -44,16 +44,16 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                             style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mergeTransactionReceiptThumbnail]}
                             accessibilityRole={CONST.ROLE.RADIO}
                             accessibilityLabel={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
+                            sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.RECEIPT_ITEM}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.w100, styles.mb5]}>
-                                <Text style={[styles.headerText]}>
+                                <Text style={styles.headerText}>
                                     {translate('common.receipt')} {index + 1}
                                 </Text>
                                 <RadioButton
                                     isChecked={isSelected}
                                     onPress={() => onSelect(transaction.receipt)}
                                     accessibilityLabel={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
-                                    shouldUseNewStyle
                                 />
                             </View>
                             <View style={[styles.mergeTransactionReceiptImage, styles.pRelative]}>
@@ -69,7 +69,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                 />
                                 <View style={[styles.pAbsolute, styles.b2, styles.r2]}>
                                     <Button
-                                        innerStyles={[styles.arrowIcon]}
+                                        innerStyles={styles.arrowIcon}
                                         icon={expensifyIcons.Zoom}
                                         onPress={() => {
                                             Navigation.navigate(

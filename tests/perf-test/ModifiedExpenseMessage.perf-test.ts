@@ -65,5 +65,13 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => getForReportAction({translate: translateLocal, reportAction, policy: undefined, policyTags: mockedPolicyTags, currentUserLogin: CURRENT_USER_LOGIN}));
+    await measureFunction(() =>
+        getForReportAction({
+            translate: translateLocal,
+            reportAction,
+            policy: undefined,
+            policyTags: mockedPolicyTags,
+            currentUserLogin: CURRENT_USER_LOGIN,
+        }),
+    );
 });

@@ -76,6 +76,7 @@ function ReviewDescription() {
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setDescription}
+                selectedValue={reviewDuplicates?.description}
             />
         </ScreenWrapper>
     );

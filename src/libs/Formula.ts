@@ -4,8 +4,8 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
-import {formatDate} from './FormulaDatetime';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
+import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
@@ -567,24 +567,34 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
     const absoluteAmount = Math.abs(amount);
 
     try {
+        const trimmedCurrency = currency?.trim().toUpperCase();
         const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
         if (trimmedDisplayCurrency) {
             if (trimmedDisplayCurrency === 'NOSYMBOL') {
-                return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+                return convertToDisplayStringWithoutCurrency(absoluteAmount, trimmedCurrency);
             }
 
             // If a currency conversion is needed (displayCurrency differs from the source),
             // return null so the backend can compute it.
             // We can only compute the value optimistically when the amount is 0.
-            if (absoluteAmount !== 0 && currency !== trimmedDisplayCurrency) {
+            if (absoluteAmount !== 0 && trimmedCurrency !== trimmedDisplayCurrency) {
                 return null;
+            }
+
+            // Return empty string for an unrecognized display currency so the placeholder is preserved upstream.
+            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
+                return '';
             }
 
             return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
         }
 
-        if (currency) {
-            return convertToDisplayString(absoluteAmount, currency, true);
+        if (trimmedCurrency) {
+            // Return empty string for an unrecognized source currency so the placeholder is preserved upstream.
+            if (!isValidCurrencyCode(trimmedCurrency)) {
+                return '';
+            }
+            return convertToDisplayString(absoluteAmount, trimmedCurrency, true);
         }
 
         return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);

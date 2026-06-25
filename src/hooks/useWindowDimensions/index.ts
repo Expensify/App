@@ -117,8 +117,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
 
     const didScreenChangeOrientation =
         isMobile &&
-        lockedWindowDimensionsRef.current &&
-        isExtraSmallScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isExtraSmallScreenHeight &&
+        isExtraSmallScreenWidth === lockedWindowDimensionsRef.current?.responsiveLayoutResults.isExtraSmallScreenHeight &&
         isSmallScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isSmallScreen &&
         isMediumScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isMediumScreenWidth &&
         isLargeScreenWidth === lockedWindowDimensionsRef.current.responsiveLayoutResults.isLargeScreenWidth &&

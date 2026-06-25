@@ -1,5 +1,5 @@
 import RNFetchBlob from 'react-native-blob-util';
-import {getMimeType, showGeneralErrorAlert, showSuccessAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {appendTimeToFileName, getMimeType, showGeneralErrorAlert, showSuccessAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import localFileCreate from '@libs/localFileCreate';
 import type LocalFileDownload from './types';
 
@@ -8,18 +8,22 @@ import type LocalFileDownload from './types';
  * and textContent, so we're able to copy it to the Android public download dir.
  * After the file is copied, it is removed from the internal dir.
  */
-const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage) => {
-    localFileCreate(fileName, textContent).then(({path, newFileName}) => {
+const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage, shouldShowSuccessAlert, appendTimestamp = true) => {
+    localFileCreate(fileName, textContent, appendTimestamp).then(({path, newFileName}) => {
         const {fileExtension} = splitExtensionFromFileName(newFileName);
-        RNFetchBlob.MediaCollection.copyToMediaStore(
-            {
-                name: newFileName,
-                parentFolder: '', // subdirectory in the Media Store, empty goes to 'Downloads'
-                mimeType: getMimeType(fileExtension),
-            },
-            'Download',
-            path,
-        )
+        const mimeType = getMimeType(fileExtension);
+        const tryMediaStore = (name: string) =>
+            RNFetchBlob.MediaCollection.copyToMediaStore(
+                {
+                    name,
+                    parentFolder: '', // subdirectory in the Media Store, empty goes to 'Downloads'
+                    mimeType,
+                },
+                'Download',
+                path,
+            );
+        tryMediaStore(newFileName)
+            .catch(() => tryMediaStore(appendTimeToFileName(newFileName)))
             .then(() => {
                 showSuccessAlert(translate, successMessage);
             })

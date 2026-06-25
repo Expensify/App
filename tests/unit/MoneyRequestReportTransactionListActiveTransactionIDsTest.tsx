@@ -1,18 +1,22 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
 import {useEffect, useMemo} from 'react';
-import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import SCREENS from '@src/SCREENS';
+import createRandomTransaction from '../utils/collections/transaction';
 
 // Mock the TransactionThreadNavigation module
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
     setActiveTransactionIDs: jest.fn(() => Promise.resolve()),
     clearActiveTransactionIDs: jest.fn(() => Promise.resolve()),
+    getActiveTransactionIDs: jest.fn(() => ({ids: null, descriptors: null})),
 }));
 
 // Mock the navigation module
 jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigationRef: {
         getRootState: jest.fn(),
     },
@@ -36,6 +40,9 @@ function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
+        if (getActiveTransactionIDs().descriptors) {
+            return;
+        }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {
             clearActiveTransactionIDs();
@@ -47,12 +54,14 @@ function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
 }
 
 describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', () => {
-    const mockSetActiveTransactionIDs = setActiveTransactionIDs as jest.MockedFunction<typeof setActiveTransactionIDs>;
-    const mockClearActiveTransactionIDs = clearActiveTransactionIDs as jest.MockedFunction<typeof clearActiveTransactionIDs>;
-    const mockFindFocusedRoute = findFocusedRoute as jest.MockedFunction<typeof findFocusedRoute>;
+    const mockSetActiveTransactionIDs = jest.mocked(setActiveTransactionIDs);
+    const mockClearActiveTransactionIDs = jest.mocked(clearActiveTransactionIDs);
+    const mockGetActiveTransactionIDs = jest.mocked(getActiveTransactionIDs);
+    const mockFindFocusedRoute = jest.mocked(findFocusedRoute);
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockGetActiveTransactionIDs.mockReturnValue({ids: null, descriptors: null});
         (navigationRef.getRootState as jest.Mock).mockReturnValue({} as ReturnType<typeof navigationRef.getRootState>);
     });
 
@@ -170,6 +179,27 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         // Then the effect should NOT re-fire because the join(',') key hasn't changed.
         // This prevents overwriting IDs set by other callers (e.g. TransactionDuplicateReview.onPreviewPressed).
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledTimes(1);
+        expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
+    });
+
+    it('should NOT take over a snapshot-backed carousel that already has sibling descriptors', () => {
+        // Given the focused route is SEARCH_REPORT and a descriptor-backed carousel (e.g. Home "Recently added") is active
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        mockGetActiveTransactionIDs.mockReturnValue({
+            ids: ['recentlyAdded1', 'recentlyAdded2'],
+            descriptors: {recentlyAdded1: {reportID: 'r1', transaction: {...createRandomTransaction(1), transactionID: 'recentlyAdded1'}}},
+        });
+
+        const transactionIDs = ['trans1', 'trans2', 'trans3'];
+
+        // When the hook is rendered and then unmounted
+        const {unmount} = renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+
+        // Then it should neither overwrite nor clear the existing carousel context
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
+
+        unmount();
+
         expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
     });
 

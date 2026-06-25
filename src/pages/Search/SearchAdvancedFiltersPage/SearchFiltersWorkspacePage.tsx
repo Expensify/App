@@ -1,13 +1,14 @@
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitiallyFocusedKey from '@hooks/useInitiallyFocusedKey';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -16,6 +17,7 @@ import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -38,8 +40,6 @@ function SearchFiltersWorkspacePage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const selectionListRef = useRef<SelectionListHandle<WorkspaceListItem>>(null);
-
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
@@ -49,7 +49,10 @@ function SearchFiltersWorkspacePage() {
         selectedPolicyIDs: selectedOptions,
         searchTerm: debouncedSearchTerm,
         localeCompare,
+        shouldSortSelectedToTop: false,
     });
+
+    const initiallyFocusedKey = useInitiallyFocusedKey(() => data.find((item) => item.isSelected)?.keyForList);
 
     const selectWorkspace = useCallback(
         (option: WorkspaceListItem) => {
@@ -60,10 +63,6 @@ function SearchFiltersWorkspacePage() {
 
             if (optionIndex === -1 && option?.policyID) {
                 setSelectedOptions([...selectedOptions, option.policyID]);
-
-                requestAnimationFrame(() => {
-                    selectionListRef.current?.scrollAndHighlightItem([option.keyForList]);
-                });
             } else {
                 const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
                 setSelectedOptions(newSelectedOptions);
@@ -108,19 +107,21 @@ function SearchFiltersWorkspacePage() {
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator
-                            style={[styles.flex1, styles.pRelative]}
-                            reasonAttributes={{context: 'SearchFiltersWorkspacePage', shouldShowLoadingIndicator}}
-                        />
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={{context: 'SearchFiltersWorkspacePage', shouldShowLoadingIndicator}}
+                            />
+                        </View>
                     ) : (
                         <SelectionList<WorkspaceListItem>
-                            ref={selectionListRef}
                             data={data}
                             ListItem={UserListItem}
+                            initiallyFocusedItemKey={initiallyFocusedKey}
                             onSelectRow={selectWorkspace}
                             textInputOptions={textInputOptions}
                             canSelectMultiple
-                            shouldUseDefaultRightHandSideCheckmark
+                            shouldUpdateFocusedIndex
                             shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             footerContent={

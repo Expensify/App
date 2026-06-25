@@ -73,6 +73,7 @@ function DiscoverSection() {
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
                     <Image
+                        accessibilityIgnoresInvertColors
                         source={HomeTestDriveImage}
                         style={styles.discoverSectionImage}
                     />

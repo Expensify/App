@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
@@ -21,7 +22,7 @@ import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWor
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
-import type {Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ApproveActionButton from './ApproveActionButton';
 import PayActionButton from './PayActionButton';
@@ -30,6 +31,7 @@ import SubmitActionButton from './SubmitActionButton';
 type ReportPreviewActionButtonProps = {
     iouReportID: string | undefined;
     chatReportID: string | undefined;
+    chatReport: OnyxEntry<Report>;
     isPaidAnimationRunning: boolean;
     isApprovedAnimationRunning: boolean;
     isSubmittingAnimationRunning: boolean;
@@ -47,6 +49,7 @@ type ReportPreviewActionButtonProps = {
 function ReportPreviewActionButton({
     iouReportID,
     chatReportID,
+    chatReport,
     isPaidAnimationRunning,
     isApprovedAnimationRunning,
     isSubmittingAnimationRunning,
@@ -67,7 +70,6 @@ function ReportPreviewActionButton({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Plus']);
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
@@ -93,8 +95,32 @@ function ReportPreviewActionButton({
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    const canIOUBePaid = canIOUBePaidIOUActions(
+        iouReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserDetails.login ?? '',
+        currentUserDetails.accountID,
+        transactions,
+        false,
+        undefined,
+        invoiceReceiverPolicy,
+    );
+    const onlyShowPayElsewhere =
+        !canIOUBePaid &&
+        canIOUBePaidIOUActions(
+            iouReport,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserDetails.login ?? '',
+            currentUserDetails.accountID,
+            transactions,
+            true,
+            undefined,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const buttonMaxWidth =
@@ -122,7 +148,6 @@ function ReportPreviewActionButton({
             return (
                 <SubmitActionButton
                     iouReportID={iouReportID}
-                    chatReportID={chatReportID}
                     isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                     stopAnimation={stopAnimation}
                     startSubmittingAnimation={startSubmittingAnimation}
@@ -146,6 +171,7 @@ function ReportPreviewActionButton({
                 <PayActionButton
                     iouReportID={iouReportID}
                     chatReportID={chatReportID}
+                    chatReport={chatReport}
                     isPaidAnimationRunning={isPaidAnimationRunning}
                     isApprovedAnimationRunning={isApprovedAnimationRunning}
                     stopAnimation={stopAnimation}
@@ -194,6 +220,7 @@ function ReportPreviewActionButton({
                         iouRequestBackToReport: chatReportID,
                         unreportedExpenseBackToReport: iouReport?.parentReportID,
                         lastDistanceExpenseType,
+                        currentUserAccountID: currentUserDetails.accountID,
                     })}
                     isSplitButton={false}
                     anchorAlignment={{

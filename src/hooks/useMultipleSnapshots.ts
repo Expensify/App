@@ -36,6 +36,4 @@ function useMultipleSnapshots(hashes: string[]): SnapshotMap {
     return snapshotMap;
 }
 
-export type {SnapshotMap};
-
 export default useMultipleSnapshots;
