@@ -1,5 +1,5 @@
 ---
-title: The Collect plan
+title: What is the Collect plan?
 description: Learn what the Collect plan includes, who it's designed for, and how it supports everyday expense management.
 keywords: [New Expensify, Collect plan, expense management, SmartScan, Expensify Card, reimbursements]
 internalScope: Audience is all workspace members. Explains the purpose and capabilities of the Collect plan. Does not compare plans in detail, explain billing definitions, or cover pricing or plan management.
