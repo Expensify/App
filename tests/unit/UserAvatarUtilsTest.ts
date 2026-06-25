@@ -298,4 +298,36 @@ describe('UserAvatarUtils', () => {
             expect(name).toBe('default-avatar_20');
         });
     });
+
+    describe('getLetterAvatarURL (golden parity)', () => {
+        // Frozen golden cases shared with the Auth and Web getLetterAvatarURL tests. All three
+        // implementations must produce these exact URLs. Colors come from md5(login) % palette size.
+        const BASE = `${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1`;
+        const cases = [
+            {accountID: 42, firstName: 'Dave', lastName: 'Lee', login: 'dave@example.com', expected: `${BASE}/blue100/DL.png`},
+            {accountID: 42, firstName: 'Dave', lastName: '', login: 'dave@example.com', expected: `${BASE}/blue100/D.png`},
+            {accountID: 42, firstName: '', lastName: '', login: 'hiiii@example.com', expected: `${BASE}/blue400/H.png`},
+            {accountID: 7, firstName: '', lastName: '', login: '+15551234567@expensify.sms', expected: ''},
+            {accountID: CONST.ACCOUNT_ID.CONCIERGE, firstName: 'Concierge', lastName: '', login: 'concierge@expensify.com', expected: ''},
+            {accountID: CONST.ACCOUNT_ID.NOTIFICATIONS, firstName: 'Notifications', lastName: '', login: 'notifications@expensify.com', expected: ''},
+        ];
+
+        it.each(cases)('builds the canonical URL for $login ($firstName/$lastName)', ({accountID, firstName, lastName, login, expected}) => {
+            expect(UserAvatarUtils.getLetterAvatarURL(accountID, firstName, lastName, login)).toBe(expected);
+        });
+
+        it('derives color from the login so it stays stable across an optimistic accountID change', () => {
+            const optimistic = UserAvatarUtils.getLetterAvatarURL(1, '', '', 'consistent@example.com');
+            const real = UserAvatarUtils.getLetterAvatarURL(999, '', '', 'consistent@example.com');
+            expect(optimistic).toBe(real);
+            expect(optimistic).toBe(`${BASE}/pink400/C.png`);
+        });
+
+        it('round-trips through parseLetterAvatarURL', () => {
+            const url = UserAvatarUtils.getLetterAvatarURL(42, 'Dave', 'Lee', 'dave@example.com');
+            const parsed = UserAvatarUtils.parseLetterAvatarURL(url);
+            expect(parsed?.initials).toBe('DL');
+            expect(parsed?.colors).toEqual(UserAvatarUtils.getLetterAvatarScheme('blue100'));
+        });
+    });
 });
