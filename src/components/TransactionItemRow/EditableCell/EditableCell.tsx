@@ -80,8 +80,13 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         if (!wasRecentlyEditingCell) {
             return;
         }
-        setIsEditIconFocused(false);
-        setShouldSuppressEditIconHover(true);
+
+        const animationFrame = requestAnimationFrame(() => {
+            setIsEditIconFocused(false);
+            setShouldSuppressEditIconHover(true);
+        });
+
+        return () => cancelAnimationFrame(animationFrame);
     }, [wasRecentlyEditingCell]);
 
     const handleEditIconFocus = () => {
@@ -92,6 +97,10 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const handleEditIconBlur = () => {
         setIsEditIconFocused(false);
         setFocusedCellId(null);
+    };
+
+    const handleCellHoverIn = () => {
+        setShouldSuppressEditIconHover(false);
     };
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
@@ -128,9 +137,9 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <Hoverable onHoverIn={() => setShouldSuppressEditIconHover(false)}>
+        <Hoverable onHoverIn={handleCellHoverIn}>
             {(isCellHovered) => {
-                const shouldShowEditIcon = !shouldSuppressEditIconHover && (isCellHovered || isEditIconFocused);
+                const shouldShowEditIcon = !wasRecentlyEditingCell && !shouldSuppressEditIconHover && (isCellHovered || isEditIconFocused);
 
                 return (
                     <View style={styles.editableCell}>
