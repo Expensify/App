@@ -2,6 +2,7 @@ import {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {TableData} from '@components/Table/types';
 import CONST from '@src/CONST';
+import {getObjectKeys} from '@src/libs/ObjectUtils';
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
@@ -9,7 +10,6 @@ import type {Middleware, MiddlewareHookResult} from './types';
  */
 type FilterConfigEntry = {
     label: string;
-    showLabel?: boolean;
     filterType?: ValueOf<typeof CONST.TABLES.FILTER_TYPE>;
     options: Array<{label: string; value: string}>;
     default?: string;
@@ -48,6 +48,7 @@ type UseFilteringProps<DataType extends TableData, FilterKey extends string = st
  * Result returned by the filtering middleware.
  */
 type UseFilteringResult<DataType extends TableData, FilterKey extends string = string> = MiddlewareHookResult<DataType, FilteringMethods<FilterKey>> & {
+    hasActiveFilters: boolean;
     currentFilters: Record<FilterKey, unknown>;
 };
 
@@ -88,7 +89,15 @@ function useFiltering<DataType extends TableData, FilterKey extends string = str
         getActiveFilters,
     };
 
-    return {middleware, currentFilters, methods};
+    const hasActiveFilters = filters
+        ? getObjectKeys(currentFilters).some((key) => {
+              const filterValue = currentFilters[key];
+              const defaultValue = filters[key]?.default;
+              return filterValue !== defaultValue;
+          })
+        : false;
+
+    return {middleware, currentFilters, hasActiveFilters, methods};
 }
 
 type FilteringMiddlewareParams<DataType extends TableData, FilterKey extends string = string> = {
@@ -105,7 +114,7 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
         return data;
     }
 
-    const filterKeys = Object.keys(filters) as FilterKey[];
+    const filterKeys = getObjectKeys(filters);
 
     return data.filter((item) => {
         return filterKeys.every((filterKey) => {

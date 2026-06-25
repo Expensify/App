@@ -169,7 +169,7 @@ export default function WorkspaceTagsTable({
             return localeCompare(glCode1, glCode2) * orderMultiplier;
         }
 
-        if (hasDependentTags || isMultiLevelTags) {
+        if (hasDependentTags) {
             return ((item1.orderWeight ?? 0) - (item2.orderWeight ?? 0)) * orderMultiplier;
         }
 

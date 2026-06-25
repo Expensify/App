@@ -484,6 +484,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},
@@ -720,6 +721,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [{label: 'All', value: 'all'}],
                     default: 'all',
@@ -778,6 +780,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
                     options: [
                         {label: 'All', value: 'all'},

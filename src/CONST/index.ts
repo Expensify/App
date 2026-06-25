@@ -1257,23 +1257,23 @@ const CONST = {
         },
         EXPENSE_REPORT_SEARCH: {
             descriptionKey: 'expenseReportSearch',
-            shortcutKey: 'U',
-            modifiers: ['CTRL'],
+            shortcutKey: 'G',
+            modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                DEFAULT: {input: 'u', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'u', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'u', modifierFlags: keyModifierCommand},
+                DEFAULT: {input: 'g', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         GO_TO_WORKSPACE: {
             descriptionKey: 'goToWorkspace',
-            shortcutKey: 'B',
-            modifiers: ['CTRL'],
+            shortcutKey: 'P',
+            modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                DEFAULT: {input: 'b', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'b', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'b', modifierFlags: keyModifierCommand},
+                DEFAULT: {input: 'p', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
@@ -3002,12 +3002,17 @@ const CONST = {
         STEP_INDEX_LIST: ['1', '2', '3'],
     },
 
-    /** Salesforce package install URLs for the FFA Expensify bundle (see help: Connect to Certinia). */
+    /** Salesforce package install URLs for the Certinia Expensify bundles (see help: Connect to Certinia). */
+    CERTINIA_PSA_BUNDLE_INSTALL_URL: {
+        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+        SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+    },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
+    CERTINIA_PSA_BUNDLE_VERSION: '1.3',
     CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {
@@ -3905,6 +3910,7 @@ const CONST = {
         DEFAULT_FIELD_LIST_TARGET: 'expense',
         DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
+            OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
@@ -4943,6 +4949,7 @@ const CONST = {
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
+        PMB: /\b(?:p\.?\s*m\.?\s*b|private\s*mail\s*?box)\.?\s*#?\s*(\d+)\b/i,
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
@@ -8541,6 +8548,7 @@ const CONST = {
                 INVITE_BUTTON: 'WorkspaceMembers-InviteButton',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
+                LIST_ROW: 'WorkspaceMembers-ListRow',
             },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',
