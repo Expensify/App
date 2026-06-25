@@ -2022,7 +2022,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             approveMoneyRequest({
                 expenseReport,
-                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID)),
+                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -2059,7 +2059,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             approveMoneyRequest({
                 expenseReport,
-                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID)),
+                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -2539,6 +2539,125 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(iouReportID).toBe(expenseReport.reportID);
         });
     });
+
+    describe('approveMoneyRequest Submit workspace upgrade', () => {
+        const submitPolicyID = 'submit-policy-id';
+        const teamPolicyID = 'team-policy-id';
+        const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
+
+        const submitPolicy: Policy = {
+            ...createRandomPolicy(Number(submitPolicyID), CONST.POLICY.TYPE.SUBMIT),
+            id: submitPolicyID,
+        };
+
+        const teamPolicy: Policy = {
+            ...createRandomPolicy(Number(teamPolicyID), CONST.POLICY.TYPE.TEAM),
+            id: teamPolicyID,
+        };
+
+        const createSubmittedExpenseReport = (policyID = submitPolicyID): Report => ({
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            total: 10000,
+            currency: CONST.CURRENCY.USD,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            policyID,
+        });
+
+        const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: Policy, policy: Policy = teamPolicy) => ({
+            expenseReport,
+            expenseReportPolicy,
+            policy,
+            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+            currentUserEmailParam: CARLOS_EMAIL,
+            hasViolations: false,
+            isASAPSubmitBetaEnabled: false,
+            expenseReportCurrentNextStepDeprecated: undefined,
+            betas: [CONST.BETAS.ALL],
+            userBillingGracePeriodEnds: undefined,
+            amountOwed: 0,
+            ownerBillingGracePeriodEnd: undefined,
+            delegateEmail: undefined,
+        });
+
+        beforeEach(() => {
+            jest.mocked(Navigation.navigate).mockClear();
+            jest.mocked(Navigation.getActiveRoute).mockReturnValue('');
+        });
+
+        it('navigates to workspace upgrade instead of approving when expenseReportPolicy is a Submit workspace', () => {
+            const expenseReport = createSubmittedExpenseReport();
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
+
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy));
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+
+        it('gates upgrade by expenseReportPolicy instead of the policy param', () => {
+            const expenseReport = createSubmittedExpenseReport();
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
+
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy, teamPolicy));
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+
+        it('falls back to policy when expenseReportPolicy is undefined', () => {
+            const expenseReport = createSubmittedExpenseReport(submitPolicyID);
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID), expenseReport.reportID);
+
+            approveMoneyRequest({
+                ...createApproveMoneyRequestParams(expenseReport, submitPolicy),
+                expenseReportPolicy: undefined,
+                policy: submitPolicy,
+            });
+
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+
+        it('uses Navigation.getActiveRoute as backTo when available', () => {
+            const expenseReport = createSubmittedExpenseReport();
+            const activeRoute = `search?q=reportID%3A${expenseReport.reportID}`;
+            jest.mocked(Navigation.getActiveRoute).mockReturnValue(activeRoute);
+
+            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(submitPolicyID, upgradeFeatureAlias, activeRoute, expenseReport.reportID);
+
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, submitPolicy));
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+        });
+
+        it('does not navigate to workspace upgrade when expenseReportPolicy is not a Submit workspace', () => {
+            const expenseReport = createSubmittedExpenseReport(teamPolicyID);
+
+            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, teamPolicy));
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('does not invoke onApproved when redirecting to workspace upgrade', () => {
+            const onApproved = jest.fn();
+            const expenseReport = createSubmittedExpenseReport();
+
+            approveMoneyRequest({...createApproveMoneyRequestParams(expenseReport, submitPolicy), onApproved});
+
+            expect(onApproved).not.toHaveBeenCalled();
+        });
+
+        it('invokes onApproved when approving on a non-Submit workspace', () => {
+            const onApproved = jest.fn();
+            const expenseReport = createSubmittedExpenseReport(teamPolicyID);
+
+            approveMoneyRequest({...createApproveMoneyRequestParams(expenseReport, teamPolicy), onApproved});
+
+            expect(onApproved).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('approveMoneyRequest with take control', () => {
         const adminAccountID = 1;
         const managerAccountID = 2;
@@ -3459,6 +3578,147 @@ describe('actions/IOU/ReportWorkflow', () => {
             const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
+        });
+
+        it('should not return a badge when the expense report is pending deletion (deleted offline)', async () => {
+            const chatReportID = '400';
+            const iouReportID = '401';
+            const policyID = '402';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.USER,
+                harvesting: {enabled: false},
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+                isOwnPolicyExpenseChat: true,
+            };
+
+            // An open report that would otherwise surface the SUBMIT/"Mark as done" badge, but is pending deletion offline.
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                merchant: 'TestMerchant',
+                modifiedMerchant: 'TestMerchant',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            const reportPreviewAction = {
+                reportActionID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            const mockChatReportActions = {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
+            expect(result.reportAction).toBeUndefined();
+            expect(result.actionBadge).toBeUndefined();
+        });
+
+        it('should prefer the fresh allReports snapshot over the stale module cache for the pending-delete check', async () => {
+            const chatReportID = '410';
+            const iouReportID = '411';
+            const policyID = '412';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.USER,
+                harvesting: {enabled: false},
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+                isOwnPolicyExpenseChat: true,
+            };
+
+            // The module-level Onyx cache still holds a non-pending version of the report (the stale state mid-recompute).
+            const staleIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                merchant: 'TestMerchant',
+                modifiedMerchant: 'TestMerchant',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, staleIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            const reportPreviewAction = {
+                reportActionID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            const mockChatReportActions = {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
+            await waitForBatchedUpdates();
+
+            // The fresh snapshot reflects the optimistic offline delete (pendingFields.preview === DELETE).
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: {
+                    ...staleIouReport,
+                    pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                },
+            };
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions, allReports);
+            expect(result.reportAction).toBeUndefined();
+            expect(result.actionBadge).toBeUndefined();
         });
 
         it('should return PAY badge for negative expense (credit) via onlyShowPayElsewhere path', async () => {
