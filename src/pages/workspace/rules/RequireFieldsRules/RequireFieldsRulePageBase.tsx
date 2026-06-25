@@ -4,8 +4,8 @@ import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import Tab from '@libs/actions/Tab';
@@ -54,6 +55,7 @@ function getValidationError(form: RequireFieldsRuleForm | null | undefined, tran
 function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -210,28 +212,26 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                             const toggleField = () => handleToggleField(field.key, !isChecked);
 
                             return (
-                                <View
+                                <MenuItem
                                     key={field.key}
-                                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mh5, styles.mb5, styles.mr2]}
-                                >
-                                    <PressableWithFeedback
-                                        onPress={toggleField}
-                                        disabled={!canWriteRules}
-                                        style={[styles.flexShrink1, styles.mr2]}
-                                        accessibilityLabel={field.label}
-                                        accessibilityRole={CONST.ROLE.CHECKBOX}
-                                        accessibilityState={{checked: isChecked, disabled: !canWriteRules}}
-                                        sentryLabel="WorkspaceRules-RequireFieldsRuleFieldToggle"
-                                    >
-                                        <Text style={styles.textStrong}>{field.label}</Text>
-                                    </PressableWithFeedback>
-                                    <Checkbox
-                                        isChecked={isChecked}
-                                        accessibilityLabel={field.label}
-                                        onPress={toggleField}
-                                        disabled={!canWriteRules}
-                                    />
-                                </View>
+                                    title={field.label}
+                                    onPress={toggleField}
+                                    disabled={!canWriteRules}
+                                    interactive={canWriteRules}
+                                    shouldShowRightComponent
+                                    rightComponent={
+                                        <View style={[styles.pointerEventsAuto, StyleUtils.getMenuItemIconStyle(true), styles.alignItemsEnd]}>
+                                            <Checkbox
+                                                isChecked={isChecked}
+                                                onPress={toggleField}
+                                                accessibilityLabel={field.label}
+                                                accessible={false}
+                                                disabled={!canWriteRules}
+                                            />
+                                        </View>
+                                    }
+                                    sentryLabel="WorkspaceRules-RequireFieldsRuleFieldToggle"
+                                />
                             );
                         })}
                 </ScrollView>
