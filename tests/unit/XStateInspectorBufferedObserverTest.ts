@@ -1,22 +1,6 @@
 import type {Observer} from 'xstate';
 import createBufferedObserver from '@libs/XStateInspector/createBufferedObserver';
 
-type Deferred<T> = {
-    promise: Promise<T>;
-    resolve: (value: T) => void;
-    reject: (reason?: unknown) => void;
-};
-
-function createDeferred<T>(): Deferred<T> {
-    let resolve: (value: T) => void = () => {};
-    let reject: (reason?: unknown) => void = () => {};
-    const promise = new Promise<T>((resolveFn, rejectFn) => {
-        resolve = resolveFn;
-        reject = rejectFn;
-    });
-    return {promise, resolve, reject};
-}
-
 function createRecordingObserver() {
     const received: number[] = [];
     const errors: unknown[] = [];
@@ -33,7 +17,7 @@ function createRecordingObserver() {
 
 describe('createBufferedObserver', () => {
     it('buffers next() values until the downstream observer is ready, then drains them in order', () => {
-        const deferred = createDeferred<Observer<number>>();
+        const deferred = Promise.withResolvers<Observer<number>>();
         const {received, observer} = createRecordingObserver();
         const buffered = createBufferedObserver(deferred.promise);
 
@@ -50,7 +34,7 @@ describe('createBufferedObserver', () => {
     });
 
     it('forwards values straight through once the downstream observer is live, after the buffered ones', () => {
-        const deferred = createDeferred<Observer<number>>();
+        const deferred = Promise.withResolvers<Observer<number>>();
         const {received, observer} = createRecordingObserver();
         const buffered = createBufferedObserver(deferred.promise);
 
@@ -65,7 +49,7 @@ describe('createBufferedObserver', () => {
     });
 
     it('releases the buffer and drops values when the downstream observer fails to load, so it cannot grow without bound', () => {
-        const deferred = createDeferred<Observer<number>>();
+        const deferred = Promise.withResolvers<Observer<number>>();
         const {received} = createRecordingObserver();
         const buffered = createBufferedObserver(deferred.promise);
 
@@ -84,7 +68,7 @@ describe('createBufferedObserver', () => {
     });
 
     it('treats error and complete as no-ops before the downstream observer is live, and forwards them after', () => {
-        const deferred = createDeferred<Observer<number>>();
+        const deferred = Promise.withResolvers<Observer<number>>();
         const {errors, getCompletedCount, observer} = createRecordingObserver();
         const buffered = createBufferedObserver(deferred.promise);
 
