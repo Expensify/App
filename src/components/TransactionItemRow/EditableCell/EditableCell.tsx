@@ -90,6 +90,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }, [wasRecentlyEditingCell]);
 
     const handleEditIconFocus = () => {
+        setShouldSuppressEditIconHover(false);
         setIsEditIconFocused(true);
         setFocusedCellId(cellId);
     };
