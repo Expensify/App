@@ -1569,6 +1569,78 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect((optimisticParentReportUpdate?.value as Report | undefined)?.iouReportID).toBeNull();
         });
 
+        it('clears the workspace chat outstanding child request when a submitter submits their own report offline on a Submit workspace', async () => {
+            const policyID = '1';
+            const workspaceChatReportID = '2';
+            const submitterAccountID = 100;
+            const submitterEmail = 'submitter@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+            });
+
+            const parentReport: Report = {
+                ...createRandomReport(Number(workspaceChatReportID), undefined),
+                reportID: workspaceChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                ownerAccountID: submitterAccountID,
+                managerID: submitterAccountID,
+                iouReportID: '1',
+                hasOutstandingChildRequest: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            // On a Submit workspace the submitter is also their own report manager (the policy default approver)
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.SUBMIT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: submitterEmail,
+                owner: submitterEmail,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                parentReportID: workspaceChatReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: submitterAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            // Go offline so only the optimistic update is applied
+            mockFetch?.pause?.();
+            submitReport({
+                submitterLogin: submitterEmail,
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: submitterAccountID,
+                currentUserEmailParam: submitterEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // The submitter can't approve their own expense on a Submit workspace, so the green dot should be cleared
+            const optimisticParentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`);
+            expect(optimisticParentReport?.hasOutstandingChildRequest).toBe(false);
+            // Onyx merge deletes the key when the optimistic value is null, so iouReportID is cleared
+            expect(optimisticParentReport?.iouReportID).toBeUndefined();
+        });
+
         it('recomputes the submit approver for a retracted forwarded report', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
@@ -2353,6 +2425,74 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeFalsy();
+        });
+
+        it('should return false on a Submit workspace when the submitter is their own report manager', async () => {
+            // Given a Submit workspace report whose owner and manager are both the current user (submitter approving their own expense)
+            const policyID = '2';
+            const reportID = '1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.SUBMIT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            // Then canApproveIOU should return false so no "Approve" badge is surfaced for the submitter
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeFalsy();
+        });
+
+        it('should return true on a Submit workspace when the approver is not the report owner', async () => {
+            // Given a Submit workspace report owned by another user but managed by the current user (a real approver)
+            const policyID = '2';
+            const reportID = '1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.SUBMIT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+
+            // Then canApproveIOU should still return true for the real approver
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeTruthy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeTruthy();
         });
     });
 

@@ -16,7 +16,16 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose, isSubmitPolicy} from '@libs/PolicyUtils';
+import {
+    arePaymentsEnabled,
+    getSubmitReportManagerAccountID,
+    hasDynamicExternalWorkflow,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isSubmitAndClose,
+    isSubmitPolicy,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
+} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -118,6 +127,12 @@ function canApproveIOU(
 ) {
     const isSubmitWorkspace = isSubmitPolicy(policy);
     if (!isExpenseReport(iouReport) || !policy || !(isPaidGroupPolicy(policy) || isSubmitWorkspace)) {
+        return false;
+    }
+
+    // On a Submit workspace the submitter is also the report manager, so guard against approving your own expense,
+    // mirroring the same check used by isApproveAction and the other approval-eligibility entry points.
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, iouReport?.ownerAccountID, currentUserAccountID)) {
         return false;
     }
 
@@ -1456,8 +1471,10 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
                 ...parentReport,
-                // In case its a manager who force submitted the report, they are the next user who needs to take an action
-                hasOutstandingChildRequest: isCurrentUserManager,
+                // In case its a manager who force submitted the report, they are the next user who needs to take an action.
+                // On a Submit workspace the submitter is also their own report manager but can't approve their own expense,
+                // so there's no outstanding action for them — keep the green dot off in that case.
+                hasOutstandingChildRequest: isCurrentUserManager && !isSubmitterApproveBlockedOnSubmitWorkspace(policy, expenseReport.ownerAccountID, currentUserAccountIDParam),
                 iouReportID: null,
             },
         });
