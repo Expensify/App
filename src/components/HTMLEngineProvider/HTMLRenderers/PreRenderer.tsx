@@ -105,7 +105,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                             </View>
                         </PressableWithoutFeedback>
                         {isHovered && !!codeText && (
-                            <View style={[styles.pAbsolute, isMultilineCodeBlock ? {top: 16, right: 16} : {top: 4, right: 4}]}>
+                            <View style={[styles.pAbsolute, isMultilineCodeBlock ? {top: 8, right: 8} : {top: 4, right: 4}]}>
                                 <CopyTextToClipboard
                                     urlToCopy={codeText}
                                     styles={styles.copyableTextFieldButton}
