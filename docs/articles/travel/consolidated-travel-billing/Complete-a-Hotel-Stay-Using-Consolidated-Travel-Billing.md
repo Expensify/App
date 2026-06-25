@@ -1,28 +1,28 @@
 ---
-title: Complete a hotel stay using Travel Invoicing
-description: Learn what happens after you book a hotel with Travel Invoicing and how to handle payment verification at check-in.
-keywords: [expensify hotel booking payment, travel invoicing hotel check in, expensify travel hotel authorization, hotel cvv expensify]
-internalScope: Audience is Workspace Members. Covers hotel booking verification and check-in flow when using Travel Invoicing. Does not cover booking travel or admin setup.
+title: Complete a hotel stay using Consolidated Travel Billing
+description: Learn what happens after you book a hotel with Consolidated Travel Billing and how to handle payment verification at check-in.
+keywords: [expensify hotel booking payment, consolidated travel billing hotel check in, expensify travel hotel authorization, hotel cvv expensify]
+internalScope: Audience is Workspace Members. Covers hotel booking verification and check-in flow when using Consolidated Travel Billing. Does not cover booking travel or admin setup.
 ---
 
-# Complete a hotel stay using Travel Invoicing
+# Complete a hotel stay using Consolidated Travel Billing
 
-When you book a hotel using Travel Invoicing, your company pays for the stay through a central account.
+When you book a hotel using Consolidated Travel Billing, your company pays for the stay through a central account.
 
-Because hotels often require payment verification, Expensify works behind the scenes to confirm that the Travel Invoicing card is authorized for your booking.
+Because hotels often require payment verification, Expensify works behind the scenes to confirm that the Consolidated Travel Billing card is authorized for your booking.
 
 Depending on the hotel, you may need to take an extra step before or during check-in.
 
 ---
 
-## Who can complete a hotel stay using Travel Invoicing
+## Who can complete a hotel stay using Consolidated Travel Billing
 
 - Members who booked a hotel using Expensify Travel
-- Members in a Workspace with Travel Invoicing enabled
+- Members in a Workspace with Consolidated Travel Billing enabled
 
 ---
 
-## What to expect after you book a hotel with Travel Invoicing
+## What to expect after you book a hotel with Consolidated Travel Billing
 
 After your booking:
 
@@ -34,9 +34,9 @@ You’ll be contacted if any action is required from you.
 
 ---
 
-## How to complete your hotel check-in using Travel Invoicing
+## How to complete your hotel check-in using Consolidated Travel Billing
 
-### If your hotel accepts Travel Invoicing
+### If your hotel accepts Consolidated Travel Billing
 
 You may receive a completed authorization form from Expensify.
 
@@ -50,7 +50,7 @@ In most cases, no payment is required from you.
 
 ---
 
-### If your hotel does not accept Travel Invoicing
+### If your hotel does not accept Consolidated Travel Billing
 
 Some hotels do not accept virtual or centrally billed cards.
 
@@ -65,7 +65,7 @@ You will need to:
 
 ## What happens after your hotel stay
 
-- If Travel Invoicing is accepted:
+- If Consolidated Travel Billing is accepted:
   - The charge is billed to your company
 
 - If you used your own card:
@@ -87,6 +87,6 @@ A CCA form allows the hotel to charge a card that is not physically present at c
 
 No. Many bookings are handled automatically. You’ll only be contacted if action is required.
 
-## Can I use Travel Invoicing for all hotels?
+## Can I use Consolidated Travel Billing for all hotels?
 
 Not always. Some hotels do not accept virtual or centrally billed cards, which may require you to use another payment method.
