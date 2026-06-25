@@ -310,15 +310,15 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
     }
 
     const iouParams = getIouParamsForTransaction(params);
-    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportPolicyTags = getPolicyTagsData(iouParams.parentReport?.policyID);
+
     updateMoneyRequestMerchant({
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         hash: params.hash,
         isOffline: params.isOffline,
-        reportPolicyTags,
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        reportPolicyTags: getPolicyTagsData(iouParams.parentReport?.policyID),
     });
 }
 
