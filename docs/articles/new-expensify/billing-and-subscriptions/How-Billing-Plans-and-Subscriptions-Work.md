@@ -7,7 +7,7 @@ internalScope: Audience is anyone using or evaluating Expensify. Covers the rela
 
 # How billing, plans, and subscriptions work
 
-Expensify organizes billing around three core concepts: your Workspace plan, your subscription, and any Expensify Card pricing you qualify for. Together, these determine the features available to your organization and how much you'll pay for your subscription.
+Expensify organizes billing around three core concepts: your Workspace plan, your subscription, and your organization's Expensify Card usage. Together, these determine the features available to your organization and the pricing you qualify for.
 
 ## What is a Workspace plan?
 
