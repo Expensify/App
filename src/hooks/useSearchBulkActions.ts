@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
