@@ -30,7 +30,6 @@ import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {getDecodedLeafCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
@@ -45,7 +44,7 @@ import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -271,15 +270,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                     // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
                     if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
                         Navigation.navigate(
-                            createDynamicRoute(
-                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                    action: CONST.IOU.ACTION.EDIT,
-                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                    reportID,
-                                    upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                }),
-                            ),
+                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action: CONST.IOU.ACTION.EDIT,
+                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                            }),
                         );
                         return;
                     }
@@ -338,25 +335,23 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
-                                    const categoryRoute = createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                            reportID,
-                                        ),
+                                    const categoryRoute = ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                        reportID,
+                                        Navigation.getActiveRoute(),
                                     );
                                     if (shouldNavigateToUpgradePath) {
                                         Navigation.navigate(
-                                            createDynamicRoute(
-                                                DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                    action: CONST.IOU.ACTION.EDIT,
-                                                    iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                    reportID,
-                                                    upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                                }),
-                                            ),
+                                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                action: CONST.IOU.ACTION.EDIT,
+                                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                reportID,
+                                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                                backTo: categoryRoute,
+                                            }),
                                         );
                                         return;
                                     }
