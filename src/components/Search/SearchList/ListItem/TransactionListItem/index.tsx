@@ -22,6 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {syncMissingCategoryViolation} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
@@ -157,7 +158,14 @@ function TransactionListItem<TItem extends ListItem>({
         isInvoice,
     );
 
-    const transactionViolations = mergeProhibitedViolations(attendeeOnyxViolations);
+    // Sync missingCategory violation with current policy requiresCategory setting (can be removed later when BE handles this)
+    const categoryOnyxViolations = syncMissingCategoryViolation(
+        attendeeOnyxViolations,
+        transaction?.category ?? transactionItem.category,
+        policyForViolations?.requiresCategory,
+    );
+
+    const transactionViolations = mergeProhibitedViolations(categoryOnyxViolations);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();

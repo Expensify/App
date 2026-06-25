@@ -204,6 +204,20 @@ function getDecodedLeafCategoryName(categoryName: string): string {
     return Str.htmlDecode(leaf.trim());
 }
 
+function syncMissingCategoryViolation<T extends {name: string}>(violations: T[], category: string | undefined, requiresCategory: boolean | undefined): T[] {
+    const hasMissingCategoryViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_CATEGORY);
+    // isCategoryMissing handles undefined, CATEGORY_EMPTY_VALUE, and "Uncategorized" sentinel
+    const shouldShowMissingCategory = !!requiresCategory && isCategoryMissing(category);
+
+    if (!hasMissingCategoryViolation && shouldShowMissingCategory) {
+        return [...violations, {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true} as unknown as T];
+    }
+    if (hasMissingCategoryViolation && !shouldShowMissingCategory) {
+        return violations.filter((v) => v.name !== CONST.VIOLATIONS.MISSING_CATEGORY);
+    }
+    return violations;
+}
+
 function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollection<PolicyCategories>, personalPolicyID: string | undefined) {
     return Object.fromEntries(
         Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
@@ -232,4 +246,5 @@ export {
     getDecodedLeafCategoryName,
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
+    syncMissingCategoryViolation,
 };
