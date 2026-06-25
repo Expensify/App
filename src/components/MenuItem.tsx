@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
@@ -615,6 +616,8 @@ function MenuItem({
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
     const theme = useTheme();
+    const themePreference = useThemePreference();
+    const isHighContrastTheme = themePreference === CONST.THEME.LIGHT_CONTRAST || themePreference === CONST.THEME.DARK_CONTRAST;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
@@ -1167,6 +1170,7 @@ function MenuItem({
                                                             StyleUtils.getMenuItemIconStyle(true),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
+                                                            !isHovered && shouldDimIconRight && !isHighContrastTheme && styles.opacitySemiTransparent,
                                                             styles.alignItemsEnd,
                                                             rightIconWrapperStyle,
                                                         ]}
