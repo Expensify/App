@@ -36,8 +36,12 @@ type WorkspaceAutoReportingMonthlyOffsetPageItem = {
 function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoReportingMonthlyOffsetProps) {
     const {translate, toLocaleOrdinal} = useLocalize();
     const policyID = policy?.id;
-    const offset = policy?.autoReportingOffset ?? 0;
-    const [selectedOffset, setSelectedOffset] = useState<number | AutoReportingOffsetKeys>(offset);
+    // Default to the 1st of the month (matching the frequency page's displayed default) so an absent offset never
+    // resolves to an invalid 0. The user's pick is kept in draft state and falls back to the saved offset until
+    // they choose a row, so a deep link rendered before the policy hydrates still selects a valid day.
+    const offset = policy?.autoReportingOffset ?? 1;
+    const [userSelectedOffset, setUserSelectedOffset] = useState<number | AutoReportingOffsetKeys | undefined>();
+    const selectedOffset = userSelectedOffset ?? offset;
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
 
@@ -68,7 +72,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
     const filteredDaysOfMonth = daysOfMonth.filter((dayItem) => dayItem.text.toLowerCase().includes(trimmedText));
 
     const onSelectDayOfMonth = (item: WorkspaceAutoReportingMonthlyOffsetPageItem) => {
-        setSelectedOffset(item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
+        setUserSelectedOffset(item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
     };
 
     const saveDayOfMonth = useCallback(() => {
