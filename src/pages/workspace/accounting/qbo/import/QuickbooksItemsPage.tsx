@@ -2,8 +2,8 @@ import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateQuickbooksOnlineSyncItems} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 function QuickbooksItemsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     return (
@@ -35,9 +35,9 @@ function QuickbooksItemsPage({policy}: WithPolicyProps) {
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbo.items')}
                 isActive={!!qboConfig?.syncItems}
-                onToggle={(isEnabled) => QuickbooksOnline.updateQuickbooksOnlineSyncItems(policyID, isEnabled)}
+                onToggle={(isEnabled) => updateQuickbooksOnlineSyncItems(policyID, isEnabled)}
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS], qboConfig?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS)}
+                errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS)}
             />
         </ConnectionLayout>
