@@ -13,7 +13,6 @@ import {useTableContext} from './TableContext';
 import TableHeader from './TableHeader';
 
 const TABLE_HEADER_KEY = '__table_header__';
-const TABLE_LIST_HEADER_KEY = '__table_list_header__';
 
 /**
  * Props for the TableBody component.
@@ -55,7 +54,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isListLoaded, setIsListLoaded] = React.useState(false);
-    const [stickyHeaderDataReady, setStickyHeaderDataReady] = React.useState<DataType[] | null>(null);
+    const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = React.useState(false);
     const {
         processedData: filteredAndSortedData,
         activeSearchString,
@@ -74,11 +73,18 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
         contentContainerStyle: listContentContainerStyle,
         getItemType,
         keyExtractor,
+        onScroll,
         onLoad,
         renderItem,
+        scrollEventThrottle,
         stickyHeaderIndices,
         ...restListProps
     } = listProps ?? {};
+    const listHeaderComponent = headerComponent ?? ListHeaderComponent;
+    const hasListHeaderComponent = !!listHeaderComponent;
+    const scrollOffsetYRef = React.useRef(0);
+    const [listHeaderMeasurement, setListHeaderMeasurement] = React.useState({height: 0, isMeasured: false});
+    const [hasScrolledPastListHeader, setHasScrolledPastListHeader] = React.useState(false);
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -101,26 +107,61 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    // Synthetic sentinel rows used only to render the scrollable table header content and sticky table header;
-    // they are never passed to renderItem as real data.
+    // Synthetic sentinel row used only to render the sticky table header; it is never passed to renderItem as real data.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const tableHeaderItem = {keyForList: TABLE_HEADER_KEY} as DataType;
-    // The scrollable list header sentinel uses the same row shape and is intercepted before consumer renderItem.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const tableListHeaderItem = {keyForList: TABLE_LIST_HEADER_KEY} as DataType;
-    const tableSyntheticHeaderItems = shouldRenderStickyHeader ? [tableListHeaderItem, tableHeaderItem] : [];
-    const stickyTableHeaderIndex = tableSyntheticHeaderItems.length - 1;
+    const tableSyntheticHeaderItems = shouldRenderStickyHeader ? [tableHeaderItem] : [];
+    const stickyTableHeaderIndex = 0;
     const listData = shouldRenderStickyHeader ? [...tableSyntheticHeaderItems, ...filteredAndSortedData] : filteredAndSortedData;
     const getDataIndex = (index: number) => (shouldRenderStickyHeader ? index - tableSyntheticHeaderItems.length : index);
-    const isTableListHeaderItem = (index: number) => shouldRenderStickyHeader && index === 0;
     const isTableHeaderItem = (index: number) => shouldRenderStickyHeader && index === stickyTableHeaderIndex;
-    const canRenderStickyHeader = shouldRenderStickyHeader && isListLoaded && stickyHeaderDataReady === filteredAndSortedData;
+    const canRenderStickyHeader = shouldRenderStickyHeader && isListLoaded && hasActivatedStickyHeader && (!hasListHeaderComponent || hasScrolledPastListHeader);
+
+    const updateListHeaderScrollState = (offsetY: number, headerHeight?: number, isMeasured?: boolean) => {
+        const measuredHeaderHeight = headerHeight ?? listHeaderMeasurement.height;
+        const isHeaderMeasured = isMeasured ?? listHeaderMeasurement.isMeasured;
+        const nextHasScrolledPastListHeader = !hasListHeaderComponent || (isHeaderMeasured && offsetY >= measuredHeaderHeight);
+        setHasScrolledPastListHeader((previousValue) => (previousValue === nextHasScrolledPastListHeader ? previousValue : nextHasScrolledPastListHeader));
+    };
+
+    const handleListHeaderLayout = (event: {nativeEvent: {layout: {height: number}}}) => {
+        const nextHeight = event.nativeEvent.layout.height;
+        setListHeaderMeasurement((previousMeasurement) => {
+            if (previousMeasurement.isMeasured && previousMeasurement.height === nextHeight) {
+                return previousMeasurement;
+            }
+
+            return {
+                height: nextHeight,
+                isMeasured: true,
+            };
+        });
+        updateListHeaderScrollState(scrollOffsetYRef.current, nextHeight, true);
+    };
+
+    const handleScroll: NonNullable<typeof onScroll> = (event) => {
+        const nextOffsetY = event.nativeEvent.contentOffset.y;
+        scrollOffsetYRef.current = nextOffsetY;
+        updateListHeaderScrollState(nextOffsetY);
+        onScroll?.(event);
+    };
+
+    let listHeader: React.ReactElement | undefined;
+    if (React.isValidElement(listHeaderComponent)) {
+        listHeader = listHeaderComponent;
+    } else if (listHeaderComponent) {
+        listHeader = React.createElement(listHeaderComponent as React.ComponentType);
+    }
+    const listHeaderElement = listHeader ? (
+        <View
+            testID="table-list-header"
+            onLayout={handleListHeaderLayout}
+        >
+            {listHeader}
+        </View>
+    ) : undefined;
 
     const renderListItem = (info: ListRenderItemInfo<DataType>) => {
-        if (isTableListHeaderItem(info.index)) {
-            return headerComponent ?? null;
-        }
-
         if (isTableHeaderItem(info.index)) {
             return (
                 <View style={styles.appBG}>
@@ -133,10 +174,6 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     };
 
     const keyExtractorForList = (item: DataType, index: number) => {
-        if (isTableListHeaderItem(index)) {
-            return TABLE_LIST_HEADER_KEY;
-        }
-
         if (isTableHeaderItem(index)) {
             return TABLE_HEADER_KEY;
         }
@@ -145,29 +182,35 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
     };
 
     const getItemTypeForList = (item: DataType, index: number, extraData: unknown) => {
-        if (isTableListHeaderItem(index)) {
-            return TABLE_LIST_HEADER_KEY;
-        }
-
         if (isTableHeaderItem(index)) {
             return TABLE_HEADER_KEY;
         }
 
         return getItemType?.(item, getDataIndex(index), extraData);
     };
+
     const handleLoad: NonNullable<typeof onLoad> = (info) => {
         setIsListLoaded(true);
         onLoad?.(info);
     };
 
     React.useEffect(() => {
-        if (!shouldRenderStickyHeader || !isListLoaded) {
+        if (!shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
             return undefined;
         }
 
-        const frame = requestAnimationFrame(() => setStickyHeaderDataReady(filteredAndSortedData));
+        const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
         return () => cancelAnimationFrame(frame);
-    }, [filteredAndSortedData, isListLoaded, shouldRenderStickyHeader]);
+    }, [hasActivatedStickyHeader, isListLoaded, shouldRenderStickyHeader]);
+
+    React.useEffect(() => {
+        if (shouldRenderStickyHeader || !hasActivatedStickyHeader) {
+            return undefined;
+        }
+
+        const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(false));
+        return () => cancelAnimationFrame(frame);
+    }, [hasActivatedStickyHeader, shouldRenderStickyHeader]);
 
     const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
@@ -191,10 +234,12 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
-                ListHeaderComponent={shouldRenderStickyHeader ? undefined : (headerComponent ?? ListHeaderComponent)}
+                ListHeaderComponent={listHeaderElement}
                 ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
                 onLoad={handleLoad}
+                onScroll={handleScroll}
                 stickyHeaderIndices={canRenderStickyHeader ? [stickyTableHeaderIndex] : stickyHeaderIndices}
+                scrollEventThrottle={scrollEventThrottle ?? 16}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flexGrow1, listContentContainerStyle, tableBodyContentContainerStyle, contentContainerStyle]}
                 keyboardShouldPersistTaps="handled"
                 renderItem={renderListItem}

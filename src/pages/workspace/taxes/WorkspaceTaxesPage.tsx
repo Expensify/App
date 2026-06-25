@@ -405,16 +405,13 @@ function WorkspaceTaxesPage({
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {hasVisibleTaxes && headerContent}
-
-                        <WorkspaceTaxesTable
-                            taxes={taxRows}
-                            selectionEnabled={canWriteTaxes}
-                            selectedKeys={selectedTaxesIDs}
-                            onRowSelectionChange={setSelectedTaxesIDs}
-                        />
-                    </>
+                    <WorkspaceTaxesTable
+                        taxes={taxRows}
+                        selectionEnabled={canWriteTaxes}
+                        selectedKeys={selectedTaxesIDs}
+                        onRowSelectionChange={setSelectedTaxesIDs}
+                        headerComponent={hasVisibleTaxes ? headerContent : undefined}
+                    />
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

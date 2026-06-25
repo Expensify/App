@@ -44,6 +44,7 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
 };
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
@@ -64,6 +65,7 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField2Column,
     members,
     onRowSelectionChange,
+    headerComponent,
 }: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -242,6 +244,18 @@ export default function WorkspaceMembersTable({
             />
         );
     };
+    const tableHeaderComponent = (
+        <>
+            {headerComponent}
+            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
+                <Table.SearchBar
+                    label={translate('workspace.people.findMember')}
+                    style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
+                />
+                <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />
+            </View>
+        </>
+    );
 
     return (
         <Table
@@ -259,16 +273,8 @@ export default function WorkspaceMembersTable({
             isItemInSearch={isTableItemInSearch}
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
+            headerComponent={tableHeaderComponent}
         >
-            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
-                <Table.SearchBar
-                    label={translate('workspace.people.findMember')}
-                    style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
-                />
-                <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />
-            </View>
-
-            <Table.Header />
             <Table.Body />
         </Table>
     );

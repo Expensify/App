@@ -15,6 +15,7 @@ type MockFlashListProps<T> = {
     ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
     ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
+    onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
     stickyHeaderIndices?: number[];
 };
 
@@ -408,6 +409,8 @@ describe('Table', () => {
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getAllByText('Name').length).toBeGreaterThan(0);
             expect(screen.getByTestId('row-index-1').props.children).toBe(0);
+            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
         });
 
         it('should wait before enabling sticky table header when rows load asynchronously', () => {
@@ -450,7 +453,22 @@ describe('Table', () => {
                 animationFrameCallback?.(0);
             });
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([1]);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            fireEvent(screen.getByTestId('table-list-header'), 'layout', {nativeEvent: {layout: {height: 40}}});
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            act(() => {
+                mockFlashListProps.at(-1)?.onScroll?.({nativeEvent: {contentOffset: {y: 40}}});
+            });
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+
+            rerender(renderTable([...props.data]));
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(requestAnimationFrameSpy).toHaveBeenCalledTimes(1);
 
             requestAnimationFrameSpy.mockRestore();
             cancelAnimationFrameSpy.mockRestore();
@@ -477,7 +495,7 @@ describe('Table', () => {
                 tableRef.current?.scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 2, animated: false});
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
         });
     });
 
@@ -521,6 +539,29 @@ describe('Table', () => {
             expect(screen.getByTestId('row-1')).toBeTruthy();
             expect(screen.queryByTestId('row-2')).toBeNull();
             expect(screen.queryByTestId('row-3')).toBeNull();
+        });
+
+        it('should preserve headerComponent search state while filtering data', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={<Table.SearchBar label="Search" />}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple');
+
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(screen.getByTestId('row-1')).toBeTruthy();
+            expect(screen.queryByTestId('row-2')).toBeNull();
         });
 
         it('should show all items when search is cleared', () => {

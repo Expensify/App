@@ -1,5 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
+import {View} from 'react-native';
 import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
@@ -80,6 +81,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
 
     const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const isEmpty = rulesData.length === 0;
+    const tableHeaderComponent = shouldShowSearchBar && !isEmpty ? <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} /> : <View />;
 
     return (
         <Table
@@ -95,15 +97,10 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             initialSortColumn="condition"
             narrowLayoutSortColumn="condition"
             title={translate('workspace.rules.tabs.expenseDefaults')}
+            headerComponent={tableHeaderComponent}
         >
             {isEmpty && emptyStateContent}
-            {(!isEmpty || !emptyStateContent) && (
-                <>
-                    {shouldShowSearchBar && !isEmpty && <Table.SearchBar label={translate('workspace.rules.expenseDefaultsTable.findRule')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            {(!isEmpty || !emptyStateContent) && <Table.Body />}
         </Table>
     );
 }
