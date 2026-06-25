@@ -88,7 +88,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
 
     return onLinkPress || onConciergeLinkPress ? (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
+            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: {overflow: 'visible' as const}}}
             renderersProps={renderersProps}
             renderers={renderers}
         >
