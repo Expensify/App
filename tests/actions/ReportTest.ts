@@ -17,7 +17,7 @@ import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import CONST from '@src/CONST';
@@ -2769,7 +2769,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         global.fetch = TestHelper.getGlobalFetchMock();
 
-        it('should set "isOptimisticAction" to false/null for all actions in admins report after completing onboarding setup', async () => {
+        it('should not write any optimistic actions to admins report for MANAGE_TEAM (server posts via inboxAdminsBespoke)', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
@@ -2800,11 +2800,8 @@ describe('actions/Report', () => {
                     },
                 });
             });
-            expect(reportActions).not.toBeNull();
-            expect(reportActions).not.toBeUndefined();
-            for (const action of Object.values(reportActions ?? {})) {
-                expect(action.isOptimisticAction).toBeFalsy();
-            }
+
+            expect(reportActions).toBeUndefined();
         });
 
         it('should forward selectedInterestedFeatures to the CompleteGuidedSetup API call as a JSON-encoded array', async () => {
@@ -3111,6 +3108,76 @@ describe('actions/Report', () => {
 
             // The hasOutstandingChildRequest should still remain true as there is a second outstanding report.
             expect(report?.hasOutstandingChildRequest).toBe(true);
+        });
+
+        it('should mark the chat report preview action as deleted so the LHN action badge clears', async () => {
+            // Given a workspace chat with a single expense report and its report preview action
+            const fakePolicy: OnyxTypes.Policy = {
+                ...createRandomPolicy(7),
+                role: 'admin',
+                ownerAccountID: currentUserAccountID,
+            };
+            const chatReport: OnyxTypes.Report = {
+                ...createRandomReport(30, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: fakePolicy.id,
+                isOwnPolicyExpenseChat: true,
+            };
+            const reportPreviewActionID = '300';
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(31, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+                parentReportActionID: reportPreviewActionID,
+            };
+            const reportPreview: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(Number(reportPreviewActionID)),
+                reportActionID: reportPreviewActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                message: [{type: 'COMMENT', html: 'Report preview', text: 'Report preview'}],
+                originalMessage: {
+                    linkedReportID: expenseReport.reportID,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reportPreview.reportActionID]: reportPreview,
+            });
+            await waitForBatchedUpdates();
+
+            // When deleting the whole expense report (the path taken when it has multiple transactions, e.g. after duplicating)
+            Report.deleteAppReport({
+                report: expenseReport,
+                selfDMReport: undefined,
+                currentUserEmailParam: '',
+                currentUserAccountIDParam: currentUserAccountID,
+                reportTransactions: {},
+                allTransactionViolations: {},
+                bankAccountList: {},
+            });
+            await waitForBatchedUpdates();
+
+            const chatReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // Then the report preview action is treated as deleted, so the badge logic skips it
+            expect(isDeletedAction(chatReportActions?.[reportPreviewActionID])).toBe(true);
         });
     });
 
@@ -4044,7 +4111,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, true);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4111,7 +4178,7 @@ describe('actions/Report', () => {
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
             const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {}, TEST_USER_ACCOUNT_ID, ownerEmail);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {}, TEST_USER_ACCOUNT_ID, ownerEmail, true);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -4169,7 +4236,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -4215,7 +4282,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
@@ -4238,13 +4305,13 @@ describe('actions/Report', () => {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.IOU,
             };
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, undefined as unknown as OnyxTypes.Policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, '');
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, undefined as unknown as OnyxTypes.Policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, '', false);
             expect(result).toBeUndefined();
         });
 
         it('should return undefined when iouReport is missing', () => {
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, '');
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {}, TEST_USER_ACCOUNT_ID, '', false);
             expect(result).toBeUndefined();
         });
     });
@@ -4585,46 +4652,6 @@ describe('actions/Report', () => {
             const lowerCaseRequest = PersistedRequests.getAll().at(1);
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
         });
-    });
-
-    it('should not overwrite testDriveModalDismissed when it is already true', async () => {
-        const TEST_USER_ACCOUNT_ID = 1;
-        const TEST_USER_LOGIN = 'test@test.com';
-
-        await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
-        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {testDriveModalDismissed: true});
-        await waitForBatchedUpdates();
-
-        const adminsChatReportID = '7957055873634067';
-        const onboardingPolicyID = 'A70D00C752416807';
-        const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
-        const {onboardingMessages} = getOnboardingMessages();
-
-        Report.completeOnboarding({
-            engagementChoice,
-            onboardingMessage: onboardingMessages[engagementChoice],
-            adminsChatReportID,
-            onboardingPolicyID,
-            companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
-            userReportedIntegration: null,
-            introSelected: {choice: engagementChoice},
-            isSelfTourViewed: false,
-        });
-
-        await waitForBatchedUpdates();
-
-        const onboarding = await new Promise<OnyxEntry<OnyxTypes.Onboarding>>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (data) => {
-                    Onyx.disconnect(connection);
-                    resolve(data);
-                },
-            });
-        });
-
-        // testDriveModalDismissed should remain true and not be overwritten to false
-        expect(onboarding?.testDriveModalDismissed).toBe(true);
     });
 
     describe('openReport with introSelected', () => {
