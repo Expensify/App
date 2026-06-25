@@ -1,6 +1,5 @@
 import type {InspectionEvent} from 'xstate';
 import createBufferedObserver from './createBufferedObserver';
-import createDeferredStart from './createDeferredStart';
 import type {LoadedInspector} from './types';
 import type XStateInspector from './types';
 
@@ -32,7 +31,8 @@ function createXStateInspector(): XStateInspector {
 
     return {
         inspect: createBufferedObserver<InspectionEvent>(ready.then((inspector) => inspector.inspect)),
-        start: createDeferredStart(ready),
+        // This resolves to null on chunk load failure so consumers can pass it to React's `use()` without an error boundary.
+        ready: ready.catch(() => null),
     };
 }
 

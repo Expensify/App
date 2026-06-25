@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import {Platform} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +19,7 @@ import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
+import XStateInspectorTestToolRow from './XStateInspectorTestToolRow';
 
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
@@ -161,15 +162,11 @@ function TestToolMenu() {
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
-            {/* Opens the Stately inspector window, which shows every XState machine wired to it. The row appears on web dev builds only, where the inspector can run. */}
-            {!!xstateInspector.start && (
-                <TestToolRow title={translate('initialSettingsPage.troubleshoot.xstateInspector')}>
-                    <Button
-                        small
-                        text={translate('initialSettingsPage.troubleshoot.openXstateInspector')}
-                        onPress={xstateInspector.start}
-                    />
-                </TestToolRow>
+            {/* This row opens the Stately inspector, which visualizes every XState machine wired to it. It renders only on web dev builds, and Suspense keeps it hidden until the inspector chunk has loaded. */}
+            {!!xstateInspector.ready && (
+                <Suspense fallback={null}>
+                    <XStateInspectorTestToolRow ready={xstateInspector.ready} />
+                </Suspense>
             )}
             <SoftKillTestToolRow />
             <TestCrash />
