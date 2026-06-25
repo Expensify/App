@@ -1,7 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React from 'react';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -9,7 +10,6 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
-import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsList from './report/ReportActionsList';
 import UserTypingEventListener from './report/UserTypingEventListener';
@@ -51,17 +51,11 @@ function ReportActions() {
     // The app-load skeleton is hoisted out of the body so the body's data hooks/effects never run
     // during app boot. It only applies on the chat path (after the skeleton and money-request
     // branches below) — matching the previous behavior, where this skeleton lived inside the
-    // chat-only ReportActionsView. Because the body won't mount for this branch, its own
-    // markOpenReportEnd(report, {warm:false}) effect can't close the open-report span, so we own
-    // that telemetry mark here for the branch we gate.
+    // chat-only ReportActionsView. Because the body won't mount for this branch, it can't close the
+    // open-report span itself, so we close it here for the branch we gate.
     const shouldShowAppLoadSkeleton = !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList;
 
-    useEffect(() => {
-        if (!shouldShowAppLoadSkeleton || !report) {
-            return;
-        }
-        markOpenReportEnd(report, {warm: false});
-    }, [report, shouldShowAppLoadSkeleton]);
+    useMarkOpenReportEndOnSkeleton(report, shouldShowAppLoadSkeleton);
 
     if (!report || shouldWaitForTransactions) {
         return <ReportActionsSkeletonView />;

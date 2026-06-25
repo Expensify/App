@@ -2,9 +2,9 @@ import type {ReactNode} from 'react';
 import React, {useState} from 'react';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
-import useReportActionsSkeletonTelemetry from '@hooks/useReportActionsSkeletonTelemetry';
 import useStartConciergeSession from '@hooks/useStartConciergeSession';
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
 
@@ -52,7 +52,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         hasCachedReportActions,
     });
 
-    useReportActionsSkeletonTelemetry({report, shouldShowInitialSkeleton});
+    useMarkOpenReportEndOnSkeleton(report, shouldShowInitialSkeleton);
 
     if (!hasShownContent && shouldShowLoadingSkeleton) {
         return <ReportActionsSkeletonView />;
