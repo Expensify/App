@@ -17,11 +17,11 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
 /**
- * Monitors WebView SSL certificates against pinned SPKI hashes. Android WebView does not expose a
- * TLS authentication-challenge delegate like iOS WKWebView, so this class validates the certificate
- * returned by [WebView.getCertificate] after page load. It is invoked from a patch applied to
- * react-native-webview's [RNCWebViewClient.onPageFinished] via reflection (the library module
- * cannot directly depend on the app module).
+ * Monitors WebView SSL certificates against pinned intermediate SPKI hashes. Android WebView does
+ * not expose a TLS authentication-challenge delegate like iOS WKWebView, so this class validates
+ * the certificate returned by [WebView.getCertificate] after page load. It is invoked from a patch
+ * applied to react-native-webview's [RNCWebViewClient.onPageFinished] via reflection (the library
+ * module cannot directly depend on the app module).
  *
  * In monitor mode mismatches are reported to Sentry without blocking the page. In enforce mode the
  * platform's `<pin-set>` in network_security_config handles blocking; this class still reports for
@@ -67,10 +67,10 @@ object WebViewCertificateMonitor {
      * Validates the SSL certificate of the loaded page against pinned SPKI hashes. Called from the
      * react-native-webview patch via reflection.
      *
-     * A pin is satisfied if ANY certificate in the validated chain (leaf, intermediate, or root) has
-     * an SPKI hash present in the pin set — matching RFC 7469 semantics and OkHttp behaviour. Since
-     * [WebView.getCertificate] only exposes the leaf, the full chain is rebuilt via
-     * [X509TrustManagerExtensions.checkServerTrusted] using the system trust store.
+     * WebView pins are intermediate-only. [WebView.getCertificate] exposes only the leaf, which is
+     * used solely to rebuild the chain via [X509TrustManagerExtensions.checkServerTrusted]. A pin is
+     * satisfied if any intermediate or root in the rebuilt chain matches the pin set. When chain
+     * reconstruction fails, validation is skipped rather than reported as a mismatch.
      */
     @JvmStatic
     fun validateCertificate(webView: WebView, url: String) {
@@ -87,33 +87,40 @@ object WebViewCertificateMonitor {
         val sslCertificate = webView.certificate ?: return
         val leafCert = extractX509Certificate(sslCertificate) ?: return
 
-        val leafHash = computeSpkiSha256(leafCert) ?: return
-        if (leafHash in expectedHashes) return
-
         val chainHashes = buildChainHashes(leafCert, host)
+        if (chainHashes.isEmpty()) return
+
         if (chainHashes.any { it in expectedHashes }) return
 
-        reportMismatch(host, url, leafHash, expectedHashes)
+        reportMismatch(host, url, chainHashes, expectedHashes)
     }
 
     /**
      * Builds the certificate chain from the leaf using the system trust manager and returns SPKI
      * hashes for all certificates beyond the leaf (intermediates and root). Returns an empty list
-     * if chain building fails, falling back to leaf-only validation.
+     * if chain building fails.
      */
     private fun buildChainHashes(leafCert: X509Certificate, host: String): List<String> {
         val extensions = trustManagerExtensions ?: return emptyList()
-        return try {
-            val authType = if (leafCert.publicKey.algorithm == "EC") "ECDHE_ECDSA" else "RSA"
-            val fullChain = extensions.checkServerTrusted(
-                arrayOf(leafCert),
-                authType,
-                host,
-            )
-            fullChain.drop(1).mapNotNull { computeSpkiSha256(it) }
-        } catch (_: Exception) {
-            emptyList()
+
+        val authTypes = if (leafCert.publicKey.algorithm == "EC") {
+            arrayOf("ECDHE_ECDSA", "ECDSA")
+        } else {
+            arrayOf("RSA", "ECDHE_RSA")
         }
+
+        for (authType in authTypes) {
+            try {
+                val fullChain = extensions.checkServerTrusted(arrayOf(leafCert), authType, host)
+                val hashes = fullChain.drop(1).mapNotNull { computeSpkiSha256(it) }
+                if (hashes.isNotEmpty()) {
+                    return hashes
+                }
+            } catch (_: Exception) {
+                // try next authType
+            }
+        }
+        return emptyList()
     }
 
     @Suppress("DEPRECATION")
@@ -144,7 +151,7 @@ object WebViewCertificateMonitor {
     private fun reportMismatch(
         hostname: String,
         url: String,
-        actualHash: String,
+        actualChainHashes: List<String>,
         expectedHashes: Set<String>,
     ) {
         val redactedUrl = try {
@@ -155,7 +162,7 @@ object WebViewCertificateMonitor {
         }
 
         val message = "Certificate pinning validation failed for $hostname " +
-            "(WebView leaf SPKI sha256/$actualHash not in pinned set)"
+            "(WebView chain SPKI hashes not in pinned set)"
 
         Sentry.captureException(SSLPeerUnverifiedException(message)) { scope ->
             scope.level = SentryLevel.WARNING
@@ -163,7 +170,10 @@ object WebViewCertificateMonitor {
             scope.setTag(CERTIFICATE_PINNING_MODE_TAG, if (enforcePinning) "enforce" else "monitor")
             scope.setTag(CERTIFICATE_PINNING_CHANNEL_TAG, "WebView")
             scope.setExtra("url", redactedUrl)
-            scope.setExtra("actualSpkiHash", "sha256/$actualHash")
+            scope.setExtra(
+                "actualChainSpkiHashes",
+                actualChainHashes.joinToString(", ") { "sha256/$it" },
+            )
             scope.setExtra("expectedSpkiHashes", expectedHashes.joinToString(", ") { "sha256/$it" })
         }
     }
