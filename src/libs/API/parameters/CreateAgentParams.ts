@@ -7,6 +7,7 @@ type CreateAgentParams = {
     prompt: string;
     policyID?: string;
     optimisticAccountID: string;
+    addAsCopilot: boolean;
 };
 
 export default CreateAgentParams;

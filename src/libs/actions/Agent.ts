@@ -92,8 +92,9 @@ function createAgent(
     ];
 
     write(
+        // The App's create-agent flow makes the agent a full co-pilot of the creator so it can act on their behalf.
         WRITE_COMMANDS.CREATE_AGENT,
-        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID)},
+        {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), addAsCopilot: true},
         {optimisticData, successData, failureData},
     );
 
