@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -45,11 +45,11 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
         [translate, selectedVisibility],
     );
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const saveVisibility = useCallback(async () => {
+    const saveVisibility = async () => {
         if (!report || !selectedVisibility) {
             return;
         }
@@ -69,16 +69,13 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
         }
         updateRoomVisibility(report.reportID, report.visibility, selectedVisibility);
         setNavigationActionToMicrotaskQueue(goBack);
-    }, [report, selectedVisibility, showConfirmModal, translate, goBack]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveVisibility,
-        }),
-        [saveVisibility, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveVisibility,
+    };
 
     return (
         <ScreenWrapper

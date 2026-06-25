@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -35,19 +35,16 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
         Navigation.goBack(backPath);
     };
 
-    const saveWriteCapability = useCallback(() => {
+    const saveWriteCapability = () => {
         updateWriteCapabilityUtil(report, selectedWriteCapability);
         goBack();
-    }, [report, selectedWriteCapability, goBack]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveWriteCapability,
-        }),
-        [saveWriteCapability, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveWriteCapability,
+    };
 
     return (
         <ScreenWrapper
