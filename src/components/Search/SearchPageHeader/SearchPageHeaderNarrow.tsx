@@ -10,7 +10,7 @@ type SearchPageHeaderNarrowProps = {
     isMobileSelectionModeEnabled: boolean;
 };
 
-function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobileSelectionModeEnabled, cancelSearch}: SearchPageHeaderNarrowProps) {
+function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobileSelectionModeEnabled}: SearchPageHeaderNarrowProps) {
     const {translate} = useLocalize();
 
     if (isMobileSelectionModeEnabled) {
