@@ -487,7 +487,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             currentEmail: email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            isUserValidated,
             confirmApproval: () => confirmApproval(),
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,

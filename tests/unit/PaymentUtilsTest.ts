@@ -1,9 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePaymentType, getBusinessBankAccountOptions, handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
+import {getActivePaymentType, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -36,51 +35,6 @@ describe('PaymentUtils', () => {
     it('Test rounding wallet transfer instant fee', () => {
         expect(calculateWalletTransferBalanceFee(2100, CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT)).toBe(32);
     });
-    describe('handleUnvalidatedAccount', () => {
-        const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
-        const mockGetActiveRoute = Navigation.getActiveRoute as jest.MockedFunction<typeof Navigation.getActiveRoute>;
-
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
-        it.each([
-            {
-                description: 'search money request report route',
-                reportID: '123',
-                activeRoute: 'search/r/123',
-                expectedRoute: 'search/r/123/verify-account',
-            },
-            {
-                description: 'search report route',
-                reportID: '456',
-                activeRoute: 'search/view/456',
-                expectedRoute: 'search/view/456/verify-account',
-            },
-            {
-                description: 'regular report route',
-                reportID: '789',
-                activeRoute: 'r/789',
-                expectedRoute: 'r/789/verify-account',
-            },
-            {
-                description: 'non-search route defaults to regular report verification',
-                reportID: undefined,
-                activeRoute: 'r',
-                expectedRoute: 'r/verify-account',
-            },
-        ])('should navigate to $expectedRoute when on $description', ({reportID, activeRoute, expectedRoute}) => {
-            mockGetActiveRoute.mockReturnValue(activeRoute);
-
-            const iouReport: OnyxEntry<Report> = {reportID} as Report;
-
-            handleUnvalidatedAccount(iouReport);
-
-            expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(expectedRoute);
-        });
-    });
-
     describe('getActivePaymentType', () => {
         const randomPolicyA = createRandomPolicy(1);
         const randomPolicyB = createRandomPolicy(2);
@@ -192,7 +146,6 @@ describe('PaymentUtils', () => {
             currentEmail: 'test@test.com',
             hasViolations: false,
             isASAPSubmitBetaEnabled: false,
-            isUserValidated: true,
             iouReport: {reportID: '1'} as Report,
             iouReportNextStep: undefined,
             betas: [],
@@ -241,17 +194,6 @@ describe('PaymentUtils', () => {
 
             expect(mockTriggerKYCFlow).toHaveBeenCalledWith({event: undefined, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, policy: testPolicy});
             expect(setPersonalBankAccountContinueKYCOnSuccess).toHaveBeenCalledWith(ROUTES.ENABLE_PAYMENTS);
-        });
-
-        it('should navigate to unvalidated account page for EXPENSIFY payment type when user is not validated', () => {
-            const mockGetActiveRoute = Navigation.getActiveRoute as jest.MockedFunction<typeof Navigation.getActiveRoute>;
-            mockGetActiveRoute.mockReturnValue('r/1');
-            const params = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY as PaymentMethodType, isUserValidated: false};
-
-            selectPaymentType(params);
-
-            expect(mockTriggerKYCFlow).not.toHaveBeenCalled();
-            expect(mockNavigate).toHaveBeenCalled();
         });
 
         it('should call confirmApproval when payment type is APPROVE and confirmApproval is provided', () => {

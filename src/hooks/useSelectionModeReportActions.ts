@@ -465,7 +465,6 @@ function useSelectionModeReportActions({
                 currentEmail: currentUserEmail ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                isUserValidated,
                 confirmApproval: () => confirmApproval(),
                 iouReport: report,
                 iouReportNextStep: nextStep,
