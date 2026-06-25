@@ -15,7 +15,6 @@ function FreezeWrapper({children, freezeWhenInTabBackground = true}: FreezeWrapp
     const navigation = useNavigation();
     const currentRoute = useRoute();
     const [isAnyModalOpen] = useOnyx(ONYXKEYS.MODAL, {
-        canBeMissing: true,
         selector: (modal) => !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible,
     });
 
