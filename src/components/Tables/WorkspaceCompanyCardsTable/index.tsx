@@ -265,7 +265,6 @@ function WorkspaceCompanyCardsTable({
 
     const filterConfig: FilterConfig = {
         status: {
-            default: 'all',
             filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
             label: translate('common.status'),
             options: [
