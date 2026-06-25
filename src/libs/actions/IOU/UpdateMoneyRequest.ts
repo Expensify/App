@@ -77,6 +77,7 @@ type UpdateMoneyRequestDateParams = {
     hash?: number;
     delegateAccountID: number | undefined;
     policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
+    reportPolicyTags?: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 type SearchSnapshotOnyxData = {
@@ -221,6 +222,7 @@ function updateMoneyRequestDate({
     hash,
     delegateAccountID,
     policyForTrackExpense,
+    reportPolicyTags,
 }: UpdateMoneyRequestDateParams) {
     const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
@@ -279,8 +281,7 @@ function updateMoneyRequestDate({
             transactionChanges,
             policy: effectivePolicy,
             policyTagList: policyTags,
-            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
+            reportPolicyTags,
             policyCategories,
             currentUserAccountIDParam,
             currentUserEmailParam,
