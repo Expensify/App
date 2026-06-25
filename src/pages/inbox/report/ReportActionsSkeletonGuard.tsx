@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useState} from 'react';
+import React from 'react';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
@@ -23,20 +23,10 @@ type ReportActionsSkeletonGuardProps = {
  * pipeline). Skeleton-phase effects live in dedicated hooks here because `children` isn't mounted yet; the
  * list's UI-close hooks live in `children`, so they can't run while the skeleton shows.
  *
- * The forward latch stops a transient empty visible-actions set from unmounting content mid-session (which
- * would tear down its scroll position and subscriptions). After first content the UI-close hooks therefore
- * stay active through such transients, which is intended: content is on screen, so treat it as visible.
  */
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID);
     const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton, shouldShowInitialSkeleton} = computeReportActionsSkeletonState(readinessSignals);
-    const shouldShowSkeleton = shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton;
-
-    // Forward latch: once content has shown, never return the full skeleton again for this mount.
-    const [hasShownContent, setHasShownContent] = useState(false);
-    if (!hasShownContent && !shouldShowSkeleton) {
-        setHasShownContent(true);
-    }
 
     const {report, isConciergeMainDM, oldestUnreadReportAction, hasOnceLoadedReportActions, hasCachedReportActions} = readinessSignals;
 
@@ -52,13 +42,13 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         hasCachedReportActions,
     });
 
-    useMarkOpenReportEndOnSkeleton(report, !hasShownContent && shouldShowInitialSkeleton);
+    useMarkOpenReportEndOnSkeleton(report, shouldShowInitialSkeleton);
 
-    if (!hasShownContent && shouldShowLoadingSkeleton) {
+    if (shouldShowLoadingSkeleton) {
         return <ReportActionsSkeletonView />;
     }
 
-    if (!hasShownContent && shouldShowDerivedTimingSkeleton) {
+    if (shouldShowDerivedTimingSkeleton) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
