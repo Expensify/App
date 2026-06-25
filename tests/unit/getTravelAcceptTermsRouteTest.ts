@@ -19,7 +19,7 @@ function buildPolicy(outputCurrency: string, travelSettings: Policy['travelSetti
 }
 
 describe('getTravelAcceptTermsRoute', () => {
-    it('routes to the tax ID page for an unprovisioned non-USD workspace without a tax ID', () => {
+    it('routes to the tax ID page for a non-USD workspace that is not yet provisioned and has no tax ID', () => {
         const policy = buildPolicy('GBP', {});
         expect(getTravelAcceptTermsRoute(DOMAIN, POLICY_ID, policy)).toBe(ROUTES.TRAVEL_LEGAL_ENTITY_TAX_ID.getRoute(DOMAIN, POLICY_ID));
     });
