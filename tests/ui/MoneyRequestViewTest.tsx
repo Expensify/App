@@ -555,7 +555,7 @@ describe('MoneyRequestView edit fields', () => {
     });
 
     // Codex review caught this: when the policy's vendor list hasn't loaded yet (Onyx still hydrating
-    // or sync hasn't finished), `findVendorByID` returns undefined for every vendor — so the fallback
+    // or sync hasn't finished), the active-scoped lookup returns undefined for every vendor — so the fallback
     // above must NOT fire until the list is known. We pin that distinction here by setting the QBO
     // connection config without a vendors array — the inactive-vendor copy must stay hidden.
     it('does not show the inactive-vendor fallback when the synced vendor list has not loaded yet', async () => {
@@ -589,6 +589,51 @@ describe('MoneyRequestView edit fields', () => {
             const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
             expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
             expect(vendorTitle).toHaveTextContent('');
+        });
+    });
+
+    // Codex review caught this: in a dual-connected workspace the active integration's vendor list can drop
+    // the transaction's externalID while a stale entry with the same ID still lives on an inactive integration.
+    // The permissive cross-connection `findVendorByID` would resolve to that stale vendor and show its name —
+    // even though the INACTIVE_VENDOR violation (scoped to the active list via `getMatchingVendorByID`) fires.
+    // The render now scopes its lookup to the active integration too, so UI and violation stay consistent.
+    it('shows the inactive-vendor fallback when only an inactive integration still has the vendor', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // QBO is the active vendor-matching integration (credit-card export) and its synced list no longer
+        // contains the vendor. Sage Intacct is also connected but is NOT in vendor-matching mode, yet its
+        // stale data still has a vendor with the same ID. The active-scoped lookup must ignore it.
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: []},
+                },
+                [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                    data: {vendors: [{id: 'stale-vendor-id', value: 'Stale Intacct Vendor', name: 'stale-code'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
+            expect(vendorTitle).toHaveTextContent('violations.inactiveVendor');
+            expect(vendorTitle).not.toHaveTextContent('Stale Intacct Vendor');
         });
     });
 });

@@ -65,8 +65,8 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
-    findVendorByID,
     getLengthOfTag,
+    getMatchingVendorByID,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getTagLists,
@@ -479,7 +479,13 @@ function MoneyRequestView({
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     const transactionVendor = transaction?.comment?.vendor;
-    const matchedVendor = findVendorByID(policy, transactionVendor?.externalID);
+    // Scope the lookup to the active vendor-matching integration (same as the violation check in
+    // ViolationsUtils) rather than the permissive cross-connection `findVendorByID`. In a dual-connected
+    // workspace, a stale entry with the same ID on an inactive integration would otherwise resolve to a
+    // non-null vendor here — suppressing the fallback and showing a stale name while the INACTIVE_VENDOR
+    // violation still fires. The field only renders when `hasVendorFeature` is true (a vendor-matching
+    // integration is active), so the permissive historical fallback isn't needed in this view.
+    const matchedVendor = getMatchingVendorByID(policy, transactionVendor?.externalID);
     // When the vendor was previously assigned but is no longer in the synced vendor list (deactivated or
     // deleted in the connected accounting system), keep the audit trail visible by showing the inactive-vendor
     // copy. The transaction's `comment.vendor` object is preserved — only the rendered name falls back.
