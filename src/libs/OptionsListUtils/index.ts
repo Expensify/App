@@ -1457,9 +1457,11 @@ function isDisablingOrDeletingLastEnabledCategory(
     return false;
 }
 
-function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagLists[string] | undefined, selectedTags: Array<PolicyTag | undefined>): boolean {
-    const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagList?.tags);
-
+function isDisablingOrDeletingLastEnabledTag(
+    policyTagList: PolicyTagLists[string] | undefined,
+    selectedTags: Array<PolicyTag | undefined>,
+    enabledTagsCount: number = getCountOfEnabledTagsOfList(policyTagList?.tags),
+): boolean {
     if (!enabledTagsCount) {
         return false;
     }

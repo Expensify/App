@@ -19,6 +19,7 @@ import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -175,7 +176,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {
     BankAccountList,
     Beta,
@@ -701,7 +702,7 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             // Tasks are sent to server via guidedSetupData; not added optimistically to avoid flash.
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             // No optimistic task report actions — server creates tasks from guidedSetupData.
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(0);
@@ -723,7 +724,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -742,7 +743,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -761,7 +762,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -780,7 +781,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -859,6 +860,29 @@ describe('ReportUtils', () => {
             });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
+        });
+
+        it('should include text message in guidedSetupData for MANAGE_TEAM so the server can post it', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'Welcome to Expensify',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            const messageEntries = result?.guidedSetupData.filter((d) => d.type === 'message');
+            expect(messageEntries?.length).toBeGreaterThanOrEqual(1);
+            expect(messageEntries?.[0]).toMatchObject({type: 'message', reportComment: 'Welcome to Expensify'});
+            // An optimistic entry would appear then vanish when the real server message replaces it.
+            const optimisticActions = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`);
+            expect(optimisticActions).toHaveLength(0);
         });
 
         it('includes avatar and accountID in optimistic Account Executive personal detail', async () => {
@@ -1067,8 +1091,8 @@ describe('ReportUtils', () => {
             expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
         });
 
-        it('should recognize inbAdminsWel as a valid onboarding RHP variant', () => {
-            expect(CONST.ONBOARDING_RHP_VARIANT.INB_ADMINS_WEL).toBe('inbAdminsWel');
+        it('should recognize inboxAdminsBespoke as a valid onboarding RHP variant', () => {
+            expect(CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE).toBe('inboxAdminsBespoke');
         });
     });
 
@@ -16108,7 +16132,17 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CATEGORIZE,
+                            CONST.IOU.TYPE.SUBMIT,
+                            transaction.transactionID,
+                            policyExpenseReport.reportID,
+                            undefined,
+                            true,
+                        ),
+                    ),
                 );
             });
 
@@ -16151,7 +16185,17 @@ describe('ReportUtils', () => {
 
                 // Then it should automatically pick the available policy and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CATEGORIZE,
+                            CONST.IOU.TYPE.SUBMIT,
+                            transaction.transactionID,
+                            policyExpenseReport.reportID,
+                            undefined,
+                            true,
+                        ),
+                    ),
                 );
             });
 
@@ -16181,15 +16225,16 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CATEGORIZE,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: transaction.transactionID,
-                        reportID: '1',
-                        backTo: '',
-                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        shouldSubmitExpense: true,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                            shouldSubmitExpense: true,
+                        }),
+                    ),
                 );
             });
 
@@ -16232,15 +16277,16 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CATEGORIZE,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: transaction.transactionID,
-                        reportID: '1',
-                        backTo: '',
-                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        shouldSubmitExpense: true,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                            shouldSubmitExpense: true,
+                        }),
+                    ),
                 );
             });
 
@@ -16327,7 +16373,17 @@ describe('ReportUtils', () => {
                 // Then it should NOT navigate to restricted action page, but to category step
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CATEGORIZE,
+                            CONST.IOU.TYPE.SUBMIT,
+                            transaction.transactionID,
+                            policyExpenseReport.reportID,
+                            undefined,
+                            true,
+                        ),
+                    ),
                 );
             });
 
