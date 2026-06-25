@@ -37,7 +37,8 @@ const fetchFileDownload: FileDownload = (
     shouldOpenExternalLink = false,
     formData = undefined,
     requestType = 'get',
-    onDownloadFailed?: () => void,
+  onDownloadFailed?: () => void,
+    // `shouldUnlink` is part of the cross-platform FileDownload signature but has no meaning on web, so it is intentionally unused here.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     shouldUnlink = false,
     appendTimestamp = true,
