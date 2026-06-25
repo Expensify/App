@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,8 +25,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'ReportReceipt']);
-    const icons = useMemoizedLazyExpensifyIcons(['Task']);
+    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'CheckboxText', 'ReportReceipt']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -54,7 +53,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
                     />
                     <MenuItem
-                        icon={icons.Task}
+                        icon={illustrations.CheckboxText}
                         title={translate('workspace.rules.newRule.requireFields')}
                         description={translate('workspace.rules.newRule.requireFieldsDescription')}
                         shouldShowRightIcon
