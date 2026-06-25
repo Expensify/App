@@ -77,8 +77,16 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
         [shouldShowTextInput, supplierOptions, searchText],
     );
 
-    // The clear row stays visible regardless of the search term so it's always reachable.
-    const data: SelectorType[] = useMemo(() => [clearOption, ...filteredSupplierOptions], [clearOption, filteredSupplierOptions]);
+    // Only prepend the clear row when there's a default to clear or there are suppliers to choose
+    // between. Without this guard, an unsynced workspace with no defaultContact set would render
+    // `[None]` and never show the noSuppliersFound BlockingView (SelectionScreen only renders
+    // listEmptyContent when data is empty). The clear row stays visible regardless of the search
+    // term so it's always reachable for clearing an existing default.
+    const shouldShowClearOption = !!currentContactID || supplierOptions.length > 0;
+    const data: SelectorType[] = useMemo(
+        () => (shouldShowClearOption ? [clearOption, ...filteredSupplierOptions] : filteredSupplierOptions),
+        [shouldShowClearOption, clearOption, filteredSupplierOptions],
+    );
 
     const goBack = useCallback(() => {
         Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
