@@ -70,11 +70,13 @@ function buildExpenseReport(overrides: Partial<Report> = {}): Report {
     } as Report;
 }
 
+// Expense-report transactions are stored with the opposite sign, so a positive stored `amount` (e.g. 10000) is a
+// spend that `getAmount`/the snapshot total represent as negative (-10000). Mirrors real Onyx data.
 function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
     return {
         transactionID: 'reportMoveTxn',
         reportID: EXPENSE_REPORT_ID,
-        amount: -10000,
+        amount: 10000,
         currency: CONST.CURRENCY.USD,
         reimbursable: true,
         created: '2026-01-15',
@@ -82,6 +84,8 @@ function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
         ...overrides,
     } as Transaction;
 }
+
+const TRANSACTION_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION}reportMoveTxn` as const;
 
 beforeAll(() => {
     Onyx.init({
@@ -120,7 +124,7 @@ async function seedRepaidSnapshot(total: number, currency: string = CONST.CURREN
 
 describe('getYourSpendSnapshotReportMoveUpdates', () => {
     it('adds the report total to awaiting approval when a report is submitted (OPEN -> SUBMITTED)', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(10000);
+        const snapshotKey = await seedAwaitingApprovalSnapshot(-10000);
 
         const {optimisticData, failureData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(SUBMITTED_STATUS),
@@ -130,22 +134,32 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             currentUserAccountID: ACCOUNT_ID,
         });
 
+        // Submitting adds the report's (negative) spend to the section total and injects the transaction into
+        // `data` so the linked Search page is not empty offline.
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, count: 2, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -20000, count: 2, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: buildTransaction()}},
             }),
         ]);
         expect(failureData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 10000, count: 1, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -10000, count: 1, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: null}},
             }),
         ]);
     });
 
     it('subtracts the report total from awaiting approval when a report is retracted (SUBMITTED -> OPEN)', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(30000);
+        const snapshotKey = await seedAwaitingApprovalSnapshot(-30000);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(OPEN_STATUS),
@@ -155,16 +169,21 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
             currentUserAccountID: ACCOUNT_ID,
         });
 
+        // Leaving the section removes the (negative) spend from the total and removes the transaction from `data`.
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, count: 0, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -20000, count: 0, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: null}},
             }),
         ]);
     });
 
     it('subtracts the report total from awaiting approval when a report is rejected (SUBMITTED -> OPEN)', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(30000);
+        const snapshotKey = await seedAwaitingApprovalSnapshot(-30000);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(OPEN_STATUS),
@@ -177,13 +196,17 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, count: 0, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -20000, count: 0, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: null}},
             }),
         ]);
     });
 
     it('adds the report total back to awaiting approval when a report is unapproved (APPROVED -> SUBMITTED)', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(10000);
+        const snapshotKey = await seedAwaitingApprovalSnapshot(-10000);
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(SUBMITTED_STATUS),
@@ -196,17 +219,22 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, count: 2, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -20000, count: 2, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: buildTransaction()}},
             }),
         ]);
     });
 
     it('subtracts the report total from repaid when a payment is cancelled (REIMBURSED -> APPROVED)', async () => {
-        const snapshotKey = await seedRepaidSnapshot(30000);
+        const snapshotKey = await seedRepaidSnapshot(-30000);
+        const recentTransaction = buildTransaction({created: getRecentCreatedDate()});
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport(APPROVED_STATUS),
-            reportTransactions: [buildTransaction({created: getRecentCreatedDate()})],
+            reportTransactions: [recentTransaction],
             fromStatus: REIMBURSED_STATUS,
             toStatus: APPROVED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
@@ -215,7 +243,11 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, count: 0, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -20000, count: 0, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: null}},
             }),
         ]);
     });
@@ -280,11 +312,12 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
     });
 
     it('patches using convertedAmount when the snapshot currency differs from the transaction currency', async () => {
-        const snapshotKey = await seedAwaitingApprovalSnapshot(10000);
+        const snapshotKey = await seedAwaitingApprovalSnapshot(-10000);
+        const convertedTransaction = buildTransaction({currency: CONST.CURRENCY.EUR, amount: 10000, convertedAmount: 5000});
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport({...SUBMITTED_STATUS, currency: CONST.CURRENCY.EUR}),
-            reportTransactions: [buildTransaction({currency: CONST.CURRENCY.EUR, amount: -10000, convertedAmount: -5000})],
+            reportTransactions: [convertedTransaction],
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
@@ -293,7 +326,11 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 15000, count: 2, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -15000, count: 2, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: convertedTransaction}},
             }),
         ]);
     });
@@ -307,7 +344,7 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
 
         const {optimisticData} = getYourSpendSnapshotReportMoveUpdates({
             iouReport: buildExpenseReport({...SUBMITTED_STATUS, currency: CONST.CURRENCY.GBP}),
-            reportTransactions: [buildTransaction({currency: CONST.CURRENCY.GBP, amount: -10000, convertedAmount: -5000})],
+            reportTransactions: [buildTransaction({currency: CONST.CURRENCY.GBP, amount: 10000, convertedAmount: 5000})],
             fromStatus: OPEN_STATUS,
             toStatus: SUBMITTED_STATUS,
             currentUserAccountID: ACCOUNT_ID,
@@ -334,7 +371,11 @@ describe('getYourSpendSnapshotReportMoveUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 10000, count: 1, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -10000, count: 1, currency: CONST.CURRENCY.USD}},
+            }),
+            expect.objectContaining({
+                key: snapshotKey,
+                value: {data: {[TRANSACTION_KEY]: buildTransaction()}},
             }),
         ]);
     });

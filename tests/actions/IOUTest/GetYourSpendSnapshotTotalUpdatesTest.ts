@@ -65,10 +65,12 @@ const transactionThreadReport: Report = {
     parentReportID: EXPENSE_REPORT_ID,
 } as Report;
 
+// Expense-report transactions are stored with the opposite sign, so a positive stored `amount` (10000) is a spend
+// that `getAmount`/the snapshot total represent as negative (-10000). Mirrors real Onyx data.
 const transaction: Transaction = {
     transactionID: TRANSACTION_ID,
     reportID: EXPENSE_REPORT_ID,
-    amount: -10000,
+    amount: 10000,
     currency: CONST.CURRENCY.USD,
     reimbursable: true,
     created: '2026-01-15',
@@ -98,7 +100,7 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
         const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
-        await Onyx.set(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD));
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-10000, CONST.CURRENCY.USD));
         await waitForBatchedUpdates();
 
         expect(transactionMatchesAwaitingApprovalQuery(expenseReport, transaction, ACCOUNT_ID, [POLICY_ID])).toBe(true);
@@ -108,6 +110,7 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
             modifiedAmount: 20000,
         };
 
+        // Raising the spend from 100 to 200 makes the (negative) section total more negative: -100 -> -200.
         const {optimisticData, failureData} = getYourSpendSnapshotTotalUpdates({
             transaction,
             updatedTransaction,
@@ -120,7 +123,7 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
                 key: snapshotKey,
                 value: {
                     search: {
-                        total: 20000,
+                        total: -20000,
                         count: 1,
                         currency: CONST.CURRENCY.USD,
                     },
@@ -132,7 +135,7 @@ describe('getYourSpendSnapshotTotalUpdates', () => {
                 key: snapshotKey,
                 value: {
                     search: {
-                        total: 10000,
+                        total: -10000,
                         count: 1,
                         currency: CONST.CURRENCY.USD,
                     },
@@ -171,9 +174,10 @@ describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
         const snapshotKey = getSnapshotKey(approvalQueryJSON?.hash ?? 0);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
-        await Onyx.set(snapshotKey, buildSnapshotSearchResults(30000, CONST.CURRENCY.USD));
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-30000, CONST.CURRENCY.USD));
         await waitForBatchedUpdates();
 
+        // Removing a 100 spend pulls the (negative) section total toward zero: -300 -> -200.
         const {optimisticData, failureData} = getYourSpendSnapshotTransactionRemovalUpdates({
             transaction,
             iouReport: expenseReport,
@@ -183,13 +187,13 @@ describe('getYourSpendSnapshotTransactionRemovalUpdates', () => {
         expect(optimisticData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 20000, count: 0, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -20000, count: 0, currency: CONST.CURRENCY.USD}},
             }),
         ]);
         expect(failureData).toEqual([
             expect.objectContaining({
                 key: snapshotKey,
-                value: {search: {total: 30000, count: 1, currency: CONST.CURRENCY.USD}},
+                value: {search: {total: -30000, count: 1, currency: CONST.CURRENCY.USD}},
             }),
         ]);
     });
@@ -219,7 +223,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
-        await Onyx.set(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD));
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-10000, CONST.CURRENCY.USD));
         await waitForBatchedUpdates();
 
         const {onyxData} = getUpdateMoneyRequestParams({
@@ -243,7 +247,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
             expect.objectContaining({
                 value: {
                     search: {
-                        total: 20000,
+                        total: -20000,
                         count: 1,
                         currency: CONST.CURRENCY.USD,
                     },
@@ -258,7 +262,7 @@ describe('getUpdateMoneyRequestParams — Your spend snapshot totals', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, paidPolicy);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
-        await Onyx.set(snapshotKey, buildSnapshotSearchResults(10000, CONST.CURRENCY.USD));
+        await Onyx.set(snapshotKey, buildSnapshotSearchResults(-10000, CONST.CURRENCY.USD));
         await waitForBatchedUpdates();
 
         const {onyxData} = getUpdateMoneyRequestParams({
