@@ -12,8 +12,8 @@ import ROUTES from '@src/ROUTES';
 function SearchAdvancedFiltersBase() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentDraftFilters, shouldShowResetFilters} = useContext(SearchAdvancedFiltersContext);
-    const {applyFilters, resetFilters} = useContext(SearchAdvancedFiltersActionContext);
+    const {currentDraftFilters, shouldShowResetFilters, isEditingSavedView, isSaveEditsDisabled, isSaveAsNewViewDisabled} = useContext(SearchAdvancedFiltersContext);
+    const {applyFilters, resetFilters, saveEdits, saveAsNewView, cancelEdits} = useContext(SearchAdvancedFiltersActionContext);
 
     return (
         <ScreenWrapper
@@ -22,28 +22,59 @@ function SearchAdvancedFiltersBase() {
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.filtersHeader')} />
+            <HeaderWithBackButton
+                title={translate('search.filtersHeader')}
+                onBackButtonPress={isEditingSavedView ? cancelEdits : undefined}
+            />
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
                 policyID={currentDraftFilters.policyID}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
-            {shouldShowResetFilters && (
-                <Button
-                    style={[styles.ph5, styles.pb3]}
-                    large
-                    text={translate('common.reset')}
-                    onPress={resetFilters}
-                />
+            {isEditingSavedView ? (
+                <>
+                    <Button
+                        style={[styles.ph5, styles.pb3]}
+                        large
+                        success
+                        text={translate('search.saveEdits')}
+                        isDisabled={isSaveEditsDisabled}
+                        onPress={saveEdits}
+                    />
+                    <Button
+                        style={[styles.ph5, styles.pb3]}
+                        large
+                        text={translate('search.saveAsNewView')}
+                        isDisabled={isSaveAsNewViewDisabled}
+                        onPress={saveAsNewView}
+                    />
+                    <Button
+                        style={[styles.ph5, styles.pb5]}
+                        large
+                        text={translate('common.cancel')}
+                        onPress={cancelEdits}
+                    />
+                </>
+            ) : (
+                <>
+                    {shouldShowResetFilters && (
+                        <Button
+                            style={[styles.ph5, styles.pb3]}
+                            large
+                            text={translate('common.reset')}
+                            onPress={resetFilters}
+                        />
+                    )}
+                    <Button
+                        style={[styles.ph5, styles.pb5]}
+                        success
+                        large
+                        text={translate('search.applyFilters')}
+                        onPress={applyFilters}
+                    />
+                </>
             )}
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                success
-                large
-                text={translate('search.applyFilters')}
-                onPress={applyFilters}
-            />
         </ScreenWrapper>
     );
 }

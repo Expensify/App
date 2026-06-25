@@ -22,7 +22,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setSearchContext} from '@libs/actions/Search';
+import {enterSavedViewEditMode, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
@@ -92,6 +92,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
@@ -135,6 +136,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'Trashcan',
         'LinkCopy',
         'Checkmark',
+        'Filter',
         'Document',
         'ThumbsUp',
         'CheckCircle',
@@ -156,15 +158,30 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
                   queryMap.set(key, {query: item.query ?? '', name: item.name});
                   const itemHash = Number(key);
-                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, itemHash, item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
-                      onShare: () => {
-                          handleShare(itemHash, item.query);
-                          setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(
+                      expensifyIcons,
+                      title,
+                      itemHash,
+                      item.query,
+                      translate,
+                      showDeleteModal,
+                      true,
+                      () => setSavedSearchToModifyKey(null),
+                      {
+                          onShare: () => {
+                              handleShare(itemHash, item.query);
+                              setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                          },
+                          isCopied: copiedHash === itemHash,
                       },
-                      isCopied: copiedHash === itemHash,
-                  });
+                      () => {
+                          setSavedSearchToModifyKey(null);
+                          // Use the raw stored name (not the derived display title) so saving edits doesn't rename auto-named views.
+                          enterSavedViewEditMode({hash: itemHash, name: item.name, query: item.query});
+                      },
+                  );
 
-                  if (Number(key) === queryJSON?.hash) {
+                  if (Number(key) === queryJSON?.hash || Number(key) === editingSavedView?.hash) {
                       activeKey = key;
                   }
 
@@ -265,6 +282,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                 }}
                 menuItems={popoverMenuItems}
                 anchorRef={menuAnchorRef}
+                shouldUseScrollView
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
             />

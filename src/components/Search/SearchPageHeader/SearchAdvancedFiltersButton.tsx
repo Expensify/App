@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -35,6 +35,18 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     useSearchFilterSync(queryJSON, filterFormValues);
     const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
     const isEditingSavedView = !!editingSavedView;
+
+    // On small screens the filters are a fullscreen route (not a popover), so a saved-view "Edit filters" request opens
+    // that route here. Keyed by requestID so each click opens it once (and doesn't re-open after the user backs out).
+    const lastAutoNavRequestIDRef = useRef<number | undefined>(undefined);
+    useEffect(() => {
+        const requestID = editingSavedView?.requestID;
+        if (!isSmallScreenWidth || requestID === undefined || lastAutoNavRequestIDRef.current === requestID) {
+            return;
+        }
+        lastAutoNavRequestIDRef.current = requestID;
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+    }, [isSmallScreenWidth, editingSavedView?.requestID]);
 
     if (isSmallScreenWidth) {
         return (

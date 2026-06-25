@@ -50,8 +50,12 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
 
     // Saved views are keyed by their query hash, so a "new" view whose query already matches a saved one would just
     // overwrite (rename) that entry instead of creating a separate view. Disable "Save as new view" in that case — the
-    // user needs to actually change a filter first. "Save edits" stays available to update the view in place.
+    // user needs to actually change a filter first.
     const isCurrentQueryAlreadySaved = !!savedSearches?.[queryJSON.hash];
+
+    // Save edits writes the edited query under its (new) hash. If that hash already belongs to a DIFFERENT saved view,
+    // saving would clobber/delete that unrelated view (and a failed save removes it locally), so disable it too.
+    const doesEditedQueryCollideWithAnotherView = isCurrentQueryAlreadySaved && queryJSON.hash !== editingSavedView?.hash;
 
     const onCancel = () => {
         if (editingSavedView) {
@@ -142,6 +146,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
                         success
                         text={translate('search.saveEdits')}
                         onPress={onSaveEdits}
+                        isDisabled={doesEditedQueryCollideWithAnotherView}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
                     />
                 </View>

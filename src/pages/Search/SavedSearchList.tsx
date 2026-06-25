@@ -159,7 +159,8 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
                 onShare: () => handleShare(itemHash, itemQuery),
                 isCopied: copiedHash === itemHash,
             },
-            () => enterSavedViewEditMode({hash: itemHash, name: itemName, query: itemQuery}),
+            // Use the raw stored name (not the derived display title) so saving edits doesn't rename auto-named views.
+            () => enterSavedViewEditMode({hash: itemHash, name: savedSearches?.[itemHash]?.name ?? itemName, query: itemQuery}),
         );
 
     const itemStyle = [styles.alignItemsCenter];
