@@ -538,6 +538,34 @@ describe('SearchAutocompleteList', () => {
             expect(names.indexOf('MySelf Report')).toBeLessThan(names.indexOf('ServerA Report'));
         });
 
+        it('widens the candidate pool to the full pre-filtered set once the server returns an order', async () => {
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'test');
+            await flushAllUpdates();
+
+            // Before a server order arrives, results are capped to the default suggestion limit (by recency).
+            expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}));
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['101']);
+                await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
+            });
+            await flushAllUpdates();
+
+            // With a server order present, the cap is lifted to the full pre-filtered pool so a low-recency top-tier report isn't culled before the Auth-order sort.
+            expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: mockedOptions.reports.length}));
+        });
+
         // Regression test for https://github.com/Expensify/App/issues/93009: after the two-section switcher was
         // introduced, the first matched chat was no longer highlighted because the highlight focused a fixed flat
         // index that now lands on the "Recent chats" section header row instead of the first result. As a result
