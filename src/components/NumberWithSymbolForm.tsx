@@ -463,8 +463,18 @@ function NumberWithSymbolForm({
      */
     const handleFlipPress = useCallback(() => {
         // Toggle the minus sign prefix in the value
-        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        const isRemovingSign = currentNumber.startsWith('-');
+        const newValue = isRemovingSign ? currentNumber.slice(1) : `-${currentNumber}`;
         setCurrentNumber(newValue);
+        // Shift the cursor by the length of the toggled sign so it stays in the same logical position
+        // relative to the digits (e.g. on an empty field {0,0} -> {1,1}, placing the cursor after the "-").
+        // Without this the cursor stays before the "-", so typing produces an invalid string like "5-" that
+        // validateAmount rejects, making the entered number disappear.
+        const offset = isRemovingSign ? -1 : 1;
+        setSelection((prevSelection) => ({
+            start: Math.max(prevSelection.start + offset, 0),
+            end: Math.max(prevSelection.end + offset, 0),
+        }));
         onInputChange?.(newValue);
     }, [currentNumber, onInputChange]);
 
