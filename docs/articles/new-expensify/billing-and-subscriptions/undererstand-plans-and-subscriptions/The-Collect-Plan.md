@@ -9,7 +9,7 @@ platform: new
 
 # The Collect plan
 
-The **Collect** plan is Expensify's core expense management plan. It's designed for individuals and smaller teams that need to collect, approve, reimburse, and account for expenses in one place.
+The **Collect** plan is designed for individuals and smaller teams that need to collect, approve, reimburse, and account for expenses in one place.
 
 Collect includes the essential tools to manage everyday expenses without the advanced administrative controls available in the Control plan.
 
