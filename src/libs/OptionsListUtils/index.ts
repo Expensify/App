@@ -537,8 +537,8 @@ function getAlternateText(
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
     const searchWords = Array.from(new Set(searchValue.replaceAll(',', ' ').split(/\s+/).filter(Boolean)));
     const valueToSearch = searchText?.replaceAll(new RegExp(/&nbsp;/g), '');
-    const compiledRegexes = searchWords.map((word) => ({word, regex: new RegExp(Str.escapeForRegExp(word), 'i')}));
-    for (const {word, regex} of compiledRegexes) {
+    for (const word of searchWords) {
+        const regex = new RegExp(Str.escapeForRegExp(word), 'i');
         if (!(regex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word)))) {
             return false;
         }
