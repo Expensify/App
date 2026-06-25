@@ -44,7 +44,13 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
-import {getCleanedTagName, getTagListName, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
+import {
+    getCleanedTagName,
+    getCountOfEnabledTagsOfList,
+    getTagListName,
+    hasDependentTags as hasDependentTagsPolicyUtils,
+    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -134,51 +140,52 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [canWriteTags, policyData, orderWeight, showReadOnlyModal],
     );
 
-    const tagList = useMemo<TagListItem[]>(
-        () =>
-            Object.values(currentPolicyTag?.tags ?? {}).map((tag) => {
-                let rightElement;
-                if (hasDependentTags && canWriteTags) {
-                    rightElement = <ListItemRightCaretWithLabel />;
-                } else if (!hasDependentTags) {
-                    rightElement = (
-                        <Switch
-                            isOn={tag.enabled}
-                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !canWriteTags}
-                            disabledAction={withReadOnlyFallback()}
-                            accessibilityLabel={translate('workspace.tags.enableTag')}
-                            onToggle={(newValue: boolean) => {
-                                if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
-                                    showConfirmModal({
-                                        title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-                                        prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-                                        confirmText: translate('common.buttonConfirm'),
-                                        shouldShowCancelButton: false,
-                                    });
-                                    return;
-                                }
-                                updateWorkspaceTagEnabled(newValue, tag.name);
-                            }}
-                            showLockIcon={!canWriteTags || isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])}
-                        />
-                    );
-                }
+    const tagList = useMemo<TagListItem[]>(() => {
+        const enabledTagsCount = getCountOfEnabledTagsOfList(currentPolicyTag?.tags);
 
-                return {
-                    value: tag.name,
-                    text: hasDependentTags ? tag.name : getCleanedTagName(tag.name),
-                    keyForList: hasDependentTags ? `${tag.name}-${tag.rules?.parentTagsFilter ?? ''}` : tag.name,
-                    isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
-                    pendingAction: tag.pendingAction,
-                    rules: tag.rules,
-                    errors: tag.errors ?? undefined,
-                    enabled: tag.enabled,
-                    isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    rightElement,
-                };
-            }),
-        [currentPolicyTag, hasDependentTags, canWriteTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, showConfirmModal, withReadOnlyFallback],
-    );
+        return Object.values(currentPolicyTag?.tags ?? {}).map((tag) => {
+            const isDisablingLastEnabledTag = isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag], enabledTagsCount);
+            let rightElement;
+            if (hasDependentTags && canWriteTags) {
+                rightElement = <ListItemRightCaretWithLabel />;
+            } else if (!hasDependentTags) {
+                rightElement = (
+                    <Switch
+                        isOn={tag.enabled}
+                        disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !canWriteTags}
+                        disabledAction={withReadOnlyFallback()}
+                        accessibilityLabel={translate('workspace.tags.enableTag')}
+                        onToggle={(newValue: boolean) => {
+                            if (isDisablingLastEnabledTag) {
+                                showConfirmModal({
+                                    title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                    prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
+                                return;
+                            }
+                            updateWorkspaceTagEnabled(newValue, tag.name);
+                        }}
+                        showLockIcon={!canWriteTags || isDisablingLastEnabledTag}
+                    />
+                );
+            }
+
+            return {
+                value: tag.name,
+                text: hasDependentTags ? tag.name : getCleanedTagName(tag.name),
+                keyForList: hasDependentTags ? `${tag.name}-${tag.rules?.parentTagsFilter ?? ''}` : tag.name,
+                isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
+                pendingAction: tag.pendingAction,
+                rules: tag.rules,
+                errors: tag.errors ?? undefined,
+                enabled: tag.enabled,
+                isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightElement,
+            };
+        });
+    }, [currentPolicyTag, hasDependentTags, canWriteTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, showConfirmModal, withReadOnlyFallback]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');

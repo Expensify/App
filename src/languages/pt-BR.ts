@@ -2635,6 +2635,7 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsTitle: 'Aprovações',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `despesas de ${members}, e o aprovador é ${approvers}`,
         addApprovalButton: 'Adicionar fluxo de aprovação',
+        loadMoreWorkflows: ({count}: {count: number}) => `Carregar mais ${count}`,
         editWorkflowAction: 'Editar',
         findWorkflow: 'Buscar fluxo de trabalho',
         addApprovalTip: 'Este fluxo de trabalho padrão se aplica a todos os membros, a menos que exista um fluxo de trabalho mais específico.',
@@ -3171,9 +3172,9 @@ ${amount} para ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Enviar uma despesa',
+                title: 'Criar uma despesa',
                 description: dedent(`
-                    *Envie uma despesa* inserindo um valor ou digitalizando um recibo.
+                    *Crie uma despesa* inserindo um valor ou digitalizando um recibo.
 
                     1. Clique no botão *+*.
                     2. Escolha *Criar despesa*.
@@ -3185,9 +3186,9 @@ ${amount} para ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Enviar uma despesa',
+                title: 'Criar uma despesa',
                 description: dedent(`
-                    *Envie uma despesa* inserindo um valor ou escaneando um recibo.
+                    *Crie uma despesa* inserindo um valor ou escaneando um recibo.
 
                     1. Clique no botão *+*.
                     2. Escolha *Criar despesa*.
@@ -3603,6 +3604,7 @@ ${amount} para ${merchant} - ${date}`,
             companyName: 'Insira um nome comercial válido',
             addressCity: 'Insira uma cidade válida',
             addressStreet: 'Insira um endereço de rua válido',
+            physicalAddressRequired: 'Um endereço físico é necessário. Caixas postais e serviços de redirecionamento de correspondência não são aceitos.',
             addressState: 'Selecione um estado válido',
             incorporationDateFuture: 'A data de constituição não pode estar no futuro',
             incorporationState: 'Selecione um estado válido',
@@ -3821,12 +3823,14 @@ ${amount} para ${merchant} - ${date}`,
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
         legalName: 'Nome legal',
+        legalNameSubtitle: 'Digite seu nome legal completo como aparece no seu documento de identidade.',
         enterYourDateOfBirth: 'Qual é a sua data de nascimento?',
         enterTheLast4: 'Quais são os últimos quatro dígitos do seu número de Social Security?',
         dontWorry: 'Não se preocupe, não fazemos nenhuma análise de crédito pessoal!',
         last4SSN: 'Últimos 4 do SSN',
         enterYourAddress: 'Qual é o seu endereço?',
         address: 'Endereço',
+        addressSubtitle: 'Um endereço físico é necessário. Caixas postais e serviços de redirecionamento de correspondência não são aceitos.',
         letsDoubleCheck: 'Vamos conferir se está tudo certo.',
         byAddingThisBankAccount: 'Ao adicionar esta conta bancária, você confirma que leu, entende e aceita',
         whatsYourLegalName: 'Qual é seu nome completo legal?',
@@ -3962,6 +3966,7 @@ ${amount} para ${merchant} - ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'A regulamentação exige que verifiquemos a identidade de qualquer pessoa física que possua mais de 25% do negócio.',
         companyOwner: 'Proprietário(a) de empresa',
         enterLegalFirstAndLastName: 'Qual é o nome legal do proprietário?',
+        legalNameSubtitle: 'Digite o nome legal completo do proprietário como aparece no documento de identidade dele.',
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
         enterTheDateOfBirthOfTheOwner: 'Qual é a data de nascimento do proprietário?',
@@ -4442,18 +4447,20 @@ ${amount} para ${merchant} - ${date}`,
             auditorAlternateText: 'Visualize e comente relatórios.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Proprietário';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Admin. do workspace';
+                        return 'Administrador da área de trabalho';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Admin. de Cartão';
+                        return 'Administrador do cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administração de Pessoas';
+                        return 'Admin de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Admin de Pagamentos';
+                        return 'Admin de pagamentos';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -4999,9 +5006,13 @@ ${amount} para ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Sincronize a conexão novamente depois que as empresas forem adicionadas no Certinia.',
             prerequisites: {
                 title: 'Antes de conectar',
-                installBundle: 'Para conexões FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar FFA Expensify Bundle (Versão ${version})</a>`,
+                installBundle: 'Instalar o pacote do Expensify',
+                installBundlePSAHeader: 'Para conexões PSA/SRP:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Instale o pacote Expensify no Salesforce clicando neste link: <a href="${href}">Instalar pacote PSA/SRP Expensify (versão ${version})</a>`,
+                installBundleFFAHeader: 'Para conexões FFA:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar o pacote do Expensify para FFA (versão ${version})</a>`,
                 installBundleConfirm: 'Eu instalei o pacote',
                 setupContacts: 'Configurar usuário e contatos',
                 setupContactsBullet1:
@@ -6330,6 +6341,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             syncWithHR: (providerName: string) => `Sincronizar com ${providerName}`,
             makeCardAdmin: () => ({one: 'Tornar admin do cartão', other: 'Tornar administradores do cartão'}),
             cardAdmins: 'Administradores de cartões',
+            members: 'Membros',
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -9758,7 +9770,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
