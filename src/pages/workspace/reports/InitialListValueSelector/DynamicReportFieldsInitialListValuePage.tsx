@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -17,10 +18,9 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ReportFieldsInitialListValuePicker from './ReportFieldsInitialListValuePicker';
 
 type DynamicReportFieldsInitialListValuePageProps = WithPolicyAndFullscreenLoadingProps &
@@ -38,19 +38,19 @@ function DynamicReportFieldsInitialListValuePage({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE.path);
 
     const currentValue = formDraft?.[INPUT_IDS.INITIAL_VALUE] ?? '';
-    const listValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
+    const isLoadingFormDraft = formDraftMetadata.status !== 'loaded';
+    // Mirror the guard used on the create page: the initial value selector is only relevant when there are
+    // available (non-disabled) list values. On a refresh or deeplink the form draft can be empty, in which case
+    // we send the user back to the Add field page instead of showing an empty picker.
+    const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
+    const shouldRedirectToCreatePage = !isLoadingFormDraft && availableListValuesLength === 0;
 
-    // When this page is reached via deeplink or restored after a page refresh, the parent CreateReportFieldsPage resets
-    // the create-field draft on mount, leaving no list values to choose from. In that case, return to the Add field
-    // page instead of stranding the user on an empty picker. On refresh the dynamic route restores without its parent
-    // in the stack, so the dynamic back path resolves to the report fields settings page rather than the Add field page
-    // — target the Add field route explicitly to land there.
     useEffect(() => {
-        if (isLoadingOnyxValue(formDraftMetadata) || listValues.length > 0) {
+        if (!shouldRedirectToCreatePage) {
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID));
-    }, [formDraftMetadata, listValues.length, policyID]);
+        Navigation.goBack(backPath);
+    }, [shouldRedirectToCreatePage, backPath]);
 
     const onValueSelected = (value: string) => {
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
@@ -75,15 +75,26 @@ function DynamicReportFieldsInitialListValuePage({
                     title={translate('common.initialValue')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
-                <View style={[styles.ph5, styles.pb4]}>
-                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
-                </View>
-                <ReportFieldsInitialListValuePicker
-                    listValues={listValues}
-                    disabledOptions={formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []}
-                    value={currentValue}
-                    onValueChange={onValueSelected}
-                />
+                {isLoadingFormDraft || shouldRedirectToCreatePage ? (
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size="large"
+                            reasonAttributes={{context: 'DynamicReportFieldsInitialListValuePage', isLoadingFormDraft: !!isLoadingFormDraft}}
+                        />
+                    </View>
+                ) : (
+                    <>
+                        <View style={[styles.ph5, styles.pb4]}>
+                            <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listValuesInputSubtitle')}</Text>
+                        </View>
+                        <ReportFieldsInitialListValuePicker
+                            listValues={formDraft?.[INPUT_IDS.LIST_VALUES] ?? []}
+                            disabledOptions={formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []}
+                            value={currentValue}
+                            onValueChange={onValueSelected}
+                        />
+                    </>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

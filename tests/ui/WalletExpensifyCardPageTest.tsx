@@ -49,7 +49,7 @@ const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD
 };
 
 describe('ExpensifyCardPage', () => {
-    beforeAll(() => {
+    beforeEach(async () => {
         // Initialize Onyx with required keys before running any test.
         Onyx.init({
             keys: ONYXKEYS,
@@ -57,9 +57,8 @@ describe('ExpensifyCardPage', () => {
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
-    });
+        await waitForBatchedUpdatesWithAct();
 
-    beforeEach(() => {
         // Mock the useResponsiveLayout hook to control layout behavior in tests.
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,

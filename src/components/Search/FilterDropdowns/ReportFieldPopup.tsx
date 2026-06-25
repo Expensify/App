@@ -48,6 +48,7 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
             <ReportFieldBase
                 ref={reportFieldRef}
                 values={values}
+                hasFeed={!!values.feed}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
             />

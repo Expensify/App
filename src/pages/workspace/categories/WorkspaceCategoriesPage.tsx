@@ -216,12 +216,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const navigateToCategory = useCallback(
         (category: PolicyCategories[string]) => {
             const path = isQuickSettingsFlow
-                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.name, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(category.name))
                 : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
 
             Navigation.navigate(path);
         },
-        [backTo, isQuickSettingsFlow, policyId],
+        [isQuickSettingsFlow],
     );
 
     const handleCategoryToggle = useCallback(
@@ -564,14 +564,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isLoading = !isOffline && policyCategories === undefined;
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceCategoriesPage', isOffline, isPolicyCategoriesUndefined: policyCategories === undefined};
 
-    useEffect(() => {
-        if (isMobileSelectionModeEnabled) {
-            return;
-        }
-
-        clearTableSelection();
-    }, [clearTableSelection, isMobileSelectionModeEnabled]);
-
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const headerContent = (
@@ -714,7 +706,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             selectedKeys={selectedCategoryKeys}
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
-                            onRowSelectionChange={(selectedRowKeys) => setSelectedCategoryKeys(selectedRowKeys)}
+                            onRowSelectionChange={setSelectedCategoryKeys}
                             EmptyStateComponent={emptyStateContent}
                         />
                     </>
