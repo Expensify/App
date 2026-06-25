@@ -132,7 +132,9 @@ describe('actions/IOU/TrackExpense', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
         jest.clearAllMocks();
     });
 
@@ -141,6 +143,10 @@ describe('actions/IOU/TrackExpense', () => {
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
                 type: CONST.REPORT.TYPE.CHAT,
+                // createRandomReport randomizes isPinned/isOwnPolicyExpenseChat; either being true would force a hidden
+                // report to display in the LHN (shouldOverrideHidden), so pin them down to keep this test deterministic.
+                isPinned: false,
+                isOwnPolicyExpenseChat: false,
                 participants: {
                     [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
                 },
