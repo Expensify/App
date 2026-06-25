@@ -2540,6 +2540,34 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Test getOverflowMenu', () => {
+        const icons = {
+            Pencil: () => null,
+            Trashcan: () => null,
+            LinkCopy: () => null,
+            Checkmark: () => null,
+            Filter: () => null,
+        } as Parameters<typeof SearchUIUtils.getOverflowMenu>[0];
+
+        it('adds an "Edit filters" item between Rename and Share when onEditFilters is provided and calls it on select', () => {
+            const onEditFilters = jest.fn();
+            const menu = SearchUIUtils.getOverflowMenu(icons, 'My view', 123, 'type:expense', translateLocal, jest.fn(), false, undefined, undefined, onEditFilters);
+
+            const labels = menu.map((item) => item.text);
+            const editIndex = labels.indexOf(translateLocal('search.editFilters'));
+            expect(editIndex).toBeGreaterThan(labels.indexOf(translateLocal('common.rename')));
+            expect(editIndex).toBeLessThan(labels.indexOf(translateLocal('common.share')));
+
+            menu.at(editIndex)?.onSelected?.();
+            expect(onEditFilters).toHaveBeenCalledTimes(1);
+        });
+
+        it('omits the "Edit filters" item when onEditFilters is not provided (e.g. the narrow layout)', () => {
+            const menu = SearchUIUtils.getOverflowMenu(icons, 'My view', 123, 'type:expense', translateLocal, jest.fn());
+            expect(menu.map((item) => item.text)).not.toContain(translateLocal('search.editFilters'));
+        });
+    });
+
     describe('Test getListItem', () => {
         it('should return ChatListItem when type is CHAT', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(ChatListItem);
