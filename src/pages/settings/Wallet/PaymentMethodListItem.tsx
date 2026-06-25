@@ -98,6 +98,13 @@ function dismissError(item: PaymentMethodItem) {
     }
 }
 
+function getBankAccountState(account: PaymentMethodItem): string | undefined {
+    if (account.accountData && 'state' in account.accountData) {
+        return account.accountData.state;
+    }
+    return undefined;
+}
+
 function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
 }
@@ -145,19 +152,52 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         }
     };
 
+    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
+    const bankAccountState = getBankAccountState(item);
+
     let badgeText;
-    if (isInLockedState) {
+    let isBadgeSuccessStyle: boolean | undefined;
+    let isBadgeErrorStyle = false;
+    if (isBankAccount && bankAccountState) {
+        switch (bankAccountState) {
+            case CONST.BANK_ACCOUNT.STATE.OPEN:
+                badgeText = translate('walletPage.bankAccountStatus.active');
+                isBadgeSuccessStyle = true;
+                break;
+            case CONST.BANK_ACCOUNT.STATE.SETUP:
+                badgeText = translate('walletPage.bankAccountStatus.incomplete');
+                isBadgeSuccessStyle = true;
+                break;
+            case CONST.BANK_ACCOUNT.STATE.PENDING:
+                badgeText = translate('walletPage.bankAccountStatus.pending');
+                isBadgeSuccessStyle = true;
+                break;
+            case CONST.BANK_ACCOUNT.STATE.VERIFYING:
+                badgeText = translate('walletPage.bankAccountStatus.verifying');
+                break;
+            case CONST.BANK_ACCOUNT.STATE.LOCKED:
+                badgeText = translate('walletPage.bankAccountStatus.locked');
+                isBadgeErrorStyle = true;
+                break;
+            default:
+                break;
+        }
+    } else if (isInLockedState) {
         badgeText = translate('common.locked');
+        isBadgeErrorStyle = true;
     } else if (isNeedingAction) {
         badgeText = translate('common.review');
+        isBadgeSuccessStyle = true;
     } else if (shouldShowDefaultBadge) {
         badgeText = translate('paymentMethodList.defaultPaymentMethod');
     }
 
     let badgeIcon;
-    if (isInLockedState) {
+    if (isInLockedState || (isBankAccount && bankAccountState === CONST.BANK_ACCOUNT.STATE.LOCKED)) {
         badgeIcon = icons.DotIndicator;
     }
+
+    const isCard = !!item.cardID;
 
     // Card state pills (below title, next to description)
     const descriptionAddon = useMemo(() => {
@@ -190,8 +230,18 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 />
             );
         }
+        if (isCard && !item.isCardFrozen && !item.isInactive) {
+            return (
+                <Badge
+                    text={translate('walletPage.cardActive')}
+                    success
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                />
+            );
+        }
         return undefined;
-    }, [isNeedingAction, shouldShowDefaultBadge, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    }, [isNeedingAction, shouldShowDefaultBadge, item.isCardFrozen, item.isInactive, isCard, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
     return (
         <OfflineWithFeedback
@@ -217,8 +267,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconFill={item.iconFill}
                 badgeText={badgeText}
                 badgeIcon={badgeIcon}
-                isBadgeSuccess={isNeedingAction ? true : undefined}
-                isBadgeError={isInLockedState}
+                isBadgeSuccess={isBadgeSuccessStyle}
+                isBadgeError={isBadgeErrorStyle}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isNeedingAction ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
