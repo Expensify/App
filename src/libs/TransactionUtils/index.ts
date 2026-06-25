@@ -2184,7 +2184,11 @@ function getDistanceRateTaxUpdates(
     customUnitRateID: string,
     distanceUnit?: Unit,
 ): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
-    const taxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    // We use || instead of ?? because taxRateExternalID may be an empty string, which should also trigger the fallback to the default tax code.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const taxCode = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
     const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
     const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
     const mileageRates = DistanceRequestUtils.getMileageRates(policy);
@@ -2204,26 +2208,6 @@ function getCalculatedTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntr
     const taxCode = transaction?.taxCode ?? getDefaultTaxCode(policy, transaction, currency) ?? '';
     const taxPercentage = getTaxValue(policy, transaction, taxCode) ?? '';
     return convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, decimals));
-}
-
-function getDistanceRateTaxUpdates(
-    policy: OnyxEntry<Policy>,
-    transaction: OnyxEntry<Transaction>,
-    customUnitRateID: string,
-    distanceUnit?: TransactionCustomUnit['distanceUnit'],
-): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
-    const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
-    // We use || instead of ?? because taxRateExternalID may be an empty string, which should also trigger the fallback to the default tax code.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxCode = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
-    const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
-    const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
-    const mileageRates = DistanceRequestUtils.getMileageRates(policy);
-    const rateCurrency = mileageRates[customUnitRateID]?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD;
-    const taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rateCurrency)));
-
-    return {taxAmount, taxCode, taxValue};
 }
 
 /**
