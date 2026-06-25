@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import FeatureTrainingModalContent from './FeatureTrainingModalContent';
-import FeatureTrainingModalIllustration from './FeatureTrainingModalIllustration';
+import FeatureTrainingModalContent from './FeatureTrainingContentBody';
+import FeatureTrainingModalIllustration from './FeatureTrainingContentIllustration';
 import type {BaseFeatureTrainingModalProps, FeatureTrainingModalPageProps} from './index';
 
 type FeatureTrainingModalBodyProps = BaseFeatureTrainingModalProps &

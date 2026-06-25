@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
+import Modal from '@components/Modal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -9,9 +10,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {FeatureTrainingContentProps} from './FeatureTrainingContent';
 import FeatureTrainingContent from './FeatureTrainingContent';
-import Modal from './Modal';
+import type {FeatureTrainingContentProps} from './types';
 
 const MODAL_PADDING = variables.spacing2;
 

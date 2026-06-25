@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import CenteredModalLayout from '@components/CenteredModalLayout';
-import FeatureTrainingContent from '@components/FeatureTrainingContent';
+import FeatureTrainingContent from '@components/FeatureTrainingModal/FeatureTrainingContent';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';

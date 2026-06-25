@@ -12,8 +12,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import FeatureTrainingModalContent from './FeatureTrainingModalContent';
-import FeatureTrainingModalIllustration from './FeatureTrainingModalIllustration';
+import FeatureTrainingModalContent from './FeatureTrainingContentBody';
+import FeatureTrainingModalIllustration from './FeatureTrainingContentIllustration';
 import FeatureTrainingModalTextContent from './FeatureTrainingModalTextContent';
 import type {BaseFeatureTrainingModalProps, FeatureTrainingModalCarouselProps, FeatureTrainingModalPageProps} from './index';
 

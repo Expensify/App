@@ -7,13 +7,13 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FeatureTrainingModalTextContent from './FeatureTrainingModalTextContent';
-import type {FeatureTrainingModalContentProps as BaseFeatureTrainingModalContentProps, BaseFeatureTrainingModalProps} from './index';
+import type {FeatureTrainingContentBodyProps as BaseFeatureTrainingContentBodyProps, BaseFeatureTrainingContentProps} from './types';
 
 type FeatureTrainingModalContentProps = Pick<
-    BaseFeatureTrainingModalProps,
+    BaseFeatureTrainingContentProps,
     | 'helpText'
+    | 'onConfirm'
     | 'onHelp'
-    | 'shouldCallOnHelpWhenModalHidden'
     | 'helpSentryLabel'
     | 'confirmSentryLabel'
     | 'shouldShowDismissModalOption'
@@ -25,18 +25,12 @@ type FeatureTrainingModalContentProps = Pick<
     | 'shouldRenderHTMLDescription'
     | 'children'
 > &
-    BaseFeatureTrainingModalContentProps & {
+    BaseFeatureTrainingContentBodyProps & {
         /** Whether the modal should be shown again (drives the dismiss checkbox state) */
         willShowAgain: boolean;
 
         /** Callback when the "Don't show me this again" option is toggled */
         toggleWillShowAgain: () => void;
-
-        /** Callback to close the modal */
-        closeModal: (didPressHelpButton?: boolean) => void;
-
-        /** Callback when the user presses the confirm button */
-        confirmModal: () => void;
 
         /** Whether to render a Back button (carousel mode, non-first pages) */
         shouldShowBackButton?: boolean;
@@ -45,22 +39,20 @@ type FeatureTrainingModalContentProps = Pick<
         onBack?: () => void;
     };
 
-function FeatureTrainingModalContent({
+function FeatureTrainingContentBody({
     title = '',
     subtitle = '',
     description = '',
     secondaryDescription = '',
     confirmText,
+    onConfirm,
     helpText = '',
-    onHelp = () => {},
-    shouldCallOnHelpWhenModalHidden = false,
+    onHelp,
     helpSentryLabel,
     confirmSentryLabel,
     shouldShowDismissModalOption = false,
     willShowAgain,
     toggleWillShowAgain,
-    closeModal,
-    confirmModal,
     shouldShowBackButton = false,
     onBack,
     shouldShowConfirmationLoader = false,
@@ -100,13 +92,7 @@ function FeatureTrainingModalContent({
                 <Button
                     large
                     style={[styles.mb3]}
-                    onPress={() => {
-                        if (shouldCallOnHelpWhenModalHidden) {
-                            closeModal(true);
-                            return;
-                        }
-                        onHelp();
-                    }}
+                    onPress={onHelp}
                     text={helpText}
                     sentryLabel={helpSentryLabel}
                 />
@@ -122,7 +108,7 @@ function FeatureTrainingModalContent({
                     />
                 )}
                 <FormAlertWithSubmitButton
-                    onSubmit={confirmModal}
+                    onSubmit={() => onConfirm?.(willShowAgain)}
                     isLoading={shouldShowConfirmationLoader}
                     buttonText={confirmText}
                     enabledWhenOffline={canConfirmWhileOffline}
@@ -135,4 +121,4 @@ function FeatureTrainingModalContent({
     );
 }
 
-export default FeatureTrainingModalContent;
+export default FeatureTrainingContentBody;

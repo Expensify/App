@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import CenteredModalLayout from './CenteredModalLayout';
 import type {FeatureListItem} from './FeatureList';
-import FeatureTrainingContent from './FeatureTrainingContent';
+import FeatureTrainingContent from './FeatureTrainingModal/FeatureTrainingContent';
 import Icon from './Icon';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';

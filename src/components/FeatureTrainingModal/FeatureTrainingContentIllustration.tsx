@@ -16,7 +16,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Accessibility from '@libs/Accessibility';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import CONST from '@src/CONST';
-import type {FeatureTrainingModalIllustrationProps as BaseFeatureTrainingModalIllustrationProps, BaseFeatureTrainingModalProps} from './index';
+import type {FeatureTrainingContentIllustrationProps as BaseFeatureTrainingContentIllustrationProps, BaseFeatureTrainingContentProps} from './types';
 
 // Aspect ratio and height of the video.
 // Useful before video loads to reserve space.
@@ -26,11 +26,11 @@ const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
 
 type VideoStatus = 'video' | 'animation';
 
-type FeatureTrainingModalIllustrationProps = Pick<
-    BaseFeatureTrainingModalProps,
+type FeatureTrainingContentIllustrationProps = Pick<
+    BaseFeatureTrainingContentProps,
     'shouldRenderSVG' | 'illustrationAspectRatio' | 'illustrationInnerContainerStyle' | 'illustrationOuterContainerStyle'
 > &
-    BaseFeatureTrainingModalIllustrationProps & {
+    BaseFeatureTrainingContentIllustrationProps & {
         /** Padding for the modal */
         modalPadding: number;
 
@@ -41,7 +41,7 @@ type FeatureTrainingModalIllustrationProps = Pick<
         isCarousel?: boolean;
     };
 
-function FeatureTrainingModalIllustration({
+function FeatureTrainingContentIllustration({
     animation,
     animationStyle,
     videoURL,
@@ -56,7 +56,7 @@ function FeatureTrainingModalIllustration({
     modalPadding,
     isFocused = true,
     isCarousel = false,
-}: FeatureTrainingModalIllustrationProps) {
+}: FeatureTrainingContentIllustrationProps) {
     const styles = useThemeStyles();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Hands']);
@@ -176,4 +176,4 @@ function FeatureTrainingModalIllustration({
     );
 }
 
-export default FeatureTrainingModalIllustration;
+export default FeatureTrainingContentIllustration;
