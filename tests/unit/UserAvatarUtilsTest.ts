@@ -98,12 +98,13 @@ describe('UserAvatarUtils', () => {
             expect(url1).toBe(url25); // Same modulo result
         });
 
-        it('should use accountEmail hash instead of accountID when email is provided', () => {
+        it('should return a letter avatar from the email when an email is provided', () => {
             const urlByID = UserAvatarUtils.getDefaultAvatarURL({accountID: 10});
             const urlByEmail = UserAvatarUtils.getDefaultAvatarURL({accountID: 10, accountEmail: 'john.doe@example.com'});
 
             expect(urlByID).toContain('default-avatar_');
-            expect(urlByEmail).toContain('default-avatar_');
+            expect(urlByEmail).toContain('generated/letter/');
+            expect(urlByEmail).toContain('/J.png');
             expect(urlByID).not.toBe(urlByEmail);
         });
 
