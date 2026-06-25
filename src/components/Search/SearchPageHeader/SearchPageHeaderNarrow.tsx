@@ -8,7 +8,6 @@ type SearchPageHeaderNarrowProps = {
     queryJSON: SearchQueryJSON;
     shouldShowLoadingBar: boolean;
     isMobileSelectionModeEnabled: boolean;
-    cancelSearch?: () => void;
 };
 
 function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobileSelectionModeEnabled, cancelSearch}: SearchPageHeaderNarrowProps) {
@@ -23,7 +22,6 @@ function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobi
             shouldShowLoadingBar={shouldShowLoadingBar}
             breadcrumbLabel={translate('common.spend')}
             shouldDisplayHelpButton
-            cancelSearch={cancelSearch}
         />
     );
 }
