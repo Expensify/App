@@ -315,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: '收起',
         plusMore: ({count}: {count: number}) => `+${count}个`,
         merchant: '商户',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `在 Google 上搜索 ${merchant}`,
         change: '更改',
         category: '类别',
         vendor: '供应商',
@@ -1602,13 +1604,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
-        submitReportTo: {
-            subtitle: '选择一个工作区成员，或输入应接收此提交的收件人邮箱地址。',
-            emailLabel: '电子邮箱地址',
-            workspaceMembers: '工作区成员',
-            sendExpense: '将你的报销发送给任何人',
-            sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
-        },
         changeApprover: {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
@@ -2567,6 +2562,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalsTitle: '审批',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `来自${members}的报销，审批人是${approvers}`,
         addApprovalButton: '添加审批工作流',
+        loadMoreWorkflows: ({count}: {count: number}) => `加载更多 ${count} 个`,
         editWorkflowAction: '编辑',
         findWorkflow: '查找工作流',
         addApprovalTip: '除非存在更具体的工作流程，否则此默认工作流程适用于所有成员。',
@@ -2754,7 +2750,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     agentsPage: {
         title: '代理人',
-        subtitle: `<muted-text>创建代理来处理你的工作流程，摆脱手工操作，每天节省数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解更多</a>。</muted-text>`,
+        subtitle: `<muted-text>智能代理为你处理工作流程，让你每天多出数小时。<a href="${CONST.CUSTOM_AGENTS_HELP_URL}">了解详情</a>。</muted-text>`,
         newAgent: '新代理人',
         emptyAgents: {
             title: '尚未创建代理',
@@ -3092,9 +3088,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: '提交报销',
+                title: '创建报销',
                 description: dedent(`
-                    通过输入金额或扫描收据来*提交一笔报销*。
+                    通过输入金额或扫描收据来*创建一笔报销*。
 
                     1. 点击 *+* 按钮。
                     2. 选择 *创建报销*。
@@ -3106,9 +3102,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: '提交报销',
+                title: '创建报销',
                 description: dedent(`
-                    通过输入金额或扫描收据来*提交报销*。
+                    通过输入金额或扫描收据来*创建报销*。
 
                     1. 点击 *+* 按钮。
                     2. 选择*创建报销*。
@@ -3271,9 +3267,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `进行[试用体验](${testDriveURL})` : '试用体验'),
             embeddedDemoIframeTitle: '试用',
-            employeeFakeReceipt: {
-                description: '我的试驾收据！',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发消息一样简单。让我们先了解一下基础内容。',
@@ -3525,6 +3518,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             companyName: '请输入有效的公司名称',
             addressCity: '请输入有效的城市',
             addressStreet: '请输入有效的街道地址',
+            physicalAddressRequired: '需要提供实际地址。不接受邮政信箱或邮件转寄服务。',
             addressState: '请选择有效的州',
             incorporationDateFuture: '成立日期不能晚于今天',
             incorporationState: '请选择有效的州',
@@ -3738,12 +3732,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
         legalName: '法定姓名',
+        legalNameSubtitle: '请输入与身份证件一致的法定全名。',
         enterYourDateOfBirth: '你的出生日期是？',
         enterTheLast4: '您的社会安全号码的后四位数字是多少？',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
         last4SSN: '社保号后4位',
         enterYourAddress: '你的地址是什么？',
         address: '地址',
+        addressSubtitle: '需要提供实际地址。不接受邮政信箱或邮件转寄服务。',
         letsDoubleCheck: '我们再仔细检查一下，确保一切都正确。',
         byAddingThisBankAccount: '添加此银行账户即表示您已阅读、理解并接受',
         whatsYourLegalName: '您的法定姓名是什么？',
@@ -3879,6 +3875,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         regulationRequiresUsToVerifyTheIdentity: '法规要求我们核实任何持有该企业超过 25% 股权的个人身份。',
         companyOwner: '企业所有者',
         enterLegalFirstAndLastName: '业主的法定姓名是什么？',
+        legalNameSubtitle: '請輸入所有者身分證件上顯示的法定全名。',
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
         enterTheDateOfBirthOfTheOwner: '所有者的出生日期是什么？',
@@ -4348,16 +4345,18 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             auditorAlternateText: '查看并评论报表。',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return '所有者';
                     case CONST.POLICY.ROLE.ADMIN:
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑器';
+                        return '编辑';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return '卡片管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理员';
+                        return '人员管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
@@ -4839,6 +4838,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             company: '公司',
             autoSyncDescription: 'Expensify 将每天自动与 Certinia 同步。',
             syncReimbursedReportsDescription: '启用此选项后，每当在 FFA 中支付应付发票时，关联的 Expensify 报告将自动标记为已报销。',
+            taxNonBillable: '将税费导出为不可计费',
+            taxNonBillableDescription: '导出使用 Expensify 税率编码的可计费费用时，导出到 Certinia PSA 时税费部分将标记为不可计费。',
+            foreignCurrencyAmount: '导出外币金额',
+            foreignCurrencyAmountDescription: '如果您将可报销费用导出为费用报告，则会将每笔交易的原始外币金额导出到 Certinia（如果存在）。',
             exportDescription: '配置 Expensify 数据导出到 Certinia 的方式。',
             payableInvoices: '应付发票',
             exportStatus: {
@@ -4876,8 +4879,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noCompaniesFoundDescription: '在 Certinia 中添加公司后，请再次同步连接。',
             prerequisites: {
                 title: '在你连接之前',
-                installBundle: '用于 FFA 连接',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                installBundle: '安装 Expensify 捆绑包',
+                installBundlePSAHeader: '用于 PSA/SRP 连接：',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `通过点击此链接在 Salesforce 中安装 Expensify 包：<a href="${href}">安装 PSA/SRP Expensify 包（版本 ${version}）</a>`,
+                installBundleFFAHeader: '对于 FFA 连接：',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a>`,
                 installBundleConfirm: '我已安装此捆绑包',
                 setupContacts: '设置用户和联系人',
@@ -4900,6 +4907,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: '不要映射',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: '已作为标签导入',
                     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: '已作为报表字段导入',
+                },
+                expenseTypeGlaMappings: '费用类型 GLA 映射',
+                expenseTypeGlaMappingsDescription: 'FinancialForce 费用类型 GLA 映射会作为类别导入到 Expensify 中。',
+                tagsMappedTo: '标签应映射到',
+                milestones: '里程碑',
+                milestonesDescription: '启用后，与 PSA 项目关联的里程碑会同步到 Expensify。',
+                parentTagMappingTypes: {
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS]: '项目和任务',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS]: '项目',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: '任务',
                 },
             },
         },
@@ -6154,6 +6171,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncWithHR: (providerName: string) => `与 ${providerName} 同步`,
             makeCardAdmin: () => ({one: '设为卡片管理员', other: '设为卡管理员'}),
             cardAdmins: '卡片管理员',
+            members: '成员',
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -9455,17 +9473,6 @@ ${reportName}`,
         quickAction: {
             takeATwoMinuteTestDrive: '体验 2 分钟试用',
         },
-        modal: {
-            title: '试用一下我们的产品',
-            description: '快速浏览产品，立即上手使用。',
-            confirmText: '开始试用',
-            helpText: '跳过',
-            employee: {
-                description: '<muted-text>为你的团队获取<strong>3 个月免费的 Expensify！</strong>只需在下面输入你老板的邮箱并发送一笔测试报销。</muted-text>',
-                email: '输入你老板的邮箱',
-                error: '该成员拥有一个工作区，请输入一位新成员进行测试。',
-            },
-        },
         banner: {
             currentlyTestDrivingExpensify: '您目前正在试用 Expensify',
             readyForTheRealThing: '准备好来点真正的了吗？',
@@ -9500,7 +9507,6 @@ ${reportName}`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {

@@ -28,7 +28,6 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
-import {generateAccountID} from '@src/libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNameValuePairs, ReportNextStepDeprecated} from '@src/types/onyx';
@@ -245,6 +244,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     if (expenseReport) {
                         const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                         submitReport({
+                            submitterLogin: undefined,
                             expenseReport,
                             policy: {} as Policy,
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -547,6 +547,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                             submitReport({
+                                submitterLogin: undefined,
                                 expenseReport,
                                 policy,
                                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -819,6 +820,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                             submitReport({
+                                submitterLogin: undefined,
                                 expenseReport,
                                 policy: {} as Policy,
                                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -990,6 +992,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (expenseReport) {
                         submitReport({
+                            submitterLogin: undefined,
                             expenseReport,
                             policy,
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -1062,6 +1065,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Submit with amountOwed > 0 should trigger restriction
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -1174,6 +1178,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                 const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 submitReport({
+                    submitterLogin: undefined,
                     expenseReport,
                     policy,
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -1234,6 +1239,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1296,6 +1302,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1363,6 +1370,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
@@ -1462,6 +1470,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
+                submitterLogin: undefined,
             });
 
             const [, parameters, onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
@@ -1538,6 +1547,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
@@ -1606,6 +1616,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1672,6 +1683,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport: report,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1733,6 +1745,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport: report,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1769,6 +1782,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy: {
                     ...createRandomPolicy(Number(policyID)),
@@ -1834,137 +1848,10 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy]);
+            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail);
 
-            expect(apiWriteSpy).toHaveBeenCalledWith(
-                'SubmitReport',
-                expect.objectContaining({
-                    managerAccountID: correctManagerAccountID,
-                }),
-                expect.anything(),
-            );
-        });
-
-        it('uses the popover-selected manager email for search submit managerAccountID', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-            const policyID = '1';
-            const submitterAccountID = 100;
-            const defaultManagerAccountID = 101;
-            const chosenManagerAccountID = 103;
-            const submitterEmail = 'submitter@example.com';
-            const defaultManagerEmail = 'default-manager@example.com';
-            const chosenManagerEmail = 'chosen-manager@example.com';
-
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
-                [defaultManagerAccountID]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
-                [chosenManagerAccountID]: {accountID: chosenManagerAccountID, login: chosenManagerEmail},
-            });
-            await waitForBatchedUpdates();
-
-            const policy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                id: policyID,
-                type: CONST.POLICY.TYPE.CORPORATE,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                approver: defaultManagerEmail,
-                owner: defaultManagerEmail,
-                employeeList: {},
-            };
-            const report: Report = {
-                ...createRandomReport(Number(policyID), undefined),
-                reportID: '1',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: defaultManagerAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                total: 1000,
-                currency: CONST.CURRENCY.USD,
-            };
-
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, chosenManagerEmail);
-
-            expect(apiWriteSpy).toHaveBeenCalledWith(
-                'SubmitReport',
-                expect.objectContaining({
-                    managerEmail: chosenManagerEmail,
-                    managerAccountID: chosenManagerAccountID,
-                }),
-                expect.anything(),
-            );
-            expect(apiWriteSpy).not.toHaveBeenCalledWith(
-                'SubmitReport',
-                expect.objectContaining({
-                    managerAccountID: defaultManagerAccountID,
-                }),
-                expect.anything(),
-            );
-        });
-
-        it('resolves search submit managerAccountID from employeeList when personal details are missing', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-            const policyID = '1';
-            const submitterAccountID = 100;
-            const defaultManagerAccountID = 101;
-            const chosenManagerEmail = 'chosen-manager@example.com';
-            const optimisticChosenManagerAccountID = generateAccountID(chosenManagerEmail);
-            const submitterEmail = 'submitter@example.com';
-            const defaultManagerEmail = 'default-manager@example.com';
-
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
-                [defaultManagerAccountID]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
-            });
-            await waitForBatchedUpdates();
-
-            const policy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                id: policyID,
-                type: CONST.POLICY.TYPE.CORPORATE,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                approver: defaultManagerEmail,
-                owner: defaultManagerEmail,
-                employeeList: {
-                    [chosenManagerEmail]: {
-                        email: chosenManagerEmail,
-                        role: CONST.POLICY.ROLE.USER,
-                    },
-                },
-            };
-            const report: Report = {
-                ...createRandomReport(Number(policyID), undefined),
-                reportID: '1',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: defaultManagerAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                total: 1000,
-                currency: CONST.CURRENCY.USD,
-            };
-
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, chosenManagerEmail);
-
-            expect(apiWriteSpy).toHaveBeenCalledWith(
-                'SubmitReport',
-                expect.objectContaining({
-                    managerEmail: chosenManagerEmail,
-                    managerAccountID: optimisticChosenManagerAccountID,
-                }),
-                expect.anything(),
-            );
-            expect(apiWriteSpy).not.toHaveBeenCalledWith(
-                'SubmitReport',
-                expect.objectContaining({
-                    managerAccountID: defaultManagerAccountID,
-                }),
-                expect.anything(),
-            );
+            const [, parameters] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}];
+            expect(parameters.managerAccountID).toBe(correctManagerAccountID);
         });
 
         it('submits from search while a retract update is pending', () => {
@@ -1979,7 +1866,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)]);
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -1996,7 +1883,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)]);
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -2030,6 +1917,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -2065,6 +1953,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                submitterLogin: undefined,
                 expenseReport,
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -3706,6 +3595,147 @@ describe('actions/IOU/ReportWorkflow', () => {
             const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
             expect(result.reportAction).toMatchObject(reportPreviewAction);
             expect(result.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
+        });
+
+        it('should not return a badge when the expense report is pending deletion (deleted offline)', async () => {
+            const chatReportID = '400';
+            const iouReportID = '401';
+            const policyID = '402';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.USER,
+                harvesting: {enabled: false},
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+                isOwnPolicyExpenseChat: true,
+            };
+
+            // An open report that would otherwise surface the SUBMIT/"Mark as done" badge, but is pending deletion offline.
+            const fakeIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                merchant: 'TestMerchant',
+                modifiedMerchant: 'TestMerchant',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            const reportPreviewAction = {
+                reportActionID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            const mockChatReportActions = {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
+            await waitForBatchedUpdates();
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions);
+            expect(result.reportAction).toBeUndefined();
+            expect(result.actionBadge).toBeUndefined();
+        });
+
+        it('should prefer the fresh allReports snapshot over the stale module cache for the pending-delete check', async () => {
+            const chatReportID = '410';
+            const iouReportID = '411';
+            const policyID = '412';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                role: CONST.POLICY.ROLE.USER,
+                harvesting: {enabled: false},
+            };
+
+            const fakeChatReport: Report = {
+                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+                isOwnPolicyExpenseChat: true,
+            };
+
+            // The module-level Onyx cache still holds a non-pending version of the report (the stale state mid-recompute).
+            const staleIouReport: Report = {
+                ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: iouReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+            };
+
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: iouReportID,
+                amount: 100,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                bank: '',
+                merchant: 'TestMerchant',
+                modifiedMerchant: 'TestMerchant',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, fakeChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, staleIouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            const reportPreviewAction = {
+                reportActionID: iouReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-08-08 19:00:00.000',
+                childReportID: iouReportID,
+                message: [{type: 'TEXT', text: 'Report preview'}],
+            };
+            const mockChatReportActions = {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, mockChatReportActions);
+            await waitForBatchedUpdates();
+
+            // The fresh snapshot reflects the optimistic offline delete (pendingFields.preview === DELETE).
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: {
+                    ...staleIouReport,
+                    pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                },
+            };
+
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions, allReports);
+            expect(result.reportAction).toBeUndefined();
+            expect(result.actionBadge).toBeUndefined();
         });
 
         it('should return PAY badge for negative expense (credit) via onlyShowPayElsewhere path', async () => {

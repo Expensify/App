@@ -12,9 +12,9 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -55,9 +55,15 @@ function ConnectedVerifiedBankAccount({
     const bankAccountOwnerName = reimbursementAccount?.achData?.addressName;
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction;
-    const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const {asset: ThumbsUpStars} = useMemoizedLazyAsset(() => loadIllustration('ThumbsUpStars' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
+
+    useResetBankAccountModal({
+        reimbursementAccount,
+        isNonUSDWorkspace,
+        setShouldShowConnectedVerifiedBankAccount,
+        setUSDBankAccountStep,
+    });
 
     return (
         <ScreenWrapper
@@ -104,14 +110,6 @@ function ConnectedVerifiedBankAccount({
                     </OfflineWithFeedback>
                 </Section>
             </ScrollView>
-            {shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={reimbursementAccount}
-                    isNonUSDWorkspace={isNonUSDWorkspace}
-                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                />
-            )}
         </ScreenWrapper>
     );
 }
