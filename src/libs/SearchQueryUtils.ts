@@ -155,21 +155,20 @@ const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SYNTAX_FILTER_K
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
- * keyword instead of being parsed as the `type` filter. Keywords containing spaces are wrapped by
- * `sanitizeSearchValue`. Plain keywords (e.g. `foo`) are left untouched.
+ * keyword instead of being parsed as the `type` filter. Plain keywords (e.g. `foo`) are left untouched.
  */
 function escapeKeyword(keywords: string) {
-    return keywords
-        .split(' ')
-        .map((q) => {
-            const sanitizedKeyword = sanitizeSearchValue(q);
-            if (sanitizedKeyword.toLowerCase().match(syntaxRegex)) {
-                // The keyword is not escaped yet by sanitizeSearchValue, so we do it here.
-                return `"${q}"`;
-            }
-            return sanitizedKeyword;
-        })
-        .join(' ');
+    return (
+        keywords
+            .match(/"([^"]*)"|(\S+)/g)
+            ?.map((q) => {
+                if (q.toLowerCase().match(syntaxRegex)) {
+                    return `"${q}"`;
+                }
+                return q;
+            })
+            .join(' ') ?? ''
+    );
 }
 
 function getRangeQueryValue(from?: string, to?: string) {
@@ -334,7 +333,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
 
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += `${delimiter}${escapeKeyword(queryFilter.value.toString())}`;
+            filterValueString += `${delimiter}${escapeKeyword(sanitizeSearchValue(queryFilter.value.toString()))}`;
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {

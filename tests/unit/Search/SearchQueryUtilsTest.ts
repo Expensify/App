@@ -3314,6 +3314,24 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('foo:bar');
             expect(result).not.toContain('"foo:bar"');
         });
+
+        it('should keep an already-quoted phrase as a single token without re-escaping it', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('"type:expense"', currentQueryJSON) : '';
+            // The phrase is already quoted, so it must not be wrapped in another set of quotes
+            expect(result).toContain('"type:expense"');
+            expect(result).not.toContain('""type:expense""');
+        });
+
+        it('should not split a quoted multi-word phrase when escaping', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('"hello world" type:expense', currentQueryJSON) : '';
+            // The quoted phrase stays intact and the filter-like keyword is escaped separately
+            expect(result).toContain('"hello world"');
+            expect(result).toContain('"type:expense"');
+        });
     });
 
     describe('getAdvancedFiltersToReset', () => {

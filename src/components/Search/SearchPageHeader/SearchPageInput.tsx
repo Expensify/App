@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues} from '@libs/SearchQueryUtils';
+import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -29,7 +29,7 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
     const [textInputValue, setTextInputValue] = useState('');
 
     const keywordFilters = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)?.filters ?? [];
-    const keywordQuery = keywordFilters.reduce((acc, keyword) => `${acc} ${keyword.value}`, '').trim();
+    const keywordQuery = keywordFilters.reduce((acc, keyword) => `${acc} ${sanitizeSearchValue(keyword.value.toString())}`, '').trim();
     const [prevKeywordQuery, setPrevKeywordQuery] = useState('');
 
     if (keywordQuery !== prevKeywordQuery) {
