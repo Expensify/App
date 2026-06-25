@@ -26,10 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import ListFilterView from './ListFilterViewWrapper';
 
-type InSelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
-    onChange: (ins: string[]) => void;
-};
+type InSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 const defaultListOptions = {
     recentReports: [],
@@ -92,7 +89,11 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        const alternateText = getAlternateText(report, {}, {isReportArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser});
+        const alternateText = getAlternateText(
+            report,
+            {},
+            {isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
+        );
         return {...report, alternateText};
     });
 

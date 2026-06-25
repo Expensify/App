@@ -267,6 +267,7 @@ function WorkspaceCompanyCardsTable({
 
     const filterConfig: FilterConfig = {
         status: {
+            label: translate('common.status'),
             filterType: 'single-select',
             options: [
                 {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},

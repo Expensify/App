@@ -186,6 +186,32 @@ describe('getOnboardingFlow', () => {
         ]);
     });
 
+    it('returns 3-step flow for public + validated + VSB (employees is the first step)', () => {
+        // A validated work email is no longer part of the navigable flow, so EMPLOYEES becomes the first step.
+        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true, isAccountValidated: true})).toEqual([
+            SCREENS.ONBOARDING.EMPLOYEES,
+            SCREENS.ONBOARDING.ACCOUNTING,
+            SCREENS.ONBOARDING.INTERESTED_FEATURES,
+        ]);
+    });
+
+    it('returns 3-step flow for public + validated + merge + VSB (employees is the first step)', () => {
+        // Validated accounts skip work email even when merge is not completed, matching navigation behavior.
+        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true, isAccountValidated: true, isMergeAccountStepSkipped: false})).toEqual([
+            SCREENS.ONBOARDING.EMPLOYEES,
+            SCREENS.ONBOARDING.ACCOUNTING,
+            SCREENS.ONBOARDING.INTERESTED_FEATURES,
+        ]);
+    });
+
+    it('returns 3-step flow for public + validated + SMB (employees is the first step)', () => {
+        expect(getOnboardingFlow({signupQualifier: 'smb', isFromPublicDomain: true, isAccountValidated: true})).toEqual([
+            SCREENS.ONBOARDING.EMPLOYEES,
+            SCREENS.ONBOARDING.ACCOUNTING,
+            SCREENS.ONBOARDING.INTERESTED_FEATURES,
+        ]);
+    });
+
     it('returns 6-step flow for private domain + VSB', () => {
         expect(getOnboardingFlow({signupQualifier: 'vsb', hasAccessibleDomainPolicies: true})).toEqual([
             SCREENS.ONBOARDING.PERSONAL_DETAILS,
@@ -334,6 +360,16 @@ describe('getOnboardingStepCounter', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: true};
         // The skipped work email step is excluded from the flow, so it has no step counter.
         expect(getOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL, ctx)).toBeUndefined();
+        expect(getOnboardingStepCounter(SCREENS.ONBOARDING.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 1, total: 3}, progressBarPercentage: 33});
+        expect(getOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 2, total: 3}, progressBarPercentage: 67});
+        expect(getOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 3, total: 3}, progressBarPercentage: 100});
+    });
+
+    it('returns correct step/total/percentage for public + validated + VSB (employees is the first step)', () => {
+        const ctx: OnboardingFlowContext = {signupQualifier: 'vsb', isFromPublicDomain: true, isAccountValidated: true, isMergeAccountStepSkipped: false};
+        // The validated work email step is excluded from the flow, so it has no step counter.
+        expect(getOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL, ctx)).toBeUndefined();
+        expect(getOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, ctx)).toBeUndefined();
         expect(getOnboardingStepCounter(SCREENS.ONBOARDING.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 1, total: 3}, progressBarPercentage: 33});
         expect(getOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 2, total: 3}, progressBarPercentage: 67});
         expect(getOnboardingStepCounter(SCREENS.ONBOARDING.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 3, total: 3}, progressBarPercentage: 100});
@@ -535,6 +571,13 @@ describe('getPreviousOnboardingRoute', () => {
     it('returns undefined for public domain VSB when merge account step was skipped (employees is the first step)', () => {
         // The skipped work email step is not a navigable previous route, so employees has no back destination.
         expect(getPreviousOnboardingRoute(SCREENS.ONBOARDING.EMPLOYEES, {signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: true})).toBeUndefined();
+    });
+
+    it('returns undefined for public domain VSB when account is validated (employees is the first step)', () => {
+        // The validated work email step is not a navigable previous route, so employees has no back destination.
+        expect(
+            getPreviousOnboardingRoute(SCREENS.ONBOARDING.EMPLOYEES, {signupQualifier: 'vsb', isFromPublicDomain: true, isAccountValidated: true, isMergeAccountStepSkipped: false}),
+        ).toBeUndefined();
     });
 
     it('returns purpose for individual manage team users', () => {
