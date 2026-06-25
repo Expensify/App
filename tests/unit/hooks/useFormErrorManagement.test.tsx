@@ -123,4 +123,16 @@ describe('useFormErrorManagement', () => {
         act(() => result.current.setFormError('common.error.invalidAmount'));
         expect(result.current.errorMessage).toBeDefined();
     });
+
+    it('errorMessage suppresses the invalid merchant error in the new manual expense flow (surfaced inline)', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('iou.error.invalidMerchant'));
+        expect(result.current.errorMessage).toBeUndefined();
+    });
+
+    it('errorMessage still shows the invalid merchant error when the new manual expense flow is disabled', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('iou.error.invalidMerchant'));
+        expect(result.current.errorMessage).toBeDefined();
+    });
 });
