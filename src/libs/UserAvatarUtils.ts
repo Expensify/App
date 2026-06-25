@@ -2,7 +2,7 @@ import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
-import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_COLOR_OPTIONS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
+import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
 import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
 import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
@@ -220,40 +220,6 @@ function isGeneratedLetterAvatarURL(avatarSource?: AvatarSource): boolean {
 }
 
 /**
- * Returns the letter-avatar color scheme for an account, picked by accountID modulo the palette size.
- * Mirrors the backend color selection so the client-rendered avatar matches the generated image.
- *
- * @param accountID - The user's account ID
- * @returns The colors for the account's letter avatar
- */
-function getDefaultLetterAvatarScheme(accountID?: number): LetterAvatarColorStyle {
-    return LETTER_AVATAR_COLOR_OPTIONS[(accountID ?? CONST.DEFAULT_NUMBER_ID) % LETTER_AVATAR_COLOR_OPTIONS.length];
-}
-
-/**
- * Derives the initials for a letter avatar from a display name.
- * Takes the first alphanumeric character of the first word and of the last word, uppercased.
- * Mirrors the backend firstAlphanumeric(firstName) + firstAlphanumeric(lastName) rule using the display name.
- *
- * @param name - The user's display name
- * @returns The 1-2 character initials, or an empty string when nothing usable is found
- */
-function getLetterAvatarInitials(name?: string): string {
-    if (!name) {
-        return '';
-    }
-    const words = name.trim().split(/\s+/).filter(Boolean);
-    if (words.length === 0) {
-        return '';
-    }
-    const firstWord = words.at(0) ?? '';
-    const lastWord = words.at(-1) ?? '';
-    const firstInitial = firstWord.match(/[a-z0-9]/i)?.at(0) ?? '';
-    const lastInitial = words.length > 1 ? (lastWord.match(/[a-z0-9]/i)?.at(0) ?? '') : '';
-    return `${firstInitial}${lastInitial}`.toUpperCase();
-}
-
-/**
  * Returns the first alphanumeric character of a string, uppercased, or '' when none exists.
  *
  * @param name - The string to read the first character from
@@ -440,13 +406,10 @@ export {
     getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,
-    getDefaultLetterAvatarScheme,
-    getLetterAvatarInitials,
     getLetterAvatarURL,
     parseLetterAvatarURL,
     isCatalogAvatar,
     isDefaultAvatar,
-    isGeneratedLetterAvatarURL,
     isLetterAvatar,
 };
 export type {AvatarSource};
