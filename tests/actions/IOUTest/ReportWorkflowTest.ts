@@ -1558,9 +1558,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect((optimisticParentReportUpdate?.value as Report | undefined)?.iouReportID).toBeNull();
         });
 
-        it('clears the workspace chat outstanding child request when a submitter submits their own report on a Submit workspace', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting optimistic parent chat data after submit from workspace chat.
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        it('clears the workspace chat outstanding child request when a submitter submits their own report offline on a Submit workspace', async () => {
             const policyID = '1';
             const workspaceChatReportID = '2';
             const submitterAccountID = 100;
@@ -1607,6 +1605,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            // Go offline so only the optimistic update is applied
+            mockFetch?.pause?.();
             submitReport({
                 expenseReport,
                 policy,
@@ -1620,14 +1620,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 ownerBillingGracePeriodEnd: undefined,
                 delegateEmail: undefined,
             });
-
-            const [, , onyxData] = apiWriteSpy.mock.calls.at(-1) as [unknown, {managerAccountID?: number}, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            await waitForBatchedUpdates();
 
             // The submitter can't approve their own expense on a Submit workspace, so the green dot should be cleared
-            const optimisticParentReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`);
-            const optimisticParentReport = optimisticParentReportUpdate?.value as Report | undefined;
+            const optimisticParentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`);
             expect(optimisticParentReport?.hasOutstandingChildRequest).toBe(false);
-            expect(optimisticParentReport?.iouReportID).toBeNull();
+            // Onyx merge deletes the key when the optimistic value is null, so iouReportID is cleared
+            expect(optimisticParentReport?.iouReportID).toBeUndefined();
         });
 
         it('recomputes the submit approver for a retracted forwarded report', async () => {
