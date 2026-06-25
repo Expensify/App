@@ -20,7 +20,10 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+// eslint-disable-next-line no-restricted-imports
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {isSubmitPolicy, sortPoliciesByName} from '@libs/PolicyUtils';
@@ -383,12 +386,7 @@ function useSelectionModeReportActions({
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
             setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
-            if (getPlatform() === CONST.PLATFORM.IOS) {
-                // On iOS, opening the hold menu immediately can conflict with the popover dismiss animation, so we defer it.
-                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
-            } else {
-                setIsHoldMenuVisible(true);
-            }
+            setIsHoldMenuVisible(true);
         } else if (isInvoiceReport) {
             const email = currentUserEmail ?? '';
             payInvoice({
@@ -464,28 +462,31 @@ function useSelectionModeReportActions({
         }
         // This callback fires via onSubItemSelected before the popover closes. Defer heavy payment
         // work so the dropdown dismiss animation completes first, avoiding perceived UI lag.
-        InteractionManager.runAfterInteractions(() => {
-            selectPaymentType({
-                event,
-                iouPaymentType,
-                triggerKYCFlow,
-                policy,
-                onPress: confirmPayment,
-                currentAccountID: currentUserAccountID,
-                currentEmail: currentUserEmail ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                isUserValidated,
-                confirmApproval: () => confirmApproval(),
-                iouReport: report,
-                iouReportNextStep: nextStep,
-                betas,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                delegateEmail,
-                expenseReportPolicy: policy,
-            });
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                selectPaymentType({
+                    event,
+                    iouPaymentType,
+                    triggerKYCFlow,
+                    policy,
+                    onPress: confirmPayment,
+                    currentAccountID: currentUserAccountID,
+                    currentEmail: currentUserEmail ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    isUserValidated,
+                    confirmApproval: () => confirmApproval(),
+                    iouReport: report,
+                    iouReportNextStep: nextStep,
+                    betas,
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    delegateEmail,
+                    expenseReportPolicy: policy,
+                });
+            },
+            waitForUpcomingTransition: true,
         });
     };
 
