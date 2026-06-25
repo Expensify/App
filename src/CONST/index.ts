@@ -3579,7 +3579,7 @@ const CONST = {
         ADD_BANK_ACCOUNT_STEP: {
             SUB_PAGE_NAMES: {
                 PLAID: 'plaid',
-                CONFIRMATION: 'bank-account-confirmation',
+                CONFIRMATION: 'confirmation',
             },
         },
         PERSONAL_INFO_STEP: {
@@ -3589,7 +3589,7 @@ const CONST = {
                 ADDRESS: 'address',
                 PHONE_NUMBER: 'phone-number',
                 SSN: 'ssn',
-                CONFIRMATION: 'personal-info-confirmation',
+                CONFIRMATION: 'confirmation',
             },
         },
         FEES_AND_TERMS_STEP: {
