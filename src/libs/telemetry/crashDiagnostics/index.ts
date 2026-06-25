@@ -43,29 +43,57 @@ const LIVENESS_FRESHNESS_MS = 2 * 60 * 1000;
 
 const LIVENESS_CHANNEL_NAME = 'crashDiagnosticsLiveness';
 
+/** A point-in-time snapshot of memory/DOM/route state, captured on every heartbeat to reconstruct what was growing before a crash. */
 type HeapSample = {
-    /** Epoch ms */
+    /** When the sample was taken, as epoch ms. */
     timestamp: number;
+
+    /** JS heap currently in use, in MB. Null when `performance.memory` is unavailable (non-Chromium browsers). */
     usedJSHeapSizeMB: number | null;
+
+    /** Total allocated JS heap (used + free), in MB. Null when `performance.memory` is unavailable. */
     totalJSHeapSizeMB: number | null;
+
+    /** Hard ceiling the JS heap can grow to before the tab is OOM-killed, in MB. Null when `performance.memory` is unavailable. */
     jsHeapSizeLimitMB: number | null;
+
+    /** Total number of DOM nodes in the document — a proxy for view-tree growth/leaks. */
     domNodes: number;
+
+    /** Active route (without params) at sample time, to show where the user was. */
     route: string;
+
+    /** Number of reports in Onyx at sample time — a proxy for dataset size. Null before the Onyx connection has delivered a value. */
     reportsCount: number | null;
+
+    /** Page visibility at sample time; distinguishes foreground activity from background/hidden tabs. */
     visibility: DocumentVisibilityState;
 };
 
+/** Everything persisted to localStorage for a single tab session: identity, liveness markers, and its ring buffer of samples. */
 type SessionRecord = {
+    /** Unique id for this tab session (one per `initializeCrashDiagnostics` call). */
     id: string;
+
+    /** When the session started, as epoch ms. */
     startedAt: number;
+
+    /** Epoch ms of the most recent heartbeat or exit-state write; staleness of this is the primary crash signal. */
     lastHeartbeat: number;
+
     /** True while the page is in a state where missing heartbeats are expected (pagehide/freeze) */
     cleanExit: boolean;
+
+    /** Ring buffer of recent samples, capped at `MAX_SAMPLES` (oldest dropped first). */
     samples: HeapSample[];
 };
 
 /** Cross-tab liveness protocol: a tab pings when deciding whether a peer crashed; live peers answer. */
-type LivenessMessage = {type: 'ping'} | {type: 'alive'; id: string};
+type LivenessMessage =
+    /** Sent by a tab that is deciding whether a silent peer crashed; recipients reply with `alive`. */
+    | {type: 'ping'}
+    /** A live tab's reply, identifying itself so the asking tab can mark it recently-alive. */
+    | {type: 'alive'; id: string};
 
 let sessionRecord: SessionRecord | undefined;
 let sampleIntervalID: ReturnType<typeof setInterval> | undefined;
