@@ -12383,10 +12383,10 @@ describe('ReportUtils', () => {
             });
 
             it('should handle empty string policy type gracefully', () => {
-                const policyWithEmptyType = createMock<Policy>({
+                const policyWithEmptyType = {
                     ...createRandomPolicy(5),
-                    type: undefined,
-                });
+                    type: '',
+                } as unknown as Policy;
                 expect(shouldEnableNegative(chatReport, policyWithEmptyType)).toBe(false);
             });
         });
