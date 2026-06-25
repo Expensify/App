@@ -15,14 +15,6 @@ Collect includes the essential tools to manage everyday expenses without the adv
 
 ---
 
-## Who can use the Collect plan
-
-Any workspace can use the Collect plan.
-
-Only the **billing owner** can change a workspace's plan.
-
----
-
 ## What the Collect plan includes
 
 The Collect plan includes core expense management features, including:
