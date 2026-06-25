@@ -1,6 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {flushQueue, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+import {clear, flushQueue, isEmpty, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -239,6 +239,24 @@ describe('actions/QueuedOnyxUpdates', () => {
                     },
                 });
             });
+        });
+    });
+
+    describe('clear', () => {
+        it('empties the queue so buffered old-account updates are dropped on sign-out (#82013)', async () => {
+            // Given old-account updates buffered before sign-out
+            const oldUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
+                {key: `${ONYXKEYS.COLLECTION.REPORT}9999999999999999`, value: {reportID: 'oldReport'}, onyxMethod: 'merge'},
+            ];
+            await queueOnyxUpdates(oldUpdates);
+            expect(isEmpty()).toBe(false);
+
+            // When the session is cleaned up on sign-out (cleanupSession() calls QueuedOnyxUpdates.clear())
+            clear();
+
+            // Then the buffer is empty, so the old-account update can never ride through the anonymous-session
+            // stale-data-filter bypass in flushQueue() during a later signed-out deeplink flow.
+            expect(isEmpty()).toBe(true);
         });
     });
 });

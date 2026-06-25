@@ -86,4 +86,15 @@ function isEmpty() {
     return queuedOnyxUpdates.length === 0;
 }
 
-export {queueOnyxUpdates, flushQueue, isEmpty};
+/**
+ * FIX #82013: Discard any queued updates without applying them. Called from cleanupSession() on sign-out so the
+ * buffer cannot carry stale, old-account updates into a later anonymous session (the signed-out public-room
+ * deeplink flow), where flushQueue() bypasses the no-account stale-data filter for the batch that establishes
+ * the anonymous session. Without clearing here, old-account updates left in the buffer would ride through that
+ * bypass and be merged into the new anonymous session.
+ */
+function clear() {
+    queuedOnyxUpdates = [];
+}
+
+export {queueOnyxUpdates, flushQueue, isEmpty, clear};

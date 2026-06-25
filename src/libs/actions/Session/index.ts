@@ -7,6 +7,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import {clear as clearQueuedOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
 import * as API from '@libs/API';
 import type {
     AuthenticatePusherParams,
@@ -1055,6 +1056,9 @@ function cleanupSession() {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
+    // FIX #82013: also drop any updates buffered in QueuedOnyxUpdates so old-account data cannot ride through
+    // the anonymous-session stale-data-filter bypass in flushQueue() during a later signed-out deeplink flow.
+    clearQueuedOnyxUpdates();
     SessionUtils.resetDidUserLogInDuringSession();
     resetNavigationState();
     clearCache().then(() => {
