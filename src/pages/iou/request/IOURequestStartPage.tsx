@@ -190,6 +190,11 @@ function IOURequestStartPage({
     }, []);
 
     const navigateBack = () => {
+        // When the embedded confirmation (new manual expense flow) pre-inserts the destination
+        // report under the RHP as a post-submit optimization, backing out without submitting must
+        // not reveal that report. Remove it while the RHP is still on top so closing the RHP lands
+        // on the LHN instead of the pre-inserted workspace chat.
+        Navigation.removePreInsertedFullscreenIfNeeded();
         Navigation.closeRHPFlow();
     };
 
