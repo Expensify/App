@@ -77,7 +77,6 @@ function FeatureTrainingContentIllustration({
     const videoStatus = useVideoStatus();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
-    const {isOffline} = useNetwork();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const animationRef = useRef<LottieView | null>(null);

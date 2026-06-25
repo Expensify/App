@@ -98,8 +98,8 @@ function isEligibleToShowAIFeaturesPromoModal(): boolean {
     );
 }
 
-function getAIFeaturesPromoModalRoute(basePath?: string): Route {
-    return createDynamicRoute(DYNAMIC_ROUTES.AI_FEATURES_PROMO.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
+function getAIFeaturesPromoModalRoute(): Route {
+    return createDynamicRoute(DYNAMIC_ROUTES.AI_FEATURES_PROMO.path, ROUTES.HOME);
 }
 
 /**
@@ -110,7 +110,6 @@ function navigateToAIFeaturesPromoModalIfReady() {
     // for future state changes) before checking, so a freshly-mounted onboarding navigator
     // is reflected immediately.
     attachNavigationStateListener();
-    snapshotActiveModalsFromNavigationState();
 
     if (isWaitingForProtectedRoutes || !isEligibleToShowAIFeaturesPromoModal()) {
         return;
@@ -129,7 +128,6 @@ function navigateToAIFeaturesPromoModalIfReady() {
                 }
                 Log.info('[AIFeaturesPromoGuard] Proactively navigating to AI features promo modal');
                 hasRedirectedToAIFeaturesPromoModal = true;
-                console.log('navigating to AI features promo modal', getAIFeaturesPromoModalRoute());
                 Navigation.navigate(getAIFeaturesPromoModalRoute());
             });
         },
@@ -159,7 +157,6 @@ Onyx.connectWithoutView({
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, value)) {
             observedActiveMigrationModalThisSession = true;
         }
-        navigateToAIFeaturesPromoModalIfReady();
     },
 });
 
@@ -171,7 +168,6 @@ Onyx.connectWithoutView({
         if (hasCompletedGuidedSetupFlowSelector(onboarding) === false) {
             observedActiveOnboardingThisSession = true;
         }
-        navigateToAIFeaturesPromoModalIfReady();
     },
 });
 
@@ -184,7 +180,6 @@ Onyx.connectWithoutView({
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, dismissedProductTraining)) {
             observedActiveMigrationModalThisSession = true;
         }
-        navigateToAIFeaturesPromoModalIfReady();
     },
 });
 
@@ -192,7 +187,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         isActingAsDelegate = isActingAsDelegateSelector(value);
-        navigateToAIFeaturesPromoModalIfReady();
     },
 });
 
@@ -265,6 +259,11 @@ const AIFeaturesPromoGuard: NavigationGuard = {
 
         if (isNavigatingToAIFeaturesPromoModal(state, action) || hasRedirectedToAIFeaturesPromoModal) {
             return {type: 'ALLOW'};
+        }
+
+        if (isEligibleToShowAIFeaturesPromoModal()) {
+            hasRedirectedToAIFeaturesPromoModal = true;
+            return {type: 'REDIRECT', route: getAIFeaturesPromoModalRoute()};
         }
 
         return {type: 'ALLOW'};

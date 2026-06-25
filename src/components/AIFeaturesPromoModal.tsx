@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Badge from './Badge';
+import CenteredModalLayout from './CenteredModalLayout';
 import {FeatureTrainingCarousel} from './FeatureTrainingContent';
 import type {FeatureTrainingContentDataProps} from './FeatureTrainingContent';
 import LottieAnimations from './LottieAnimations';
@@ -82,19 +83,24 @@ function AIFeaturesPromoModal() {
     };
 
     return (
-        <FeatureTrainingCarousel
-            pages={pages}
-            onConfirm={onConfirm}
-            onClose={onClose}
+        <CenteredModalLayout
+            onBackdropPress={onClose}
             width={variables.aiFeaturesPromoModalWidth}
-            shouldRenderHTMLDescription
-            shouldUseScrollView
-            illustrationOuterContainerStyle={styles.p0}
-            illustrationAspectRatio={LottieAnimations.SpendAnalysis.w / LottieAnimations.SpendAnalysis.h}
-            contentInnerContainerStyles={styles.mb4}
-            modalInnerContainerStyle={styles.pt0}
-            titleStyles={styles.mb2}
-        />
+        >
+            <FeatureTrainingCarousel
+                pages={pages}
+                onConfirm={onConfirm}
+                onClose={onClose}
+                width={variables.aiFeaturesPromoModalWidth}
+                shouldRenderHTMLDescription
+                shouldUseScrollView
+                illustrationOuterContainerStyle={styles.p0}
+                illustrationAspectRatio={LottieAnimations.SpendAnalysis.w / LottieAnimations.SpendAnalysis.h}
+                contentInnerContainerStyles={styles.mb4}
+                modalInnerContainerStyle={styles.pt0}
+                titleStyles={styles.mb2}
+            />
+        </CenteredModalLayout>
     );
 }
 
