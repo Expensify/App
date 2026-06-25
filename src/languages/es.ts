@@ -462,6 +462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         goToConcierge: 'Ir a Concierge',
         allSet: '¡Todo listo!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `introducir dígito ${digitIndex} de ${totalDigits}`,
+        apiKey: 'API key',
         editor: 'Editor',
         restrictions: 'Restricciones',
         off: 'Desactivado',
@@ -5323,6 +5324,16 @@ ${amount} para ${merchant} - ${date}`,
                 }
             },
         },
+        rillet: {
+            rilletSetup: 'Configuración de Rillet',
+            enterCredentials: 'Introduce tu clave API de Rillet',
+            howToFindAPIKey:
+                '<strong>Cómo encontrar tu clave API.</strong><ol><li>Inicia sesión en Rillet</li><li>Ve a Cuenta -> Configuración</li><li>Copia la clave API que aparece a continuación</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Elige la filial de Rillet desde la que quieres importar datos.',
+            noSubsidiariesFound: 'No se encontraron filiales',
+            noSubsidiariesFoundDescription: 'Añade una filial en Rillet y vuelve a sincronizar la conexión',
+        },
         type: {
             free: 'Gratis',
             control: 'Controlar',
@@ -6220,6 +6231,7 @@ ${amount} para ${merchant} - ${date}`,
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            rillet: 'Rillet',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -6237,6 +6249,8 @@ ${amount} para ${merchant} - ${date}`,
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6885,6 +6899,12 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Certinia. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Certinia para una visibilidad financiera más clara.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con Certinia solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                title: 'Rillet',
+                description: `Disfruta de una sincronización automatizada y reduce las entradas manuales con la integración de Expensify + Rillet. Obtén información financiera detallada y en tiempo real con dimensiones definidas por el usuario, así como la clasificación de gastos por departamento, clase, ubicación, cliente y proyecto (trabajo).`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nuestra integración con Rillet solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
