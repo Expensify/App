@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -44,23 +44,16 @@ function RulesRequireFieldsPage({
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagToggleDisabled = !policy?.areTagsEnabled || !hasEnabledTags;
 
-    const [categoryRequired, setCategoryRequired] = useState(() => !!policy?.requiresCategory);
-    const [tagRequired, setTagRequired] = useState(() => !!policy?.requiresTag);
-    const [initialCategoryRequired, setInitialCategoryRequired] = useState(() => !!policy?.requiresCategory);
-    const [initialTagRequired, setInitialTagRequired] = useState(() => !!policy?.requiresTag);
+    const initialCategoryRequired = !!policy?.requiresCategory;
+    const initialTagRequired = !!policy?.requiresTag;
+
+    const [categoryRequired, setCategoryRequired] = useState(initialCategoryRequired);
+    const [tagRequired, setTagRequired] = useState(initialTagRequired);
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
-    const isSavingRef = useRef(false);
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
     }, [policyID]);
-
-    useEffect(
-        () => () => {
-            isSavingRef.current = false;
-        },
-        [],
-    );
 
     useEffect(() => {
         if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
@@ -68,28 +61,20 @@ function RulesRequireFieldsPage({
         }
 
         syncedPolicyIDRef.current = policy.id;
-        const categoryRequiredValue = !!policy.requiresCategory;
-        const tagRequiredValue = !!policy.requiresTag;
-
-        setInitialCategoryRequired(categoryRequiredValue);
-        setInitialTagRequired(tagRequiredValue);
-        setCategoryRequired(categoryRequiredValue);
-        setTagRequired(tagRequiredValue);
+        setCategoryRequired(!!policy.requiresCategory);
+        setTagRequired(!!policy.requiresTag);
     }, [policy?.id, policy?.isLoading, policy?.requiresCategory, policy?.requiresTag]);
 
-    const hasChanges = categoryRequired !== initialCategoryRequired || tagRequired !== initialTagRequired;
+    const hasChanges = useMemo(
+        () => categoryRequired !== initialCategoryRequired || tagRequired !== initialTagRequired,
+        [categoryRequired, initialCategoryRequired, tagRequired, initialTagRequired],
+    );
 
     const handleSave = useCallback(() => {
-        if (isSavingRef.current) {
-            return;
-        }
-
         if (!hasChanges) {
             Navigation.goBack();
             return;
         }
-
-        isSavingRef.current = true;
 
         if (categoryRequired !== initialCategoryRequired) {
             setWorkspaceRequiresCategory(policyData, categoryRequired);
