@@ -2,8 +2,6 @@ import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account
 import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -19,10 +17,7 @@ import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
-import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
