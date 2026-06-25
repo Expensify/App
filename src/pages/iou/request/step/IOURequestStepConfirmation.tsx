@@ -319,15 +319,15 @@ function IOURequestStepConfirmation({
                 }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
                 const firstParticipant = participantsList.at(0);
-                if (firstParticipant?.reportID && iouType !== CONST.IOU.TYPE.SPLIT) {
-                    setTransactionReport(activeTransactionID, {reportID: firstParticipant.reportID}, true);
+                if (iouType !== CONST.IOU.TYPE.SPLIT) {
+                    setTransactionReport(activeTransactionID, {reportID: firstParticipant?.reportID ?? reportID}, true);
                 }
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, reportID],
     );
 
     useEffect(() => {
