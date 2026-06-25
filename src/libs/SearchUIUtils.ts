@@ -5769,8 +5769,6 @@ function getColumnsToShow({
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
     const isDefaultExpenseColumnSelection = arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns);
     const shouldUseCustomResult = !isDefaultExpenseColumnSelection && filteredVisibleColumns.length > 0;
-    const isCategoryGLCodeSelected = filteredVisibleColumns.includes(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE);
-    const isTagGLCodeSelected = filteredVisibleColumns.includes(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE);
 
     let customResult: SearchColumnType[] | undefined;
 
@@ -5858,14 +5856,6 @@ function getColumnsToShow({
         if (hasTag) {
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
-        // Once a GL code column is selected, keep it visible even when the loaded rows have no GL code —
-        // otherwise sorting (which floats empty values to the top) makes the column vanish until scroll.
-        if (isCategoryGLCodeSelected && !isExpenseReportViewFromIOUReport) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE] = true;
-        }
-        if (isTagGLCodeSelected && !isExpenseReportViewFromIOUReport) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE] = true;
-        }
 
         // Data-presence checks for columns that are hidden when empty.
         // Only update when we have custom columns to filter (customResult) or in expense report view,
@@ -5893,37 +5883,12 @@ function getColumnsToShow({
             if (hasDisplayableMCC(transaction.mcc)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.MCC] = true;
             }
-            // Search page: POSTED is data-driven (shown when the transaction has a posting date); the
-            // customResult filter still gates it to the user's selection. Report view gates it below.
-            if (!isExpenseReportView && transaction.posted) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.POSTED] = true;
-            }
-
             const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
             if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
-            // Expense report view: TOTAL (workspace currency) is always shown when a conversion
-            // exists. ORIGINAL_AMOUNT (the transaction's original/foreign amount) is a separate,
-            // user-selectable report column — in the report view it's gated behind an explicit
-            // selection (customResult) so it never renders by default, only when the user picks it.
-            // Search page: ORIGINAL_AMOUNT stays data-driven (shown whenever a conversion exists).
-            if (hasExchangeRate) {
-                if (isExpenseReportView) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
-                    if (customResult) {
-                        columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
-                    }
-                } else {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
-                }
-            }
-
-            // POSTED (card posting date) is a user-selectable report column. In the report view it's
-            // gated behind an explicit selection (customResult) so it never renders by default —
-            // it shows only when the user picks it and the transaction actually has a posting date.
-            if (customResult && isExpenseReportView && transaction.posted) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.POSTED] = true;
+            if (hasExchangeRate && isExpenseReportView) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
             }
 
             if (!Array.isArray(data)) {
@@ -5994,32 +5959,7 @@ function getColumnsToShow({
     }
 
     if (customResult) {
-        // Columns that always have content and don't need data-presence checks.
-        // These are false in the default columns map (so they don't appear by default)
-        // but should be kept when explicitly selected by the user in custom columns.
-        const nonDataColumns = new Set<SearchColumnType>([
-            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-            CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
-            CONST.SEARCH.TABLE_COLUMNS.TYPE,
-            CONST.SEARCH.TABLE_COLUMNS.DATE,
-            CONST.SEARCH.TABLE_COLUMNS.STATUS,
-            // TOTAL_AMOUNT (Amount) is data-driven in expense report view: shown only when a
-            // conversion exists. In search view, TOTAL_AMOUNT is always-true via the default
-            // columns map, so we don't need to list it here as non-data for either surface.
-            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-            CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
-            CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
-            CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
-            CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
-            CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
-            CONST.SEARCH.TABLE_COLUMNS.TITLE,
-            CONST.SEARCH.TABLE_COLUMNS.ACTION,
-            CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
-            CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
-            CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
-        ]);
-
-        return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
+        return customResult;
     }
 
     return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
