@@ -314,6 +314,7 @@ function MoneyRequestView({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction) || isDistanceTypeRequest(transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
+    const isTransactionScanFailed = (updatedTransaction ?? transaction)?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
     const rawActualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
@@ -556,6 +557,8 @@ function MoneyRequestView({
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
+    } else if (isTransactionScanFailed) {
+        amountTitle = '';
     }
 
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
@@ -704,6 +707,10 @@ function MoneyRequestView({
             date: {
                 isError: transactionDate === '',
                 translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
+            },
+            amount: {
+                isError: isTransactionScanFailed,
+                translationPath: 'iou.receiptScanningFailed',
             },
         };
 
