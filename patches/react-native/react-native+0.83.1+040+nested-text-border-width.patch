@@ -987,7 +987,7 @@ index fd401a9..3ae5c60 100644
        CGFloat effectiveTL = isFirst ? tl : 0;
        CGFloat effectiveBL = isFirst ? bl : 0;
        CGFloat effectiveTR = isLast  ? tr : 0;
-@@ -86,24 +105,103 @@
+@@ -86,24 +105,97 @@
        CGFloat w = CGRectGetWidth(spanRect);
        CGFloat h = CGRectGetHeight(spanRect);
  
@@ -1029,17 +1029,11 @@ index fd401a9..3ae5c60 100644
 +
 +      // --- Border ---
 +      if (hasBorder) {
-+        // Clip to outside the fill so the stroke appears outside the background
-+        // rather than overlapping text. Even-odd rule: outer rect + fill shape =
-+        // everything outside the fill (only the outer half of the centered stroke shows).
++        // Draw the stroke centered on the span-rect edge, on top of the fill (matching
++        // Android's ReactBackgroundDrawSpan). Do NOT clip to outside the fill: a centered
++        // stroke straddles the edge, so an outside-only clip would remove the inner half of
++        // the border — the part that should sit over the background — making it look clipped.
 +        CGContextSaveGState(context);
-+        CGContextAddRect(context, CGRectInfinite);
-+        if (fillPath) {
-+          CGContextAddPath(context, fillPath);
-+        } else {
-+          CGContextAddRect(context, spanRect);
-+        }
-+        CGContextEOClip(context);
 +
 +        CGContextSetLineCap(context, kCGLineCapButt);
 +
