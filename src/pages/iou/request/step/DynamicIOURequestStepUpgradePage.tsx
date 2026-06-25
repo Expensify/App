@@ -1,6 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -94,22 +93,10 @@ function DynamicIOURequestStepUpgradePage({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    // Build transactions map from selectedTransactions (search results) instead of Onyx TRANSACTION collection
-    // This ensures that transactions selected from search are properly included in the map passed to changeTransactionsReport
-    const allTransactions = useMemo(
-        () =>
-            Object.values(selectedTransactions).reduce(
-                (transactionsCollection, transactionItem) => {
-                    if (transactionItem.transaction) {
-                        // eslint-disable-next-line no-param-reassign
-                        transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction.transactionID}`] = transactionItem.transaction;
-                    }
-                    return transactionsCollection;
-                },
-                {} as NonNullable<OnyxCollection<Transaction>>,
-            ),
-        [selectedTransactions],
-    );
+    // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
+    const transactions = Object.values(selectedTransactions)
+        .map((transactionItem) => transactionItem.transaction)
+        .filter((item): item is Transaction => !!item);
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -155,8 +142,8 @@ function DynamicIOURequestStepUpgradePage({
                 policy: newPolicy,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
-                allTransactions,
                 policyTagList,
+                transactions,
                 allTransactionViolation: transactionViolations,
                 reports,
             });
@@ -249,7 +236,7 @@ function DynamicIOURequestStepUpgradePage({
         session?.accountID,
         session?.email,
         ownerPersonalDetails,
-        allTransactions,
+        transactions,
         betas,
         iouType,
         isTrack,

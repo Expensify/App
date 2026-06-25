@@ -101,13 +101,15 @@ function useReportSelectionActions({
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {removeTransaction} = useSearchSelectionActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const reports = useChangeTransactionsReportReports(transaction?.transactionID ? [transaction.transactionID] : [], allTransactions, undefined);
+
+    const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
+    const targetTransactions = transaction ? [transaction] : [];
 
     const buildParticipants = (report: OnyxEntry<Report>) => [
         {
@@ -194,7 +196,7 @@ function useReportSelectionActions({
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
                     const reportsForCall = report?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report, ...reports} : reports;
                     changeTransactionsReport({
-                        transactionIDs: [transaction.transactionID],
+                        transactionIDs: targetTransactionIDs,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
@@ -202,8 +204,8 @@ function useReportSelectionActions({
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                         reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                        allTransactions,
                         policyTagList,
+                        transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
                         reports: reportsForCall,
                     });
@@ -221,13 +223,13 @@ function useReportSelectionActions({
         InteractionManager.runAfterInteractions(() => {
             const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
             changeTransactionsReport({
-                transactionIDs: [transaction.transactionID],
+                transactionIDs: targetTransactionIDs,
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-                allTransactions,
                 policyTagList,
+                transactions: targetTransactions,
                 allTransactionViolation: transactionViolations,
                 reports,
             });

@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
-import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
+import {changeTransactionsReport as changeTransactionsReportAction, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -25,6 +25,17 @@ import {createExpenseReport, createRandomReport} from '../utils/collections/repo
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation'> & {
+    allTransactions: OnyxCollection<Transaction>;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+};
+
+// Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, ...rest}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, ...rest});
+}
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -166,6 +177,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -204,6 +216,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -256,6 +269,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -310,6 +324,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -352,6 +367,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -407,6 +423,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -458,6 +475,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -501,6 +519,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -550,6 +569,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -599,6 +619,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -655,6 +676,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -711,6 +733,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -762,6 +785,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -815,6 +839,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -977,6 +1002,7 @@ describe('Transaction', () => {
                     allTransactions,
                     policyTagList: undefined,
                     reports,
+                    transactionViolations: {},
                 });
 
                 await waitForBatchedUpdates();
@@ -1043,6 +1069,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -1099,6 +1126,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -1155,6 +1183,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1195,6 +1224,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1230,6 +1260,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1278,6 +1309,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1338,6 +1370,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1383,7 +1416,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
-                allTransactionViolation: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
+                transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
                 reports,
             });
             await waitForBatchedUpdates();
@@ -1447,6 +1480,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1571,6 +1605,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1656,6 +1691,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1732,6 +1768,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 
@@ -1809,6 +1846,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 reports,
+                transactionViolations: {},
             });
             await waitForBatchedUpdates();
 

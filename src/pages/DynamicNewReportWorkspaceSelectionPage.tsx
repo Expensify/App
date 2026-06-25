@@ -23,6 +23,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
@@ -79,6 +80,10 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const transactionIDsForReports = Object.keys(selectedTransactions).length ? Object.keys(selectedTransactions) : selectedTransactionIDs;
     const reports = useChangeTransactionsReportReports(transactionIDsForReports, allTransactions, undefined);
 
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+    const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
+    const [transactions] = useTransactionsByID(transactionIDs);
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
@@ -111,14 +116,13 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
 
     const createReport = (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(policyID, shouldDismissEmptyReportsConfirmation);
-        const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
         if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             setNavigationActionToMicrotaskQueue(() => {
                 changeTransactionsReport({
-                    transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    transactionIDs,
                     isASAPSubmitBetaEnabled,
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: currentUserPersonalDetails?.email ?? '',
@@ -126,8 +130,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                     policyCategories: undefined,
-                    allTransactions,
                     policyTagList,
+                    transactions,
                     allTransactionViolation: transactionViolations,
                     reports,
                 });
@@ -201,14 +205,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         });
     };
 
-    const hasPerDiemTransactions =
-        selectedTransactionIDs &&
-        selectedTransactionIDs.length > 0 &&
-        allTransactions &&
-        selectedTransactionIDs.some((transactionID) => {
-            const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            return transaction && isPerDiemRequest(transaction);
-        });
+    const hasPerDiemTransactions = transactions.length > 0 && transactions.some(isPerDiemRequest);
 
     let usersWorkspaces: WorkspaceListItem[] = [];
     if (policies && !isEmptyObject(policies)) {
