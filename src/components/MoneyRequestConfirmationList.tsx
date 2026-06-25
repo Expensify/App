@@ -623,7 +623,8 @@ function MoneyRequestConfirmationList({
                 isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
             />
             <MouseProvider>
-                <SelectionListWithSections<MoneyRequestConfirmationListItem>
+                <View style={styles.flex1}>
+<SelectionListWithSections<MoneyRequestConfirmationListItem>
                     sections={sections}
                     ListItem={BareUserListItem}
                     onSelectRow={navigateToParticipantPage}
@@ -631,11 +632,18 @@ function MoneyRequestConfirmationList({
                     shouldSingleExecuteRowSelect
                     shouldPreventDefaultFocusOnSelectRow
                     shouldShowListEmptyContent={false}
-                    footerContent={footerContent}
-                    listFooterContent={listFooterContent}
+                    // footerContent={footerContent}
+                    // listFooterContent={listFooterContent}
                     style={selectionListStyle}
                     disableKeyboardShortcuts
                 />
+                </View>
+                
+                <View style={styles.flex1}>
+        {listFooterContent}
+                {footerContent}
+                </View>
+                
             </MouseProvider>
         </>
     );
