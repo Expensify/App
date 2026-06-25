@@ -41,7 +41,7 @@ function ConnectionStatusMessage({
         return null;
     }
 
-    const statusMessageRowPadding = shouldIncludeHorizontalPadding ? {paddingLeft: 32, paddingRight: 32} : undefined;
+    const statusMessageRowPadding = shouldIncludeHorizontalPadding ? (shouldUseNarrowLayout ? styles.ph5 : {paddingLeft: 32, paddingRight: 32}) : undefined;
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
     const dangerTextStyle = theme.colorScheme === CONST.THEME.DARK ? styles.textLabelError : styles.badgeDangerText;
@@ -74,17 +74,8 @@ function ConnectionStatusMessage({
         />
     ) : null;
 
-    if (shouldUseNarrowLayout) {
-        return (
-            <View style={[statusMessageRowPadding]}>
-                {messageContent}
-                {!!actionButton && <View style={styles.mt3}>{actionButton}</View>}
-            </View>
-        );
-    }
-
     return (
-        <View style={[statusMessageRowPadding, styles.flexRow, styles.alignItemsCenter]}>
+        <View style={[statusMessageRowPadding, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
             {messageContent}
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{actionButton}</View>
         </View>
