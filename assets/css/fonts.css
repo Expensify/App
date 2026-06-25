@@ -70,7 +70,7 @@
 
 @font-face {
     font-family: Windows Segoe UI Emoji;
-    src: url('/fonts/seguiemj.ttf');
+    src: url('/fonts/seguiemj.woff2') format('woff2');
 }
 
 @font-face {

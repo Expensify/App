@@ -47,7 +47,7 @@ import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import {isAnyHRConnected} from './HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from './HRUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
@@ -537,6 +537,11 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     }
     return undefined;
 }
+
+/**
+ * Returns whether the Merge HR setup still needs to be completed for a policy.
+ */
+const isMergeHRCompleteSetupNeededSelector = (policy: OnyxEntry<Policy>) => isMergeHRCompleteSetupNeeded(policy);
 
 function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string, shouldCheckGlobalPolicyRole = true): string | undefined {
     if (shouldCheckGlobalPolicyRole && policy?.role) {
@@ -2784,6 +2789,7 @@ export {
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     hasAnyPaidPolicy,
+    isMergeHRCompleteSetupNeededSelector,
 };
 
 export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};

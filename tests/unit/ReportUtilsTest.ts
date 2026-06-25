@@ -701,7 +701,7 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             // Tasks are sent to server via guidedSetupData; not added optimistically to avoid flash.
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             // No optimistic task report actions — server creates tasks from guidedSetupData.
             const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
             expect(reportActionsEntries).toHaveLength(0);
@@ -723,7 +723,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -742,7 +742,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -761,7 +761,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -780,7 +780,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             });
-            expect(result?.guidedSetupData).toHaveLength(1);
+            expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
@@ -859,6 +859,29 @@ describe('ReportUtils', () => {
             });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
+        });
+
+        it('should include text message in guidedSetupData for MANAGE_TEAM so the server can post it', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'Welcome to Expensify',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            const messageEntries = result?.guidedSetupData.filter((d) => d.type === 'message');
+            expect(messageEntries?.length).toBeGreaterThanOrEqual(1);
+            expect(messageEntries?.[0]).toMatchObject({type: 'message', reportComment: 'Welcome to Expensify'});
+            // An optimistic entry would appear then vanish when the real server message replaces it.
+            const optimisticActions = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`);
+            expect(optimisticActions).toHaveLength(0);
         });
 
         it('includes avatar and accountID in optimistic Account Executive personal detail', async () => {
@@ -1067,8 +1090,8 @@ describe('ReportUtils', () => {
             expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
         });
 
-        it('should recognize inbAdminsWel as a valid onboarding RHP variant', () => {
-            expect(CONST.ONBOARDING_RHP_VARIANT.INB_ADMINS_WEL).toBe('inbAdminsWel');
+        it('should recognize inboxAdminsBespoke as a valid onboarding RHP variant', () => {
+            expect(CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE).toBe('inboxAdminsBespoke');
         });
     });
 
