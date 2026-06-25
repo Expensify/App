@@ -106,6 +106,7 @@ type SubmitReportFunctionParams = {
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    submitterLogin: string | undefined;
 };
 
 function canApproveIOU(
@@ -1321,6 +1322,7 @@ function submitReport({
     onSubmitted,
     ownerBillingGracePeriodEnd,
     delegateEmail,
+    submitterLogin,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1333,7 +1335,7 @@ function submitReport({
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    const managerID = getSubmitReportManagerAccountID(policy, expenseReport);
+    const managerID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin);
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
