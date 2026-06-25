@@ -236,8 +236,8 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
 
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps: TextProps = useMemo(
-        () => ({selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple', style: {overflow: 'visible' as const}}),
-        [textSelectable],
+        () => ({selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple', style: styles.overflowVisible}),
+        [textSelectable, styles.overflowVisible],
     );
     const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.mw100]};
     return (
