@@ -40,7 +40,7 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
         );
     }
 
-    const value = items.find((item) => item.value === activeFilters[filterKey]);
+    const value = items.find((item) => activeFilters[filterKey].includes(item.value));
 
     return (
         <SingleSelectPopup

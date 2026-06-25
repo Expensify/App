@@ -268,7 +268,6 @@ function WorkspaceCompanyCardsTable({
             filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
             label: translate('common.status'),
             options: [
-                {label: translate('workspace.moreFeatures.companyCards.allCards'), value: 'all'},
                 {label: translate('workspace.moreFeatures.companyCards.assignedCards'), value: 'assigned'},
                 {label: translate('workspace.moreFeatures.companyCards.unassignedCards'), value: 'unassigned'},
             ],
