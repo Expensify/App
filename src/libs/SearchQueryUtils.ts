@@ -151,6 +151,7 @@ function sanitizeSearchValue(str: string) {
     return str;
 }
 
+const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS).join('|')}|report-?field(-.)+)[:><=].+$`);
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
@@ -162,7 +163,7 @@ function escapeKeyword(keywords: string) {
         .split(' ')
         .map((q) => {
             const sanitizedKeyword = sanitizeSearchValue(q);
-            if (sanitizedKeyword.match(/^\w+:\w+$/)) {
+            if (sanitizedKeyword.toLowerCase().match(syntaxRegex)) {
                 // The keyword is not escaped yet by sanitizeSearchValue, so we do it here.
                 return `"${q}"`;
             }

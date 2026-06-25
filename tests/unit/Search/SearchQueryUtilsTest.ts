@@ -3281,6 +3281,39 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('"type:expense"');
             expect(result).toContain('type:trip');
         });
+
+        it('should escape input that uses a comparison operator with a filter key', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('amount>100 amount=100 amount<100 amount<=100 amount>=100', currentQueryJSON) : '';
+            // "amount>100" matches real filter syntax, so it must be quoted to be treated as a keyword
+            expect(result).toContain('"amount>100"');
+        });
+
+        it('should escape input that looks like filter syntax regardless of case', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('TYPE:expense', currentQueryJSON) : '';
+            // The filter key is matched case-insensitively, so the original-case input is still quoted
+            expect(result).toContain('"TYPE:expense"');
+        });
+
+        it('should escape negated input that looks like filter syntax', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('-type:expense', currentQueryJSON) : '';
+            // A negated filter like "-type:expense" must also be quoted when typed as free text
+            expect(result).toContain('"-type:expense"');
+        });
+
+        it('should not escape input that is not a real filter key', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('foo:bar', currentQueryJSON) : '';
+            // "foo" is not a filter key, so it is kept as a plain keyword and not quoted
+            expect(result).toContain('foo:bar');
+            expect(result).not.toContain('"foo:bar"');
+        });
     });
 
     describe('getAdvancedFiltersToReset', () => {
