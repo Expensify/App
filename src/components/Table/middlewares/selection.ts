@@ -66,22 +66,22 @@ export default function useSelection<DataType extends TableData>({
     const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
 
+    const clearSelection = useCallback(() => {
+        onRowSelectionChange?.([]);
+    }, [onRowSelectionChange]);
+
     // Disable selection mode when the Android hardware back button is pressed
     const androidBackButtonDisableSelectionMode = useCallback(() => {
         if (!isSelectionModeEnabled) {
             return false;
         }
 
+        clearSelection();
         turnOffMobileSelectionMode();
         return true;
-    }, [isSelectionModeEnabled]);
+    }, [isSelectionModeEnabled, clearSelection]);
 
     useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
-
-    // Automatically disable selection mode when switching to desktop, or enable it when switching to mobile if there are selected rows
-    const clearSelection = useCallback(() => {
-        onRowSelectionChange?.([]);
-    }, [onRowSelectionChange]);
 
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
