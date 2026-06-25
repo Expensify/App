@@ -50,3 +50,19 @@ index 3c0b281..9146176 100644
  
      if (ReactNativeFeatureFlags.overrideBySynchronousMountPropsAtMountingAndroid()
          && !shouldSkipSynchronousMountPropsOverride
+@@ -925,7 +946,14 @@ public class SurfaceMountingManager {
+       return;
+     }
+
+-    ViewState viewState = getViewState(reactTag);
++    ViewState viewState = getNullableViewState(reactTag);
++    if (viewState == null) {
++      ReactSoftExceptionLogger.logSoftException(
++          ReactSoftExceptionLogger.Categories.SURFACE_MOUNTING_MANAGER_MISSING_VIEWSTATE,
++          new ReactNoCrashSoftException(
++              "Unable to find viewState for tag: " + reactTag + " for updateLayout"));
++      return;
++    }
+     // Do not layout Root Views
+     if (viewState.mIsRoot) {
+       return;
