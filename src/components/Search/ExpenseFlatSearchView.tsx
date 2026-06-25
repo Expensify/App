@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import type {CardList, Transaction} from '@src/types/onyx';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
+import SelectionTopBar from './primitives/SelectionTopBar';
 import BaseSearchList from './SearchList/BaseSearchList';
 import TransactionListItem from './SearchList/ListItem/TransactionListItem';
 import type {SearchListItem} from './SearchList/ListItem/types';
@@ -203,24 +204,21 @@ function ExpenseFlatSearchView({
             isKeyboardShown={isKeyboardShown}
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
-            modal={modal}
-            selectionTopBar={
-                tableHeaderVisible
-                    ? {
-                          isLargeScreenWidth,
-                          shouldSplitGroups: false,
-                          canSelectMultiple,
-                          isSelectAllChecked,
-                          selectedItemsLength,
-                          totalItems,
-                          hasLoadedAllTransactions,
-                          selectAllButtonVisible,
-                          onAllCheckboxPress: toggleAll,
-                          SearchTableHeader: searchTableHeader,
-                      }
-                    : undefined
-            }
         >
+            {tableHeaderVisible && (
+                <SelectionTopBar
+                    isLargeScreenWidth={isLargeScreenWidth}
+                    shouldSplitGroups={false}
+                    canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    selectedItemsLength={selectedItemsLength}
+                    totalItems={totalItems}
+                    hasLoadedAllTransactions={hasLoadedAllTransactions}
+                    selectAllButtonVisible={selectAllButtonVisible}
+                    onAllCheckboxPress={toggleAll}
+                    SearchTableHeader={searchTableHeader}
+                />
+            )}
             <BaseSearchList
                 data={data}
                 renderItem={renderItem}
@@ -241,6 +239,7 @@ function ExpenseFlatSearchView({
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
+            {modal}
         </SearchListViewLayout>
     );
 }
