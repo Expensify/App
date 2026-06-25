@@ -1,28 +1,44 @@
 import {createContext, useContext} from 'react';
-import type {ReportActionsContentData, ReportActionsGuardData} from '@hooks/useReportActionsData';
+import type {ReportActionsListActions, ReportActionsListState, ReportActionsReadinessSignals} from '@hooks/useReportActionsListModel';
 import {isUnread} from '@libs/ReportUtils';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /**
- * Carries `contentData` from the guard to `ReportActionsListContent` so the list renders from the same
+ * Carries the render `state` slice from the guard to `ReportActionsList` so the list renders from the same
  * derivations as the skeleton decision without re-subscribing.
  */
-const ReportActionsDataContext = createContext<ReportActionsContentData | null>(null);
+const ReportActionsListStateContext = createContext<ReportActionsListState | null>(null);
 
-/** Read the report-actions pipeline outputs. Throws if used outside the guard's provider. */
-function useReportActionsDataContext(): ReportActionsContentData {
-    const value = useContext(ReportActionsDataContext);
+/**
+ * Carries the command handles (load older/newer, show previous messages). Kept on a separate context from
+ * the state slice because the handles are referentially stable, so actions-only consumers don't re-render
+ * when the state slice churns.
+ */
+const ReportActionsListActionsContext = createContext<ReportActionsListActions | null>(null);
+
+/** Read the report-actions render state. Throws if used outside the guard's provider. */
+function useReportActionsListState(): ReportActionsListState {
+    const value = useContext(ReportActionsListStateContext);
     if (value === null) {
-        throw new Error('useReportActionsDataContext must be used within a ReportActionsDataContext.Provider');
+        throw new Error('useReportActionsListState must be used within a ReportActionsListStateContext.Provider');
+    }
+    return value;
+}
+
+/** Read the report-actions command handles. Throws if used outside the guard's provider. */
+function useReportActionsListActions(): ReportActionsListActions {
+    const value = useContext(ReportActionsListActionsContext);
+    if (value === null) {
+        throw new Error('useReportActionsListActions must be used within a ReportActionsListActionsContext.Provider');
     }
     return value;
 }
 
 /**
- * Pure derivation of the two skeleton states from the pipeline bundle: a loading skeleton and the
+ * Pure derivation of the two skeleton states from the readiness signals: a loading skeleton and the
  * derived-value-timing skeleton. The guard uses these to decide whether to render the list.
  */
-function computeReportActionsSkeletonState(data: ReportActionsGuardData) {
+function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadinessSignals) {
     const {
         report,
         reportResult,
@@ -42,7 +58,7 @@ function computeReportActionsSkeletonState(data: ReportActionsGuardData) {
         isConciergeMainDM,
         hasCachedReportActions,
         showConciergeSidePanelWelcome,
-    } = data;
+    } = readinessSignals;
 
     const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
 
@@ -94,5 +110,4 @@ function computeReportActionsSkeletonState(data: ReportActionsGuardData) {
     };
 }
 
-export default ReportActionsDataContext;
-export {useReportActionsDataContext, computeReportActionsSkeletonState};
+export {ReportActionsListStateContext, ReportActionsListActionsContext, useReportActionsListState, useReportActionsListActions, computeReportActionsSkeletonState};

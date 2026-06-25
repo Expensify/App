@@ -57,7 +57,7 @@ import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
-import {useReportActionsDataContext} from './ReportActionsDataContext';
+import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
@@ -87,7 +87,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 }
 
 /**
- * Renders the report-actions list. Reads its data from `ReportActionsDataContext` and holds the
+ * Renders the report-actions list. Reads its data from `ReportActionsListStateContext` / `ReportActionsListActionsContext` and holds the
  * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
@@ -98,8 +98,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isProduction} = useEnvironment();
 
-    const data = useReportActionsDataContext();
-
     const {
         report,
         hasOnceLoadedReportActions,
@@ -109,17 +107,16 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         transactionThreadReport,
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
-        setTreatAsNoPaginationAnchor,
         parentReportAction,
-        loadOlderChats,
-        loadNewerChats,
         sortedReportActions,
         sortedVisibleReportActions,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
-        handleShowPreviousMessages,
-    } = data;
+    } = useReportActionsListState();
+
+    const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, handleShowPreviousMessages} = useReportActionsListActions();
+
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;

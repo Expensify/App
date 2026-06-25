@@ -16,10 +16,10 @@ import useReportIsArchived from './useReportIsArchived';
 /**
  * Single read/derive pipeline for the report-actions list: the subscriptions and derivations the skeleton
  * decision and the list render both need, computed once. Side-effect-free (no writes/navigation/telemetry/
- * session-start). The guard calls it once and passes `contentData` via `ReportActionsDataContext` so the
- * content doesn't re-subscribe.
+ * session-start). The guard calls it once and passes `state`/`actions` via `ReportActionsListStateContext`
+ * and `ReportActionsListActionsContext` so the content doesn't re-subscribe.
  */
-function useReportActionsData(reportID: string) {
+function useReportActionsListModel(reportID: string) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
@@ -98,9 +98,9 @@ function useReportActionsData(reportID: string) {
     // false only on a genuinely cold load with no cached history.
     const hasCachedReportActions = allReportActions.length > 0;
 
-    // Guard-only inputs to the skeleton decision (some also read by the guard's effect hooks). Off the
-    // context so its churn (loading, app-load, concierge-session, navigation) never re-renders the list.
-    const guardData = {
+    // Readiness signals for the skeleton decision (some also read by the guard's effect hooks). Off the
+    // context so their churn (loading, app-load, concierge-session, navigation) never re-renders the list.
+    const readinessSignals = {
         report,
         reportResult,
         isOffline,
@@ -121,9 +121,10 @@ function useReportActionsData(reportID: string) {
         showConciergeSidePanelWelcome,
     };
 
-    // The only slice on the context, so it alone drives list re-renders. Ambient state (network, route,
-    // archived, concierge session) is read locally in the content instead of carried here.
-    const contentData = {
+    // The render state slice on `ReportActionsListStateContext`; this is what drives list re-renders.
+    // Ambient state (network, route, archived, concierge session) is read locally in the content instead
+    // of carried here.
+    const state = {
         report,
         hasOnceLoadedReportActions,
         hasNewerActions,
@@ -132,24 +133,30 @@ function useReportActionsData(reportID: string) {
         transactionThreadReport,
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
-        setTreatAsNoPaginationAnchor,
         parentReportAction,
         sortedReportActions,
         sortedVisibleReportActions,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
+    };
+
+    // The command handles on `ReportActionsListActionsContext`. Referentially stable, so actions-only
+    // consumers don't re-render when the state slice churns.
+    const actions = {
+        setTreatAsNoPaginationAnchor,
         handleShowPreviousMessages,
         loadOlderChats,
         loadNewerChats,
     };
 
-    return {guardData, contentData};
+    return {readinessSignals, state, actions};
 }
 
-type ReportActionsData = ReturnType<typeof useReportActionsData>;
-type ReportActionsGuardData = ReportActionsData['guardData'];
-type ReportActionsContentData = ReportActionsData['contentData'];
+type ReportActionsListModel = ReturnType<typeof useReportActionsListModel>;
+type ReportActionsReadinessSignals = ReportActionsListModel['readinessSignals'];
+type ReportActionsListState = ReportActionsListModel['state'];
+type ReportActionsListActions = ReportActionsListModel['actions'];
 
-export default useReportActionsData;
-export type {ReportActionsGuardData, ReportActionsContentData};
+export default useReportActionsListModel;
+export type {ReportActionsReadinessSignals, ReportActionsListState, ReportActionsListActions};

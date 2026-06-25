@@ -1,8 +1,8 @@
 import {useEffect} from 'react';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-import type {ReportActionsGuardData} from './useReportActionsData';
+import type {ReportActionsReadinessSignals} from './useReportActionsListModel';
 
-type UseReportActionsSkeletonTelemetryParams = Pick<ReportActionsGuardData, 'report'> & {
+type UseReportActionsSkeletonTelemetryParams = Pick<ReportActionsReadinessSignals, 'report'> & {
     /** Whether the initial-load skeleton is showing */
     shouldShowInitialSkeleton: boolean;
 };

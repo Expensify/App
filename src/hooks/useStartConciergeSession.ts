@@ -1,9 +1,9 @@
 import {useLayoutEffect} from 'react';
 import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
 import {useCurrentReportIDState} from './useCurrentReportID';
-import type {ReportActionsGuardData} from './useReportActionsData';
+import type {ReportActionsReadinessSignals} from './useReportActionsListModel';
 
-type UseStartConciergeSessionParams = Pick<ReportActionsGuardData, 'isConciergeMainDM' | 'oldestUnreadReportAction' | 'hasOnceLoadedReportActions'> & {
+type UseStartConciergeSessionParams = Pick<ReportActionsReadinessSignals, 'isConciergeMainDM' | 'oldestUnreadReportAction' | 'hasOnceLoadedReportActions'> & {
     /** The ID of the report to display actions for */
     reportID: string;
 

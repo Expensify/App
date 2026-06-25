@@ -3,10 +3,10 @@ import React, {useState} from 'react';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
-import useReportActionsData from '@hooks/useReportActionsData';
+import useReportActionsListModel from '@hooks/useReportActionsListModel';
 import useReportActionsSkeletonTelemetry from '@hooks/useReportActionsSkeletonTelemetry';
 import useStartConciergeSession from '@hooks/useStartConciergeSession';
-import ReportActionsDataContext, {computeReportActionsSkeletonState} from './ReportActionsDataContext';
+import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
 
 type ReportActionsSkeletonGuardProps = {
     /** The ID of the report to display actions for */
@@ -18,18 +18,18 @@ type ReportActionsSkeletonGuardProps = {
 
 /**
  * Skeleton gate for the report-actions list, modeled on `ReportNotFoundGuard`. Owns the data pipeline
- * (`useReportActionsData`) and the skeleton decision, returning either the skeleton or `children` (wrapped
- * in `ReportActionsDataContext` so they render from the same pipeline). Skeleton-phase effects live in
- * dedicated hooks here because `children` isn't mounted yet; the list's UI-close hooks live in `children`,
- * so they can't run while the skeleton shows.
+ * (`useReportActionsListModel`) and the skeleton decision, returning either the skeleton or `children`
+ * (wrapped in `ReportActionsListStateContext`/`ReportActionsListActionsContext` so they render from the same
+ * pipeline). Skeleton-phase effects live in dedicated hooks here because `children` isn't mounted yet; the
+ * list's UI-close hooks live in `children`, so they can't run while the skeleton shows.
  *
  * The forward latch stops a transient empty visible-actions set from unmounting content mid-session (which
  * would tear down its scroll position and subscriptions). After first content the UI-close hooks therefore
  * stay active through such transients, which is intended: content is on screen, so treat it as visible.
  */
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
-    const {guardData, contentData} = useReportActionsData(reportID);
-    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton, shouldShowInitialSkeleton} = computeReportActionsSkeletonState(guardData);
+    const {readinessSignals, state, actions} = useReportActionsListModel(reportID);
+    const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton, shouldShowInitialSkeleton} = computeReportActionsSkeletonState(readinessSignals);
     const shouldShowSkeleton = shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton;
 
     // Forward latch: once content has shown, never return the full skeleton again for this mount.
@@ -38,7 +38,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         setHasShownContent(true);
     }
 
-    const {report, isConciergeMainDM, oldestUnreadReportAction, hasOnceLoadedReportActions, hasCachedReportActions} = guardData;
+    const {report, isConciergeMainDM, oldestUnreadReportAction, hasOnceLoadedReportActions, hasCachedReportActions} = readinessSignals;
 
     // Side effects that must run whenever the chat list is shown, including while the skeleton renders.
     useCopySelectionHelper();
@@ -63,7 +63,11 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
-    return <ReportActionsDataContext.Provider value={contentData}>{children}</ReportActionsDataContext.Provider>;
+    return (
+        <ReportActionsListActionsContext.Provider value={actions}>
+            <ReportActionsListStateContext.Provider value={state}>{children}</ReportActionsListStateContext.Provider>
+        </ReportActionsListActionsContext.Provider>
+    );
 }
 
 export default ReportActionsSkeletonGuard;
