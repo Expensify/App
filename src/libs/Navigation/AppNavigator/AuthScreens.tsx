@@ -61,7 +61,6 @@ import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavi
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
@@ -304,7 +303,7 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={MigratedUserWelcomeModalNavigator}
                         />
                         <RootStack.Screen
@@ -313,18 +312,13 @@ function AuthScreens() {
                             component={AIFeaturesPromoModalNavigator}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
-                            component={TestDriveModalNavigator}
-                        />
-                        <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
                             options={rootNavigatorScreenOptions.basicModalNavigator}
                             component={TestDriveDemoNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
