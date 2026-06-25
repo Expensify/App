@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
+import {write} from '@libs/API';
 import type {ConnectPolicyToRilletParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -12,7 +12,7 @@ function connectToRillet(policyID: string, apiKey: string) {
         policyID,
         apiKey,
     };
-    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET, parameters, {});
+    write(WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET, parameters, {});
 }
 
 function clearRilletErrorField(policyID: string, fieldName: string) {
@@ -88,7 +88,7 @@ function updateRilletSubsidiary(policyID: string, subsidiaryID: string, oldSubsi
         policyID,
         subsidiaryID,
     };
-    API.write(WRITE_COMMANDS.UPDATE_RILLET_SUBSIDIARY, params, onyxData);
+    write(WRITE_COMMANDS.UPDATE_RILLET_SUBSIDIARY, params, onyxData);
 }
 
 export {connectToRillet, clearRilletErrorField, updateRilletSubsidiary};
