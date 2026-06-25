@@ -8,6 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {search} from '@libs/actions/Search';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
+// eslint-disable-next-line no-restricted-imports -- Your Spend scopes approval/payment workflows to paid (Collect/Control) group policies, so this is a genuine billing/paid-only check.
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
@@ -113,6 +114,24 @@ function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefi
     return ids.sort().join(',');
 }
 
+// Signature of the reports the user owns that are currently REPAID (reimbursed). The home query results are
+// cached snapshots that are not patched when a report's state changes, so without this the cached "Repaid"
+// total can be resurrected after the user cancels the payment of their last repaid expense (the snapshot count
+// gets wiped to null by `shouldCalculateTotals: false` searches, which would otherwise re-show the stale total).
+// Mirrors `getOutstandingReportsSignature` for the "Awaiting approval" row.
+function getRepaidReportsSignature(reports: OnyxCollection<Report> | undefined, accountID: number): string {
+    if (!reports) {
+        return '';
+    }
+    const ids: string[] = [];
+    for (const report of Object.values(reports)) {
+        if (report?.ownerAccountID === accountID && (report.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED) {
+            ids.push(report.reportID);
+        }
+    }
+    return ids.sort().join(',');
+}
+
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
     if (!isApplicable) {
         return YOUR_SPEND_ROW_STATE.HIDDEN;
@@ -156,6 +175,12 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // leaves the OUTSTANDING state.
     const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
+    });
+
+    // Signature of the reports the user owns that are currently REPAID. Lets the "Repaid" cached-total fallback
+    // drop its stale value once the user no longer owns any repaid report (e.g. after cancelling a payment).
+    const [repaidReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getRepaidReportsSignature(reports, accountID),
     });
 
     // Destructure here so downstream memos depend only on the sub-records, not on
@@ -355,7 +380,16 @@ function useYourSpendData(): UseYourSpendDataReturn {
         cachedApprovalReady !== null &&
         cachedApprovalHash === approvalHash &&
         outstandingReportsSignature !== '';
-    const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
+    // Only bridge a wiped/missing count with the cached total while the user still owns a REPAID report.
+    // An empty signature means nothing is repaid, so the row must hide immediately after cancelling the
+    // payment of the last repaid expense — otherwise the stale cached total is resurrected when a
+    // `shouldCalculateTotals: false` search wipes the snapshot count to null.
+    const shouldUseCachedPayment =
+        paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY &&
+        paymentCountIsMissing &&
+        paymentSearchResults !== undefined &&
+        cachedPaymentReady !== null &&
+        repaidReportsSignature !== '';
 
     const approvalRowState = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
     const paymentRowState = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
@@ -457,5 +491,5 @@ function useYourSpendData(): UseYourSpendDataReturn {
     };
 }
 
-export {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
+export {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE, getOutstandingReportsSignature, getRepaidReportsSignature, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
 export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardKind, YourSpendCardRow, YourSpendRowState, YourSpendRowTotals};
