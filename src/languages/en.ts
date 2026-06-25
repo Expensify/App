@@ -7538,7 +7538,7 @@ const translations = {
             },
             requireFieldsTable: {
                 tableColumnType: 'Type',
-                tableColumnCondition: 'Condition',
+                tableColumnCondition: 'Merchant',
                 tableColumnRule: 'Rule',
                 findRule: 'Find rule',
                 typeLabel: 'Require fields',

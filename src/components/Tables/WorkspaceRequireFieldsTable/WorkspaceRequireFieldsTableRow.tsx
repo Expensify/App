@@ -24,7 +24,7 @@ function WorkspaceRequireFieldsTableRow({item, rowIndex, shouldUseNarrowTableLay
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CheckSquare']);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Task']);
     const {processedData} = useTableContext<RequireFieldsTableItem>();
 
     const tableRowItem = processedData.at(rowIndex) ?? item;
@@ -36,7 +36,7 @@ function WorkspaceRequireFieldsTableRow({item, rowIndex, shouldUseNarrowTableLay
     };
 
     const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
-    const badgeColors = theme.reportStatusBadge.draft;
+    const badgeColors = theme.reportStatusBadge.approved;
 
     return (
         <Table.Row
@@ -56,7 +56,7 @@ function WorkspaceRequireFieldsTableRow({item, rowIndex, shouldUseNarrowTableLay
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                 <Badge
                                     text={tableRowItem.typeLabel}
-                                    icon={Expensicons.CheckSquare}
+                                    icon={Expensicons.Task}
                                     iconFill={badgeColors.textColor}
                                     badgeStyles={[
                                         styles.ml0,
@@ -87,7 +87,7 @@ function WorkspaceRequireFieldsTableRow({item, rowIndex, shouldUseNarrowTableLay
                             <View style={[styles.justifyContentCenter]}>
                                 <Badge
                                     text={tableRowItem.typeLabel}
-                                    icon={Expensicons.CheckSquare}
+                                    icon={Expensicons.Task}
                                     iconFill={badgeColors.textColor}
                                     badgeStyles={[
                                         styles.ml0,
