@@ -7,7 +7,7 @@ internalScope: Audience is anyone using or evaluating Expensify. Covers the rela
 
 # How billing, plans, and subscriptions work
 
-Expensify organizes billing around three core concepts: your Workspace plan, your subscription, and your monthly bill. Understanding how these work together makes it easier to choose the right plan, understand your charges, and manage your subscription.
+Expensify organizes billing around three core concepts: your Workspace plan, your subscription, and any Expensify Card pricing you qualify for. Together, these determine the features available to your organization and how much you'll pay for your subscription.
 
 ## What is a Workspace plan?
 
@@ -28,15 +28,24 @@ Depending on your Workspace plan, you may have an annual subscription or a pay-p
 
 Learn more in **How subscriptions work**.
 
-## How pricing works
+## How Expensify Card pricing works
 
-Your monthly subscription cost depends on factors such as:
+For Control Workspaces, your organization's Expensify Card usage may reduce the amount you pay for your subscription.
 
-* Your Workspace plan
-* Your subscription type
-* The number of billable members
-* Whether your organization qualifies for reduced pricing through the Expensify Card
-* Your billing region
+Organizations with an annual subscription qualify for different pricing tiers based on how much of their approved spend is made using the Expensify Card. Greater card adoption results in lower subscription pricing.
+
+Using the Expensify Card also allows eligible organizations to earn cash back on qualifying purchases.
+
+Learn more in **Understand Expensify pricing**.
+
+## How your monthly bill is calculated
+
+Your monthly Expensify bill is calculated based on: 
+
+ - Your Workspace plan
+ - Your subscription type
+ - The number of billable members
+ - Whether your organization qualifies for reduced pricing through the Expensify Card
 
 Learn more in **Understand Expensify pricing**.
 
@@ -47,16 +56,3 @@ Each Workspace has a billing owner who is responsible for the subscription and p
 Billing includes managing payment methods, viewing invoices and receipts, transferring billing ownership, and updating billing information.
 
 Learn more in **Learn about managing billing**.
-
-## What can you manage?
-
-Depending on your role, you may be able to:
-
-* Change your Workspace plan.
-* Change your subscription.
-* Transfer billing ownership.
-* Update your payment method.
-* View billing receipts.
-* Request tax-exempt status.
-
-See **Understand plan and subscription management** for an overview of the available management tasks.
