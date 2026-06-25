@@ -291,7 +291,19 @@ function getForReportAction({
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
         // We check the merchant is in distance format (includes @) as a sanity check
         if (hasModifiedMerchant && (reportActionOriginalMessage?.merchant ?? '').includes('@')) {
-            return getForDistanceRequest(translate, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
+            const distanceMessage = getForDistanceRequest(translate, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
+
+            // A date edit that moves the expense into a different mileage-rate window bundles the rate and the date
+            // change into a single MODIFIED_EXPENSE action. getForDistanceRequest only describes the rate/distance
+            // change, so append the date change here instead of letting it be dropped by the early return.
+            if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
+                const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+                const dateChangeFragments: string[] = [];
+                buildMessageFragmentForValue(translate, reportActionOriginalMessage.created, formattedOldCreated, translate('common.date'), false, [], [], dateChangeFragments);
+                return `${distanceMessage}${getMessageLine(translate, `\n${translate('iou.changed')}`, dateChangeFragments)}`;
+            }
+
+            return distanceMessage;
         }
         buildMessageFragmentForValue(
             translate,
