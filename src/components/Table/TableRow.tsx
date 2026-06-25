@@ -73,7 +73,8 @@ export default function TableRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const shouldEnableMobileSelectionLongPress = shouldUseNarrowLayout && !isInNarrowPaneModal;
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext();
 
     const item = processedData.at(rowIndex);
@@ -174,9 +175,10 @@ export default function TableRow({
 
         onPress?.();
     };
+    if (isDisabled || isSelectionDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive) {
 
     const handleRowLongPress = () => {
-        if (isDisabled || isSelectionDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
+        if (isDisabled || isSelectionDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive) {
             return;
         }
 
