@@ -55,14 +55,15 @@ function TableSearchBar({label}: TableSearchBarProps) {
             spellCheck={false}
             autoCorrect={false}
             placeholder={label}
+            value={activeSearchString}
             role={CONST.ROLE.SEARCHBOX}
             inputMode={CONST.INPUT_MODE.TEXT}
             placeholderTextColor={theme.textSupporting}
-            shouldShowClearButton={activeSearchString.length > 0}
             inputStyle={styles.textLabel}
             containerStyles={containerStyles}
             textInputContainerStyles={textInputContainerStyles}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
+            shouldShowClearButton={false}
             onBlur={() => setInputFocused(false)}
             onFocus={() => setInputFocused(true)}
             onChangeText={(text) => updateSearchString(text)}

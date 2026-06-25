@@ -52,10 +52,10 @@ export default function TableFilterTrigger() {
                     <Button
                         small
                         ref={ref}
-                        text="Filters"
                         icon={icons.Filter}
-                        onPress={onPress}
+                        text={translate('search.filtersHeader')}
                         style={isExpanded && styles.buttonHoveredBG}
+                        onPress={onPress}
                     />
                 );
             }}

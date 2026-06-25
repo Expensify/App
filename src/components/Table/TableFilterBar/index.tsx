@@ -1,6 +1,6 @@
 import React from 'react';
 import type {PropsWithChildren} from 'react';
-import {View} from 'react-native-web';
+import {View} from 'react-native';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useTableContext} from '@components/Table/TableContext';
 import useThemeStyles from '@hooks/useThemeStyles';

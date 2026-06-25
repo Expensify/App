@@ -88,7 +88,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
             keyExtractor={(tax) => tax.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('workspace.tags.findTag')} />
+            <Table.FilterBar label={translate('workspace.taxes.findTaxRate')} />
             <Table.Header />
             <Table.Body />
         </Table>
