@@ -23,7 +23,7 @@ If you’re trying to export a specific type of data, use the guides below:
 4. Select **Export**.
 5. Choose an export template from the menu that appears. 
 
-You'll receive the exported CSV file in a message from Concierge.
+After you choose a template, a status window appears while your file is prepared. When it's ready, the file downloads to your device automatically—if it doesn't, select **Download file**. To receive the file from Concierge instead, select **Send me the file when it's ready** while it's preparing, and Concierge will send it to you in a chat message.
 
 ## How to export multiple reports
 
@@ -33,7 +33,7 @@ You'll receive the exported CSV file in a message from Concierge.
 4. Select **Export**.
 5. Choose an export template from the menu that appears. 
 
-You'll receive the exported CSV file in a message from Concierge.
+After you choose a template, a status window appears while your file is prepared. When it's ready, the file downloads to your device automatically—if it doesn't, select **Download file**. To receive the file from Concierge instead, select **Send me the file when it's ready** while it's preparing, and Concierge will send it to you in a chat message.
 
 ## How to export the columns currently displayed using Export current view
 
@@ -74,7 +74,7 @@ The PDF includes all expenses, attached receipts, and report notes. PDF download
 
 ## Where do I find the exported CSV file?
 
-For the Basic Export template, the file downloads directly to your device. For all other templates, Concierge sends the file to you in a direct message. Open your Concierge chat in the **Inbox** to find it.
+The **Basic export** template downloads directly to your device. For all other templates, a status window appears while the file is prepared, and it downloads to your device automatically when it's ready—if it doesn't, select **Download file**. To receive the file from Concierge instead, select **Send me the file when it's ready** while it's preparing. To find a file sent by Concierge, open your Concierge chat in the **Inbox**.
 
 ## What is the difference between expense-level and report-level export templates?
 
