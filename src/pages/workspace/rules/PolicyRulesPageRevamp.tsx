@@ -260,8 +260,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     useCleanupSelectedOptions(clearAllTableSelection);
 
-    const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.map((rule) => rule.keyForList));
-    const validSpendRuleKeys = new Set(spendRulesTableData.map((rule) => rule.keyForList));
+    const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+    const validSpendRuleKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
     const filteredSelectedExpenseDefaultKeys = canWriteRules ? selectedExpenseDefaultKeys.filter((key) => validExpenseDefaultKeys.has(key)) : [];
     const filteredSelectedSpendRuleKeys = canWriteRules ? selectedSpendRuleKeys.filter((key) => validSpendRuleKeys.has(key)) : [];
 

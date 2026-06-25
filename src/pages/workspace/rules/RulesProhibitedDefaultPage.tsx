@@ -163,7 +163,6 @@ function RulesProhibitedDefaultPage({
                     <FixedFooter
                         addBottomSafeAreaPadding
                         addOfflineIndicatorBottomSafeAreaPadding
-                        style={styles.ph5}
                     >
                         <Button
                             success

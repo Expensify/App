@@ -44,16 +44,23 @@ function RulesRequireFieldsPage({
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagToggleDisabled = !policy?.areTagsEnabled || !hasEnabledTags;
 
-    const [categoryRequired, setCategoryRequired] = useState(false);
-    const [tagRequired, setTagRequired] = useState(false);
-    const [initialCategoryRequired, setInitialCategoryRequired] = useState(false);
-    const [initialTagRequired, setInitialTagRequired] = useState(false);
+    const [categoryRequired, setCategoryRequired] = useState(() => !!policy?.requiresCategory);
+    const [tagRequired, setTagRequired] = useState(() => !!policy?.requiresTag);
+    const [initialCategoryRequired, setInitialCategoryRequired] = useState(() => !!policy?.requiresCategory);
+    const [initialTagRequired, setInitialTagRequired] = useState(() => !!policy?.requiresTag);
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
     const isSavingRef = useRef(false);
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
     }, [policyID]);
+
+    useEffect(
+        () => () => {
+            isSavingRef.current = false;
+        },
+        [],
+    );
 
     useEffect(() => {
         if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
@@ -147,7 +154,6 @@ function RulesRequireFieldsPage({
                 <FixedFooter
                     addBottomSafeAreaPadding
                     addOfflineIndicatorBottomSafeAreaPadding
-                    style={styles.ph5}
                 >
                     <Button
                         success
