@@ -1432,9 +1432,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: 'Checkmark',
-        shouldShow: ({type, reportAction, isDevelopment, isStaging}) =>
+        shouldShow: ({type, reportAction, isProduction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            (isDevelopment || isStaging) &&
+            !isProduction &&
             !!(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && getOriginalMessage(reportAction)?.agentZeroRequestID),
         onPress: (closePopover, {reportAction}) => {
             const agentZeroRequestID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) ? getOriginalMessage(reportAction)?.agentZeroRequestID : undefined;
