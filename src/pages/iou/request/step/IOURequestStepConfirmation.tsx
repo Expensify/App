@@ -436,6 +436,12 @@ function IOURequestStepConfirmation({
     const canDismissFromSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const hasPreInsertFired = useRef(false);
+    // Captures the destination the pre-insert was first evaluated against. If the user later
+    // changes the Report inline (which flips transaction.reportID -> destinationReportID), we must
+    // NOT pre-insert the newly-selected report under the RHP: it would be revealed when the user
+    // backs out of the confirmation instead of the report they started from. The legitimate
+    // undefined/loading -> first-valid-ID transition is still allowed because the ref starts undefined.
+    const preInsertEvaluatedDestinationID = useRef<string | undefined>(undefined);
     const isTransactionReady = !!transaction;
     const selfDMReportID = iouType === CONST.IOU.TYPE.TRACK ? findSelfDMReportID() : undefined;
     const isMRReport = isMoneyRequestReport(report);
@@ -446,6 +452,17 @@ function IOURequestStepConfirmation({
     useEffect(() => {
         if (hasPreInsertFired.current || !isTransactionReady || !getIsNarrowLayout()) {
             return;
+        }
+
+        // If the pre-insert was already evaluated against a concrete destination and that destination
+        // has since changed to a different valid report (e.g. the user picked a different report via the
+        // inline Report field), do not pre-insert: it would push the newly-selected report under the RHP
+        // and reveal it when the user backs out of the confirmation.
+        if (!!destinationReportID && preInsertEvaluatedDestinationID.current !== undefined && preInsertEvaluatedDestinationID.current !== destinationReportID) {
+            return;
+        }
+        if (destinationReportID) {
+            preInsertEvaluatedDestinationID.current = destinationReportID;
         }
 
         // Search pre-insert: global create flows that navigate to Search after submit.
