@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -25,7 +24,6 @@ type DomainMemberRowData = TableData & {
     groupName: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
-    brickRoadIndicator?: BrickRoad;
     action: () => void;
     dismissError: () => void;
 };

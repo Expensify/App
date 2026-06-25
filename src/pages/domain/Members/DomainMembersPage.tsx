@@ -119,7 +119,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 groupName: group?.details.name ?? '-',
                 errors: getLatestError(customProps?.errors),
                 pendingAction: customProps?.pendingAction,
-                brickRoadIndicator: customProps?.brickRoadIndicator,
                 disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
                 action: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID)),
                 dismissError: () => {
