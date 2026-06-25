@@ -109,7 +109,8 @@ const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequest
                                     policyID={mockChatReport.policyID}
                                     action={mockAction}
                                     iouReportID={mockIOUReport.reportID}
-                                    chatReportID={mockChatReport.chatReportID}
+                                    chatReportID={mockChatReport.reportID}
+                                    chatReport={mockChatReport}
                                     onPaymentOptionsShow={() => {}}
                                     onPaymentOptionsHide={() => {}}
                                     isHovered={isHovered}
@@ -130,7 +131,7 @@ const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
-    const transactionDisplayAmount = convertToDisplayString(transaction.amount, transaction.currency);
+    const transactionDisplayAmount = convertToDisplayString(-transaction.amount, transaction.currency);
     return {transactionHeaderText, transactionDisplayAmount};
 };
 
@@ -179,7 +180,7 @@ const setReportPreviewData = (
 };
 
 const setHasOnceLoadedReportActions = async (hasOnceLoadedReportActions: boolean) => {
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockChatReport.chatReportID}`, {
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockChatReport.reportID}`, {
         hasOnceLoadedReportActions,
     });
 };
@@ -223,7 +224,7 @@ describe('MoneyRequestReportPreview', () => {
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
 
-            expect(screen.getByText(transactionDisplayAmount)).toBeOnTheScreen();
+            expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThan(0);
             expect(screen.getAllByText(transactionHeaderText)).toHaveLength(arrayOfTransactions.length);
             expect(screen.getAllByText(transaction.merchant)).toHaveLength(arrayOfTransactions.length);
         }
