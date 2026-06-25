@@ -3200,9 +3200,9 @@ ${amount} pour ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Soumettre une dépense',
+                title: 'Créer une dépense',
                 description: dedent(`
-                    *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
+                    *Créez une dépense* en saisissant un montant ou en scannant un reçu.
 
                     1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
@@ -3214,9 +3214,9 @@ ${amount} pour ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Soumettre une dépense',
+                title: 'Créer une dépense',
                 description: dedent(`
-                    *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
+                    *Créez une dépense* en saisissant un montant ou en scannant un reçu.
 
                     1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.

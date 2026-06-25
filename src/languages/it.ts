@@ -3185,9 +3185,9 @@ ${amount} per ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Invia una spesa',
+                title: 'Crea una spesa',
                 description: dedent(`
-                    *Invia una spesa* inserendo un importo o scansionando una ricevuta.
+                    *Crea una spesa* inserendo un importo o scansionando una ricevuta.
 
                     1. Fai clic sul pulsante *+*.
                     2. Scegli *Crea spesa*.
@@ -3199,9 +3199,9 @@ ${amount} per ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Invia una spesa',
+                title: 'Crea una spesa',
                 description: dedent(`
-                    *Invia una spesa* inserendo un importo o scansionando una ricevuta.
+                    *Crea una spesa* inserendo un importo o scansionando una ricevuta.
 
                     1. Fai clic sul pulsante *+*.
                     2. Scegli *Crea spesa*.

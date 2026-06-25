@@ -3172,9 +3172,9 @@ ${amount} para ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Enviar uma despesa',
+                title: 'Criar uma despesa',
                 description: dedent(`
-                    *Envie uma despesa* inserindo um valor ou digitalizando um recibo.
+                    *Crie uma despesa* inserindo um valor ou digitalizando um recibo.
 
                     1. Clique no botão *+*.
                     2. Escolha *Criar despesa*.
@@ -3186,9 +3186,9 @@ ${amount} para ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Enviar uma despesa',
+                title: 'Criar uma despesa',
                 description: dedent(`
-                    *Envie uma despesa* inserindo um valor ou escaneando um recibo.
+                    *Crie uma despesa* inserindo um valor ou escaneando um recibo.
 
                     1. Clique no botão *+*.
                     2. Escolha *Criar despesa*.

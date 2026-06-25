@@ -3161,9 +3161,9 @@ ${date} の ${merchant} への ${amount}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: '経費を送信',
+                title: '経費を作成',
                 description: dedent(`
-                    金額を入力するかレシートをスキャンして、*経費を提出*しましょう。
+                    金額を入力するかレシートをスキャンして、*経費を作成*しましょう。
 
                     1. *+* ボタンをクリックします。
                     2. *経費を作成* を選択します。
@@ -3175,9 +3175,9 @@ ${date} の ${merchant} への ${amount}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: '経費を送信',
+                title: '経費を作成',
                 description: dedent(`
-                    金額を入力するか、領収書をスキャンして*経費を提出*します。
+                    金額を入力するか、領収書をスキャンして*経費を作成*します。
 
                     1. *+* ボタンをクリックします。
                     2. *経費を作成* を選択します。
