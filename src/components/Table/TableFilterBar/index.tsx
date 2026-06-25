@@ -5,7 +5,6 @@ import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useTableContext} from '@components/Table/TableContext';
 import TableSearchBar from '@components/Table/TableSearchBar';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 import TableFilterTrigger from './TableFilterTrigger';
 
@@ -21,35 +20,23 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
     const actionColumnVisible = hasFiltersAvailable || !!children;
 
-    const appliedFilters = Object.entries(activeFilters ?? {}).map(([key, value]) => {
-        const config = filterConfig?.[key];
-        const filterOptions = config?.options.map((option) => ({label: option.label, value: option.value})) ?? [];
+    const appliedFilters = Object.entries(activeFilters ?? {})
+        .filter(([, value]) => value.length > 0)
+        .map(([key, value]) => {
+            const config = filterConfig?.[key];
+            const selectedFilterOptions = config?.options.filter((option) => value.includes(option.value)).map((option) => ({label: option.label, value: option.value})) ?? [];
+            const filterValue = selectedFilterOptions.map((option) => option.label);
 
-        const selectedFilterOptions = (() => {
-            if (config?.filterType === CONST.TABLES.FILTER_TYPE.MULTI_SELECT) {
-                return filterOptions.filter((option) => Array.isArray(value) && value.includes(option.value));
-            }
-
-            if (config?.filterType === CONST.TABLES.FILTER_TYPE.SINGLE_SELECT) {
-                const selectedValue = filterOptions.find((option) => option.value === value);
-                return selectedValue ? [selectedValue] : null;
-            }
-
-            return [];
-        })();
-
-        const filterValue = selectedFilterOptions?.map((option) => option.label) ?? null;
-
-        return {
-            key,
-            config,
-            value: filterValue,
-            label: config?.label ?? key,
-            onClosePress: () => {
-                tableMethods.updateFilter({key, value: null});
-            },
-        };
-    });
+            return {
+                key,
+                config,
+                value: filterValue,
+                label: config?.label ?? key,
+                onClosePress: () => {
+                    tableMethods.updateFilter({key, value: []});
+                },
+            };
+        });
 
     const ActiveFilterChipsComponent = !!appliedFilters.length && (
         <View style={[styles.flexRow, styles.gap2, styles.flexWrap]}>
