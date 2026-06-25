@@ -14,9 +14,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 /**
- * Recursively collects the raw text contents of a code block so it can be copied to the clipboard.
+ * Recursively collects the raw text contents of a code block so it can be copied to the clipboard,
+ * preserving the original line breaks and whitespace.
  */
 function getCodeBlockText(tnode: TNode): string {
+    // Newlines inside a code block are rendered as void `<br>` tags, which carry no `data`.
+    // Emit a newline for them so the copied text keeps its original formatting.
+    if (tnode.tagName === 'br') {
+        return '\n';
+    }
+
     if ('data' in tnode && typeof tnode.data === 'string') {
         return tnode.data;
     }
@@ -57,6 +64,8 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const isInsideTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const fontSize = StyleUtils.getCodeFontSize(false, isInsideTaskTitle);
     const codeText = getCodeBlockText(defaultRendererProps.tnode);
+    // Multi-line code blocks get extra breathing room around the copy button, while single-line blocks keep it tight to the corner.
+    const isMultilineCodeBlock = codeText.trim().includes('\n');
 
     if (isChildOfTaskTitle) {
         return (
@@ -96,7 +105,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                             </View>
                         </PressableWithoutFeedback>
                         {isHovered && !!codeText && (
-                            <View style={[styles.pAbsolute, {top: 4, right: 4}]}>
+                            <View style={[styles.pAbsolute, isMultilineCodeBlock ? {top: 16, right: 16} : {top: 4, right: 4}]}>
                                 <CopyTextToClipboard
                                     urlToCopy={codeText}
                                     styles={styles.copyableTextFieldButton}
