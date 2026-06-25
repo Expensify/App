@@ -6,6 +6,9 @@ import CONST from '@src/CONST';
 import BasePopup from './BasePopup';
 
 type MultiSelectPopupProps<T> = {
+    /** Whether to show the label in the popup or not */
+    showLabel?: boolean;
+
     /** The label to show when in an overlay on mobile */
     label: string;
 
@@ -31,7 +34,7 @@ type MultiSelectPopupProps<T> = {
     loading?: boolean;
 };
 
-function MultiSelectPopup<T extends string>({label, loading, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
+function MultiSelectPopup<T extends string>({showLabel, label, loading, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
     const [selectedItems, setSelectedItems] = useState(value);
 
     const applyChanges = () => {
@@ -47,6 +50,7 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
     return (
         <BasePopup
             label={label}
+            showLabel={showLabel}
             onReset={resetChanges}
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}

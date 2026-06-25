@@ -26,6 +26,7 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
 
         return (
             <MultiSelectPopup
+                showLabel
                 items={items}
                 value={value}
                 label={config.label}
@@ -44,6 +45,7 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
 
     return (
         <SingleSelectPopup
+            showLabel
             items={items}
             value={value}
             label={config.label}

@@ -9,6 +9,7 @@ import ActionButtons from './ActionButtons';
 
 type BasePopupProps = React.PropsWithChildren & {
     label?: string;
+    showLabel?: boolean;
     applySentryLabel: string;
     resetSentryLabel?: string;
     style?: StyleProp<ViewStyle>;
@@ -17,10 +18,12 @@ type BasePopupProps = React.PropsWithChildren & {
     onBackButtonPress?: () => void;
 };
 
-function BasePopup({children, label, applySentryLabel, resetSentryLabel, style, onApply, onReset, onBackButtonPress}: BasePopupProps) {
+function BasePopup({children, label, applySentryLabel, resetSentryLabel, showLabel, style, onApply, onReset, onBackButtonPress}: BasePopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+
+    const shouldDisplayLabel = (showLabel ?? isSmallScreenWidth) && !!label;
 
     return (
         <View style={[styles.pv4, style]}>
@@ -32,7 +35,7 @@ function BasePopup({children, label, applySentryLabel, resetSentryLabel, style, 
                     onBackButtonPress={onBackButtonPress}
                 />
             ) : (
-                isSmallScreenWidth && !!label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1, styles.mb2]}>{label}</Text>
+                shouldDisplayLabel && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1, styles.mb2]}>{label}</Text>
             )}
             {children}
             <ActionButtons
