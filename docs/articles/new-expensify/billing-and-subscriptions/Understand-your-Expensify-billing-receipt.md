@@ -20,7 +20,7 @@ It begins with a high-level summary of your subscription, followed by any availa
 
 Together, these sections explain both **what you were charged** and **how your monthly total was calculated**.
 
-## Summary
+## Receipt summary
 
 The summary provides an overview of your monthly subscription.
 
