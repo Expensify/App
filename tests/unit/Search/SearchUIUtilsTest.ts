@@ -10264,6 +10264,82 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isPolicyEligibleForSpendOverTime(regularPolicy, userEmail)).toBe(false);
         });
     });
+
+    describe('getFilterNegatableValue', () => {
+        const MERCHANT = CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+        const MERCHANT_NEGATED = `${MERCHANT}${CONST.SEARCH.NOT_MODIFIER}` as const;
+        const CATEGORY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY;
+        const CATEGORY_NEGATED = `${CATEGORY}${CONST.SEARCH.NOT_MODIFIER}` as const;
+
+        it('returns the negated value with isNegated true when only the negated value is set', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {[MERCHANT_NEGATED]: 'Uber'})).toEqual({isNegated: true, value: 'Uber'});
+        });
+
+        it('returns the base value with isNegated false when only the base value is set', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {[MERCHANT]: 'Uber'})).toEqual({isNegated: false, value: 'Uber'});
+        });
+
+        it('prefers the negated value when both base and negated values are set', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {[MERCHANT]: 'Lyft', [MERCHANT_NEGATED]: 'Uber'})).toEqual({isNegated: true, value: 'Uber'});
+        });
+
+        it('returns isNegated false and undefined value when neither value is set', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, {})).toEqual({isNegated: false, value: undefined});
+        });
+
+        it('returns isNegated false and undefined value when the values object is undefined', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(MERCHANT, undefined)).toEqual({isNegated: false, value: undefined});
+        });
+
+        it('always returns isNegated false and the base value for non-negatable filter', () => {
+            expect(SearchUIUtils.getFilterNegatableValue(CATEGORY, {[CATEGORY]: ['Food'], [CATEGORY_NEGATED]: ['Travel']})).toEqual({isNegated: false, value: ['Food']});
+        });
+    });
+
+    describe('shouldShowFilter', () => {
+        const MERCHANT = CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+        const MERCHANT_NEGATED = `${MERCHANT}${CONST.SEARCH.NOT_MODIFIER}` as const;
+        const CATEGORY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY;
+        const CATEGORY_NEGATED = `${CATEGORY}${CONST.SEARCH.NOT_MODIFIER}` as const;
+        const EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const CHAT = CONST.SEARCH.DATA_TYPES.CHAT;
+
+        it('returns truthy for a supported filter with a non-empty value', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, 'Uber', EXPENSE)).toBeTruthy();
+        });
+
+        it('returns truthy for a supported negated negatable filter with a value', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT_NEGATED, 'Uber', EXPENSE)).toBeTruthy();
+        });
+
+        it('returns truthy for a supported filter with a non-empty array value', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, CATEGORY, ['Food'], EXPENSE)).toBeTruthy();
+        });
+
+        it('returns falsy when the filter is included in skipFilters', () => {
+            expect(SearchUIUtils.shouldShowFilter(new Set([MERCHANT]), MERCHANT, 'Uber', EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy when the value is undefined', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, undefined, EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy when the value is an empty string', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, '', EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy when the value is an empty array', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, CATEGORY, [], EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy for a negated key that is not negatable', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, CATEGORY_NEGATED, ['Food'], EXPENSE)).toBeFalsy();
+        });
+
+        it('returns falsy when the filter is not supported for the data type', () => {
+            expect(SearchUIUtils.shouldShowFilter(undefined, MERCHANT, 'Uber', CHAT)).toBeFalsy();
+        });
+    });
 });
 
 describe('getCardDescriptionForSearchTable', () => {

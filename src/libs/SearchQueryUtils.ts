@@ -2328,6 +2328,10 @@ function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>, targ
     return {...flatQuery, hash: hashText(`${flatQuery.hash}:${targetCurrency}`, 2 ** 32)};
 }
 
+function isNegated(filterKey: SearchAdvancedFiltersKey) {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+}
+
 function isFilterNegatable(key: SearchAdvancedFiltersKey) {
     return NEGATABLE_FILTERS.has(removeNegation(key) as SearchNegatableFilterKeys);
 }
@@ -2337,17 +2341,18 @@ function removeNegation(filterKey: string) {
 }
 
 function getFilterFormValues<K extends FilterComponentsProps['baseFilterKey']>(
-    filterKey: K,
+    baseFilterKey: K,
     value: SearchAdvancedFiltersForm[K] | undefined,
     isNegated: boolean,
 ): Partial<SearchAdvancedFiltersForm> {
     const update: Partial<SearchAdvancedFiltersForm> = {};
-    if (isFilterNegatable(filterKey)) {
-        const negatedFilterKey = `${filterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
+    const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
+    if (isFilterNegatable(baseFilterKey)) {
         update[negatedFilterKey] = isNegated ? value : undefined;
-        update[filterKey] = isNegated ? undefined : value;
+        update[baseFilterKey] = isNegated ? undefined : value;
     } else {
-        update[filterKey] = value;
+        update[negatedFilterKey] = undefined;
+        update[baseFilterKey] = value;
     }
     return update;
 }
@@ -2395,6 +2400,7 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
+    isNegated,
     isFilterNegatable,
     removeNegation,
     getFilterFormValues,

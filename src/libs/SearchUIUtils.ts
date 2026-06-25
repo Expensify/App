@@ -178,6 +178,7 @@ import {
     getDateRangeForPreset,
     isFilterNegatable,
     isFilterSupported,
+    isNegated,
     isSearchDatePreset,
     removeNegation,
     sortOptionsWithEmptyValue,
@@ -5371,6 +5372,9 @@ function getFilterNegatableValue<K extends FilterComponentsProps['baseFilterKey'
     isNegated: boolean;
     value: SearchAdvancedFiltersForm[K] | undefined;
 } {
+    if (!isFilterNegatable(baseFilterKey)) {
+        return {isNegated: false, value: values?.[baseFilterKey]};
+    }
     const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
     const negatedValue = values?.[negatedFilterKey];
     const value = negatedValue ?? values?.[baseFilterKey];
@@ -5383,15 +5387,14 @@ function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths
     }
 
     if (isFilterNegatable(key)) {
-        const isNegated = key.endsWith(CONST.SEARCH.NOT_MODIFIER);
-        const prefix = isNegated ? '-' : '';
+        const prefix = isNegated(key) ? '-' : '';
         return `${prefix}${translate(labelKey)}`;
     }
     return translate(labelKey);
 }
 
 function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
-    return !skipFilters?.has(key) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
+    return !skipFilters?.has(key) && (isFilterNegatable(key) || !isNegated(key)) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
 }
 
 const isAmountFilterKey = (key: string): key is SearchAmountFilterKeys => {
