@@ -43,13 +43,21 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 });
 
 // Mock MenuItemWithTopDescription to expose interactive state via text for assertions, plus the rendered title via a sibling testID.
+// Title lives in a sibling element (not nested inside the menu-item View) so existing `toHaveTextContent('editable'|'readonly')`
+// assertions on the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
     return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
-        <RN.View testID={`menu-item-${description}`}>
-            <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
-            {title !== undefined && <RN.Text testID={`menu-item-title-${description}`}>{title}</RN.Text>}
-        </RN.View>
+        <>
+            <RN.View testID={`menu-item-${description}`}>
+                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
+            </RN.View>
+            {title !== undefined && (
+                <RN.View testID={`menu-item-title-${description}`}>
+                    <RN.Text>{title}</RN.Text>
+                </RN.View>
+            )}
+        </>
     );
 });
 
@@ -520,14 +528,6 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             // Vendor matching is gated on a workspace beta + an integration that scopes the vendor field.
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                        data: {vendors: []},
-                    },
-                },
-            });
             // Non-reimbursable transaction whose stored vendor.externalID is no longer in the synced list.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
@@ -536,7 +536,16 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport);
+        // MoneyRequestView reads `policy` from the `expensePolicy` prop, not from Onyx — pass the QBO
+        // connection config there. The empty vendors array represents the loaded-but-vendor-removed state.
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: []},
+                },
+            },
+        });
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
@@ -559,14 +568,6 @@ describe('MoneyRequestView edit fields', () => {
         await setupTestData();
         await act(async () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                        // Intentionally omit `data.vendors` to simulate the pre-sync hydration state.
-                    },
-                },
-            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
                 comment: {vendor: {externalID: 'still-valid-vendor-id', isManuallySet: false}},
@@ -574,7 +575,14 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        renderMoneyRequestView(threadReport);
+        // Intentionally omit `data.vendors` from the QBO connection to simulate the pre-sync hydration state.
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                },
+            },
+        });
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
