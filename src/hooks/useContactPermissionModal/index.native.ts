@@ -9,9 +9,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setHasDeniedContactImportPrompt} from '@libs/actions/ContactPermissions';
 import {getContactPermission, requestContactPermission} from '@libs/ContactPermission';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ContactPermissionModalProps from './types';
+import type UseContactPermissionModalParams from './types';
 
-function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {
+function useContactPermissionModal({onDeny, onGrant, onFocusTextInput}: UseContactPermissionModalParams) {
     const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT);
 
     const styles = useThemeStyles();
@@ -71,8 +71,6 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    return null;
 }
 
-export default ContactPermissionModal;
+export default useContactPermissionModal;
