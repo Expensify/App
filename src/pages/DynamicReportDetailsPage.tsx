@@ -836,7 +836,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         shouldShowRightIcon={false}
                         interactive={false}
                         description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report})}
+                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
                         numberOfLinesTitle={2}
                         shouldBreakWord
                     />
@@ -868,6 +868,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
                     subtitleNumberOfLines={2}
                     shouldShowFromPrefix={false}
+                    openParentReportInCurrentTab
                 />
             }
             description={translate('threads.from')}
