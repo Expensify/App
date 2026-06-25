@@ -468,19 +468,31 @@ type GetYourSpendSnapshotSplitUpdatesParams = {
     // Signed change to the report's reimbursable total, in the transaction/report currency
     // (new split total minus the pre-split total). Negative when the expense is split to a lower amount.
     reimbursableDiff: number;
+    // Signed change to the number of reimbursable transactions in the report caused by the split
+    // (e.g. splitting one expense into two reimbursable children is +1). `count` drives the Home row's
+    // visibility, so it must move in lockstep with the membership change even when `reimbursableDiff` is 0
+    // (an equal-amount split leaves the total unchanged but still adds transactions).
+    reimbursableCountDiff: number;
     currentUserAccountID: number;
 };
 
 /**
- * Optimistically patches the "Awaiting approval" snapshot total when a SUBMITTED expense is split and the resulting
- * reimbursable total changes (e.g. split to a lower amount). The report stays in the awaiting-approval section, so this
- * is a same-section amount delta rather than a state move. Home reads totals from `snapshot.search.total`, which is only
- * refreshed online. Mirrors the amount-edit path: same-currency only (the currency guard in
- * `buildSnapshotTotalUpdatesForHash` skips a mismatch, since FX conversion isn't available offline).
+ * Optimistically patches the "Awaiting approval" snapshot when a SUBMITTED expense is split. A split keeps the report
+ * in the awaiting-approval section but changes both its reimbursable total (e.g. split to a lower amount) and the number
+ * of reimbursable transactions it contains (one expense becomes several). Home reads `snapshot.search.total`/`count`,
+ * which are only refreshed online, and `count` drives the row's visibility — so both must be patched, even when the
+ * total is unchanged (an equal-amount split still changes `count`). Mirrors the amount-edit path: same-currency only
+ * (the currency guard in `buildSnapshotTotalUpdatesForHash` skips a mismatch, since FX conversion isn't available offline).
  */
-function getYourSpendSnapshotSplitUpdates({iouReport, originalTransaction, reimbursableDiff, currentUserAccountID}: GetYourSpendSnapshotSplitUpdatesParams): YourSpendSnapshotOnyxData {
+function getYourSpendSnapshotSplitUpdates({
+    iouReport,
+    originalTransaction,
+    reimbursableDiff,
+    reimbursableCountDiff,
+    currentUserAccountID,
+}: GetYourSpendSnapshotSplitUpdatesParams): YourSpendSnapshotOnyxData {
     const result: YourSpendSnapshotOnyxData = {optimisticData: [], successData: [], failureData: []};
-    if (!iouReport || !originalTransaction || reimbursableDiff === 0) {
+    if (!iouReport || !originalTransaction || (reimbursableDiff === 0 && reimbursableCountDiff === 0)) {
         return result;
     }
 
@@ -491,7 +503,7 @@ function getYourSpendSnapshotSplitUpdates({iouReport, originalTransaction, reimb
 
     const currency = getCurrency(originalTransaction);
     const approvalQueryJSON = buildSearchQueryJSON(buildAwaitingApprovalQuery(currentUserAccountID, paidGroupPolicyIDs));
-    mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, reimbursableDiff, currency));
+    mergeYourSpendSnapshotOnyxData(result, buildSnapshotTotalUpdatesForHash(approvalQueryJSON?.hash, reimbursableDiff, currency, reimbursableCountDiff));
     return result;
 }
 
