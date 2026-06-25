@@ -480,9 +480,11 @@ function NumberWithSymbolForm({
                     <Button
                         small
                         icon={icons.PlusMinus}
+                        iconAccessibilityLabel={translate('iou.flip')}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
                         iconWrapperStyles={styles.justifyContentCenter}
+                        text={translate('iou.flip')}
                         accessibilityLabel={translate('iou.flip')}
                         isDisabled={disabled}
                     />
@@ -635,6 +637,7 @@ function NumberWithSymbolForm({
                                 <Button
                                     small
                                     icon={icons.PlusMinus}
+                                    iconAccessibilityLabel={translate('iou.flip')}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
                                     iconWrapperStyles={styles.justifyContentCenter}
@@ -740,6 +743,7 @@ function NumberWithSymbolForm({
                     <Button
                         small
                         icon={icons.PlusMinus}
+                        iconAccessibilityLabel={translate('iou.flip')}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         iconWrapperStyles={styles.justifyContentCenter}
