@@ -31,10 +31,6 @@ let isTryNewDotLoaded = false;
 let onboarding: OnyxEntry<Onboarding>;
 let isOnboardingLoaded = false;
 
-// A copilot (delegate) session must never re-prompt the host user's one-time AI promo —
-// `clearOnyxForDelegateTransition` wipes most NVPs when switching accounts (NVP_DISMISSED_PRODUCT_TRAINING
-// is not in `KEYS_TO_PRESERVE_DELEGATE_ACCESS`), so without this gate the modal would re-show
-// for every copilot switch. Mirrors `ProductTrainingContext`'s `isActingAsDelegate` short-circuit.
 let isActingAsDelegate = false;
 
 let hasRedirectedToAIFeaturesPromoModal = false;
@@ -193,13 +189,6 @@ Onyx.connectWithoutView({
 
 /**
  * Block navigation while the AI features promo modal is active (on top of the stack).
- *
- * The block exists only to keep an underlying in-app tab swipe from racing the modal overlay
- * (the original use case mirrored from MigratedUserWelcomeModalGuard). It must NOT swallow
- * top-level intents that come from outside the app — share intents and report deep-links arrive
- * as `RESET` actions (via `getAdaptedStateFromPath`) or as `NAVIGATE`/`PUSH` actions whose
- * `payload.name` is a sibling root-stack navigator (e.g. `SHARE_MODAL_NAVIGATOR`). Blocking
- * those silently drops the navigation and strands the user on the modal.
  */
 function shouldBlockWhileModalActive(state: NavigationState, action: NavigationAction): boolean {
     if (
@@ -220,9 +209,7 @@ function shouldBlockWhileModalActive(state: NavigationState, action: NavigationA
         return false;
     }
 
-    // For NAVIGATE/PUSH/REPLACE actions, only block if the target lives inside the AI promo
-    // navigator (i.e. an in-modal sub-route). If the target is any other navigator/screen the
-    // navigation should proceed — the new screen will overlay or replace our modal naturally.
+    // For NAVIGATE/PUSH/REPLACE actions, only block if the target lives inside the AI promo navigator.
     const targetName = (action.payload as {name?: string} | undefined)?.name;
     if (targetName && targetName !== NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR) {
         return false;
