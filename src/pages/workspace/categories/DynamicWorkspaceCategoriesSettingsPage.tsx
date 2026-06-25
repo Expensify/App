@@ -21,7 +21,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+import {setPolicyShowCategoryGLCodes, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -49,6 +49,13 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
             setWorkspaceRequiresCategory(policyData, value);
         },
         [policyData],
+    );
+
+    const updateShowCategoryGLCodes = useCallback(
+        (value: boolean) => {
+            setPolicyShowCategoryGLCodes(policyID, value);
+        },
+        [policyID],
     );
 
     const data = useMemo(() => {
@@ -119,6 +126,19 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
                         onCloseError={() => clearPolicyErrorField(policy?.id, 'requiresCategory')}
                         shouldPlaceSubtitleBelowSwitch
                     />
+                    {!!policy?.glCodes && (
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.categories.showCategoryGLCodes')}
+                            switchAccessibilityLabel={translate('workspace.categories.showCategoryGLCodes')}
+                            isActive={policy?.showCategoryGLCodes ?? false}
+                            onToggle={updateShowCategoryGLCodes}
+                            pendingAction={policy?.pendingFields?.showCategoryGLCodes}
+                            disabled={!policy?.areCategoriesEnabled}
+                            wrapperStyle={[styles.pv2, styles.mh5]}
+                            errors={policy?.errorFields?.showCategoryGLCodes ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policy?.id, 'showCategoryGLCodes')}
+                        />
+                    )}
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <View style={[styles.containerWithSpaceBetween]}>
                         {!!policyData.policy && (data?.length ?? 0) > 0 && (
