@@ -436,11 +436,10 @@ function ReportActionsList({
         () => (
             <ReportActionsListHeader
                 reportID={report.reportID}
-                onRetry={() => loadNewerChats(true)}
                 hasActiveDraft={hasActiveDraft}
             />
         ),
-        [hasActiveDraft, report.reportID, loadNewerChats],
+        [hasActiveDraft, report.reportID],
     );
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
