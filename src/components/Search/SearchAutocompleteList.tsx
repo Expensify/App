@@ -213,7 +213,8 @@ function SearchAutocompleteList({
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
-            maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
+            // With an Auth order, keep every matching report instead of just the 20 most recent, so the Auth-order sort below can't drop a top-ranked but old one.
+            maxResults: searchResultReportIDs && searchResultReportIDs.length > 0 ? listOptions.reports.length : CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
             includeCurrentUser: true,
@@ -245,6 +246,7 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
+        searchResultReportIDs,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
