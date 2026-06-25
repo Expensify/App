@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationActions, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
@@ -24,9 +24,9 @@ type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<Multifa
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {requestCancel} = useMultifactorAuthenticationInternal();
+    const {requestCancel, state} = useMultifactorAuthenticationInternal();
     const {dispatch} = useMultifactorAuthenticationActions();
-    const {isCancelConfirmVisible} = useMultifactorAuthenticationState();
+    const {isCancelConfirmVisible} = state;
     const {accountID} = useCurrentUserPersonalDetails();
 
     const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);

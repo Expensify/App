@@ -1,5 +1,4 @@
 import {hasAcceptedSoftPromptSelector} from '@selectors/DeviceBiometrics';
-import {useMachine} from '@xstate/react';
 import React from 'react';
 import type {ReactNode} from 'react';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
@@ -11,6 +10,7 @@ import type {CredentialsState} from '@components/MultifactorAuthentication/obser
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
 import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInspectedMachine from '@hooks/useInspectedMachine';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import getPlatform from '@libs/getPlatform';
@@ -34,7 +34,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const biometrics = useBiometrics();
     const [hasEverAcceptedSoftPrompt = false] = useOnyx(getDeviceBiometricsOnyxKey(accountID), {selector: hasAcceptedSoftPromptSelector});
 
-    const [snapshot, send] = useMachine(MFAMachine);
+    const [snapshot, send] = useInspectedMachine(MFAMachine);
     const state = snapshotToState(snapshot);
 
     const captureCredentialsState = async (): Promise<CredentialsState> => {

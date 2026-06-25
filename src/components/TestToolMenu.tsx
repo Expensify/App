@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import {Platform} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import xstateInspector from '@libs/XStateInspector';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
@@ -18,6 +19,7 @@ import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
+import XStateInspectorTestToolRow from './XStateInspectorTestToolRow';
 
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
@@ -160,6 +162,12 @@ function TestToolMenu() {
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
+            {/* This row opens the Stately inspector, which visualizes every XState machine wired to it. It renders only on web dev builds, and Suspense keeps it hidden until the inspector chunk has loaded. */}
+            {!!xstateInspector.ready && (
+                <Suspense fallback={null}>
+                    <XStateInspectorTestToolRow ready={xstateInspector.ready} />
+                </Suspense>
+            )}
             <SoftKillTestToolRow />
             <TestCrash />
         </>

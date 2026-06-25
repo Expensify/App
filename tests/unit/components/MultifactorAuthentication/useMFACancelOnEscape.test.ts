@@ -3,8 +3,8 @@ import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACa
 
 const mockRequestCancel = jest.fn();
 
-jest.mock('@components/MultifactorAuthentication/Context', () => ({
-    useMultifactorAuthentication: () => ({requestCancel: mockRequestCancel}),
+jest.mock('@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext', () => ({
+    useMultifactorAuthenticationInternal: () => ({requestCancel: mockRequestCancel}),
 }));
 
 function dispatchKeyup(key: string): jest.SpyInstance {
