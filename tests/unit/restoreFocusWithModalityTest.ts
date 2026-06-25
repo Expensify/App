@@ -7,12 +7,12 @@ jest.mock('@libs/hadTabNavigation', () => ({
     default: () => mockHadTabNavigation,
 }));
 
-jest.mock('@components/FocusTrap/sharedTrapStack', () => ({
+jest.mock('@libs/sharedTrapStack', () => ({
     __esModule: true,
     default: [],
 }));
 
-const mockTrapStack = require<{default: MockTrap[]}>('@components/FocusTrap/sharedTrapStack').default;
+const mockTrapStack = require<{default: MockTrap[]}>('@libs/sharedTrapStack').default;
 const restoreFocusWithModality = require<{default: (el: HTMLElement, options?: {preventScroll?: boolean}) => void}>('@libs/restoreFocusWithModality').default;
 
 function pushMockTrap({paused = false}: {paused?: boolean} = {}): MockTrap {

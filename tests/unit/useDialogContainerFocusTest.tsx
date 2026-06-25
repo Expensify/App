@@ -61,4 +61,18 @@ describe('useDialogContainerFocus — short-circuit order', () => {
         expect(gate).toHaveBeenCalledTimes(1);
         expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
     });
+
+    it('cancels the scheduled `runAfterTransitions` on unmount so a destroyed ref does not receive late focus', () => {
+        const ref = createRef<View>();
+        const gate = jest.fn(() => true);
+        const cancel = jest.fn();
+        const TransitionTracker = require<{default: {runAfterTransitions: jest.Mock}}>('../../src/libs/Navigation/TransitionTracker').default;
+        TransitionTracker.runAfterTransitions.mockImplementationOnce(() => ({cancel}));
+
+        const {unmount} = renderHook(() => useDialogContainerFocus(ref, true, gate, false));
+        expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledTimes(1);
+
+        unmount();
+        expect(cancel).toHaveBeenCalledTimes(1);
+    });
 });

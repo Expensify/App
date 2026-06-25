@@ -1,9 +1,9 @@
 import {NavigationRouteContext} from '@react-navigation/native';
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 
 const mockRegisterPressable = jest.fn<() => void, [string, string, {current: unknown}]>();
-const mockNotifyPressedTrigger = jest.fn();
+const mockNotifyPressedTrigger = jest.fn<void, [ref: {current: unknown} | null, identifier?: string]>();
 
 let mockIsScreenReaderKnownOff = false;
 let mockIsScreenReaderActive = false;
@@ -145,5 +145,25 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
             />,
         );
         expect(mockRegisterPressable.mock.calls.at(0)?.[1]).toBe('test-id-only');
+    });
+
+    it('calls notifyPressedTrigger(internalRef, identifier) on press so the focus-return capture has a fresh trigger', () => {
+        mockIsScreenReaderKnownOff = false;
+        const onPress = jest.fn();
+        renderInsideRoute(
+            <GenericPressable
+                id="row-1"
+                testID="pressable-host"
+                onPress={onPress}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('pressable-host'));
+
+        expect(onPress).toHaveBeenCalledTimes(1);
+        expect(mockNotifyPressedTrigger).toHaveBeenCalledTimes(1);
+        const notifyArgs = mockNotifyPressedTrigger.mock.calls.at(0);
+        expect(notifyArgs?.[0]).toHaveProperty('current');
+        expect(notifyArgs?.[1]).toBe('row-1');
     });
 });

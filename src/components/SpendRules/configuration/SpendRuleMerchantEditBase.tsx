@@ -73,11 +73,12 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
 
         if (!trimmedMerchantName) {
             if (!isNew) {
-                skipNextFocusRestore();
                 const updatedMerchantNames = merchantNames.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 const updatedMerchantMatchTypes = merchantMatchTypes.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
                 onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
             }
+            // Skip on every submit-driven goBack — the parent list has its own Save button, and a re-focused row would hijack the next Enter.
+            skipNextFocusRestore();
             goBack();
             return;
         }
@@ -91,6 +92,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
             : merchantMatchTypes.map((type, merchantArrayIndex) => (merchantArrayIndex === index ? matchType : type));
 
         onMerchantDataChange(updatedMerchantNames, updatedMerchantMatchTypes);
+        skipNextFocusRestore();
         goBack();
     };
 

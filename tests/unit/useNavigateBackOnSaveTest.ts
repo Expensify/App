@@ -176,6 +176,23 @@ describe('useNavigateBackOnSave', () => {
         expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
+    it('snapshots `shouldSkipFocusRestore=false` at arm time — a later true prop change cannot inject an unwanted skip', () => {
+        const {result, rerender} = renderHook(
+            ({isSaved, shouldSkipFocusRestore}: {isSaved: boolean; shouldSkipFocusRestore: boolean}) => useNavigateBackOnSave(isSaved, BACK_TO, {shouldSkipFocusRestore}),
+            {
+                initialProps: {isSaved: false as boolean, shouldSkipFocusRestore: false},
+            },
+        );
+
+        act(() => result.current.armNavigateBack());
+        rerender({isSaved: false, shouldSkipFocusRestore: true});
+        rerender({isSaved: true, shouldSkipFocusRestore: true});
+
+        // shouldSkipFocusRestore was false at arm time — snapshot must win over the later prop change; no skip fires.
+        expect(mockSkip).not.toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
     it('snapshots `backTo` at arm time — a later prop change cannot strand the user (e.g. parent clears route.params between arm and save)', () => {
         const initial = 'settings/profile' as Route;
         const later = 'settings/wallet' as Route;

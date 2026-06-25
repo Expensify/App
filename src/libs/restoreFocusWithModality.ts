@@ -1,5 +1,5 @@
-import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import getHadTabNavigation from './hadTabNavigation';
+import sharedTrapStack from './sharedTrapStack';
 
 /**
  * Pauses the topmost focus-trap during the focus call — works around focus-trap-react auto-unpausing the next-topmost trap on
@@ -15,7 +15,7 @@ function restoreFocusWithModality(el: HTMLElement, {preventScroll = true}: {prev
     try {
         el.focus({preventScroll, focusVisible: getHadTabNavigation()});
     } finally {
-        // Unconditional because focus-trap clears `manuallyPaused = false` even when not topmost — the next trap's deactivate auto-unwind depends on it.
+        // Mirror the pause — unpause only if we paused, even if `parentTrap` is no longer topmost (focus-trap's deactivate auto-unwind depends on it).
         if (parentTrap && !wasAlreadyPaused) {
             parentTrap.unpause();
         }
