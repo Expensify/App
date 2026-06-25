@@ -18,11 +18,12 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         WalletScreen: {path: 'settings/wallet'},
         ReportScreen: {path: 'r/:reportID'},
         SplitExpenseScreen: {path: 'split-expense/:reportID'},
+        SplitExpenseQueryScreen: {path: 'split-expense-q/:reportID'},
 
         AmountTab: {path: 'amount'},
         ScanTab: {path: 'scan'},
     },
-    screensWithOnyxTabNavigator: new Set(['SplitExpenseScreen']),
+    screensWithOnyxTabNavigator: new Set(['SplitExpenseScreen', 'SplitExpenseQueryScreen']),
 }));
 
 jest.mock('@src/ROUTES', () => ({
@@ -33,6 +34,7 @@ jest.mock('@src/ROUTES', () => ({
         FLAG: {path: 'flag/:reportID/:reportActionID'},
         CONSTANT_PICKER: {path: 'constant-picker', queryParams: ['formType', 'fieldName', 'fieldValue']},
         SPLIT_EXPENSE: {path: 'split-expense/:reportID'},
+        SPLIT_EXPENSE_QUERY: {path: 'split-expense-q/:reportID', queryParams: ['currency']},
     },
 }));
 
@@ -334,6 +336,19 @@ describe('getPathFromState', () => {
             ]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/split-expense/42/amount');
+        });
+
+        it('tab segment is placed before query params when the tab-host screen has query params', () => {
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'SplitExpenseQueryScreen',
+                    params: {reportID: '123', currency: 'USD'},
+                    state: buildState([{name: 'AmountTab'}, {name: 'ScanTab'}], 1),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/split-expense-q/123/scan?currency=USD');
         });
 
         it('popFocusedRoute treats tab-hosting screen as a leaf (removes whole screen, not individual tab)', () => {

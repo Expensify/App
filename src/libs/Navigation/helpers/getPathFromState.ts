@@ -137,7 +137,8 @@ function getPathFromStateWithDynamicRoute(state: State): string {
             const focusedTab = tabState.routes[tabIndex];
             const tabPath = focusedTab && isScreen(focusedTab.name) ? normalizedConfigs[focusedTab.name]?.path : undefined;
             if (tabPath) {
-                actualSuffix = `${actualSuffix}/${tabPath}`;
+                const [suffixPathOnly, suffixQueryOnly] = splitPathAndQuery(actualSuffix);
+                actualSuffix = `${suffixPathOnly}/${tabPath}${suffixQueryOnly ? `?${suffixQueryOnly}` : ''}`;
             }
         }
     }
