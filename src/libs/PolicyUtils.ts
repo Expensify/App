@@ -523,7 +523,7 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
 }
 
 /**
- * Get the brick road indicator status for a policy. Returns ERROR if there are policy member, custom unit, field, sync, or HR connection errors. Returns INFO if Merge HR setup is incomplete.
+ * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnectionInProgress: boolean): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
     if (
@@ -535,9 +535,6 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy))
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    }
-    if (isMergeHRCompleteSetupNeeded(policy)) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
     return undefined;
 }
