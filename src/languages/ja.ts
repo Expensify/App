@@ -3161,9 +3161,9 @@ ${date} の ${merchant} への ${amount}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: '経費を送信',
+                title: '経費を作成',
                 description: dedent(`
-                    金額を入力するかレシートをスキャンして、*経費を提出*しましょう。
+                    金額を入力するかレシートをスキャンして、*経費を作成*しましょう。
 
                     1. *+* ボタンをクリックします。
                     2. *経費を作成* を選択します。
@@ -3175,9 +3175,9 @@ ${date} の ${merchant} への ${amount}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: '経費を送信',
+                title: '経費を作成',
                 description: dedent(`
-                    金額を入力するか、領収書をスキャンして*経費を提出*します。
+                    金額を入力するか、領収書をスキャンして*経費を作成*します。
 
                     1. *+* ボタンをクリックします。
                     2. *経費を作成* を選択します。
@@ -4432,10 +4432,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             auditorAlternateText: 'レポートを表示してコメントします。',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'オーナー';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'ワークスペース管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
-                        return '監査人';
+                        return '監査担当者';
                     case CONST.POLICY.ROLE.EDITOR:
                         return '編集者';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
@@ -4976,9 +4978,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noCompaniesFoundDescription: 'Certinia に会社を追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
-                installBundle: 'FFA 接続用',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">FFA Expensify バンドルをインストール（バージョン ${version}）</a>`,
+                installBundle: 'Expensify バンドルをインストールします',
+                installBundlePSAHeader: 'PSA/SRP 接続の場合：',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `このリンクをクリックして Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">PSA/SRP Expensify バンドル（バージョン ${version}）をインストール</a>`,
+                installBundleFFAHeader: 'FFA 接続用:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">FFA 用 Expensify バンドルをインストール（バージョン ${version}）</a>`,
                 installBundleConfirm: 'バンドルをインストールしました',
                 setupContacts: 'ユーザーと連絡先を設定',
                 setupContactsBullet1:
@@ -6288,6 +6294,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             syncWithHR: (providerName: string) => `${providerName}と同期`,
             makeCardAdmin: () => ({one: 'カード管理者にする', other: 'カード管理者に設定'}),
             cardAdmins: 'カード管理者',
+            members: 'メンバー',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',

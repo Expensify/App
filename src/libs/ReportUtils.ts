@@ -4347,6 +4347,7 @@ function getReasonAndReportActionThatRequiresAttention(
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
     allReportActionsParam?: OnyxCollection<ReportActions>,
+    reports?: OnyxCollection<Report>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -4406,6 +4407,7 @@ function getReasonAndReportActionThatRequiresAttention(
         currentUserLogin,
         currentUserAccountID,
         reportActions,
+        reports,
     );
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
@@ -11004,6 +11006,7 @@ function shouldCreateNewMoneyRequestReport(
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     return (
         !existingIOUReport ||
+        isReportPendingDelete(existingIOUReport) ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
         !canAddTransaction(existingIOUReport) ||
         (!isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
@@ -12616,7 +12619,7 @@ function generateReportAttributes({
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const {reason, actionBadge, reportAction} =
-        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions) ?? {};
+        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions, reports) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,

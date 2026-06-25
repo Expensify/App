@@ -3182,9 +3182,9 @@ ${amount} voor ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Dien een uitgave in',
+                title: 'Maak een uitgave',
                 description: dedent(`
-                    *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
+                    *Maak een uitgave* door een bedrag in te voeren of een bon te scannen.
 
                     1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
@@ -3196,9 +3196,9 @@ ${amount} voor ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Dien een uitgave in',
+                title: 'Maak een uitgave',
                 description: dedent(`
-                    *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
+                    *Maak een uitgave* door een bedrag in te voeren of een bon te scannen.
 
                     1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
@@ -4457,6 +4457,8 @@ ${amount} voor ${merchant} - ${date}`,
             auditorAlternateText: 'Rapporten bekijken en erop reageren.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Eigenaar';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Werkruimtebeheerder';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4464,7 +4466,7 @@ ${amount} voor ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Kaartbeheer';
+                        return 'Kaartbeheerder';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Personenbeheer';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
@@ -5013,9 +5015,13 @@ ${amount} voor ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Synchroniseer de verbinding opnieuw nadat bedrijven zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
-                installBundle: 'Voor FFA-verbindingen',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">FFA Expensify-bundel installeren (versie ${version})</a>`,
+                installBundle: 'Installeer het Expensify-pakket',
+                installBundlePSAHeader: 'Voor PSA/SRP-koppelingen:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Installeer PSA/SRP Expensify-bundel (versie ${version})</a>`,
+                installBundleFFAHeader: 'Voor FFA-verbindingen:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Expensify-bundel voor FFA installeren (versie ${version})</a>`,
                 installBundleConfirm: 'Ik heb de bundel geïnstalleerd',
                 setupContacts: 'Gebruiker en contacten instellen',
                 setupContactsBullet1:
@@ -6339,6 +6345,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             syncWithHR: (providerName: string) => `Synchroniseren met ${providerName}`,
             makeCardAdmin: () => ({one: 'Kaartbeheerder maken', other: 'Kaartbeheerders maken'}),
             cardAdmins: 'Kaartbeheerders',
+            members: 'Leden',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
