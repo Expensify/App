@@ -64,6 +64,7 @@ import type {
     IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
+    OnyxInputOrEntry,
     Policy,
     Report,
     ReportAction,
@@ -377,12 +378,12 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
-function getReportType(reportID?: string) {
+function getReportType(reportID?: string, report?: OnyxInputOrEntry<Report>) {
     if (isIOUReportUtil(reportID)) {
         return CONST.REPORT.TYPE.IOU;
     }
 
-    if (isInvoiceReport(reportID)) {
+    if (isInvoiceReport(report)) {
         return CONST.REPORT.TYPE.INVOICE;
     }
 
@@ -485,7 +486,7 @@ function getPayActionCallback({
     searchData,
     chatReportActions,
 }: GetPayActionCallbackParams) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID, snapshotReport));
 
     if (!item.reportID) {
         return;
@@ -1452,15 +1453,12 @@ function getPayOption(
     const shouldShowBulkPayOption =
         selectedReports.length > 0
             ? selectedReports.every(
-                  (report) =>
-                      report.canPay &&
-                      getReportType(report.reportID) === getReportType(firstReport?.reportID) &&
-                      shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
+                  (report) => report.canPay && report.type === firstReport?.type && shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID),
+                      selectedTransactions[transactionIDKey].report?.type === firstTransaction?.report?.type,
               );
 
     return {
