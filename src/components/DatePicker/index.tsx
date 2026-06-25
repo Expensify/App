@@ -163,9 +163,10 @@ function DatePicker({
 
     const handleDateSelected = (newDate: string) => {
         onTouched?.();
-        onInputChange?.(newDate);
         setSelectedDate(newDate);
         closeDatePicker();
+        // Defer until after the popover close is committed so consumers are not suppressed by modal state.
+        requestAnimationFrame(() => onInputChange?.(newDate));
     };
 
     const handleClear = () => {

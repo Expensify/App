@@ -16,7 +16,16 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, uniqueID, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({
+    children,
+    shouldRender = false,
+    shouldDisplayTooltip,
+    shouldHideOnNavigate = true,
+    shouldHideOnScroll = false,
+    uniqueID,
+    ...props
+}: EducationalTooltipProps) {
+    const shouldShowTooltip = shouldDisplayTooltip ?? shouldRender;
     const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
     const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
 
@@ -33,6 +42,11 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
 
     const renderTooltip = useCallback(() => {
         if (!tooltipElementRef.current || !genericTooltipStateRef.current || shouldSuppressTooltip) {
+            return;
+        }
+
+        if (!shouldShowTooltip) {
+            genericTooltipStateRef.current.hideTooltip();
             return;
         }
 
@@ -65,7 +79,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 showTooltip();
             }
         });
-    }, [insets.top, insets.bottom, insets.left, insets.right, shouldSuppressTooltip]);
+    }, [insets.top, insets.bottom, insets.left, insets.right, shouldShowTooltip, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -120,7 +134,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     }, []);
 
     useEffect(() => {
-        if (!shouldMeasure || shouldSuppressTooltip) {
+        if (!shouldMeasure || shouldSuppressTooltip || !shouldShowTooltip) {
             return;
         }
         if (!shouldRender) {
@@ -134,7 +148,14 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         return () => {
             clearTimeout(timerID);
         };
-    }, [shouldMeasure, shouldRender, shouldSuppressTooltip]);
+    }, [shouldMeasure, shouldRender, shouldShowTooltip, shouldSuppressTooltip]);
+
+    useEffect(() => {
+        if (!shouldRender || !shouldShowTooltip || shouldSuppressTooltip || !shouldMeasure) {
+            return;
+        }
+        renderTooltip();
+    }, [shouldRender, shouldShowTooltip, shouldSuppressTooltip, shouldMeasure, renderTooltip]);
 
     useEffect(() => {
         if (!navigator) {
@@ -152,7 +173,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     return (
         <GenericTooltip
             shouldForceAnimate
-            shouldRender={shouldRender}
+            shouldRender={shouldShowTooltip}
             isEducationTooltip
             {...props}
         >
