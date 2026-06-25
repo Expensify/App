@@ -7,9 +7,6 @@ type UseStartConciergeSessionParams = Pick<ReportActionsReadinessSignals, 'isCon
     /** The ID of the report to display actions for */
     reportID: string;
 
-    /** The report's lastReadTime, used as the unread boundary when starting the session */
-    lastReadTime: string | undefined;
-
     /** Whether actions are already cached, excluding the synthetic CREATED action */
     hasCachedReportActions: boolean;
 };
@@ -18,7 +15,7 @@ type UseStartConciergeSessionParams = Pick<ReportActionsReadinessSignals, 'isCon
  * Starts the Concierge main-DM session. Subscribes to currentReportID/startSession itself so the pipeline
  * doesn't carry them; currentReportID re-renders the guard but never the list.
  */
-function useStartConciergeSession({reportID, lastReadTime, isConciergeMainDM, oldestUnreadReportAction, hasOnceLoadedReportActions, hasCachedReportActions}: UseStartConciergeSessionParams) {
+function useStartConciergeSession({reportID, isConciergeMainDM, oldestUnreadReportAction, hasOnceLoadedReportActions, hasCachedReportActions}: UseStartConciergeSessionParams) {
     const {currentReportID} = useCurrentReportIDState();
     const {startSession} = useConciergeSessionActions();
 
@@ -35,9 +32,13 @@ function useStartConciergeSession({reportID, lastReadTime, isConciergeMainDM, ol
         if (!isConciergeMainDM || !canStartConciergeSession) {
             return;
         }
-        startSession(oldestUnreadReportAction ? lastReadTime : undefined);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- startSession is stable; captured values at mount only
-    }, [isConciergeMainDM, startSession, canStartConciergeSession]);
+        // Anchor the session to the unread action's created time, a stable pre-read
+        // boundary, rather than the live report.lastReadTime which readNewestAction
+        // bumps to `now` when the report opens. Re-runs when oldestUnreadReportAction
+        // resolves so a session that locked to `now` before the anchor loaded is
+        // pulled back to keep the unread message visible.
+        startSession(oldestUnreadReportAction?.created);
+    }, [isConciergeMainDM, startSession, canStartConciergeSession, oldestUnreadReportAction?.created]);
 
     // On native the component stays mounted in the navigation stack, so the
     // effect above never re-fires (its isConciergeMainDM dep is always true).
@@ -47,9 +48,8 @@ function useStartConciergeSession({reportID, lastReadTime, isConciergeMainDM, ol
         if (!isConciergeMainDM || !canStartConciergeSession || currentReportID !== reportID) {
             return;
         }
-        startSession(oldestUnreadReportAction ? lastReadTime : undefined);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to currentReportID returning to this report
-    }, [currentReportID, reportID, isConciergeMainDM, canStartConciergeSession, startSession]);
+        startSession(oldestUnreadReportAction?.created);
+    }, [currentReportID, reportID, isConciergeMainDM, canStartConciergeSession, startSession, oldestUnreadReportAction?.created]);
 }
 
 export default useStartConciergeSession;

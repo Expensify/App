@@ -46,7 +46,6 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
 
     useStartConciergeSession({
         reportID,
-        lastReadTime: report?.lastReadTime,
         isConciergeMainDM,
         oldestUnreadReportAction,
         hasOnceLoadedReportActions,
