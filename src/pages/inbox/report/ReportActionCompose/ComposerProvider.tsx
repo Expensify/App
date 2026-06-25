@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
@@ -114,7 +115,12 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const clearComposer = () => {
         const clearWorklet = composerRef.current?.clearWorklet;
         if (!clearWorklet) {
-            throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
+            // The composer ref is reset to null on unmount, so a missing ref here is an expected lifecycle state
+            // (e.g. clearing right after navigating away, or during a react-native-screens freeze/unfreeze where the
+            // ref hasn't re-attached yet) rather than a developer error. The draft is independently cleared via Onyx,
+            // so skipping the native UI-thread clear on an unmounted input loses nothing.
+            Log.hmmm('[ComposerProvider] Skipping clearComposer because composerRef.clearWorklet is not set yet');
+            return;
         }
         scheduleOnUI(clearWorklet);
     };
