@@ -110,7 +110,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
 
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
-    const canSelectMultiple = canWriteTags && !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
+    const canSelectMultiple = canWriteTags && !hasDependentTags && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const tagApproverEmails = useMemo(() => {
         const approverEmails: Record<string, string> = {};
@@ -558,7 +558,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const selectedTagsObject = selectedTagKeys.map((key) => policyTagLists.at(0)?.tags?.[key]);
         const selectedTagLists = selectedTagKeys.map((selectedTag) => policyTagLists.find((policyTagList) => policyTagList.name === selectedTag));
 
-        if (!canWriteTags || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
+        if (!canWriteTags || (isSmallScreenWidth ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
             const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
@@ -740,7 +740,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const getHeaderSubtitle = () => {
         if (!hasSyncError && isConnectionVerified && currentConnectionName) {

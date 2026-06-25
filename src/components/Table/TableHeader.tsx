@@ -53,9 +53,10 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- mobile selection mode is only for small screens, not RHP on wide layouts
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, processedData, isMobileSelectionEnabled} = useTableContext<DataType, ColumnKey>();
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !isSmallScreenWidth);
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;

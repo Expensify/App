@@ -69,7 +69,8 @@ export default function TableRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- mobile selection mode is only for small screens, not RHP on wide layouts
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled} = useTableContext();
 
     const item = processedData.at(rowIndex);
@@ -78,7 +79,7 @@ export default function TableRow({
     const isLastRow = rowIndex === rowCount - 1;
     const isDisabled = !!disabled || !!isLoading;
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
-    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !shouldUseNarrowLayout);
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !isSmallScreenWidth);
 
     if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
@@ -157,7 +158,7 @@ export default function TableRow({
             return;
         }
 
-        if (!shouldUseNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+        if (!isSmallScreenWidth || !isMobileSelectionEnabled || !selectionEnabled) {
             onPress?.();
             return;
         }
@@ -172,7 +173,7 @@ export default function TableRow({
     };
 
     const handleRowLongPress = () => {
-        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive || item.isSelectionDisabled) {
+        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !isSmallScreenWidth || !interactive || item.isSelectionDisabled) {
             return;
         }
 
