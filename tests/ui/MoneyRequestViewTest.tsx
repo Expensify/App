@@ -42,10 +42,15 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
     return () => <RN.View testID="animated-bg" />;
 });
 
-// Mock MenuItemWithTopDescription to expose interactive state via text for assertions
+// Mock MenuItemWithTopDescription to expose interactive state via text for assertions, plus the rendered title via a sibling testID.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, interactive}: {description?: string; interactive?: boolean}) => <RN.Text testID={`menu-item-${description}`}>{interactive ? 'editable' : 'readonly'}</RN.Text>;
+    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
+        <RN.View testID={`menu-item-${description}`}>
+            <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
+            {title !== undefined && <RN.Text testID={`menu-item-title-${description}`}>{title}</RN.Text>}
+        </RN.View>
+    );
 });
 
 // Mock MenuItem (used for some fields like billable)
@@ -496,6 +501,47 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
             expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+        });
+    });
+
+    // Regression test for https://github.com/Expensify/Expensify/issues/651950 item 3.
+    // When the QBO vendor list sync drops a vendor (deactivated / deleted in QBO), expenses that referenced
+    // that vendor were rendering with an empty Vendor field — looking like the vendor had been stripped off
+    // the expense. The vendor object on the transaction is intentionally preserved as the audit trail; the
+    // render now falls back to the inactive-vendor copy so the staleness is visible.
+    it('shows the inactive-vendor fallback copy when the assigned vendor is missing from the synced vendor list', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            // Vendor matching is gated on a workspace beta + an integration that scopes the vendor field.
+            await Onyx.merge(ONYXKEYS.NVP_BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {vendors: []},
+                    },
+                },
+            });
+            // Non-reimbursable transaction whose stored vendor.externalID is no longer in the synced list.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            // The translate mock returns the i18n key verbatim, so we assert the key the production code requests.
+            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('violations.inactiveVendor');
         });
     });
 });

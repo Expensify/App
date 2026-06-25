@@ -478,7 +478,12 @@ function MoneyRequestView({
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
     const transactionVendor = transaction?.comment?.vendor;
-    const transactionVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name ?? '';
+    const matchedVendor = findVendorByID(policy, transactionVendor?.externalID);
+    // When the vendor was previously assigned but is no longer in the synced vendor list (deactivated or
+    // deleted in the connected accounting system), keep the audit trail visible by showing the inactive-vendor
+    // copy. The transaction's `comment.vendor` object is preserved — only the rendered name falls back.
+    // The matching out-of-policy violation (CONST.VIOLATIONS.INACTIVE_VENDOR) fires from ViolationsUtils.
+    const transactionVendorName = matchedVendor?.name ?? (transactionVendor?.externalID ? translate('violations.inactiveVendor') : '');
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
