@@ -95,13 +95,6 @@
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
 
-### [react-native+0.85.3+013+fixNavigationAnimations.patch](react-native+0.85.3+013+fixNavigationAnimations.patch)
-
-- Reason: Fixes navigation animation issues
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: 🛑
-
 ### [react-native+0.85.3+014+fixScrollViewState.patch](react-native+0.85.3+014+fixScrollViewState.patch)
 
 - Reason: Fixes ScrollView state management issues
@@ -211,24 +204,10 @@
 - E/App issue: [#82611](https://github.com/Expensify/App/issues/82611)
 - PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303)
 
-### [react-native+0.85.3+028+fix-fetching-files-android.patch](react-native+0.85.3+028+fix-fetching-files-android.patch)
-
-- Reason: Fixes fetching files (blobs, file URIs) on Android
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/55706
-- E/App issue: https://github.com/Expensify/App/issues/75120
-- PR Introducing Patch: https://github.com/Expensify/App/pull/79962
-
 ### [react-native+0.85.3+029+fix-view-stealing-first-responder.patch](react-native+0.85.3+029+fix-view-stealing-first-responder.patch)
 
 - Reason: In RN 0.83, `RCTViewComponentView.canBecomeFirstResponder` unconditionally returns `YES` (added for the `enableImperativeFocus` feature). This causes UIKit to promote parent views to first responder after navigation transitions complete (`_promoteSelfOrDescendantToFirstResponderIfNecessary`), stealing focus from text inputs and triggering an immediate focus→blur cycle. The fix gates `canBecomeFirstResponder` behind the `enableImperativeFocus` feature flag, which defaults to `false`.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55908
-- E/App issue: https://github.com/Expensify/App/issues/75120
-- PR Introducing Patch: https://github.com/Expensify/App/pull/79962
-
-### [react-native+0.85.3+030+fix-exif-orientation.patch](react-native+0.85.3+030+fix-exif-orientation.patch)
-
-- Reason: In RN 0.83, PR [#54127](https://github.com/facebook/react-native/pull/54127) changed `RCTDecodeImageWithData` to use `CGImageSourceCreateImageAtIndex` instead of `CGImageSourceCreateThumbnailAtIndex` for full-size images (to fix memory crashes with large images). However, `CGImageSourceCreateImageAtIndex` does NOT apply EXIF orientation transform to pixels, unlike the previous thumbnail API which used `kCGImageSourceCreateThumbnailWithTransform`. The code still hardcodes `UIImageOrientationUp`, so EXIF orientation is silently lost. This causes camera-captured images (which have EXIF orientation metadata) to appear rotated when processed by `expo-image-manipulator`. The fix reads the EXIF orientation from image properties and passes it to `UIImage` for the full-size code path.
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/55934
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
 
@@ -312,3 +291,26 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/91629
 - PR introducing patch: https://github.com/Expensify/App/pull/92484
+
+## Removed patches
+
+Patches removed during the RN 0.85 upgrade because the patch file no longer exists in the tree.
+
+### react-native+0.85.3+013+fixNavigationAnimations (removed)
+
+- Original reason: Fixed navigation animation issues by patching `AnimatedProps.js` `_connectedToView` logic.
+- Removal reason: `AnimatedProps.js` was rewritten in RN 0.85; the old `_connectedToView` logic is gone. The patch is likely obsolete, but this has not been re-verified against current navigation animation behavior.
+
+### react-native+0.85.3+028+fix-fetching-files-android (removed)
+
+- Original reason: Fixed fetching files (blobs, file URIs) on Android.
+- Removal reason: Partially upstream in RN 0.85.3 (internal `networkingUriHandler` val). Original upstream PR: https://github.com/facebook/react-native/pull/55706
+- E/App issue: https://github.com/Expensify/App/issues/75120
+- PR Introducing Patch: https://github.com/Expensify/App/pull/79962
+
+### react-native+0.85.3+030+fix-exif-orientation (removed)
+
+- Original reason: `RCTDecodeImageWithData` full-size decode path did not apply EXIF orientation when using `CGImageSourceCreateImageAtIndex`.
+- Removal reason: Upstream fixed — `RCTImageUtils.mm` now reads EXIF orientation in the full-size decode path. Original upstream PR: https://github.com/facebook/react-native/pull/55934
+- E/App issue: https://github.com/Expensify/App/issues/75120
+- PR Introducing Patch: https://github.com/Expensify/App/pull/79962
