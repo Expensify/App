@@ -319,7 +319,7 @@ function IOURequestStepConfirmation({
                 }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
                 const firstParticipant = participantsList.at(0);
-                if (firstParticipant?.reportID) {
+                if (firstParticipant?.reportID && iouType !== CONST.IOU.TYPE.SPLIT) {
                     setTransactionReport(activeTransactionID, {reportID: firstParticipant.reportID}, true);
                 }
             }
