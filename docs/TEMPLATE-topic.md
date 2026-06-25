@@ -1,135 +1,125 @@
 ---
-title: Clear broad topic title using the product area name
-description: A short description explaining what this topic area includes and how it helps users understand Expensify.
-keywords: [broad topic, concept 1, concept 2, concept 3, common user terminology, common question phrase]
-internalScope: Audience is [who this doc is for]. Covers broad orientation to [topic area], including [major concept 1], [major concept 2], and [major concept 3]. Does not cover detailed workflows, setup steps, troubleshooting, or configuration instructions.
-contentType: topic
-platform: [no-platform | new-expensify | expensify-classic] 
+title: [Natural, searchable topic title]
+description: Learn about [topic], including who it affects, where you'll find it, how it works, and what happens when it occurs.
+keywords: [[primary topic], [feature name], [related search phrases]]
+internalScope: Audience is [target audience]. Covers [single concept or feature]. Does not cover [related tasks or adjacent concepts].
 ---
 
 <!--
-TOPIC ARTICLE TEMPLATE
+This template is for TOPIC articles.
 
-Purpose:
-A topic article is a broad orientation page. It helps users understand a major product area and choose the right next article.
+PURPOSE
 
-RAG guidance:
-- Use exact Expensify terminology.
-- Include common customer phrasing in the intro, keywords, and headings where natural.
-- Keep each section tightly scoped.
-- Link to more specific concept and task articles.
-- Do not make this page the source of truth for detailed workflows.
+Topic articles explain a single concept, feature, state, or behavior.
+They answer questions like:
 
-Do not:
-- Include step-by-step instructions.
-- Include UI navigation.
-- Deeply explain one subtopic.
-- Mix unrelated product areas.
-- Add generic headings like Overview, Details, Setup, or Notes.
+- What is this?
+- Why does this happen?
+- Who is affected?
+- Where do I find it?
+- What do the different states mean?
+- What happens next?
+
+Topic articles provide understanding, not step-by-step instructions.
+
+If the primary goal is completing a workflow, use the Task template instead.
+
+TITLE GUIDELINES
+
+Choose a title that naturally describes the topic.
+
+Titles may:
+- Be a concise noun phrase.
+- Begin with an explanatory verb such as "Understand" or "Learn about" when it improves clarity.
+
+Prefer the wording that feels most natural for the subject.
+
+Good examples:
+- Billing and subscriptions
+- Billing issues
+- Annual subscriptions
+- Billing owners
+- Understand approval workflows
+
+Avoid:
+- Overview
+- General information
+- How [feature] works (unless "how it works" is the actual topic)
 -->
 
-# [This must match the article title exactly]
+# [Must match the title exactly]
 
 Briefly explain:
 
-* What this topic area includes
-* Why users interact with it
-* The main concepts included in this area
-* Where this topic fits in Expensify
+* What the topic is.
+* Why someone would encounter it.
+* Why it matters.
+* Any important platform or availability limitations.
 
-Keep this concise.
-
----
-
-## How [topic area] works in Expensify
-
-Explain the broad model.
-
-Cover:
-
-* The main parts of this topic area
-* How those parts relate to each other
-* What users should understand before choosing a more specific article
-
-Do not include task steps.
+Keep this concise and focused on understanding.
 
 ---
 
-## Key concepts in [topic area]
-
-Briefly introduce each major concept in this topic area.
-
-Use this format for each concept:
-
-**[Concept name]**
-Explain what the concept is, when users encounter it, and why it matters. Link to the dedicated concept article: [Learn about Concept Name](/relative-link).
-
-**[Concept name]**
-Explain what the concept is, when users encounter it, and why it matters. Link to the dedicated concept article: [Learn about Concept Name](/relative-link).
-
-**[Concept name]**
-Explain what the concept is, when users encounter it, and why it matters. Link to the dedicated concept article: [Learn about Concept Name](/relative-link).
-
----
-
-## What [topic area] includes
-
-Introduce the major concepts within this topic area.
-
-For each concept:
-
-- Provide a brief explanation
-- Explain when customers encounter it
-- Link to a dedicated Concept or Task article
-
-This section should help readers understand how the topic area is organized.
-
----
-
-## Choosing the right [concept, option, or path]
-
-Help users distinguish between the main concepts or options in this topic area.
+## Who is affected by [topic]
 
 Explain:
 
-* When each option applies
-* Important differences between options
-* Which article to read next for each path
+* Who can see it.
+* Who can use it.
+* Who can manage it.
+* Any role or permission requirements.
 
-Keep this high-level.
+If applicable, explain who cannot access or interact with it.
 
 ---
 
-## Common questions about [topic area]
+## Where to find [topic]
 
-## What does [topic area] include?
+Explain where someone encounters this feature, message, setting, or behavior.
 
-Answer with a clear, direct explanation.
+Examples:
 
-## Which [concept, option, or path] should I use?
+* Where alerts appear.
+* Where settings are located.
+* Where information is displayed.
+* When the feature becomes visible.
 
-Answer with a brief comparison and link to the relevant concept articles.
+If there are multiple locations, explain each briefly.
 
-## Who can use [topic area] features?
+---
 
-Explain relevant roles, permissions, or plan considerations at a high level.
+## What [topic] means
 
-## How does [topic area] relate to other Expensify features?
+Explain the different states, messages, behaviors, or variations someone may encounter.
 
-Explain important adjacent product areas and link where appropriate.
+Use bullet lists when appropriate.
+
+Focus on helping the reader interpret what they're seeing—not how to resolve it.
+
+---
+
+## What happens after [topic] occurs
+
+Explain the resulting system behavior.
+
+Examples:
+
+* What remains visible.
+* What changes automatically.
+* What requires action.
+* When the state returns to normal.
+
+Keep this focused on outcomes rather than procedures.
 
 ---
 
 ## Related articles
 
-### Learn about key concepts
+Link only to workflows or deeper concepts that naturally extend this topic.
 
-* [Concept article name](/relative-link)
-* [Concept article name](/relative-link)
-* [Concept article name](/relative-link)
+Examples:
 
-### Complete common tasks
+* Learn how to [complete related task].
+* Learn more about [related concept].
 
-* [Task article name](/relative-link)
-* [Task article name](/relative-link)
-* [Task article name](/relative-link)
+Limit related articles to essential next steps.
