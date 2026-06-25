@@ -1549,6 +1549,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         addressZip: string;
         currency: string;
     },
+    source?: string,
 ) {
     if (!policyID) {
         return;
@@ -1606,7 +1607,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
             isP2PDebitCard: false,
         };
-        PaymentMethods.addPaymentCardSCA(params);
+        PaymentMethods.addPaymentCardSCA(params, undefined, source);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,
@@ -1627,7 +1628,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentUserAccountID: number, currentUserEmail: string) {
+function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentUserAccountID: number, currentUserEmail: string, source?: string) {
+    PaymentMethods.setVerify3dsSubscriptionSource(source);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
