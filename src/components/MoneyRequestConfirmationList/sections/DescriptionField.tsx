@@ -6,7 +6,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,7 +52,9 @@ function DescriptionField({
     const {isEditingSplitBill, scrollFocusedInputIntoView} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef<BaseTextInputRef | null>(null);
+    // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
+    // top border and label — into view rather than just the inner text area.
+    const fieldContainerRef = useRef<View>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -102,13 +103,15 @@ function DescriptionField({
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
                         {isNewManualExpenseFlowEnabled && !isReadOnly ? (
-                            <View style={[styles.mh4, styles.mv2]}>
+                            <View
+                                ref={fieldContainerRef}
+                                style={[styles.mh4, styles.mv2]}
+                            >
                                 <TextInput
-                                    ref={inputRef}
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
-                                    onFocus={() => scrollFocusedInputIntoView?.(inputRef.current)}
+                                    onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
                                     submitBehavior="blurAndSubmit"
                                     onSubmitEditing={onSubmitForm}
                                     label={translate('common.description')}
