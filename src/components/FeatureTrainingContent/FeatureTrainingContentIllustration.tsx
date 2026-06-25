@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Accessibility from '@libs/Accessibility';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+import {getIsOffline} from '@libs/NetworkState';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {FeatureTrainingContentIllustrationProps as BaseFeatureTrainingContentIllustrationProps, BaseFeatureTrainingContentProps} from './types';
@@ -41,6 +42,19 @@ type FeatureTrainingContentIllustrationProps = Pick<
         isCarousel?: boolean;
     };
 
+/**
+ * Once the device has been online, lock to 'video' permanently.
+ * While it has never been online, show 'animation' as a fallback.
+ */
+function useVideoStatus(): VideoStatus {
+    const [isLockedToVideo, setIsLockedToVideo] = useState(() => !getIsOffline());
+    const {isOffline} = useNetwork({
+        onReconnect: () => setIsLockedToVideo(true),
+    });
+
+    return isLockedToVideo || !isOffline ? 'video' : 'animation';
+}
+
 function FeatureTrainingContentIllustration({
     animation,
     animationStyle,
@@ -60,6 +74,7 @@ function FeatureTrainingContentIllustration({
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const videoStatus = useVideoStatus();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {isOffline} = useNetwork();
@@ -76,22 +91,6 @@ function FeatureTrainingContentIllustration({
             animationRef.current.reset();
         }
     }, [isFocused, isCarousel, isReduceMotionEnabled]);
-
-    const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
-    const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
-
-    useEffect(() => {
-        if (isVideoStatusLocked) {
-            return;
-        }
-
-        if (isOffline) {
-            setVideoStatus('animation');
-        } else if (!isOffline) {
-            setVideoStatus('video');
-            setIsVideoStatusLocked(true);
-        }
-    }, [isOffline, isVideoStatusLocked]);
 
     const setAspectRatio = (event: SourceLoadEventPayload) => {
         const track = event.availableVideoTracks.at(0);

@@ -134,5 +134,3 @@ function FeatureTrainingContent({
 }
 
 export default FeatureTrainingContent;
-
-export type {FeatureTrainingContentProps};

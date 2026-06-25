@@ -5,6 +5,7 @@ import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selec
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -16,7 +17,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {DismissedProductTraining, Onboarding, Session} from '@src/types/onyx';
-import createDynamicRoute from '../helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {GuardResult, NavigationGuard} from './types';
 
 let session: OnyxEntry<Session>;
@@ -99,7 +99,7 @@ function isEligibleToShowAIFeaturesPromoModal(): boolean {
 }
 
 function getAIFeaturesPromoModalRoute(basePath?: string): Route {
-    return createDynamicRoute(DYNAMIC_ROUTES.AI_FEATURES_PROMO_MODAL.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
+    return createDynamicRoute(DYNAMIC_ROUTES.AI_FEATURES_PROMO.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
 }
 
 /**
@@ -129,6 +129,7 @@ function navigateToAIFeaturesPromoModalIfReady() {
                 }
                 Log.info('[AIFeaturesPromoGuard] Proactively navigating to AI features promo modal');
                 hasRedirectedToAIFeaturesPromoModal = true;
+                console.log('navigating to AI features promo modal', getAIFeaturesPromoModalRoute());
                 Navigation.navigate(getAIFeaturesPromoModalRoute());
             });
         },

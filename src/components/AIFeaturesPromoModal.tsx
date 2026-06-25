@@ -1,17 +1,19 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
-import LottieAnimations from '@components/LottieAnimations';
-import Text from '@components/Text';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import Badge from './Badge';
 import {FeatureTrainingCarousel} from './FeatureTrainingContent';
 import type {FeatureTrainingContentDataProps} from './FeatureTrainingContent';
+import LottieAnimations from './LottieAnimations';
+import Text from './Text';
 
 function AIFeaturesPromoModal() {
     const {translate} = useLocalize();
@@ -59,17 +61,24 @@ function AIFeaturesPromoModal() {
             : []),
     ];
 
-    const wasDismissedViaConfirmRef = useRef(false);
+    const isCloseButtonDismissalRef = useRef(false);
+
+    const handleDismiss = () => {
+        Log.hmmm(`[AIFeaturesPromoModal] dismissing product training via ${isCloseButtonDismissalRef.current ? 'x' : 'click'}`);
+        dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, isCloseButtonDismissalRef.current);
+    };
+
+    useBeforeRemove(handleDismiss);
 
     const onConfirm = () => {
-        Log.hmmm('[AIFeaturesPromoModal] onConfirm called, recording click dismissal');
-        wasDismissedViaConfirmRef.current = true;
+        Log.hmmm('[AIFeaturesPromoModal] onConfirm called');
+        Navigation.goBack();
     };
 
     const onClose = () => {
-        const isCloseButtonDismissal = !wasDismissedViaConfirmRef.current;
-        Log.hmmm(`[AIFeaturesPromoModal] onClose called, dismissing product training via ${isCloseButtonDismissal ? 'x' : 'click'}`);
-        dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, isCloseButtonDismissal);
+        Log.hmmm(`[AIFeaturesPromoModal] onClose called, user closed modal without confirming`);
+        isCloseButtonDismissalRef.current = true;
+        Navigation.goBack();
     };
 
     return (

@@ -1,5 +1,5 @@
 import type {ImageContentFit} from 'expo-image';
-import React from 'react';
+import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {MergeExclusive} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
@@ -47,7 +47,7 @@ type BaseFeatureTrainingContentProps = {
     modalInnerContainerStyle?: ViewStyle;
 
     /** Children to show below title and description and above buttons (single-page mode only) */
-    children?: React.ReactNode;
+    children?: ReactNode;
 
     /** Modal width */
     width?: number;
