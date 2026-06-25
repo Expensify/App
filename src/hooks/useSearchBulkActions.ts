@@ -12,7 +12,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
-import {clearExportDownload, exportReportsToPDF} from '@libs/actions/Export';
+import {exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -85,6 +85,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -97,6 +98,7 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useEnvironment from './useEnvironment';
+import useExportDownloadStatusModal from './useExportDownloadStatusModal';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -395,8 +397,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     > | null>(null);
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
-    const [activeExportID, setActiveExportID] = useState<string | undefined>(undefined);
-    const [activeExportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${activeExportID}`);
+    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => {
+        selectAllMatchingItems(false);
+        clearSelectedTransactions(undefined, true);
+    });
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
@@ -623,9 +627,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             }
-            setActiveExportID(exportID);
+            trackExport(exportID);
         },
-        [selectedReports, selectedTransactions, isOffline, areAllMatchingItemsSelected, currentSearchResults?.data, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
+        [
+            selectedReports,
+            selectedTransactions,
+            isOffline,
+            areAllMatchingItemsSelected,
+            currentSearchResults?.data,
+            queryJSON,
+            selectedTransactionReportIDs,
+            selectedTransactionsKeys,
+            trackExport,
+        ],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -701,7 +715,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
                 });
-                setActiveExportID(exportID);
+                trackExport(exportID);
                 return;
             }
 
@@ -746,6 +760,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hash,
             currentSearchResults?.data,
             getCSVExportParameters,
+            trackExport,
         ],
     );
 
@@ -1014,6 +1029,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         policyExpenseChatReportActions,
                         accountID,
                         getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
+                        doesPersonalDetailExistSelector(itemReport?.ownerAccountID)(personalDetails),
                         reportTransactions,
                     );
                     if (!invite?.policyExpenseChatReportID) {
@@ -1789,7 +1805,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     const exportID = exportReportsToPDF(selectedReportIDs);
-                    setActiveExportID(exportID);
+                    trackExport(exportID);
                 },
             });
         }
@@ -2091,6 +2107,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isProduction,
         shouldOpenSplitExpenseEditFlowOnDelete,
         styles.textWrap,
+        trackExport,
+        allReportsShouldMarkAsDone,
+        noReportsShouldMarkAsDone,
+        queryJSON?.groupBy,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
@@ -2127,20 +2147,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
 
-    const handleExportModalClose = useCallback(() => {
-        if (activeExportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !activeExportDownload?.shouldSendFromConcierge) {
-            return;
-        }
-        // For the Concierge path the worker deletes the NVP after sending, so clearing it here would wipe
-        // shouldSendFromConcierge before the worker reads it and the file would never reach Concierge.
-        if (activeExportID && !activeExportDownload?.shouldSendFromConcierge) {
-            clearExportDownload(activeExportID, activeExportDownload);
-        }
-        setActiveExportID(undefined);
-        selectAllMatchingItems(false);
-        clearSelectedTransactions(undefined, true);
-    }, [activeExportID, activeExportDownload, selectAllMatchingItems, clearSelectedTransactions]);
-
     return {
         headerButtonsOptions,
         selectedPolicyIDs,
@@ -2159,8 +2165,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
-        activeExportID,
-        handleExportModalClose,
+        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,

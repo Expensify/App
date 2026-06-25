@@ -3200,9 +3200,9 @@ ${amount} pour ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Soumettre une dépense',
+                title: 'Créer une dépense',
                 description: dedent(`
-                    *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
+                    *Créez une dépense* en saisissant un montant ou en scannant un reçu.
 
                     1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
@@ -3214,9 +3214,9 @@ ${amount} pour ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Soumettre une dépense',
+                title: 'Créer une dépense',
                 description: dedent(`
-                    *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
+                    *Créez une dépense* en saisissant un montant ou en scannant un reçu.
 
                     1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
@@ -3639,6 +3639,7 @@ ${amount} pour ${merchant} - ${date}`,
             companyName: 'Veuillez saisir un nom d’entreprise valide',
             addressCity: 'Veuillez saisir une ville valide',
             addressStreet: 'Veuillez saisir une adresse postale valide',
+            physicalAddressRequired: 'Une adresse physique est requise. Les boîtes postales et les services de réexpédition ne sont pas acceptés.',
             addressState: 'Veuillez sélectionner un État valide',
             incorporationDateFuture: 'La date de création ne peut pas être dans le futur',
             incorporationState: 'Veuillez sélectionner un État valide',
@@ -3859,12 +3860,14 @@ ${amount} pour ${merchant} - ${date}`,
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
         legalName: 'Nom légal',
+        legalNameSubtitle: 'Veuillez saisir votre nom légal complet tel qu’il apparaît sur votre pièce d’identité.',
         enterYourDateOfBirth: 'Quelle est votre date de naissance ?',
         enterTheLast4: 'Quels sont les quatre derniers chiffres de votre numéro de Sécurité sociale ?',
         dontWorry: 'Ne vous inquiétez pas, nous ne faisons aucun contrôle de crédit personnel !',
         last4SSN: '4 derniers chiffres du SSN',
         enterYourAddress: 'Quelle est votre adresse ?',
         address: 'Adresse',
+        addressSubtitle: 'Une adresse physique est requise. Les boîtes postales et les services de réexpédition ne sont pas acceptés.',
         letsDoubleCheck: 'Vérifions une seconde fois que tout est correct.',
         byAddingThisBankAccount: 'En ajoutant ce compte bancaire, vous confirmez que vous avez lu, compris et accepté',
         whatsYourLegalName: 'Quel est votre nom légal ?',
@@ -4000,6 +4003,7 @@ ${amount} pour ${merchant} - ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'La réglementation nous oblige à vérifier l’identité de toute personne détenant plus de 25 % de l’entreprise.',
         companyOwner: 'Propriétaire d’entreprise',
         enterLegalFirstAndLastName: 'Quel est le nom légal du responsable ?',
+        legalNameSubtitle: 'Veuillez saisir le nom légal complet du responsable tel qu’il apparaît sur sa pièce d’identité.',
         legalFirstName: 'Prénom légal',
         legalLastName: 'Nom de famille légal',
         enterTheDateOfBirthOfTheOwner: 'Quelle est la date de naissance du responsable ?',
@@ -4483,6 +4487,8 @@ ${amount} pour ${merchant} - ${date}`,
             auditorAlternateText: 'Afficher et commenter les notes de frais.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Responsable';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrateur d’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4492,7 +4498,7 @@ ${amount} pour ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return 'Administrateur de carte';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Admin personnes';
+                        return 'Administration des personnes';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrateur des paiements';
                     case CONST.POLICY.ROLE.USER:
@@ -5046,9 +5052,13 @@ ${amount} pour ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Veuillez synchroniser à nouveau la connexion après l’ajout des entreprises dans Certinia.',
             prerequisites: {
                 title: 'Avant de vous connecter',
-                installBundle: 'Pour les connexions FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle FFA Expensify (version ${version})</a>`,
+                installBundle: 'Installer le module Expensify',
+                installBundlePSAHeader: 'Pour les connexions PSA/SRP :',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify PSA/SRP (version ${version})</a>`,
+                installBundleFFAHeader: 'Pour les connexions FFA :',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify pour FFA (version ${version})</a>`,
                 installBundleConfirm: 'J’ai installé le paquet',
                 setupContacts: 'Configurer l’utilisateur et les contacts',
                 setupContactsBullet1:
@@ -6393,6 +6403,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             syncWithHR: (providerName: string) => `Synchroniser avec ${providerName}`,
             makeCardAdmin: () => ({one: 'Nommer administrateur de carte', other: 'Nommer des administrateurs de carte'}),
             cardAdmins: 'Administrateurs de cartes',
+            members: 'Membres',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -9848,7 +9859,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
