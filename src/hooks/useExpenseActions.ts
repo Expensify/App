@@ -17,7 +17,6 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
@@ -392,30 +391,26 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
-                TransitionTracker.runAfterTransitions({
-                    callback: () => {
-                        duplicateReportAction({
-                            sourceReport: moneyRequestReport,
-                            sourceReportTransactions: nonPendingDeleteTransactions,
-                            sourceReportName: moneyRequestReport?.reportName ?? '',
-                            targetPolicy: targetPolicyForDuplicate ?? undefined,
-                            targetPolicyCategories: activePolicyCategories,
-                            targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyForDuplicate?.id}`] ?? {},
-                            parentChatReport: targetChatForDuplicate,
-                            ownerPersonalDetails: currentUserPersonalDetails,
-                            isASAPSubmitBetaEnabled,
-                            betas,
-                            personalDetails,
-                            quickAction,
-                            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                            isSelfTourViewed,
-                            transactionViolations: allTransactionViolations,
-                            translate,
-                            recentWaypoints: recentWaypoints ?? [],
-                            currentUserAccountID: currentUserPersonalDetails?.accountID,
-                            currentUserLogin: currentUserPersonalDetails?.email ?? '',
-                        });
-                    },
+                duplicateReportAction({
+                    sourceReport: moneyRequestReport,
+                    sourceReportTransactions: nonPendingDeleteTransactions,
+                    sourceReportName: moneyRequestReport?.reportName ?? '',
+                    targetPolicy: targetPolicyForDuplicate ?? undefined,
+                    targetPolicyCategories: activePolicyCategories,
+                    targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyForDuplicate?.id}`] ?? {},
+                    parentChatReport: targetChatForDuplicate,
+                    ownerPersonalDetails: currentUserPersonalDetails,
+                    isASAPSubmitBetaEnabled,
+                    betas,
+                    personalDetails,
+                    quickAction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    isSelfTourViewed,
+                    transactionViolations: allTransactionViolations,
+                    translate,
+                    recentWaypoints: recentWaypoints ?? [],
+                    currentUserAccountID: currentUserPersonalDetails?.accountID,
+                    currentUserLogin: currentUserPersonalDetails?.email ?? '',
                 });
             },
         },
