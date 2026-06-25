@@ -2925,6 +2925,7 @@ const CONST = {
         SYNC_CLASSES: 'syncClasses',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
+        SYNC_ITEMS: 'syncItems',
         SYNC_TAX: 'syncTax',
         EXPORT: 'export',
         EXPORTER: 'exporter',
