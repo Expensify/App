@@ -169,8 +169,10 @@ function useConfirmationValidation({
         const firstParticipant = transaction?.participants?.at(0);
         const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat && !firstParticipant?.isSelfDM);
 
-        // P2P manual submit: $0 is invalid unless scan/time/distance (same guard as legacy inline confirm).
-        if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
+        // P2P manual submit: a non-positive amount ($0 or negative) is invalid unless scan/time/distance.
+        // P2P chats don't support negative amounts, so a negative amount entered before the participant was
+        // selected (e.g. "Submit it to someone" from a self DM) must be blocked here regardless of the flow.
+        if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount <= 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
         // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.

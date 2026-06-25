@@ -399,6 +399,25 @@ describe('useConfirmationValidation', () => {
             expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
         });
 
+        it('returns invalidAmount for P2P manual submit with negative amount when flow is disabled', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, {iouAmount: -500}, {amount: -500, isAmountSet: true})));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('returns invalidAmount for P2P manual submit with negative amount when flow is enabled', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(P2P_PARTICIPANT, {iouAmount: -500, isNewManualExpenseFlowEnabled: true}, {amount: -500, isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('returns errorKey: null for policy expense chat participant with negative amount', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {iouAmount: -500}, {amount: -500, isAmountSet: true})),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
         it('returns errorKey: null for policy expense chat participant with zero amount', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {iouAmount: 0}, {amount: 0, isAmountSet: true})),
