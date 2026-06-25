@@ -38,14 +38,13 @@ export default function TableFilterBar({label, children}: TableFilterBarProps) {
             return [];
         })();
 
-        const filterValue = selectedFilterOptions?.map((option) => option.value) ?? null;
-        const filterLabel = selectedFilterOptions?.length ? selectedFilterOptions.map((option) => option.label).join(', ') : (config?.label ?? key);
+        const filterValue = selectedFilterOptions?.map((option) => option.label) ?? null;
 
         return {
             key,
             config,
-            label: filterLabel,
             value: filterValue,
+            label: config?.label ?? key,
             onClosePress: () => {
                 tableMethods.updateFilter({key, value: null});
             },
