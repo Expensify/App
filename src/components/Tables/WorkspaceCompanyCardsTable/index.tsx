@@ -1,3 +1,4 @@
+import {companyCardCustomNamesSelector} from '@selectors/Card';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -18,7 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getDefaultCardName} from '@libs/CardUtils';
+import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
@@ -99,7 +100,7 @@ function WorkspaceCompanyCardsTable({
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`);
+    const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
@@ -184,11 +185,7 @@ function WorkspaceCompanyCardsTable({
                   cardName,
                   keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                   encryptedCardNumber,
-                  customCardName: assignedCard?.cardID
-                      ? (workspaceCardFeeds?.settings?.companyCardCustomNames?.[assignedCard.cardID] ??
-                        customCardNames?.[assignedCard.cardID] ??
-                        getDefaultCardName(cardholder?.displayName ?? ''))
-                      : getDefaultCardName(cardholder?.displayName ?? ''),
+                  customCardName: getCompanyCardCustomName(assignedCard?.cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   isAssigned,
                   assignedCard,

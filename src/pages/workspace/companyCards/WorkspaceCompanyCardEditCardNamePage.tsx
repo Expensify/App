@@ -1,3 +1,4 @@
+import {companyCardCustomNamesSelector} from '@selectors/Card';
 import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCompanyCardCustomName, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
@@ -42,8 +43,10 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
 
-    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`);
-    const defaultValue = workspaceCardFeeds?.settings?.companyCardCustomNames?.[cardID] ?? customCardNames?.[cardID];
+    const [sharedCardCustomNames, sharedCardCustomNamesMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {
+        selector: companyCardCustomNamesSelector,
+    });
+    const defaultValue = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         updateCompanyCardName(domainOrWorkspaceAccountID, cardID, values[INPUT_IDS.NAME], getCompanyCardFeed(feed), defaultValue);
@@ -61,7 +64,7 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
         return errors;
     };
 
-    if (isLoadingOnyxValue(customCardNamesMetadata, workspaceCardFeedsMetadata, cardFeedsMetadata)) {
+    if (isLoadingOnyxValue(customCardNamesMetadata, sharedCardCustomNamesMetadata, cardFeedsMetadata)) {
         return null;
     }
 
