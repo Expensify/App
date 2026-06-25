@@ -1,226 +1,125 @@
-# Expensify HelpDot Topic Article Guidelines
+---
+title: [Natural, searchable topic title]
+description: Learn about [topic], including who it affects, where you'll find it, how it works, and what happens when it occurs.
+keywords: [[primary topic], [feature name], [related search phrases]]
+internalScope: Audience is [target audience]. Covers [single concept or feature]. Does not cover [related tasks or adjacent concepts].
+---
 
-## Purpose
+<!--
+This template is for TOPIC articles.
 
-Topic articles introduce a broad area of Expensify and help readers understand the major concepts within that area.
+PURPOSE
 
-Topic articles answer questions such as:
+Topic articles explain a single concept, feature, state, or behavior.
+They answer questions like:
 
-* How does billing work in Expensify?
-* What payment options are available?
-* How do reimbursements fit into Expensify?
-* What does this section of Expensify cover?
+- What is this?
+- Why does this happen?
+- Who is affected?
+- Where do I find it?
+- What do the different states mean?
+- What happens next?
 
-The goal of a Topic article is orientation and navigation.
+Topic articles provide understanding, not step-by-step instructions.
 
-Topic articles sit at the top of the content hierarchy:
+If the primary goal is completing a workflow, use the Task template instead.
 
-```text
-Topic Article
-    ↓
-Concept Article
-    ↓
-Task Article
-```
+TITLE GUIDELINES
+
+Choose a title that naturally describes the topic.
+
+Titles may:
+- Be a concise noun phrase.
+- Begin with an explanatory verb such as "Understand" or "Learn about" when it improves clarity.
+
+Prefer the wording that feels most natural for the subject.
+
+Good examples:
+- Billing and subscriptions
+- Billing issues
+- Annual subscriptions
+- Billing owners
+- Understand approval workflows
+
+Avoid:
+- Overview
+- General information
+- How [feature] works (unless "how it works" is the actual topic)
+-->
+
+# [Must match the title exactly]
+
+Briefly explain:
+
+* What the topic is.
+* Why someone would encounter it.
+* Why it matters.
+* Any important platform or availability limitations.
+
+Keep this concise and focused on understanding.
 
 ---
 
-# 1. Core Principles
+## Who is affected by [topic]
 
-Every Topic article must:
+Explain:
 
-* Introduce a single product area
-* Explain the major concepts within that area
-* Help readers identify the correct next article
-* Use exact product terminology
-* Be optimized for semantic retrieval
-* Remain concise and easy to navigate
+* Who can see it.
+* Who can use it.
+* Who can manage it.
+* Any role or permission requirements.
 
-A Topic article should help readers understand where they are before deciding where to go next.
+If applicable, explain who cannot access or interact with it.
 
 ---
 
-# 2. Scope Rules
+## Where to find [topic]
 
-Topic articles must:
-
-* Cover a broad functional area
-* Introduce multiple related concepts
-* Explain how those concepts relate to one another
-* Link to deeper Concept and Task articles
-
-Topic articles may:
-
-* Compare major options at a high level
-* Explain how different concepts fit together
-* Summarize related workflows
-
-Topic articles must not:
-
-* Include step-by-step instructions
-* Include UI navigation guidance
-* Include detailed configuration instructions
-* Become the authoritative source for a specific concept
-* Replace Concept articles
-
-If a section requires substantial detail, create a dedicated Concept article instead.
-
----
-
-# 3. Metadata Requirements
-
-Every Topic article must include:
-
-```yaml
----
-title: Clear topic title using the product area name
-description: High-level summary of the topic area
-keywords: [topic area, major concepts, common customer terminology]
-internalScope: Audience is [target audience]. Covers [topic area] and introduces [major concepts]. Does not cover detailed workflows, setup instructions, or deep dives into individual concepts.
-contentType: topic
-platform: [platform value]
----
-```
-
-Metadata should reflect broad customer search intent.
-
----
-
-# 4. Heading Requirements
-
-Topic article headings should:
-
-* Orient the reader
-* Introduce major concepts
-* Answer broad customer questions
-* Use common customer terminology
+Explain where someone encounters this feature, message, setting, or behavior.
 
 Examples:
 
-* How billing works in Expensify
-* What concepts are included in billing and subscriptions
-* How payment methods differ
-* Which reimbursement option is right for your team
+* Where alerts appear.
+* Where settings are located.
+* Where information is displayed.
+* When the feature becomes visible.
 
-Avoid:
-
-* Step-by-step headings
-* UI navigation headings
-* Excessively generic headings
-* Deep-dive conceptual explanations
+If there are multiple locations, explain each briefly.
 
 ---
 
-# 5. Content Requirements
+## What [topic] means
 
-Topic articles should move from broad understanding to deeper exploration.
+Explain the different states, messages, behaviors, or variations someone may encounter.
 
-Recommended structure:
+Use bullet lists when appropriate.
 
-1. Introduce the topic area
-2. Explain how the area works at a high level
-3. Introduce major concepts
-4. Compare options where relevant
-5. Answer common high-level questions
-6. Link to Concept and Task articles
-
-Each concept summary should:
-
-* Define the concept
-* Explain when customers encounter it
-* Explain why it matters
-* Link to a dedicated article for deeper information
-
-Concept summaries should be informative but not exhaustive.
-
-## Topic Area Mapping
-
-Topic articles should include a section that explicitly identifies the major concepts within the topic area.
-
-This section should:
-
-- Introduce the major concepts
-- Explain how they relate to one another
-- Help readers identify which concept or task article to read next
-
-The purpose of this section is orientation, not deep explanation.
-
-Example:
-
-Billing and subscriptions includes:
-
-- Subscription plans
-- Billing ownership
-- Annual commitments
-- Expensify Card pricing benefits
-
-Each concept should link to more detailed Concept or Task articles where appropriate.
-
-## Topic Article Depth
-
-Topic articles introduce concepts but do not fully explain them.
-
-For each concept:
-
-- Explain what it is
-- Explain why it matters
-- Explain when customers encounter it
-
-Keep explanations brief and focused.
-
-A reader should understand the concept well enough to determine whether they need additional information, but should still rely on linked Concept or Task articles for complete details.
-
-When deciding between adding detail and linking to a dedicated article, prefer linking.
+Focus on helping the reader interpret what they're seeing—not how to resolve it.
 
 ---
 
-# 6. Retrieval Optimization
+## What happens after [topic] occurs
 
-Topic articles should be optimized for broad discovery.
+Explain the resulting system behavior.
 
-Include:
+Examples:
 
-* Common customer terminology
-* Synonyms customers may search for
-* High-level explanations
-* Relationships between concepts
+* What remains visible.
+* What changes automatically.
+* What requires action.
+* When the state returns to normal.
 
-Topic articles should answer questions such as:
-
-* What does this area of Expensify do?
-* What options are available?
-* Which concept applies to my situation?
-* Where should I learn more?
-
-Each major concept should contain enough information to be useful if retrieved independently.
+Keep this focused on outcomes rather than procedures.
 
 ---
 
-# 7. Cross-Linking
+## Related articles
 
-Cross-linking is expected and encouraged.
+Link only to workflows or deeper concepts that naturally extend this topic.
 
-Topic articles should link to:
+Examples:
 
-* Relevant Concept articles
-* Common Task articles
+* Learn how to [complete related task].
+* Learn more about [related concept].
 
-Links should help readers move deeper into the content hierarchy.
-
-Unlike Task articles, Topic articles may contain multiple related links because navigation is one of their primary purposes.
-
----
-
-# 8. Validation Checklist
-
-Before publishing, confirm:
-
-* contentType is topic
-* The article covers a single product area
-* Multiple related concepts are introduced
-* No procedural instructions are included
-* No UI navigation guidance is included
-* Concept summaries explain what, when, and why
-* Links guide readers toward deeper articles
-* Metadata reflects broad search intent
-* The article helps readers understand where to go next
+Limit related articles to essential next steps.
