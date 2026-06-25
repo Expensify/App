@@ -244,15 +244,10 @@ describe('AddAgentPage', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
-        it('navigates to Edit Approval Workflow with the optimistic accountID seed when policyID + workflowApproverEmail are set', () => {
-            // The Edit page seeds approver[0] from the optimistic personal detail keyed by the
-            // optimistic accountID, so we can hop directly to the editor without waiting for
-            // CREATE_AGENT to resolve. The server-echoed `optimisticAgentAccountIDMapping`
-            // (and a prompt-match fallback) reconciles the seed to the real email once the
-            // response lands.
+        it('goes back when policyID is present without navigating to a workflow editor', () => {
             render(
                 <AddAgentPage
-                    route={makeRoute({policyID: 'POL_42', workflowApproverEmail: 'manager@example.com'})}
+                    route={makeRoute({policyID: 'POL_42'})}
                     navigation={undefined as never}
                 />,
             );
@@ -260,8 +255,7 @@ describe('AddAgentPage', () => {
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
             expect(mockGoBack).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('workspaces/POL_42/workflows/approvals/manager%40example.com/edit'));
-            expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('seedApproverAccountID=-123456'));
+            expect(mockNavigate).not.toHaveBeenCalled();
         });
     });
 });

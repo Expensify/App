@@ -63,6 +63,7 @@ function VerifyIdentity() {
                 <InteractiveStepSubHeader
                     startStepIndex={2}
                     stepNames={CONST.WALLET.STEP_NAMES}
+                    currentStepAccessibilityDescription={translate('onfidoStep.verifyIdentity')}
                 />
             </View>
             <FullPageOfflineBlockingView>

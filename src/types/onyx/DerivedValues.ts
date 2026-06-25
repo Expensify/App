@@ -94,15 +94,6 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
- * The derived value for reports grouped by policy ID.
- * Groups reports by their policyID where:
- * - The report has a policyID
- * - The report is owned by the current user
- * - The report state is open or submitted (stateNum <= 1)
- */
-type OpenAndSubmittedReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
-
-/**
  * The derived value for visible report actions.
  */
 type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
@@ -267,6 +258,23 @@ type TodosDerivedValue = {
 };
 
 /**
+ * The derived value for flagged expenses.
+ *
+ * Aggregates transactions on the current user's `OPEN`/`OPEN` expense reports that have
+ * at least one transaction-level violation (excluding `showInReview === false` entries and
+ * `REPORT_VIOLATIONS.FIELD_REQUIRED` entries that may slip into the collection).
+ */
+type FlaggedExpensesDerivedValue = {
+    /** Ordered list of flagged transactions with their parent report IDs */
+    flaggedExpenses: Array<{
+        /** ID of the flagged transaction */
+        transactionID: string;
+        /** ID of the parent expense report */
+        reportID: string;
+    }>;
+};
+
+/**
  * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
  */
 type SortedReportActionsDerivedValue = {
@@ -289,7 +297,6 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
@@ -297,6 +304,7 @@ export type {
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,
+    FlaggedExpensesDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

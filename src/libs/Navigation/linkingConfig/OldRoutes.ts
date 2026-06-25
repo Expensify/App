@@ -1,6 +1,7 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
-    '/settings/*/category/*/edit': '/settings/$1/category/$2/category-edit',
+    '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
+    '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings/edit/$2',
     '/settings/*/tags/new': '/settings/$1/tags/tag-new',
     '/settings/*/tag/*/*/edit': '/settings/$1/tags/tag-settings/$2/$3/tag-edit/$2/$3',
@@ -12,15 +13,23 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/category/*': '/workspaces/$1/categories/category/$2',
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
+    '/r/*/settings': '/r/$1/details/report-settings',
     '/r/*/settings/name': '/r/$1/details/settings/name',
+    '/r/*/participants/invite': '/r/$1/participants/participants-invite',
+    '/r/*/participants/*/role': '/r/$1/participants/participants-details/$2/participants-role',
     '/r/*/title': '/r/$1/title',
     '/r/*/description': '/r/$1/description',
     '/r/*/assignee': '/r/$1/assignee',
+    '/r/*/members': '/r/$1/details/members',
+    '/r/*/members/*': '/r/$1/details/members/room-member-details/$2',
+    '/r/*/invite': '/r/$1/details/room-invite',
     '/r/*/notes/*/edit': '/r/$1/notes-edit/$2',
     '/r/*/notes': '/r/$1/details/notes',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
+    '/workspaces/*/tags/settings': '/workspaces/$1/tags/tags-settings',
+    '/workspaces/*/tags/new': '/workspaces/$1/tags/tag-create',
     '/settings/*/categories/settings': '/settings/$1/categories/manage-settings',
     '/settings/*/categories/new': '/settings/$1/categories/category-create',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
@@ -45,6 +54,8 @@ const oldRoutes: Record<string, string> = {
     '/a/*/avatar': '/avatar/$1',
     '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/home-page': '/home',
+    '/workspace/confirmation/currency': '/workspaces/workspace/confirmation/currency',
+    '/workspace/confirmation': '/workspaces/workspace/confirmation',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
