@@ -90,6 +90,9 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const openSearchRouter = (query?: string, isFromSearchPageSearchButton?: boolean) => {
         pendingRouterQuery = query ?? '';
         pendingIsFromSearchPageSearchButton = isFromSearchPageSearchButton ?? false;
+        if (isBrowserWithHistory) {
+            window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
+        }
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT, {
             name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT,
             op: 'ui.modal.wait',
@@ -98,14 +101,6 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         close(
             () => {
                 endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT);
-                // Push the history entry only after pre-existing modals have finished closing —
-                // some modal close paths (e.g. FeatureTrainingModal with shouldGoBack=true) fire
-                // Navigation.goBack(), which pops history. If we pushState'd before close(),
-                // that pop would consume our entry and the resulting popstate listener would
-                // immediately mark the search router as closed.
-                if (isBrowserWithHistory) {
-                    window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
-                }
                 startListRenderSpan();
                 openSearch(setIsSearchRouterDisplayed);
                 searchRouterDisplayedRef.current = true;
