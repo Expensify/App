@@ -62,7 +62,7 @@ function RilletExistingConnectionsPage({route}: RilletExistingConnectionsPagePro
                 <MenuItem
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
-                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
+                    iconStyles={styles.br2}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_SETUP.getRoute(policyID))}
                 />
