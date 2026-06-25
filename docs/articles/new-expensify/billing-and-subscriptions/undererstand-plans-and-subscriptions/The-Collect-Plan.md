@@ -7,35 +7,33 @@ contentType: topic
 platform: new
 ---
 
-# The Collect plan
+# What is the Collect plan?
 
-The **Collect** plan is designed for individuals and smaller teams that need to collect, approve, reimburse, and account for expenses in one place.
+The **Collect** plan is designed for individuals and smaller teams that need an easy way to collect, approve, reimburse, and account for expenses.
 
-Collect includes the essential tools to manage everyday expenses without the advanced administrative controls available in the Control plan.
+Collect provides the essential tools needed to manage day-to-day expenses without the advanced administrative controls available in the Control plan.
 
 ---
 
-## What the Collect plan includes
+## Who is the Collect plan designed for?
 
-The Collect plan includes core expense management features, including:
+The Collect plan is intended for individuals and smaller organizations that need straightforward expense management.
 
-* Unlimited **SmartScan** receipt scanning
-* The **Expensify Card** with Smart Limits and cash back
+Organizations using Collect can scan receipts, submit and approve expenses, reimburse employees, issue Expensify Cards, and sync expenses with supported accounting software.
+
+---
+
+## What does the Collect plan include?
+
+The Collect plan includes core expense management capabilities such as:
+
+* SmartScan receipt capture
+* The Expensify Card
 * Single-approver expense approvals
-* Unlimited ACH reimbursements
+* ACH reimbursements
 * Accounting integrations with QuickBooks Online and Xero
 
-These features are designed to support day-to-day expense management for individuals and growing teams.
-
----
-
-## How billing works on the Collect plan
-
-The Collect plan uses the **unique member** billing model.
-
-To learn how unique members are counted, see **Understand billing definitions**.
-
-To learn how plans and subscriptions work together to determine billing, see **How your plan and subscription determine your bill**.
+Collect uses the **unique member** billing model. To learn how unique members are defined, see **Understand billing definitions**.
 
 ---
 
@@ -43,12 +41,13 @@ To learn how plans and subscriptions work together to determine billing, see **H
 
 To compare Collect with Control, see **Plan comparison**.
 
-To learn about the Control plan, see **The Control plan**.
+To learn how plans work with subscriptions, see **How your plan and subscription determine your bill**.
 
 ---
 
 ## Related articles
 
-* Learn about **The Control plan**.
-* Compare available plans in **Plan comparison**.
-* Learn how **your plan and subscription determine your bill**.
+* Learn **What is the Control plan?**
+* Learn **How your plan and subscription determine your bill**.
+* Learn **Understand billing definitions**.
+
