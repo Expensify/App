@@ -4190,12 +4190,10 @@ ${amount} para ${merchant} - ${date}`,
             recommended: 'Recomendado',
         },
         taxID: {
-            title: 'Número de identificación fiscal',
-            subtitle: 'Introduce el número de identificación fiscal de tu entidad legal para que podamos configurar la facturación de viajes en tu moneda local.',
-            inputLabel: 'Número de identificación fiscal de la entidad legal',
-            error: {
-                required: 'Introduce el número de identificación fiscal de tu entidad legal.',
-            },
+            title: 'ID fiscal',
+            subtitle: 'Introduce el NIF de tu entidad legal para que podamos configurar la facturación de viajes en tu moneda local.',
+            inputLabel: 'ID fiscal de la entidad jurídica',
+            error: {required: 'Introduce el NIF fiscal de tu entidad legal.'},
         },
         domainPermissionInfo: {
             title: 'Dominio',
