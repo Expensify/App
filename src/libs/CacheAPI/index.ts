@@ -4,6 +4,19 @@ import CONST from '@src/CONST';
 
 type CacheNameType = ValueOf<typeof CONST.CACHE_API_KEYS>;
 
+/**
+ * Build a stable, absolute request key for a cache entry.
+ *
+ * The Cache API treats a string key as a Request, which resolves relative URLs against the current
+ * `document.baseURI`. That base changes with the active route (e.g. an attachment is written from the
+ * report at `/r/<reportID>` but read back from the attachment modal at `/attachment?...`), so a bare
+ * `attachmentID` would resolve to different absolute URLs and `cache.match` would miss. Anchoring the
+ * key to the origin keeps `put`/`match`/`delete` consistent regardless of the route in use.
+ */
+function getRequestKey(key: string): string {
+    return new URL(`/__cache__/${encodeURIComponent(key)}`, window.location.origin).toString();
+}
+
 function init() {
     // Exit early if the Cache API is not supported in the current browser.
     if (!('caches' in window)) {
@@ -22,15 +35,15 @@ function init() {
 }
 
 function put(cacheName: CacheNameType, key: string, value: Response) {
-    return caches.open(cacheName).then((cache) => cache.put(key, value));
+    return caches.open(cacheName).then((cache) => cache.put(getRequestKey(key), value));
 }
 
 function get(cacheName: CacheNameType, key: string) {
-    return caches.open(cacheName).then((cache) => cache.match(key));
+    return caches.open(cacheName).then((cache) => cache.match(getRequestKey(key)));
 }
 
 function remove(cacheName: CacheNameType, key: string) {
-    return caches.open(cacheName).then((cache) => cache.delete(key));
+    return caches.open(cacheName).then((cache) => cache.delete(getRequestKey(key)));
 }
 
 function clear(cacheName?: CacheNameType) {
