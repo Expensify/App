@@ -1,6 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -12,6 +11,7 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +24,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {navigateToCreatedReportInReports} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -37,17 +38,17 @@ import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
-type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
+type DynamicIOURequestStepUpgradePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE>;
 
-function IOURequestStepUpgrade({
+function DynamicIOURequestStepUpgradePage({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, backTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType},
     },
-}: IOURequestStepUpgradeProps) {
+}: DynamicIOURequestStepUpgradePageProps) {
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
@@ -57,6 +58,7 @@ function IOURequestStepUpgrade({
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.path);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -91,22 +93,10 @@ function IOURequestStepUpgrade({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
-    // Build transactions map from selectedTransactions (search results) instead of Onyx TRANSACTION collection
-    // This ensures that transactions selected from search are properly included in the map passed to changeTransactionsReport
-    const allTransactions = useMemo(
-        () =>
-            Object.values(selectedTransactions).reduce(
-                (transactionsCollection, transactionItem) => {
-                    if (transactionItem.transaction) {
-                        // eslint-disable-next-line no-param-reassign
-                        transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction.transactionID}`] = transactionItem.transaction;
-                    }
-                    return transactionsCollection;
-                },
-                {} as NonNullable<OnyxCollection<Transaction>>,
-            ),
-        [selectedTransactions],
-    );
+    // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
+    const transactions = Object.values(selectedTransactions)
+        .map((transactionItem) => transactionItem.transaction)
+        .filter((item): item is Transaction => !!item);
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -150,8 +140,8 @@ function IOURequestStepUpgrade({
                 policy: newPolicy,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
-                allTransactions,
                 policyTagList,
+                transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
             });
@@ -178,13 +168,13 @@ function IOURequestStepUpgrade({
         switch (upgradePath) {
             case CONST.UPGRADE_PATHS.DISTANCE_RATES: {
                 if (!policyID || !reportID) {
-                    Navigation.goBack();
+                    Navigation.goBack(backPath);
                     return;
                 }
 
                 // In case we get here from /:action/track/... route we need to navigate to
                 // /:action/submit/... when shouldSubmitExpense === true as transaction is not selfDM anymore
-                const backToRoute = shouldSubmitExpense ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID) : undefined;
+                const backToRoute = shouldSubmitExpense ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID) : backPath;
 
                 Navigation.goBack(backToRoute, {compareParams: false});
 
@@ -207,28 +197,28 @@ function IOURequestStepUpgrade({
             case CONST.UPGRADE_PATHS.REPORTS:
                 if (action === CONST.IOU.ACTION.CREATE && policyID) {
                     const {reportID: newReportID} = createReportForCurrentUser(policyID);
-                    Navigation.goBack();
+                    Navigation.goBack(backPath);
                     // Wait until the upgrade RHP is closed before opening the created report from Reports.
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         navigateToCreatedReportInReports(newReportID);
                     });
                 } else {
-                    Navigation.goBack();
+                    Navigation.goBack(backPath);
                     navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 }
 
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.goBack();
-                navigateWithMicrotask(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                Navigation.goBack(backPath);
+                navigateWithMicrotask(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID), backPath));
 
                 break;
             default:
-                Navigation.goBack();
+                Navigation.goBack(backPath);
         }
     }, [
         action,
-        backTo,
+        backPath,
         navigateWithMicrotask,
         reportID,
         shouldSubmitExpense,
@@ -244,7 +234,7 @@ function IOURequestStepUpgrade({
         session?.accountID,
         session?.email,
         ownerPersonalDetails,
-        allTransactions,
+        transactions,
         betas,
         iouType,
         isTrack,
@@ -334,7 +324,7 @@ function IOURequestStepUpgrade({
             {(!!isUpgraded || !showConfirmationForm) && (
                 <HeaderWithBackButton
                     title={translate('common.upgrade')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
             )}
             {!showConfirmationForm && (
@@ -382,4 +372,4 @@ function IOURequestStepUpgrade({
     );
 }
 
-export default IOURequestStepUpgrade;
+export default DynamicIOURequestStepUpgradePage;
