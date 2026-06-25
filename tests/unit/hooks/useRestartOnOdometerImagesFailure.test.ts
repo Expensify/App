@@ -24,7 +24,10 @@ const mockClear = jest.fn<void, unknown[]>();
 jest.mock('@libs/actions/OdometerTransactionUtils', () => ({
     __esModule: true,
     default: (...args: unknown[]) => mockClear(...args),
-    hydrateOdometerDraftIntoTransaction: (...args: unknown[]) => mockHydrate(...args),
+    hydrateOdometerDraftIntoTransaction: (...args: unknown[]) => {
+        mockHydrate(...args);
+        return Promise.resolve();
+    },
 }));
 
 const mockNavigateToStartMoneyRequestStep = jest.fn<void, unknown[]>();
