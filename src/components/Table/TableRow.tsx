@@ -175,7 +175,6 @@ export default function TableRow({
 
         onPress?.();
     };
-    if (isDisabled || isSelectionDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive) {
 
     const handleRowLongPress = () => {
         if (isDisabled || isSelectionDisabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive) {
