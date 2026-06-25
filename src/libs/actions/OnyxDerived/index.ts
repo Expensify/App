@@ -61,23 +61,15 @@ function init() {
                 sourceValues: undefined,
             };
 
-            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
-                // If this recompute was triggered by a connection callback, check if it initializes the connection
-                if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
-                    checkAndMarkConnectionInitialized(triggeredByIndex);
-                }
+            // Coalesce per-dependency recomputes from one logical change into a single compute on the
+            // next macrotask. setTimeout(0), not queueMicrotask: Onyx spreads an update's broadcasts
+            // across microtasks, so a microtask flush would split the batch.
+            let flushScheduled = false;
+            let pendingSourceValues: Record<string, unknown> | undefined;
 
-                // Before all connections are established, don't write to Onyx.
-                // This prevents overwriting a valid disk-cached value with empty defaults,
-                // and avoids N-1 unnecessary Onyx writes during initialization.
-                // We still update dependencyValues via setDependencyValue so data accumulates correctly.
-                if (!areAllConnectionsSet) {
-                    Log.info(`[OnyxDerived] not all connections set for ${key}, deferring Onyx write`);
-                    return;
-                }
-
+            const runCompute = (sourceValues: Record<string, unknown> | undefined) => {
                 context.currentValue = derivedValue;
-                context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
+                context.sourceValues = sourceValues as typeof context.sourceValues;
 
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
                 startSpan(spanId, {
@@ -96,6 +88,52 @@ function init() {
                 } finally {
                     endSpan(spanId);
                 }
+            };
+
+            const flushRecompute = () => {
+                flushScheduled = false;
+                const sourceValues = pendingSourceValues;
+                pendingSourceValues = undefined;
+                runCompute(sourceValues);
+            };
+
+            const accumulateSourceValue = (sourceKey?: string, sourceValue?: unknown) => {
+                // A trigger with no partial value (e.g. a cleared scalar dep) carries no incremental delta —
+                // the compute reads such state live. Skip it; the flush still runs.
+                if (sourceKey === undefined || sourceValue === undefined) {
+                    return;
+                }
+                pendingSourceValues ??= {};
+                const existing = pendingSourceValues[sourceKey];
+                // Collection sourceValues are partial — merge members so a window doesn't drop changed keys.
+                if (existing && typeof existing === 'object' && typeof sourceValue === 'object') {
+                    pendingSourceValues[sourceKey] = {...existing, ...sourceValue};
+                } else {
+                    pendingSourceValues[sourceKey] = sourceValue;
+                }
+            };
+
+            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
+                // If this recompute was triggered by a connection callback, check if it initializes the connection
+                if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
+                    checkAndMarkConnectionInitialized(triggeredByIndex);
+                }
+
+                // Before all connections are established, don't write to Onyx.
+                // This prevents overwriting a valid disk-cached value with empty defaults,
+                // and avoids N-1 unnecessary Onyx writes during initialization.
+                // We still update dependencyValues via setDependencyValue so data accumulates correctly.
+                if (!areAllConnectionsSet) {
+                    Log.info(`[OnyxDerived] not all connections set for ${key}, deferring Onyx write`);
+                    return;
+                }
+
+                accumulateSourceValue(sourceKey, sourceValue);
+                if (flushScheduled) {
+                    return;
+                }
+                flushScheduled = true;
+                setTimeout(flushRecompute, 0);
             };
 
             for (let i = 0; i < dependencies.length; i++) {
