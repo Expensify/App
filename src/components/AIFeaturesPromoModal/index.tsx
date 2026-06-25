@@ -1,8 +1,8 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
+import type {FeatureTrainingContentDataProps} from '@components/FeatureTrainingContent';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import type {FeatureTrainingModalPageProps} from '@components/FeatureTrainingModal';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -31,7 +31,7 @@ function AIFeaturesPromoModal() {
         </View>
     );
 
-    const pages: FeatureTrainingModalPageProps[] = [
+    const pages: FeatureTrainingContentDataProps[] = [
         {
             animation: LottieAnimations.SpendAnalysis,
             title: translate('aiFeaturesPromoModal.spendAnalysis.title'),

@@ -13,8 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import FeatureTrainingModalContent from './FeatureTrainingContentBody';
+import FeatureTrainingContentBodyText from './FeatureTrainingContentBodyText';
 import FeatureTrainingModalIllustration from './FeatureTrainingContentIllustration';
-import FeatureTrainingModalTextContent from './FeatureTrainingModalTextContent';
 import type {BaseFeatureTrainingModalProps, FeatureTrainingModalCarouselProps, FeatureTrainingModalPageProps} from './index';
 
 // A page is considered "viewable" — and `currentPage` updates — only once it occupies at least
@@ -71,7 +71,7 @@ type FeatureTrainingModalCarouselBodyProps = Pick<
         onPageChange?: (index: number) => void;
     };
 
-function FeatureTrainingModalCarouselBody({
+function FeatureTrainingCarousel({
     pages,
     modalPadding,
     width = variables.featureTrainingModalWidth,
@@ -204,7 +204,7 @@ function FeatureTrainingModalCarouselBody({
                             key={`FeatureTrainingModalCarousel-probe-${index}`}
                             style={styles.mh5}
                         >
-                            <FeatureTrainingModalTextContent
+                            <FeatureTrainingContentBodyText
                                 title={page.title}
                                 subtitle={page.subtitle}
                                 description={page.description}
@@ -309,4 +309,4 @@ function FeatureTrainingModalCarouselBody({
     );
 }
 
-export default FeatureTrainingModalCarouselBody;
+export default FeatureTrainingCarousel;

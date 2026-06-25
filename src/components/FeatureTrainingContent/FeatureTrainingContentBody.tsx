@@ -6,7 +6,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import OfflineIndicator from '@components/OfflineIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import FeatureTrainingModalTextContent from './FeatureTrainingModalTextContent';
+import FeatureTrainingContentBodyText from './FeatureTrainingContentBodyText';
 import type {FeatureTrainingContentBodyProps as BaseFeatureTrainingContentBodyProps, BaseFeatureTrainingContentProps} from './types';
 
 type FeatureTrainingModalContentProps = Pick<
@@ -68,7 +68,7 @@ function FeatureTrainingContentBody({
 
     return (
         <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
-            <FeatureTrainingModalTextContent
+            <FeatureTrainingContentBodyText
                 title={title}
                 subtitle={subtitle}
                 description={description}
@@ -78,7 +78,7 @@ function FeatureTrainingContentBody({
                 shouldRenderHTMLDescription={shouldRenderHTMLDescription}
             >
                 {children}
-            </FeatureTrainingModalTextContent>
+            </FeatureTrainingContentBodyText>
             {shouldShowDismissModalOption && (
                 <CheckboxWithLabel
                     label={translate('featureTraining.doNotShowAgain')}

@@ -35,7 +35,7 @@ type FeatureTrainingModalTextContentProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function FeatureTrainingModalTextContent({
+function FeatureTrainingContentBodyText({
     title = '',
     subtitle = '',
     description = '',
@@ -73,4 +73,4 @@ function FeatureTrainingModalTextContent({
     );
 }
 
-export default FeatureTrainingModalTextContent;
+export default FeatureTrainingContentBodyText;
