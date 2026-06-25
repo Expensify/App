@@ -6,8 +6,11 @@ type GrowlAction = {
     onPress: () => void;
 };
 
+/** The set of growl variants the notification UI knows how to render. */
+type GrowlType = typeof CONST.GROWL.SUCCESS | typeof CONST.GROWL.ERROR | typeof CONST.GROWL.WARNING | typeof CONST.GROWL.LOADING;
+
 type GrowlRef = {
-    show?: (bodyText: string, type: string, duration: number, action?: GrowlAction) => void;
+    show?: (bodyText: string, type: GrowlType, duration: number, action?: GrowlAction) => void;
 };
 
 const growlRef = React.createRef<GrowlRef>();
@@ -26,7 +29,7 @@ function setIsReady() {
 /**
  * Show the growl notification
  */
-function show(bodyText: string, type: string, duration: number = CONST.GROWL.DURATION, action?: GrowlAction) {
+function show(bodyText: string, type: GrowlType, duration: number = CONST.GROWL.DURATION, action?: GrowlAction) {
     isReadyPromise.then(() => {
         if (!growlRef?.current?.show) {
             return;
@@ -63,6 +66,6 @@ export default {
     loading,
 };
 
-export type {GrowlRef, GrowlAction};
+export type {GrowlRef, GrowlAction, GrowlType};
 
 export {growlRef, setIsReady};

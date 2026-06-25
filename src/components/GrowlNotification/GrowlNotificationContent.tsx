@@ -12,7 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {GrowlAction} from '@libs/Growl';
+import type {GrowlAction, GrowlType} from '@libs/Growl';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
@@ -27,7 +27,7 @@ const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
 type GrowlNotificationContentProps = {
     bodyText: string;
-    type: string;
+    type: GrowlType;
     duration: number;
     action?: GrowlAction;
     onDismissed: () => void;
@@ -58,8 +58,10 @@ function GrowlNotificationContent({bodyText, type, duration, action, onDismissed
     const useBottomPosition = !!action && !shouldUseNarrowLayout;
     const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
 
+    // Every non-loading growl variant must have an icon mapping. Loading is rendered separately
+    // (ActivityIndicator), so it's excluded here — keeping this map exhaustive over the rest.
     type GrowlIconTypes = Record<
-        string,
+        Exclude<GrowlType, typeof CONST.GROWL.LOADING>,
         {
             icon: React.FC<SvgProps> | IconAsset;
             iconColor: string;

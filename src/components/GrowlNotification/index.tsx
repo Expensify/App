@@ -1,12 +1,12 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {setIsReady} from '@libs/Growl';
-import type {GrowlAction, GrowlRef} from '@libs/Growl';
+import type {GrowlAction, GrowlRef, GrowlType} from '@libs/Growl';
 import GrowlNotificationContent from './GrowlNotificationContent';
 
 type GrowlContent = {
     bodyText: string;
-    type: string;
+    type: GrowlType;
     duration: number;
     action?: GrowlAction;
 };
@@ -24,7 +24,7 @@ type GrowlNotificationProps = {
 function GrowlNotification({ref}: GrowlNotificationProps) {
     const [content, setContent] = useState<GrowlContent | null>(null);
 
-    const show = useCallback((text: string, growlType: string, duration: number, action?: GrowlAction) => {
+    const show = useCallback((text: string, growlType: GrowlType, duration: number, action?: GrowlAction) => {
         setContent({bodyText: text, type: growlType, duration, action});
     }, []);
 
