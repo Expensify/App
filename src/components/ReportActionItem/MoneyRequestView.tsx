@@ -74,6 +74,7 @@ import {
     hasVendorFeature,
     isAttendeeTrackingEnabled,
     isGroupPolicyByType,
+    isMatchingVendorListLoaded,
     isMultiLevelTags,
     isPolicyAccessible,
     isTaxTrackingEnabled,
@@ -483,7 +484,9 @@ function MoneyRequestView({
     // deleted in the connected accounting system), keep the audit trail visible by showing the inactive-vendor
     // copy. The transaction's `comment.vendor` object is preserved — only the rendered name falls back.
     // The matching out-of-policy violation (CONST.VIOLATIONS.INACTIVE_VENDOR) fires from ViolationsUtils.
-    const transactionVendorName = matchedVendor?.name ?? (transactionVendor?.externalID ? translate('violations.inactiveVendor') : '');
+    // Gated on `isMatchingVendorListLoaded` so a still-hydrating Onyx state — where the vendor list is
+    // undefined rather than empty — doesn't render every saved vendor as stale before sync arrives.
+    const transactionVendorName = matchedVendor?.name ?? (transactionVendor?.externalID && isMatchingVendorListLoaded(policy) ? translate('violations.inactiveVendor') : '');
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);

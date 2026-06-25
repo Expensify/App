@@ -2119,6 +2119,25 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
 }
 
 /**
+ * True only when the active vendor-matching integration's vendor list has been written to Onyx —
+ * including the loaded-but-empty case. Lets callers distinguish "vendor not in list" (the
+ * inactive-vendor case) from "vendor list hasn't synced yet" (a transient render before Onyx
+ * hydrates), so the inactive-vendor copy isn't shown against an unloaded list.
+ */
+function isMatchingVendorListLoaded(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+    if (isQBOVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO]?.data?.vendors !== undefined;
+    }
+    if (isIntacctVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.data?.vendors !== undefined;
+    }
+    return false;
+}
+
+/**
  * Look up a single matching vendor by `externalID`, scoped to the active vendor-matching
  * integration. Returns undefined when the ID isn't found in the active list (the inactive-vendor
  * violation case — see `getViolationsOnyxData`).
@@ -2577,6 +2596,7 @@ export {
     getMatchingVendorByID,
     getMatchingVendors,
     hasVendorFeature,
+    isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
