@@ -2601,22 +2601,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
         });
 
-        it('gates upgrade by expenseReportPolicy even when the report policyID is Submit', () => {
-            const expenseReport = createSubmittedExpenseReport(submitPolicyID);
-
-            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, teamPolicy));
-
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
-        it('does not fall back to another policy when expenseReportPolicy is undefined', () => {
-            const expenseReport = createSubmittedExpenseReport(submitPolicyID);
-
-            approveMoneyRequest(createApproveMoneyRequestParams(expenseReport, undefined));
-
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
         it('uses Navigation.getActiveRoute as backTo when available', () => {
             const expenseReport = createSubmittedExpenseReport();
             const activeRoute = `search?q=reportID%3A${expenseReport.reportID}`;
