@@ -3,10 +3,10 @@ import type {PropsWithChildren} from 'react';
 import {View} from 'react-native-web';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useTableContext} from '@components/Table/TableContext';
-import TableSearchBar from '@components/Table/TableSearchBar';
 import useThemeStyles from '@hooks/useThemeStyles';
 import TableFilterPopoverComponent from './TableFilterPopoverComponent';
 import TableFilterTrigger from './TableFilterTrigger';
+import TableSearchBar from './TableSearchBar';
 
 type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */

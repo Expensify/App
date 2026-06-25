@@ -39,7 +39,6 @@ import TableContext from './TableContext';
 import TableFilterBar from './TableFilterBar';
 import TableHeader from './TableHeader';
 import TableRow from './TableRow';
-import TableSearchBar from './TableSearchBar';
 
 /**
  * Table compound component with attached sub-components.
@@ -59,9 +58,6 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders data rows using FlashList. */
     Body: TableBody,
-
-    /** Renders a search input. */
-    SearchBar: TableSearchBar,
 
     /** Renders a row in the table */
     Row: TableRow,

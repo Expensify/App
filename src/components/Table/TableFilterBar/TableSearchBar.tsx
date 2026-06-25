@@ -1,11 +1,11 @@
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {useTableContext} from '@components/Table/TableContext';
 import TextInput from '@components/TextInput';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useTableContext} from './TableContext';
 
 /**
  * Renders a search input that filters table data.
@@ -19,6 +19,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef>(null);
+    const [inputFocused, setInputFocused] = useState(false);
 
     const {
         activeSearchString,
@@ -43,7 +44,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
     }, []);
 
     const containerStyles = shouldUseNarrowTableLayout && styles.flex1;
-    const textInputContainerStyles = [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2];
+    const textInputContainerStyles = [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2, inputFocused && styles.borderColorFocus];
     const touchableInputWrapperStyle = [styles.mnw200, !shouldUseNarrowTableLayout ? styles.h8 : styles.h11];
 
     return (
@@ -62,6 +63,8 @@ function TableSearchBar({label}: TableSearchBarProps) {
             containerStyles={containerStyles}
             textInputContainerStyles={textInputContainerStyles}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
+            onBlur={() => setInputFocused(false)}
+            onFocus={() => setInputFocused(true)}
             onChangeText={(text) => updateSearchString(text)}
         />
     );
