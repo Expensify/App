@@ -519,7 +519,7 @@ describe('MoneyRequestView edit fields', () => {
         await setupTestData();
         await act(async () => {
             // Vendor matching is gated on a workspace beta + an integration that scopes the vendor field.
-            await Onyx.merge(ONYXKEYS.NVP_BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
