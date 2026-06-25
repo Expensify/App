@@ -1,5 +1,4 @@
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
+import React, {useCallback, useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,6 +24,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isMoneyRequest = isMoneyRequestReport(report);
     const currentNotificationPreference = getReportNotificationPreference(report);
+    const [selectedNotificationPreference, setSelectedNotificationPreference] = useState(currentNotificationPreference);
     const shouldDisableNotificationPreferences =
         isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || (!isMoneyRequest && isHiddenForCurrentUser(currentNotificationPreference));
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
@@ -33,7 +33,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
             value: preference,
             text: translate(`notificationPreferencesPage.notificationPreferences.${preference}`),
             keyForList: preference,
-            isSelected: preference === currentNotificationPreference,
+            isSelected: preference === selectedNotificationPreference,
         }));
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path);
 
@@ -41,12 +41,18 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
         Navigation.goBack(backPath);
     }, [backPath]);
 
-    const updateNotificationPreferenceForReportAction = useCallback(
-        (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
-            updateNotificationPreference(report.reportID, currentNotificationPreference, value, currentUserAccountID, undefined, undefined);
-            goBack();
-        },
-        [report.reportID, currentNotificationPreference, currentUserAccountID, goBack],
+    const saveNotificationPreference = useCallback(() => {
+        updateNotificationPreference(report.reportID, currentNotificationPreference, selectedNotificationPreference, currentUserAccountID, undefined, undefined);
+        goBack();
+    }, [report.reportID, currentNotificationPreference, selectedNotificationPreference, currentUserAccountID, goBack]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveNotificationPreference,
+        }),
+        [saveNotificationPreference, translate],
     );
 
     return (
@@ -62,9 +68,10 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
                 <SelectionList
                     data={notificationPreferenceOptions}
                     ListItem={SingleSelectListItem}
-                    onSelectRow={(option) => updateNotificationPreferenceForReportAction(option.value)}
+                    onSelectRow={(option) => setSelectedNotificationPreference(option.value)}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={currentNotificationPreference}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
