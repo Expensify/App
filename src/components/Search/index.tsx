@@ -215,7 +215,6 @@ function Search({
         showPendingExpensePlaceholder,
         shouldDeferHeavySearchWork,
         setShouldDeferHeavySearchWork,
-        hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
     } = useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions});
@@ -768,8 +767,7 @@ function Search({
                 return;
             }
 
-            // Re-arm pending expense skeleton for subsequent creations while Search
-            // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
+            // Re-arm pending expense skeleton for subsequent creations while Search stays mounted.
             if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
                 rearmTracking();
