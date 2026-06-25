@@ -697,7 +697,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     brickRoadIndicator={bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator}
                                 />
                                 {!!bankConnectionMessage && (
-                                    <View style={[styles.mt2, styles.ml7]}>
+                                    <View style={styles.mt2}>
                                         <ConnectionStatusMessage
                                             message={bankConnectionMessage}
                                             actionText={bankConnectionActionText}
