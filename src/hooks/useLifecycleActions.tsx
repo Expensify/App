@@ -254,36 +254,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             text: shouldShowMarkAsDone({policy, report: moneyRequestReport, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
-            onSelected: () => {
-                if (!moneyRequestReport) {
-                    return;
-                }
-
-                if (hasOnlyPendingCardTransactions(transactions)) {
-                    showPendingCardTransactionsBlockModal(showConfirmModal, translate);
-                    return;
-                }
-
-                confirmPendingRTERAndProceed(() => {
-                    if (isSubmitPolicy(policy)) {
-                        openReportSubmitToPopover();
-                        return;
-                    }
-                    submitReport({
-                        expenseReport: moneyRequestReport,
-                        policy,
-                        currentUserAccountIDParam: accountID,
-                        currentUserEmailParam: email ?? '',
-                        hasViolations,
-                        isASAPSubmitBetaEnabled,
-                        expenseReportCurrentNextStepDeprecated: nextStep,
-                        userBillingGracePeriodEnds,
-                        amountOwed,
-                        ownerBillingGracePeriodEnd,
-                        delegateEmail,
-                    });
-                });
-            },
+            onSelected: () => handleSubmitReport(),
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,

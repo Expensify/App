@@ -167,9 +167,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             }
 
             if (willAlertModalBecomeVisible) {
-                if (options?.onSubmitWithManagerEmail) {
-                    pendingSearchSubmitOpenOptionsRef.current = options;
-                }
+                pendingSearchSubmitOpenOptionsRef.current = options;
                 return;
             }
 

@@ -1,5 +1,6 @@
 import type {RefObject} from 'react';
 import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useReportSubmitToPopover from '@hooks/useReportSubmitToPopover';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
@@ -67,11 +68,15 @@ function useOpenSearchReportSubmitToPopover() {
     );
 }
 
-type ReportSubmitToPopoverAnchorProps = {
+type ReportSubmitToPopoverRootProps = {
     reportID: string | undefined;
     onSubmitSuccess?: () => void;
     children: React.ReactNode;
     anchorAlignment?: AnchorAlignment;
+};
+
+type ReportSubmitToPopoverAnchorProps = ReportSubmitToPopoverRootProps & {
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type ReportSubmitToPopoverHostProps = {
@@ -174,7 +179,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
 }
 
 /** Mounts modal + opens callback; descendants use {@link useOpenReportSubmitToPopover} and {@link ReportSubmitToPopoverMeasurableAnchor}. */
-function ReportSubmitToPopoverRoot({reportID, onSubmitSuccess, anchorAlignment, children}: ReportSubmitToPopoverAnchorProps) {
+function ReportSubmitToPopoverRoot({reportID, onSubmitSuccess, anchorAlignment, children}: ReportSubmitToPopoverRootProps) {
     const host = useContext(ReportSubmitToPopoverHostContext);
 
     if (host) {
@@ -218,7 +223,7 @@ function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID
     );
 }
 
-function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, anchorAlignment, children}: ReportSubmitToPopoverAnchorProps) {
+function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, anchorAlignment, children}: ReportSubmitToPopoverRootProps) {
     const {anchorRef, openReportSubmitToPopover, reportSubmitToPopover, isReportSubmitToPopoverVisible, isReportSubmitToDismissGuardActive, consumeIgnoreNextSearchSubmitPress} =
         useReportSubmitToPopover({
             reportID,
@@ -247,7 +252,7 @@ function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, a
 }
 
 /** Binds submit-to measurements to children only — use under {@link ReportSubmitToPopoverRoot}. */
-function ReportSubmitToPopoverMeasurableAnchor({children}: {children: React.ReactNode}) {
+function ReportSubmitToPopoverMeasurableAnchor({children, wrapperStyle}: {children: React.ReactNode; wrapperStyle?: StyleProp<ViewStyle>}) {
     const anchorRef = useContext(ReportSubmitToPopoverAnchorRefContext);
 
     if (!anchorRef) {
@@ -258,6 +263,7 @@ function ReportSubmitToPopoverMeasurableAnchor({children}: {children: React.Reac
         <View
             ref={anchorRef}
             collapsable={false}
+            style={wrapperStyle}
         >
             {children}
         </View>
@@ -265,14 +271,14 @@ function ReportSubmitToPopoverMeasurableAnchor({children}: {children: React.Reac
 }
 
 /** Wraps submit controls; exposes {@link useOpenReportSubmitToPopover} to descendants and renders the shared submit-to popover. */
-function ReportSubmitToPopoverAnchor({reportID, onSubmitSuccess, anchorAlignment, children}: ReportSubmitToPopoverAnchorProps) {
+function ReportSubmitToPopoverAnchor({reportID, onSubmitSuccess, anchorAlignment, wrapperStyle, children}: ReportSubmitToPopoverAnchorProps) {
     return (
         <ReportSubmitToPopoverRoot
             reportID={reportID}
             onSubmitSuccess={onSubmitSuccess}
             anchorAlignment={anchorAlignment}
         >
-            <ReportSubmitToPopoverMeasurableAnchor>{children}</ReportSubmitToPopoverMeasurableAnchor>
+            <ReportSubmitToPopoverMeasurableAnchor wrapperStyle={wrapperStyle}>{children}</ReportSubmitToPopoverMeasurableAnchor>
         </ReportSubmitToPopoverRoot>
     );
 }
