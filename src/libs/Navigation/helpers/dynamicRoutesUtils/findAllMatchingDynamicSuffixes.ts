@@ -13,6 +13,8 @@ type DynamicSuffixMatch = {
     pathParams: Record<string, string>;
     /** The path to pass to getPathWithoutDynamicSuffix. Equal to the original path unless a trailing tab segment was stripped. */
     pathUsedForMatching: string;
+    /** The tab path segment that was stripped from the URL. Present only when tryStripTabSuffix removed a trailing tab segment. */
+    strippedTabPath?: string;
 };
 
 type RawSuffixMatch = Omit<DynamicSuffixMatch, 'pathUsedForMatching'>;
@@ -136,7 +138,7 @@ function findAllMatchingDynamicSuffixes(path = ''): DynamicSuffixMatch[] {
         const tabMatches = matches.filter((match) => dynamicTabPatternToTabPaths.get(match.pattern)?.has(lastSegment));
         if (tabMatches.length > 0) {
             const fullPathWithoutTab = query ? `${pathWithoutTab}?${query}` : pathWithoutTab;
-            return tabMatches.map((match) => ({...match, pathUsedForMatching: fullPathWithoutTab}));
+            return tabMatches.map((match) => ({...match, pathUsedForMatching: fullPathWithoutTab, strippedTabPath: lastSegment}));
         }
     }
 

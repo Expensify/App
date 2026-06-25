@@ -263,6 +263,7 @@ describe('findAllMatchingDynamicSuffixes - tab-suffix stripping', () => {
             actualSuffix: 'flag/456/abc',
             pathParams: {reportID: '456', reportActionID: 'abc'},
             pathUsedForMatching: '/base/flag/456/abc',
+            strippedTabPath: 'AllTab',
         });
     });
 
