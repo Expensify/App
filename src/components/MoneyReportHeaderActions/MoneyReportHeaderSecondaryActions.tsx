@@ -320,7 +320,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onRejectModalOpen: openRejectModal,
     });
 
-    const {exportActionEntries} = useExportActions({
+    const {exportActionEntries, exportDownloadStatusModal} = useExportActions({
         reportID,
         policy,
         onPDFModalOpen: openPDFDownload,
@@ -409,21 +409,24 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     };
 
     if (!applicableSecondaryActions.length) {
-        return null;
+        return exportDownloadStatusModal;
     }
 
     return (
-        <MoneyReportHeaderKYCDropdown
-            chatReportID={chatReport?.reportID}
-            iouReport={moneyRequestReport}
-            onPaymentSelect={onPaymentSelect}
-            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-            primaryAction={primaryAction}
-            applicableSecondaryActions={applicableSecondaryActions}
-            dropdownMenuRef={dropdownMenuRef}
-            onOptionsMenuHide={handleOptionsMenuHide}
-            ref={kycWallRef}
-        />
+        <>
+            {exportDownloadStatusModal}
+            <MoneyReportHeaderKYCDropdown
+                chatReportID={chatReport?.reportID}
+                iouReport={moneyRequestReport}
+                onPaymentSelect={onPaymentSelect}
+                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                primaryAction={primaryAction}
+                applicableSecondaryActions={applicableSecondaryActions}
+                dropdownMenuRef={dropdownMenuRef}
+                onOptionsMenuHide={handleOptionsMenuHide}
+                ref={kycWallRef}
+            />
+        </>
     );
 }
 

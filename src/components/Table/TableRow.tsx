@@ -30,9 +30,6 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** The index of the row in the table */
     rowIndex: number;
 
-    /** Whether or not the row should animate in highlighted */
-    shouldAnimateInHighlight?: boolean;
-
     /** Attributes for when the client is offline and there is an error related to the table row */
     offlineWithFeedback?: OfflineWithFeedbackProps;
 
@@ -40,19 +37,7 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     checkboxReplacementElement?: React.ReactNode;
 };
 
-export default function TableRow({
-    children,
-    accessible,
-    rowIndex,
-    disabled,
-    sentryLabel,
-    interactive,
-    shouldAnimateInHighlight,
-    onPress,
-    offlineWithFeedback,
-    checkboxReplacementElement,
-    ...props
-}: TableRowProps) {
+export default function TableRow({children, accessible, rowIndex, disabled, sentryLabel, interactive, onPress, offlineWithFeedback, checkboxReplacementElement, ...props}: TableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -73,7 +58,7 @@ export default function TableRow({
     }
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: !!shouldAnimateInHighlight,
+        shouldHighlight: !!item?.shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.transparent,
     });
@@ -144,20 +129,22 @@ export default function TableRow({
             return;
         }
 
-        if (shouldUseNarrowLayout && isMobileSelectionEnabled && selectionEnabled) {
-            if (item.disabled) {
-                return;
-            }
-
-            handleCheckboxPress(event);
+        if (!shouldUseNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+            onPress?.();
             return;
         }
 
-        onPress?.();
+        if (item.disabled) {
+            return;
+        }
+
+        if (!item.isSelectionDisabled) {
+            handleCheckboxPress(event);
+        }
     };
 
     const handleRowLongPress = () => {
-        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive) {
+        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldUseNarrowLayout || !interactive || item.isSelectionDisabled) {
             return;
         }
 
@@ -211,8 +198,8 @@ export default function TableRow({
                                         shouldStopMouseDownPropagation
                                         containerStyle={styles.m0}
                                         style={styles.flex1}
-                                        disabled={item.disabled}
                                         isChecked={!!item.selected}
+                                        disabled={!!item.disabled || !!item.isSelectionDisabled}
                                         accessibilityLabel={translate('common.select')}
                                         onPress={(event) => handleCheckboxPress(event)}
                                     />
