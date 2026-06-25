@@ -52,7 +52,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         hasCachedReportActions,
     });
 
-    useMarkOpenReportEndOnSkeleton(report, shouldShowInitialSkeleton);
+    useMarkOpenReportEndOnSkeleton(report, !hasShownContent && shouldShowInitialSkeleton);
 
     if (!hasShownContent && shouldShowLoadingSkeleton) {
         return <ReportActionsSkeletonView />;
