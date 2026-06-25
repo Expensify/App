@@ -126,4 +126,4 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
 }
 
 export default useFiltering;
-export type {FilteringMethods, FilterConfig, FilterConfigEntry, IsItemInFilterCallback};
+export type {FilteringMethods, FilterConfig, IsItemInFilterCallback};
