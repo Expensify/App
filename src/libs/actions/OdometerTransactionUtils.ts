@@ -205,12 +205,12 @@ function buildOdometerCommentFromDraft(transactionID: string, odometerDraft: Ony
  * odometer tab) so blob URLs can be re-minted from the persisted base64 after a page refresh.
  * Returns silently when the draft is empty or the comment already reflects it.
  */
-function hydrateOdometerDraftIntoTransaction(transactionID: string, odometerDraft: OnyxEntry<OdometerDraft>, currentComment?: Partial<Comment>): void {
+function hydrateOdometerDraftIntoTransaction(transactionID: string, odometerDraft: OnyxEntry<OdometerDraft>, currentComment?: Partial<Comment>): Promise<void> {
     const update = buildOdometerCommentFromDraft(transactionID, odometerDraft, currentComment);
     if (!update) {
-        return;
+        return Promise.resolve();
     }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: update});
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: update});
 }
 
 /**
