@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
+import type {Beta, IntroSelected, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {createTransactionThreadReport} from './actions/Report';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportOrDraftReport} from './ReportUtils';
@@ -14,11 +14,14 @@ type TransactionThreadNavigationDescriptor = {
     /** The expense's parent report ID */
     reportID: string;
 
-    /** The transaction thread report resolved from the snapshot's IOU action, when already known */
-    threadReportID?: string;
-
     /** The full transaction */
     transaction: Transaction;
+
+    /** The expense's parent IOU report action, from the Search snapshot */
+    reportAction?: ReportAction;
+
+    /** The expense's parent report, from the Search snapshot */
+    report?: Report;
 };
 
 /** Context needed to create a transaction thread on demand when one doesn't exist yet. */
@@ -36,23 +39,25 @@ type ResolveReportContext = {
  * for expenses the user hasn't navigated to.
  */
 function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescriptor, context: ResolveReportContext): string {
-    const {transaction, reportID, threadReportID} = expense;
+    const {transaction, reportID} = expense;
     const isUnreported = isExpenseUnreported(transaction);
 
     // Unreported (tracked) expenses live in the self-DM; their transaction thread (resolved from the
     // snapshot) is the expense view to open, since report "0" does not exist.
     if (isUnreported) {
-        return threadReportID ?? reportID;
+        return expense.reportAction?.childReportID ?? reportID;
     }
 
     // Prefer the transaction thread resolved from the Search snapshot. The main reportActions_ collection
     // may be empty (e.g. right after clearing Onyx) so getIOUActionForReportID can fail and incorrectly
     // fall back to the whole parent expense report; the snapshot already carries the correct childReportID.
-    if (threadReportID) {
-        return threadReportID;
+    if (expense.reportAction?.childReportID) {
+        return expense.reportAction.childReportID;
     }
 
-    const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
+    // Prefer the live action from the main collection (it may carry a newer childReportID), fall back to the
+    // snapshot action carried on the descriptor so a snapshot-only expense can still resolve/create its thread.
+    const iouAction = getIOUActionForReportID(reportID, transaction.transactionID) ?? expense.reportAction;
     if (!iouAction) {
         return reportID;
     }
@@ -65,7 +70,7 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
         betas: context.betas,
-        iouReport: getReportOrDraftReport(reportID),
+        iouReport: getReportOrDraftReport(reportID) ?? expense.report,
         iouReportAction: iouAction,
         transaction,
     });

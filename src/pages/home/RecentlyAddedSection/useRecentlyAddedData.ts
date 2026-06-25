@@ -31,15 +31,14 @@ type RecentlyAddedExpense = {
     /** The expense currency */
     currency: string;
 
-    /**
-     * The transaction thread report to open for this expense, resolved from the snapshot's IOU action.
-     * Needed for unreported (tracked) expenses, whose thread lives in the self-DM and is absent from the
-     * main Onyx collection.
-     */
-    threadReportID?: string;
-
     /** The full transaction, used to render the receipt thumbnail */
     transaction: Transaction;
+
+    /** The expense's parent IOU report action, from the snapshot */
+    reportAction?: ReportAction;
+
+    /** The expense's parent report, from the snapshot */
+    report?: Report;
 };
 
 /**
@@ -113,7 +112,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             return [];
         }
 
-        const reportOwnerByReportID = new Map<string, number | undefined>();
+        const reportsByReportID = new Map<string, Report>();
         const snapshotTransactions: Transaction[] = [];
         const snapshotReportActions: ReportAction[] = [];
         // Snapshot data is a keyed record where the key prefix determines the value type.
@@ -127,7 +126,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const report = value as Report;
                 if (report?.reportID) {
-                    reportOwnerByReportID.set(report.reportID, report.ownerAccountID);
+                    reportsByReportID.set(report.reportID, report);
                 }
                 continue;
             }
@@ -145,7 +144,7 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
             if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return true;
             }
-            const ownerAccountID = reportOwnerByReportID.get(transaction.reportID);
+            const ownerAccountID = reportsByReportID.get(transaction.reportID)?.ownerAccountID;
             return ownerAccountID === undefined || ownerAccountID === accountID;
         });
 
@@ -171,7 +170,8 @@ function useRecentlyAddedData(): {transactions: RecentlyAddedExpense[]} {
                 merchant: getMerchant(transaction),
                 amount: getAmount(transaction),
                 currency: getCurrency(transaction),
-                threadReportID: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID)?.childReportID,
+                reportAction: getIOUActionForTransactionID(snapshotReportActions, transaction.transactionID),
+                report: reportsByReportID.get(transaction.reportID),
                 transaction,
             }));
     }, [snapshotData, accountID, insertedByTransactionID]);
