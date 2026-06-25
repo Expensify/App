@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import createRandomPolicy from '../../utils/collections/policies';
 
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({
@@ -42,6 +43,30 @@ function createManualTransaction(participants: Participant[], overrides: Partial
         participants,
         ...overrides,
     });
+}
+
+function createPolicyWithDateBoundDistanceRate(): OnyxTypes.Policy {
+    return {
+        ...createRandomPolicy(1),
+        id: 'policy1',
+        customUnits: {
+            unitId: {
+                customUnitID: 'unitId',
+                attributes: {unit: 'mi'},
+                enabled: true,
+                name: 'Distance',
+                rates: {
+                    rate1: {
+                        customUnitRateID: 'rate1',
+                        enabled: true,
+                        rate: 65.5,
+                        startDate: '2025-01-01',
+                        endDate: '2025-12-31',
+                    },
+                },
+            },
+        },
+    };
 }
 
 const baseParams = {
@@ -180,32 +205,11 @@ describe('useConfirmationValidation', () => {
     });
 
     it('does not block confirmation when the selected distance rate does not match the expense date', () => {
-        const policy = {
-            id: 'policy1',
-            customUnits: {
-                unitId: {
-                    customUnitID: 'unitId',
-                    attributes: {unit: 'mi'},
-                    enabled: true,
-                    name: 'Distance',
-                    rates: {
-                        rate1: {
-                            customUnitRateID: 'rate1',
-                            enabled: true,
-                            rate: 65.5,
-                            startDate: '2025-01-01',
-                            endDate: '2025-12-31',
-                        },
-                    },
-                },
-            },
-        } as unknown as OnyxTypes.Policy;
-
         const {result} = renderHook(() =>
             useConfirmationValidation({
                 ...baseParams,
                 isDistanceRequest: true,
-                policy,
+                policy: createPolicyWithDateBoundDistanceRate(),
                 transaction: createTransactionBase({
                     amount: 1000,
                     created: '2026-06-15',
