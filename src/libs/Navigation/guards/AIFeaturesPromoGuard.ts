@@ -157,6 +157,7 @@ Onyx.connectWithoutView({
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed(CONST.MIGRATED_USER_WELCOME_MODAL, value)) {
             observedActiveMigrationModalThisSession = true;
         }
+        navigateToAIFeaturesPromoModalIfReady();
     },
 });
 

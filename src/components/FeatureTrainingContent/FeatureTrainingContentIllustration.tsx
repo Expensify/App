@@ -115,7 +115,7 @@ function FeatureTrainingContentIllustration({
                     // Prevent layout jumps by reserving height for the video until it loads.
                     // When videoStatus === 'animation' it preserves the same aspect ratio.
                     illustrationInnerContainerStyle,
-                    (!!videoURL || !!image || !!animation) && {aspectRatio},
+                    (!!videoURL || !!image || (!!animation && !!illustrationAspectRatioProp)) && {aspectRatio},
                 ]}
             >
                 {!!image &&

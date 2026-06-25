@@ -1,15 +1,21 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, Platform, View} from 'react-native';
-import type {LayoutChangeEvent, FlatList as RNFlatList, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
+import type {LayoutChangeEvent, FlatList as RNFlatList, ScrollView as RNScrollView, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Tooltip from '@components/Tooltip';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import FeatureTrainingContentBody from './FeatureTrainingContentBody';
@@ -42,6 +48,7 @@ function FeatureTrainingCarousel({
     illustrationOuterContainerStyle,
     shouldRenderSVG = true,
     shouldRenderHTMLDescription = false,
+    shouldUseScrollView: shouldUseScrollViewProp = false,
     helpText = '',
     onHelp = () => {},
     helpSentryLabel,
@@ -60,12 +67,19 @@ function FeatureTrainingCarousel({
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {windowHeight, windowWidth} = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    const {isKeyboardActive} = useKeyboardState();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const [currentPage, setCurrentPage] = useState(0);
     const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
     const horizontalListRef = useRef<RNFlatList<FeatureTrainingContentDataProps>>(null);
     const lastReportedPage = useRef(0);
 
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const [containerHeight, setContainerHeight] = useState(0);
+    const [contentHeight, setContentHeight] = useState(0);
     const [contentMinHeight, setContentMinHeight] = useState<number | undefined>(undefined);
     const measuredHeightsRef = useRef<Record<number, number>>({});
     const handleProbeLayout = (index: number) => (event: LayoutChangeEvent) => {
@@ -79,6 +93,8 @@ function FeatureTrainingCarousel({
         }
         setContentMinHeight(Math.max(...Object.values(measuredHeightsRef.current)));
     };
+
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
     // FlatList's `onViewableItemsChanged` must keep a stable identity (it errors otherwise).
     // The handler reads the latest `onPageChange` via a ref so the callback identity never changes.
@@ -116,6 +132,17 @@ function FeatureTrainingCarousel({
         onConfirm?.(false);
     };
 
+    useEffect(() => {
+        if (contentHeight <= containerHeight || onboardingIsMediumOrLargerScreenWidth || !shouldUseScrollView) {
+            return;
+        }
+        scrollViewRef.current?.scrollToEnd({animated: false});
+    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView]);
+
+    const Wrapper = shouldUseScrollView ? ScrollView : View;
+
+    const wrapperStyles = shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive) : {};
+
     const carouselPaginationDots = pages.map((_page, index) => (
         <View
             // The array is static for the modal's lifetime, so the index is a stable key.
@@ -128,22 +155,30 @@ function FeatureTrainingCarousel({
     const currentPageData = pages.at(currentPage);
 
     return (
-        <View
-            // On narrow viewports (mWeb BOTTOM_DOCKED) the outer View has no intrinsic content
-            // (everything below is gated by `carouselViewportWidth > 0`), so without `w100` it
-            // collapses to 0×0 inside the `fit-content` modal sheet — `onLayout` then never
-            // fires with a positive width and the carousel never renders, leaving the modal
-            // backdrop visible with no content. `w100` makes the View stretch to the sheet's
-            // known full width and lets `onLayout` resolve immediately. On medium+ screens the
-            // explicit `getWidthStyle(width)` continues to apply.
-            style={[onboardingIsMediumOrLargerScreenWidth ? StyleUtils.getWidthStyle(width) : styles.w100]}
+        <Wrapper
+            scrollsToTop={false}
+            style={[
+                onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
+            ]}
+            contentContainerStyle={isInLandscapeMode ? wrapperStyles.containerStyle : undefined}
+            keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
+            ref={shouldUseScrollView ? scrollViewRef : undefined}
             onLayout={(e: LayoutChangeEvent) => {
                 const newWidth = e.nativeEvent.layout.width;
                 if (newWidth === carouselViewportWidth || newWidth <= 0) {
                     return;
                 }
+                console.log(newWidth, e.nativeEvent.layout.height);
                 setCarouselViewportWidth(newWidth);
+                if (!shouldUseScrollView) {
+                    return;
+                }
+                setContainerHeight(e.nativeEvent.layout.height);
             }}
+            onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
+            // eslint-disable-next-line react/forbid-component-props -- fsClass is required for FullStory session masking
+            fsClass={CONST.FULLSTORY.CLASS.UNMASK}
         >
             {carouselViewportWidth > 0 && contentMinHeight === undefined && (
                 // Probe layer is used to measure the tallest page to lock the modal height
@@ -192,6 +227,7 @@ function FeatureTrainingCarousel({
                             disableIntervalMomentum
                             snapToInterval={carouselViewportWidth}
                             decelerationRate="fast"
+                            bounces={false}
                             showsHorizontalScrollIndicator={false}
                             keyboardShouldPersistTaps="handled"
                             viewabilityConfig={CAROUSEL_VIEWABILITY_CONFIG}
@@ -264,7 +300,7 @@ function FeatureTrainingCarousel({
                     </View>
                 </>
             )}
-        </View>
+        </Wrapper>
     );
 }
 

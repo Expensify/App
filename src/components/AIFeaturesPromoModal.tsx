@@ -86,6 +86,7 @@ function AIFeaturesPromoModal() {
         <CenteredModalLayout
             onBackdropPress={onClose}
             width={variables.aiFeaturesPromoModalWidth}
+            contentStyle={styles.pt0}
         >
             <FeatureTrainingCarousel
                 pages={pages}
@@ -97,7 +98,6 @@ function AIFeaturesPromoModal() {
                 illustrationOuterContainerStyle={styles.p0}
                 illustrationAspectRatio={LottieAnimations.SpendAnalysis.w / LottieAnimations.SpendAnalysis.h}
                 contentInnerContainerStyles={styles.mb4}
-                modalInnerContainerStyle={styles.pt0}
                 titleStyles={styles.mb2}
             />
         </CenteredModalLayout>
