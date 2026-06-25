@@ -26,9 +26,9 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
 
         return (
             <MultiSelectPopup
-                label={filterKey}
                 items={items}
                 value={value}
+                label={config.label}
                 closeOverlay={closeOverlay}
                 onChange={(selectedItems) => {
                     tableMethods.updateFilter({
@@ -44,15 +44,14 @@ export default function TableFilterPopoverComponent({closeOverlay}: PopoverCompo
 
     return (
         <SingleSelectPopup
-            label={config.showLabel ? filterKey : undefined}
-            defaultValue={config.default}
             items={items}
             value={value}
+            label={config.label}
             closeOverlay={closeOverlay}
             onChange={(selectedItem) => {
                 tableMethods.updateFilter({
                     key: filterKey,
-                    value: selectedItem?.value ?? null,
+                    value: selectedItem ? [selectedItem.value] : [],
                 });
             }}
         />
