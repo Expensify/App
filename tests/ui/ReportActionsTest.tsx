@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {shouldDisplayReportTableView, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
-import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import ReportActionsListBody from '@pages/inbox/report/ReportActionsList';
 import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
@@ -43,6 +43,7 @@ jest.mock('@libs/MoneyRequestReportUtils', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     isMoneyRequestReport: jest.fn(() => false),
     isInvoiceReport: jest.fn(() => false),
+    isConciergeChatReport: jest.fn(() => false),
 }));
 
 // The children are mocked so these tests assert only the orchestrator's branching decision, not the
@@ -61,6 +62,7 @@ const mockShouldDisplayReportTableView = shouldDisplayReportTableView as jest.Mo
 const mockShouldWaitForTransactions = shouldWaitForTransactions as jest.MockedFunction<typeof shouldWaitForTransactions>;
 const mockIsMoneyRequestReport = isMoneyRequestReport as jest.MockedFunction<typeof isMoneyRequestReport>;
 const mockIsInvoiceReport = isInvoiceReport as jest.MockedFunction<typeof isInvoiceReport>;
+const mockIsConciergeChatReport = isConciergeChatReport as jest.MockedFunction<typeof isConciergeChatReport>;
 const mockMoneyRequestList = MoneyRequestReportActionsList as jest.MockedFunction<typeof MoneyRequestReportActionsList>;
 const mockReportActionsListBody = ReportActionsListBody as jest.MockedFunction<typeof ReportActionsListBody>;
 const mockUserTypingEventListener = UserTypingEventListener as jest.MockedFunction<typeof UserTypingEventListener>;
@@ -122,6 +124,7 @@ describe('ReportActions (orchestrator)', () => {
         mockShouldDisplayReportTableView.mockReturnValue(false);
         mockIsMoneyRequestReport.mockReturnValue(false);
         mockIsInvoiceReport.mockReturnValue(false);
+        mockIsConciergeChatReport.mockReturnValue(false);
         setupUseOnyx();
     });
 
@@ -180,6 +183,17 @@ describe('ReportActions (orchestrator)', () => {
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMarkOpenReportEnd).toHaveBeenCalledWith(mockReport, {warm: false});
+    });
+
+    it('mounts the body (not the orchestrator app-load skeleton) for a Concierge report during app load', () => {
+        mockIsConciergeChatReport.mockReturnValue(true);
+        setupUseOnyx({isLoadingApp: true});
+
+        render(<ReportActions />);
+
+        expect(mockReportActionsListBody).toHaveBeenCalled();
+        expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+        expect(mockMarkOpenReportEnd).not.toHaveBeenCalled();
     });
 
     it('does not show the app-load skeleton (or fire telemetry) while offline', () => {

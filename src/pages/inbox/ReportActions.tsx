@@ -9,7 +9,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
-import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsList from './report/ReportActionsList';
 import UserTypingEventListener from './report/UserTypingEventListener';
@@ -53,7 +53,11 @@ function ReportActions() {
     // branches below) — matching the previous behavior, where this skeleton lived inside the
     // chat-only ReportActionsView. Because the body won't mount for this branch, it can't close the
     // open-report span itself, so we close it here for the branch we gate.
-    const shouldShowAppLoadSkeleton = !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList;
+    //
+    // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
+    // before content appeared.
+    const isConciergeMainDM = isConciergeChatReport(report);
+    const shouldShowAppLoadSkeleton = !!isLoadingApp && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 
     useMarkOpenReportEndOnSkeleton(report, shouldShowAppLoadSkeleton);
 
