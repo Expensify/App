@@ -61,7 +61,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
             const tooltipText = isChild ? decodedCategoryName : getDecodedCategoryName(searchText);
             optionCollection.set(searchText, {
                 text: `${indents}${leafName}`,
-                alternateText: isChild && shouldShowGLCode && option.glCode ? option.glCode : undefined,
+                ...(isChild && shouldShowGLCode && option.glCode ? {alternateText: option.glCode} : {}),
                 keyForList: searchText,
                 searchText,
                 tooltipText,
@@ -271,7 +271,7 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
             name: category.name,
             pendingAction: category.pendingAction,
             enabled: category.enabled ?? false,
-            glCode: category.glCode,
+            ...(category.glCode !== undefined ? {glCode: category.glCode} : {}),
         });
     }
 
@@ -288,7 +288,7 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
                     name,
                     pendingAction,
                     enabled: enabled ?? false,
-                    glCode,
+                    ...(glCode !== undefined ? {glCode} : {}),
                 };
 
                 acc.push(categoryObject);
