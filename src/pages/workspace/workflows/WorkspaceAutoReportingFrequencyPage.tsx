@@ -54,9 +54,6 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const styles = useThemeStyles();
     const policyID = policy?.id;
 
-    // The selection is kept in local draft state so the page no longer closes on input (WCAG 3.2.2); the change is
-    // only persisted when the user taps Save below. We fall back to the policy value until the user makes a
-    // selection so a deep link that renders before the policy hydrates still reflects the saved frequency.
     const [userSelectedFrequency, setUserSelectedFrequency] = useState<AutoReportingFrequencyKey | undefined>();
     const selectedFrequency = userSelectedFrequency ?? autoReportingFrequency;
 
