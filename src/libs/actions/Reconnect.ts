@@ -44,14 +44,7 @@ function reconnect() {
     }
 
     Log.info('[Reconnect] Triggering reconnection');
-
-    if (isLoadingApp) {
-        Log.info('[Reconnect] App is still loading, calling openApp');
-        openApp();
-    } else {
-        Log.info('[Reconnect] Calling reconnectApp');
-        reconnectApp(lastUpdateIDAppliedToClient);
-    }
+    reconnectApp(lastUpdateIDAppliedToClient);
 }
 
 // Internet confirmed reachable — reconnect
