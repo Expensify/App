@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Editor',
         restrictions: 'Restrizioni',
         off: 'Disattivato',
+        apiKey: 'Chiave API',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -6453,6 +6454,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6713,6 +6716,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     `Assicurati che questo conto corrisponda al tuo conto di regolamento per la fatturazione dei viaggi (che termina con ${lastFourPAN}) in modo che la Riconciliazione continua funzioni correttamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizza le liquidazioni delle fatture di viaggio',
+            rillet: 'Rillet',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',
@@ -6921,34 +6925,39 @@ ${reportName}`,
                     `<muted-text>I campi del report sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'NetSuite',
-                description: `Approfitta della sincronizzazione automatica e riduci le registrazioni manuali con l’integrazione Expensify + NetSuite. Ottieni approfondimenti finanziari dettagliati e in tempo reale grazie al supporto di segmenti nativi e personalizzati, inclusa la mappatura di progetti e clienti.`,
+                title: 'Più livelli di approvazione',
+                description:
+                    'I livelli di approvazione multipli sono uno strumento di workflow per le aziende che richiedono l’approvazione di più persone su un report prima che possa essere rimborsato.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>La nostra integrazione con NetSuite è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+                    `<muted-text>Più livelli di approvazione sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Sage Intacct',
-                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Sage Intacct. Ottieni approfondite informazioni finanziarie in tempo reale con dimensioni definite dall’utente, oltre alla codifica delle spese per dipartimento, classe, sede, cliente e progetto (lavoro).`,
+                title: 'Più livelli di approvazione',
+                description:
+                    'I livelli di approvazione multipli sono uno strumento di workflow per le aziende che richiedono l’approvazione di più persone su un report prima che possa essere rimborsato.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>La nostra integrazione con Sage Intacct è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+                    `<muted-text>Più livelli di approvazione sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + QuickBooks Desktop. Ottieni la massima efficienza con una connessione bidirezionale in tempo reale e la codifica delle spese per classe, articolo, cliente e progetto.`,
+                title: 'Più livelli di approvazione',
+                description:
+                    'I livelli di approvazione multipli sono uno strumento di workflow per le aziende che richiedono l’approvazione di più persone su un report prima che possa essere rimborsato.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>La nostra integrazione con QuickBooks Desktop è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+                    `<muted-text>Più livelli di approvazione sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Certinia',
-                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Certinia. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Certinia per una maggiore visibilità finanziaria.`,
+                title: 'Più livelli di approvazione',
+                description:
+                    'I livelli di approvazione multipli sono uno strumento di workflow per le aziende che richiedono l’approvazione di più persone su un report prima che possa essere rimborsato.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>La nostra integrazione con Certinia è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+                    `<muted-text>Più livelli di approvazione sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Approvazioni avanzate',
-                description: `Se desideri aggiungere altri livelli di approvazione al processo – o semplicemente assicurarti che le spese più elevate ricevano un ulteriore controllo – ci pensiamo noi. Le approvazioni avanzate ti aiutano a impostare i controlli giusti a ogni livello, così mantieni la spesa del tuo team sotto controllo.`,
+                title: 'Più livelli di approvazione',
+                description:
+                    'I livelli di approvazione multipli sono uno strumento di workflow per le aziende che richiedono l’approvazione di più persone su un report prima che possa essere rimborsato.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Le approvazioni avanzate sono disponibili solo nel piano Control, che parte da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+                    `<muted-text>Più livelli di approvazione sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             categories: {
                 title: 'Categorie',
@@ -7022,11 +7031,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     `<muted-text>Le tariffe chilometriche sono disponibili con il piano Collect, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
-                title: 'Livelli di approvazione multipli',
+                title: 'Più livelli di approvazione',
                 description:
-                    'Più livelli di approvazione sono uno strumento di workflow per le aziende che richiedono l’approvazione di un report da parte di più persone prima che possa essere rimborsato.',
+                    'I livelli di approvazione multipli sono uno strumento di workflow per le aziende che richiedono l’approvazione di più persone su un report prima che possa essere rimborsato.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Più livelli di approvazione sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+                    `<muted-text>Più livelli di approvazione sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'per membro attivo al mese.',
@@ -7139,6 +7148,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>I ruoli specializzati dello spazio di lavoro sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
+            title: 'Più livelli di approvazione',
+            description:
+                'I livelli di approvazione multipli sono uno strumento di workflow per le aziende che richiedono l’approvazione di più persone su un report prima che possa essere rimborsato.',
+            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                `<muted-text>Più livelli di approvazione sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7687,6 +7701,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',
             subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite accesso Single Sign-On, limita la creazione di space di lavoro e altro ancora.',
+        },
+        rillet: {
+            rilletSetup: 'Configurazione Rillet',
+            enterCredentials: 'Inserisci la tua chiave API Rillet',
+            howToFindAPIKey: '<strong>Come trovare la tua chiave API.</strong><ol><li>Accedi a Rillet</li><li>Vai su Account -> Impostazioni</li><li>Copia la chiave API qui sotto</li></ol>',
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Scegli la consociata in Rillet da cui vuoi importare i dati.',
+            noSubsidiariesFound: 'Nessuna consociata trovata',
+            noSubsidiariesFoundDescription: 'Aggiungi una consociata in Rillet e sincronizza di nuovo la connessione',
         },
     },
     getAssistancePage: {

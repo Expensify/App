@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Editor',
         restrictions: 'Beperkingen',
         off: 'Uit',
+        apiKey: 'API-sleutel',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -6431,6 +6432,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6691,6 +6694,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     `Zorg ervoor dat deze rekening overeenkomt met je afwikkelingsrekening voor reiskostenfacturatie (die eindigt op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
             },
             syncTravelInvoicingSettlements: 'Reisfactureringsafrekeningen synchroniseren',
+            rillet: 'Rillet',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -6900,34 +6904,39 @@ ${reportName}`,
                     `<muted-text>Rapportvelden zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'NetSuite',
-                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + NetSuite-integratie. Krijg diepgaande realtime financiële inzichten met ondersteuning voor native en aangepaste segmenten, inclusief project- en klanttoewijzing.`,
+                title: 'Meerdere goedkeuringsniveaus',
+                description:
+                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Onze NetSuite-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Sage Intacct',
-                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Sage Intacct-integratie. Krijg diepgaande, realtime financiële inzichten met door de gebruiker gedefinieerde dimensies, evenals kosten­codering per afdeling, klasse, locatie, klant en project (taak).`,
+                title: 'Meerdere goedkeuringsniveaus',
+                description:
+                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Onze Sage Intacct-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + QuickBooks Desktop-integratie. Bereik maximale efficiëntie met een realtime tweerichtingsverbinding en uitgavencodering op basis van klasse, item, klant en project.`,
+                title: 'Meerdere goedkeuringsniveaus',
+                description:
+                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Onze QuickBooks Desktop-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Certinia',
-                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Certinia-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Certinia-configuratie voor helderder financieel inzicht.`,
+                title: 'Meerdere goedkeuringsniveaus',
+                description:
+                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Onze Certinia-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Geavanceerde goedkeuringen',
-                description: `Als je extra lagen van goedkeuring wilt toevoegen – of gewoon zeker wilt weten dat de hoogste uitgaven een extra controle krijgen – dan ben je bij ons aan het juiste adres. Geavanceerde goedkeuringen helpen je om op elk niveau de juiste controles in te bouwen, zodat je de uitgaven van je team onder controle houdt.`,
+                title: 'Meerdere goedkeuringsniveaus',
+                description:
+                    'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Geavanceerde goedkeuringen zijn alleen beschikbaar in het Control-abonnement, dat begint bij <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             categories: {
                 title: 'Categorieën',
@@ -7004,7 +7013,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 description:
                     'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'per actieve deelnemer per maand.',
@@ -7115,6 +7124,11 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Gespecialiseerde werkruimterollen zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            title: 'Meerdere goedkeuringsniveaus',
+            description:
+                'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7659,6 +7673,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
+        rillet: {
+            rilletSetup: 'Rillet-instelling',
+            enterCredentials: 'Voer je Rillet API-sleutel in',
+            howToFindAPIKey: '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij Rillet</li><li>Ga naar Account -> Instellingen</li><li>Kopieer de API-sleutel hieronder</li></ol>',
+            subsidiary: 'Dochteronderneming',
+            subsidiarySelectDescription: 'Kies het dochterbedrijf in Rillet waarvan je gegevens wilt importeren.',
+            noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
+            noSubsidiariesFoundDescription: 'Voeg alsjeblieft een dochteronderneming toe in Rillet en synchroniseer de verbinding opnieuw',
+        },
     },
     getAssistancePage: {
         title: 'Hulp krijgen',

@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Éditeur',
         restrictions: 'Restrictions',
         off: 'Désactivé',
+        apiKey: 'Clé API',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -6490,6 +6491,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6751,6 +6754,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     `Assurez-vous que ce compte correspond à votre compte de règlement de facturation de voyage (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            rillet: 'Rillet',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -6963,34 +6967,39 @@ ${reportName}`,
                     `<muted-text>Les champs de note de frais sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'NetSuite',
-                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + NetSuite. Obtenez des informations financières détaillées et en temps réel avec la prise en charge des segments natifs et personnalisés, y compris la correspondance des projets et des clients.`,
+                title: 'Niveaux d’approbation multiples',
+                description:
+                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Notre intégration NetSuite est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Sage Intacct',
-                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Sage Intacct. Obtenez des informations financières détaillées et en temps réel avec des dimensions définies par l’utilisateur, ainsi qu’un codage des dépenses par service, classe, site, client et projet (mission).`,
+                title: 'Niveaux d’approbation multiples',
+                description:
+                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Notre intégration à Sage Intacct est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Profitez de la synchronisation automatique et réduisez les saisies manuelles grâce à l’intégration Expensify + QuickBooks Desktop. Gagnez en efficacité maximale avec une connexion bidirectionnelle en temps réel et un codage des dépenses par classe, article, client et projet.`,
+                title: 'Niveaux d’approbation multiples',
+                description:
+                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Notre intégration QuickBooks Desktop est uniquement disponible avec l’abonnement Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Certinia',
-                description: `Profitez de la synchronisation automatisée et réduisez les saisies manuelles grâce à l’intégration Expensify + Certinia. Alignez les dimensions de codage des dépenses et la synchronisation fiscale sur votre configuration Certinia pour une meilleure visibilité financière.`,
+                title: 'Niveaux d’approbation multiples',
+                description:
+                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Notre intégration Certinia est disponible uniquement avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Approbations avancées',
-                description: `Si vous souhaitez ajouter plusieurs niveaux d’approbation au processus – ou simplement vous assurer que les plus grosses dépenses sont examinées une fois de plus – nous avons ce qu’il vous faut. Les approbations avancées vous aident à mettre en place les bons contrôles à chaque niveau afin de garder les dépenses de votre équipe sous contrôle.`,
+                title: 'Niveaux d’approbation multiples',
+                description:
+                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Les approbations avancées sont uniquement disponibles avec l’offre Control, qui commence à <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+                    `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             categories: {
                 title: 'Catégories',
@@ -7066,7 +7075,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Niveaux d’approbation multiples',
                 description:
-                    'Les niveaux d’approbation multiples sont un outil de workflow destiné aux entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+                    'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
@@ -7182,6 +7191,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les rôles spécialisés dans l’espace de travail sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            title: 'Niveaux d’approbation multiples',
+            description:
+                'Les niveaux d’approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plusieurs personnes approuvent une note de frais avant qu’elle puisse être remboursée.',
+            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7735,6 +7749,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
             subtitle: 'Obligez les membres de votre domaine à se connecter via l’authentification unique, restreignez la création d’espaces de travail, et plus encore.',
+        },
+        rillet: {
+            rilletSetup: 'Configuration Rillet',
+            enterCredentials: 'Saisissez votre clé API Rillet',
+            howToFindAPIKey:
+                '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à Rillet</li><li>Accédez à Compte -> Paramètres</li><li>Copiez la clé API ci-dessous</li></ol>',
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Choisissez la filiale dans Rillet depuis laquelle vous souhaitez importer des données.',
+            noSubsidiariesFound: 'Aucune filiale trouvée',
+            noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans Rillet et synchroniser à nouveau la connexion',
         },
     },
     getAssistancePage: {

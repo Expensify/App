@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Edytor',
         restrictions: 'Ograniczenia',
         off: 'Wyłączone',
+        apiKey: 'Klucz API',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -6427,6 +6428,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6686,6 +6689,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     `Upewnij się, że to konto jest takie samo jak konto rozliczeniowe do fakturowania podróży (kończące się na ${lastFourPAN}), żeby Ciągłe Uzgadnianie działało poprawnie.`,
             },
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia faktur podróżnych',
+            rillet: 'Rillet',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
@@ -6894,34 +6898,39 @@ ${reportName}`,
                     `<muted-text>Pola raportu są dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'NetSuite',
-                description: `Korzystaj z automatycznej synchronizacji i ograniczaj ręczne wprowadzanie danych dzięki integracji Expensify + NetSuite. Uzyskaj dogłębny, aktualny w czasie rzeczywistym wgląd w finanse dzięki obsłudze natywnych i niestandardowych segmentów, w tym mapowaniu projektów i klientów.`,
+                title: 'Wiele poziomów zatwierdzania',
+                description:
+                    'Wiele poziomów akceptacji to narzędzie do zarządzania obiegiem dokumentów dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Nasza integracja z NetSuite jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Wiele poziomów zatwierdzania jest dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Sage Intacct',
-                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Sage Intacct. Zyskaj szczegółowy, aktualny w czasie rzeczywistym wgląd finansowy z użyciem zdefiniowanych przez użytkownika wymiarów, a także kategoryzowanie wydatków według działu, klasy, lokalizacji, klienta i projektu (zadania).`,
+                title: 'Wiele poziomów zatwierdzania',
+                description:
+                    'Wiele poziomów akceptacji to narzędzie do zarządzania obiegiem dokumentów dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Integracja z Sage Intacct jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Wiele poziomów zatwierdzania jest dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + QuickBooks Desktop. Zyskaj maksymalną wydajność dzięki dwukierunkowemu połączeniu w czasie rzeczywistym oraz kategoryzacji wydatków według klasy, pozycji, klienta i projektu.`,
+                title: 'Wiele poziomów zatwierdzania',
+                description:
+                    'Wiele poziomów akceptacji to narzędzie do zarządzania obiegiem dokumentów dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Nasza integracja z QuickBooks Desktop jest dostępna wyłącznie w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Wiele poziomów zatwierdzania jest dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Certinia',
-                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Certinia. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Certinia, aby uzyskać lepszą widoczność finansową.`,
+                title: 'Wiele poziomów zatwierdzania',
+                description:
+                    'Wiele poziomów akceptacji to narzędzie do zarządzania obiegiem dokumentów dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Integracja z Certinia jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Wiele poziomów zatwierdzania jest dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Zaawansowane zatwierdzanie',
-                description: `Jeśli chcesz dodać więcej poziomów akceptacji – albo po prostu upewnić się, że największe wydatki zostaną przejrzane przez kolejną osobę – mamy na to rozwiązanie. Zaawansowane zatwierdzanie pomaga wdrożyć odpowiednie mechanizmy kontrolne na każdym poziomie, aby utrzymać wydatki zespołu pod kontrolą.`,
+                title: 'Wiele poziomów zatwierdzania',
+                description:
+                    'Wiele poziomów akceptacji to narzędzie do zarządzania obiegiem dokumentów dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Zaawansowane zatwierdzanie jest dostępne tylko w planie Control, który zaczyna się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Wiele poziomów zatwierdzania jest dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             categories: {
                 title: 'Kategorie',
@@ -6997,9 +7006,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Wiele poziomów zatwierdzania',
                 description:
-                    'Wiele poziomów akceptacji to narzędzie do obsługi workflow dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
+                    'Wiele poziomów akceptacji to narzędzie do zarządzania obiegiem dokumentów dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Wiele poziomów zatwierdzania jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+                    `<muted-text>Wiele poziomów zatwierdzania jest dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'na aktywnego członka miesięcznie.',
@@ -7112,6 +7121,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Specjalistyczne role w przestrzeni roboczej są dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za członka miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
             },
+            title: 'Wiele poziomów zatwierdzania',
+            description:
+                'Wiele poziomów akceptacji to narzędzie do zarządzania obiegiem dokumentów dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
+            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                `<muted-text>Wiele poziomów zatwierdzania jest dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7654,6 +7668,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
             subtitle: 'Wymagaj od członków swojej domeny logowania jednokrotnym logowaniem (SSO), ograniczaj tworzenie przestrzeni roboczych i nie tylko.',
+        },
+        rillet: {
+            rilletSetup: 'Konfiguracja Rillet',
+            enterCredentials: 'Wpisz swój klucz API Rillet',
+            howToFindAPIKey: '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do Rillet</li><li>Przejdź do Konto -> Ustawienia</li><li>Skopiuj poniższy klucz API</li></ol>',
+            subsidiary: 'Spółka zależna',
+            subsidiarySelectDescription: 'Wybierz spółkę zależną w Rillet, z której chcesz zaimportować dane.',
+            noSubsidiariesFound: 'Nie znaleziono spółek zależnych',
+            noSubsidiariesFoundDescription: 'Dodaj proszę spółkę zależną w Rillet i ponownie zsynchronizuj połączenie',
         },
     },
     getAssistancePage: {

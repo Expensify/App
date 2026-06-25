@@ -513,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: '編集者',
         restrictions: '制限',
         off: 'オフ',
+        apiKey: 'API キー',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -6380,6 +6381,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6639,6 +6642,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     `Continuous Reconciliation が正しく機能するように、この口座が、旅行の請求書決済用口座（末尾が ${lastFourPAN} の口座）と一致していることを確認してください。`,
             },
             syncTravelInvoicingSettlements: '出張請求の精算を同期',
+            rillet: 'Rillet',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -6846,34 +6850,34 @@ ${reportName}`,
                     `<muted-text>レポートフィールドは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からのControlプランでのみ利用できます</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'NetSuite',
-                description: `Expensify と NetSuite の連携により、自動同期を活用して手入力を減らしましょう。プロジェクトや顧客のマッピングを含むネイティブおよびカスタムセグメントのサポートで、詳細かつリアルタイムな財務インサイトを得られます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>NetSuite 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `1メンバーあたり月額。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Sage Intacct',
-                description: `Expensify と Sage Intacct の連携で同期を自動化し、手動入力を削減しましょう。ユーザー定義ディメンションに加え、部門、クラス、ロケーション、顧客、プロジェクト（ジョブ）ごとの経費コード設定により、詳細かつリアルタイムな財務インサイトを得られます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Sage Intacct との連携機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただける Control プランでのみ提供されています</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `1メンバーあたり月額。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Expensify と QuickBooks Desktop の連携により、自動同期を活用して手入力を削減しましょう。リアルタイムの双方向接続と、クラス、品目、顧客、プロジェクト別の経費コード設定で、究極の効率性を実現できます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>QuickBooks Desktop 連携機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からの Control プランでのみご利用いただけます</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `1メンバーあたり月額。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Certinia',
-                description: `Expensify と Certinia の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Certinia の設定に合わせて、財務の可視性を高めます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Certinia 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `1メンバーあたり月額。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: '高度な承認',
-                description: `承認フローにさらに多くの段階を追加したい場合や、高額な経費に必ず別の承認者の目を通したい場合も、ご安心ください。高度な承認機能により、あらゆるレベルで適切なチェック体制を整え、チームの支出をしっかり管理できます。`,
+                title: '複数の承認レベル',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>高度な承認機能は、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}から利用できるControlプランでのみご利用いただけます</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `1メンバーあたり月額。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
             },
             categories: {
                 title: 'カテゴリ',
@@ -6947,9 +6951,9 @@ ${reportName}`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '複数の承認レベル',
-                description: '複数承認レベルは、精算前にレポートを複数人で承認する必要がある会社向けのワークフローツールです。',
+                description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>複数の承認レベルは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}から利用できるControlプランでのみご利用いただけます</muted-text>`,
+                    `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `1メンバーあたり月額。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'アクティブメンバー1人あたり月額',
@@ -7058,6 +7062,10 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>特別なワークスペースロールは Control プランでのみご利用いただけます（<strong>${formattedPrice}</strong> から、${hasTeam2025Pricing ? `メンバー1人あたり月額。` : `アクティブメンバー1人あたり／月`}）。</muted-text>`,
             },
+            title: '複数の承認レベル',
+            description: '複数承認レベルは、精算前に複数の担当者によるレポート承認が必要な企業向けのワークフローツールです。',
+            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                `<muted-text>複数の承認レベルは、Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `1メンバーあたり月額。` : `アクティブメンバー1人あたり月額`}からご利用可能です。</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7599,6 +7607,16 @@ ${reportName}`,
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',
             subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須にし、ワークスペースの作成を制限するなどの管理ができます。',
+        },
+        rillet: {
+            rilletSetup: 'Rillet のセットアップ',
+            enterCredentials: 'Rillet の API キーを入力してください',
+            howToFindAPIKey:
+                '<strong>API キーの確認方法</strong><ol><li>Rillet にログインします</li><li>［Account］→［Settings］に移動します</li><li>以下の API キーをコピーします</li></ol>',
+            subsidiary: '子会社',
+            subsidiarySelectDescription: 'データをインポートしたい Rillet 内の子会社を選択してください。',
+            noSubsidiariesFound: '子会社が見つかりません',
+            noSubsidiariesFoundDescription: 'Rillet に子会社を追加して、もう一度接続を同期してください',
         },
     },
     getAssistancePage: {

@@ -514,6 +514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: 'Editor',
         restrictions: 'Beschränkungen',
         off: 'Aus',
+        apiKey: 'API-Schlüssel',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -6465,6 +6466,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6725,6 +6728,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     `Stellen Sie sicher, dass dieses Konto mit Ihrem Abrechnungskonto für Reiseabrechnungen (endet auf ${lastFourPAN}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
             syncTravelInvoicingSettlements: 'Reiseabrechnungs­abgleiche synchronisieren',
+            rillet: 'Rillet',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
@@ -6937,34 +6941,39 @@ ${reportName}`,
                     `<muted-text>Berichtsfelder sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: 'NetSuite',
-                description: `Profitiere von automatischer Synchronisierung und reduziere manuelle Eingaben mit der Expensify + NetSuite-Integration. Gewinne detaillierte Finanzanalysen in Echtzeit mit nativer und benutzerdefinierter Segmentunterstützung, einschließlich Projekt- und Kundenzuordnung.`,
+                title: 'Mehrere Genehmigungsstufen',
+                description:
+                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Unsere NetSuite-Integration ist nur im Control-Tarif verfügbar, beginnend ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Mehrstufige Genehmigungen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: 'Sage Intacct',
-                description: `Profitieren Sie von automatischer Synchronisierung und reduzieren Sie manuelle Eingaben mit der Expensify + Sage Intacct-Integration. Erhalten Sie detaillierte Finanzanalysen in Echtzeit mit benutzerdefinierten Dimensionen sowie einer Spesencodierung nach Abteilung, Kategorie, Standort, Kunde und Projekt (Auftrag).`,
+                title: 'Mehrere Genehmigungsstufen',
+                description:
+                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Unsere Integration mit Sage Intacct ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Mehrstufige Genehmigungen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: 'QuickBooks Desktop',
-                description: `Profitiere von automatischer Synchronisierung und reduziere manuelle Eingaben mit der Integration Expensify + QuickBooks Desktop. Erziele maximale Effizienz mit einer Echtzeit-Zwei-Wege-Verbindung und der Spesenkodierung nach Klasse, Artikel, Kunde und Projekt.`,
+                title: 'Mehrere Genehmigungsstufen',
+                description:
+                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Unsere QuickBooks Desktop-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Mehrstufige Genehmigungen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: 'Certinia',
-                description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + Certinia-Integration. Richte Spesenkodierungsdimensionen und die Steuersynchronisierung auf deine Certinia-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
+                title: 'Mehrere Genehmigungsstufen',
+                description:
+                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Unsere Certinia-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Mehrstufige Genehmigungen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: 'Erweiterte Genehmigungen',
-                description: `Wenn du weitere Genehmigungsstufen hinzufügen möchtest – oder einfach sicherstellen willst, dass die höchsten Ausgaben noch einmal geprüft werden – bist du bei uns richtig. Erweiterte Genehmigungen helfen dir, auf jeder Ebene die passenden Kontrollen einzurichten, damit du die Ausgaben deines Teams im Griff behältst.`,
+                title: 'Mehrere Genehmigungsstufen',
+                description:
+                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Erweiterte Genehmigungen sind nur im Control-Tarif verfügbar, der bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`} beginnt</muted-text>`,
+                    `<muted-text>Mehrstufige Genehmigungen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             categories: {
                 title: 'Kategorien',
@@ -7040,9 +7049,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Mehrere Genehmigungsstufen',
                 description:
-                    'Mehrere Genehmigungsstufen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
+                    'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+                    `<muted-text>Mehrstufige Genehmigungen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'pro aktivem Mitglied und Monat.',
@@ -7155,6 +7164,11 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Spezialisierte Arbeitsbereichsrollen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            title: 'Mehrere Genehmigungsstufen',
+            description:
+                'Mehrere Genehmigungsebenen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
+            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                `<muted-text>Mehrstufige Genehmigungen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7702,6 +7716,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
             subtitle: 'Verlangen Sie, dass Mitglieder in Ihrer Domain sich per Single Sign-On anmelden, schränken Sie das Erstellen von Arbeitsbereichen ein und mehr.',
+        },
+        rillet: {
+            rilletSetup: 'Rillet-Einrichtung',
+            enterCredentials: 'Geben Sie Ihren Rillet-API-Schlüssel ein',
+            howToFindAPIKey:
+                '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei Rillet an</li><li>Navigieren Sie zu Konto -> Einstellungen</li><li>Kopieren Sie den unten stehenden API-Schlüssel</li></ol>',
+            subsidiary: 'Tochtergesellschaft',
+            subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Rillet aus, aus der Sie Daten importieren möchten.',
+            noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
+            noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Tochtergesellschaft in Rillet hinzu und synchronisieren Sie die Verbindung erneut.',
         },
     },
     getAssistancePage: {
