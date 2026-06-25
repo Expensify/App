@@ -308,7 +308,7 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.basicModalNavigator}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={AIFeaturesPromoModalNavigator}
                         />
                         <RootStack.Screen

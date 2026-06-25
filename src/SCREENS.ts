@@ -976,7 +976,7 @@ const SCREENS = {
     },
 
     AI_FEATURES_PROMO_MODAL: {
-        ROOT: 'AIFeaturesPromoModal_Root',
+        DYNAMIC_ROOT: 'Dynamic_AIFeaturesPromoModal_Root',
     },
 
     TEST_DRIVE_DEMO: {

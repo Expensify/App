@@ -2940,7 +2940,7 @@ type MigratedUserModalNavigatorParamList = {
 };
 
 type AIFeaturesPromoModalNavigatorParamList = {
-    [SCREENS.AI_FEATURES_PROMO_MODAL.ROOT]: undefined;
+    [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: undefined;
 };
 
 type TestDriveDemoNavigatorParamList = {

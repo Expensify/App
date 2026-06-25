@@ -51,10 +51,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         },
         [NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.AI_FEATURES_PROMO_MODAL.ROOT]: {
-                    path: ROUTES.AI_FEATURES_PROMO_MODAL,
-                    exact: true,
-                },
+                [SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT]: DYNAMIC_ROUTES.AI_FEATURES_PROMO_MODAL.path,
             },
         },
 

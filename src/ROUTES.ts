@@ -135,6 +135,10 @@ const DYNAMIC_ROUTES = {
         path: 'migrated-user-welcome',
         entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
     },
+    AI_FEATURES_PROMO_MODAL: {
+        path: 'ai-features-promo',
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
+    },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
@@ -3497,7 +3501,6 @@ const ROUTES = {
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
     WORKSPACE_CONFIRMATION_SUCCESS: 'workspace/confirmation/success',
-    AI_FEATURES_PROMO_MODAL: 'ai-features-promo',
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',

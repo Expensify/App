@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import AIFeaturesPromoModal from '@components/AIFeaturesPromoModal';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -11,14 +10,18 @@ const Stack = createPlatformStackNavigator<AIFeaturesPromoModalNavigatorParamLis
 function AIFeaturesPromoModalNavigator() {
     return (
         <NoDropZone>
-            <View>
-                <Stack.Navigator screenOptions={{headerShown: false}}>
-                    <Stack.Screen
-                        name={SCREENS.AI_FEATURES_PROMO_MODAL.ROOT}
-                        component={AIFeaturesPromoModal}
-                    />
-                </Stack.Navigator>
-            </View>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    web: {cardStyle: {backgroundColor: 'transparent'}},
+                    native: {contentStyle: {backgroundColor: 'transparent'}},
+                }}
+            >
+                <Stack.Screen
+                    name={SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT}
+                    component={AIFeaturesPromoModal}
+                />
+            </Stack.Navigator>
         </NoDropZone>
     );
 }

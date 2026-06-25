@@ -12,9 +12,11 @@ import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {DismissedProductTraining, Onboarding, Session} from '@src/types/onyx';
+import createDynamicRoute from '../helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {GuardResult, NavigationGuard} from './types';
 
 let session: OnyxEntry<Session>;
@@ -96,6 +98,10 @@ function isEligibleToShowAIFeaturesPromoModal(): boolean {
     );
 }
 
+function getAIFeaturesPromoModalRoute(basePath?: string): Route {
+    return createDynamicRoute(DYNAMIC_ROUTES.AI_FEATURES_PROMO_MODAL.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
+}
+
 /**
  * Proactively navigate to the AI features promo modal when all conditions are met.
  */
@@ -123,7 +129,7 @@ function navigateToAIFeaturesPromoModalIfReady() {
                 }
                 Log.info('[AIFeaturesPromoGuard] Proactively navigating to AI features promo modal');
                 hasRedirectedToAIFeaturesPromoModal = true;
-                Navigation.navigate(ROUTES.AI_FEATURES_PROMO_MODAL);
+                Navigation.navigate(getAIFeaturesPromoModalRoute());
             });
         },
         waitForUpcomingTransition: true,
@@ -231,8 +237,8 @@ function shouldBlockWhileModalActive(state: NavigationState, action: NavigationA
 
 /** Prevents redirect loops by detecting when we're already on or resetting to the modal. */
 function isNavigatingToAIFeaturesPromoModal(state: NavigationState, action: NavigationAction): boolean {
-    const isOnModal = findFocusedRoute(state)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.ROOT;
-    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.ROOT;
+    const isOnModal = findFocusedRoute(state)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT;
+    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT;
 
     return isOnModal || isResettingToModal;
 }
