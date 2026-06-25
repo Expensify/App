@@ -14,8 +14,8 @@ jest.mock('@libs/NavigationFocusReturn', () => ({
         mockRegisterPressable(routeKey, identifier, ref);
         return () => {};
     },
-    notifyPressedTrigger: (...args: unknown[]) => {
-        mockNotifyPressedTrigger(...args);
+    notifyPressedTrigger: (ref: {current: unknown} | null, identifier?: string) => {
+        mockNotifyPressedTrigger(ref, identifier);
     },
 }));
 
