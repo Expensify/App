@@ -279,4 +279,3 @@ function useReportPreviewCarousel({
 }
 
 export default useReportPreviewCarousel;
-export {MAX_PREVIEWS_NUMBER};

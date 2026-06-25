@@ -287,4 +287,3 @@ function MoneyRequestReportPreviewProvider({
 }
 
 export default MoneyRequestReportPreviewProvider;
-export type {MoneyRequestReportPreviewProviderProps};
