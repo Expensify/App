@@ -289,9 +289,7 @@ function getIouParamsForTransaction({
 /** Updates the date of an expense from the Search results table or the Expense Report page. */
 function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string) {
     const iouParams = getIouParamsForTransaction(params);
-    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportPolicyTags = getPolicyTagsData(iouParams.parentReport?.policyID);
+
     updateMoneyRequestDate({
         ...iouParams,
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
@@ -301,7 +299,9 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
         transactionViolations: allTransactionViolations,
         isOffline: params.isOffline,
         hash: params.hash,
-        reportPolicyTags,
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        reportPolicyTags: getPolicyTagsData(iouParams.parentReport?.policyID),
     });
 }
 
