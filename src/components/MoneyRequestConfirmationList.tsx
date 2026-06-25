@@ -466,6 +466,8 @@ function MoneyRequestConfirmationList({
         isTimeRequest,
         routeError,
         isNewManualExpenseFlowEnabled,
+        isReadOnly,
+        shouldShowDate: shouldShowSmartScanFields || isDistanceRequest,
     });
 
     const confirm = buildConfirmAction({
