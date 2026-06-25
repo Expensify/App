@@ -1,10 +1,9 @@
 ---
-
 title: Compare Collect and Control plans
 description: Compare the features and capabilities of the Collect and Control plans to determine which is right for your organization.
 keywords: [Collect plan, Control plan, compare plans, Expensify plans, Workspace plans]
 internalScope: Audience is anyone evaluating Expensify plans. Covers the differences between the Collect and Control plans. Does not cover pricing, subscriptions, or changing plans.
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---
 
 # Compare Collect and Control plans
 
@@ -20,7 +19,7 @@ Choose **Collect** if your organization needs:
 * Basic accounting integrations
 * An easy-to-manage solution for a small team
 
-Collect is best suited for smaller organizations with straightforward expense management needs.
+Collect is suited for smaller organizations with straightforward expense management needs.
 
 ## When should you choose the Control plan?
 
@@ -60,11 +59,11 @@ To learn more, see **Understand Expensify pricing**.
 
 ## Can I change my Workspace plan later?
 
-Yes. If your organization's needs change, you can switch between the Collect and Control plans. See **Change Workspace plan** for instructions.
+Yes. If your organization's needs change, you can switch between the Collect and Control plans. However, if you are on an annual subscription, you may need to wait until your current subscription term ends before downgrading your plan. See Change Workspace plan for instructions.
 
 ## Does every Workspace need a plan?
 
-Yes. Every Workspace is assigned either the Collect or Control plan.
+Yes. Every Workspace is created with either the Collect or Control plan.
 
 ## Does the Expensify Card work with both plans?
 
