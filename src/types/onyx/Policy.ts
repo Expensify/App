@@ -1540,138 +1540,292 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 /**
- * Rillet subsidiary
+ * Supported subsidiary types in Rillet.
  */
 type RilletSubsidiaryType = 'LEGAL_ENTITY';
+
+/**
+ * A subsidiary (legal entity) configured in Rillet.
+ */
 type RilletSubsidiary = {
+    /** Unique identifier for the subsidiary. */
     id: string;
+
+    /** Display or trade name of the subsidiary. */
     tradeName: string;
+
+    /** Base accounting currency for the subsidiary (ISO currency code). */
     currency: string;
+
+    /** Time zone used by the subsidiary. */
     timezone: string;
+
+    /** Type of subsidiary. */
     type: RilletSubsidiaryType;
 };
 
 /**
- * Rillet account
+ * Supported account statuses in Rillet.
  */
 type RilletAccountStatus = 'ACTIVE' | 'INACTIVE';
-type RilletAccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'EXPENSE' | 'INCOME';
-type RilletAccount = {
-    id: string;
-    code: string;
-    name: string;
-    type: RilletAccountType;
-    subtype: string;
-    status: RilletAccountStatus;
-    intercompany: boolean;
-    updatedAt: string;
-};
 
 /**
- * Rillet field
+ * Supported chart of account categories in Rillet.
  */
-type RilletFieldValue = {id: string; name: string; deactivated: boolean};
-type RilletField = {
+type RilletAccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'EXPENSE' | 'INCOME';
+
+/**
+ * A chart of accounts entry in Rillet.
+ */
+type RilletAccount = {
+    /** Unique identifier for the account. */
     id: string;
+
+    /** Account code used in the chart of accounts. */
+    code: string;
+
+    /** Human-readable account name. */
     name: string;
-    values: RilletFieldValue[];
+
+    /** High-level account classification. */
+    type: RilletAccountType;
+
+    /** More specific account classification defined in Rillet. */
+    subtype: string;
+
+    /** Current status of the account. */
+    status: RilletAccountStatus;
+
+    /** Whether the account is used for intercompany transactions. */
+    intercompany: boolean;
+
+    /** Timestamp of the most recent update. */
     updatedAt: string;
 };
 
 /**
- * Rillet tax rate
+ * A selectable value belonging to a custom field.
+ */
+type RilletFieldValue = {
+    /** Unique identifier for the field value. */
+    id: string;
+
+    /** Display name of the field value. */
+    name: string;
+
+    /** Whether the value has been deactivated. */
+    deactivated: boolean;
+};
+
+/**
+ * A custom accounting field available in Rillet.
+ */
+type RilletField = {
+    /** Unique identifier for the field. */
+    id: string;
+
+    /** Display name of the field. */
+    name: string;
+
+    /** Available values that can be assigned to the field. */
+    values: RilletFieldValue[];
+
+    /** Timestamp of the most recent update. */
+    updatedAt: string;
+};
+
+/**
+ * A tax rate configured in Rillet.
  */
 type RilletTaxRate = {
+    /** Unique identifier for the tax rate. */
     id: string;
+
+    /** Tax code used for accounting purposes. */
     code: string;
+
+    /** Country where the tax rate applies. */
     country: string;
+
+    /** Description of the tax rate. */
     description: string;
+
+    /** Tax percentage represented as a string value. */
     percentage: string;
 };
 
 /**
- * Rillet vendor
+ * A vendor or supplier configured in Rillet.
  */
 type RilletVendor = {
+    /** Unique identifier for the vendor. */
     id: string;
+
+    /** Vendor display name. */
     name: string;
+
+    /** Vendor contact email address. */
     email?: string;
+
+    /** Associated accounts payable account code. */
     accountCode?: string;
+
+    /** Timestamp of the most recent update. */
     updatedAt: string;
 };
 
 /**
- * Rillet bank account
+ * Supported bank account statuses in Rillet.
  */
 type RilletBankAccountStatus = 'ACTIVE' | 'INACTIVE';
+
+/**
+ * A bank account configured in Rillet.
+ */
 type RilletBankAccount = {
+    /** Unique identifier for the bank account. */
     id: string;
+
+    /** Display name of the bank account. */
     name: string;
+
+    /** Currency of the bank account (ISO currency code). */
     currency: string;
+
+    /** Name of the financial institution. */
     bankName: string;
+
+    /** Identifier of the associated subsidiary, if applicable. */
     subsidiaryID?: string;
+
+    /** Associated general ledger account code, if applicable. */
     accountCode?: string;
+
+    /** Current status of the bank account. */
     status: RilletBankAccountStatus;
 };
 
 /**
- * Connection data for Rillet
+ * Cached reference data retrieved from Rillet and used for configuration.
  */
 type RilletConnectionData = {
-    /** Collection of subsidiaries */
+    /** Collection of subsidiaries. */
     subsidiaries: RilletSubsidiary[];
 
-    /** Collection of accounts */
+    /** Collection of accounts. */
     accounts: RilletAccount[];
 
-    /** Collection of fields */
+    /** Collection of custom fields. */
     fields: RilletField[];
 
-    /** Collection of tax rates */
+    /** Collection of tax rates. */
     taxRates: RilletTaxRate[];
 
-    /** Collection of vendors */
+    /** Collection of vendors. */
     vendors: RilletVendor[];
 
-    /** Collection of bank accounts */
+    /** Collection of bank accounts. */
     bankAccounts: RilletBankAccount[];
 };
 
-/** Rillet Coding */
+/**
+ * Supported mappings for Rillet coding fields.
+ */
 type RilletCodingFieldMappingValue = 'NONE' | 'TAG';
+
+/**
+ * Coding configuration used when exporting data to Rillet.
+ */
 type RilletCoding = {
+    /**
+     * Mapping of Rillet field IDs to their configured mapping behavior.
+     */
     fieldMappings: Record<string, RilletCodingFieldMappingValue>;
+
+    /** Whether tax rates should be synchronized from Rillet. */
     syncTaxRates: boolean;
 };
 
-/** Rillet Export */
+/**
+ * Available dates that can be used as the export date.
+ */
 type RilletExportDate = 'LAST_EXPENSE' | 'REPORT_EXPORTED' | 'REPORT_SUBMITTED';
+
+/**
+ * Export strategy for reimbursable expenses.
+ */
 type RilletExportReimbursable = 'VENDOR_BILL';
+
+/**
+ * Export strategy for company card expenses.
+ */
 type RilletExportCompanyCard = 'CREDIT_CARD';
+
+/**
+ * Export configuration for sending accounting data to Rillet.
+ */
 type RilletExport = {
+    /** Identifier of the export implementation to use. */
     exporter: string;
+
+    /** Date source used when generating exported transactions. */
     exportDate: RilletExportDate;
+
+    /** Export behavior for reimbursable expenses. */
     reimbursable: RilletExportReimbursable;
+
+    /** Export behavior for company card expenses. */
     companyCard: RilletExportCompanyCard;
+
+    /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
+
+    /** Credit card liability account code. */
     creditCardAccountCode: string;
+
+    /**
+     * Whether card transactions should be exported to multiple
+     * accounts based on card program mappings.
+     */
     exportToMultipleAccounts: boolean;
+
+    /**
+     * Mapping of card program identifiers to account codes.
+     */
     cardProgramAccounts: Record<string, string>;
+
+    /** Accounting method used during export. */
     accountingMethod: string;
 };
 
-/** Rillet Auto-sync */
+/**
+ * Automatic synchronization settings for Rillet.
+ */
 type RilletAutoSync = {
+    /** Whether automatic synchronization is enabled. */
     enabled: boolean;
 };
 
-/** Rillet Sync */
+/**
+ * Synchronization settings for importing and updating data in Rillet.
+ */
 type RilletSync = {
+    /** Whether reimbursed expense reports should be synchronized. */
     syncReimbursedReports: boolean;
+
+    /** Account code used for bill payment transactions. */
     billPaymentAccountCode: string;
+
+    /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;
+
+    /** Bank account used for Expensify Card settlements. */
     settlementsBankAccountID: string;
+
+    /** Whether travel invoicing settlement transactions should be synchronized. */
     syncTravelInvoicingSettlements: boolean;
+
+    /** Bank account used for travel invoicing settlements. */
     travelInvoicingSettlementsBankAccountID: string;
 };
 
