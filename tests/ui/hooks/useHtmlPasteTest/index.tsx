@@ -44,6 +44,9 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         selection?.addRange(range);
     };
 
+    const renderUseHtmlPaste = (isActive = false) =>
+        renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>, undefined, isActive));
+
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -82,7 +85,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection(selectedText);
         const event = createMockClipboardEvent(url);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        const {result} = renderUseHtmlPaste();
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -101,7 +104,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('');
         const event = createMockClipboardEvent(url);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        const {result} = renderUseHtmlPaste();
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -120,7 +123,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('what up');
         const event = createMockClipboardEvent(plainText);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        const {result} = renderUseHtmlPaste();
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -139,7 +142,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         mockWindowSelection('');
         const event = createMockClipboardEvent(textWithTrailingWhitespace);
 
-        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        const {result} = renderUseHtmlPaste();
         await waitForBatchedUpdatesWithAct();
 
         expect(result?.current).toBeDefined();
@@ -159,7 +162,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
         mockWindowSelection('');
 
-        renderHook(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>, undefined, true));
+        renderUseHtmlPaste(true);
         await waitForBatchedUpdatesWithAct();
 
         act(() => document.dispatchEvent(event));
@@ -172,7 +175,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
         mockWindowSelection('');
 
-        renderHook(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>, undefined, true));
+        renderUseHtmlPaste(true);
         await waitForBatchedUpdatesWithAct();
 
         act(() => document.dispatchEvent(event));
