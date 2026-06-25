@@ -341,6 +341,12 @@ describe('CopyPolicySettingsUtils', () => {
             expect(hasCurrencyConflictWithAnyTarget(source, [target])).toBe(true);
         });
 
+        it('returns true when source and target both have bank accounts with different currencies', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, true);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, true);
+            expect(hasCurrencyConflictWithAnyTarget(source, [target])).toBe(true);
+        });
+
         it('returns false when all targets share the source currency', () => {
             const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, false);
             const target = makePolicyWithCurrency(1, CONST.CURRENCY.USD, true);
@@ -351,6 +357,12 @@ describe('CopyPolicySettingsUtils', () => {
     describe('isCurrencyBlockedByTargetBA', () => {
         it('returns true when a target has a BA with a different currency (Case 4)', () => {
             const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, false);
+            const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, true);
+            expect(isCurrencyBlockedByTargetBA(source, [target])).toBe(true);
+        });
+
+        it('returns true when source and target both have bank accounts with different currencies', () => {
+            const source = makePolicyWithCurrency(0, CONST.CURRENCY.USD, true);
             const target = makePolicyWithCurrency(1, CONST.CURRENCY.EUR, true);
             expect(isCurrencyBlockedByTargetBA(source, [target])).toBe(true);
         });
