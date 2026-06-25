@@ -11,6 +11,10 @@ type CollectResult = {
     /** Maps dynamic-route pattern - tab-child paths of that screen's tab navigator.
      * Used by findAllMatchingDynamicSuffixes to safely strip trailing tab segments. */
     dynamicTabPatternToTabPaths: Map<string, Set<string>>;
+
+    /** Maps host screen name - (tab path - tab screen name) for dynamic tab-host screens.
+     * Used by getStateForDynamicRoute for O(1) tab screen name lookup. */
+    dynamicTabScreensByHost: Map<string, Map<string, string>>;
 };
 
 /**
@@ -26,7 +30,7 @@ type CollectResult = {
  */
 function collectScreensWithTabNavigator(
     screens: Record<string, ScreenConfigEntry>,
-    result: CollectResult = {screensWithTabNavigator: new Set(), dynamicTabPatternToTabPaths: new Map()},
+    result: CollectResult = {screensWithTabNavigator: new Set(), dynamicTabPatternToTabPaths: new Map(), dynamicTabScreensByHost: new Map()},
 ): CollectResult {
     const screenConfigEntries = Object.entries(screens);
     for (const [screenName, screenConfig] of screenConfigEntries) {
@@ -34,17 +38,21 @@ function collectScreensWithTabNavigator(
             if (screenConfig.path !== undefined && screenConfig.screens && !navigatorNames.has(screenName)) {
                 result.screensWithTabNavigator.add(screenName);
 
-                // For dynamic tab-host screens, map the route pattern - tab paths for findAllMatchingDynamicSuffixes.
+                // For dynamic tab-host screens, map the route pattern - tab paths for findAllMatchingDynamicSuffixes,
+                // and map host screen name - (tab path - tab screen name) for getStateForDynamicRoute.
                 if (isDynamicRouteSuffix(screenConfig.path)) {
                     const tabPaths = new Set<string>();
-                    for (const tabConfig of Object.values(screenConfig.screens)) {
+                    const tabScreensByPath = new Map<string, string>();
+                    for (const [tabScreenName, tabConfig] of Object.entries(screenConfig.screens)) {
                         const tabPath = typeof tabConfig === 'string' ? tabConfig : tabConfig?.path;
                         if (tabPath) {
                             tabPaths.add(tabPath);
+                            tabScreensByPath.set(tabPath, tabScreenName);
                         }
                     }
                     if (tabPaths.size > 0) {
                         result.dynamicTabPatternToTabPaths.set(screenConfig.path, tabPaths);
+                        result.dynamicTabScreensByHost.set(screenName, tabScreensByPath);
                     }
                 }
             }

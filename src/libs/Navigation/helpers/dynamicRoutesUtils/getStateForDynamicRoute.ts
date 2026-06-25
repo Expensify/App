@@ -1,4 +1,4 @@
-import {normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
+import {dynamicTabScreensByHost, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import splitPathAndQuery from './splitPathAndQuery';
@@ -21,22 +21,6 @@ type NestedRoute = {
 type RouteNode = LeafRoute | NestedRoute;
 
 const configEntries = Object.entries(normalizedConfigs);
-
-/**
- * Finds the screen name of a tab child by its parent host screen name and its URL path segment.
- * Needed because screen name and path are conventionally identical today, but may diverge.
- *
- * @private - Internal helper. Do not export or use outside this file.
- */
-function findTabScreenName(hostScreenName: string, activeTabPath: string): string | undefined {
-    for (const [screenName, config] of configEntries) {
-        const parentScreenName = config.routeNames.at(-2); // at(-1) is the tab child itself; at(-2) is the tab-host parent
-        if (parentScreenName === hostScreenName && config.path === activeTabPath) {
-            return screenName;
-        }
-    }
-    return undefined;
-}
 
 /**
  * Parses a query string into a key-value record.
@@ -96,7 +80,7 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
             // build a partial tab state so TabRouter.getRehydratedState selects the correct tab on
             // mount — without waiting for Onyx to load the stored selection.
             if (activeTabPath && currentRoute && screensWithOnyxTabNavigator.has(currentRoute)) {
-                const tabScreenName = findTabScreenName(currentRoute, activeTabPath) ?? activeTabPath;
+                const tabScreenName = dynamicTabScreensByHost.get(currentRoute)?.get(activeTabPath) ?? activeTabPath;
                 return {
                     name: currentRoute,
                     path,
