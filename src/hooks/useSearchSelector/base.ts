@@ -337,12 +337,17 @@ function useSearchSelectorBase({
         }
     })();
 
+    // Two independent pagination cursors are checked here on purpose:
+    // - hasMore/maxResults track how many relevance-sorted options are rendered.
+    // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
     const onListEndReached = useDebounce(() => {
-        if (!areOptionsInitialized || !hasMore) {
+        if (!areOptionsInitialized) {
             return;
         }
 
-        setMaxResults((previous) => previous + maxResultsPerPage);
+        if (hasMore) {
+            setMaxResults((previous) => previous + maxResultsPerPage);
+        }
         if (hasMoreReports) {
             loadMoreReports();
         }
