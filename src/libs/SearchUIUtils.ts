@@ -4382,7 +4382,8 @@ function getSortByForColumn(column: SearchColumnType): SearchSortBy {
     return column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE ? CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE : column;
 }
 
-type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset>;
+// `Filter` is only needed for the optional "Edit filters" item (wide layout), so it's optional here.
+type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset> & {Filter?: IconAsset};
 
 type ShareProps = {
     onShare: () => void;
@@ -4402,6 +4403,7 @@ function getOverflowMenu(
     isMobileMenu?: boolean,
     closeMenu?: () => void,
     shareProps?: ShareProps,
+    onEditFilters?: () => void,
 ) {
     return [
         {
@@ -4417,6 +4419,25 @@ function getOverflowMenu(
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
         },
+        // Only offered where the caller can open the edit-filters popover (the wide layout). The narrow layout opens
+        // filters as a fullscreen route without the edit footer, so it doesn't pass onEditFilters and the item is hidden.
+        ...(onEditFilters
+            ? [
+                  {
+                      text: translate('search.editFilters'),
+                      onSelected: () => {
+                          if (isMobileMenu && closeMenu) {
+                              closeMenu();
+                          }
+                          onEditFilters();
+                      },
+                      icon: icons.Filter,
+                      shouldShowRightIcon: false,
+                      shouldShowRightComponent: false,
+                      shouldCallAfterModalHide: true,
+                  },
+              ]
+            : []),
         {
             text: shareProps?.isCopied ? translate('search.urlCopied') : translate('common.share'),
             onSelected: () => {

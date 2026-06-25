@@ -14,7 +14,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setSearchContext} from '@libs/actions/Search';
+import {enterSavedViewEditMode, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -47,6 +47,7 @@ type SavedSearchMenuItemBuilderParams = {
     itemStyle: SavedSearchMenuItem['style'];
     tooltipWrapperStyle: SavedSearchMenuItem['tooltipWrapperStyle'];
     isCopied: boolean;
+    editingSavedViewHash: number | undefined;
 };
 
 function buildSavedSearchMenuItem({
@@ -62,8 +63,10 @@ function buildSavedSearchMenuItem({
     itemStyle,
     tooltipWrapperStyle,
     isCopied,
+    editingSavedViewHash,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
-    const isItemFocused = Number(key) === hash;
+    // Keep the saved view highlighted while it is being edited, even though the live query changes as filters are tweaked.
+    const isItemFocused = Number(key) === hash || Number(key) === editingSavedViewHash;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
     return {
@@ -104,6 +107,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const isFocused = useIsFocused();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [editingSavedView] = useOnyx(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -121,7 +125,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
         hideProductTrainingTooltip: hideSavedSearchTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused && areAllSectionsExpanded);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark', 'Filter']);
     const {copiedHash, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
@@ -142,10 +146,21 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     });
 
     const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) =>
-        getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal, false, undefined, {
-            onShare: () => handleShare(itemHash, itemQuery),
-            isCopied: copiedHash === itemHash,
-        });
+        getOverflowMenuUtil(
+            expensifyIcons,
+            itemName,
+            itemHash,
+            itemQuery,
+            translate,
+            showDeleteModal,
+            false,
+            undefined,
+            {
+                onShare: () => handleShare(itemHash, itemQuery),
+                isCopied: copiedHash === itemHash,
+            },
+            () => enterSavedViewEditMode({hash: itemHash, name: itemName, query: itemQuery}),
+        );
 
     const itemStyle = [styles.alignItemsCenter];
     const tooltipWrapperStyle = [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper];
@@ -166,6 +181,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
                       itemStyle,
                       tooltipWrapperStyle,
                       isCopied: copiedHash === Number(key),
+                      editingSavedViewHash: editingSavedView?.hash,
                   }),
               )
               .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
