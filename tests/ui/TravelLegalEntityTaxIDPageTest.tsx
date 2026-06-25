@@ -7,8 +7,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
-import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import {setTravelProvisioningTaxID} from '@libs/actions/Travel';
+import type * as TravelActions from '@libs/actions/Travel';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -31,8 +31,7 @@ jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () =
 }));
 
 jest.mock('@libs/actions/Travel', () => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return
-    ...jest.requireActual('@libs/actions/Travel'),
+    ...jest.requireActual<typeof TravelActions>('@libs/actions/Travel'),
     setTravelProvisioningTaxID: jest.fn(),
 }));
 
@@ -68,9 +67,18 @@ describe('TravelLegalEntityTaxIDPage', () => {
 
     beforeEach(() => {
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+            isSmallScreenWidth: false,
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: true,
+            isExtraLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: false,
+            onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
+        });
     });
 
     afterEach(async () => {
