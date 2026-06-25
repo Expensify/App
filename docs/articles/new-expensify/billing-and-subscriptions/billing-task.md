@@ -5,7 +5,7 @@ keywords: [New Expensify, fix billing problem, retry payment, update payment car
 internalScope: Audience is billing owners. Covers resolving subscription billing problems from the Subscription page. Does not cover subscription pricing, billing receipts, or canceling subscriptions.
 ---
 
-# Fix a subscription billing problem in New Expensify
+# Fix a billing issue
 
 If Expensify can't process your subscription payment, you'll see a billing banner on the **Account > Subscription** page. The banner explains what's preventing payment and provides the action needed to resolve it.
 
@@ -23,7 +23,7 @@ Subscription management is available on the web only.
 
 ## How to fix a subscription billing problem in New Expensify
 
-1. Click your profile icon, then go to **Account > Subscription**.
+1. Click **Account > Subscription**.
 2. Review the billing banner.
 3. Complete the action shown in the banner.
 
