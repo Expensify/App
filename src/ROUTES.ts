@@ -962,6 +962,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.SEARCH.ROOT,
             SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
             SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.LEGAL_ENTITY_TAX_ID,
             SCREENS.TRAVEL.VERIFY_ACCOUNT,
         ],
         getRoute: (domain: string, policyID?: string) => `terms/${domain}/accept${policyID ? `/${policyID}` : ''}`,
@@ -3432,6 +3433,11 @@ const ROUTES = {
         route: 'travel/:domain/workspace-address',
 
         getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
+    },
+    TRAVEL_LEGAL_ENTITY_TAX_ID: {
+        route: 'travel/:domain/legal-entity-tax-id',
+
+        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/legal-entity-tax-id?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/${VERIFY_ACCOUNT}`,
