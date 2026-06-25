@@ -1,5 +1,5 @@
 ---
-title: Fix a subscription billing problem in New Expensify
+title: Fix a billing issue
 description: Learn how to resolve subscription billing problems by following the action shown on the billing banner in New Expensify.
 keywords: [New Expensify, fix billing problem, retry payment, update payment card, authenticate payment, billing owner]
 internalScope: Audience is billing owners. Covers resolving subscription billing problems from the Subscription page. Does not cover subscription pricing, billing receipts, or canceling subscriptions.
