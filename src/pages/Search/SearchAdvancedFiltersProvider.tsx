@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import {exitSavedViewEditMode, saveSavedViewEdits, setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
+import {getSavedViewSaveButtonDisabledStates} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -66,10 +67,10 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm) : undefined;
 
     const isEditingSavedView = !!editingSavedView;
-    // The hash the edited draft would be saved under. Saved views are keyed by query hash, so we use it to avoid
-    // clobbering/duplicating other views (mirrors the wide popover guards).
+    // The hash the edited draft would be saved under. Saved views are keyed by query hash, so we use it to decide which
+    // save buttons to disable (avoids clobbering/duplicating other views — same helper the wide popover uses).
     const editedQueryHash = buildSearchQueryJSON(buildFilterQueryString(values))?.hash;
-    const isCurrentQueryAlreadySaved = editedQueryHash !== undefined && !!savedSearches?.[editedQueryHash];
+    const {isSaveAsNewViewDisabled, isSaveEditsDisabled} = getSavedViewSaveButtonDisabledStates(savedSearches, editedQueryHash, editingSavedView?.hash);
 
     const applyFilters = () => {
         Navigation.dismissModal({
@@ -135,8 +136,8 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         currentDraftFilters: values,
         shouldShowResetFilters: !isEmptyObject(advancedFiltersToReset),
         isEditingSavedView,
-        isSaveEditsDisabled: isCurrentQueryAlreadySaved && editedQueryHash !== editingSavedView?.hash,
-        isSaveAsNewViewDisabled: isCurrentQueryAlreadySaved,
+        isSaveEditsDisabled,
+        isSaveAsNewViewDisabled,
     };
 
     const searchAdvancedFiltersActionValue: SearchAdvancedFiltersActionValue = {

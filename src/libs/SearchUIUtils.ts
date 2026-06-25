@@ -73,7 +73,7 @@ import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+import type {SaveSearch, SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
@@ -4390,6 +4390,34 @@ type ShareProps = {
     isCopied: boolean;
 };
 
+/** Which save buttons of the "Edit filters" footer must be disabled. */
+type SavedViewSaveButtonDisabledStates = {
+    /** The edited query already matches a saved view, so saving a "new" one would just rename it. */
+    isSaveAsNewViewDisabled: boolean;
+
+    /** The edited query's hash belongs to a DIFFERENT saved view, so saving edits would clobber/delete that view. */
+    isSaveEditsDisabled: boolean;
+};
+
+/**
+ * Saved views are keyed by their query hash. When editing a view's filters, returns which footer save buttons must be
+ * disabled to avoid two failure modes: "Save as new view" creating a duplicate of an already-saved query (it would just
+ * rename that entry), and "Save edits" writing the edited query under a hash that belongs to a DIFFERENT saved view
+ * (which would clobber/delete that unrelated view, and a failed save removes it locally). Shared by the wide popover and
+ * the narrow fullscreen footer.
+ */
+function getSavedViewSaveButtonDisabledStates(
+    savedSearches: OnyxEntry<SaveSearch>,
+    editedQueryHash: number | undefined,
+    editingViewHash: number | undefined,
+): SavedViewSaveButtonDisabledStates {
+    const isCurrentQueryAlreadySaved = editedQueryHash !== undefined && !!savedSearches?.[editedQueryHash];
+    return {
+        isSaveAsNewViewDisabled: isCurrentQueryAlreadySaved,
+        isSaveEditsDisabled: isCurrentQueryAlreadySaved && editedQueryHash !== editingViewHash,
+    };
+}
+
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as sharing, renaming or deleting items.
  */
@@ -6296,6 +6324,7 @@ export {
     isReportActionListItemType,
     shouldShowYear,
     getOverflowMenu,
+    getSavedViewSaveButtonDisabledStates,
     isCorrectSearchUserName,
     isReportActionEntry,
     isTaskListItemType,

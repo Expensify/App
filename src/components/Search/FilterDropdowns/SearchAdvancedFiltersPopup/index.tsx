@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {cancelSavedViewEdits, saveSavedViewEdits, setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {getSavedViewSaveButtonDisabledStates} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,14 +49,8 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
 
     const isEditingSavedView = !!editingSavedView;
 
-    // Saved views are keyed by their query hash, so a "new" view whose query already matches a saved one would just
-    // overwrite (rename) that entry instead of creating a separate view. Disable "Save as new view" in that case — the
-    // user needs to actually change a filter first.
-    const isCurrentQueryAlreadySaved = !!savedSearches?.[queryJSON.hash];
-
-    // Save edits writes the edited query under its (new) hash. If that hash already belongs to a DIFFERENT saved view,
-    // saving would clobber/delete that unrelated view (and a failed save removes it locally), so disable it too.
-    const doesEditedQueryCollideWithAnotherView = isCurrentQueryAlreadySaved && queryJSON.hash !== editingSavedView?.hash;
+    // Saved views are keyed by their query hash; the helper computes which save buttons to disable (see its docs).
+    const {isSaveAsNewViewDisabled, isSaveEditsDisabled} = getSavedViewSaveButtonDisabledStates(savedSearches, queryJSON.hash, editingSavedView?.hash);
 
     const onCancel = () => {
         if (editingSavedView) {
@@ -139,14 +134,14 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
                     <Button
                         text={translate('search.saveAsNewView')}
                         onPress={onSaveAsNewView}
-                        isDisabled={isCurrentQueryAlreadySaved}
+                        isDisabled={isSaveAsNewViewDisabled}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
                     />
                     <Button
                         success
                         text={translate('search.saveEdits')}
                         onPress={onSaveEdits}
-                        isDisabled={doesEditedQueryCollideWithAnotherView}
+                        isDisabled={isSaveEditsDisabled}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
                     />
                 </View>

@@ -2568,6 +2568,32 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Test getSavedViewSaveButtonDisabledStates', () => {
+        // Two existing saved views, keyed by query hash (111 is the one being edited).
+        const savedSearches = {
+            111: {name: 'View A', query: 'type:expense'},
+            222: {name: 'View B', query: 'type:invoice'},
+        } as Parameters<typeof SearchUIUtils.getSavedViewSaveButtonDisabledStates>[0];
+
+        it('disables both save buttons when the edited query collides with a DIFFERENT saved view', () => {
+            // Editing view 111, but the edited query now hashes to view 222 -> saving edits would clobber 222.
+            expect(SearchUIUtils.getSavedViewSaveButtonDisabledStates(savedSearches, 222, 111)).toEqual({isSaveAsNewViewDisabled: true, isSaveEditsDisabled: true});
+        });
+
+        it('keeps "Save edits" enabled and only disables "Save as new view" when the query still matches the edited view itself', () => {
+            // Editing view 111 and the edited query still hashes to 111 -> editing in place is fine, but it is not a new view.
+            expect(SearchUIUtils.getSavedViewSaveButtonDisabledStates(savedSearches, 111, 111)).toEqual({isSaveAsNewViewDisabled: true, isSaveEditsDisabled: false});
+        });
+
+        it('enables both save buttons when the edited query does not match any saved view', () => {
+            expect(SearchUIUtils.getSavedViewSaveButtonDisabledStates(savedSearches, 999, 111)).toEqual({isSaveAsNewViewDisabled: false, isSaveEditsDisabled: false});
+        });
+
+        it('enables both save buttons when the edited query hash could not be computed', () => {
+            expect(SearchUIUtils.getSavedViewSaveButtonDisabledStates(savedSearches, undefined, 111)).toEqual({isSaveAsNewViewDisabled: false, isSaveEditsDisabled: false});
+        });
+    });
+
     describe('Test getListItem', () => {
         it('should return ChatListItem when type is CHAT', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(ChatListItem);
