@@ -3569,6 +3569,37 @@ const CONST = {
         RECONNECT: 1000,
     },
 
+    ENABLE_PAYMENTS: {
+        PAGE_NAMES: {
+            ADD_BANK_ACCOUNT: 'add-bank-account',
+            PERSONAL_INFO: 'personal-info',
+            VERIFY_IDENTITY: 'verify-identity',
+            FEES_AND_TERMS: 'fees-and-terms',
+        },
+        ADD_BANK_ACCOUNT_STEP: {
+            SUB_PAGE_NAMES: {
+                PLAID: 'plaid',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        PERSONAL_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                LEGAL_NAME: 'legal-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                ADDRESS: 'address',
+                PHONE_NUMBER: 'phone-number',
+                SSN: 'ssn',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        FEES_AND_TERMS_STEP: {
+            SUB_PAGE_NAMES: {
+                FEES: 'fees',
+                TERMS: 'terms',
+            },
+        },
+    },
+
     WALLET: {
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
@@ -9006,6 +9037,15 @@ type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
+/** Valid `page` values for the Enable Payments flow */
+type EnablePaymentsPageType = ValueOf<typeof CONST.ENABLE_PAYMENTS.PAGE_NAMES>;
+
+/** Valid `subPage` values for the Enable Payments flow */
+type EnablePaymentsSubPageType =
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.ADD_BANK_ACCOUNT_STEP.SUB_PAGE_NAMES>
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.PERSONAL_INFO_STEP.SUB_PAGE_NAMES>
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.FEES_AND_TERMS_STEP.SUB_PAGE_NAMES>;
+
 export type {
     Country,
     IOUAction,
@@ -9018,6 +9058,8 @@ export type {
     OnboardingInvite,
     OnboardingAccounting,
     IOUActionParams,
+    EnablePaymentsPageType,
+    EnablePaymentsSubPageType,
 };
 
 export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
