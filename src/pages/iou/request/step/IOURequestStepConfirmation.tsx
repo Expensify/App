@@ -502,16 +502,20 @@ function IOURequestStepConfirmation({
             clearTimeout(timer);
 
             // eslint-disable-next-line react-hooks/exhaustive-deps -- formHasBeenSubmitted is a stable ref from useExpenseSubmission; reading .current in cleanup is intentional
-            if (!Navigation.getIsFullscreenPreInsertedUnderRHP() || formHasBeenSubmitted.current) {
+            if (formHasBeenSubmitted.current) {
                 return;
             }
 
-            Navigation.removePreInsertedFullscreenIfNeeded();
+            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                Navigation.removePreInsertedFullscreenIfNeeded();
+            }
 
             // Allow the pre-insert to re-fire when dependencies change (e.g. destinationReportID
             // transitions from undefined to a valid ID after setTransactionReport resolves).
             // Without this reset, the guard would permanently block re-firing after the first
-            // pre-insert was torn down due to a dependency change.
+            // pre-insert was torn down due to a dependency change. This must run even when the
+            // 300ms timer was cleared before the pre-insert could execute, otherwise the flag
+            // stays true and blocks all subsequent attempts.
             hasPreInsertFired.current = false;
         };
         // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
