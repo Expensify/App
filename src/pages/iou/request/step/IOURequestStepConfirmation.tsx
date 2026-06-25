@@ -468,8 +468,10 @@ function IOURequestStepConfirmation({
         // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
         // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
         // pre-inserting a report is wrong - the user should stay on Search after submission.
-        // Global-create TRACK targets self-DM (a report), so it's also eligible for report pre-insert.
-        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || isCreatingTrackExpense || (!isFromGlobalCreate && !isSearchTopmostFullScreenRoute()));
+        // Global-create TRACK targets self-DM (a report), so it's also eligible for report
+        // pre-insert, but only when Search is NOT topmost. When on Search/Spend the user
+        // should stay there after submission (navigateAfterExpenseCreate routes to Expenses search).
+        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
