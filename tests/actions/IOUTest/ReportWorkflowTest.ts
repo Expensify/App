@@ -1625,8 +1625,9 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // The submitter can't approve their own expense on a Submit workspace, so the green dot should be cleared
             const optimisticParentReportUpdate = onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`);
-            expect((optimisticParentReportUpdate?.value as Report | undefined)?.hasOutstandingChildRequest).toBe(false);
-            expect((optimisticParentReportUpdate?.value as Report | undefined)?.iouReportID).toBeNull();
+            const optimisticParentReport = optimisticParentReportUpdate?.value as Report | undefined;
+            expect(optimisticParentReport?.hasOutstandingChildRequest).toBe(false);
+            expect(optimisticParentReport?.iouReportID).toBeNull();
         });
 
         it('recomputes the submit approver for a retracted forwarded report', async () => {
