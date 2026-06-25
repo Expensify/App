@@ -32,6 +32,29 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
 }));
 
+type StartPageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
+
+const startPageRoute = {params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: '1', transactionID: ''}} as StartPageProps['route'];
+const startPageNavigation = {} as StartPageProps['navigation'];
+
+function renderManualStartPage() {
+    return render(
+        <OnyxListItemProvider>
+            <LocaleContextProvider>
+                <NavigationContainer>
+                    <IOURequestStartPage
+                        route={startPageRoute}
+                        report={undefined}
+                        reportDraft={undefined}
+                        navigation={startPageNavigation}
+                        defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
+                    />
+                </NavigationContainer>
+            </LocaleContextProvider>
+        </OnyxListItemProvider>,
+    );
+}
+
 describe('IOURequestStartPage', () => {
     beforeAll(() => {
         Onyx.init({
@@ -52,26 +75,7 @@ describe('IOURequestStartPage', () => {
         });
 
         // When the page is mounted with MANUAL tab
-        render(
-            <OnyxListItemProvider>
-                <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStartPage
-                            route={
-                                {params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: '1', transactionID: ''}} as PlatformStackScreenProps<
-                                    MoneyRequestNavigatorParamList,
-                                    typeof SCREENS.MONEY_REQUEST.CREATE
-                                >['route']
-                            }
-                            report={undefined}
-                            reportDraft={undefined}
-                            navigation={{} as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']}
-                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
-                        />
-                    </NavigationContainer>
-                </LocaleContextProvider>
-            </OnyxListItemProvider>,
-        );
+        renderManualStartPage();
 
         await waitForBatchedUpdatesWithAct();
 
@@ -94,33 +98,12 @@ describe('IOURequestStartPage', () => {
         const removePreInsertedSpy = jest.spyOn(Navigation, 'removePreInsertedFullscreenIfNeeded').mockImplementation(() => {});
         const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
 
-        render(
-            <OnyxListItemProvider>
-                <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStartPage
-                            route={
-                                {params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: '1', transactionID: ''}} as PlatformStackScreenProps<
-                                    MoneyRequestNavigatorParamList,
-                                    typeof SCREENS.MONEY_REQUEST.CREATE
-                                >['route']
-                            }
-                            report={undefined}
-                            reportDraft={undefined}
-                            navigation={{} as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']}
-                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
-                        />
-                    </NavigationContainer>
-                </LocaleContextProvider>
-            </OnyxListItemProvider>,
-        );
+        renderManualStartPage();
 
         await waitForBatchedUpdatesWithAct();
 
         // When the user presses the header back button
-        await act(async () => {
-            fireEvent.press(screen.getByLabelText('Back'));
-        });
+        fireEvent.press(screen.getByLabelText('Back'));
 
         // Then the pre-inserted fullscreen report is removed (while the RHP is still on top, so it
         // is not revealed) before the RHP flow is closed, landing the user on the LHN instead of the
