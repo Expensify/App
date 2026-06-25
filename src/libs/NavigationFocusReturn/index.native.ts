@@ -86,9 +86,8 @@ function captureTriggerForRoute(routeKey: string): void {
     setFifoEntry(triggerMap, routeKey, {ref: lastPressedTriggerRef, identifier: lastPressedTriggerIdentifier ?? undefined}, TRIGGER_MAP_MAX);
 }
 
-// Pressables register under the raw route key; PUSH_PARAMS restores arrive under the compound key, so strip the suffix to match.
-function resolveLiveRefFromRegistry(routeKey: string, identifier: string): RefObject<View | null> | null {
-    const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
+// Caller passes the raw (compound-suffix-stripped) route key — pressables register under raw, but PUSH_PARAMS restores arrive under the compound key.
+function resolveLiveRefFromRegistry(rawRouteKey: string, identifier: string): RefObject<View | null> | null {
     const refs = pressableRegistry.get(rawRouteKey)?.get(identifier);
     if (!refs || refs.size === 0) {
         return null;
@@ -123,12 +122,12 @@ function resolveLiveRefFromRegistry(routeKey: string, identifier: string): RefOb
  * Registry-first: a fresh re-registration wins over the captured ref because the captured native handle
  * can stale-out across detach without nulling the JS ref. Falls back to the captured ref when the registry misses.
  */
-function restoreTriggerForRoute(routeKey: string): RefObject<View | null> | null {
+function restoreTriggerForRoute(routeKey: string, rawRouteKey: string): RefObject<View | null> | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
         return null;
     }
-    const liveRef = entry.identifier ? resolveLiveRefFromRegistry(routeKey, entry.identifier) : null;
+    const liveRef = entry.identifier ? resolveLiveRefFromRegistry(rawRouteKey, entry.identifier) : null;
     const ref = liveRef ?? entry.ref;
     const view = ref.current;
     if (!view) {
@@ -178,6 +177,9 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
         },
     };
 
+    // Hoist out of the retry loop — routeKey is invariant across rAF retries.
+    const rawRouteKey = routeKey.split(COMPOUND_KEY_DELIMITER).at(0) ?? routeKey;
+
     handle = TransitionTracker.runAfterTransitions({
         // Stack pops fire before their transition registers, so wait for it; PUSH_PARAMS emits none, so the caller opts out to avoid stalling on the 1s timeout.
         waitForUpcomingTransition,
@@ -188,7 +190,7 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
                 if (cancelled) {
                     return;
                 }
-                const ref = restoreTriggerForRoute(routeKey);
+                const ref = restoreTriggerForRoute(routeKey, rawRouteKey);
                 if (ref) {
                     triggerMap.delete(routeKey);
                     refocusHandle = scheduleRefocus(ref);
