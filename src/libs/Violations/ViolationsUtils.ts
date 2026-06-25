@@ -491,7 +491,16 @@ const ViolationsUtils = {
                 } else {
                     const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
                     if (!matchedVendor && !hasInactiveVendorViolation) {
-                        newTransactionViolations.push({name: CONST.VIOLATIONS.INACTIVE_VENDOR, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+                        // Stamp Xero-specific copy on the violation so the render site can use the
+                        // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the
+                        // default "Vendor" wording.
+                        const isSupplierViolation = isXeroActiveMatchingSource(policy);
+                        newTransactionViolations.push({
+                            name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                            type: CONST.VIOLATION_TYPES.VIOLATION,
+                            showInReview: true,
+                            ...(isSupplierViolation ? {data: {isSupplierViolation: true}} : {}),
+                        });
                     } else if (matchedVendor && hasInactiveVendorViolation) {
                         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                     }
@@ -797,6 +806,7 @@ const ViolationsUtils = {
             message = '',
             errorIndexes = [],
             missingFields = [],
+            isSupplierViolation = false,
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -821,7 +831,7 @@ const ViolationsUtils = {
             case 'futureDate':
                 return translate('violations.futureDate');
             case 'inactiveVendor':
-                return translate('violations.inactiveVendor');
+                return translate('violations.inactiveVendor', {isSupplier: isSupplierViolation});
             case 'invoiceMarkup':
                 return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':

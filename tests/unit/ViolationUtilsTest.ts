@@ -111,6 +111,13 @@ const inactiveVendorViolation = {
     showInReview: true,
 };
 
+const inactiveSupplierViolation = {
+    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {isSupplierViolation: true},
+};
+
 const smartScanFailedViolation = {
     name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
     type: CONST.VIOLATION_TYPES.WARNING,
@@ -2265,7 +2272,10 @@ describe('getViolationsOnyxData', () => {
                     },
                 }) as unknown as Policy;
 
-            it('adds the violation when the Xero supplier ID is not in the synced contacts list', () => {
+            it('adds the violation with isSupplierViolation flag when the Xero supplier ID is not in the synced contacts list', () => {
+                // Xero is the active matching source — the violation must carry the isSupplierViolation
+                // flag so the render layer uses the "Supplier no longer valid" copy that matches the
+                // rest of the Xero UI (picker, default-supplier row).
                 policy = policyWithXeroVendorFeature();
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'xcMissing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
@@ -2277,7 +2287,7 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+                expect(result.value).toEqual(expect.arrayContaining([inactiveSupplierViolation]));
             });
 
             it('removes an existing violation when the Xero supplier is restored in the contacts list', () => {
