@@ -47,7 +47,7 @@ import {
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
-import {getBankAccountConnectionStatus} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
@@ -147,7 +147,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -377,7 +377,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const accountData = isBankAccountFullySetup ? policy?.achAccount : bankAccountConnectedToWorkspace?.accountData;
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
         const bankAccountID = isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : bankAccountConnectedToWorkspace?.methodID;
-        const state = isBankAccountFullySetup ? policy?.achAccount?.state : bankAccountConnectedToWorkspace?.accountData?.state;
+        const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
+        const isAccountInSetupState = isBankAccountPartiallySetup(state);
         const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
         const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
@@ -389,11 +390,18 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
-        const bankConnectionStatus = getBankAccountConnectionStatus(state);
-        let bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator;
-        if (!bankConnectionBrickRoadIndicator && state !== CONST.BANK_ACCOUNT.STATE.VERIFYING && hasReimburserError) {
-            bankConnectionBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        }
+        const getBadgeText = (accountState: string | undefined) => {
+            switch (accountState) {
+                case CONST.BANK_ACCOUNT.STATE.SETUP:
+                    return translate('common.actionRequired');
+                case CONST.BANK_ACCOUNT.STATE.LOCKED:
+                    return translate('common.locked');
+                default:
+                    return undefined;
+            }
+        };
+        const bankConnectionStatus = canAccessSubmit2026Features ? getBankAccountConnectionStatus(state) : undefined;
+        const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
         const bankConnectionStatusAddon = bankConnectionStatus ? (
             <ConnectionStatusBadge
                 text={translate(bankConnectionStatus.labelKey)}
@@ -403,6 +411,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         ) : undefined;
         const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
         const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
+        const bankBadgeIcon = !canAccessSubmit2026Features && (isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin)) ? expensifyIcons.DotIndicator : undefined;
         const canInteractWithBankAccountRow = canWritePayments && !isOffline && isPolicyAdmin;
 
         const updateWorkspaceCurrencyPrompt = (
@@ -687,16 +696,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     titleStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
                                     descriptionTextStyle={isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined}
                                     disabled={isOffline || !isPolicyAdmin}
+                                    badgeText={canAccessSubmit2026Features ? undefined : getBadgeText(accountData?.state)}
+                                    badgeIcon={bankBadgeIcon}
+                                    isBadgeSuccess={canAccessSubmit2026Features ? undefined : isAccountInSetupState}
+                                    isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
                                     descriptionAddon={bankConnectionStatusAddon}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
-                                    isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
                                     shouldShowRightIcon={canWritePayments}
                                     interactive={canWritePayments}
                                     shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                    brickRoadIndicator={bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator}
+                                    brickRoadIndicator={canAccessSubmit2026Features && bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator}
                                 />
-                                {!!bankConnectionMessage && (
+                                {!!canAccessSubmit2026Features && !!bankConnectionMessage && (
                                     <View style={styles.mt2}>
                                         <ConnectionStatusMessage
                                             message={bankConnectionMessage}
@@ -810,6 +822,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         promptConfigureApprovalsInHR,
         isDEWEnabled,
         shouldUseNarrowLayout,
+        expensifyIcons.DotIndicator,
         expensifyIcons.Info,
         expensifyIcons.Plus,
         theme.textSupporting,
