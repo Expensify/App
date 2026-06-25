@@ -318,6 +318,10 @@ function IOURequestStepConfirmation({
                     navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
                 }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
+                const firstParticipant = participantsList.at(0);
+                if (firstParticipant?.reportID) {
+                    setTransactionReport(activeTransactionID, {reportID: firstParticipant.reportID}, true);
+                }
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
@@ -340,9 +344,12 @@ function IOURequestStepConfirmation({
         }
 
         setMoneyRequestParticipants(transaction.transactionID, defaultParticipants);
-        if (defaultParticipants.at(0)?.isSelfDM) {
+        const firstDefault = defaultParticipants.at(0);
+        if (firstDefault?.isSelfDM) {
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
             navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+        } else if (firstDefault?.reportID) {
+            setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
     }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
 
@@ -392,11 +399,10 @@ function IOURequestStepConfirmation({
         backToReport,
     });
 
-    // PAY, SPLIT, and per-diem TRACK navigate to a specific destination report
+    // PAY, SPLIT, and TRACK navigate to a specific destination report
     // (not Search) after submission. Pre-inserting the Search route would leave
-    // a stale entry in the navigation stack. Non-per-diem TRACK flows can still
-    // benefit from the Search pre-insert optimization.
-    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && !(isPerDiemRequest && iouType === CONST.IOU.TYPE.TRACK);
+    // a stale entry in the navigation stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK;
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
@@ -462,7 +468,8 @@ function IOURequestStepConfirmation({
         // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
         // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
         // pre-inserting a report is wrong - the user should stay on Search after submission.
-        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isFromGlobalCreate && !isSearchTopmostFullScreenRoute()));
+        // Global-create TRACK targets self-DM (a report), so it's also eligible for report pre-insert.
+        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || isCreatingTrackExpense || (!isFromGlobalCreate && !isSearchTopmostFullScreenRoute()));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
