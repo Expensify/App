@@ -55,7 +55,7 @@ type ReportPreviewCarouselList = Pick<
 
 type ReportPreviewActions = {
     openReportFromPreview: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     stopAnimation: () => void;

@@ -231,8 +231,8 @@ function MoneyRequestReportPreviewProvider({
     }, [iouReportID, isSmallScreenWidth]);
 
     const holdMenuRef = useRef<ReportPreviewHoldMenuHandle>(null);
-    const onHoldMenuOpen = useCallback((requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => {
-        holdMenuRef.current?.open(requestType, paymentType, canPay);
+    const onHoldMenuOpen = useCallback((requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
+        holdMenuRef.current?.open(requestType, paymentType, canPay, methodID);
     }, []);
 
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;

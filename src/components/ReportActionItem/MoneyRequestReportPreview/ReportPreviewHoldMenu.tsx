@@ -9,7 +9,7 @@ import {useReportPreviewActions, useReportPreviewData} from './MoneyRequestRepor
 
 type ReportPreviewHoldMenuHandle = {
     /** Opens the hold menu for the given request */
-    open: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
+    open: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
 };
 
 type ReportPreviewHoldMenuProps = {
@@ -28,12 +28,13 @@ function ReportPreviewHoldMenu({ref}: ReportPreviewHoldMenuProps) {
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [methodID, setMethodID] = useState<number>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
 
     useImperativeHandle(
         ref,
         () => ({
-            open: (holdRequestType, holdPaymentType, canPay) => {
+            open: (holdRequestType, holdPaymentType, canPay, holdMethodID) => {
                 // The shared onHoldMenuOpen contract widens the request type to `string`; the action buttons only ever
                 // pass PAY/APPROVE, so guard before narrowing to ActionHandledType.
                 if (holdRequestType !== CONST.IOU.REPORT_ACTION_TYPE.PAY && holdRequestType !== CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
@@ -41,6 +42,7 @@ function ReportPreviewHoldMenu({ref}: ReportPreviewHoldMenuProps) {
                 }
                 setRequestType(holdRequestType);
                 setPaymentType(holdPaymentType);
+                setMethodID(holdMethodID);
                 setShouldShowPayButton(!!canPay);
                 setIsHoldMenuVisible(true);
             },
@@ -63,6 +65,7 @@ function ReportPreviewHoldMenu({ref}: ReportPreviewHoldMenuProps) {
             onClose={() => setIsHoldMenuVisible(false)}
             isVisible={isHoldMenuVisible}
             paymentType={paymentType}
+            methodID={methodID}
             chatReport={chatReport}
             moneyRequestReport={iouReport}
             transactionCount={transactions.length}
