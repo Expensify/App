@@ -2,18 +2,12 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
-import {clearExportDownload} from '@libs/actions/Export';
 import {queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
-const mockClearExportDownload = jest.mocked(clearExportDownload);
-
-jest.mock('@libs/actions/Export', () => ({
-    clearExportDownload: jest.fn(),
-}));
 
 jest.mock('@libs/actions/Export', () => ({
     clearExportDownload: jest.fn(),
