@@ -36,11 +36,16 @@ function useContactPermissionModal({onDeny, onGrant, onFocusTextInput}: UseConta
     };
 
     useEffect(() => {
+        let isMounted = true;
+
         if (hasDeniedContactImportPrompt) {
             onFocusTextInput();
             return;
         }
         getContactPermission().then(async (status) => {
+            if (!isMounted) {
+                return;
+            }
             // Permission hasn't been asked yet, show the soft permission modal
             if (status !== RESULTS.DENIED) {
                 onFocusTextInput();
@@ -63,12 +68,20 @@ function useContactPermissionModal({onDeny, onGrant, onFocusTextInput}: UseConta
                 shouldReverseStackedButtons: true,
             });
 
+            if (!isMounted) {
+                return;
+            }
+
             if (result?.action === ModalActions.CONFIRM) {
                 handleGrantPermission();
             } else {
                 handleCloseModal();
             }
         });
+
+        return () => {
+            isMounted = false;
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 }
