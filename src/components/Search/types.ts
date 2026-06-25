@@ -390,6 +390,7 @@ type SearchParams = {
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
     isLoading: boolean;
+    targetCurrency?: string;
 };
 
 type BankAccountMenuItem = {

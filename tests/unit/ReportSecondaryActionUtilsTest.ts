@@ -15,6 +15,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {actionR14932, originalMessageR14932} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
+import createRandomPolicy from '../utils/collections/policies';
+import {createExpenseReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 
 const EMPLOYEE_ACCOUNT_ID = 1;
 const EMPLOYEE_EMAIL = 'employee@mail.com';
@@ -150,6 +153,63 @@ describe('getSecondaryAction', () => {
                 isProduction: false,
             }),
         ).toEqual(result);
+    });
+
+    it('does not include PRINT option when the report is in OPEN state', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(false);
+
+        // DOWNLOAD_PDF is unaffected — only PRINT is gated on the OPEN state
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(true);
+    });
+
+    it('includes PRINT option when the report is submitted', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(true);
     });
 
     it('includes ADD_EXPENSE option for empty report', async () => {
@@ -842,6 +902,94 @@ describe('getSecondaryAction', () => {
 
         // Then APPROVE should not be included because DEW is already processing an approval
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
+    });
+
+    it('does not include APPROVE option when submitter is the manager on a Submit workspace even with duplicate violations', async () => {
+        const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_SUBMITTER';
+        const report = {
+            ...createExpenseReport(REPORT_ID),
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        const policy = {
+            ...createRandomPolicy(0, CONST.POLICY.TYPE.SUBMIT),
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            preventSelfApproval: false,
+            approver: EMPLOYEE_EMAIL,
+        };
+        const transaction = {
+            ...createRandomTransaction(0),
+            transactionID: TRANSACTION_ID,
+        };
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createRandomTransaction(0),
+            violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
+    });
+
+    it('includes APPROVE option when a different user is the manager on a Submit workspace with duplicate violations', async () => {
+        const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_APPROVER';
+        const report = {
+            ...createExpenseReport(REPORT_ID),
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: APPROVER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        const policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            preventSelfApproval: false,
+            approver: APPROVER_EMAIL,
+        };
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+        };
+        const violation: TransactionViolation = {
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: APPROVER_EMAIL,
+            currentUserAccountID: APPROVER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createRandomTransaction(1),
+            violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
     it('includes APPROVE option for report with RTER violations when it is submitted', () => {
