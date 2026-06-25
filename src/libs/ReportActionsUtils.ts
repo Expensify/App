@@ -2348,7 +2348,7 @@ function getDynamicExternalWorkflowApproveFailedActionMessage(translate: Localiz
     }
     const originalMessage = getOriginalMessage(action);
     const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
-    const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+    const message = originalMessage?.message ?? translate('iou.error.genericApproveFailureMessage');
     const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
     return failedApproveReason;
 }

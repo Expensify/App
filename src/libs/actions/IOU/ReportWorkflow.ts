@@ -657,7 +657,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
                 value: {
                     [optimisticApprovedReportAction.reportActionID]: {
-                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericApproveFailureMessage'),
                     },
                 },
             });
