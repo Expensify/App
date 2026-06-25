@@ -528,6 +528,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             // Vendor matching is gated on a workspace beta + an integration that scopes the vendor field.
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+
             // Non-reimbursable transaction whose stored vendor.externalID is no longer in the synced list.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
