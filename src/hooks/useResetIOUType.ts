@@ -110,6 +110,13 @@ function useResetIOUType({
 
         const isFromGlobalCreate = !report?.reportID;
 
+        // Resolve early so we can decide whether to seed participants below.
+        const earlyReportID = resolveEarlyReportID(isFromGlobalCreate, defaultParticipants);
+        const isSelfDMDefault = earlyReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        // Skip seeding self-DM participants here. The confirmation's auto-assign
+        // useEffect is the only place that can both set the reportID and switch
+        // iouType to TRACK; seeding them early would short-circuit that effect.
         initMoneyRequest({
             reportID,
             policy,
@@ -126,15 +133,14 @@ function useResetIOUType({
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies: hasOnlyPersonalPolicies ?? true,
             draftTransactionIDs,
-            defaultParticipants,
+            defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,
         });
 
         // Set the transaction reportID early for global-create flows with resolved default
         // participants. This ensures destinationReportID is defined from the confirmation's
         // first render, preventing the pre-insert useEffect from seeing an undefined-to-value
         // transition that would tear down and fail to re-fire the pre-insert.
-        const earlyReportID = resolveEarlyReportID(isFromGlobalCreate, defaultParticipants);
-        if (earlyReportID) {
+        if (earlyReportID && !isSelfDMDefault) {
             setTransactionReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, {reportID: earlyReportID}, true);
         }
 
