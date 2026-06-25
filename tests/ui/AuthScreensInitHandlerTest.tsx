@@ -83,6 +83,7 @@ jest.mock('@userActions/Report', () => ({
 jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
     cleanupSession: jest.fn(),
+    isAnonymousUser: jest.fn(() => false),
 }));
 
 jest.mock('@userActions/User', () => ({

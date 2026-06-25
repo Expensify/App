@@ -35,6 +35,10 @@ describe('OnboardingGuard', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
+        // FIX #82013: OnboardingGuard now only runs the onboarding flow for a real, authenticated (non-anonymous)
+        // account — signed-out/anonymous users are skipped. These tests exercise authenticated users
+        // (authenticatedContext.isAuthenticated === true), so set up a matching real, non-anonymous session.
+        await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'test-auth-token', accountID: 1});
         await waitForBatchedUpdates();
     });
 
