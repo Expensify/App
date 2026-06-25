@@ -11,7 +11,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {areSettingsInErrorFields, getCurrentXeroOrganizationName, getXeroSupplierByID, hasVendorFeature, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getCurrentXeroOrganizationName, getXeroSupplierByID, isXeroVendorMatchingActive, settingsPendingAction} from '@libs/PolicyUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -29,7 +29,13 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     const {export: exportConfiguration, errorFields, pendingFields, defaultContact} = policy?.connections?.xero?.config ?? {};
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
-    const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    // Gate the Xero default-supplier row on Xero specifically being configured, not on the global
+    // hasVendorFeature predicate. hasVendorFeature OR's all integrations, so on a dual-connected
+    // workspace where QBO/Intacct is the active vendor-matching source it would still expose the
+    // row even when Xero is mid tenant-switch (config.isConfigured=false) and data.contacts is
+    // stale from the prior tenant — allowing the admin to persist a defaultContact that flips
+    // invalid the moment the new sync completes.
+    const isVendorFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
     const defaultSupplierName = getXeroSupplierByID(policy, defaultContact)?.name ?? '';
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}` : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);

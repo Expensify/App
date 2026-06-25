@@ -11,7 +11,7 @@ import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroSuppliers, hasVendorFeature, settingsPendingAction} from '@libs/PolicyUtils';
+import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -29,8 +29,11 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     const currentContactID = xeroConfig?.defaultContact;
     // Match the parent page's gate so direct deep-links (or stale-open tabs after the beta is
     // revoked) cannot reach the supplier updater. The parent page hides the row when the feature
-    // is off, but the route remains addressable on its own.
-    const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    // is off, but the route remains addressable on its own. Gated on Xero specifically being
+    // configured — not the global hasVendorFeature predicate — so dual-connected workspaces mid
+    // Xero tenant switch (config.isConfigured=false with stale data.contacts) cannot persist a
+    // defaultContact from the prior tenant.
+    const isFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
 
     const suppliers = useMemo(() => getXeroSuppliers(policy), [policy]);
     const data: SelectorType[] = useMemo(

@@ -49,6 +49,7 @@ import {
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isXeroActiveMatchingSource,
+    isXeroVendorMatchingActive,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -3536,6 +3537,67 @@ describe('PolicyUtils', () => {
 
             it('returns false when policy is undefined', () => {
                 expect(isXeroActiveMatchingSource(undefined)).toBe(false);
+            });
+        });
+
+        describe('isXeroVendorMatchingActive (R4)', () => {
+            it('returns true when Xero is connected with isConfigured=true', () => {
+                expect(isXeroVendorMatchingActive(buildXeroPolicy())).toBe(true);
+            });
+
+            it('returns false when Xero is connected but isConfigured=false (mid tenant-switch)', () => {
+                // Integration-Server clears isConfigured during a Xero tenant switch while the old
+                // tenant's data.contacts still lingers; the Xero-specific UI surfaces (default
+                // supplier row + picker) must hide so an admin can't persist a defaultContact from
+                // the prior tenant that flips invalid the moment the new sync completes.
+                expect(isXeroVendorMatchingActive(buildXeroPolicy(undefined, {isConfigured: false}))).toBe(false);
+            });
+
+            it('returns true on a dual-connected workspace where Xero is configured and QBO is the active matching source', () => {
+                // Distinct from isXeroActiveMatchingSource: the supplier-picker page should still be
+                // reachable when Xero is connected & configured, even if QBO is currently driving
+                // vendor matching for the workspace's transactions. The admin needs to manage the
+                // Xero default supplier independently of which integration is "active" right now.
+                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+                const policy = {
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                } as Policy;
+                expect(isXeroVendorMatchingActive(policy)).toBe(true);
+            });
+
+            it('returns false on a dual-connected workspace where QBO is active and Xero has isConfigured=false', () => {
+                // The exact case Codex flagged: QBO is the active matching source, but the
+                // Xero-specific picker would still render because the global hasVendorFeature OR's
+                // all integrations. The Xero-scoped gate must return false here so the supplier
+                // picker stays hidden and unreachable until the Xero tenant switch completes.
+                const xeroPolicy = buildXeroPolicy(undefined, {isConfigured: false});
+                const policy = {
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
+                        },
+                    },
+                } as Policy;
+                expect(isXeroVendorMatchingActive(policy)).toBe(false);
+            });
+
+            it('returns false when Xero is not connected', () => {
+                const policy = {...createRandomPolicy(0), connections: {}} as Policy;
+                expect(isXeroVendorMatchingActive(policy)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(isXeroVendorMatchingActive(undefined)).toBe(false);
             });
         });
     });

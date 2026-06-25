@@ -2653,6 +2653,7 @@ export {
     getXeroSupplierByID,
     getXeroSuppliers,
     isXeroActiveMatchingSource,
+    isXeroVendorMatchingActive,
     hasVendorFeature,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
