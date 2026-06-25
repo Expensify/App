@@ -59,7 +59,7 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('businessInfoStep.whatsTheBusinessAddress')}
-            formPOBoxDisclaimer={translate('common.noPO')}
+            formPOBoxDisclaimer={translate('personalInfoStep.addressSubtitle')}
             onSubmit={handleSubmit}
             stepFields={stepFields}
             inputFieldsIDs={INPUT_KEYS}

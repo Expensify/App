@@ -42,7 +42,7 @@ type ReportPreviewActionButtonProps = {
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     openReportFromPreview: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
     transactionPreviewCarouselWidth: number;
 };
 

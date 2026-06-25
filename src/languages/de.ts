@@ -3192,9 +3192,9 @@ ${amount} für ${merchant} – ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Ausgabe einreichen',
+                title: 'Ausgabe erstellen',
                 description: dedent(`
-                    *Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg einscannst.
+                    *Erstelle eine Ausgabe*, indem du einen Betrag eingibst oder einen Beleg einscannst.
 
                     1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
@@ -3206,9 +3206,9 @@ ${amount} für ${merchant} – ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Ausgabe einreichen',
+                title: 'Ausgabe erstellen',
                 description: dedent(`
-                    *Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.
+                    *Erstelle eine Ausgabe*, indem du einen Betrag eingibst oder einen Beleg scannst.
 
                     1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
@@ -3628,6 +3628,7 @@ ${amount} für ${merchant} – ${date}`,
             companyName: 'Bitte gib einen gültigen Unternehmensnamen ein',
             addressCity: 'Bitte eine gültige Stadt eingeben',
             addressStreet: 'Bitte gib eine gültige Straßenadresse ein',
+            physicalAddressRequired: 'Eine physische Adresse ist erforderlich. Postfächer und Postweiterleitungsdienste werden nicht akzeptiert.',
             addressState: 'Bitte wähle einen gültigen Bundesstaat aus',
             incorporationDateFuture: 'Das Gründungsdatum darf nicht in der Zukunft liegen',
             incorporationState: 'Bitte wähle einen gültigen Bundesstaat aus',
@@ -3847,12 +3848,14 @@ ${amount} für ${merchant} – ${date}`,
         legalFirstName: 'Rechtlicher Vorname',
         legalLastName: 'Rechtlicher Nachname',
         legalName: 'Rechtlicher Name',
+        legalNameSubtitle: 'Bitte geben Sie Ihren vollständigen rechtlichen Namen ein, wie er in Ihrem Ausweis erscheint.',
         enterYourDateOfBirth: 'Wie ist dein Geburtsdatum?',
         enterTheLast4: 'Wie lauten die letzten vier Ziffern Ihrer Sozialversicherungsnummer?',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
         last4SSN: 'Letzte 4 Ziffern der SSN',
         enterYourAddress: 'Wie lautet deine Adresse?',
         address: 'Adresse',
+        addressSubtitle: 'Eine physische Adresse ist erforderlich. Postfächer und Postweiterleitungsdienste werden nicht akzeptiert.',
         letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
         byAddingThisBankAccount: 'Durch Hinzufügen dieses Bankkontos bestätigst du, dass du Folgendes gelesen hast, verstehst und akzeptierst',
         whatsYourLegalName: 'Wie lautet Ihr gesetzlicher Name?',
@@ -3988,6 +3991,7 @@ ${amount} für ${merchant} – ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'Vorschriften verpflichten uns, die Identität jeder Person zu überprüfen, die mehr als 25 % des Unternehmens besitzt.',
         companyOwner: 'Unternehmensinhaber',
         enterLegalFirstAndLastName: 'Wie lautet der gesetzliche Name der*des Eigentümer*in?',
+        legalNameSubtitle: 'Bitte gib den vollständigen rechtlichen Namen des Eigentümers ein, wie er in seinem Ausweis erscheint.',
         legalFirstName: 'Rechtlicher Vorname',
         legalLastName: 'Rechtlicher Nachname',
         enterTheDateOfBirthOfTheOwner: 'Wie lautet das Geburtsdatum des Eigentümers?',
@@ -4472,6 +4476,8 @@ ${amount} für ${merchant} – ${date}`,
             auditorAlternateText: 'Berichte anzeigen und kommentieren.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Eigentümer';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Workspace-Administrator';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4479,9 +4485,9 @@ ${amount} für ${merchant} – ${date}`,
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Kartenadministrator';
+                        return 'Kartenverwaltung';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Personenverwaltung';
+                        return 'Personen-Admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
@@ -5034,9 +5040,13 @@ ${amount} für ${merchant} – ${date}`,
             noCompaniesFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Unternehmen in Certinia hinzugefügt wurden.',
             prerequisites: {
                 title: 'Bevor Sie die Verbindung herstellen',
-                installBundle: 'Für FFA-Verbindungen',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken: <a href="${href}">FFA Expensify-Paket installieren (Version ${version})</a>`,
+                installBundle: 'Installieren Sie das Expensify-Paket',
+                installBundlePSAHeader: 'Für PSA/SRP-Verbindungen:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken: <a href="${href}">PSA/SRP Expensify Bundle installieren (Version ${version})</a>`,
+                installBundleFFAHeader: 'Für FFA-Verbindungen:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken: <a href="${href}">FFA-Expensify-Paket installieren (Version ${version})</a>`,
                 installBundleConfirm: 'Ich habe das Paket installiert',
                 setupContacts: 'Benutzer und Kontakte einrichten',
                 setupContactsBullet1:
@@ -6369,6 +6379,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             syncWithHR: (providerName: string) => `Mit ${providerName} synchronisieren`,
             makeCardAdmin: () => ({one: 'Zum Karten-Admin machen', other: 'Karten-Admins festlegen'}),
             cardAdmins: 'Karten-Admins',
+            members: 'Mitglieder',
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -7507,6 +7518,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             agentRules: {
                 title: 'Agentenregeln',
                 subtitle: 'Legen Sie Regeln fest, wie KI-Agenten mit Ausgaben in diesem Workspace umgehen.',
+                enforcedBy: 'Agentregeln werden erzwungen durch',
+                ruleBotName: 'RuleBot',
                 addRule: 'Agentenregel hinzufügen',
                 findRule: 'Agentenregel finden',
                 addRuleTitle: 'Regel hinzufügen',
@@ -9816,7 +9829,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
