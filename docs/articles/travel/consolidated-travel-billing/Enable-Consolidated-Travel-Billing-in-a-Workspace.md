@@ -48,7 +48,7 @@ If **Travel** does not appear in the workspace, a Workspace Admin will first nee
 - Travel cards are automatically created for travel-enabled members.
 - Employees can book travel using Expensify Travel without using personal funds.
 - Travel expenses are imported to individual traveler accounts.
-- All charges are grouped into a Travel Invoice statement.
+- All charges are grouped into a Consolidated Travel Billing statement.
 - Your Workspace is billed based on the selected settlement frequency (for example, monthly).
 - The **Travel** toggle in **More features** is locked, so Travel stays on while Consolidated Travel Billing is enabled. To turn off Travel, switch off Consolidated Travel Billing first.
 
@@ -78,4 +78,4 @@ Yes, but only if your balance is fully paid. If there is an outstanding balance,
 
 ## Where can I see travel charges?
 
-All charges appear in your Travel Invoice statement, which includes trip details, travelers, and booking information. They will also be added to the individual traveler's Expensify account. 
+All charges appear in your Consolidated Travel Billing statement, which includes trip details, travelers, and booking information. They will also be added to the individual traveler's Expensify account. 

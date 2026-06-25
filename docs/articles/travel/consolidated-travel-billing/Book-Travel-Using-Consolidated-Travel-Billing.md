@@ -54,7 +54,7 @@ Workspace Admins can [learn how to enable Travel on a Workspace](/articles/trave
 - The payment is charged to your company’s Consolidated Travel Billing account.
 - For flights and rail tickets, the expense and receipt are automatically added to your Expensify account.
 - For hotel and car bookings, upload the receipt after checkout or after returning the vehicle.
-- The charge appears in your company’s Travel Invoice statement
+- The charge appears in your company’s Consolidated Travel Billing statement
 
 ---
 
