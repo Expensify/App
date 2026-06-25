@@ -38,6 +38,7 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
         ? undefined
         : {
               group: {
+                  label: allMembersLabel,
                   filterType: 'single-select',
                   options: [{label: allMembersLabel, value: ALL_MEMBERS_VALUE}, ...(groups ?? []).map((group) => ({label: group.details.name ?? '', value: group.id}))],
                   default: ALL_MEMBERS_VALUE,
