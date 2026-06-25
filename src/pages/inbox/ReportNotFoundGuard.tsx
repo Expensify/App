@@ -43,6 +43,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [pendingPublicRoomReportID] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_PUBLIC_ROOM_DEEPLINK_REPORT_ID);
 
     const reportID = report?.reportID;
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
@@ -65,7 +66,13 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         setHasSeenLoadingForCurrentReportID(true);
     }
 
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
+    // FIX #82013: While a signed-out public-room deeplink is being opened anonymously, the report data can be
+    // transiently missing as the anonymous session and OpenApp settle (a release-build timing race that does not
+    // surface in dev). It is a valid public room being fetched, so don't declare it "not found" — the data settles
+    // shortly after. The RAM-only key is set in openReportFromDeepLink and cleared once a real account signs in.
+    const isPendingPublicRoomDeeplink = !!pendingPublicRoomReportID && reportIDFromRoute === pendingPublicRoomReportID;
+    const shouldShowNotFoundPage =
+        !isPendingPublicRoomDeeplink && !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
