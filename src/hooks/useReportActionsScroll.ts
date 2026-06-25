@@ -282,13 +282,15 @@ function useReportActionsScroll({
     const prevLastIOUActionWithErrorID = useRef(lastIOUActionWithError?.reportActionID);
 
     // Scroll to the bottom once when a new IOU action with an error appears.
+    // Record the id inside the transition callback (not before): a cancelled scroll must not consume the id,
+    // so the effect self-heals by rescheduling on the next pass even if a re-render cancels the pending handle.
     useEffect(() => {
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithErrorID.current) {
             return;
         }
-        prevLastIOUActionWithErrorID.current = lastIOUActionWithError?.reportActionID;
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
+                prevLastIOUActionWithErrorID.current = lastIOUActionWithError?.reportActionID;
                 reportScrollManager.scrollToBottom();
             },
         });
