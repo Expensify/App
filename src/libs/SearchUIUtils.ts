@@ -5384,12 +5384,8 @@ function getLabelValue(key: SearchAdvancedFiltersKey, labelKey: TranslationPaths
 
     if (isFilterNegatable(key)) {
         const isNegated = key.endsWith(CONST.SEARCH.NOT_MODIFIER);
-        const predicateTranslationKey = isNegated ? 'negative' : 'positive';
-        if (removeNegation(key) === FILTER_KEYS.HAS) {
-            return Str.UCFirst(translate(`search.filters.filterType.has.${predicateTranslationKey}`));
-        }
-
-        return `${translate(labelKey)} ${translate(`search.filters.filterType.is.${predicateTranslationKey}`)}`;
+        const prefix = isNegated ? '-' : '';
+        return `${prefix}${translate(labelKey)}`;
     }
     return translate(labelKey);
 }
