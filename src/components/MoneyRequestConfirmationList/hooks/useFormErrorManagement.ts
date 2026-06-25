@@ -70,6 +70,9 @@ type UseFormErrorManagementParams = {
 
     /** Whether the new manual expense flow is enabled (amount/date errors surface inline) */
     isNewManualExpenseFlowEnabled: boolean;
+
+    /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
+    isDistanceRequest: boolean;
 };
 
 type UseFormErrorManagementResult = {
@@ -112,7 +115,8 @@ type UseFormErrorManagementResult = {
  * visible error message. `shouldDisplayFieldError` is gated on edit-split-bill mode so
  * field-level errors only render in that flow. `errorMessage` prefers `routeError`,
  * then suppresses errors that are already surfaced inline (missingAttendees, the tax amount
- * error, and the manual-flow amount/date/merchant required/invalid errors) so they don't show twice.
+ * error, and the manual-flow amount/date/merchant required/invalid errors, except the distance-amount
+ * error which has no inline surface) so they don't show twice.
  */
 function useFormErrorManagement({
     transaction,
@@ -134,6 +138,7 @@ function useFormErrorManagement({
     isTypeSplit,
     shouldShowReadOnlySplits,
     isNewManualExpenseFlowEnabled,
+    isDistanceRequest,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -239,7 +244,13 @@ function useFormErrorManagement({
         }
         // In the new manual expense flow the amount/date/merchant fields surface these required/invalid errors inline, so
         // don't repeat them at the bottom of the form (which would show "This field is required" twice).
-        if (isNewManualExpenseFlowEnabled && (formError === 'common.error.fieldRequired' || formError === 'common.error.invalidAmount' || formError === 'iou.error.invalidMerchant')) {
+        if (isNewManualExpenseFlowEnabled && (formError === 'common.error.fieldRequired' || formError === 'iou.error.invalidMerchant')) {
+            return undefined;
+        }
+        // `common.error.invalidAmount` is only surfaced inline when the editable amount input is rendered. Distance requests
+        // disable that input (the amount falls back to a read-only menu row that doesn't show this error), so keep the
+        // distance-amount validation error in the footer — otherwise an invalid distance expense would fail silently.
+        if (isNewManualExpenseFlowEnabled && !isDistanceRequest && formError === 'common.error.invalidAmount') {
             return undefined;
         }
         return formError ? translate(formError) : undefined;

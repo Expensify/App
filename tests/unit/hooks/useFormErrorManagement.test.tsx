@@ -40,6 +40,7 @@ const baseParams: Params = {
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
     isNewManualExpenseFlowEnabled: false,
+    isDistanceRequest: false,
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -120,6 +121,12 @@ describe('useFormErrorManagement', () => {
 
     it('errorMessage still shows required/invalid amount errors when the new manual expense flow is disabled', () => {
         const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('common.error.invalidAmount'));
+        expect(result.current.errorMessage).toBeDefined();
+    });
+
+    it('errorMessage still shows the invalid amount error for a distance request in the new manual expense flow (no inline surface)', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true, isDistanceRequest: true}), {wrapper: Wrapper});
         act(() => result.current.setFormError('common.error.invalidAmount'));
         expect(result.current.errorMessage).toBeDefined();
     });

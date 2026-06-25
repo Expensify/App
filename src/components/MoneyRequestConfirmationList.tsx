@@ -345,6 +345,7 @@ function MoneyRequestConfirmationList({
         isTypeSplit,
         shouldShowReadOnlySplits,
         isNewManualExpenseFlowEnabled,
+        isDistanceRequest,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
