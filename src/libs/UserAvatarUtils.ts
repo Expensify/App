@@ -2,7 +2,7 @@ import {md5} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
-import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
+import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_COLOR_OPTIONS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
 import type {LetterAvatarColorStyle} from './Avatars/letterAvatarPalette';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
 import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
@@ -142,6 +142,11 @@ function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail,
         return CONST.CONCIERGE_ICON_URL;
     }
 
+    const letterAvatarURL = getLetterAvatarURL(accountID, '', '', accountEmail ?? '');
+    if (letterAvatarURL) {
+        return letterAvatarURL;
+    }
+
     return USER_AVATARS.getURL(getDefaultAvatarName({accountID, accountEmail, avatarURL})) ?? '';
 }
 
@@ -201,6 +206,120 @@ function isCatalogAvatar(avatarSource?: AvatarSource): avatarSource is string {
  */
 function isLetterAvatar(originalFileName?: string): boolean {
     return !!(originalFileName && LETTER_AVATAR_NAME_REGEX.test(originalFileName));
+}
+
+/**
+ * Determines if an avatar source is a backend-generated letter-avatar URL.
+ * These URLs are served for photo-less users and contain the generated letter path segment.
+ *
+ * @param avatarSource - The avatar source to check
+ * @returns True if the source is a string pointing to a generated letter avatar
+ */
+function isGeneratedLetterAvatarURL(avatarSource?: AvatarSource): boolean {
+    return typeof avatarSource === 'string' && avatarSource.includes('/images/avatars/generated/letter/');
+}
+
+/**
+ * Returns the letter-avatar color scheme for an account, picked by accountID modulo the palette size.
+ * Mirrors the backend color selection so the client-rendered avatar matches the generated image.
+ *
+ * @param accountID - The user's account ID
+ * @returns The colors for the account's letter avatar
+ */
+function getDefaultLetterAvatarScheme(accountID?: number): LetterAvatarColorStyle {
+    return LETTER_AVATAR_COLOR_OPTIONS[(accountID ?? CONST.DEFAULT_NUMBER_ID) % LETTER_AVATAR_COLOR_OPTIONS.length];
+}
+
+/**
+ * Derives the initials for a letter avatar from a display name.
+ * Takes the first alphanumeric character of the first word and of the last word, uppercased.
+ * Mirrors the backend firstAlphanumeric(firstName) + firstAlphanumeric(lastName) rule using the display name.
+ *
+ * @param name - The user's display name
+ * @returns The 1-2 character initials, or an empty string when nothing usable is found
+ */
+function getLetterAvatarInitials(name?: string): string {
+    if (!name) {
+        return '';
+    }
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+        return '';
+    }
+    const firstWord = words.at(0) ?? '';
+    const lastWord = words.at(-1) ?? '';
+    const firstInitial = firstWord.match(/[a-z0-9]/i)?.at(0) ?? '';
+    const lastInitial = words.length > 1 ? (lastWord.match(/[a-z0-9]/i)?.at(0) ?? '') : '';
+    return `${firstInitial}${lastInitial}`.toUpperCase();
+}
+
+/**
+ * Returns the first alphanumeric character of a string, uppercased, or '' when none exists.
+ *
+ * @param name - The string to read the first character from
+ */
+function firstLetterAvatarCharacter(name: string): string {
+    return (name.match(/[a-z0-9]/i)?.at(0) ?? '').toUpperCase();
+}
+
+/**
+ * Builds the generated letter-avatar URL for an account from its name and login.
+ * Initials come from the first alphanumeric character of the first and last name, falling back to the login
+ * for non-SMS logins. The color key is picked by hashing the login, or by accountID modulo when there is no login.
+ *
+ * @param accountID - The user's account ID
+ * @param firstName - The user's first name
+ * @param lastName - The user's last name
+ * @param login - The user's login (email or SMS), or '' when unknown
+ * @returns The generated letter-avatar URL, or '' when no letter avatar applies
+ */
+function getLetterAvatarURL(accountID: number, firstName: string, lastName: string, login: string): string {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE || accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+        return '';
+    }
+
+    let initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
+    if (initials === '' && login !== '' && !login.endsWith(CONST.SMS.DOMAIN)) {
+        initials = firstLetterAvatarCharacter(login);
+    }
+    if (initials === '') {
+        return '';
+    }
+
+    const colorIndex = login !== '' ? parseInt(md5(login).substring(0, 4), 16) % LETTER_AVATAR_COLOR_KEYS.length : accountID % LETTER_AVATAR_COLOR_KEYS.length;
+    const colorKey = LETTER_AVATAR_COLOR_KEYS.at(colorIndex) ?? LETTER_AVATAR_COLOR_KEYS.at(0);
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1/${colorKey}/${initials}.png`;
+}
+
+/**
+ * Parses a generated letter-avatar URL into its color scheme and initials.
+ * The last two path segments before the extension are the color key and the initials.
+ *
+ * @param source - The avatar source to parse
+ * @returns The colors and initials, or undefined when the source is not a generated letter-avatar URL
+ */
+function parseLetterAvatarURL(source: AvatarSource | undefined): {colors: LetterAvatarColorStyle; initials: string} | undefined {
+    if (typeof source !== 'string' || !isGeneratedLetterAvatarURL(source)) {
+        return undefined;
+    }
+
+    const fileName = source.split('?').at(0)?.split('/').slice(-2) ?? [];
+    const colorKey = fileName.at(0);
+    const rawInitials = fileName.at(1);
+    if (colorKey === undefined || rawInitials === undefined) {
+        return undefined;
+    }
+
+    const initials = rawInitials
+        .replace(/\.png$/i, '')
+        .replace(/_128$/, '')
+        .toUpperCase();
+    if (initials === '') {
+        return undefined;
+    }
+
+    const colors = isLetterAvatarSchemeKey(colorKey) ? LETTER_AVATAR_SCHEMES[colorKey] : DEFAULT_LETTER_AVATAR_SCHEME;
+    return {colors, initials};
 }
 
 /**
@@ -298,6 +417,11 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
         return source;
     }
 
+    // Generated letter avatars are published at a single size, so they have no _SIZE variants.
+    if (isGeneratedLetterAvatarURL(source)) {
+        return source;
+    }
+
     // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
     const lastPeriodIndex = source.lastIndexOf('.');
     if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
@@ -316,8 +440,13 @@ export {
     getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,
+    getDefaultLetterAvatarScheme,
+    getLetterAvatarInitials,
+    getLetterAvatarURL,
+    parseLetterAvatarURL,
     isCatalogAvatar,
     isDefaultAvatar,
+    isGeneratedLetterAvatarURL,
     isLetterAvatar,
 };
 export type {AvatarSource};
