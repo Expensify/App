@@ -563,8 +563,6 @@ type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
-type ArchivedReportsIDSet = ReadonlySet<string>;
-
 /** Return shape of `getSections`: row array, total row count, and whether any transaction is deleted (wide action column). */
 type GetSectionsResult = [
     (
@@ -5736,6 +5734,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
@@ -5747,6 +5746,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
@@ -5919,15 +5919,27 @@ function getColumnsToShow({
             if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
-            // Expense report view: TOTAL (workspace currency) is always shown; add AMOUNT
-            // (transaction's own currency) when a conversion exists so both are visible.
-            // Search page: show ORIGINAL_AMOUNT column (transaction's original amount).
+            // Expense report view: TOTAL (workspace currency) is always shown when a conversion
+            // exists. ORIGINAL_AMOUNT (the transaction's original/foreign amount) is a separate,
+            // user-selectable report column — in the report view it's gated behind an explicit
+            // selection (customResult) so it never renders by default, only when the user picks it.
+            // Search page: ORIGINAL_AMOUNT stays data-driven (shown whenever a conversion exists).
             if (hasExchangeRate) {
                 if (isExpenseReportView) {
                     columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = true;
+                    if (customResult) {
+                        columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+                    }
                 } else {
                     columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 }
+            }
+
+            // POSTED (card posting date) is a user-selectable report column. In the report view it's
+            // gated behind an explicit selection (customResult) so it never renders by default —
+            // it shows only when the user picks it and the transaction actually has a posting date.
+            if (customResult && isExpenseReportView && transaction.posted) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.POSTED] = true;
             }
 
             if (!Array.isArray(data)) {
@@ -6409,4 +6421,4 @@ export {
     splitGroupsIntoPairs,
     SKIPPED_SEARCH_FILTERS,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection, SearchFilter};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
