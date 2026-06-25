@@ -5,7 +5,7 @@ keywords: [billing glossary, billing terms, subscription, plan, active member, u
 internalScope: Audience is workspace billing owners. Defines common billing terminology used throughout New Expensify. Does not explain billing workflows or ownership responsibilities.
 contentType: topic
 platform: new
--------------
+---
 
 # Understand billing terms and definitions
 
