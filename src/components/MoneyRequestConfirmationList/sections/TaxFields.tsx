@@ -91,11 +91,22 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     };
 
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled || (numberFormRef?.current && numberFormRef.current.getNumber() === taxAmountInput)) {
+        if (!isNewManualExpenseFlowEnabled) {
             return;
         }
+        // Compare the numeric value rather than the formatted string. An in-progress edit such as "5.0" (or an
+        // empty field) represents the same stored amount as the re-padded "5.00", so it must not be overwritten
+        // while the user is typing. Only refresh the field when the stored tax amount genuinely differs (e.g. the
+        // tax rate changed and the amount was recalculated externally).
+        const currentInput = numberFormRef.current?.getNumber();
+        if (currentInput !== undefined) {
+            const currentBackendAmount = currentInput.trim() === '' ? 0 : convertToBackendAmount(Number.parseFloat(currentInput));
+            if (currentBackendAmount === taxAmount) {
+                return;
+            }
+        }
         numberFormRef.current?.updateNumber(taxAmountInput);
-    }, [isNewManualExpenseFlowEnabled, taxAmountInput]);
+    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput]);
 
     useEffect(() => {
         if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {
