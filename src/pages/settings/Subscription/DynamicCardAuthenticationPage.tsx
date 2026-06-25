@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
+import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,11 +28,7 @@ function DynamicCardAuthenticationPage({route}: DynamicCardAuthenticationPagePro
         }
         verifySetupIntent(currentUserAccountID, true);
     };
-    // Mirrors the original CardAuthenticationModal.onModalClose semantic:
-    // user-driven close discards VERIFY_3DS_SUBSCRIPTION so the next mount
-    // of an entry screen is fresh.
     const onClose = () => {
-        clearPaymentCard3dsVerification();
         Navigation.goBack(backPath);
     };
 
