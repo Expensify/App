@@ -31,9 +31,17 @@ function useAvatarCrop({maskType, buttonLabelKey, onCropped}: UseAvatarCropParam
     const openCropper = (image: FileObject) => {
         const token = rand64();
         tokenRef.current = token;
+        // Capture the opener's route now: serialization below is async (slow on web) and the active
+        // route can change if the user navigates away before it resolves.
+        const baseRoute = Navigation.getActiveRoute();
         setAvatarCropDraft({token, image, maskType, buttonLabelKey}).then(() => {
-            // Append `/avatar-crop` to the current route so the crop screen opens under the opener's context.
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AVATAR_CROP.path));
+            // Abort if the opener unmounted or started a newer crop while serializing — navigating now
+            // would yank the user back or open the crop screen under a disallowed entry screen.
+            if (tokenRef.current !== token) {
+                return;
+            }
+            // Append `/avatar-crop` to the opener's route so the crop screen opens under its context.
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AVATAR_CROP.path, baseRoute));
         });
     };
 
@@ -47,6 +55,14 @@ function useAvatarCrop({maskType, buttonLabelKey, onCropped}: UseAvatarCropParam
         clearAvatarCropResult();
         onCropped(image);
     }, [result, onCropped]);
+
+    // Cancel any in-flight crop on unmount; the pending `.then()` checks the token and skips navigation.
+    useEffect(
+        () => () => {
+            tokenRef.current = null;
+        },
+        [],
+    );
 
     return {openCropper};
 }
