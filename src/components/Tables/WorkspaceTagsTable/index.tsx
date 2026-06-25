@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceTagsTableRow from './WorkspaceTagsTableRow';
 
@@ -211,7 +210,7 @@ export default function WorkspaceTagsTable({
             {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
-                    {tags.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.tags.findTag')} />}
+                    <Table.FilterBar label={translate('workspace.tags.findTag')} />
                     <Table.Header />
                     <Table.Body />
                 </>
