@@ -47,6 +47,7 @@ import {
     isProcessingReport,
     isReportApproved,
     isReportManager,
+    isReportPendingDelete,
     isSettled,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -109,6 +110,7 @@ type SubmitReportFunctionParams = {
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    submitterLogin: string | undefined;
 };
 
 function canApproveIOU(
@@ -337,6 +339,7 @@ function getIOUReportActionWithBadge(
     currentUserLogin: string,
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
+    allReports?: OnyxCollection<OnyxTypes.Report>,
 ): {reportAction: OnyxEntry<ReportAction>; actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>} {
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
@@ -345,7 +348,15 @@ function getIOUReportActionWithBadge(
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
             continue;
         }
-        const iouReport = getReportOrDraftReport(action.childReportID);
+        // Prefer the report from the fresh `allReports` snapshot (when supplied by the reportAttributes derived value)
+        // over the module-level Onyx cache, which can be stale mid-recompute and surface a deleted report's badge.
+        const iouReport = getReportOrDraftReport(action.childReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`]);
+
+        // A report deleted offline still lives in Onyx (pendingFields.preview === DELETE) until the queue flushes,
+        // so skip it here — otherwise its preview keeps surfacing a stale "Mark as done"/action badge in the LHN.
+        if (isReportPendingDelete(iouReport)) {
+            continue;
+        }
 
         if (!iouReport) {
             // Fallback for p2p IOUs when the IOU report isn't loaded in Onyx yet (e.g. right after login).
@@ -1319,6 +1330,7 @@ function submitReport({
     onSubmitted,
     ownerBillingGracePeriodEnd,
     delegateEmail,
+    submitterLogin,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1331,7 +1343,7 @@ function submitReport({
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    const managerID = getSubmitReportManagerAccountID(policy, expenseReport);
+    const managerID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin);
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(

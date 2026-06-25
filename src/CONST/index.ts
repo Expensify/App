@@ -1257,23 +1257,23 @@ const CONST = {
         },
         EXPENSE_REPORT_SEARCH: {
             descriptionKey: 'expenseReportSearch',
-            shortcutKey: 'U',
-            modifiers: ['CTRL'],
+            shortcutKey: 'G',
+            modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                DEFAULT: {input: 'u', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'u', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'u', modifierFlags: keyModifierCommand},
+                DEFAULT: {input: 'g', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'g', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         GO_TO_WORKSPACE: {
             descriptionKey: 'goToWorkspace',
-            shortcutKey: 'B',
-            modifiers: ['CTRL'],
+            shortcutKey: 'P',
+            modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                DEFAULT: {input: 'b', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'b', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'b', modifierFlags: keyModifierCommand},
+                DEFAULT: {input: 'p', modifierFlags: keyModifierShiftControl},
+                [PLATFORM_OS_MACOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_IOS]: {input: 'p', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
@@ -3002,12 +3002,17 @@ const CONST = {
         STEP_INDEX_LIST: ['1', '2', '3'],
     },
 
-    /** Salesforce package install URLs for the FFA Expensify bundle (see help: Connect to Certinia). */
+    /** Salesforce package install URLs for the Certinia Expensify bundles (see help: Connect to Certinia). */
+    CERTINIA_PSA_BUNDLE_INSTALL_URL: {
+        PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+        SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BH',
+    },
     CERTINIA_FFA_BUNDLE_INSTALL_URL: {
         PRODUCTION: 'https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
         SANDBOX: 'https://test.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVo',
     },
 
+    CERTINIA_PSA_BUNDLE_VERSION: '1.3',
     CERTINIA_FFA_BUNDLE_VERSION: '1.4',
 
     CERTINIA_CONFIG: {
@@ -3564,6 +3569,37 @@ const CONST = {
         RECONNECT: 1000,
     },
 
+    ENABLE_PAYMENTS: {
+        PAGE_NAMES: {
+            ADD_BANK_ACCOUNT: 'add-bank-account',
+            PERSONAL_INFO: 'personal-info',
+            VERIFY_IDENTITY: 'verify-identity',
+            FEES_AND_TERMS: 'fees-and-terms',
+        },
+        ADD_BANK_ACCOUNT_STEP: {
+            SUB_PAGE_NAMES: {
+                PLAID: 'plaid',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        PERSONAL_INFO_STEP: {
+            SUB_PAGE_NAMES: {
+                LEGAL_NAME: 'legal-name',
+                DATE_OF_BIRTH: 'date-of-birth',
+                ADDRESS: 'address',
+                PHONE_NUMBER: 'phone-number',
+                SSN: 'ssn',
+                CONFIRMATION: 'confirmation',
+            },
+        },
+        FEES_AND_TERMS_STEP: {
+            SUB_PAGE_NAMES: {
+                FEES: 'fees',
+                TERMS: 'terms',
+            },
+        },
+    },
+
     WALLET: {
         TRANSFER_METHOD_TYPE: {
             INSTANT: 'instant',
@@ -3905,6 +3941,7 @@ const CONST = {
         DEFAULT_FIELD_LIST_TARGET: 'expense',
         DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
+            OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
@@ -4943,6 +4980,7 @@ const CONST = {
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
+        PMB: /\b(?:p\.?\s*m\.?\s*b|private\s*mail\s*?box)\.?\s*#?\s*(\d+)\b/i,
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
@@ -6394,7 +6432,7 @@ const CONST = {
         RHP_HOME_PAGE: 'rhpHomePage',
         TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         CONTROL: 'control',
-        INB_ADMINS_WEL: 'inbAdminsWel',
+        INBOX_ADMINS_BESPOKE: 'inboxAdminsBespoke',
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
@@ -8533,6 +8571,7 @@ const CONST = {
                 INVITE_BUTTON: 'WorkspaceMembers-InviteButton',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
+                LIST_ROW: 'WorkspaceMembers-ListRow',
             },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',
@@ -8541,6 +8580,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCategories-BulkActionsDropdown',
             },
             TAGS: {
+                ROW: 'WorkspaceTags-Row',
                 ADD_BUTTON: 'WorkspaceTags-AddButton',
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
@@ -8887,6 +8927,12 @@ const CONST = {
         SECTION_VISIBLE_LIMIT: 5,
         ANNOUNCEMENTS: [
             {
+                title: 'AI agents, Concierge upgrades, and smarter card controls',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-june-2026-product-update',
+                publishedDate: '2026-06-24',
+            },
+            {
                 title: 'Connect Expensify to ChatGPT, Claude, Cursor',
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260608727624/en/Expensify-Launches-MCP-for-AI-powered-Expense-Management',
@@ -8897,12 +8943,6 @@ const CONST = {
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-may-2026-product-update',
                 publishedDate: '2026-05-22',
-            },
-            {
-                title: 'Expensify and VAT IT Launch Integration Partnership to Simplify Global VAT Reclaim',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260521691479/en/Expensify-and-VAT-IT-Launch-Integration-Partnership-to-Simplify-Global-VAT-Reclaim',
-                publishedDate: '2026-05-21',
             },
         ],
     },
@@ -8997,6 +9037,15 @@ type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
+/** Valid `page` values for the Enable Payments flow */
+type EnablePaymentsPageType = ValueOf<typeof CONST.ENABLE_PAYMENTS.PAGE_NAMES>;
+
+/** Valid `subPage` values for the Enable Payments flow */
+type EnablePaymentsSubPageType =
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.ADD_BANK_ACCOUNT_STEP.SUB_PAGE_NAMES>
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.PERSONAL_INFO_STEP.SUB_PAGE_NAMES>
+    | ValueOf<typeof CONST.ENABLE_PAYMENTS.FEES_AND_TERMS_STEP.SUB_PAGE_NAMES>;
+
 export type {
     Country,
     IOUAction,
@@ -9009,6 +9058,8 @@ export type {
     OnboardingInvite,
     OnboardingAccounting,
     IOUActionParams,
+    EnablePaymentsPageType,
+    EnablePaymentsSubPageType,
 };
 
 export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
