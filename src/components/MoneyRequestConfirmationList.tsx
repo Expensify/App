@@ -554,7 +554,6 @@ function MoneyRequestConfirmationList({
                     onPDFPassword,
                 }}
                 compactControls={{showMoreFields, setShowMoreFields}}
-                onSubmitForm={confirm}
             />
         </View>
     );

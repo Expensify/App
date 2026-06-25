@@ -105,9 +105,6 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Compact-mode controls (the footer derives `isCompactMode` itself) */
     compactControls?: CompactControls;
-
-    /** Triggers submit from inline inputs */
-    onSubmitForm?: () => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -136,7 +133,6 @@ function MoneyRequestConfirmationListFooter({
     toggleHandlers,
     receiptOptions,
     compactControls,
-    onSubmitForm,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -208,7 +204,6 @@ function MoneyRequestConfirmationListFooter({
                     errorState={errorState}
                     toggleHandlers={toggleHandlers ?? {}}
                     compactState={{isCompactMode, setShowMoreFields}}
-                    onSubmitForm={onSubmitForm}
                 />
             </View>
         </ConfirmationFieldsProvider>

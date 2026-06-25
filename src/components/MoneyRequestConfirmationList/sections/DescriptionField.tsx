@@ -33,7 +33,6 @@ type DescriptionFieldProps = {
     reportID: string;
     reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    onSubmitForm?: () => void;
 };
 
 function DescriptionField({
@@ -47,7 +46,6 @@ function DescriptionField({
     reportID,
     reportActionID,
     policy,
-    onSubmitForm,
 }: DescriptionFieldProps) {
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
@@ -105,8 +103,6 @@ function DescriptionField({
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
-                                    submitBehavior="blurAndSubmit"
-                                    onSubmitEditing={onSubmitForm}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
                                     autoGrowHeight
