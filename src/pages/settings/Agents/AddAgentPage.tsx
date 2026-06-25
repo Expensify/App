@@ -24,7 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import variables from '@styles/variables';
+import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE, SUBMIT_BUTTON_HEIGHT} from '@pages/settings/Agents/const';
 import {createAgent} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,10 +36,6 @@ import {clearPendingAvatar, getPendingAvatar, setInitialPresetID, setNavigationT
 import scrollToMultilineInput from './scrollToMultilineInput';
 
 type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
-
-const SUBMIT_BUTTON_HEIGHT = 56;
-const MAX_PROMPT_LINES_WITH_KEYBOARD = 2;
-const PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE = variables.componentSizeLarge + variables.lineHeightXLarge * (MAX_PROMPT_LINES_WITH_KEYBOARD - 1);
 
 function AddAgentPage({route}: AddAgentPageProps) {
     const policyID = route.params?.policyID;
