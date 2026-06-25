@@ -102,4 +102,17 @@ describe('DynamicCountrySelectionPage', () => {
         expect(searchedProps?.data.map((item) => item.keyForList)).toEqual(expectedSearchResults.map((item) => item.keyForList));
         expect(searchedProps?.searchValueForFocusSync).toBe('Uni');
     });
+
+    it('renders without crashing when the route has no params', () => {
+        render(
+            <DynamicCountrySelectionPage
+                route={{} as never}
+                navigation={jest.fn() as never}
+            />,
+        );
+
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        expect(selectionListProps?.initiallyFocusedItemKey).toBeUndefined();
+        expect(selectionListProps?.data.every((item) => !item.isSelected)).toBe(true);
+    });
 });
