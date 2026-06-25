@@ -27,6 +27,7 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRe
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
@@ -50,7 +51,7 @@ import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import {setSearchContext} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import {emailSelector, sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
@@ -501,7 +502,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     visible: shouldShowNewWorkspaceButton,
                     text: translate('workspace.new.newWorkspace'),
                     icon: icons.NewWorkspace,
-                    action: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
+                    action: () =>
+                        interceptAnonymousUser(() => {
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path));
+                        }),
                     keyForList: 'create_workspace',
                 },
             ]
