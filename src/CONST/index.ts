@@ -8870,6 +8870,9 @@ const CONST = {
                 ROW: 'DomainGroups-Row',
             },
         },
+        FEATURE_TRAINING: {
+            CLOSE_BUTTON: 'FeatureTraining-CloseButton',
+        },
     },
 
     DOMAIN: {

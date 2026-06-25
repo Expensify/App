@@ -16,8 +16,6 @@ import FeatureTrainingContentBody from './FeatureTrainingContentBody';
 import FeatureTrainingContentIllustration from './FeatureTrainingContentIllustration';
 import type {FeatureTrainingContentProps} from './types';
 
-const CONTENT_PADDING = variables.spacing2;
-
 function FeatureTrainingContent({
     illustrationInnerContainerStyle,
     illustrationOuterContainerStyle,
@@ -106,7 +104,6 @@ function FeatureTrainingContent({
                 illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                 illustrationOuterContainerStyle={illustrationOuterContainerStyle}
                 shouldRenderSVG={shouldRenderSVG}
-                modalPadding={CONTENT_PADDING}
                 {...props}
             />
             <FeatureTrainingContentBody

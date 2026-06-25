@@ -15,12 +15,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Accessibility from '@libs/Accessibility';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {FeatureTrainingContentIllustrationProps as BaseFeatureTrainingContentIllustrationProps, BaseFeatureTrainingContentProps} from './types';
 
 // Aspect ratio and height of the video.
 // Useful before video loads to reserve space.
 const VIDEO_ASPECT_RATIO = 1280 / 960;
+
+const CONTENT_PADDING = variables.spacing2;
 
 const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
 
@@ -31,9 +34,6 @@ type FeatureTrainingContentIllustrationProps = Pick<
     'shouldRenderSVG' | 'illustrationAspectRatio' | 'illustrationInnerContainerStyle' | 'illustrationOuterContainerStyle'
 > &
     BaseFeatureTrainingContentIllustrationProps & {
-        /** Padding for the modal */
-        modalPadding: number;
-
         /** Whether this illustration belongs to the currently-visible carousel page */
         isFocused?: boolean;
 
@@ -53,7 +53,6 @@ function FeatureTrainingContentIllustration({
     illustrationInnerContainerStyle,
     illustrationOuterContainerStyle,
     shouldRenderSVG = true,
-    modalPadding,
     isFocused = true,
     isCarousel = false,
 }: FeatureTrainingContentIllustrationProps) {
@@ -107,7 +106,7 @@ function FeatureTrainingContentIllustration({
     return (
         <View
             style={[
-                onboardingIsMediumOrLargerScreenWidth ? {padding: modalPadding} : {paddingHorizontal: modalPadding},
+                onboardingIsMediumOrLargerScreenWidth ? {padding: CONTENT_PADDING} : {paddingHorizontal: CONTENT_PADDING},
                 illustrationOuterContainerStyle,
                 isInLandscapeMode ? [{maxHeight: windowHeight * LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO}, styles.alignSelfCenter] : undefined,
             ]}

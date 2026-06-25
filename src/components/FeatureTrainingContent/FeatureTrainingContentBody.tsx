@@ -27,10 +27,10 @@ type FeatureTrainingModalContentProps = Pick<
 > &
     BaseFeatureTrainingContentBodyProps & {
         /** Whether the modal should be shown again (drives the dismiss checkbox state) */
-        willShowAgain: boolean;
+        willShowAgain?: boolean;
 
         /** Callback when the "Don't show me this again" option is toggled */
-        toggleWillShowAgain: () => void;
+        toggleWillShowAgain?: () => void;
 
         /** Whether to render a Back button (carousel mode, non-first pages) */
         shouldShowBackButton?: boolean;
@@ -51,7 +51,7 @@ function FeatureTrainingContentBody({
     helpSentryLabel,
     confirmSentryLabel,
     shouldShowDismissModalOption = false,
-    willShowAgain,
+    willShowAgain = false,
     toggleWillShowAgain,
     shouldShowBackButton = false,
     onBack,

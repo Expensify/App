@@ -12,10 +12,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import FeatureTrainingModalContent from './FeatureTrainingContentBody';
+import FeatureTrainingContentBody from './FeatureTrainingContentBody';
 import FeatureTrainingContentBodyText from './FeatureTrainingContentBodyText';
-import FeatureTrainingModalIllustration from './FeatureTrainingContentIllustration';
-import type {BaseFeatureTrainingModalProps, FeatureTrainingModalCarouselProps, FeatureTrainingModalPageProps} from './index';
+import FeatureTrainingContentIllustration from './FeatureTrainingContentIllustration';
+import type {FeatureTrainingCarouselProps, FeatureTrainingContentDataProps} from './types';
+
+const CONTENT_PADDING = variables.spacing2;
 
 // A page is considered "viewable" — and `currentPage` updates — only once it occupies at least
 // 95% of the viewport. The viewability event fires for both user swipes and programmatic
@@ -31,49 +33,8 @@ const PAGINATION_DOTS_BOTTOM_OFFSET = 5;
 // Native ignores this CSS-only key, so we still gate it on Platform.OS === 'web' for clarity.
 const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? ({scrollSnapAlign: 'start'} as ViewStyle) : {};
 
-type FeatureTrainingModalCarouselBodyProps = Pick<
-    BaseFeatureTrainingModalProps,
-    | 'illustrationAspectRatio'
-    | 'illustrationInnerContainerStyle'
-    | 'illustrationOuterContainerStyle'
-    | 'titleStyles'
-    | 'shouldRenderSVG'
-    | 'shouldRenderHTMLDescription'
-    | 'shouldShowDismissModalOption'
-    | 'helpText'
-    | 'onHelp'
-    | 'shouldCallOnHelpWhenModalHidden'
-    | 'helpSentryLabel'
-    | 'confirmSentryLabel'
-    | 'shouldShowConfirmationLoader'
-    | 'canConfirmWhileOffline'
-    | 'contentInnerContainerStyles'
-    | 'contentOuterContainerStyles'
-    | 'width'
-> &
-    FeatureTrainingModalCarouselProps & {
-        /** Padding for the modal */
-        modalPadding: number;
-
-        /** Whether the modal should be shown again */
-        willShowAgain: boolean;
-
-        /** Callback when the "Don't show me this again" option is toggled */
-        toggleWillShowAgain: () => void;
-
-        /** Callback to close the modal */
-        closeModal: (didPressHelpButton?: boolean) => void;
-
-        /** Callback fired when the user presses the confirm button on the LAST page */
-        onConfirm: () => void;
-
-        /** Called when the user swipes to a different page */
-        onPageChange?: (index: number) => void;
-    };
-
 function FeatureTrainingCarousel({
     pages,
-    modalPadding,
     width = variables.featureTrainingModalWidth,
     titleStyles,
     illustrationAspectRatio,
@@ -91,12 +52,10 @@ function FeatureTrainingCarousel({
     canConfirmWhileOffline = true,
     contentInnerContainerStyles,
     contentOuterContainerStyles,
-    willShowAgain,
-    toggleWillShowAgain,
-    closeModal,
     onConfirm,
+    onClose,
     onPageChange,
-}: FeatureTrainingModalCarouselBodyProps) {
+}: FeatureTrainingCarouselProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -106,7 +65,7 @@ function FeatureTrainingCarousel({
 
     const [currentPage, setCurrentPage] = useState(0);
     const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
-    const horizontalListRef = useRef<RNFlatList<FeatureTrainingModalPageProps>>(null);
+    const horizontalListRef = useRef<RNFlatList<FeatureTrainingContentDataProps>>(null);
     const lastReportedPage = useRef(0);
 
     const [contentMinHeight, setContentMinHeight] = useState<number | undefined>(undefined);
@@ -156,7 +115,7 @@ function FeatureTrainingCarousel({
             advanceCarousel();
             return;
         }
-        onConfirm();
+        onConfirm?.(false);
     };
 
     const carouselPaginationDots = pages.map((_page, index) => (
@@ -224,7 +183,7 @@ function FeatureTrainingCarousel({
                         <FlatList
                             ref={horizontalListRef}
                             data={pages}
-                            keyExtractor={(_page, index) => `FeatureTrainingModalIllustration-${index}`}
+                            keyExtractor={(_page, index) => `FeatureTrainingContentIllustration-${index}`}
                             horizontal
                             pagingEnabled
                             // Defense-in-depth on native: `pagingEnabled` is honored by the
@@ -242,12 +201,11 @@ function FeatureTrainingCarousel({
                             getItemLayout={(_data, index) => ({length: carouselViewportWidth, offset: index * carouselViewportWidth, index})}
                             renderItem={({item: page, index}) => (
                                 <View style={[{width: carouselViewportWidth}, WEB_CAROUSEL_PAGE_SNAP_STYLE]}>
-                                    <FeatureTrainingModalIllustration
+                                    <FeatureTrainingContentIllustration
                                         illustrationAspectRatio={illustrationAspectRatio}
                                         illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                                         illustrationOuterContainerStyle={illustrationOuterContainerStyle}
                                         shouldRenderSVG={shouldRenderSVG}
-                                        modalPadding={modalPadding}
                                         isCarousel
                                         isFocused={index === currentPage}
                                         {...page}
@@ -257,12 +215,20 @@ function FeatureTrainingCarousel({
                         />
                         <View
                             pointerEvents="none"
-                            style={[styles.pAbsolute, styles.flexRow, styles.justifyContentCenter, styles.w100, styles.l0, styles.r0, {bottom: PAGINATION_DOTS_BOTTOM_OFFSET + modalPadding}]}
+                            style={[
+                                styles.pAbsolute,
+                                styles.flexRow,
+                                styles.justifyContentCenter,
+                                styles.w100,
+                                styles.l0,
+                                styles.r0,
+                                {bottom: PAGINATION_DOTS_BOTTOM_OFFSET + CONTENT_PADDING},
+                            ]}
                         >
                             {carouselPaginationDots}
                         </View>
                     </View>
-                    <FeatureTrainingModalContent
+                    <FeatureTrainingContentBody
                         title={currentPageData?.title}
                         subtitle={currentPageData?.subtitle}
                         description={currentPageData?.description}
@@ -270,14 +236,9 @@ function FeatureTrainingCarousel({
                         confirmText={currentPageData?.confirmText ?? ''}
                         helpText={helpText}
                         onHelp={onHelp}
-                        shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
                         helpSentryLabel={helpSentryLabel}
                         confirmSentryLabel={confirmSentryLabel}
-                        shouldShowDismissModalOption={shouldShowDismissModalOption}
-                        willShowAgain={willShowAgain}
-                        toggleWillShowAgain={toggleWillShowAgain}
-                        closeModal={closeModal}
-                        confirmModal={handleConfirmPress}
+                        onConfirm={handleConfirmPress}
                         shouldShowBackButton={currentPage > 0}
                         onBack={goBack}
                         shouldShowConfirmationLoader={shouldShowConfirmationLoader}
@@ -287,13 +248,13 @@ function FeatureTrainingCarousel({
                         contentOuterContainerStyles={contentOuterContainerStyles}
                         shouldRenderHTMLDescription={shouldRenderHTMLDescription}
                     />
-                    <View style={[styles.pAbsolute, {top: modalPadding, right: modalPadding, zIndex: 1}]}>
+                    <View style={[styles.pAbsolute, {top: CONTENT_PADDING, right: CONTENT_PADDING, zIndex: 1}]}>
                         <Tooltip text={translate('common.close')}>
                             <PressableWithFeedback
-                                onPress={() => closeModal()}
+                                onPress={onClose}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
-                                sentryLabel="FeatureTrainingModal-Carousel-Close"
+                                sentryLabel={CONST.SENTRY_LABEL.FEATURE_TRAINING.CLOSE_BUTTON}
                                 style={[styles.p2, styles.opacitySemiTransparent]}
                             >
                                 <Icon

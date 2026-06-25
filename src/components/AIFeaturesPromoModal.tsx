@@ -1,8 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
-import type {FeatureTrainingContentDataProps} from '@components/FeatureTrainingContent';
-import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +10,8 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {FeatureTrainingCarousel} from './FeatureTrainingContent';
+import type {FeatureTrainingContentDataProps} from './FeatureTrainingContent';
 
 function AIFeaturesPromoModal() {
     const {translate} = useLocalize();
@@ -73,7 +73,7 @@ function AIFeaturesPromoModal() {
     };
 
     return (
-        <FeatureTrainingModal
+        <FeatureTrainingCarousel
             pages={pages}
             onConfirm={onConfirm}
             onClose={onClose}
