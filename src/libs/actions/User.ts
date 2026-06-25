@@ -50,7 +50,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
+import type {ExpenseRuleForm, MerchantRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -1920,6 +1920,18 @@ function clearDraftSpendRule() {
     Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
 }
 
+function setDraftRequireFieldsRule(ruleData: Partial<RequireFieldsRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, ruleData);
+}
+
+function updateDraftRequireFieldsRule(ruleData: Partial<RequireFieldsRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, ruleData);
+}
+
+function clearDraftRequireFieldsRule() {
+    Onyx.set(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM, null);
+}
+
 export {
     revokeDevice,
     clearRevokeError,
@@ -1979,6 +1991,9 @@ export {
     setDraftSpendRule,
     updateDraftSpendRule,
     clearDraftSpendRule,
+    setDraftRequireFieldsRule,
+    updateDraftRequireFieldsRule,
+    clearDraftRequireFieldsRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
 };

@@ -1,15 +1,24 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {TableData} from '@components/Table';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import type PolicyData from '@hooks/usePolicyData/types';
+import {
+    removePolicyCategoryItemizedReceiptsRequired,
+    removePolicyCategoryReceiptsRequired,
+    setPolicyCategoryAttendeesRequired,
+    setPolicyCategoryDescriptionRequired,
+    setPolicyCategoryItemizedReceiptsRequired,
+    setPolicyCategoryReceiptsAndItemizedReceiptRequired,
+    setPolicyCategoryReceiptsRequired,
+} from '@libs/actions/Policy/Category';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {RequireFieldsRuleForm} from '@src/types/form/RequireFieldsRuleForm';
+import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getDecodedCategoryName} from './CategoryUtils';
-import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {isAttendeeTrackingEnabled} from './PolicyUtils';
 
 type RequireFieldsRuleType = DeepValueOf<typeof CONST.REQUIRE_FIELDS_RULE_TYPES>;
 
@@ -47,21 +56,83 @@ function parseRequireFieldsRuleKey(ruleKey: string): {categoryName: string; rule
     return {categoryName, ruleType};
 }
 
-function getWorkspaceCategorySubPageRoute(policyID: string, categoryName: string, subPagePath: string): Route {
-    const categorySettingsRoute = `${ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}/${DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(categoryName)}`;
-    return createDynamicRoute(subPagePath, categorySettingsRoute);
+function getRequireFieldsRuleNavigationRoute(policyID: string, categoryName: string): Route {
+    return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName);
 }
 
-function getRequireFieldsRuleNavigationRoute(policyID: string, categoryName: string, ruleType: RequireFieldsRuleType): Route {
-    switch (ruleType) {
-        case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER:
-            return getWorkspaceCategorySubPageRoute(policyID, categoryName, DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path);
-        case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER:
-            return getWorkspaceCategorySubPageRoute(policyID, categoryName, DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path);
-        case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION:
-        case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES:
+function isRequireFieldEnabled(category: PolicyCategory | undefined, field: keyof RequireFieldsRuleForm): boolean {
+    if (!category) {
+        return false;
+    }
+
+    switch (field) {
+        case 'requireDescription':
+            return !!category.areCommentsRequired;
+        case 'requireAttendees':
+            return !!category.areAttendeesRequired;
+        case 'requireReceipt':
+            return hasExplicitReceiptThreshold(category.maxAmountNoReceipt);
+        case 'requireItemizedReceipt':
+            return hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt);
         default:
-            return getWorkspaceCategorySubPageRoute(policyID, categoryName, DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path);
+            return false;
+    }
+}
+
+function getRequireFieldsFormFromCategory(category: PolicyCategory | undefined): RequireFieldsRuleForm {
+    return {
+        requireDescription: isRequireFieldEnabled(category, 'requireDescription'),
+        requireAttendees: isRequireFieldEnabled(category, 'requireAttendees'),
+        requireReceipt: isRequireFieldEnabled(category, 'requireReceipt'),
+        requireItemizedReceipt: isRequireFieldEnabled(category, 'requireItemizedReceipt'),
+    };
+}
+
+function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleForm) {
+    const categoryName = form.category;
+    if (!categoryName || !policyData.policy?.id) {
+        return;
+    }
+
+    const policyCategories = policyData.categories;
+    const category = policyCategories?.[categoryName];
+    const initialForm = getRequireFieldsFormFromCategory(category);
+
+    if (form.requireDescription !== initialForm.requireDescription) {
+        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, !!form.requireDescription, policyCategories);
+    }
+
+    if (form.requireAttendees !== initialForm.requireAttendees) {
+        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, !!form.requireAttendees, policyCategories);
+    }
+
+    const shouldRequireReceipt = !!form.requireReceipt;
+    const shouldRequireItemizedReceipt = !!form.requireItemizedReceipt;
+    const hadReceipt = isRequireFieldEnabled(category, 'requireReceipt');
+    const hadItemizedReceipt = isRequireFieldEnabled(category, 'requireItemizedReceipt');
+
+    if (shouldRequireItemizedReceipt && !shouldRequireReceipt && !hadReceipt) {
+        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
+    } else {
+        if (shouldRequireReceipt !== hadReceipt) {
+            if (shouldRequireReceipt) {
+                setPolicyCategoryReceiptsRequired(policyData, categoryName, 0);
+            } else {
+                removePolicyCategoryReceiptsRequired(policyData, categoryName);
+            }
+        }
+
+        if (shouldRequireItemizedReceipt !== hadItemizedReceipt) {
+            if (shouldRequireItemizedReceipt) {
+                if (shouldRequireReceipt || hadReceipt || category?.maxAmountNoReceipt === 0) {
+                    setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, 0);
+                } else {
+                    setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
+                }
+            } else {
+                removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+            }
+        }
     }
 }
 
@@ -131,7 +202,6 @@ function getRequireFieldsTableData({
     const policyID = policy.id;
     const policyCurrency = policy.outputCurrency ?? CONST.CURRENCY.USD;
     const typeLabel = translate('workspace.rules.requireFieldsTable.typeLabel');
-    const isAttendeeTrackingOn = isAttendeeTrackingEnabled(policy);
     const rules: RequireFieldsTableItem[] = [];
 
     for (const [categoryName, category] of Object.entries(policyCategories)) {
@@ -157,11 +227,11 @@ function getRequireFieldsTableData({
                 searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
                 pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
                 disabled: pendingFields?.areCommentsRequired === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName, ruleType)),
+                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
             });
         }
 
-        if (isAttendeeTrackingOn && category.areAttendeesRequired) {
+        if (category.areAttendeesRequired) {
             const ruleType = CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES;
             const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, undefined, convertToDisplayString, policyCurrency);
             rules.push({
@@ -175,7 +245,7 @@ function getRequireFieldsTableData({
                 searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
                 pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
                 disabled: pendingFields?.areAttendeesRequired === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName, ruleType)),
+                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
             });
         }
 
@@ -193,7 +263,7 @@ function getRequireFieldsTableData({
                 searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
                 pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
                 disabled: pendingFields?.maxAmountNoReceipt === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName, ruleType)),
+                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
             });
         }
 
@@ -211,7 +281,7 @@ function getRequireFieldsTableData({
                 searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
                 pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
                 disabled: pendingFields?.maxAmountNoItemizedReceipt === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName, ruleType)),
+                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
             });
         }
     }
@@ -219,5 +289,13 @@ function getRequireFieldsTableData({
     return rules.sort((a, b) => a.conditionText.localeCompare(b.conditionText));
 }
 
-export {getRequireFieldsRuleKey, getRequireFieldsRuleNavigationRoute, getRequireFieldsTableData, getWorkspaceCategorySubPageRoute, parseRequireFieldsRuleKey};
+export {
+    getRequireFieldsFormFromCategory,
+    getRequireFieldsRuleKey,
+    getRequireFieldsRuleNavigationRoute,
+    getRequireFieldsTableData,
+    isRequireFieldEnabled,
+    parseRequireFieldsRuleKey,
+    saveRequireFieldsRule,
+};
 export type {RequireFieldsRuleType, RequireFieldsTableItem};

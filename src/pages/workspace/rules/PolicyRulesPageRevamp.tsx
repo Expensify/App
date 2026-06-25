@@ -444,6 +444,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         },
     ];
 
+    const handleNewRequireFieldsRule = () => {
+        if (!canWriteRules) {
+            showReadOnlyModal();
+            return;
+        }
+        Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID));
+    };
+
     const handleNewRule = () => {
         if (!canWriteRules) {
             showReadOnlyModal();
@@ -540,7 +548,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 buttons={[
                     {
                         buttonText: translate('workspace.rules.requireFieldsEmptyState.cta'),
-                        buttonAction: handleNewRule,
+                        buttonAction: handleNewRequireFieldsRule,
                         success: true,
                         isDisabled: !canWriteRules,
                     },

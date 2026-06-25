@@ -110,6 +110,7 @@ export type {SplitExpenseEditDateForm} from './SplitExpenseEditDateForm';
 export type {ResetDomainForm} from './ResetDomainForm';
 export type {ExpenseRuleForm} from './ExpenseRuleForm';
 export type {MerchantRuleForm} from './MerchantRuleForm';
+export type {RequireFieldsRuleForm} from './RequireFieldsRuleForm';
 export type {SpendRuleForm} from './SpendRuleForm';
 export type {AddDomainMemberForm} from './AddDomainMemberForm';
 export type {DomainGroupEditNameForm} from './DomainGroupEditNameForm';

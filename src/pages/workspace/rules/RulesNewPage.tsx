@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,6 +26,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'ReportReceipt']);
+    const icons = useMemoizedLazyExpensifyIcons(['Task']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -46,6 +47,18 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         description={translate('workspace.rules.newRule.restrictCardSpendDescription')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                        displayInDefaultIconColor
+                        iconWidth={variables.iconSizeExtraLarge}
+                        iconHeight={variables.iconSizeExtraLarge}
+                        wrapperStyle={styles.rulesNewMenuItem}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
+                    />
+                    <MenuItem
+                        icon={icons.Task}
+                        title={translate('workspace.rules.newRule.requireFields')}
+                        description={translate('workspace.rules.newRule.requireFieldsDescription')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID))}
                         displayInDefaultIconColor
                         iconWidth={variables.iconSizeExtraLarge}
                         iconHeight={variables.iconSizeExtraLarge}

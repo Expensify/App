@@ -3161,6 +3161,18 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/require-fields',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields` as const,
     },
+    RULES_REQUIRE_FIELDS_RULE_NEW: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields-rules/new` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_EDIT: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/${encodeURIComponent(categoryName)}` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_CATEGORY: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/:ruleKey/category',
+        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/require-fields-rules/${ruleKey ?? ROUTES.NEW}/category` as const,
+    },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,
