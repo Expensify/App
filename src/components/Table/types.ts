@@ -104,7 +104,7 @@ type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>
  *
  * The Table uses a compositional pattern where the parent `<Table>` component manages
  * state and provides context, while child components (`<Table.Header>`, `<Table.Body>`,
- * `<Table.SearchBar>`) consume that context to render UI.
+ * `<Table.FilterBar>`) consume that context to render UI.
  *
  * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
@@ -120,7 +120,7 @@ type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>
  *   compareItems={compareItems}
  *   isItemInSearch={isItemInSearch}
  * >
- *   <Table.SearchBar />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>

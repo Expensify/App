@@ -25,7 +25,7 @@
  *   filters={filterConfig}
  *   isItemInFilter={filterFn}
  * >
- *   <Table.SearchBar />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
@@ -47,7 +47,7 @@ import TableRow from './TableRow';
  * - `Table.Context` - The React context (for advanced usage)
  * - `Table.Header` - Sortable column headers
  * - `Table.Body` - Data rows using FlashList
- * - `Table.SearchBar` - Search input
+ * - `Table.FilterBar` - Search input & filter bar
  */
 const Table = Object.assign(TableComponent, {
     /** The React context for accessing table state directly. */

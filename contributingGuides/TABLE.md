@@ -40,7 +40,7 @@ The Table uses a **compound component pattern** where the parent `<Table>` manag
 | `<Table>` | Parent container that manages state and provides context |
 | `<Table.Header>` | Renders sortable column headers |
 | `<Table.Body>` | Renders data rows using FlashList |
-| `<Table.SearchBar>` | Search input that filters data |
+| `<Table.FilterBar>` | Search input and filter controls that filter data |
 
 ### Flexible Composition
 
@@ -54,7 +54,7 @@ You only include the components you need:
 
 // With search
 <Table data={items} columns={columns} renderItem={renderItem} isItemInSearch={searchFn}>
-  <Table.SearchBar />
+  <Table.FilterBar />
   <Table.Body />
 </Table>
 
@@ -68,7 +68,7 @@ You only include the components you need:
   compareItems={compareFn}
   filters={filterConfig}
 >
-  <Table.SearchBar />
+  <Table.FilterBar />
   <Table.Header />
   <Table.Body />
 </Table>
@@ -113,7 +113,7 @@ const isItemInSearch = (item: Item, searchString: string) =>
   renderItem={renderItem}
   isItemInSearch={isItemInSearch}
 >
-  <Table.SearchBar />
+  <Table.FilterBar />
   <Table.Body />
 </Table>
 ```

@@ -32,7 +32,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  * - `<Table>` - The parent component that manages state and provides context
  * - `<Table.Header>` - Renders sortable column headers
  * - `<Table.Body>` - Renders the data rows using FlashList
- * - `<Table.SearchBar>` - Renders a search input that filters data
+ * - `<Table.FilterBar>` - Renders a search input that filters data
  *
  * ## Middleware Architecture
  *
@@ -86,7 +86,7 @@ import type {TableData, TableHandle, TableMethods, TableProps} from './types';
  *     return a[columnKey].localeCompare(b[columnKey]) * multiplier;
  *   }}
  * >
- *   <Table.SearchBar />
+ *   <Table.FilterBar />
  *   <Table.Header />
  *   <Table.Body />
  * </Table>
