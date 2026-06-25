@@ -1469,8 +1469,10 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
                 ...parentReport,
-                // In case its a manager who force submitted the report, they are the next user who needs to take an action
-                hasOutstandingChildRequest: isCurrentUserManager,
+                // In case its a manager who force submitted the report, they are the next user who needs to take an action.
+                // On a Submit workspace the submitter is also their own report manager, but they can't approve their own
+                // expense, so there's no outstanding action for them — keep the green dot off in that case.
+                hasOutstandingChildRequest: isCurrentUserManager && !isSubmitterApproveBlockedOnSubmitWorkspace(policy, expenseReport.ownerAccountID, currentUserAccountIDParam),
                 iouReportID: null,
             },
         });
