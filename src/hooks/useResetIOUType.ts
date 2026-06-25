@@ -100,12 +100,12 @@ function useResetIOUType({
     const defaultParticipants = resolvedDefaultParticipants.length > 0 ? resolvedDefaultParticipants : undefined;
 
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
-        if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
-            Keyboard.dismiss();
-        }
-
         if (transaction?.iouRequestType === newIOUType) {
             return;
+        }
+
+        if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
+            Keyboard.dismiss();
         }
 
         const isFromGlobalCreate = !report?.reportID;
