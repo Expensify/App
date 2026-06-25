@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import Hoverable from '@components/Hoverable';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
@@ -12,28 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-
-/**
- * Recursively collects the raw text contents of a code block so it can be copied to the clipboard,
- * preserving the original line breaks and whitespace.
- */
-function getCodeBlockText(tnode: TNode): string {
-    // Newlines inside a code block are rendered as void `<br>` tags, which carry no `data`.
-    // Emit a newline for them so the copied text keeps its original formatting.
-    if (tnode.tagName === 'br') {
-        return '\n';
-    }
-
-    if ('data' in tnode && typeof tnode.data === 'string') {
-        return tnode.data;
-    }
-
-    if (!tnode.children) {
-        return '';
-    }
-
-    return tnode.children.map(getCodeBlockText).join('');
-}
 
 type PreRendererProps = CustomRendererProps<TBlock> & {
     /** Press in handler for the code block */
@@ -63,7 +41,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const isInsideTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const fontSize = StyleUtils.getCodeFontSize(false, isInsideTaskTitle);
-    const codeText = getCodeBlockText(defaultRendererProps.tnode);
+    const codeText = HTMLEngineUtils.getCodeBlockText(defaultRendererProps.tnode);
     // Multi-line code blocks get extra breathing room around the copy button, while single-line blocks keep it tight to the corner.
     const isMultilineCodeBlock = codeText.trim().includes('\n');
 
@@ -105,7 +83,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                             </View>
                         </PressableWithoutFeedback>
                         {isHovered && !!codeText && (
-                            <View style={[styles.pAbsolute, isMultilineCodeBlock ? {top: 8, right: 8} : {top: 4, right: 4}]}>
+                            <View style={isMultilineCodeBlock ? styles.codeBlockCopyButtonWrapperMultiline : styles.codeBlockCopyButtonWrapper}>
                                 <CopyTextToClipboard
                                     urlToCopy={codeText}
                                     styles={styles.copyableTextFieldButton}
