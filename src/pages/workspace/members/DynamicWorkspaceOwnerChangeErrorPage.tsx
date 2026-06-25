@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -12,15 +12,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
-import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type DynamicWorkspaceOwnerChangeErrorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_ERROR>;
@@ -30,22 +28,13 @@ function DynamicWorkspaceOwnerChangeErrorPage({route}: DynamicWorkspaceOwnerChan
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['MoneyWaving']);
 
-    const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
-    const checkBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path);
-    const entryBackPath = useMemo(() => {
-        const pathWithoutLeadingSlash = checkBackPath.replaceAll(/^\/+/g, '');
-        const match = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash).find((m) => m.pattern === DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.path);
-        if (match) {
-            return getPathWithoutDynamicSuffix(pathWithoutLeadingSlash, match.actualSuffix, match.pattern);
-        }
-        return ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID);
-    }, [accountID, checkBackPath, policyID]);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path);
 
     const closePage = useCallback(() => {
-        Navigation.goBack(entryBackPath);
+        Navigation.goBack(backPath);
         clearWorkspaceOwnerChangeFlow(policyID);
-    }, [entryBackPath, policyID]);
+    }, [backPath, policyID]);
 
     const policy = usePolicy(policyID);
     const shouldShowRef = useRef(!policy?.errorFields && policy?.isChangeOwnerFailed);

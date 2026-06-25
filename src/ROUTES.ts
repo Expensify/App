@@ -763,7 +763,13 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
         entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],
-        getRoute: (policyID: string, accountID: number, error: string) => `change-owner/${policyID}/${accountID}/${error}` as const,
+        getRoute: (policyID: string | undefined, accountID: number, error: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route WORKSPACE_OWNER_CHANGE_CHECK');
+            }
+
+            return `change-owner/${policyID}/${accountID}/${error}` as const;
+        },
     },
     WORKSPACE_INVITE_MESSAGE_ROLE: {
         path: 'role',
