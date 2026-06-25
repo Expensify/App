@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -53,18 +53,30 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const {translate, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
 
+    // The selection is kept in local draft state so the page no longer closes on input (WCAG 3.2.2); the change is
+    // only persisted when the user taps Save below.
+    const [selectedFrequency, setSelectedFrequency] = useState<AutoReportingFrequencyKey | undefined>(autoReportingFrequency);
+
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
-        if (!policy?.id) {
-            return;
-        }
-        setWorkspaceAutoReportingFrequency(policy.id, item.keyForList as AutoReportingFrequencyKey, policy.autoReportingFrequency, policy.harvesting);
-
-        if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
-            return;
-        }
-
-        Navigation.goBack();
+        setSelectedFrequency(item.keyForList as AutoReportingFrequencyKey);
     };
+
+    const saveAutoReportingFrequency = useCallback(() => {
+        if (!policy?.id || !selectedFrequency) {
+            return;
+        }
+        setWorkspaceAutoReportingFrequency(policy.id, selectedFrequency, policy.autoReportingFrequency, policy.harvesting);
+        Navigation.goBack();
+    }, [policy?.id, policy?.autoReportingFrequency, policy?.harvesting, selectedFrequency]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.save'),
+            onConfirm: saveAutoReportingFrequency,
+        }),
+        [saveAutoReportingFrequency, translate],
+    );
 
     const getDescriptionText = () => {
         if (policy?.autoReportingOffset === undefined) {
@@ -102,8 +114,8 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(translate)).map((frequencyKey) => ({
         text: getAutoReportingFrequencyDisplayNames(translate)[frequencyKey as AutoReportingFrequencyKey] || '',
         keyForList: frequencyKey,
-        isSelected: frequencyKey === autoReportingFrequency,
-        footerContent: frequencyKey === autoReportingFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
+        isSelected: frequencyKey === selectedFrequency,
+        footerContent: frequencyKey === selectedFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
     }));
 
     return (
@@ -137,6 +149,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                             ListItem={SingleSelectListItem}
                             data={autoReportingFrequencyItems}
                             onSelectRow={onSelectAutoReportingFrequency}
+                            confirmButtonOptions={confirmButtonOptions}
                             initiallyFocusedItemKey={autoReportingFrequency}
                             addBottomSafeAreaPadding
                         />
