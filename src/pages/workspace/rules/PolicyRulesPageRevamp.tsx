@@ -11,12 +11,14 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScrollView from '@components/ScrollView';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
+import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFieldsTable';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
 import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTable';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -26,6 +28,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -44,9 +47,16 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+import {getRequireFieldsTableData, parseRequireFieldsRuleKey} from '@libs/RequireFieldsRulesUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import variables from '@styles/variables';
+import {
+    removePolicyCategoryItemizedReceiptsRequired,
+    removePolicyCategoryReceiptsRequired,
+    setPolicyCategoryAttendeesRequired,
+    setPolicyCategoryDescriptionRequired,
+} from '@userActions/Policy/Category';
 import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,12 +89,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {translate} = useLocalize();
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
+    const policyData = usePolicyData(policyID);
+    const {convertToDisplayString} = useCurrencyListActions();
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Trashcan']);
+    const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration', 'ReportReceipt']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const {isBetaEnabled} = usePermissions();
@@ -100,6 +112,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const activeTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
     const [selectedSpendRuleKeys, setSelectedSpendRuleKeys] = useState<string[]>([]);
     const [selectedExpenseDefaultKeys, setSelectedExpenseDefaultKeys] = useState<string[]>([]);
+    const [selectedRequireFieldsRuleKeys, setSelectedRequireFieldsRuleKeys] = useState<string[]>([]);
 
     const {showConfirmModal} = useConfirmModal();
     const defaultFundID = useDefaultFundID(policyID);
@@ -246,6 +259,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                   return 0;
               });
 
+    const requireFieldsTableData = getRequireFieldsTableData({
+        policy,
+        policyCategories: policyData.categories,
+        translate,
+        convertToDisplayString,
+        onNavigate: Navigation.navigate,
+    });
+
     useEffect(() => {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
@@ -256,11 +277,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         selectedRuleKeys = selectedSpendRuleKeys;
     } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
         selectedRuleKeys = selectedExpenseDefaultKeys;
+    } else if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
+        selectedRuleKeys = selectedRequireFieldsRuleKeys;
     } else {
         selectedRuleKeys = [];
     }
     const hasSelectedRules = selectedRuleKeys.length > 0;
-    const isTableTab = activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS;
+    const isTableTab = activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
     const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
 
@@ -269,6 +292,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             setSelectedSpendRuleKeys([]);
         } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
             setSelectedExpenseDefaultKeys([]);
+        } else if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
+            setSelectedRequireFieldsRuleKeys([]);
         }
         turnOffMobileSelectionMode();
     };
@@ -281,6 +306,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => {
         const selectableKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
         setSelectedExpenseDefaultKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
+    };
+
+    const handleRequireFieldsSelectionChange = (selectedRowKeys: string[]) => {
+        const selectableKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+        setSelectedRequireFieldsRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
@@ -325,6 +355,37 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         clearTableSelection();
     };
 
+    const deleteSelectedRequireFieldsRules = () => {
+        for (const ruleKey of selectedRequireFieldsRuleKeys) {
+            const parsedRule = parseRequireFieldsRuleKey(ruleKey);
+            if (!parsedRule) {
+                continue;
+            }
+
+            const {categoryName, ruleType} = parsedRule;
+
+            if (ruleType === CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION) {
+                setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyData.categories);
+                continue;
+            }
+
+            if (ruleType === CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES) {
+                setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyData.categories);
+                continue;
+            }
+
+            if (ruleType === CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER) {
+                removePolicyCategoryReceiptsRequired(policyData, categoryName);
+                continue;
+            }
+
+            if (ruleType === CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER) {
+                removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+            }
+        }
+        clearTableSelection();
+    };
+
     const getBulkActionsButtonOptions = (): Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> => {
         return [
             {
@@ -349,6 +410,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                         return;
                     }
 
+                    if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
+                        deleteSelectedRequireFieldsRules();
+                        return;
+                    }
+
                     deleteSelectedExpenseDefaults();
                 },
             },
@@ -370,6 +436,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             key: RULES_TAB.EXPENSE_DEFAULTS,
             title: translate('workspace.rules.tabs.expenseDefaults'),
             icon: icons.DocumentMagicWand,
+        },
+        {
+            key: RULES_TAB.REQUIRE_FIELDS,
+            title: translate('workspace.rules.tabs.requireFields'),
+            icon: icons.Task,
         },
     ];
 
@@ -451,6 +522,33 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         </ScrollView>
     );
 
+    const requireFieldsEmptyState = (
+        <ScrollView
+            style={[styles.flex1, styles.mnh0]}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            addBottomSafeAreaPadding
+        >
+            <GenericEmptyStateComponent
+                headerMedia={illustrations.ReportReceipt}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
+                title={translate('workspace.rules.requireFieldsEmptyState.title')}
+                subtitle={translate('workspace.rules.requireFieldsEmptyState.subtitle')}
+                subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                minModalHeight={0}
+                containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                buttons={[
+                    {
+                        buttonText: translate('workspace.rules.requireFieldsEmptyState.cta'),
+                        buttonAction: handleNewRule,
+                        success: true,
+                        isDisabled: !canWriteRules,
+                    },
+                ]}
+            />
+        </ScrollView>
+    );
+
     const renderTabContent = () => {
         switch (activeTab) {
             case RULES_TAB.GENERAL:
@@ -514,6 +612,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         }
                                         setSelectedSpendRuleKeys([]);
                                         setSelectedExpenseDefaultKeys([]);
+                                        setSelectedRequireFieldsRuleKeys([]);
                                         turnOffMobileSelectionMode();
                                         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
                                     }}
@@ -541,6 +640,15 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={selectedExpenseDefaultKeys}
                                         onRowSelectionChange={handleExpenseDefaultSelectionChange}
+                                    />
+                                )}
+                                {activeTab === RULES_TAB.REQUIRE_FIELDS && (
+                                    <WorkspaceRequireFieldsTable
+                                        rulesData={requireFieldsTableData}
+                                        selectionEnabled={canWriteRules}
+                                        selectedKeys={selectedRequireFieldsRuleKeys}
+                                        onRowSelectionChange={handleRequireFieldsSelectionChange}
+                                        emptyStateContent={requireFieldsEmptyState}
                                     />
                                 )}
                             </View>

@@ -7346,6 +7346,7 @@ const translations = {
                 general: 'General',
                 cardRestrictions: 'Card restrictions',
                 expenseDefaults: 'Expense defaults',
+                requireFields: 'Require fields',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7532,6 +7533,25 @@ const translations = {
                 rename: 'Rename',
                 update: 'Update',
                 merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
+            },
+            requireFieldsTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Rule',
+                findRule: 'Find rule',
+                typeLabel: 'Require fields',
+                conditionCategoryIs: (category: string) => `Category is "${category}"`,
+                requireDescription: 'Require description',
+                requireAttendees: 'Require attendees',
+                requireItemizedReceipt: 'Require itemized receipt',
+                requireItemizedReceiptOver: (amount: string) => `Require itemized receipt over ${amount}`,
+                alwaysRequireReceipt: 'Always require receipt',
+                requireReceiptOver: (amount: string) => `Require receipt over ${amount}`,
+            },
+            requireFieldsEmptyState: {
+                title: 'Catch missing details upfront',
+                subtitle: 'Make sure key fields are filled in before expenses are submitted.',
+                cta: 'Add rule',
             },
             categoryRules: {
                 title: 'Category rules',

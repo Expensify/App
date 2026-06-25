@@ -4824,6 +4824,12 @@ const CONST = {
             TAX: 'tax',
         },
     },
+    REQUIRE_FIELDS_RULE_TYPES: {
+        REQUIRE_DESCRIPTION: 'requireDescription',
+        REQUIRE_ATTENDEES: 'requireAttendees',
+        REQUIRE_RECEIPTS_OVER: 'requireReceiptsOver',
+        REQUIRE_ITEMIZED_RECEIPTS_OVER: 'requireItemizedReceiptsOver',
+    },
     SPEND_RULES: {
         BADGE_VARIANTS: {
             SUCCESS: 'success',
@@ -5993,6 +5999,7 @@ const CONST = {
             GENERAL: 'general',
             CARD_RESTRICTIONS: 'cardRestrictions',
             EXPENSE_DEFAULTS: 'expenseDefaults',
+            REQUIRE_FIELDS: 'requireFields',
         },
         SPLIT: {
             AMOUNT: 'amount',
@@ -8591,6 +8598,7 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
