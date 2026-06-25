@@ -1,5 +1,5 @@
-import type {OdometerResyncState} from '@pages/iou/request/step/IOURequestStepDistance/odometerResync';
-import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@pages/iou/request/step/IOURequestStepDistance/odometerResync';
+import type {OdometerResyncState} from '@libs/OdometerUtils';
+import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@libs/OdometerUtils';
 
 // A steady state: initialized, transaction and local readings match, nothing being typed.
 const STEADY_STATE: OdometerResyncState = {

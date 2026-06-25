@@ -12,7 +12,7 @@ import {
 import type {OdometerUnsavedChangesState} from '@libs/actions/OdometerTransactionUtils';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import getPlatform from '@libs/getPlatform';
-import {getOdometerImageIdentity} from '@libs/OdometerImageUtils';
+import {getOdometerImageIdentity} from '@libs/OdometerUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -142,14 +142,14 @@ describe('actions/OdometerTransactionUtils', () => {
 
     describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
         beforeEach(() => {
-            jest.mock('@libs/OdometerImageUtils', () => ({
+            jest.mock('@libs/OdometerUtils', () => ({
                 __esModule: true,
                 default: jest.fn(),
             }));
         });
 
         afterEach(() => {
-            jest.unmock('@libs/OdometerImageUtils');
+            jest.unmock('@libs/OdometerUtils');
         });
         it('should set odometer start image on a draft transaction', () => {
             const transaction = createRandomTransaction(1);

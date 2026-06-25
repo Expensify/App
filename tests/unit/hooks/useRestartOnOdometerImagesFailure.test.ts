@@ -33,7 +33,7 @@ jest.mock('@libs/IOUUtils', () => ({
 }));
 
 // Keep getOdometerImageUri real (mirrors the real impl) but break the FileUtils -> API transitive chain.
-jest.mock('@libs/OdometerImageUtils', () => ({
+jest.mock('@libs/OdometerUtils', () => ({
     __esModule: true,
     default: jest.fn(),
     getOdometerImageUri: (image: {uri?: string} | string | null | undefined) => (typeof image === 'string' ? image : (image?.uri ?? '')),

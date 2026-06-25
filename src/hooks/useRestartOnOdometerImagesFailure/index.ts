@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
 import clearOdometerDraftTransactionState, {hydrateOdometerDraftIntoTransaction} from '@libs/actions/OdometerTransactionUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {getOdometerImageUri} from '@libs/OdometerUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {base64ToFile, convertFileObjectOrUriToBase64DataURL} from '@libs/fileDownload/FileUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import revokeOdometerImageUri, {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import revokeOdometerImageUri, {getOdometerImageUri} from '@libs/OdometerUtils';
 import CONST from '@src/CONST';
 import type {OdometerImageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

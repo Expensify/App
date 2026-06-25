@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransactionUtils';
-import type {OdometerResyncState} from '@pages/iou/request/step/IOURequestStepDistance/odometerResync';
-import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@pages/iou/request/step/IOURequestStepDistance/odometerResync';
+import type {OdometerResyncState} from '@libs/OdometerUtils';
+import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@libs/OdometerUtils';
 import CONST from '@src/CONST';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
