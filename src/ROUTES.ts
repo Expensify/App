@@ -3437,7 +3437,7 @@ const ROUTES = {
     TRAVEL_LEGAL_ENTITY_TAX_ID: {
         route: 'travel/:domain/legal-entity-tax-id',
 
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/legal-entity-tax-id?${policyID ? `policyID=${policyID}` : ''}`, backTo),
+        getRoute: (domain: string, policyID?: string) => `travel/${domain}/legal-entity-tax-id${policyID ? `?policyID=${policyID}` : ''}` as const,
     },
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/${VERIFY_ACCOUNT}`,
