@@ -1,5 +1,5 @@
 ---
-title: Understand your Expensify billing receipt
+title: Review your Expensify billing receipt
 description: Learn how to read your Expensify billing receipt, including the summary, billing breakdown, discounts, and workspace activity.
 keywords: [billing receipt, receipt breakdown, billing history, billing summary, discounts, workspace activity, billing owner]
 internalScope: Audience is billing owners. Explains the purpose and sections of the monthly Expensify billing receipt. Does not explain billing calculations, pricing rules, or how to resolve billing issues.
