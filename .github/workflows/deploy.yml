@@ -917,7 +917,7 @@ jobs:
                 break
               fi
 
-              # A transient 502 can create the release server-side, so a later "already exists" error means the release we wanted is present.
+              # A transient GitHub error during create doesn't necessarily mean the release failed; it may have been created anyway, so a later "already exists" error means it's present.
               if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
                 echo "Release ${{ needs.prep.outputs.TAG }} exists despite a create error (likely a transient 502), treating as success."
                 break
