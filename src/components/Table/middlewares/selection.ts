@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {Dispatch, SetStateAction} from 'react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {TableData, TableRow} from '@components/Table/types';
@@ -54,6 +55,7 @@ export default function useSelection<DataType extends TableData>({
     onRowSelectionChange,
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isFocused = useIsFocused();
     const isSelectionModeEnabled = useMobileSelectionMode();
     const lastSelectedRowKeyRef = useRef<string | null>(null);
     const lastSelectedRowIsSelectedRef = useRef<boolean>(false);
@@ -71,6 +73,10 @@ export default function useSelection<DataType extends TableData>({
 
     // Sync the selection mode with the screen size & selection state
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const isMobileMissingSelectionMode = shouldUseNarrowLayout && !isSelectionModeEnabled && selectedKeys.length;
         const isDesktopWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && !shouldUseNarrowLayout;
         const isSelectionModeEnabledWithoutSelectableKeys = isSelectionModeEnabled && !selectableKeys.length && originalSelectableCount > 0;
@@ -80,7 +86,7 @@ export default function useSelection<DataType extends TableData>({
         } else if (isDesktopWithoutSelectableKeys || isSelectionModeEnabledWithoutSelectableKeys) {
             turnOffMobileSelectionMode();
         }
-    }, [shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
+    }, [isFocused, shouldUseNarrowLayout, isSelectionModeEnabled, selectedKeys.length, originalSelectableCount, selectableKeys.length]);
 
     // When selection mode is turned off, clear the list of selected keys, so that re-enabling selection mode doesn't retain rows
     const wasSelectionModeEnabled = usePrevious(isSelectionModeEnabled);
