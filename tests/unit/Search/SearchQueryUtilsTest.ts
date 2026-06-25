@@ -3287,7 +3287,7 @@ describe('SearchQueryUtils', () => {
 
             const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('amount>100 amount=100 amount<100 amount<=100 amount>=100', currentQueryJSON) : '';
             // "amount>100" matches real filter syntax, so it must be quoted to be treated as a keyword
-            expect(result).toContain('"amount>100"');
+            expect(result).toContain('"amount>100" "amount=100" "amount<100" "amount<=100" "amount>=100"');
         });
 
         it('should escape input that looks like filter syntax regardless of case', () => {
