@@ -60,6 +60,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`);
     const [targetTransactionThreadParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
     const [targetTransactionThreadParentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(targetTransactionThreadReport?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionThreadParentReport?.policyID)}`);
 
     const selfDMReport = useSelfDMReport();
 
@@ -73,6 +74,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         const reportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (findSelfDMReportID() ?? CONST.REPORT.UNREPORTED_REPORT_ID) : mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
+
         mergeTransactionRequest({
             mergeTransactionID: transactionID,
             mergeTransaction,
@@ -90,6 +92,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             isASAPSubmitBetaEnabled,
             delegateAccountID,
             selfDMReport,
+            reportPolicyTags,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
