@@ -3175,9 +3175,9 @@ ${amount} dla ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Wyślij wydatek',
+                title: 'Utwórz wydatek',
                 description: dedent(`
-                    *Zgłoś wydatek*, wprowadzając kwotę lub skanując paragon.
+                    *Utwórz wydatek*, wprowadzając kwotę lub skanując paragon.
 
                     1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
@@ -3189,9 +3189,9 @@ ${amount} dla ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Wyślij wydatek',
+                title: 'Utwórz wydatek',
                 description: dedent(`
-                    *Zgłoś wydatek*, wpisując kwotę lub skanując paragon.
+                    *Utwórz wydatek*, wpisując kwotę lub skanując paragon.
 
                     1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
@@ -4450,6 +4450,8 @@ ${amount} dla ${merchant} - ${date}`,
             auditorAlternateText: 'Przeglądaj i komentuj raporty.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Właściciel';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrator przestrzeni roboczej';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5006,9 +5008,13 @@ ${amount} dla ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Po dodaniu firm w Certinia zsynchronizuj ponownie to połączenie.',
             prerequisites: {
                 title: 'Zanim się połączysz',
-                installBundle: 'Dla połączeń FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet FFA Expensify (wersja ${version})</a>`,
+                installBundle: 'Zainstaluj pakiet Expensify',
+                installBundlePSAHeader: 'Dla połączeń PSA/SRP:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet PSA/SRP Expensify (wersja ${version})</a>`,
+                installBundleFFAHeader: 'Dla połączeń FFA:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet Expensify dla FFA (wersja ${version})</a>`,
                 installBundleConfirm: 'Zainstalowałem pakiet',
                 setupContacts: 'Skonfiguruj użytkownika i kontakty',
                 setupContactsBullet1:
@@ -6343,6 +6349,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             syncWithHR: (providerName: string) => `Synchronizuj z ${providerName}`,
             makeCardAdmin: () => ({one: 'Ustaw jako administratora karty', other: 'Ustaw administratorów kart'}),
             cardAdmins: 'Administratorzy kart',
+            members: 'Członkowie',
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',

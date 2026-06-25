@@ -3088,9 +3088,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: '提交报销',
+                title: '创建报销',
                 description: dedent(`
-                    通过输入金额或扫描收据来*提交一笔报销*。
+                    通过输入金额或扫描收据来*创建一笔报销*。
 
                     1. 点击 *+* 按钮。
                     2. 选择 *创建报销*。
@@ -3102,9 +3102,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: '提交报销',
+                title: '创建报销',
                 description: dedent(`
-                    通过输入金额或扫描收据来*提交报销*。
+                    通过输入金额或扫描收据来*创建报销*。
 
                     1. 点击 *+* 按钮。
                     2. 选择*创建报销*。
@@ -4345,16 +4345,18 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             auditorAlternateText: '查看并评论报表。',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return '所有者';
                     case CONST.POLICY.ROLE.ADMIN:
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑器';
+                        return '编辑';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
                         return '卡片管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理员';
+                        return '人员管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
@@ -4877,8 +4879,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noCompaniesFoundDescription: '在 Certinia 中添加公司后，请再次同步连接。',
             prerequisites: {
                 title: '在你连接之前',
-                installBundle: '用于 FFA 连接',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                installBundle: '安装 Expensify 捆绑包',
+                installBundlePSAHeader: '用于 PSA/SRP 连接：',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `通过点击此链接在 Salesforce 中安装 Expensify 包：<a href="${href}">安装 PSA/SRP Expensify 包（版本 ${version}）</a>`,
+                installBundleFFAHeader: '对于 FFA 连接：',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `通过点击此链接在 Salesforce 中安装 Expensify 组件包：<a href="${href}">安装 FFA Expensify 组件包（版本 ${version}）</a>`,
                 installBundleConfirm: '我已安装此捆绑包',
                 setupContacts: '设置用户和联系人',
@@ -6170,6 +6176,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncWithHR: (providerName: string) => `与 ${providerName} 同步`,
             makeCardAdmin: () => ({one: '设为卡片管理员', other: '设为卡管理员'}),
             cardAdmins: '卡片管理员',
+            members: '成员',
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',

@@ -353,7 +353,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     required: isSwitchEnabled,
                     tagCount,
                     disabled: isDisabled,
-                    isDisabledCheckbox: isSwitchDisabled,
+                    isSelectionDisabled: isSwitchDisabled,
                     isSwitchDisabled,
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
@@ -880,7 +880,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 hasDependentTags={hasDependentTags}
                                 shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                                 shouldShowApproverColumn={shouldShowApproverColumn}
-                                onRowSelectionChange={(selectedRowKeys) => setSelectedTagKeys(selectedRowKeys)}
+                                onRowSelectionChange={setSelectedTagKeys}
                                 EmptyStateComponent={emptyStateContent}
                             />
                         </>

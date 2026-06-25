@@ -3172,9 +3172,9 @@ ${amount} para ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Enviar uma despesa',
+                title: 'Criar uma despesa',
                 description: dedent(`
-                    *Envie uma despesa* inserindo um valor ou digitalizando um recibo.
+                    *Crie uma despesa* inserindo um valor ou digitalizando um recibo.
 
                     1. Clique no botão *+*.
                     2. Escolha *Criar despesa*.
@@ -3186,9 +3186,9 @@ ${amount} para ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Enviar uma despesa',
+                title: 'Criar uma despesa',
                 description: dedent(`
-                    *Envie uma despesa* inserindo um valor ou escaneando um recibo.
+                    *Crie uma despesa* inserindo um valor ou escaneando um recibo.
 
                     1. Clique no botão *+*.
                     2. Escolha *Criar despesa*.
@@ -4447,18 +4447,20 @@ ${amount} para ${merchant} - ${date}`,
             auditorAlternateText: 'Visualize e comente relatórios.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Proprietário';
                     case CONST.POLICY.ROLE.ADMIN:
-                        return 'Admin. do workspace';
+                        return 'Administrador da área de trabalho';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
                     case CONST.POLICY.ROLE.EDITOR:
                         return 'Editor';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return 'Admin. de Cartão';
+                        return 'Administrador do cartão';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return 'Administração de Pessoas';
+                        return 'Admin de pessoas';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Admin de Pagamentos';
+                        return 'Admin de pagamentos';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -5004,9 +5006,13 @@ ${amount} para ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Sincronize a conexão novamente depois que as empresas forem adicionadas no Certinia.',
             prerequisites: {
                 title: 'Antes de conectar',
-                installBundle: 'Para conexões FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar FFA Expensify Bundle (Versão ${version})</a>`,
+                installBundle: 'Instalar o pacote do Expensify',
+                installBundlePSAHeader: 'Para conexões PSA/SRP:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Instale o pacote Expensify no Salesforce clicando neste link: <a href="${href}">Instalar pacote PSA/SRP Expensify (versão ${version})</a>`,
+                installBundleFFAHeader: 'Para conexões FFA:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Instale o pacote do Expensify no Salesforce clicando neste link: <a href="${href}">Instalar o pacote do Expensify para FFA (versão ${version})</a>`,
                 installBundleConfirm: 'Eu instalei o pacote',
                 setupContacts: 'Configurar usuário e contatos',
                 setupContactsBullet1:
@@ -6343,6 +6349,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncWithHR: (providerName: string) => `Sincronizar com ${providerName}`,
             makeCardAdmin: () => ({one: 'Tornar admin do cartão', other: 'Tornar administradores do cartão'}),
             cardAdmins: 'Administradores de cartões',
+            members: 'Membros',
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',

@@ -3275,9 +3275,9 @@ const translations = {
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Submit an expense',
+                title: 'Create an expense',
                 description: dedent(`
-                    *Submit an expense* by entering an amount or scanning a receipt.
+                    *Create an expense* by entering an amount or scanning a receipt.
 
                     1. Click the *+* button.
                     2. Choose *Create expense*.
@@ -3289,9 +3289,9 @@ const translations = {
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Submit an expense',
+                title: 'Create an expense',
                 description: dedent(`
-                    *Submit an expense* by entering an amount or scanning a receipt.
+                    *Create an expense* by entering an amount or scanning a receipt.
 
                     1. Click the *+* button.
                     2. Choose *Create expense*.
@@ -4578,6 +4578,8 @@ const translations = {
             },
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Owner';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Workspace Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5134,8 +5136,12 @@ const translations = {
             noCompaniesFoundDescription: 'Please sync the connection again after companies are added in Certinia.',
             prerequisites: {
                 title: 'Before you connect',
-                installBundle: 'For FFA Connections',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                installBundle: 'Install the Expensify bundle',
+                installBundlePSAHeader: 'For PSA/SRP Connections:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install PSA/SRP Expensify Bundle (Version ${version})</a>`,
+                installBundleFFAHeader: 'For FFA Connections:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version ${version})</a>`,
                 installBundleConfirm: "I've installed the bundle",
                 setupContacts: 'Set up user and contacts',
@@ -6421,6 +6427,7 @@ const translations = {
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',
+            members: 'Members',
             emptyRoleFilter: {
                 title: 'No members match this filter',
                 subtitle: 'Invite a member or change the filter above.',
