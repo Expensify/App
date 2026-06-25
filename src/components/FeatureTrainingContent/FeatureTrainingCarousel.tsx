@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, Platform, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
 import type {LayoutChangeEvent, FlatList as RNFlatList, ScrollView as RNScrollView, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -11,6 +10,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,12 +32,7 @@ const CAROUSEL_VIEWABILITY_CONFIG: ViewabilityConfig = {itemVisiblePercentThresh
 const CAROUSEL_DOT_SIZE = 6;
 const PAGINATION_DOTS_BOTTOM_OFFSET = 5;
 
-// react-native-web translates `pagingEnabled` to CSS scroll-snap, but `scroll-snap-align` only
-// lands on the ScrollView's direct children — our per-page View (inside `renderItem`) isn't a
-// direct child, so the FlatList ends up with a single snap point and fast flings skip pages.
-// Applying `scrollSnapAlign: 'start'` on each page wrapper turns every page into a snap point.
-// Native ignores this CSS-only key, so we still gate it on Platform.OS === 'web' for clarity.
-const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? ({scrollSnapAlign: 'start'} as ViewStyle) : {};
+const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? ({scrollSnapAlign: 'start', scrollSnapStop: 'always'} as ViewStyle) : {};
 
 function FeatureTrainingCarousel({
     pages,
@@ -159,6 +154,7 @@ function FeatureTrainingCarousel({
             scrollsToTop={false}
             style={[
                 onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                wrapperStyles.style,
                 isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
             ]}
             contentContainerStyle={isInLandscapeMode ? wrapperStyles.containerStyle : undefined}
@@ -169,7 +165,6 @@ function FeatureTrainingCarousel({
                 if (newWidth === carouselViewportWidth || newWidth <= 0) {
                     return;
                 }
-                console.log(newWidth, e.nativeEvent.layout.height);
                 setCarouselViewportWidth(newWidth);
                 if (!shouldUseScrollView) {
                     return;
@@ -219,11 +214,6 @@ function FeatureTrainingCarousel({
                             keyExtractor={(_page, index) => `FeatureTrainingContentIllustration-${index}`}
                             horizontal
                             pagingEnabled
-                            // Defense-in-depth on native: `pagingEnabled` is honored by the
-                            // platform, but these props arrest momentum precisely at each page
-                            // so fast flings never coast over a middle page. On web they're
-                            // no-ops; `WEB_CAROUSEL_PAGE_SNAP_STYLE` below does the equivalent
-                            // work via CSS scroll-snap.
                             disableIntervalMomentum
                             snapToInterval={carouselViewportWidth}
                             decelerationRate="fast"
