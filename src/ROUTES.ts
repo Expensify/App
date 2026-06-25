@@ -704,7 +704,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_PAY_AND_DOWNGRADE: {
         path: 'pay-and-downgrade',
-        entryScreens: ['*'],
+        entryScreens: [SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE],
     },
     WORKSPACE_CATEGORIES_IMPORT: {
         path: 'import',
