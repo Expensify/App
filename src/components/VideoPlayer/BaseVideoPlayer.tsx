@@ -340,9 +340,10 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             return true;
         }
 
-        // nativeRef.current is typed as `any` — access webkit property directly without assertion
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        return !!videoViewRef.current?.nativeRef?.current?.webkitDisplayingFullscreen;
+        if (videoViewRef.current?.nativeRef?.current instanceof HTMLVideoElement) {
+            return Reflect.get(videoViewRef.current.nativeRef.current, 'webkitDisplayingFullscreen') === true;
+        }
+        return false;
     }, [isFullScreen, videoViewRef]);
 
     useEffect(() => {
