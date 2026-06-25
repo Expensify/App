@@ -28,6 +28,33 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
+// Deep-walks an onyx value object and replaces all microsecond-keyed errors
+// fields (shape: Record<string, string>) with the provided backend message.
+// Used to surface the backend's specific EXP_ERROR (jsonCode 666) message
+// instead of the generic hardcoded translation fallback in failureData.
+function substituteExpErrorMessage(obj: Record<string, unknown>, message: string): Record<string, unknown> {
+    if ('errors' in obj && obj.errors !== null && typeof obj.errors === 'object' && !Array.isArray(obj.errors)) {
+        const errors = obj.errors as Record<string, unknown>;
+        if (Object.values(errors).every((v) => typeof v === 'string')) {
+            return {...obj, errors: Object.fromEntries(Object.keys(errors).map((k) => [k, message]))};
+        }
+    }
+    let changed = false;
+    const patched: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) {
+        if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+            const patchedV = substituteExpErrorMessage(v as Record<string, unknown>, message);
+            patched[k] = patchedV;
+            if (patchedV !== v) {
+                changed = true;
+            }
+        } else {
+            patched[k] = v;
+        }
+    }
+    return changed ? patched : obj;
+}
+
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
@@ -62,7 +89,21 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                     requestData: request.data,
                 });
 
-                return updateHandler(request.failureData);
+                // jsonCode 666 (EXP_ERROR) signals that the backend has a user-facing message.
+                // Substitute it into the failureData errors so the user sees the actionable
+                // backend message instead of the generic hardcoded translation fallback.
+                const failureData =
+                    response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.message
+                        ? (request.failureData.map((update) => {
+                              if (!update.value || typeof update.value !== 'object') {
+                                  return update;
+                              }
+                              const patched = substituteExpErrorMessage(update.value as Record<string, unknown>, response.message as string);
+                              return patched === update.value ? update : {...update, value: patched as typeof update.value};
+                          }) as Array<OnyxUpdate<TKey>>)
+                        : request.failureData;
+
+                return updateHandler(failureData);
             }
             return Promise.resolve();
         })
