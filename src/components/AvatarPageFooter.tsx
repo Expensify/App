@@ -29,6 +29,8 @@ function AvatarPageFooter({validationError, phraseParam = {}, isDirty, onSave}: 
             {!!validationError && (
                 <DotIndicatorMessage
                     style={styles.mv5}
+                    // `phraseParam` is an open record but `translate` accepts only the params shape for the
+                    // given key; the cast is safe because callers always pass params matching `validationError`.
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                     messages={{validationError: translate(validationError, phraseParam as never)}}
                     type="error"
