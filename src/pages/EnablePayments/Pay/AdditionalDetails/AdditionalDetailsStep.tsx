@@ -19,7 +19,7 @@ import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetails
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     getFieldRequiredErrors,
-    isValidAddress,
+    getInvalidAddressErrorTranslationPath,
     isValidPastDate,
     isValidSSNFullNine,
     isValidSSNLastFour,
@@ -86,8 +86,9 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
             }
         }
 
-        if (values.addressStreet && !isValidAddress(values.addressStreet)) {
-            errors.addressStreet = translate('bankAccount.error.addressStreet');
+        const addressStreetError = getInvalidAddressErrorTranslationPath(values.addressStreet);
+        if (values.addressStreet && addressStreetError) {
+            errors.addressStreet = translate(addressStreetError);
         }
 
         if (values.addressZipCode && !isValidZipCode(values.addressZipCode)) {

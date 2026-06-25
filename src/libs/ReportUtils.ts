@@ -37,6 +37,7 @@ import type {
     BankAccountList,
     Beta,
     BillingGraceEndPeriod,
+    CurrencyList,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -960,6 +961,7 @@ type BuildOptimisticExpenseReportParams = {
     optimisticIOUReportID?: string;
     reportTransactions?: Record<string, Transaction>;
     createdTimestamp?: string;
+    currencyList?: CurrencyList;
 };
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
@@ -4347,6 +4349,7 @@ function getReasonAndReportActionThatRequiresAttention(
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
     allReportActionsParam?: OnyxCollection<ReportActions>,
+    reports?: OnyxCollection<Report>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -4406,6 +4409,7 @@ function getReasonAndReportActionThatRequiresAttention(
         currentUserLogin,
         currentUserAccountID,
         reportActions,
+        reports,
     );
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay);
     const transactions = getReportTransactions(iouReportID);
@@ -5319,7 +5323,7 @@ function canHoldUnholdReportAction(
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
-    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction);
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && !isReceiptBeingScanned(transaction);
 
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
@@ -6611,7 +6615,13 @@ function buildOptimisticInvoiceReport(
 /**
  * Computes the optimistic report name using the policy's title field formula, with a fallback to the default expense report name.
  */
-function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, policyID: string | undefined, reportTransactions: Record<string, Transaction>): string | null {
+function computeOptimisticReportName(
+    report: Report,
+    policy: OnyxEntry<Policy>,
+    policyID: string | undefined,
+    reportTransactions: Record<string, Transaction>,
+    currencyList?: CurrencyList,
+): string | null {
     if (!isGroupPolicyPolicyUtils(policy)) {
         return null;
     }
@@ -6620,6 +6630,7 @@ function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, 
     const formulaContext: FormulaContext = {
         report,
         policy,
+        currencyList,
         allTransactions: reportTransactions,
     };
 
@@ -6692,13 +6703,14 @@ function buildOptimisticExpenseReport({
     optimisticIOUReportID,
     reportTransactions,
     createdTimestamp,
+    currencyList,
 }: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const report = chatReportID ? getReportOrDraftReport(chatReportID) : undefined;
     const policyName = getPolicyName({report});
-    const formattedTotal = convertToDisplayString(storedTotal, currency);
+    const formattedTotal = convertToDisplayString(storedTotal, currency, false, currencyList);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policyReal = getPolicy(policyID);
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
@@ -6741,7 +6753,7 @@ function buildOptimisticExpenseReport({
     }
 
     // Compute optimistic report name if applicable
-    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {});
+    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {}, currencyList);
     if (computedName !== null) {
         expenseReport.reportName = computedName;
     }
@@ -6760,6 +6772,7 @@ function buildOptimisticEmptyReport(
     policy: OnyxEntry<Policy>,
     timeOfCreation: string,
     betas: OnyxEntry<Beta[]>,
+    currencyList?: CurrencyList,
 ) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
     const optimisticEmptyReport: OptimisticNewReport = {
@@ -6784,7 +6797,7 @@ function buildOptimisticEmptyReport(
     };
 
     // Compute optimistic report name if applicable
-    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {});
+    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {}, currencyList);
     if (optimisticReportName !== null) {
         optimisticEmptyReport.reportName = optimisticReportName;
     }
@@ -11004,6 +11017,7 @@ function shouldCreateNewMoneyRequestReport(
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     return (
         !existingIOUReport ||
+        isReportPendingDelete(existingIOUReport) ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
         !canAddTransaction(existingIOUReport) ||
         (!isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
@@ -11168,11 +11182,6 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
     );
 }
 
-function navigateToCategoryWithConfirmation(actionName: IOUAction, transactionID: string, reportID: string) {
-    const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, true);
-    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), confirmationRoute));
-}
-
 function createDraftWorkspaceAndNavigateToConfirmationScreen(
     introSelected: OnyxEntry<IntroSelected>,
     transactionID: string,
@@ -11202,7 +11211,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
-        navigateToCategoryWithConfirmation(actionName, transactionID, expenseChatReportID);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
     }
@@ -11327,7 +11336,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 },
             ]);
             if (policyExpenseReportID) {
-                navigateToCategoryWithConfirmation(actionName, transactionID, policyExpenseReportID);
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
             } else {
                 Log.warn('policyExpenseReportID is not valid during expense categorizing');
             }
@@ -11335,16 +11344,15 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                createDynamicRoute(
-                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: actionName,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID,
-                        reportID,
-                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                        shouldSubmitExpense: true,
-                    }),
-                ),
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    backTo: '',
+                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                    shouldSubmitExpense: true,
+                }),
             );
             return;
         }
@@ -11362,7 +11370,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             },
         ]);
         if (policyExpenseReportID) {
-            navigateToCategoryWithConfirmation(actionName, transactionID, policyExpenseReportID);
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
         } else {
             Log.warn('policyExpenseReportID is not valid during expense categorizing');
         }
@@ -11370,7 +11378,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
         return;
     }
 
@@ -11553,12 +11561,9 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Every MANAGE_TEAM signup uses the bespoke direct-post path. The server generates the
-    // per-tier welcome body in `UserAPI::buildBespokeWelcomeMessage`, so the App no longer
-    // needs a cohort gate or the suggestedFollowups beta to opt in.
-    const shouldUseFollowupsInsteadOfTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
-    // Post to #admins room when followups fire OR the existing tasks-in-admins predicate approves.
-    const shouldPostTasksInAdminsRoom = shouldUseFollowupsInsteadOfTasks || isPostingTasksInAdminsRoom(engagementChoice);
+    const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
+    // Server picks the inboxAdminsBespoke variant at response time, so optimistic writes here would be stale.
+    const shouldDeferOptimisticTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const conciergeChat =
         getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], deprecatedAllReports, false) ??
@@ -11628,10 +11633,8 @@ function prepareOnboardingOnyxData({
         reportComment: textComment.commentText,
     };
 
-    // Generate a deduplication ID for the server-side bespoke welcome. The server posts directly using
-    // this ID via addComment (idempotent on reportActionID), so we never add an optimistic action
-    // here — the real message arrives from the server without a flash.
-    const optimisticConciergeReportActionID: string | undefined = shouldUseFollowupsInsteadOfTasks ? rand64() : undefined;
+    // Auth needs this ID to post the inboxAdminsBespoke welcome idempotently; the real message comes from the server.
+    const optimisticConciergeReportActionID: string | undefined = shouldDeferOptimisticTasks ? rand64() : undefined;
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
@@ -11740,7 +11743,7 @@ function prepareOnboardingOnyxData({
         description: taskDescription ?? '',
     }));
 
-    const hasOutstandingChildTask = !shouldUseFollowupsInsteadOfTasks && tasksData.some((task) => !task.completedTaskReportAction);
+    const hasOutstandingChildTask = !shouldDeferOptimisticTasks && tasksData.some((task) => !task.completedTaskReportAction);
 
     const tasksForOptimisticData = tasksData.reduce<
         Array<
@@ -11893,10 +11896,8 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldUseFollowupsInsteadOfTasks
-        ? []
-        : [...tasksForOptimisticData];
-    const skipSignOff = shouldUseFollowupsInsteadOfTasks || engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldDeferOptimisticTasks ? [] : [...tasksForOptimisticData];
+    const skipSignOff = engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     const lastVisibleActionCreated = skipSignOff ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
         {
@@ -11904,7 +11905,7 @@ function prepareOnboardingOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
                 hasOutstandingChildTask,
-                ...(shouldUseFollowupsInsteadOfTasks || (skipSignOff && !message) ? {} : {lastVisibleActionCreated}),
+                ...((skipSignOff && !message) || shouldDeferOptimisticTasks ? {} : {lastVisibleActionCreated}),
                 lastActorAccountID: actorAccountID,
             },
         },
@@ -11920,7 +11921,8 @@ function prepareOnboardingOnyxData({
             },
         },
     );
-    if (!shouldUseFollowupsInsteadOfTasks && message) {
+    if (message && !shouldDeferOptimisticTasks) {
+        // Server may return empty guidedSetupData for inboxAdminsBespoke; without a real reportAction, the optimistic entry lingers.
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -11940,9 +11942,9 @@ function prepareOnboardingOnyxData({
 
     const successData: Array<
         TupleToUnion<typeof tasksForSuccessData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_ONBOARDING>
-    > = shouldUseFollowupsInsteadOfTasks ? [] : [...tasksForSuccessData];
+    > = shouldDeferOptimisticTasks ? [] : [...tasksForSuccessData];
 
-    if (message) {
+    if (message && !shouldDeferOptimisticTasks) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -11974,7 +11976,7 @@ function prepareOnboardingOnyxData({
     const failureData: Array<
         | TupleToUnion<typeof tasksForFailureData>
         | OnyxUpdate<typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
-    > = shouldUseFollowupsInsteadOfTasks ? [] : [...tasksForFailureData];
+    > = shouldDeferOptimisticTasks ? [] : [...tasksForFailureData];
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12056,7 +12058,7 @@ function prepareOnboardingOnyxData({
 
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
-    if (!shouldUseFollowupsInsteadOfTasks && message) {
+    if (message) {
         guidedSetupData.push({type: 'message', ...textMessage});
     }
 
@@ -12134,31 +12136,34 @@ function prepareOnboardingOnyxData({
     guidedSetupData.push(...tasksForParameters);
 
     if (!skipSignOff && (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
-            },
-        });
+        // inboxAdminsBespoke may skip welcomeSignOff creation, so the optimistic push would linger as stale state.
+        if (!shouldDeferOptimisticTasks) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
+                },
+            });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
-            },
-        });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
+                },
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [welcomeSignOffCommentAction.reportActionID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                    } as ReportAction,
+                },
+            });
+        }
         guidedSetupData.push({type: 'message', ...welcomeSignOffMessage});
     }
 
@@ -12619,7 +12624,7 @@ function generateReportAttributes({
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const {reason, actionBadge, reportAction} =
-        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions) ?? {};
+        getReasonAndReportActionThatRequiresAttention(report, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, reportActions, reports) ?? {};
 
     return {
         hasViolationsToDisplayInLHN,
