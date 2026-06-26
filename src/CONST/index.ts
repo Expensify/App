@@ -8586,6 +8586,9 @@ const CONST = {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
                 ROW: 'DomainGroups-Row',
             },
+            MEMBERS: {
+                ROW: 'DomainMembers-Row',
+            },
         },
     },
 
