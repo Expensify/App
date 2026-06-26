@@ -1,5 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
+import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import ConfirmationFieldsContext from './context';
@@ -32,6 +33,9 @@ type ProviderProps = {
     /** Whether we're editing an existing split expense */
     isEditingSplitBill?: boolean;
 
+    /** Whether the new manual expense flow beta is enabled */
+    isNewManualExpenseFlowEnabled?: boolean;
+
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
@@ -56,6 +60,9 @@ type ProviderProps = {
     /** Whether the active transaction is a GPS distance request */
     isGPSDistanceRequest?: boolean;
 
+    /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
+    scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -70,6 +77,7 @@ function Provider({
     isReadOnly = false,
     didConfirm = false,
     isEditingSplitBill = false,
+    isNewManualExpenseFlowEnabled = false,
     isPolicyExpenseChat = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
@@ -78,6 +86,7 @@ function Provider({
     isManualDistanceRequest = false,
     isOdometerDistanceRequest = false,
     isGPSDistanceRequest = false,
+    scrollFocusedInputIntoView,
     children,
 }: ProviderProps) {
     const value = {
@@ -90,6 +99,7 @@ function Provider({
         isReadOnly,
         didConfirm,
         isEditingSplitBill,
+        isNewManualExpenseFlowEnabled,
         isPolicyExpenseChat,
         isDistanceRequest,
         isPerDiemRequest,
@@ -98,6 +108,7 @@ function Provider({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
         isGPSDistanceRequest,
+        scrollFocusedInputIntoView,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

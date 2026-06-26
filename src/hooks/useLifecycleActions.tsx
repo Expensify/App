@@ -5,8 +5,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {ActionHandledType} from '@components/Modal/Global/HoldMenuModalWrapper';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
-import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -28,6 +27,7 @@ import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapprov
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
@@ -64,11 +64,11 @@ type UseLifecycleActionsResult = {
  * and their associated guards (delegate access, hold, pending RTER, strict policy rules).
  */
 function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
-    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -101,7 +101,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
@@ -121,11 +120,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         transactions,
     );
 
-    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
-
-    const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 1;
-
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
@@ -164,7 +159,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         approveMoneyRequest({
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,
-            policy,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email ?? '',
             hasViolations,
@@ -199,18 +193,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
 
         const doSubmit = () => {
-            if (isSubmitPolicy(policy)) {
-                openReportSubmitToPopover({
-                    onSubmitSuccess: () => {
-                        if (skipAnimation) {
-                            clearSelectedTransactions(true);
-                            return;
-                        }
-                        startSubmittingAnimation();
-                    },
-                });
-                return;
-            }
             submitReport({
                 expenseReport: moneyRequestReport,
                 policy,
@@ -229,6 +211,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 },
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                submitterLogin,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -265,10 +248,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 confirmPendingRTERAndProceed(() => {
-                    if (isSubmitPolicy(policy)) {
-                        openReportSubmitToPopover();
-                        return;
-                    }
                     submitReport({
                         expenseReport: moneyRequestReport,
                         policy,
@@ -281,6 +260,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         amountOwed,
                         ownerBillingGracePeriodEnd,
                         delegateEmail,
+                        submitterLogin,
                     });
                 });
             },

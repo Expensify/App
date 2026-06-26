@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -23,6 +23,7 @@ import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
+    isNewManualExpenseFlowEnabled: boolean;
     isReadOnly: boolean;
     didConfirm: boolean;
     isDescriptionRequired: boolean;
@@ -35,10 +36,25 @@ type DescriptionFieldProps = {
     onSubmitForm?: () => void;
 };
 
-function DescriptionField({isReadOnly, didConfirm, isDescriptionRequired, transactionID, action, iouType, reportID, reportActionID, policy, onSubmitForm}: DescriptionFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+function DescriptionField({
+    isNewManualExpenseFlowEnabled,
+    isReadOnly,
+    didConfirm,
+    isDescriptionRequired,
+    transactionID,
+    action,
+    iouType,
+    reportID,
+    reportActionID,
+    policy,
+    onSubmitForm,
+}: DescriptionFieldProps) {
+    const {isEditingSplitBill, scrollFocusedInputIntoView} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
+    // top border and label — into view rather than just the inner text area.
+    const fieldContainerRef = useRef<View>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -86,12 +102,16 @@ function DescriptionField({isReadOnly, didConfirm, isDescriptionRequired, transa
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
-                        {!isReadOnly ? (
-                            <View style={[styles.mh4, styles.mv2]}>
+                        {isNewManualExpenseFlowEnabled && !isReadOnly ? (
+                            <View
+                                ref={fieldContainerRef}
+                                style={[styles.mh4, styles.mv2]}
+                            >
                                 <TextInput
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
+                                    onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
                                     submitBehavior="blurAndSubmit"
                                     onSubmitEditing={onSubmitForm}
                                     label={translate('common.description')}
