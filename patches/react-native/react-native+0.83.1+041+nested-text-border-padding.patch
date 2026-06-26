@@ -71,21 +71,20 @@ index 48f6592b82d..94ac1642908 100644
        drawBorder(canvas, rectF, isFirstLine, isLastLine)
      }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index ed7ee76ce6a..3e4098c29ce 100644
+index ed7ee76ce6a..d1cd9aa38c4 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -473,6 +473,62 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
+@@ -473,6 +473,48 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
  
      [nsAttributedString appendAttributedString:nsAttributedStringFragment];
    }
 +
-+  // Reserve horizontal advance around bordered / inline-code spans so the per-side border
-+  // (drawn centered on the box edge in RCTTextLayoutManagerWithBorderRadius) has room at the
-+  // very start/end of a line instead of being clipped by the text container. The drawn box is
-+  // then extended by half the border width into this reserved space.
-+  //   - Leading at a paragraph start: firstLineHeadIndent (no preceding glyph to kern).
-+  //   - Trailing at a paragraph end: kern on the last glyph, which also grows the measured
-+  //     width so a content-sized label isn't clipped on the right.
++  // Reserve leading advance for a bordered / inline-code span that begins a paragraph via
++  // firstLineHeadIndent: it both shifts the glyphs right (so the left border isn't drawn over
++  // them) and grows the measured width (so the border isn't clipped). The trailing side is
++  // handled in the measure step (RCTTextLayoutManager) by widening the measured size, because no
++  // paragraph property grows the right edge of an intrinsic-width label — tailIndent only
++  // constrains, and trailing kern just overflows and clips.
 +  NSString *plainString = nsAttributedString.string;
 +  NSUInteger fullLength = nsAttributedString.length;
 +  [nsAttributedString enumerateAttribute:RCTTextBorderRadiusAttributeName
@@ -99,49 +98,146 @@ index ed7ee76ce6a..3e4098c29ce 100644
 +    if (attrs.count < 13) {
 +      return;
 +    }
-+    // attrs layout matches RCTNSTextAttributesFromTextAttributes: rightW=attrs[10], leftW=attrs[12].
-+    const CGFloat rightW = [attrs[10] floatValue];
++    // attrs layout matches RCTNSTextAttributesFromTextAttributes: leftW=attrs[12].
 +    const CGFloat leftW = [attrs[12] floatValue];
-+
-+    if (leftW > 0) {
-+      const BOOL atParagraphStart =
-+          range.location == 0 || [plainString characterAtIndex:range.location - 1] == '\n';
-+      if (atParagraphStart) {
-+        NSRange paragraphRange = [plainString paragraphRangeForRange:NSMakeRange(range.location, 0)];
-+        NSParagraphStyle *existing = [nsAttributedString attribute:NSParagraphStyleAttributeName
-+                                                          atIndex:range.location
-+                                                   effectiveRange:NULL];
-+        NSMutableParagraphStyle *paragraphStyle =
-+            existing ? [existing mutableCopy] : [NSMutableParagraphStyle new];
-+        paragraphStyle.firstLineHeadIndent = MAX(paragraphStyle.firstLineHeadIndent, leftW);
-+        [nsAttributedString addAttribute:NSParagraphStyleAttributeName
-+                                   value:paragraphStyle
-+                                   range:paragraphRange];
-+      }
++    if (leftW <= 0) {
++      return;
 +    }
-+
-+    if (rightW > 0) {
-+      const BOOL atParagraphEnd =
-+          NSMaxRange(range) >= fullLength || [plainString characterAtIndex:NSMaxRange(range)] == '\n';
-+      if (atParagraphEnd) {
-+        const NSUInteger lastIndex = NSMaxRange(range) - 1;
-+        NSNumber *existingKern = [nsAttributedString attribute:NSKernAttributeName
-+                                                       atIndex:lastIndex
-+                                                effectiveRange:NULL];
-+        const CGFloat kern = (existingKern ? [existingKern floatValue] : 0.0f) + rightW;
-+        [nsAttributedString addAttribute:NSKernAttributeName value:@(kern) range:NSMakeRange(lastIndex, 1)];
-+      }
++    const BOOL atParagraphStart =
++        range.location == 0 || [plainString characterAtIndex:range.location - 1] == '\n';
++    if (!atParagraphStart) {
++      return;
 +    }
++    NSRange paragraphRange = [plainString paragraphRangeForRange:NSMakeRange(range.location, 0)];
++    NSParagraphStyle *existing = [nsAttributedString attribute:NSParagraphStyleAttributeName
++                                                      atIndex:range.location
++                                               effectiveRange:NULL];
++    NSMutableParagraphStyle *paragraphStyle =
++        existing ? [existing mutableCopy] : [NSMutableParagraphStyle new];
++    paragraphStyle.firstLineHeadIndent = MAX(paragraphStyle.firstLineHeadIndent, leftW);
++    [nsAttributedString addAttribute:NSParagraphStyleAttributeName
++                               value:paragraphStyle
++                               range:paragraphRange];
 +  }];
 +
    [nsAttributedString endEditing];
  
    return nsAttributedString;
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+index d82b6a7062a..7fe7815b1c6 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+@@ -375,6 +375,37 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+ 
+   if (textDidWrap) {
+     size.width = textContainer.size.width;
++  } else {
++    // Grow the (intrinsic) width to fit the trailing border of a bordered / inline-code span that
++    // ends a paragraph. The border is drawn centered on the box edge (extended by half its width)
++    // in RCTTextLayoutManagerWithBorderRadius, so its outer edge reaches borderRightWidth past the
++    // last glyph; usedRect is tight to the glyphs, so without this the border would be clipped.
++    // (The leading side is reserved via firstLineHeadIndent in RCTAttributedTextUtils.)
++    NSString *string = textStorage.string;
++    NSUInteger length = string.length;
++    __block CGFloat trailingBorderPadding = 0;
++    [textStorage enumerateAttribute:RCTTextBorderRadiusAttributeName
++                            inRange:NSMakeRange(0, length)
++                            options:0
++                         usingBlock:^(id value, NSRange range, __unused BOOL *stop) {
++      if (![value isKindOfClass:[NSArray class]] || range.length == 0) {
++        return;
++      }
++      NSArray *attrs = (NSArray *)value;
++      if (attrs.count < 13) {
++        return;
++      }
++      const CGFloat rightW = [attrs[10] floatValue];
++      if (rightW <= 0) {
++        return;
++      }
++      const BOOL atParagraphEnd =
++          NSMaxRange(range) >= length || [string characterAtIndex:NSMaxRange(range)] == '\n';
++      if (atParagraphEnd) {
++        trailingBorderPadding = MAX(trailingBorderPadding, rightW);
++      }
++    }];
++    size.width += trailingBorderPadding;
+   }
+ 
+   if (paragraphAttributes.maximumNumberOfLines != 0) {
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-index c2320fe9792..873c85c15d8 100644
+index c2320fe9792..9688bbf8dc5 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-@@ -116,6 +116,16 @@
+@@ -9,8 +9,67 @@
+ 
+ #import "RCTAttributedTextUtils.h"
+ 
++@interface RCTTextLayoutManagerWithBorderRadius () <NSLayoutManagerDelegate>
++@end
++
+ @implementation RCTTextLayoutManagerWithBorderRadius
+ 
++- (instancetype)init
++{
++  if (self = [super init]) {
++    self.delegate = self;
++  }
++  return self;
++}
++
++// Indent a visual line that BEGINS with a bordered / inline-code span so its left border has room.
++// firstLineHeadIndent (RCTAttributedTextUtils) only covers a paragraph's first line; this covers the
++// remaining case the user hit: a span that soft-wraps to the start of a later line. We only act on
++// soft-wrapped line starts (index 0 and post-newline paragraph starts are left to firstLineHeadIndent
++// so the two mechanisms never double-indent the same line).
++- (BOOL)layoutManager:(NSLayoutManager *)layoutManager
++    shouldSetLineFragmentRect:(inout CGRect *)lineFragmentRect
++         lineFragmentUsedRect:(inout CGRect *)lineFragmentUsedRect
++               baselineOffset:(inout CGFloat *)baselineOffset
++              inTextContainer:(NSTextContainer *)textContainer
++                forGlyphRange:(NSRange)glyphRange
++{
++  NSTextStorage *textStorage = layoutManager.textStorage;
++  if (textStorage.length == 0) {
++    return NO;
++  }
++  NSUInteger charIndex = [layoutManager characterIndexForGlyphAtIndex:glyphRange.location];
++  // index 0 / post-newline = paragraph start → handled by firstLineHeadIndent.
++  if (charIndex == 0 || charIndex >= textStorage.length ||
++      [textStorage.string characterAtIndex:charIndex - 1] == '\n') {
++    return NO;
++  }
++  NSRange effectiveRange;
++  id value = [textStorage attribute:RCTTextBorderRadiusAttributeName
++                            atIndex:charIndex
++                     effectiveRange:&effectiveRange];
++  // Only when a bordered span starts exactly at this line's first character.
++  if (![value isKindOfClass:[NSArray class]] || effectiveRange.location != charIndex) {
++    return NO;
++  }
++  NSArray *attrs = (NSArray *)value;
++  if (attrs.count < 13) {
++    return NO;
++  }
++  const CGFloat leftW = [attrs[12] floatValue];
++  if (leftW <= 0) {
++    return NO;
++  }
++  CGRect frag = *lineFragmentRect;
++  CGRect used = *lineFragmentUsedRect;
++  frag.origin.x += leftW;
++  frag.size.width = MAX(0, frag.size.width - leftW);
++  used.origin.x += leftW;
++  *lineFragmentRect = frag;
++  *lineFragmentUsedRect = used;
++  return YES;
++}
++
+ - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin
+ {
+   // Let super handle all spans that use NSBackgroundColorAttributeName (no border radius).
+@@ -116,6 +175,16 @@
        CGFloat effectiveTR = isLast  ? tr : 0;
        CGFloat effectiveBR = isLast  ? br : 0;
  
