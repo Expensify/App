@@ -817,6 +817,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.buttonDefaultBG,
         },
 
+        minHeightComponentSizeSmall: {
+            minHeight: variables.componentSizeSmall,
+        },
+
         buttonExtraSmall: {
             borderRadius: variables.buttonBorderRadius,
             minHeight: variables.componentSizeXSmall,
@@ -5090,8 +5094,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
+            marginTop: 12,
             marginBottom: 16,
             paddingHorizontal: 20,
+            gap: 8,
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
@@ -5111,13 +5117,9 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
-        searchPageInputWideTouchableWrapper: {height: 32, width: 200},
-        searchPageInputWidePlaceholder: {
-            // Extra 2 to account for the borders
-            height: 34,
-            width: 202,
-        },
-        searchPageInputNarrowTouchableWrapper: {height: 44},
+        // Extra 2 to account for the borders
+        searchPageInputWideTouchableWrapper: {height: 34, width: 202},
+        searchPageInputNarrowTouchableWrapper: {height: 46},
 
         walletStaticIllustration: {
             width: 262,
@@ -5898,13 +5900,6 @@ const staticStyles = (theme: ThemeColors) =>
             border: 'none',
         },
 
-        featureTrainingModalImage: {
-            width: '100%',
-            height: '100%',
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
         twoColumnLayoutCol: {
             flexGrow: 1,
             flexShrink: 1,
@@ -6613,13 +6608,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
             return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
         },
-
-        testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
-            // On small/medium screens, we need to remove the top padding
-            paddingTop: 0,
-            // On larger screens, we need to prevent the modal from becoming too big
-            maxWidth: shouldUseNarrowLayout ? undefined : 500,
-        }),
 
         getMoneyRequestViewImage: (showBorderless: boolean) => ({
             ...spacing.mh5,
