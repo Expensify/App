@@ -31,7 +31,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
-import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     formatCardExpiration,
@@ -512,8 +511,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                     showLockedAccountModal();
                                                                     return;
                                                                 }
-
-                                                                resetValidateActionCodeSent();
 
                                                                 if (arePersonalDetailsMissing(privatePersonalDetails)) {
                                                                     Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(card.cardID)));

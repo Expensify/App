@@ -12,7 +12,7 @@ import {
     setPersonalDetailsAndRevealExpensifyCard,
     updatePersonalDetailsAndShipExpensifyCards,
 } from '@libs/actions/PersonalDetails';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -105,7 +105,6 @@ function MissingPersonalDetailsMagicCodePage({
             validateError={!isEmptyObject(revealCardError) ? revealCardError : validateLoginError}
             clearError={clearError}
             onClose={() => {
-                resetValidateActionCodeSent();
                 Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID));
             }}
             isLoading={privatePersonalDetails?.isLoading}
