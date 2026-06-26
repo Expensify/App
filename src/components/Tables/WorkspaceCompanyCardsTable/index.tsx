@@ -1,9 +1,13 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import {format, parseISO} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CardFeedIcon from '@components/CardFeedIcon';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
@@ -11,14 +15,17 @@ import TableSkeleton from '@components/Table/TableSkeleton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getDefaultCardName} from '@libs/CardUtils';
+import {resetFailedWorkspaceCompanyCardUnassignment, unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
+import navigateToCardTransactions from '@libs/CardNavigationUtils';
+import {getDefaultCardName, maskCardNumber} from '@libs/CardUtils';
+import localFileDownload from '@libs/localFileDownload';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
@@ -34,6 +41,14 @@ import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTab
 import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkeleton';
 
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
+type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
+
+function escapeCsvField(value: string): string {
+    if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
+        return `"${value.replaceAll('"', '""')}"`;
+    }
+    return value;
+}
 
 type WorkspaceCompanyCardsTableProps = {
     /** Policy ID */
@@ -77,8 +92,10 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, getLocalDateFromDatetime} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
 
     const {
         feedName,
@@ -99,6 +116,7 @@ function WorkspaceCompanyCardsTable({
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
@@ -181,10 +199,11 @@ function WorkspaceCompanyCardsTable({
 
               return {
                   cardName,
-                  keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
+                  keyForList: assignedCard?.cardID !== undefined ? String(assignedCard.cardID) : encryptedCardNumber,
                   encryptedCardNumber,
                   customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  disabled: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                   isAssigned,
                   assignedCard,
                   cardholder,
@@ -194,7 +213,120 @@ function WorkspaceCompanyCardsTable({
               };
           });
 
-    const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
+    const selectedCardKeySet = new Set(selectedCardKeys);
+    const selectedCards = cardsData.filter((card) => selectedCardKeySet.has(card.keyForList));
+    const validSelectedCardKeys = selectedCards.map((card) => card.keyForList);
+    const selectedAssignedCards = selectedCards.filter(
+        (card): card is WorkspaceCompanyCardTableItemData & {assignedCard: NonNullable<WorkspaceCompanyCardTableItemData['assignedCard']>} => card.isAssigned && !!card.assignedCard,
+    );
+    const isOnlyAssignedCardsSelected = selectedCards.length > 0 && selectedAssignedCards.length === selectedCards.length;
+
+    const clearCardSelection = () => setSelectedCardKeys([]);
+
+    const exportSelectedCardsToCSV = () => {
+        if (selectedCards.length === 0) {
+            return;
+        }
+
+        const header = [
+            translate('common.email'),
+            translate('workspace.expensifyCard.name'),
+            translate('workspace.moreFeatures.companyCards.cardNumber'),
+            translate('workspace.moreFeatures.companyCards.transactionStartDate'),
+            translate('workspace.moreFeatures.companyCards.lastUpdated'),
+            translate('workspace.moreFeatures.companyCards.assignedCards'),
+        ]
+            .map(escapeCsvField)
+            .join(',');
+
+        const rows = selectedCards.map((card) => {
+            const assignedCard = card.assignedCard;
+            const transactionStartDate = assignedCard?.scrapeMinDate ? format(parseISO(assignedCard.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : '';
+            const lastUpdated = assignedCard?.lastScrape ? format(getLocalDateFromDatetime(assignedCard.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '';
+
+            return [
+                card.isAssigned ? (card.cardholder?.login ?? '') : 'unassigned',
+                card.isAssigned ? (card.cardholder?.displayName ?? '') : '',
+                maskCardNumber(card.cardName, bankName, true),
+                card.isAssigned ? transactionStartDate : '',
+                card.isAssigned ? lastUpdated : '',
+                translate(card.isAssigned ? 'common.yes' : 'common.no'),
+            ]
+                .map(escapeCsvField)
+                .join(',');
+        });
+
+        const csvContent = [header, ...rows].join('\r\n');
+        const safePolicySegment = policyID.replaceAll(/[^\dA-Za-z-_]/g, '') || 'workspace';
+        localFileDownload(`CompanyCards_${safePolicySegment}.csv`, csvContent, translate);
+    };
+
+    const confirmBulkUnassign = async () => {
+        if (!bankName || selectedAssignedCards.length === 0) {
+            return;
+        }
+
+        const {action} = await showConfirmModal({
+            shouldSetModalVisibility: false,
+            title: translate('workspace.moreFeatures.companyCards.unassignCards'),
+            prompt: translate('workspace.moreFeatures.companyCards.unassignCardsDescription'),
+            confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        for (const card of selectedAssignedCards) {
+            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bankName, card.assignedCard);
+        }
+        clearCardSelection();
+    };
+
+    const viewSelectedCardTransactions = () => {
+        const selectedCardIDs = selectedAssignedCards.map((card) => card.assignedCard.cardID).filter((cardID): cardID is number => cardID !== undefined);
+        if (selectedCardIDs.length === 0) {
+            return;
+        }
+
+        navigateToCardTransactions(selectedCardIDs.join(','));
+        clearCardSelection();
+    };
+
+    const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
+        const options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
+
+        if (isOnlyAssignedCardsSelected) {
+            if (canWriteCompanyCards) {
+                options.push({
+                    icon: icons.RemoveMembers,
+                    text: translate('workspace.moreFeatures.companyCards.unassignCards'),
+                    value: 'unassign',
+                    onSelected: confirmBulkUnassign,
+                });
+            }
+
+            options.push({
+                icon: icons.MoneySearch,
+                text: translate('workspace.common.viewTransactions'),
+                value: 'viewTransactions',
+                onSelected: viewSelectedCardTransactions,
+            });
+        }
+
+        options.push({
+            icon: icons.Export,
+            text: translate('workspace.expensifyCard.exportAsCSV'),
+            value: 'exportCSV',
+            onSelected: exportSelectedCardsToCSV,
+        });
+
+        return options;
+    };
+
+    const keyExtractor = (item: WorkspaceCompanyCardTableItemData) => item.keyForList;
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
@@ -291,7 +423,7 @@ function WorkspaceCompanyCardsTable({
 
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
         <WorkspaceCompanyCardTableItem
-            key={`${item.cardName}_${index}`}
+            key={item.keyForList}
             item={item}
             rowIndex={index}
             policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
@@ -345,6 +477,20 @@ function WorkspaceCompanyCardsTable({
                 showTableControls={showTableControls}
                 canWriteCompanyCards={canWriteCompanyCards}
                 CardFeedIcon={cardFeedIcon}
+                bulkActionsButton={
+                    selectedCards.length > 0 ? (
+                        <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
+                            success
+                            onPress={() => {}}
+                            customText={translate('workspace.common.selected', {count: selectedCards.length})}
+                            options={getBulkActionOptions()}
+                            isSplitButton={false}
+                            shouldAlwaysShowDropdownMenu
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
+                            wrapperStyle={shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0}
+                        />
+                    ) : undefined
+                }
             />
         </View>
     ) : undefined;
@@ -382,6 +528,9 @@ function WorkspaceCompanyCardsTable({
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
+            selectionEnabled={showTableControls}
+            selectedKeys={validSelectedCardKeys}
+            onRowSelectionChange={setSelectedCardKeys}
             title={translate('workspace.common.companyCards')}
             ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
