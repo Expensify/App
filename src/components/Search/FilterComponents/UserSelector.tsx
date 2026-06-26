@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
-import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
@@ -53,27 +52,26 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         shouldKeepSelectedInAvailableOptions: true,
     });
 
-    // Capture the accountIDs that were pre-selected when the filter first opened. Using this stable list
+    // Capture the accountIDs that were pre-selected when the filter first opened. Using this stable set
     // (not the live selection) keeps pre-selected rows pinned to the top on first render while rows stay in
     // place when toggled afterwards (see https://github.com/Expensify/App/issues/61414).
-    const [initialSelectedValues] = useState(() => [...value]);
+    const [initiallySelectedAccountIDs] = useState(() => new Set(value));
 
-    // Move pre-selected rows to the top, each group keeping its natural sorted order. personalDetails use
-    // keyForList (the stringified accountID) as their identity, which matches the values in `value`.
-    const personalDetailsWithValue = availableOptions.personalDetails.map((option) => ({...option, value: option.keyForList}));
-    const orderedPersonalDetails = moveInitialSelectionToTop(personalDetailsWithValue, initialSelectedValues);
+    // Split contacts into pre-selected rows (pinned to the top) and the rest, each keeping their natural
+    // sorted order. Short lists are fully visible, so skip pinning for them (same threshold as the shared
+    // moveInitialSelectionToTop util).
+    const shouldPinSelectedRows = initiallySelectedAccountIDs.size > 0 && availableOptions.personalDetails.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+    const pinnedPersonalDetails: OptionData[] = [];
+    const remainingPersonalDetails: OptionData[] = [];
+    for (const option of availableOptions.personalDetails) {
+        const isPinned = shouldPinSelectedRows && initiallySelectedAccountIDs.has(option.accountID.toString());
+        (isPinned ? pinnedPersonalDetails : remainingPersonalDetails).push(option);
+    }
 
-    // Number of pre-selected rows pinned to the top. moveInitialSelectionToTop returns the original array
-    // (same reference) when it leaves the order untouched, in which case nothing is pinned.
-    const selectedValues = new Set(initialSelectedValues);
-    const pinnedCount =
-        orderedPersonalDetails === personalDetailsWithValue ? 0 : personalDetailsWithValue.reduce((count, option) => (selectedValues.has(option.value) ? count + 1 : count), 0);
-
-    // The current user is excluded from personalDetails. Render it directly below the pinned pre-selected
-    // rows (not at the very top), followed by the remaining contacts.
+    // Render order: pinned pre-selected rows → current user (excluded from personalDetails) → remaining contacts.
     const listData = availableOptions.currentUserOption
-        ? [...orderedPersonalDetails.slice(0, pinnedCount), availableOptions.currentUserOption, ...orderedPersonalDetails.slice(pinnedCount)]
-        : orderedPersonalDetails;
+        ? [...pinnedPersonalDetails, availableOptions.currentUserOption, ...remainingPersonalDetails]
+        : [...pinnedPersonalDetails, ...remainingPersonalDetails];
 
     const headerMessage = listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
