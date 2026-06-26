@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef, FormValue} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -147,9 +147,8 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const street = values[inputFieldsIDs.street as keyof typeof values];
-            const streetValue = street as FormValue;
-            const streetError = getInvalidAddressErrorTranslationPath(streetValue);
+            const street = getStringFormValue(values, inputFieldsIDs.street);
+            const streetError = getInvalidAddressErrorTranslationPath(street);
             if (street && streetError) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.street] = translate(streetError);
