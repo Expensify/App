@@ -1,4 +1,4 @@
-import {useEffect, useLayoutEffect, useRef} from 'react';
+import {useLayoutEffect, useRef} from 'react';
 import {removeOverlayEntry, upsertOverlayEntry} from '@components/Overlay/libs/overlayStore';
 import type {OverlayEntry} from '@components/Overlay/libs/overlayStore';
 import useCallbackRef from '@hooks/useCallbackRef';
@@ -26,7 +26,7 @@ function useOverlayEntry(entry: OverlayEntry | null): void {
         }
     }, [entry, stableClose]);
 
-    useEffect(
+    useLayoutEffect(
         () => () => {
             if (publishedIdRef.current === null) {
                 return;
