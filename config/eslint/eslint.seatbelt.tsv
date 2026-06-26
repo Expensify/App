@@ -2025,6 +2025,7 @@
 "../../tests/unit/useSubPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/useSubStepTest.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	13
 "../../tests/unit/useSyncFocusTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/unit/useTodoCountsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/useTodosTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/useTransactionViolationsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	21
 "../../tests/unit/useWorkspacesTabIndicatorStatusTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
