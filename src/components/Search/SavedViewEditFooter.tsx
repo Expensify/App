@@ -56,7 +56,9 @@ function SavedViewEditFooter({onCancel, onSaveEdits, onSaveAsNewView, isSaveEdit
             <ButtonWithDropdownMenu<SaveViewAction>
                 success
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                onPress={(_event, value) => saveOptions.find((option) => option.value === value)?.onSelected?.()}
+                onPress={(_event, value) => {
+                    saveOptions.find((option) => option.value === value)?.onSelected?.();
+                }}
                 options={saveOptions}
                 shouldUseOptionIcon
                 isSplitButton={false}
