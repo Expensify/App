@@ -316,10 +316,13 @@ function IOURequestStepConfirmation({
             const selectedParticipant = participantsList.at(0);
             // P2P chats don't support negative amounts. When a negative amount was entered before a participant
             // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
-            // fail at submit. Mirror the resetToDefaultWorkspace behavior in AmountSubmission.ts and keep the
-            // expense on the self DM (its default) instead of assigning the P2P participant, so the user is
-            // stopped at selection rather than at submit.
-            const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && isParticipantP2P(selectedParticipant));
+            // fail at submit, so keep the expense on the self DM (its default) instead of assigning the P2P
+            // participant, stopping the user at selection rather than at submit. This only applies while the
+            // expense is still on the self DM — a negative expense already bound to a policy expense chat (e.g.
+            // global create auto-assigned the default workspace) must stay on that workspace rather than being
+            // silently converted into a personal track expense.
+            const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
+            const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(selectedParticipant));
             if (shouldKeepOnSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
@@ -334,7 +337,7 @@ function IOURequestStepConfirmation({
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, transaction?.amount],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, transaction?.amount, transaction?.participants],
     );
 
     useEffect(() => {

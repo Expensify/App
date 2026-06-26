@@ -4,6 +4,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
+import {isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
@@ -213,7 +214,16 @@ function useParticipantSubmission({
 
         const firstParticipant = val.at(0);
 
-        if (firstParticipant?.isSelfDM && !isSplitRequest) {
+        // P2P chats don't support negative amounts. When a negative amount was entered before a participant was
+        // selected (e.g. "Submit it to someone" from a self DM track expense), assigning it to a P2P participant
+        // would fail at submit, so keep the expense on the self DM as a track expense — mirroring the guard in the
+        // confirmation step's handleParticipantsAdded. This doesn't apply to an expense already bound to a policy
+        // expense chat, which must stay on that workspace.
+        const currentTransaction = dataRef.current.initialTransaction;
+        const isTransactionOnPolicyExpenseChat = currentTransaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
+        const shouldKeepNegativeExpenseOnSelfDM = (currentTransaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(firstParticipant);
+
+        if ((firstParticipant?.isSelfDM || shouldKeepNegativeExpenseOnSelfDM) && !isSplitRequest) {
             trackExpense();
             return;
         }
