@@ -143,21 +143,22 @@ index ed7ee76ce6a..e3cf05ddfa9 100644
  
    return nsAttributedString;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-index d82b6a7062a..c0bf3609a63 100644
+index d82b6a7062a..820722bc4fa 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-@@ -375,6 +375,42 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+@@ -375,6 +375,43 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
  
    if (textDidWrap) {
      size.width = textContainer.size.width;
 +  } else {
-+    // Make the line long enough to fit the horizontal advance reserved around bordered / inline-code
-+    // spans (RCTAttributedTextUtils + RCTTextLayoutManagerWithBorderRadius), so neither the border
-+    // nor trailing content (e.g. the "(edited)" suffix) is clipped. usedRect counts paragraph indents
-+    // (firstLineHeadIndent, paragraph-start leading) but NOT per-character kern, so reserve the kern:
-+    //   - paragraph-end span: 3x borderWidth (right border reaches 2x past the glyph + a margin),
-+    //   - mid-paragraph span:  2x borderWidth for the trailing kern, plus 2x for the leading kern,
-+    // both of which shift following content rightward. Surplus is empty space at the line end.
++    // Make the line long enough to fit the advance reserved around bordered / inline-code spans, so
++    // neither the border nor trailing content (e.g. the "(edited)" suffix) is clipped. usedRect
++    // already includes mid-line kerns (RCTAttributedTextUtils), but NOT the firstLineHeadIndent
++    // offset (it lives in usedRect.origin, not .size) nor the paragraph-end right border (usedRect is
++    // glyph-tight). Reserve exactly those two:
++    //   - paragraph-start span: 2x borderWidth (the firstLineHeadIndent that shifts the line right),
++    //   - paragraph-end span:   3x borderWidth (right border reaches 2x past the glyph + a margin).
++    // Surplus is empty space at the line end (invisible).
 +    NSString *string = textStorage.string;
 +    NSUInteger length = string.length;
 +    __block CGFloat reservation = 0;
@@ -178,11 +179,11 @@ index d82b6a7062a..c0bf3609a63 100644
 +          range.location == 0 || [string characterAtIndex:range.location - 1] == '\n';
 +      const BOOL atParagraphEnd =
 +          NSMaxRange(range) >= length || [string characterAtIndex:NSMaxRange(range)] == '\n';
-+      if (leftW > 0 && !atParagraphStart) {
-+        reservation += leftW * 2.0;  // mid-paragraph leading kern
++      if (leftW > 0 && atParagraphStart) {
++        reservation += leftW * 2.0;  // firstLineHeadIndent (excluded from usedRect width)
 +      }
-+      if (rightW > 0) {
-+        reservation += atParagraphEnd ? rightW * 3.0 : rightW * 2.0;  // border frame growth / trailing kern
++      if (rightW > 0 && atParagraphEnd) {
++        reservation += rightW * 3.0;  // right border reaches 2x past the last glyph (usedRect is glyph-tight)
 +      }
 +    }];
 +    size.width += reservation;
