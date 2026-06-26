@@ -1,4 +1,4 @@
-import {md5} from 'expensify-common';
+import {md5, Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
@@ -142,6 +142,8 @@ function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail,
         return CONST.CONCIERGE_ICON_URL;
     }
 
+    // The local default has no name to read initials from, so they come from the email. The backend emits
+    // name-based initials on the avatar URL, which the client parses instead of recomputing here.
     const letterAvatarURL = getLetterAvatarURL(accountID, '', '', accountEmail ?? '');
     if (letterAvatarURL) {
         return letterAvatarURL;
@@ -245,7 +247,8 @@ function getLetterAvatarURL(accountID: number, firstName: string, lastName: stri
     }
 
     let initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
-    if (initials === '' && login !== '' && !login.endsWith(CONST.SMS.DOMAIN)) {
+    // Only a real email seeds the initial. Phone numbers (raw or @expensify.sms) fall back to the illustrated default.
+    if (initials === '' && !login.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(login)) {
         initials = firstLetterAvatarCharacter(login);
     }
     if (initials === '') {
