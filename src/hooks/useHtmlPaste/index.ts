@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef} from 'react';
-import {convertEmojiShortcodesToUnicode} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, convertEmojiShortcodesToUnicode} from '@libs/EmojiUtils';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
@@ -53,7 +53,8 @@ const getEmojiFromImageAlt = (alt: string): string => {
         return '';
     }
 
-    return String.fromCodePoint(...codepoints);
+    const emoji = String.fromCodePoint(...codepoints);
+    return containsOnlyEmojis(emoji) ? emoji : '';
 };
 
 const isEmojiImage = (image: HTMLImageElement): boolean => {

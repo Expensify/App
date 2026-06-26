@@ -182,4 +182,17 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
         expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉 Bold');
     });
+
+    it('does not convert non-emoji codepoint image filenames to Unicode text', async () => {
+        const html = '<p>Normal Text. <img src="https://example.com/image.png" alt="0200.png"> Bold</p>';
+        const event = createMockClipboardEvent('Normal Text. 0200.png Bold', html);
+        mockWindowSelection('');
+
+        renderUseHtmlPaste(true);
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Normal Text. ![0200.png](https://example.com/image.png) Bold');
+    });
 });
