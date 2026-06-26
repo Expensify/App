@@ -11,6 +11,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import {useTableContext} from '@components/Table/TableContext';
 import TableSkeleton from '@components/Table/TableSkeleton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
@@ -43,11 +44,171 @@ import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkel
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
 type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
 
+type WorkspaceCompanyCardsTableHeaderButtonsWithBulkActionsProps = Omit<React.ComponentProps<typeof WorkspaceCompanyCardsTableHeaderButtons>, 'bulkActionsButton'> & {
+    /** Domain or workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
+    /** Bank name */
+    bankName: UseCompanyCardsResult['bankName'];
+
+    /** Whether to use the narrow table layout */
+    shouldUseNarrowTableLayout: boolean;
+
+    /** Clear selected card rows */
+    clearCardSelection: () => void;
+};
+
 function escapeCsvField(value: string): string {
     if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
         return `"${value.replaceAll('"', '""')}"`;
     }
     return value;
+}
+
+function WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions({
+    domainOrWorkspaceAccountID,
+    bankName,
+    shouldUseNarrowTableLayout,
+    clearCardSelection,
+    ...headerButtonProps
+}: WorkspaceCompanyCardsTableHeaderButtonsWithBulkActionsProps) {
+    const styles = useThemeStyles();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
+    const {processedData} = useTableContext<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>();
+    const {policyID, canWriteCompanyCards} = headerButtonProps;
+
+    const selectedCards = processedData.filter((card) => card.selected && !card.disabled);
+    const selectedAssignedCards = selectedCards.filter((card) => card.isAssigned && !!card.assignedCard);
+    const isOnlyAssignedCardsSelected = selectedCards.length > 0 && selectedAssignedCards.length === selectedCards.length;
+
+    const exportSelectedCardsToCSV = () => {
+        if (selectedCards.length === 0) {
+            return;
+        }
+
+        const header = [
+            translate('common.email'),
+            translate('workspace.expensifyCard.name'),
+            translate('workspace.moreFeatures.companyCards.cardNumber'),
+            translate('workspace.moreFeatures.companyCards.transactionStartDate'),
+            translate('workspace.moreFeatures.companyCards.lastUpdated'),
+            translate('workspace.moreFeatures.companyCards.assignedCards'),
+        ]
+            .map(escapeCsvField)
+            .join(',');
+
+        const rows = selectedCards.map((card) => {
+            const assignedCard = card.assignedCard;
+            const transactionStartDate = assignedCard?.scrapeMinDate ? format(parseISO(assignedCard.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : '';
+            const lastUpdated = assignedCard?.lastScrape ? format(getLocalDateFromDatetime(assignedCard.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '';
+
+            return [
+                card.isAssigned ? (card.cardholder?.login ?? '') : 'unassigned',
+                card.isAssigned ? (card.cardholder?.displayName ?? '') : '',
+                maskCardNumber(card.cardName, bankName, true),
+                card.isAssigned ? transactionStartDate : '',
+                card.isAssigned ? lastUpdated : '',
+                translate(card.isAssigned ? 'common.yes' : 'common.no'),
+            ]
+                .map(escapeCsvField)
+                .join(',');
+        });
+
+        const csvContent = [header, ...rows].join('\r\n');
+        const safePolicySegment = policyID.replaceAll(/[^\dA-Za-z-_]/g, '') || 'workspace';
+        localFileDownload(`CompanyCards_${safePolicySegment}.csv`, csvContent, translate);
+    };
+
+    const confirmBulkUnassign = async () => {
+        if (!bankName || selectedAssignedCards.length === 0) {
+            return;
+        }
+
+        const {action} = await showConfirmModal({
+            shouldSetModalVisibility: false,
+            title: translate('workspace.moreFeatures.companyCards.unassignCards'),
+            prompt: translate('workspace.moreFeatures.companyCards.unassignCardsDescription'),
+            confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        for (const card of selectedAssignedCards) {
+            if (!card.assignedCard) {
+                continue;
+            }
+            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bankName, card.assignedCard);
+        }
+        clearCardSelection();
+    };
+
+    const viewSelectedCardTransactions = () => {
+        const selectedCardIDs = selectedAssignedCards.map((card) => card.assignedCard?.cardID).filter((cardID): cardID is number => cardID !== undefined);
+        if (selectedCardIDs.length === 0) {
+            return;
+        }
+
+        navigateToCardTransactions(selectedCardIDs.join(','));
+        clearCardSelection();
+    };
+
+    const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
+        const options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
+
+        if (isOnlyAssignedCardsSelected) {
+            if (canWriteCompanyCards) {
+                options.push({
+                    icon: icons.RemoveMembers,
+                    text: translate('workspace.moreFeatures.companyCards.unassignCards'),
+                    value: 'unassign',
+                    onSelected: confirmBulkUnassign,
+                });
+            }
+
+            options.push({
+                icon: icons.MoneySearch,
+                text: translate('workspace.common.viewTransactions'),
+                value: 'viewTransactions',
+                onSelected: viewSelectedCardTransactions,
+            });
+        }
+
+        options.push({
+            icon: icons.Export,
+            text: translate('workspace.expensifyCard.exportAsCSV'),
+            value: 'exportCSV',
+            onSelected: exportSelectedCardsToCSV,
+        });
+
+        return options;
+    };
+
+    const bulkActionsButton =
+        selectedCards.length > 0 ? (
+            <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
+                success
+                onPress={() => {}}
+                customText={translate('workspace.common.selected', {count: selectedCards.length})}
+                options={getBulkActionOptions()}
+                isSplitButton={false}
+                shouldAlwaysShowDropdownMenu
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
+                wrapperStyle={shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0}
+            />
+        ) : undefined;
+
+    return (
+        <WorkspaceCompanyCardsTableHeaderButtons
+            {...headerButtonProps}
+            bulkActionsButton={bulkActionsButton}
+        />
+    );
 }
 
 type WorkspaceCompanyCardsTableProps = {
@@ -92,10 +253,8 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare, getLocalDateFromDatetime} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
 
     const {
         feedName,
@@ -229,118 +388,9 @@ function WorkspaceCompanyCardsTable({
         setSelectedCardKeys(selectedCardKeysForCurrentData);
     }
 
-    const selectedCardKeySet = new Set(selectedCardKeysForCurrentData);
-    const selectedCards = cardsData.filter((card) => !card.disabled && selectedCardKeySet.has(card.keyForList));
-    const validSelectedCardKeys = selectedCards.map((card) => card.keyForList);
-    const selectedAssignedCards = selectedCards.filter(
-        (card): card is WorkspaceCompanyCardTableItemData & {assignedCard: NonNullable<WorkspaceCompanyCardTableItemData['assignedCard']>} => card.isAssigned && !!card.assignedCard,
-    );
-    const isOnlyAssignedCardsSelected = selectedCards.length > 0 && selectedAssignedCards.length === selectedCards.length;
+    const validSelectedCardKeys = selectedCardKeysForCurrentData;
 
     const clearCardSelection = () => setSelectedCardKeys([]);
-
-    const exportSelectedCardsToCSV = () => {
-        if (selectedCards.length === 0) {
-            return;
-        }
-
-        const header = [
-            translate('common.email'),
-            translate('workspace.expensifyCard.name'),
-            translate('workspace.moreFeatures.companyCards.cardNumber'),
-            translate('workspace.moreFeatures.companyCards.transactionStartDate'),
-            translate('workspace.moreFeatures.companyCards.lastUpdated'),
-            translate('workspace.moreFeatures.companyCards.assignedCards'),
-        ]
-            .map(escapeCsvField)
-            .join(',');
-
-        const rows = selectedCards.map((card) => {
-            const assignedCard = card.assignedCard;
-            const transactionStartDate = assignedCard?.scrapeMinDate ? format(parseISO(assignedCard.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : '';
-            const lastUpdated = assignedCard?.lastScrape ? format(getLocalDateFromDatetime(assignedCard.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '';
-
-            return [
-                card.isAssigned ? (card.cardholder?.login ?? '') : 'unassigned',
-                card.isAssigned ? (card.cardholder?.displayName ?? '') : '',
-                maskCardNumber(card.cardName, bankName, true),
-                card.isAssigned ? transactionStartDate : '',
-                card.isAssigned ? lastUpdated : '',
-                translate(card.isAssigned ? 'common.yes' : 'common.no'),
-            ]
-                .map(escapeCsvField)
-                .join(',');
-        });
-
-        const csvContent = [header, ...rows].join('\r\n');
-        const safePolicySegment = policyID.replaceAll(/[^\dA-Za-z-_]/g, '') || 'workspace';
-        localFileDownload(`CompanyCards_${safePolicySegment}.csv`, csvContent, translate);
-    };
-
-    const confirmBulkUnassign = async () => {
-        if (!bankName || selectedAssignedCards.length === 0) {
-            return;
-        }
-
-        const {action} = await showConfirmModal({
-            shouldSetModalVisibility: false,
-            title: translate('workspace.moreFeatures.companyCards.unassignCards'),
-            prompt: translate('workspace.moreFeatures.companyCards.unassignCardsDescription'),
-            confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        });
-
-        if (action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        for (const card of selectedAssignedCards) {
-            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bankName, card.assignedCard);
-        }
-        clearCardSelection();
-    };
-
-    const viewSelectedCardTransactions = () => {
-        const selectedCardIDs = selectedAssignedCards.map((card) => card.assignedCard.cardID).filter((cardID): cardID is number => cardID !== undefined);
-        if (selectedCardIDs.length === 0) {
-            return;
-        }
-
-        navigateToCardTransactions(selectedCardIDs.join(','));
-        clearCardSelection();
-    };
-
-    const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
-        const options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
-
-        if (isOnlyAssignedCardsSelected) {
-            if (canWriteCompanyCards) {
-                options.push({
-                    icon: icons.RemoveMembers,
-                    text: translate('workspace.moreFeatures.companyCards.unassignCards'),
-                    value: 'unassign',
-                    onSelected: confirmBulkUnassign,
-                });
-            }
-
-            options.push({
-                icon: icons.MoneySearch,
-                text: translate('workspace.common.viewTransactions'),
-                value: 'viewTransactions',
-                onSelected: viewSelectedCardTransactions,
-            });
-        }
-
-        options.push({
-            icon: icons.Export,
-            text: translate('workspace.expensifyCard.exportAsCSV'),
-            value: 'exportCSV',
-            onSelected: exportSelectedCardsToCSV,
-        });
-
-        return options;
-    };
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData) => item.keyForList;
 
@@ -486,27 +536,17 @@ function WorkspaceCompanyCardsTable({
 
     const headerButtonsComponent = showTableHeaderButtons ? (
         <View style={styles.mb3}>
-            <WorkspaceCompanyCardsTableHeaderButtons
+            <WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions
                 isLoading={isLoading}
                 policyID={policyID}
                 feedName={feedName}
                 showTableControls={showTableControls}
                 canWriteCompanyCards={canWriteCompanyCards}
                 CardFeedIcon={cardFeedIcon}
-                bulkActionsButton={
-                    selectedCards.length > 0 ? (
-                        <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
-                            success
-                            onPress={() => {}}
-                            customText={translate('workspace.common.selected', {count: selectedCards.length})}
-                            options={getBulkActionOptions()}
-                            isSplitButton={false}
-                            shouldAlwaysShowDropdownMenu
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_DROPDOWN}
-                            wrapperStyle={shouldUseNarrowTableLayout ? styles.w100 : styles.flexGrow0}
-                        />
-                    ) : undefined
-                }
+                domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                bankName={bankName}
+                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+                clearCardSelection={clearCardSelection}
             />
         </View>
     ) : undefined;
