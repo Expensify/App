@@ -1457,40 +1457,9 @@ function buildLastExportedActionByReportIDMap(data: OnyxTypes.SearchResults['dat
 
 /**
  * @private
- * Returns the report's first approval action of the CURRENT cycle — the earliest APPROVED/FORWARDED after the
- * latest SUBMITTED (a SUBMITTED starts a new cycle, so older approvals are stale). Its actor is the first approver.
- */
-function getFirstApprovalActionInCurrentCycle(actions: Record<string, OnyxTypes.ReportAction>): OnyxTypes.ReportAction | undefined {
-    let latestSubmittedTime = -Infinity;
-    const approvalActions: OnyxTypes.ReportAction[] = [];
-    for (const action of Object.values(actions)) {
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-            latestSubmittedTime = Math.max(latestSubmittedTime, new Date(action.created).getTime());
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
-            approvalActions.push(action);
-        }
-    }
-
-    let firstApprovalAction: OnyxTypes.ReportAction | undefined;
-    let earliestTime = Infinity;
-    for (const action of approvalActions) {
-        const currentTime = new Date(action.created).getTime();
-        if (currentTime >= latestSubmittedTime && currentTime < earliestTime) {
-            earliestTime = currentTime;
-            firstApprovalAction = action;
-        }
-    }
-    return firstApprovalAction;
-}
-
-/**
- * @private
  * Whether any report in the results has an approval action — used to hide the empty First approver/approved columns.
  */
-function hasFirstApproverData(data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[]): boolean {
-    if (Array.isArray(data)) {
-        return false;
-    }
+function hasFirstApproverData(data: OnyxTypes.SearchResults['data']): boolean {
     for (const key of Object.keys(data)) {
         if (!isReportActionEntry(key)) {
             continue;
@@ -1843,12 +1812,24 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     let latestExportTime = -Infinity;
     let latestExportAction: OnyxTypes.ReportAction | undefined;
 
+    // The first approver is the actor on the earliest APPROVED/FORWARDED action.
+    let firstApprovalTime = Infinity;
+    let firstApprovalAction: OnyxTypes.ReportAction | undefined;
+
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
             const currentTime = new Date(action.created).getTime();
             if (currentTime > latestExportTime) {
                 latestExportTime = currentTime;
                 latestExportAction = action;
+            }
+        }
+
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED || action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED) {
+            const currentTime = new Date(action.created).getTime();
+            if (currentTime < firstApprovalTime) {
+                firstApprovalTime = currentTime;
+                firstApprovalAction = action;
             }
         }
 
@@ -1871,7 +1852,6 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
         ctx.lastExportedActionByReportID.set(reportID, latestExportAction);
     }
 
-    const firstApprovalAction = getFirstApprovalActionInCurrentCycle(actions);
     if (firstApprovalAction) {
         ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
     }
@@ -5661,7 +5641,7 @@ function getColumnsToShow({
 
         // Hide First approver/approved when no report has an approval action — an empty column is just noise.
         const firstApproverColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER, CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]);
-        if (result.some((col) => firstApproverColumns.has(col)) && !hasFirstApproverData(data)) {
+        if (result.some((col) => firstApproverColumns.has(col)) && (Array.isArray(data) || !hasFirstApproverData(data))) {
             return result.filter((col) => !firstApproverColumns.has(col));
         }
 
