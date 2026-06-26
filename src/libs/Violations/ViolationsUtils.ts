@@ -211,9 +211,6 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
             // feature off). Not gated on enabled tags remaining, mirroring single-level tags and categoryOutOfPolicy.
             const isTagInPolicy = !!tags[selectedTag]?.enabled;
             if (!isTagInPolicy) {
-                // The backend emits a single tagOutOfPolicy for the whole multi-level tag (labeled with the first
-                // out-of-policy level), so stop here to match it - flagging every level would flash extra errors on
-                // the other level rows that vanish once the backend response syncs.
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -223,6 +220,9 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                     },
                 });
                 hasInvalidTag = true;
+                // The backend emits a single tagOutOfPolicy for the whole multi-level tag (labeled with the first
+                // out-of-policy level), so stop here to match it - flagging every level would flash extra errors on
+                // the other level rows that vanish once the backend response syncs.
                 break;
             }
         }

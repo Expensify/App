@@ -1959,8 +1959,8 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
         });
 
-        it('should disable every level when disabling a multi-level tag policy', async () => {
-            // Given a multi-level tag policy with two enabled levels
+        it('should disable only the first level when disabling a multi-level tag policy', async () => {
+            // Given a multi-level tag policy with two enabled levels (Department is the first level, Region the second)
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = true;
 
@@ -1968,6 +1968,7 @@ describe('actions/Policy', () => {
                 ...createRandomPolicyTags('Department', 2),
                 ...createRandomPolicyTags('Region', 2),
             };
+            multiLevelTags.Region.orderWeight = 1;
 
             mockFetch.pause();
 
@@ -1983,19 +1984,20 @@ describe('actions/Policy', () => {
 
             rerender(fakePolicy.id);
 
-            // Then every tag in every level is disabled, not just the first list
-            for (const [listName, tagList] of Object.entries(multiLevelTags)) {
-                for (const tagName of Object.keys(tagList.tags)) {
-                    expect(policyData.current?.tags?.[listName]?.tags[tagName]?.enabled).toBe(false);
-                }
+            // Then only the first level's tags are disabled; deeper levels stay enabled (BE flags only the first level)
+            for (const tagName of Object.keys(multiLevelTags.Department.tags)) {
+                expect(policyData.current?.tags?.Department?.tags[tagName]?.enabled).toBe(false);
+            }
+            for (const tagName of Object.keys(multiLevelTags.Region.tags)) {
+                expect(policyData.current?.tags?.Region?.tags[tagName]?.enabled).toBe(true);
             }
 
             mockFetch.resume();
             await waitForBatchedUpdates();
         });
 
-        it('should re-enable every level when re-enabling a multi-level tag policy', async () => {
-            // Given a multi-level tag policy whose every level was turned off when the feature was disabled
+        it('should re-enable only the first level when re-enabling a multi-level tag policy', async () => {
+            // Given a multi-level tag policy whose tags are all currently disabled (Department first, Region second)
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.areTagsEnabled = false;
 
@@ -2003,6 +2005,7 @@ describe('actions/Policy', () => {
                 ...createRandomPolicyTags('Department', 2),
                 ...createRandomPolicyTags('Region', 2),
             };
+            multiLevelTags.Region.orderWeight = 1;
             for (const tagList of Object.values(multiLevelTags)) {
                 for (const tag of Object.values(tagList.tags)) {
                     tag.enabled = false;
@@ -2023,11 +2026,12 @@ describe('actions/Policy', () => {
 
             rerender(fakePolicy.id);
 
-            // Then every tag in every level is restored to enabled, not just the first list
-            for (const [listName, tagList] of Object.entries(multiLevelTags)) {
-                for (const tagName of Object.keys(tagList.tags)) {
-                    expect(policyData.current?.tags?.[listName]?.tags[tagName]?.enabled).toBe(true);
-                }
+            // Then only the first level's tags are restored (mirrors the disable that only turned off the first level)
+            for (const tagName of Object.keys(multiLevelTags.Department.tags)) {
+                expect(policyData.current?.tags?.Department?.tags[tagName]?.enabled).toBe(true);
+            }
+            for (const tagName of Object.keys(multiLevelTags.Region.tags)) {
+                expect(policyData.current?.tags?.Region?.tags[tagName]?.enabled).toBe(false);
             }
 
             mockFetch.resume();
