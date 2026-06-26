@@ -1,14 +1,14 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef,FormValue} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {getCountryZipRegexDetails, getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
+import {getCountryZipRegexDetails,getFieldRequiredErrors, getInvalidAddressErrorTranslationPath, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import {setDraftValues} from '@userActions/FormActions';
@@ -147,10 +147,12 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const street = getStringFormValue(values, inputFieldsIDs.street);
-            if (street && !isValidAddress(street)) {
+            const street = values[inputFieldsIDs.street as keyof typeof values];
+            const streetValue = street as FormValue;
+            const streetError = getInvalidAddressErrorTranslationPath(streetValue);
+            if (street && streetError) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate('bankAccount.error.addressStreet');
+                errors[inputFieldsIDs.street] = translate(streetError);
             }
 
             const zipCode = getStringFormValue(values, inputFieldsIDs.zipCode);
