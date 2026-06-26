@@ -124,10 +124,10 @@ index ed7ee76ce6a..d1cd9aa38c4 100644
  
    return nsAttributedString;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-index d82b6a7062a..7fe7815b1c6 100644
+index d82b6a7062a..7690744c3ab 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
-@@ -375,6 +375,37 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+@@ -375,6 +375,40 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
  
    if (textDidWrap) {
      size.width = textContainer.size.width;
@@ -161,12 +161,15 @@ index d82b6a7062a..7fe7815b1c6 100644
 +        trailingBorderPadding = MAX(trailingBorderPadding, rightW);
 +      }
 +    }];
-+    size.width += trailingBorderPadding;
++    // Reserve 2x the trailing border width so the content-hugging frame grows enough for the right
++    // border (which reaches borderWidth past the last glyph) to clear the frame edge. The surplus
++    // beyond the border is empty space at the line end (invisible). 1x measured flush and clipped.
++    size.width += trailingBorderPadding * 2.0;
    }
  
    if (paragraphAttributes.maximumNumberOfLines != 0) {
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-index c2320fe9792..9688bbf8dc5 100644
+index c2320fe9792..aec216234db 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 @@ -9,8 +9,67 @@
@@ -237,12 +240,13 @@ index c2320fe9792..9688bbf8dc5 100644
  - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin
  {
    // Let super handle all spans that use NSBackgroundColorAttributeName (no border radius).
-@@ -116,6 +175,16 @@
+@@ -116,6 +175,17 @@
        CGFloat effectiveTR = isLast  ? tr : 0;
        CGFloat effectiveBR = isLast  ? br : 0;
  
-+      // Extend the box outward into the reserved advance (see RCTAttributedTextUtils) by half the
-+      // border width, so the centered stroke clears the glyphs and isn't clipped at the line edge.
++      // Extend the fill box by half the border width into the reserved advance so the centered
++      // stroke sits flush against the glyphs (border touches text, same look on both sides) and its
++      // outer edge lands at the reserved frame edge instead of being clipped.
 +      if (isFirst && leftW > 0) {
 +        spanRect.origin.x -= leftW / 2.0;
 +        spanRect.size.width += leftW / 2.0;
