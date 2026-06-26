@@ -2493,6 +2493,7 @@ function getValidOptions(
         reportAttributesDerived,
         sortedActions,
         isTrackIntentUser,
+        isOffline,
         ...config
     }: GetOptionsConfig = {},
 ): OptionsResult {
@@ -2536,8 +2537,8 @@ function getValidOptions(
     let hasMore = false;
 
     const searchTerms = processSearchString(searchString);
-    // Read the in-memory offline state once for the whole batch since this is an imperative one-shot computation (reactivity is not needed here).
-    const isOffline = getIsOffline();
+    /** TODO: getIsOffline should be removed in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    const isOfflineNetworkState = isOffline ?? getIsOffline();
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
 
@@ -2616,7 +2617,7 @@ function getValidOptions(
             selfDMChat = prepareReportOptionsForDisplay(
                 selfDMChats,
                 policiesCollection,
-                isOffline,
+                isOfflineNetworkState,
                 {
                     ...getValidReportsConfig,
                     selectedOptions,
@@ -2641,7 +2642,7 @@ function getValidOptions(
         recentReportOptions = prepareReportOptionsForDisplay(
             recentReportOptions,
             policiesCollection,
-            isOffline,
+            isOfflineNetworkState,
             {
                 ...getValidReportsConfig,
                 selectedOptions,
@@ -2662,7 +2663,7 @@ function getValidOptions(
         workspaceChats = prepareReportOptionsForDisplay(
             workspaceChats,
             policiesCollection,
-            isOffline,
+            isOfflineNetworkState,
             {
                 ...getValidReportsConfig,
                 selectedOptions,
