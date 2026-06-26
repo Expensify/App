@@ -1165,6 +1165,8 @@ const ONYXKEYS = {
         REQUIRE_FIELDS_RULE_FORM_DRAFT: 'requireFieldsRuleFormDraft',
         FLAG_FOR_REVIEW_RULE_FORM: 'flagForReviewRuleForm',
         FLAG_FOR_REVIEW_RULE_FORM_DRAFT: 'flagForReviewRuleFormDraft',
+        MERCHANT_TYPE_RULE_FORM: 'merchantTypeRuleForm',
+        MERCHANT_TYPE_RULE_FORM_DRAFT: 'merchantTypeRuleFormDraft',
         FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM: 'flagForReviewRuleMaxAmountForm',
         FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM_DRAFT: 'flagForReviewRuleMaxAmountFormDraft',
         SPEND_RULE_FORM: 'spendRuleForm',
@@ -1327,6 +1329,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.MERCHANT_RULE_FORM]: FormTypes.MerchantRuleForm;
     [ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM]: FormTypes.RequireFieldsRuleForm;
     [ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM]: FormTypes.FlagForReviewRuleForm;
+    [ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM]: FormTypes.MerchantTypeRuleForm;
     [ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM]: FormTypes.FlagForReviewRuleMaxAmountForm;
     [ONYXKEYS.FORMS.SPEND_RULE_FORM]: FormTypes.SpendRuleForm;
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;

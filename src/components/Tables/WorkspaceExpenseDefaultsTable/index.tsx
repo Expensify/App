@@ -43,6 +43,10 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
     const compareItems: CompareItemsCallback<ExpenseDefaultTableItem, ExpenseDefaultsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
+        if (a.isMerchantType !== b.isMerchantType) {
+            return a.isMerchantType ? 1 : -1;
+        }
+
         if (activeSorting.columnKey === 'type') {
             const aVal = a.isRename ? 0 : 1;
             const bVal = b.isRename ? 0 : 1;

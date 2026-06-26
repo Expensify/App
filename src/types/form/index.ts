@@ -110,6 +110,7 @@ export type {SplitExpenseEditDateForm} from './SplitExpenseEditDateForm';
 export type {ResetDomainForm} from './ResetDomainForm';
 export type {ExpenseRuleForm} from './ExpenseRuleForm';
 export type {MerchantRuleForm} from './MerchantRuleForm';
+export type {MerchantTypeRuleForm} from './MerchantTypeRuleForm';
 export type {RequireFieldsRuleForm} from './RequireFieldsRuleForm';
 export type {FlagForReviewRuleForm} from './FlagForReviewRuleForm';
 export type {FlagForReviewRuleMaxAmountForm} from './FlagForReviewRuleMaxAmountForm';

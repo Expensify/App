@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -43,13 +43,11 @@ import {enableExpensifyCard, openPolicyExpensifyCardsPage} from '@libs/actions/P
 import {deletePolicyCodingRule, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
+import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import Parser from '@libs/Parser';
-import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import {getRequireFieldsTableData, parseRequireFieldsRuleKey} from '@libs/RequireFieldsRulesUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -60,15 +58,12 @@ import {
     setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
 } from '@userActions/Policy/Category';
-import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
-import type {CodingRule} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AgentRulesSection from './AgentRulesSection';
 import IndividualExpenseRulesSectionRevamp from './IndividualExpenseRulesSectionRevamp';
 
@@ -82,6 +77,14 @@ const RULES_TAB_VALUES = new Set<string>(Object.values(RULES_TAB));
 
 function isRulesTab(key: string): key is RulesTab {
     return RULES_TAB_VALUES.has(key);
+}
+
+function updateSelectionKeysIfChanged(previousKeys: string[], nextKeys: string[]) {
+    if (previousKeys.length === nextKeys.length && previousKeys.every((key, index) => key === nextKeys[index])) {
+        return previousKeys;
+    }
+
+    return nextKeys;
 }
 
 type PolicyRulesPageRevampProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
@@ -195,65 +198,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     });
     const spendRulesTableData: SpendRuleTableItem[] = [defaultSpendRule, ...customSpendRules];
 
-    const codingRules = policy?.rules?.codingRules;
-    const fieldLabels = {
-        category: translate('common.category').toLowerCase(),
-        tag: translate('common.tag').toLowerCase(),
-        description: translate('common.description').toLowerCase(),
-        tax: translate('common.tax').toLowerCase(),
-    };
-    const expenseDefaultsTableData: ExpenseDefaultTableItem[] = isEmptyObject(codingRules)
-        ? []
-        : Object.entries(codingRules)
-              .filter(([, rule]) => !!rule && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
-              .map(([ruleID, rule]: [string, CodingRule]) => {
-                  const merchantName = rule.filters?.right ?? '';
-                  const hasOnlyMerchantRename =
-                      !!rule.merchant && !rule.category && !rule.tag && !rule.comment && !rule.tax?.field_id_TAX?.value && rule.reimbursable === undefined && rule.billable === undefined;
-                  const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
-
-                  const actions: string[] = [];
-                  if (rule.merchant) {
-                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', rule.merchant));
-                  }
-                  if (rule.category) {
-                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.category, getDecodedCategoryName(rule.category)));
-                  }
-                  if (rule.tag) {
-                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
-                  }
-                  if (rule.comment) {
-                      const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
-                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, commentMarkdown));
-                  }
-                  if (rule.tax?.field_id_TAX?.value) {
-                      actions.push(
-                          translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`),
-                      );
-                  }
-                  if (rule.reimbursable !== undefined) {
-                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
-                  }
-                  if (rule.billable !== undefined) {
-                      actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
-                  }
-                  const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
-
-                  return {
-                      keyForList: ruleID,
-                      ruleID,
-                      isRename: hasOnlyMerchantRename,
-                      typeLabel,
-                      conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
-                      ruleDescription,
-                      searchTokens: [merchantName, ruleDescription],
-                      pendingAction: rule.pendingAction,
-                      errors: rule.errors,
-                      onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
-                      disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                      action: () => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
-                  };
-              });
+    const expenseDefaultsTableData: ExpenseDefaultTableItem[] = getExpenseDefaultsTableData({
+        policy,
+        policyID,
+        translate,
+        isOffline,
+        onNavigate: Navigation.navigate,
+    });
 
     const requireFieldsTableData = getRequireFieldsTableData({
         policy,
@@ -326,25 +277,57 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         turnOffMobileSelectionMode();
     };
 
-    const handleSpendRuleSelectionChange = (selectedRowKeys: string[]) => {
-        const selectableKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-        setSelectedSpendRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
-    };
+    const handleSpendRuleSelectionChange = useCallback(
+        (selectedRowKeys: string[]) => {
+            const selectableKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+            setSelectedSpendRuleKeys((previousKeys) =>
+                updateSelectionKeysIfChanged(
+                    previousKeys,
+                    selectedRowKeys.filter((key) => selectableKeys.has(key)),
+                ),
+            );
+        },
+        [spendRulesTableData],
+    );
 
-    const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => {
-        const selectableKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-        setSelectedExpenseDefaultKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
-    };
+    const handleExpenseDefaultSelectionChange = useCallback(
+        (selectedRowKeys: string[]) => {
+            const selectableKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled && !rule.isSelectionDisabled).map((rule) => rule.keyForList));
+            setSelectedExpenseDefaultKeys((previousKeys) =>
+                updateSelectionKeysIfChanged(
+                    previousKeys,
+                    selectedRowKeys.filter((key) => selectableKeys.has(key)),
+                ),
+            );
+        },
+        [expenseDefaultsTableData],
+    );
 
-    const handleRequireFieldsSelectionChange = (selectedRowKeys: string[]) => {
-        const selectableKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-        setSelectedRequireFieldsRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
-    };
+    const handleRequireFieldsSelectionChange = useCallback(
+        (selectedRowKeys: string[]) => {
+            const selectableKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+            setSelectedRequireFieldsRuleKeys((previousKeys) =>
+                updateSelectionKeysIfChanged(
+                    previousKeys,
+                    selectedRowKeys.filter((key) => selectableKeys.has(key)),
+                ),
+            );
+        },
+        [requireFieldsTableData],
+    );
 
-    const handleFlagForReviewSelectionChange = (selectedRowKeys: string[]) => {
-        const selectableKeys = new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-        setSelectedFlagForReviewRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
-    };
+    const handleFlagForReviewSelectionChange = useCallback(
+        (selectedRowKeys: string[]) => {
+            const selectableKeys = new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+            setSelectedFlagForReviewRuleKeys((previousKeys) =>
+                updateSelectionKeysIfChanged(
+                    previousKeys,
+                    selectedRowKeys.filter((key) => selectableKeys.has(key)),
+                ),
+            );
+        },
+        [flagForReviewTableData],
+    );
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -383,6 +366,10 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         }
 
         for (const ruleID of filteredSelectedExpenseDefaultKeys) {
+            if (isMerchantTypeRuleKey(ruleID)) {
+                continue;
+            }
+
             deletePolicyCodingRule(policy, ruleID);
         }
         clearTableSelection();

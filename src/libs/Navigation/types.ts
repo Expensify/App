@@ -1559,6 +1559,14 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleKey: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: {
+        policyID: string;
+        groupID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_CATEGORY]: {
+        policyID: string;
+        groupID: string;
+    };
     [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
         policyID: string;
         ruleID: string;
