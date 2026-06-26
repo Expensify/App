@@ -283,9 +283,7 @@ function useReportActionsScroll({
 
     // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked
     // only when a new action arrives (keyed on lastAction), so loading older history never yanks a user who has
-    // scrolled up. useEffectEvent reads the latest error state without making it a trigger — that is what lets us
-    // drop the old react-hooks/exhaustive-deps disable. The !lastIOUActionWithError guard keeps a cleared error
-    // (retry succeeded / dismissed) from scrolling.
+    // scrolled up. The !lastIOUActionWithError guard keeps a cleared error (retry succeeded / dismissed) from scrolling.
     const scheduleScrollToNewError = useEffectEvent(() => {
         if (!lastIOUActionWithError || lastIOUActionWithError.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return undefined;
