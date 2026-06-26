@@ -310,6 +310,13 @@ function ReportActionsList({
         onScroll?.(event);
     };
 
+    const loadOlderChatsOnEndReached = () => {
+        if (showHiddenHistory) {
+            return;
+        }
+        loadOlderChats(false);
+    };
+
     const loadNewerChatsAfterTransitions = () => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
@@ -502,7 +509,7 @@ function ReportActionsList({
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
-                    onEndReached={() => loadOlderChats(false)}
+                    onEndReached={loadOlderChatsOnEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChatsAfterTransitions}
                     onStartReachedThreshold={0.75}
