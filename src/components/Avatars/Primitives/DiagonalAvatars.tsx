@@ -51,6 +51,9 @@ function DiagonalAvatars({
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber} = useLocalize();
 
+    const primaryIcon = icons.at(0);
+    const secondaryIcon = icons.at(1);
+
     const tooltipTexts = shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : [''];
     const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
@@ -92,15 +95,15 @@ function DiagonalAvatars({
     return (
         <View style={[avatarContainerStyles, removeRightMargin && styles.mr0]}>
             <View
-                style={[singleAvatarStyle, icons.at(0)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(0)?.type)]}
+                style={[singleAvatarStyle, primaryIcon?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, primaryIcon?.type)]}
                 testID="ReportActionAvatars-MultipleAvatars"
             >
                 <UserDetailsTooltip
-                    accountID={Number(icons.at(0)?.id)}
-                    icon={icons.at(0)}
+                    accountID={Number(primaryIcon?.id)}
+                    icon={primaryIcon}
                     fallbackUserDetails={{
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: fallbackDisplayName || icons.at(0)?.name,
+                        displayName: fallbackDisplayName || primaryIcon?.name,
                     }}
                     shouldRender={shouldShowTooltip}
                 >
@@ -108,13 +111,13 @@ function DiagonalAvatars({
                     <View>
                         <ProfileAvatar
                             useProfileNavigationWrapper={useProfileNavigationWrapper}
-                            source={icons.at(0)?.source ?? WorkspaceBuilding}
+                            source={primaryIcon?.source ?? WorkspaceBuilding}
                             size={avatarSize}
                             imageStyles={[singleAvatarStyle]}
-                            name={icons.at(0)?.name}
-                            type={icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
-                            avatarID={icons.at(0)?.id}
-                            fallbackIcon={icons.at(0)?.fallbackIcon}
+                            name={primaryIcon?.name}
+                            type={primaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
+                            avatarID={primaryIcon?.id}
+                            fallbackIcon={primaryIcon?.fallbackIcon}
                             testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
                             reportID={reportID}
                         />
@@ -124,29 +127,29 @@ function DiagonalAvatars({
                     style={[
                         secondAvatarStyles,
                         secondaryAvatarContainerStyles,
-                        icons.at(1)?.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons.at(1)?.type) : {},
+                        secondaryIcon?.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, secondaryIcon?.type) : {},
                     ]}
                 >
                     {icons.length === 2 ? (
                         <UserDetailsTooltip
-                            accountID={Number(icons.at(1)?.id)}
-                            icon={icons.at(1)}
+                            accountID={Number(secondaryIcon?.id)}
+                            icon={secondaryIcon}
                             fallbackUserDetails={{
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                displayName: fallbackDisplayName || icons.at(1)?.name,
+                                displayName: fallbackDisplayName || secondaryIcon?.name,
                             }}
                             shouldRender={shouldShowTooltip}
                         >
                             <View>
                                 <ProfileAvatar
                                     useProfileNavigationWrapper={useProfileNavigationWrapper}
-                                    source={icons.at(1)?.source ?? WorkspaceBuilding}
+                                    source={secondaryIcon?.source ?? WorkspaceBuilding}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
-                                    name={icons.at(1)?.name}
-                                    avatarID={icons.at(1)?.id}
-                                    type={icons.at(1)?.type ?? CONST.ICON_TYPE_AVATAR}
-                                    fallbackIcon={icons.at(1)?.fallbackIcon}
+                                    name={secondaryIcon?.name}
+                                    avatarID={secondaryIcon?.id}
+                                    type={secondaryIcon?.type ?? CONST.ICON_TYPE_AVATAR}
+                                    fallbackIcon={secondaryIcon?.fallbackIcon}
                                     testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
                                     reportID={reportID}
                                 />
