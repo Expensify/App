@@ -193,7 +193,18 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         } else {
             Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath);
         }
-    }, [hasVisibleTags, isMultiLevelTags, showConfirmModal, translate, overrideMultiTagPrompt, isQuickSettingsFlow, policyID, backTo, switchSingleToMultiLevelTagPrompt]);
+    }, [
+        hasVisibleTags,
+        isMultiLevelTags,
+        showConfirmModal,
+        translate,
+        overrideMultiTagPrompt,
+        isQuickSettingsFlow,
+        policyID,
+        backTo,
+        workspaceTagsImportPath,
+        switchSingleToMultiLevelTagPrompt,
+    ]);
 
     useFocusEffect(
         useCallback(() => {
