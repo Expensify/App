@@ -321,14 +321,5 @@ function getRequireFieldsTableData({
     return rules.sort((a, b) => a.conditionText.localeCompare(b.conditionText));
 }
 
-export {
-    deleteRequireFieldsRule,
-    getRequireFieldsFormFromCategory,
-    getRequireFieldsRuleKey,
-    getRequireFieldsRuleNavigationRoute,
-    getRequireFieldsTableData,
-    isRequireFieldEnabled,
-    parseRequireFieldsRuleKey,
-    saveRequireFieldsRule,
-};
-export type {RequireFieldsRuleType, RequireFieldsTableItem};
+export {deleteRequireFieldsRule, getRequireFieldsFormFromCategory, getRequireFieldsTableData, saveRequireFieldsRule};
+export type {RequireFieldsTableItem};

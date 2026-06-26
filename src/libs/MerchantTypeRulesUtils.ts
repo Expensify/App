@@ -216,13 +216,10 @@ function getExpenseDefaultsTableData({
 }
 
 export {
-    EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS,
     getDefaultMccGroupCategory,
     getExpenseDefaultsTableData,
     getMerchantTypeDisplayName,
-    getMerchantTypeGroupIDFromRuleKey,
     getMerchantTypeRuleFormFromMccGroup,
-    getMerchantTypeRuleNavigationRoute,
     isExpenseDefaultMerchantTypeGroupID,
     isMerchantTypeRuleKey,
     saveMerchantTypeRule,

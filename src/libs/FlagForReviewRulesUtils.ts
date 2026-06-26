@@ -118,5 +118,5 @@ function getFlagForReviewTableData({
     return rules;
 }
 
-export {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleNavigationRoute, getFlagForReviewTableData, hasExplicitFlagAmount, saveFlagForReviewRule};
+export {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewTableData, hasExplicitFlagAmount, saveFlagForReviewRule};
 export type {FlagForReviewTableItem};
