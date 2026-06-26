@@ -8365,6 +8365,33 @@ describe('SearchUIUtils', () => {
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, cardFeedsByPolicy, policies, undefined);
             expect(response.visibility.statements).toBe(true);
         });
+
+        test('Should show Statements when a domain card feed is linked via linkedPolicyIDs but areCompanyCardsEnabled is false on the policy summary', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: policyID,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCompanyCardsEnabled: false,
+                    areExpensifyCardsEnabled: false,
+                },
+            };
+
+            const cardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                [policyID]: [
+                    {
+                        id: 'fund1_oauth.chase.com',
+                        feed: 'oauth.chase.com',
+                        fundID: 'fund1',
+                        linkedPolicyIDs: [policyID],
+                        name: 'Chase',
+                    },
+                ],
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, cardFeedsByPolicy, policies, undefined);
+            expect(response.visibility.statements).toBe(true);
+        });
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {

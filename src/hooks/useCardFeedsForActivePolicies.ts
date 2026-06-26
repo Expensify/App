@@ -27,10 +27,18 @@ const useCardFeedsForActivePolicies = () => {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const eligiblePoliciesSelector = useEligiblePoliciesSelector();
-    const eligiblePoliciesIDsArray = eligiblePoliciesSelector(allPolicies);
-
     const allCardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards, allPolicies);
-    const eligiblePolicyIdsSet = new Set(eligiblePoliciesIDsArray ?? []);
+
+    const eligibleFromFlags = eligiblePoliciesSelector(allPolicies);
+    const eligibleFromFeeds = Object.keys(allCardFeedsByPolicy).filter((policyID) => (allCardFeedsByPolicy[policyID]?.length ?? 0) > 0);
+    const eligiblePolicyIdsSet = new Set([
+        ...eligibleFromFlags,
+        ...eligibleFromFeeds.filter((policyID) => {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+            return isPaidGroupPolicy(policy);
+        }),
+    ]);
+
     const cardFeedsByPolicy = Object.fromEntries(Object.entries(allCardFeedsByPolicy).filter(([policyID]) => eligiblePolicyIdsSet.has(policyID)));
 
     return {cardFeedsByPolicy};

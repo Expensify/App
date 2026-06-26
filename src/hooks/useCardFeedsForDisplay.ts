@@ -58,9 +58,15 @@ const useCardFeedsForDisplay = () => {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const eligiblePoliciesIDsArray = eligiblePoliciesSelector(allPolicies);
 
     const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards, allPolicies);
+
+    const eligibleFromFlags = eligiblePoliciesSelector(allPolicies);
+    const eligibleFromFeeds = Object.keys(cardFeedsByPolicy).filter((policyID) => (cardFeedsByPolicy[policyID]?.length ?? 0) > 0);
+    const eligiblePoliciesIDsArray = [...new Set([...eligibleFromFlags, ...eligibleFromFeeds])].filter((policyID) => {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        return isPaidGroupPolicy(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
 
     const defaultCardFeed = getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare);
 
