@@ -11,7 +11,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setSearchContext} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -98,12 +97,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                             Date: DateFilterContentPopupWrapper,
                             ReportField: ReportFieldFilterContentPopupWrapper,
                         }}
-                        onChange={(values) => {
-                            updateFilterQueryParams(values);
-                            if (values.keyword) {
-                                setSearchContext(true);
-                            }
-                        }}
+                        onChange={updateFilterQueryParams}
                     />
                 </View>
             </View>

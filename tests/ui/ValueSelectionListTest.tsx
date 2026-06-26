@@ -19,7 +19,7 @@ jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.
 
 describe('ValueSelectionList', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
-    const items = Array.from({length: CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD + 2}, (_, index) => ({
+    const items = Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 2}, (_, index) => ({
         value: `value-${index}`,
         label: `Label ${index}`,
         description: `Description ${index}`,

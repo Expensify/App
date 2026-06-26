@@ -1,6 +1,7 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -55,6 +56,32 @@ function DatePickerModal({
     // applied on return). Hide its frame and make the whole modal subtree pointer-transparent so the RHP renders
     // clean and its years are clickable — the inner CalendarPicker already self-hides the same way.
     const shouldHideForYearSelector = isDesktopWeb && isYearSelectorOpen;
+
+    useEffect(() => {
+        if (
+            getPlatform() !== CONST.PLATFORM.WEB ||
+            !isSmallScreenWidth ||
+            !isVisible ||
+            !shouldCloseWhenBrowserNavigationChanged ||
+            typeof window === 'undefined' ||
+            typeof window.addEventListener !== 'function'
+        ) {
+            return;
+        }
+
+        const listener = () => {
+            if (isInternalPopstateInProgress()) {
+                return;
+            }
+
+            onClose?.();
+        };
+
+        window.addEventListener('popstate', listener);
+        return () => {
+            window.removeEventListener('popstate', listener);
+        };
+    }, [isSmallScreenWidth, isVisible, onClose, shouldCloseWhenBrowserNavigationChanged]);
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
