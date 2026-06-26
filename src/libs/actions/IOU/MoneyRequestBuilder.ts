@@ -663,6 +663,25 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
+    // Flag the new tx for useNewTransactions. Cleared by success/failure on resolution, with useNewTransactions' timer as the offline fallback. Skipped for self-DM splits (tx routes to UNREPORTED_REPORT_ID).
+    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+            value: {pendingNewTransactionIDs: {[transaction.transactionID]: true}},
+        });
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+            value: {pendingNewTransactionIDs: {[transaction.transactionID]: null}},
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
+            value: {pendingNewTransactionIDs: {[transaction.transactionID]: null}},
+        });
+    }
+
     if (shouldGenerateTransactionThreadReport && !isSelfDMSplit && !isEmptyObject(transactionThreadCreatedReportAction)) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,

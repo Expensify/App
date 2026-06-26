@@ -358,6 +358,128 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         });
         expect(result.current).toEqual([]);
     });
+
+    it('recomputes when only pendingNewTransactionIDs changes (stable transactions reference)', () => {
+        const stableTransactions = [...transactionsAlreadyInReport, newTransaction];
+
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null> | undefined}>(
+            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
+            {
+                initialProps: {transactions: stableTransactions, pendingNewTransactionIDs: undefined},
+            },
+        );
+        expect(result.current).toEqual([]);
+
+        rerender({transactions: stableTransactions, pendingNewTransactionIDs: undefined});
+        expect(result.current).toEqual([]);
+
+        // Metadata-only update — same transactions reference, new pendingNewTransactionIDs
+        rerender({transactions: stableTransactions, pendingNewTransactionIDs: {[newTransaction.transactionID]: true}});
+        expect(result.current).toEqual([newTransaction]);
+    });
+
+    it('highlights the duplicate when the table view mounts post-optimistic add and pendingNewTransactionIDs arrives a few renders later', () => {
+        const [originalTx] = transactionsAlreadyInReport;
+        const duplicateTx = {...newTransaction, pendingAction: 'add' as const};
+
+        // 1. Table view mounts with both txs already in Onyx cache; metadata hasn't propagated yet
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, true | null> | undefined; isFocused?: boolean}
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, 'report1', props.isFocused), {
+            initialProps: {
+                hasOnceLoadedReportActions: true,
+                transactions: [originalTx, duplicateTx],
+                pendingNewTransactionIDs: undefined,
+                isFocused: true,
+            },
+        });
+        expect(result.current).toEqual([]);
+
+        // 2. Still no metadata, diff sees same tx set
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [originalTx, duplicateTx],
+            pendingNewTransactionIDs: undefined,
+            isFocused: true,
+        });
+        expect(result.current).toEqual([]);
+
+        // 3. pendingNewTransactionIDs propagates from Onyx → highlight fires
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [originalTx, duplicateTx],
+            pendingNewTransactionIDs: {[duplicateTx.transactionID]: true},
+            isFocused: true,
+        });
+        expect(result.current).toEqual([duplicateTx]);
+
+        // 4. Deletion timeout clears the metadata; diff branch returns empty again
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [originalTx, duplicateTx],
+            pendingNewTransactionIDs: undefined,
+            isFocused: true,
+        });
+        expect(result.current).toEqual([]);
+    });
+});
+
+describe('useNewTransactions with an unfocused report', () => {
+    const transactionsAlreadyInReport = [
+        {transactionID: '2', amount: 200, created: '2023-10-02', currency: 'USD', reportID: 'report1', merchant: ''},
+        {transactionID: '3', amount: 300, created: '2023-10-03', currency: 'USD', reportID: 'report1', merchant: ''},
+    ];
+    const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
+
+    it('returns newly added transactions even when the report is unfocused', () => {
+        // The diff branch runs regardless of focus, so a report behind an overlay still highlights a new expense.
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; isFocused: boolean}>(
+            (props) => useNewTransactions(true, props.transactions, undefined, 'report1', props.isFocused),
+            {initialProps: {transactions: transactionsAlreadyInReport, isFocused: false}},
+        );
+        expect(result.current).toEqual([]);
+
+        rerender({transactions: [...transactionsAlreadyInReport, newTransaction], isFocused: false});
+        expect(result.current).toEqual([newTransaction]);
+    });
+
+    it('returns pending transactions only once the report is focused', () => {
+        // The rail stays gated on focus so an unfocused consumer (e.g. a chat report preview) doesn't consume the flag early.
+        const allTransactions = [...transactionsAlreadyInReport, newTransaction];
+        const {rerender, result} = renderHook<Transaction[], {isFocused: boolean}>(
+            (props) => useNewTransactions(true, allTransactions, {[newTransaction.transactionID]: true}, 'report1', props.isFocused),
+            {initialProps: {isFocused: false}},
+        );
+        expect(result.current).toEqual([]);
+
+        rerender({isFocused: true});
+        expect(result.current).toEqual([newTransaction]);
+    });
+
+    it('keeps an earlier pending transaction highlighted continuously when a second one is added', () => {
+        // Adding a later transaction must not drop the earlier one out of the result and back in — that flicker would re-fire its highlight animation.
+        const txB = {transactionID: 'B', amount: 100, created: '2023-10-04', currency: 'USD', reportID: 'report1', merchant: ''};
+        const txC = {transactionID: 'C', amount: 100, created: '2023-10-05', currency: 'USD', reportID: 'report1', merchant: ''};
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null>}>(
+            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
+            {initialProps: {transactions: transactionsAlreadyInReport, pendingNewTransactionIDs: {}}},
+        );
+        expect(result.current).toEqual([]);
+
+        // B is added.
+        rerender({transactions: [...transactionsAlreadyInReport, txB], pendingNewTransactionIDs: {B: true}});
+        expect(result.current).toEqual([txB]);
+
+        // Stable render while B is still flagged — B stays.
+        rerender({transactions: [...transactionsAlreadyInReport, txB], pendingNewTransactionIDs: {B: true}});
+        expect(result.current).toEqual([txB]);
+
+        // C is added while B is still flagged — B must remain present (continuous), now alongside C.
+        rerender({transactions: [...transactionsAlreadyInReport, txB, txC], pendingNewTransactionIDs: {B: true, C: true}});
+        expect(result.current).toEqual(expect.arrayContaining([txB, txC]));
+        expect(result.current).toHaveLength(2);
+    });
 });
 
 afterAll(() => {

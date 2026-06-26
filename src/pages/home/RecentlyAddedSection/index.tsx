@@ -54,7 +54,7 @@ function RecentlyAddedSection() {
     const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Receipt']);
     const {calculatePopoverPosition} = usePopoverPosition();
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -83,7 +83,7 @@ function RecentlyAddedSection() {
         // arrows are available. Marking the report as an expense lets the RHP open wide immediately, before its
         // data loads, instead of flickering from narrow to wide.
         setActiveTransactionIDs(siblingTransactionIDs, siblingDescriptorsByTransactionID).then(() => {
-            markReportIDAsExpense(reportID);
+            markReportRHPWidth(reportID, 'wide');
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
         });
     };
