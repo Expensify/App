@@ -80,6 +80,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import useStuckSkeletonLog from './hooks/useStuckSkeletonLog';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from './SearchContext';
@@ -344,6 +345,25 @@ function Search({
 
         Log.info('[Search] Showing skeleton', false, {isOffline, isDataLoaded, isCardFeedsLoading, isSearchLoading: !!searchResults?.search?.isLoading, hasErrors, shouldUseLiveData});
     }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
+
+    useStuckSkeletonLog(shouldShowLoadingState, {
+        hash,
+        type,
+        status,
+        isOffline,
+        shouldUseLiveData,
+        isDataLoaded,
+        isWaitingForInitialData,
+        isSearchLoadingWithNoResults,
+        isCardFeedsLoading,
+        hasErrors,
+        hasUnresolvedErrors,
+        isDeferringHeavyWork,
+        shouldDeferHeavySearchWork,
+        searchIsLoading: !!searchResults?.search?.isLoading,
+        searchOffset: searchResults?.search?.offset,
+        searchRequestResponseStatusCode,
+    });
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
