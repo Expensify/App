@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
+import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -477,7 +478,7 @@ function MoneyRequestConfirmationList({
         routeError,
         isNewManualExpenseFlowEnabled,
         isReadOnly,
-        shouldShowDate: shouldShowSmartScanFields || isDistanceRequest,
+        shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
     });
 
     const confirm = buildConfirmAction({
