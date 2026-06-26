@@ -180,4 +180,3 @@ function DiagonalAvatars({
 }
 
 export default DiagonalAvatars;
-export type {DiagonalAvatarsProps};

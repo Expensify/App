@@ -143,4 +143,4 @@ function HorizontalAvatars({
 }
 
 export default HorizontalAvatars;
-export type {HorizontalAvatarsProps, HorizontalStackingOptions};
+export type {HorizontalStackingOptions};

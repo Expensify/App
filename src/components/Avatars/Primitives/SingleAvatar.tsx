@@ -76,4 +76,3 @@ function SingleAvatar({
 }
 
 export default SingleAvatar;
-export type {SingleAvatarProps};

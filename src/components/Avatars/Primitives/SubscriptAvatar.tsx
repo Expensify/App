@@ -155,4 +155,3 @@ function SubscriptAvatar({
 }
 
 export default SubscriptAvatar;
-export type {SubscriptAvatarProps};

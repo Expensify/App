@@ -3,7 +3,9 @@ import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import AvatarPrimitives from './Primitives';
+import DiagonalAvatars from './Primitives/DiagonalAvatars';
+import SingleAvatar from './Primitives/SingleAvatar';
+import SubscriptAvatar from './Primitives/SubscriptAvatar';
 
 type IconsAvatarProps = {
     /** Pre-computed avatar icons to render. The first icon is the primary; the second (if present) is the secondary/subscript */
@@ -65,7 +67,7 @@ function IconsAvatar({
 
     if (resolvedType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && secondaryIcon) {
         return (
-            <AvatarPrimitives.Subscript
+            <SubscriptAvatar
                 primaryAvatar={primaryIcon}
                 secondaryAvatar={secondaryIcon}
                 size={size}
@@ -78,7 +80,7 @@ function IconsAvatar({
 
     if (resolvedType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && secondaryIcon) {
         return (
-            <AvatarPrimitives.Multiple.Diagonal
+            <DiagonalAvatars
                 shouldShowTooltip={shouldShowTooltip}
                 size={size}
                 icons={icons}
@@ -91,7 +93,7 @@ function IconsAvatar({
     }
 
     return (
-        <AvatarPrimitives.Single
+        <SingleAvatar
             avatar={primaryIcon}
             size={size}
             containerStyles={singleAvatarContainerStyle}
@@ -105,4 +107,3 @@ function IconsAvatar({
 }
 
 export default IconsAvatar;
-export type {IconsAvatarProps};

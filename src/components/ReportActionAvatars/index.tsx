@@ -3,8 +3,11 @@ import React from 'react';
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {HorizontalStackingOptions} from '@components/Avatars/Primitives';
-import AvatarPrimitives from '@components/Avatars/Primitives';
+import DiagonalAvatars from '@components/Avatars/Primitives/DiagonalAvatars';
+import HorizontalAvatars from '@components/Avatars/Primitives/HorizontalAvatars';
+import type {HorizontalStackingOptions} from '@components/Avatars/Primitives/HorizontalAvatars';
+import SingleAvatar from '@components/Avatars/Primitives/SingleAvatar';
+import SubscriptAvatar from '@components/Avatars/Primitives/SubscriptAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -192,7 +195,7 @@ function ReportActionAvatars({
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
         return (
-            <AvatarPrimitives.Subscript
+            <SubscriptAvatar
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
@@ -210,7 +213,7 @@ function ReportActionAvatars({
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         return (
-            <AvatarPrimitives.Multiple.Horizontal
+            <HorizontalAvatars
                 {...horizontalStackingRest}
                 isHovered={isHovered}
                 size={size}
@@ -226,7 +229,7 @@ function ReportActionAvatars({
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && !!secondaryAvatar?.name) {
         return (
-            <AvatarPrimitives.Multiple.Diagonal
+            <DiagonalAvatars
                 shouldShowTooltip={shouldShowTooltip}
                 size={size}
                 icons={icons}
@@ -242,7 +245,7 @@ function ReportActionAvatars({
     }
 
     return (
-        <AvatarPrimitives.Single
+        <SingleAvatar
             avatar={primaryAvatar}
             size={size}
             containerStyles={shouldStackHorizontally ? [] : singleAvatarContainerStyle}
