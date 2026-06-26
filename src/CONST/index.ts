@@ -8363,6 +8363,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
             },
             EXPENSIFY_CARD: {
+                ROW: 'WorkspaceExpensifyCard-Row',
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
                 MORE_DROPDOWN: 'WorkspaceExpensifyCard-MoreDropdown',
                 CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',
