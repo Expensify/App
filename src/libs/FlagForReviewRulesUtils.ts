@@ -94,7 +94,11 @@ function getFlagForReviewTableData({
 
         const decodedCategoryName = getDecodedCategoryName(categoryName);
         const amountDisplay = convertToDisplayString(category.maxExpenseAmount, policyCurrency);
-        const conditionText = translate('workspace.rules.flagForReviewTable.conditionCategoryAndAmount', decodedCategoryName, amountDisplay);
+        const expenseLimitType = category.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+        const conditionText =
+            expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
+                ? translate('workspace.rules.flagForReviewTable.conditionCategoryAndDailyAmount', decodedCategoryName, amountDisplay)
+                : translate('workspace.rules.flagForReviewTable.conditionCategoryAndAmount', decodedCategoryName, amountDisplay);
         const pendingFields = category.pendingFields;
 
         rules.push({

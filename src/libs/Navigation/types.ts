@@ -1559,6 +1559,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleKey: string;
     };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE]: {
+        policyID: string;
+        ruleKey: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: {
         policyID: string;
         groupID: string;

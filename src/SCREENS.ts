@@ -909,6 +909,7 @@ const SCREENS = {
         RULES_FLAG_FOR_REVIEW_RULE_EDIT: 'Rules_Flag_For_Review_Rule_Edit',
         RULES_FLAG_FOR_REVIEW_RULE_CATEGORY: 'Rules_Flag_For_Review_Rule_Category',
         RULES_FLAG_FOR_REVIEW_RULE_AMOUNT: 'Rules_Flag_For_Review_Rule_Amount',
+        RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: 'Rules_Flag_For_Review_Rule_Expense_Limit_Type',
         RULES_MERCHANT_TYPE_EDIT: 'Rules_Merchant_Type_Edit',
         RULES_MERCHANT_TYPE_CATEGORY: 'Rules_Merchant_Type_Category',
         RULES_SPEND_EDIT: 'Rules_Spend_Edit',

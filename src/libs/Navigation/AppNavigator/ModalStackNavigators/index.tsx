@@ -1077,6 +1077,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleExpenseLimitTypePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantTypeRules/EditMerchantTypeRulePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantTypeRules/MerchantTypeRuleCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/EditSpendRulePage').default,

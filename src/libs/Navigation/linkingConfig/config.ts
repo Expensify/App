@@ -1300,6 +1300,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: {
                             path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE]: {
+                            path: ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: {
                             path: ROUTES.RULES_MERCHANT_TYPE_EDIT.route,
                         },

@@ -8351,6 +8351,7 @@ const CONST = {
                 FLAG_FOR_REVIEW_RULE_SAVE: 'WorkspaceRules-FlagForReviewRuleSave',
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
                 FLAG_FOR_REVIEW_RULE_AMOUNT: 'WorkspaceRules-FlagForReviewRuleAmount',
+                FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: 'WorkspaceRules-FlagForReviewRuleExpenseLimitType',
                 MERCHANT_TYPE_RULE_ITEM: 'WorkspaceRules-MerchantTypeRuleItem',
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',

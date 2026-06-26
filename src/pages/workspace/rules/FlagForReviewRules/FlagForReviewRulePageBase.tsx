@@ -72,6 +72,8 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
 
     const parsedMaxAmount = Number.parseFloat(form?.maxExpenseAmount ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
+    const expenseLimitType = form?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const expenseLimitTypeTitle = translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`);
 
     useEffect(() => () => clearDraftFlagForReviewRule(), []);
 
@@ -207,6 +209,14 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_AMOUNT}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('common.type')}
+                        title={expenseLimitTypeTitle}
+                        onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE.getRoute(policyID, ruleKey)) : undefined}
+                        shouldShowRightIcon={canWriteRules}
+                        interactive={canWriteRules}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE}
                     />
                 </ScrollView>
                 {footer}

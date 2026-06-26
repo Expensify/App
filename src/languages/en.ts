@@ -7561,7 +7561,7 @@ const translations = {
             },
             requireFieldsTable: {
                 tableColumnType: 'Type',
-                tableColumnCondition: 'Merchant',
+                tableColumnCondition: 'Condition',
                 tableColumnRule: 'Rule',
                 findRule: 'Find rule',
                 typeLabel: 'Require fields',
@@ -7594,6 +7594,7 @@ const translations = {
                 findRule: 'Find rule',
                 typeLabel: 'Flag',
                 conditionCategoryAndAmount: (category: string, amount: string) => `Category is "${category}" and amount above ${amount}`,
+                conditionCategoryAndDailyAmount: (category: string, amount: string) => `Category is "${category}" and daily total above ${amount}`,
                 flagForReview: 'Flag for review',
             },
             flagForReviewEmptyState: {

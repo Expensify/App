@@ -3199,6 +3199,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/:ruleKey/amount',
         getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${ruleKey ?? ROUTES.NEW}/amount` as const,
     },
+    RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/:ruleKey/expense-limit-type',
+        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${ruleKey ?? ROUTES.NEW}/expense-limit-type` as const,
+    },
     RULES_MERCHANT_TYPE_EDIT: {
         route: 'workspaces/:policyID/rules/merchant-type-rules/:groupID',
         getRoute: (policyID: string, groupID: string) => `workspaces/${policyID}/rules/merchant-type-rules/${encodeURIComponent(groupID)}` as const,
