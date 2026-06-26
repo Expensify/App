@@ -13,7 +13,6 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
-    SearchAutocompleteResult,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchDatePreset,
@@ -50,7 +49,6 @@ import {isRecord} from './ObjectUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
-import {parse as parseForAutocomplete} from './SearchParser/autocompleteParser';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -151,6 +149,26 @@ function sanitizeSearchValue(str: string) {
         return `"${str}"`;
     }
     return str;
+}
+
+const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
+/**
+ * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
+ * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
+ * keyword instead of being parsed as the `type` filter. Plain keywords (e.g. `foo`) are left untouched.
+ */
+function escapeKeyword(keywords: string) {
+    return (
+        keywords
+            .match(/"([^"]*)"|(\S+)/g)
+            ?.map((q) => {
+                if (q.toLowerCase().match(syntaxRegex)) {
+                    return `"${q}"`;
+                }
+                return q;
+            })
+            .join(' ') ?? ''
+    );
 }
 
 function getRangeQueryValue(from?: string, to?: string) {
@@ -314,9 +332,9 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-        if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
-        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            filterValueString += `${delimiter}${escapeKeyword(sanitizeSearchValue(queryFilter.value.toString()))}`;
+        } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
             filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
@@ -702,8 +720,8 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     const filters = queryJSON.flatFilters;
 
     for (const filter of filters) {
-        const filterValueString = buildFilterValuesString(filter.key, filter.filters);
-        queryParts.push(filterValueString.trim());
+        const filterValueString = buildFilterValuesString(filter.key, filter.filters).trim();
+        queryParts.push(filterValueString);
     }
 
     return queryParts.join(' ');
@@ -885,8 +903,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             }
 
             if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-                const value = (filterValue as string).split(' ').map(sanitizeSearchValue).join(' ');
-                return `${value}`;
+                return `${escapeKeyword(filterValue as string)}`;
             }
 
             if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && filterValue) {
@@ -1892,15 +1909,9 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
 }
 
 function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString, currentQueryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
-    const autocompleteRanges = (parseForAutocomplete(queryString) as SearchAutocompleteResult).ranges;
-    const hasOnlyKeywordSearch = queryString.trim().length > 0 && autocompleteRanges.length === 0;
-    if (!hasOnlyKeywordSearch) {
-        return queryString;
-    }
-
     const currentFiltersWithoutKeywords = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
     const currentQueryString = buildSearchQueryString({...currentQueryJSON, flatFilters: currentFiltersWithoutKeywords});
-    return `${currentQueryString} ${queryString}`;
+    return `${currentQueryString} ${escapeKeyword(queryString)}`;
 }
 
 /**
@@ -2298,6 +2309,7 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    buildFilterValuesString,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getPolicyNameWithFallback,

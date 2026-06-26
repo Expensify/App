@@ -522,7 +522,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
                 }
 
                 const isFullReconnect = !updateIDFrom;
-                return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
+                return API.writeWithNoDuplicatesReconnectConflictAction(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded));
             })
             .finally(() => {
                 if (!bootsplashSpan) {
