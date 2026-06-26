@@ -77,7 +77,6 @@ import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
-import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
@@ -178,6 +177,7 @@ type HandleActionButtonPressParams = {
     goToItem: () => void;
     snapshotReport: Report;
     snapshotPolicy: Policy;
+    submitterLogin: string | undefined;
     policy: OnyxEntry<Policy>;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
@@ -209,6 +209,7 @@ function handleActionButtonPress({
     goToItem,
     snapshotReport,
     snapshotPolicy,
+    submitterLogin,
     policy,
     lastPaymentMethod,
     userBillingGracePeriodEnds,
@@ -318,7 +319,7 @@ function handleActionButtonPress({
                 onPendingCardTransactionsBlock?.();
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], submitterLogin, currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -855,7 +856,7 @@ function search({
     return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
 }
 
-function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
+function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], submitterLogin: string | undefined, currentSearchKey?: SearchKey) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
         {
@@ -901,7 +902,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: getSubmitReportManagerAccountID(policy.at(0), firstReport),
+        managerAccountID: getSubmitReportManagerAccountID(policy.at(0), firstReport, submitterLogin),
         reportActionID: rand64(),
     };
 
@@ -1550,11 +1551,9 @@ function handleBulkPayItemSelected(params: {
             iouPaymentType: paymentType,
             paymentMethod: item.key as PaymentMethod,
             policy: policyFromPaymentMethod ?? policyFromContext,
+            personalBankAccountOnSuccessFallbackRoute: paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? ROUTES.ENABLE_PAYMENTS : undefined,
         });
 
-        if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-            setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
-        }
         return;
     }
 

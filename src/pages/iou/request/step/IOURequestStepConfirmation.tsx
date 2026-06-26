@@ -259,7 +259,10 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
                 const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
-                return participant.accountID
+                // Phone contacts always have an optimistic accountID but no reportID; getReportOption
+                // is designed for report-backed participants and discards participant.text, so route
+                // any participant without a reportID to getParticipantsOption instead.
+                return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails)
                     : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
@@ -318,12 +321,16 @@ function IOURequestStepConfirmation({
                     navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
                 }
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
+                const firstParticipant = participantsList.at(0);
+                if (iouType !== CONST.IOU.TYPE.SPLIT) {
+                    setTransactionReport(activeTransactionID, {reportID: firstParticipant?.reportID ?? reportID}, true);
+                }
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, reportID],
     );
 
     useEffect(() => {
@@ -340,9 +347,12 @@ function IOURequestStepConfirmation({
         }
 
         setMoneyRequestParticipants(transaction.transactionID, defaultParticipants);
-        if (defaultParticipants.at(0)?.isSelfDM) {
+        const firstDefault = defaultParticipants.at(0);
+        if (firstDefault?.isSelfDM) {
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
             navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
+        } else if (firstDefault?.reportID) {
+            setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
     }, [transaction?.transactionID, transaction?.participants, defaultParticipants, isNewManualExpenseFlowEnabled, isManualRequest, navigation]);
 
@@ -392,11 +402,10 @@ function IOURequestStepConfirmation({
         backToReport,
     });
 
-    // PAY, SPLIT, and per-diem TRACK navigate to a specific destination report
+    // PAY, SPLIT, and TRACK navigate to a specific destination report
     // (not Search) after submission. Pre-inserting the Search route would leave
-    // a stale entry in the navigation stack. Non-per-diem TRACK flows can still
-    // benefit from the Search pre-insert optimization.
-    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && !(isPerDiemRequest && iouType === CONST.IOU.TYPE.TRACK);
+    // a stale entry in the navigation stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK;
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
@@ -462,7 +471,10 @@ function IOURequestStepConfirmation({
         // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
         // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
         // pre-inserting a report is wrong - the user should stay on Search after submission.
-        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isFromGlobalCreate && !isSearchTopmostFullScreenRoute()));
+        // Global-create TRACK targets self-DM (a report), so it's also eligible for report
+        // pre-insert, but only when Search is NOT topmost. When on Search/Spend the user
+        // should stay there after submission (navigateAfterExpenseCreate routes to Expenses search).
+        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isSearchTopmostFullScreenRoute() && (isCreatingTrackExpense || !isFromGlobalCreate)));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -495,19 +507,31 @@ function IOURequestStepConfirmation({
             clearTimeout(timer);
 
             // eslint-disable-next-line react-hooks/exhaustive-deps -- formHasBeenSubmitted is a stable ref from useExpenseSubmission; reading .current in cleanup is intentional
-            if (!Navigation.getIsFullscreenPreInsertedUnderRHP() || formHasBeenSubmitted.current) {
+            if (formHasBeenSubmitted.current) {
                 return;
             }
 
-            Navigation.removePreInsertedFullscreenIfNeeded();
+            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                Navigation.removePreInsertedFullscreenIfNeeded();
+            }
+
+            // Allow the pre-insert to re-fire when dependencies change (e.g. destinationReportID
+            // transitions from undefined to a valid ID after setTransactionReport resolves).
+            // Without this reset, the guard would permanently block re-firing after the first
+            // pre-insert was torn down due to a dependency change. This must run even when the
+            // 300ms timer was cleared before the pre-insert could execute, otherwise the flag
+            // stays true and blocks all subsequent attempts.
+            hasPreInsertFired.current = false;
         };
         // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
         // this screen instance. isTransactionReady and destinationReportID may each flip once
         // (false -> true / undefined -> ID) as data loads asynchronously, re-triggering the effect.
-        // hasPreInsertFired prevents double-firing. Note: if destinationReportID were to change
-        // from one valid ID to another (extremely unlikely with Onyx), the pre-insert would not
-        // re-fire. This is acceptable because the pre-inserted route is already correct for
-        // the original destination, and the submit handler will navigate correctly regardless.
+        // The hasPreInsertFired reset enables at most one additional re-fire when
+        // destinationReportID transitions from undefined to a valid ID. If destinationReportID
+        // were to change from one valid ID to another (extremely unlikely with Onyx), the
+        // pre-insert would re-fire once more, which is acceptable since the cleanup removes the
+        // stale route first. Oscillation is not possible because setTransactionReport only fires
+        // once during resetIOUTypeIfChanged.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTransactionReady, destinationReportID]);
 
