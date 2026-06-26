@@ -13,7 +13,6 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
@@ -31,6 +30,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -77,7 +77,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
 };
 
-function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -142,6 +142,7 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
@@ -186,6 +187,7 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                chatReportActions: getChatReportActions(payAsBusiness),
             });
         } else {
             startAnimation();
@@ -209,6 +211,7 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
                 onPaid: () => {
                     startAnimation();
                 },
+                chatReportActions: getChatReportActions(false),
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -317,7 +320,7 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
         onRejectModalOpen: openRejectModal,
     });
 
-    const {exportActionEntries} = useExportActions({
+    const {exportActionEntries, exportDownloadStatusModal} = useExportActions({
         reportID,
         policy,
         onPDFModalOpen: openPDFDownload,
@@ -406,29 +409,24 @@ function MoneyReportHeaderSecondaryActionsContent({reportID, primaryAction, isRe
     };
 
     if (!applicableSecondaryActions.length) {
-        return null;
+        return exportDownloadStatusModal;
     }
 
     return (
-        <MoneyReportHeaderKYCDropdown
-            chatReportID={chatReport?.reportID}
-            iouReport={moneyRequestReport}
-            onPaymentSelect={onPaymentSelect}
-            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-            primaryAction={primaryAction}
-            applicableSecondaryActions={applicableSecondaryActions}
-            dropdownMenuRef={dropdownMenuRef}
-            onOptionsMenuHide={handleOptionsMenuHide}
-            ref={kycWallRef}
-        />
-    );
-}
-
-function MoneyReportHeaderSecondaryActionsInner(props: MoneyReportHeaderSecondaryActionsProps) {
-    return (
-        <ReportSubmitToPopoverAnchor reportID={props.reportID}>
-            <MoneyReportHeaderSecondaryActionsContent {...props} />
-        </ReportSubmitToPopoverAnchor>
+        <>
+            {exportDownloadStatusModal}
+            <MoneyReportHeaderKYCDropdown
+                chatReportID={chatReport?.reportID}
+                iouReport={moneyRequestReport}
+                onPaymentSelect={onPaymentSelect}
+                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                primaryAction={primaryAction}
+                applicableSecondaryActions={applicableSecondaryActions}
+                dropdownMenuRef={dropdownMenuRef}
+                onOptionsMenuHide={handleOptionsMenuHide}
+                ref={kycWallRef}
+            />
+        </>
     );
 }
 

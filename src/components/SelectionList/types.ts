@@ -296,15 +296,7 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
 
     /** Whether the button is disabled */
     isDisabled?: boolean;
-
-    /**
-     * Visual size of the footer confirm button (SelectionList Footer only).
-     * Defaults to large for backwards compatibility.
-     */
-    confirmButtonSize?: 'large' | 'medium' | 'small';
 };
-
-type InteractiveElementRoles = 'button' | 'checkbox' | 'switch';
 
 type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
@@ -351,7 +343,6 @@ export type {
     TextInputOptions,
     ConfirmButtonOptions,
     ListItem,
-    InteractiveElementRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
     SelectionListWithSectionsProps,
