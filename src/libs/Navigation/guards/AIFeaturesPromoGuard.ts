@@ -228,10 +228,6 @@ function isNavigatingToAIFeaturesPromoModal(state: NavigationState, action: Navi
 
 /**
  * AIFeaturesPromoGuard surfaces the one-time AI features promo modal.
- *
- * This guard relies on the proactive Onyx-driven path (navigateToAIFeaturesPromoModalIfReady)
- * rather than redirecting from evaluate(), because it needs to wait for higher-priority guards
- * (Onboarding, MigratedUserWelcomeModal) to settle before deciding whether to fire.
  */
 const AIFeaturesPromoGuard: NavigationGuard = {
     name: 'AIFeaturesPromoGuard',
