@@ -2311,10 +2311,12 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).not.toContainEqual(inactiveVendorViolation);
             });
 
-            it('does NOT backfill isSupplierViolation when Xero is connected but not the active matching source (QBO active)', () => {
-                // Dual-connected: QBO is in CC export mode (active matching source), Xero is also
-                // connected with supplier data. The existing violation should NOT get the supplier
-                // flag because QBO owns the vendor list and label here.
+            it('strips a stale isSupplierViolation flag when the active matching source switched back from Xero to QBO', () => {
+                // Dual-connected: QBO is in CC export mode (now the active matching source), Xero
+                // is also connected with supplier data. An existing violation still carries the
+                // supplier flag from when Xero was previously active. The reconciliation must
+                // strip the stale flag so the render layer renders "Vendor" copy that matches the
+                // QBO picker, not the stale "Supplier" wording.
                 const xeroPolicyContacts = {xcActive: {id: 'xcActive', name: 'Acme Xero', email: 'acme@example.com'}};
                 policy = {
                     requiresTag: false,
@@ -2333,7 +2335,7 @@ describe('getViolationsOnyxData', () => {
                 transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
                 const result = ViolationsUtils.getViolationsOnyxData({
                     updatedTransaction: transaction,
-                    transactionViolations: [inactiveVendorViolation],
+                    transactionViolations: [inactiveSupplierViolation],
                     policy,
                     policyTagList: policyTags,
                     policyCategories,

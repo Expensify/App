@@ -503,16 +503,27 @@ const ViolationsUtils = {
                         });
                     } else if (matchedVendor && hasInactiveVendorViolation) {
                         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
-                    } else if (!matchedVendor && hasInactiveVendorViolation && isSupplierViolation) {
-                        // Backfill the supplier flag on an existing violation (e.g. server-fired
-                        // after a Xero contact deletion + sync, or persisted before this code path
-                        // existed). Without this, the render layer would default to the "Vendor"
-                        // wording even though the rest of the Xero UI uses "Supplier".
-                        newTransactionViolations = newTransactionViolations.map((violation) =>
-                            violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR && violation.data?.isSupplierViolation !== true
-                                ? {...violation, data: {...violation.data, isSupplierViolation: true}}
-                                : violation,
-                        );
+                    } else if (!matchedVendor && hasInactiveVendorViolation) {
+                        // Reconcile data.isSupplierViolation with the current active matching
+                        // source. Backfills the flag when Xero is now active (server-fired
+                        // violation, or persisted from before this code path existed). Strips a
+                        // stale flag when the workspace has switched back to QBO/Intacct as the
+                        // active source — otherwise the render layer would keep showing "Supplier"
+                        // wording even though the picker is back to "Vendor".
+                        newTransactionViolations = newTransactionViolations.map((violation) => {
+                            if (violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR) {
+                                return violation;
+                            }
+                            const currentFlag = violation.data?.isSupplierViolation === true;
+                            if (currentFlag === isSupplierViolation) {
+                                return violation;
+                            }
+                            if (isSupplierViolation) {
+                                return {...violation, data: {...violation.data, isSupplierViolation: true}};
+                            }
+                            const {isSupplierViolation: stripped, ...remainingData} = violation.data ?? {};
+                            return Object.keys(remainingData).length > 0 ? {...violation, data: remainingData} : {...violation, data: undefined};
+                        });
                     }
                 }
             } else if (hasInactiveVendorViolation) {
