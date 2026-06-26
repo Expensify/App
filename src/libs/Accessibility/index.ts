@@ -237,7 +237,6 @@ const useAutoHitSlop = () => {
 };
 
 export {resetForTests};
-export type {ScreenReaderState};
 export default {
     moveAccessibilityFocus,
     useScreenReaderStatus,
