@@ -6165,12 +6165,6 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
             column === CONST.SEARCH.TABLE_COLUMNS.TAX_CODE
         ) {
             minWidth += 80;
-        } else if (
-            column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID ||
-            column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID ||
-            column === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS
-        ) {
-            minWidth += 200;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE) {
             minWidth += 130;
         } else {
