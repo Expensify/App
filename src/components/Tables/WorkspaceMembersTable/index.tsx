@@ -130,7 +130,7 @@ export default function WorkspaceMembersTable({
                 return -1;
             }
 
-            const roleComparison = localeCompare(item1.role, item2.role);
+            const roleComparison = localeCompare(translate('workspace.common.roleName', item1.role), translate('workspace.common.roleName', item2.role));
 
             if (roleComparison !== 0) {
                 return roleComparison * orderMultiplier;
@@ -144,7 +144,7 @@ export default function WorkspaceMembersTable({
             const item2CustomField1Value = item2.employeeUserID;
 
             if (!item1CustomField1Value && !item2CustomField1Value) {
-                return localeCompare(item1.name, item2.name) * orderMultiplier;
+                return memberNameComparison;
             }
 
             if (!item1CustomField1Value) {
