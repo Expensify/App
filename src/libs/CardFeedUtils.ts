@@ -655,6 +655,16 @@ function getVisibleCompanyCardFeedsForSelector(
     const visibleFeeds: CardFeedForDisplay[] = [];
     const seenFeedIDs = new Set<string>();
 
+    // Precompute the fundIDs (policyAccountIDs) backed by non-deleted policies the user can administer.
+    // This avoids re-scanning every policy for each domain entry (was O(domains × policies)).
+    const adminPolicyFundIDs = new Set<number>();
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.policyAccountID === undefined || !isPolicyAdmin(policy) || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        adminPolicyFundIDs.add(policy.policyAccountID);
+    }
+
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
         // sharedNVP_private_domain_member_123456 -> 123456
         const fundID = domainKey.split('_').at(-1);
@@ -666,9 +676,7 @@ function getVisibleCompanyCardFeedsForSelector(
         // Visibility: the user must be an admin of the feed's domain or of a policy backed by this fund.
         const domain = domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${numericFundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === numericFundID);
         const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
-        const isWorkspaceAdmin = Object.values(policies ?? {}).some(
-            (policy) => policy?.policyAccountID === numericFundID && isPolicyAdmin(policy) && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
+        const isWorkspaceAdmin = adminPolicyFundIDs.has(numericFundID);
         if (!isDomainAdmin && !isWorkspaceAdmin) {
             continue;
         }

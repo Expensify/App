@@ -79,7 +79,9 @@ jest.mock('@hooks/useCompanyCardIcons', () => ({
     useCompanyCardFeedIcons: jest.fn(),
 }));
 
-const mockVisibleFeeds = (feeds: CardFeedForDisplay[]) => (getVisibleCompanyCardFeedsForSelector as jest.Mock).mockReturnValue(feeds);
+const mockVisibleFeeds = (feeds: CardFeedForDisplay[]): void => {
+    (getVisibleCompanyCardFeedsForSelector as jest.Mock).mockReturnValue(feeds);
+};
 
 describe('useOtherFeedsForFeedSelector', () => {
     beforeEach(() => {
