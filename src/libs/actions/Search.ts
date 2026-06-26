@@ -881,6 +881,14 @@ function getFooterConvertedAmounts({queryJSON, targetCurrency, transactionIDList
     });
 }
 
+/**
+ * Clears the footer-currency conversion cache. The converted figures are ephemeral, session-scoped display
+ * data, so they are dropped when leaving Search rather than persisted across sessions.
+ */
+function clearFooterConversion() {
+    Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
+}
+
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], submitterLogin: string | undefined, currentSearchKey?: SearchKey) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
@@ -1703,6 +1711,7 @@ export {
     saveSearch,
     search,
     getFooterConvertedAmounts,
+    clearFooterConversion,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
