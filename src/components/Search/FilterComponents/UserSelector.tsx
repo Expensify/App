@@ -60,7 +60,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
     // Split contacts into pre-selected rows (pinned to the top) and the rest, each keeping their natural
     // sorted order. Short lists are fully visible, so skip pinning for them (same threshold as the shared
     // moveInitialSelectionToTop util).
-    const shouldPinSelectedRows = initiallySelectedAccountIDs.size > 0 && availableOptions.personalDetails.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+    const shouldPinSelectedRows = initiallySelectedAccountIDs.size > 0 && availableOptions.personalDetails.length > CONST.STANDARD_LIST_ITEM_LIMIT;
     const pinnedPersonalDetails: OptionData[] = [];
     const remainingPersonalDetails: OptionData[] = [];
     for (const option of availableOptions.personalDetails) {
