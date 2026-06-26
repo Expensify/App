@@ -4,7 +4,7 @@ import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useInitialSelection from '@hooks/useInitialSelection';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
@@ -56,7 +56,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
     // top on first render without repinning rows that are toggled afterwards (see https://github.com/Expensify/App/issues/61414).
-    const initialSelectedValues = useInitialSelection(value);
+    const initialSelectedValues = useInitialValue(() => value);
 
     // The current user is excluded from personalDetails, so include it (when present) in the list. moveInitialSelectionToTop
     // keys on `value`, so map each option's accountID (keyForList) onto it. Pre-selected rows are moved to the top,
