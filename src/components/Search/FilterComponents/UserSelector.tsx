@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
@@ -52,19 +53,17 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         shouldKeepSelectedInAvailableOptions: true,
     });
 
-    // Capture the accountIDs that were pre-selected when the filter first opened. We use this stable set
-    // (not the live selection) to float pre-selected rows to the top on first render while keeping rows in
+    // Capture the accountIDs that were pre-selected when the filter first opened. Using this stable list
+    // (not the live selection) keeps pre-selected rows pinned to the top on first render while rows stay in
     // place when toggled afterwards (see https://github.com/Expensify/App/issues/61414).
-    const [initiallySelectedAccountIDs] = useState(() => new Set(value));
+    const [initialSelectedValues] = useState(() => [...value]);
 
-    // Order personalDetails so pre-selected rows render at the top, each group keeping its natural sorted order.
-    const orderedPersonalDetails =
-        initiallySelectedAccountIDs.size === 0
-            ? availableOptions.personalDetails
-            : [
-                  ...availableOptions.personalDetails.filter((option) => initiallySelectedAccountIDs.has(option.accountID.toString())),
-                  ...availableOptions.personalDetails.filter((option) => !initiallySelectedAccountIDs.has(option.accountID.toString())),
-              ];
+    // Move pre-selected rows to the top, each group keeping its natural sorted order. personalDetails use
+    // keyForList (the stringified accountID) as their identity, which matches the values in `value`.
+    const orderedPersonalDetails = moveInitialSelectionToTop(
+        availableOptions.personalDetails.map((option) => ({...option, value: option.keyForList})),
+        initialSelectedValues,
+    );
 
     // The current user is excluded from personalDetails, so render it (when present) at the top, followed by
     // the rest of the contacts. Selected rows already live within personalDetails in their sorted position.
