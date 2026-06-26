@@ -1539,7 +1539,7 @@
 "../../tests/actions/IOUTest/ReceiptTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/actions/IOUTest/ReceiptTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/RejectMoneyRequestTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/actions/IOUTest/ReportWorkflowTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	64
+"../../tests/actions/IOUTest/ReportWorkflowTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	63
 "../../tests/actions/IOUTest/SendInvoiceTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../tests/actions/IOUTest/SplitDistanceMessageTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	12
 "../../tests/actions/IOUTest/SplitSelfDMTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1559,7 +1559,7 @@
 "../../tests/actions/PolicyProfileTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/PolicyTagTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/PolicyTaxTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/actions/PolicyTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	86
+"../../tests/actions/PolicyTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	74
 "../../tests/actions/PolicyTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/QueuedOnyxUpdatesTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/ReimbursementAccountTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
@@ -1569,7 +1569,7 @@
 "../../tests/actions/ReportPreviewActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	30
 "../../tests/actions/ReportPreviewActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
-"../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	80
+"../../tests/actions/ReportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	58
 "../../tests/actions/ReportTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/SessionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	12
 "../../tests/actions/SubscriptionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1713,7 +1713,7 @@
 "../../tests/unit/CLIVariadicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CardFeedErrorsDerivedValueTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CardFeedUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/CardUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	152
+"../../tests/unit/CardUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	56
 "../../tests/unit/CardsSectionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CategoryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ChatGPTTranslatorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
@@ -1741,7 +1741,7 @@
 "../../tests/unit/FileUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../tests/unit/FlashListTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/FocusTrapForModalTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../tests/unit/FormulaTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	78
+"../../tests/unit/FormulaTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	21
 "../../tests/unit/FormulaTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/FraudProtectionTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/GitTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
@@ -1791,7 +1791,7 @@
 "../../tests/unit/PersonalDetailsSelectorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/PolicyChangeLogContentTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/PolicySelectorTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
-"../../tests/unit/PolicyUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	111
+"../../tests/unit/PolicyUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../tests/unit/PopoverMenuV2Test.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/unit/PressResponderTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/QuickActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
@@ -1805,7 +1805,7 @@
 "../../tests/unit/ReportActionsUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	35
 "../../tests/unit/ReportLayoutUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/ReportNameUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
-"../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	181
+"../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	35
 "../../tests/unit/ReportPrimaryActionUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	31
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"no-restricted-imports"	2
@@ -1813,7 +1813,7 @@
 "../../tests/unit/ReportTitleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/ReportTitleUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportUtilsGetIconsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/ReportUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	104
+"../../tests/unit/ReportUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	18
 "../../tests/unit/ReportUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportWelcomeTextTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/RequestConflictUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	11
