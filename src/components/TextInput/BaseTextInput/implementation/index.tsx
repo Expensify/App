@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -111,7 +111,6 @@ function BaseTextInput({
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
 
-    const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
@@ -140,35 +139,34 @@ function BaseTextInput({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Keep `isFocused` in sync with the actual DOM focus state.
+    // Derive `isFocused` from the actual DOM focus state instead of mirroring it into local state.
     // The React `onFocus`/`onBlur` synthetic events can be dropped when the input is focused
-    // programmatically (e.g. via a ref) while the component is mid-remount, which leaves
-    // `isFocused` stuck on `false`: the focus border never shows and the label never floats
-    // even though the caret is in the field. Listening to the native focus/blur events directly
-    // on the element — plus reconciling against the current `activeElement` in case focus already
-    // landed before this effect attached its listeners — makes the visual state authoritative.
+    // programmatically (e.g. via a ref) while the component is mid-remount, which would leave a
+    // mirrored `isFocused` stuck on `false`: the focus border never shows and the label never floats
+    // even though the caret is in the field. Subscribing to the native focus/blur events directly on
+    // the element and reading `document.activeElement` as the snapshot makes the visual state
+    // authoritative regardless of remount timing — including focus that landed before we subscribed.
     // See https://github.com/Expensify/App/issues/94233
-    useEffect(() => {
+    const subscribeToInputFocus = useCallback((onStoreChange: () => void) => {
         const inputElement = input.current;
         if (!inputElement) {
-            return;
+            return () => {};
         }
 
-        if (typeof document !== 'undefined' && document.activeElement === inputElement) {
-            setIsFocused(true);
-        }
-
-        const handleFocus = () => setIsFocused(true);
-        const handleBlur = () => setIsFocused(false);
-
-        inputElement.addEventListener('focus', handleFocus);
-        inputElement.addEventListener('blur', handleBlur);
+        inputElement.addEventListener('focus', onStoreChange);
+        inputElement.addEventListener('blur', onStoreChange);
 
         return () => {
-            inputElement.removeEventListener('focus', handleFocus);
-            inputElement.removeEventListener('blur', handleBlur);
+            inputElement.removeEventListener('focus', onStoreChange);
+            inputElement.removeEventListener('blur', onStoreChange);
         };
     }, []);
+
+    const isFocused = useSyncExternalStore(
+        subscribeToInputFocus,
+        () => typeof document !== 'undefined' && document.activeElement === input.current,
+        () => false,
+    );
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
@@ -211,12 +209,10 @@ function BaseTextInput({
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
     const onFocus = (event: FocusEvent) => {
-        setIsFocused(true);
         inputProps.onFocus?.(event);
     };
 
     const onBlur = (event: BlurEvent) => {
-        setIsFocused(false);
         inputProps.onBlur?.(event);
     };
 
