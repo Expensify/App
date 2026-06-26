@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BaseWidgetItem from '@components/BaseWidgetItem';
@@ -33,7 +34,8 @@ function ForYouSection() {
     // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
     // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const {counts: reportCounts, singleReportIDs} = useTodoCounts();
+    const isFocused = useIsFocused();
+    const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
