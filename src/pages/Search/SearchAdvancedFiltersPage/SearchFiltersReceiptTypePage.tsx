@@ -21,8 +21,9 @@ function SearchFiltersReceiptTypePage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const validReceiptTypes = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
     const initiallySelectedItems = searchAdvancedFiltersForm?.receiptType
-        ?.filter((receiptType) => Object.values(CONST.SEARCH.RECEIPT_TYPE).includes(receiptType as ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>))
+        ?.filter((receiptType) => validReceiptTypes.has(receiptType))
         .map((receiptType) => {
             const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType as ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>));
             return {name: receiptTypeName, value: receiptType};
