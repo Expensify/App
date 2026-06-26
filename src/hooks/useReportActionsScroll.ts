@@ -163,6 +163,11 @@ function useReportActionsScroll({
         initialScrollKey = unreadMarkerReportActionID;
     }
 
+    // The CREATED action is the top anchor of an aligned-to-top report; scrolling to it is handled by shouldFocusToTopOnMount instead.
+    if (shouldBeAlignedToTop && initialScrollKey && sortedVisibleReportActionsObjects[initialScrollKey]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        initialScrollKey = undefined;
+    }
+
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
 
