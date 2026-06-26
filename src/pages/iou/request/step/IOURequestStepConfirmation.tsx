@@ -259,7 +259,10 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
                 const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
-                return participant.accountID
+                // Phone contacts always have an optimistic accountID but no reportID; getReportOption
+                // is designed for report-backed participants and discards participant.text, so route
+                // any participant without a reportID to getParticipantsOption instead.
+                return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails)
                     : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
