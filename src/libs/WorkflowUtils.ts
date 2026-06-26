@@ -791,9 +791,13 @@ function buildLevelFilters(
  * - i == 0, no limit:  `from ∈ M`                                             → A0
  * - i == 0, limit:     `from ∈ M AND amount < limit`                          → A0
  *                      `from ∈ M AND amount >= limit`                         → A0.overLimitForwardsTo
- * - i > 0, no limit:   `from ∈ M AND previousApprover == A_{i-1}`             → A_i
- * - i > 0, limit:      `from ∈ M AND (previousApprover == A_{i-1} AND amount < limit)`  → A_i
- *                      `from ∈ M AND (previousApprover == A_{i-1} AND amount >= limit)` → A_i.overLimitForwardsTo
+ * - i > 0, no limit:   `from ∈ M AND previousApprover == P`                   → A_i
+ * - i > 0, limit:      `from ∈ M AND (previousApprover == P AND amount < limit)`  → A_i
+ *                      `from ∈ M AND (previousApprover == P AND amount >= limit)` → A_i.overLimitForwardsTo
+ *
+ * Because the previous level's over-limit approver also approves and forwards onward, the report
+ * can reach level `i` from EITHER the previous level's base approver or its over-limit approver. So
+ * `P` ranges over every "exit" of the previous level, and we emit the level's rule(s) once per `P`.
  *
  * The last approver still gets an "into" rule (routed from the previous level); there's just no rule
  * forwarding back OUT of them, since nothing forwards past the terminal approver.
@@ -809,45 +813,50 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     const fromComparison = buildFromComparison(memberEmails);
     const rules: ApprovalWorkflowRule[] = [];
 
+    // The approvers that could have approved at the PREVIOUS level and forwarded here. An empty list
+    // means "no previous approver" — the first level / a freshly-submitted report.
+    let previousApproverEmails: string[] = [];
+
     for (let i = 0; i < approvers.length; i++) {
         const approver = approvers.at(i);
         if (!approver) {
             continue;
         }
 
-        // The level's `previousApprover` gate is the approver from the previous level. The first
-        // level has none — a freshly-submitted report is routed by `from` (and amount) alone.
-        const previous = i > 0 ? approvers.at(i - 1) : undefined;
-        const previousApproverComparison = previous ? buildPreviousApproverComparison(previous.email) : undefined;
-
         const hasLimitSplit = !!approver.approvalLimit && approver.approvalLimit > 0 && !!approver.overLimitForwardsTo;
+        const limit = hasLimitSplit ? (approver.approvalLimit as number) : undefined;
+        const underAmount = limit !== undefined ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit) : undefined;
+        const overAmount = limit !== undefined ? buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit) : undefined;
 
-        if (hasLimitSplit) {
-            const limit = approver.approvalLimit as number;
-            const underAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit);
-            const overAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit);
+        // One gate per possible previous approver (or a single "no previousApprover" gate at level 0).
+        const gates = previousApproverEmails.length === 0 ? [undefined] : previousApproverEmails.map((email) => buildPreviousApproverComparison(email));
 
-            // The approver and their over-limit approver share the same previousApprover gate (or lack
-            // of one at the first level) and differ only by the mirrored amount comparison.
-            rules.push({
-                filters: buildLevelFilters(fromComparison, previousApproverComparison, underAmount),
-                action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                nextReceiver: approver.email,
-            });
-            rules.push({
-                filters: buildLevelFilters(fromComparison, previousApproverComparison, overAmount),
-                action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                nextReceiver: approver.overLimitForwardsTo as string,
-            });
-            continue;
+        for (const gate of gates) {
+            if (hasLimitSplit) {
+                // The approver and their over-limit approver share this previousApprover gate (or its
+                // absence at level 0) and differ only by the mirrored amount comparison.
+                rules.push({
+                    filters: buildLevelFilters(fromComparison, gate, underAmount),
+                    action: APPROVAL_WORKFLOW_FORWARD_ACTION,
+                    nextReceiver: approver.email,
+                });
+                rules.push({
+                    filters: buildLevelFilters(fromComparison, gate, overAmount),
+                    action: APPROVAL_WORKFLOW_FORWARD_ACTION,
+                    nextReceiver: approver.overLimitForwardsTo as string,
+                });
+            } else {
+                rules.push({
+                    filters: buildLevelFilters(fromComparison, gate, undefined),
+                    action: APPROVAL_WORKFLOW_FORWARD_ACTION,
+                    nextReceiver: approver.email,
+                });
+            }
         }
 
-        // No limit at this level: a single rule routes the report to this approver.
-        rules.push({
-            filters: buildLevelFilters(fromComparison, previousApproverComparison, undefined),
-            action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-            nextReceiver: approver.email,
-        });
+        // Exits from this level feed the next level's previousApprover gates: when this level splits,
+        // both the base approver and the over-limit approver can have approved and forwarded onward.
+        previousApproverEmails = hasLimitSplit ? [approver.email, approver.overLimitForwardsTo as string] : [approver.email];
     }
 
     return rules;
