@@ -1,6 +1,6 @@
-import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions, isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions, isActionVisibleOnMoneyRequestReport, shouldWaitForTransactions} from '@libs/MoneyRequestReportUtils';
 import CONST from '@src/CONST';
-import type {ReportAction, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
 import {actionR14932, actionR98765} from '../../../__mocks__/reportData/actions';
 import {transactionR14932, transactionR98765} from '../../../__mocks__/reportData/transactions';
 
