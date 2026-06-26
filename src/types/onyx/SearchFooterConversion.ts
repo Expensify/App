@@ -18,6 +18,9 @@ type SearchFooterConversion = {
     /** Per-transaction converted amounts, keyed by transaction ID then by target currency */
     transactions?: Record<string, ConvertedAmountByCurrency>;
 
+    /** Per-report converted totals, keyed by report ID then by target currency */
+    reports?: Record<string, ConvertedAmountByCurrency>;
+
     /** Whole-search converted totals, keyed by search query hash then by target currency */
     searchTotals?: Record<string, ConvertedTotalByCurrency>;
 };

@@ -54,6 +54,12 @@ function areAllSelectedExpensesConverted(selectedTransactions: SelectedTransacti
     });
 }
 
+// On the Reports search a selection is converted by report, so every selected report needs a cached converted
+// total for the target currency before the selected total can be shown in that currency.
+function areAllSelectedReportsConverted(selectedReportIDs: string[], convertedReports: SearchFooterConversion['reports'], currency: string): boolean {
+    return selectedReportIDs.every((reportID) => convertedReports?.[reportID]?.[currency] !== undefined);
+}
+
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
@@ -73,7 +79,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // target currency); the live search snapshot stays in its original currency.
     const [footerConversion] = useOnyx(ONYXKEYS.SEARCH_FOOTER_CONVERSION);
     const convertedTransactions = footerConversion?.transactions;
+    const convertedReports = footerConversion?.reports;
     const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
+
+    // On the Reports search the rows are reports, so a selection is converted by report rather than by
+    // transaction (each report's full total, summed from its transactions converted at their own dates).
+    const isReportsSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const metadata = searchResults?.search;
     const metadataCount = metadata?.count;
@@ -100,6 +111,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         () => selectedTransactionsKeys.map((key) => selectedTransactions[key]?.transaction?.transactionID).filter((transactionID): transactionID is string => !!transactionID),
         [selectedTransactions, selectedTransactionsKeys],
     );
+    const selectedReportIDs = useMemo(
+        () => Array.from(new Set(selectedTransactionsKeys.map((key) => selectedTransactions[key]?.reportID).filter((reportID): reportID is string => !!reportID))),
+        [selectedTransactions, selectedTransactionsKeys],
+    );
+    // The IDs the current search converts a selection by: reports on the Reports search, transactions elsewhere.
+    const selectedConvertibleIDs = isReportsSearch ? selectedReportIDs : selectedTransactionIDs;
     const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
@@ -110,14 +127,20 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const hasCustomFooterCurrency = !!selectedCurrency && selectedCurrency !== effectiveDefaultCurrency;
 
     const selectedCurrencyConvertedTotal = hasCustomFooterCurrency && selectedCurrency ? convertedSearchTotal?.[selectedCurrency] : undefined;
-    const areAllSelectedConverted = useMemo(
-        () => hasCustomFooterCurrency && !!selectedCurrency && areAllSelectedExpensesConverted(selectedTransactions, convertedTransactions, selectedCurrency),
-        [convertedTransactions, hasCustomFooterCurrency, selectedCurrency, selectedTransactions],
-    );
+    const areAllSelectedConverted = useMemo(() => {
+        if (!hasCustomFooterCurrency || !selectedCurrency) {
+            return false;
+        }
+        return isReportsSearch
+            ? areAllSelectedReportsConverted(selectedReportIDs, convertedReports, selectedCurrency)
+            : areAllSelectedExpensesConverted(selectedTransactions, convertedTransactions, selectedCurrency);
+    }, [convertedReports, convertedTransactions, hasCustomFooterCurrency, isReportsSearch, selectedCurrency, selectedReportIDs, selectedTransactions]);
 
     // While a custom currency is chosen but its converted figures have not arrived yet, the footer keeps showing
-    // the default-currency total behind a skeleton until the cache fills.
-    const isFooterTotalConverting = hasCustomFooterCurrency && (shouldUseClientTotal ? !areAllSelectedConverted : !selectedCurrencyConvertedTotal);
+    // the default-currency total behind a skeleton until the cache fills. A partial selection can only convert once
+    // it has IDs to fetch, so a selection with none to convert stays on the default total instead of a skeleton
+    // that would never resolve.
+    const isFooterTotalConverting = hasCustomFooterCurrency && (shouldUseClientTotal ? selectedConvertibleIDs.length > 0 && !areAllSelectedConverted : !selectedCurrencyConvertedTotal);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -139,8 +162,13 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         }
 
         if (shouldUseClientTotal) {
-            if (!areAllSelectedConverted && selectedTransactionIDs.length > 0) {
-                getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency, transactionIDList: selectedTransactionIDs.join(',')});
+            if (areAllSelectedConverted || selectedConvertibleIDs.length === 0) {
+                return;
+            }
+            if (isReportsSearch) {
+                getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency, reportIDList: selectedConvertibleIDs.join(',')});
+            } else {
+                getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency, transactionIDList: selectedConvertibleIDs.join(',')});
             }
             return;
         }
@@ -148,7 +176,16 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         if (!selectedCurrencyConvertedTotal) {
             getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency});
         }
-    }, [areAllSelectedConverted, currentSearchQueryJSON, hasCustomFooterCurrency, selectedCurrency, selectedCurrencyConvertedTotal, selectedTransactionIDs, shouldUseClientTotal]);
+    }, [
+        areAllSelectedConverted,
+        currentSearchQueryJSON,
+        hasCustomFooterCurrency,
+        isReportsSearch,
+        selectedCurrency,
+        selectedCurrencyConvertedTotal,
+        selectedConvertibleIDs,
+        shouldUseClientTotal,
+    ]);
 
     const handleFooterCurrencyChange = useCallback(
         (currency: string | undefined) => {
@@ -171,12 +208,22 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
         if (shouldUseClientTotal) {
             const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !!selectedCurrency;
-            const total = selectedTransactionsKeys.reduce((acc, key) => {
-                const transaction = selectedTransactions[key];
-                const transactionID = transaction.transaction?.transactionID;
-                const convertedAmount = shouldUseConvertedSelectedTotal && selectedCurrency && transactionID ? convertedTransactions?.[transactionID]?.[selectedCurrency] : undefined;
-                return acc - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
-            }, 0);
+
+            // On the Reports search, the converted total sums each selected report's cached converted total; on
+            // other searches it sums each selected transaction's converted amount. Both fall back to the default
+            // per-row amounts when the conversion isn't ready, keeping the footer on the default currency.
+            let total;
+            if (shouldUseConvertedSelectedTotal && isReportsSearch && selectedCurrency) {
+                total = selectedReportIDs.reduce((acc, reportID) => acc - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
+            } else {
+                total = selectedTransactionsKeys.reduce((acc, key) => {
+                    const transaction = selectedTransactions[key];
+                    const transactionID = transaction.transaction?.transactionID;
+                    const convertedAmount =
+                        shouldUseConvertedSelectedTotal && !isReportsSearch && selectedCurrency && transactionID ? convertedTransactions?.[transactionID]?.[selectedCurrency] : undefined;
+                    return acc - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
+                }, 0);
+            }
 
             return {count: selectedExpenseCount, total, currency: shouldUseConvertedSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
@@ -188,15 +235,18 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return {count: metadataCount, total: metadataTotal, currency: effectiveDefaultCurrency ?? metadataCurrency};
     }, [
         areAllSelectedConverted,
+        convertedReports,
         convertedTransactions,
         effectiveDefaultCurrency,
         hasCustomFooterCurrency,
+        isReportsSearch,
         metadataCount,
         metadataCurrency,
         metadataTotal,
         selectedCurrency,
         selectedCurrencyConvertedTotal,
         selectedExpenseCount,
+        selectedReportIDs,
         selectedTransactions,
         selectedTransactionsKeys,
         shouldAllowFooterTotals,
@@ -207,9 +257,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return null;
     }
 
-    // Load-more requests also set metadata.isLoading, but they do not recalculate totals.
-    // Only offset-0 refreshes should put the footer total into loading state.
-    const isFooterTotalLoading = isFooterTotalConverting || (!!metadata?.isLoading && metadata?.offset === 0);
+    // A partial selection shows a client-side subtotal that is ready immediately, so only show the search-loading
+    // skeleton when the footer is displaying the whole-search total. (Load-more requests also set metadata.isLoading
+    // but don't recalculate totals, so gate on offset 0.)
+    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && !!metadata?.isLoading && metadata?.offset === 0);
 
     return (
         <SearchPageFooter

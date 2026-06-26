@@ -9,6 +9,9 @@ type GetTransactionsConvertedAmountParams = {
 
     /** Comma-separated transaction IDs to scope the conversion to a specific selection; omitted for the whole-search total */
     transactionIDList?: string;
+
+    /** Comma-separated report IDs to convert each selected report's total; used by the Reports search */
+    reportIDList?: string;
 };
 
 export default GetTransactionsConvertedAmountParams;

@@ -857,13 +857,25 @@ function search({
 }
 
 /**
- * Fetches converted footer-total amounts for the Search footer currency picker. The Auth command merges
- * the results into the SEARCH_FOOTER_CONVERSION cache via onyxData (by transaction and by query hash, each
- * nested under the target currency), leaving the live search snapshot untouched. Without transactionIDList
- * it converts the whole search (total/count + first page's per-transaction amounts); with it, it converts
- * exactly those transactions. Callers should check the cache first to avoid redundant requests.
+ * Fetches converted footer-total figures for the Search footer currency picker. The Auth command merges the
+ * results into the SEARCH_FOOTER_CONVERSION cache via onyxData (nested under the target currency), leaving the
+ * live search snapshot untouched:
+ *  - transactionIDList: each transaction's converted amount.
+ *  - reportIDList: each report's converted total (the Reports search).
+ *  - neither: the whole-search converted total/count + the first page's per-transaction amounts.
+ * Callers should check the cache first to avoid redundant requests.
  */
-function getFooterConvertedAmounts({queryJSON, targetCurrency, transactionIDList}: {queryJSON: Readonly<SearchQueryJSON>; targetCurrency: string; transactionIDList?: string}) {
+function getFooterConvertedAmounts({
+    queryJSON,
+    targetCurrency,
+    transactionIDList,
+    reportIDList,
+}: {
+    queryJSON: Readonly<SearchQueryJSON>;
+    targetCurrency: string;
+    transactionIDList?: string;
+    reportIDList?: string;
+}) {
     if (!targetCurrency) {
         return;
     }
@@ -878,6 +890,7 @@ function getFooterConvertedAmounts({queryJSON, targetCurrency, transactionIDList
         jsonQuery,
         targetCurrency,
         ...(transactionIDList && {transactionIDList}),
+        ...(reportIDList && {reportIDList}),
     });
 }
 
