@@ -762,7 +762,6 @@ function search({
     isLoading,
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
-    targetCurrency,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -780,7 +779,6 @@ function search({
      * optimistic write data.
      */
     skipWaitForWrites?: boolean;
-    targetCurrency?: string;
 }) {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -800,7 +798,6 @@ function search({
         offset,
         filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
-        ...(targetCurrency && {targetCurrency}),
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
@@ -857,6 +854,31 @@ function search({
     }
 
     return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
+}
+
+/**
+ * Fetches converted footer-total amounts for the Search footer currency picker. The Auth command merges
+ * the results into the SEARCH_FOOTER_CONVERSION cache via onyxData (by transaction and by query hash, each
+ * nested under the target currency), leaving the live search snapshot untouched. Without transactionIDList
+ * it converts the whole search (total/count + first page's per-transaction amounts); with it, it converts
+ * exactly those transactions. Callers should check the cache first to avoid redundant requests.
+ */
+function getFooterConvertedAmounts({queryJSON, targetCurrency, transactionIDList}: {queryJSON: Readonly<SearchQueryJSON>; targetCurrency: string; transactionIDList?: string}) {
+    if (!targetCurrency) {
+        return;
+    }
+
+    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const jsonQuery = serializeQueryJSONForBackend({
+        ...queryJSONWithoutFlatFilters,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
+    });
+
+    read(READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT, {
+        jsonQuery,
+        targetCurrency,
+        ...(transactionIDList && {transactionIDList}),
+    });
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], submitterLogin: string | undefined, currentSearchKey?: SearchKey) {
@@ -1680,6 +1702,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 export {
     saveSearch,
     search,
+    getFooterConvertedAmounts,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,
     queueExportSearchItemsToCSV,
