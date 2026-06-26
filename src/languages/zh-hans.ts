@@ -509,7 +509,6 @@ const translations: TranslationDeepObject<typeof en> = {
         editor: '编辑',
         restrictions: '限制',
         off: '关',
-        apiKey: 'API 密钥',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -6262,8 +6261,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
-                    case CONST.POLICY.CONNECTIONS.NAME.RILLET:
-                        return 'Rillet';
                     default: {
                         return '';
                     }
@@ -6519,7 +6516,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的差旅发票结算账户（以 ${lastFourPAN} 结尾）一致，以确保持续对账功能正常运行。`,
             },
             syncTravelInvoicingSettlements: '同步差旅开票结算',
-            rillet: 'Rillet',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -6723,34 +6719,34 @@ ${reportName}`,
                     `<muted-text>报表字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                title: '多级审批',
-                description: '多级审批是一个适用于要求多名人员在报销前审批报销报告的公司的工作流程工具。',
+                title: 'NetSuite',
+                description: `通过 Expensify + NetSuite 集成实现自动同步，减少手动录入。借助对原生和自定义维度的支持（包括项目和客户映射），获取深入的实时财务洞察。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每名成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 NetSuite 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                title: '多级审批',
-                description: '多级审批是一个适用于要求多名人员在报销前审批报销报告的公司的工作流程工具。',
+                title: 'Sage Intacct',
+                description: `通过 Expensify 与 Sage Intacct 的集成，享受自动同步，减少手动录入。借助用户自定义维度，以及按部门、类别、地点、客户和项目（工作）进行费用编码，获得深入且实时的财务洞察。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每名成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 Sage Intacct 集成仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
-                title: '多级审批',
-                description: '多级审批是一个适用于要求多名人员在报销前审批报销报告的公司的工作流程工具。',
+                title: 'QuickBooks Desktop',
+                description: `通过 Expensify 与 QuickBooks Desktop 的集成，享受自动同步，减少手动录入。借助实时双向连接以及按类别、项目、客户和项目进行费用编码，实现极致效率。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每名成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 QuickBooks Desktop 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
-                title: '多级审批',
-                description: '多级审批是一个适用于要求多名人员在报销前审批报销报告的公司的工作流程工具。',
+                title: 'Certinia',
+                description: `通过 Expensify 与 Certinia 的集成，享受自动同步，减少手动录入。将费用编码维度与税务同步与您的 Certinia 配置对齐，以获得更清晰的财务可见性。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每名成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>我们的 Certinia 集成仅适用于 Control 方案，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
-                title: '多级审批',
-                description: '多级审批是一个适用于要求多名人员在报销前审批报销报告的公司的工作流程工具。',
+                title: '高级审批',
+                description: `如果你想在审批流程中增加更多层级，或者只是想确保金额最大的报销能再多一道审核，我们都能满足你的需求。高级审批功能帮助你在各个层级设置合适的审批规则，从而有效控制团队支出。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每名成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>高级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             categories: {
                 title: '类别',
@@ -6823,9 +6819,9 @@ ${reportName}`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '多级审批',
-                description: '多级审批是一个适用于要求多名人员在报销前审批报销报告的公司的工作流程工具。',
+                description: '多级审批是一个工作流程工具，适用于在报销前需要多个人批准报销单的公司。',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每名成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+                    `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: '每位活跃成员每月。',
@@ -6932,10 +6928,6 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>专用工作区角色仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
-            title: '多级审批',
-            description: '多级审批是一个适用于要求多名人员在报销前审批报销报告的公司的工作流程工具。',
-            onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                `<muted-text>多级审批仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每名成员每月。` : `每位活跃成员每月。`}</muted-text>`,
         },
         downgrade: {
             commonFeatures: {
@@ -7468,15 +7460,6 @@ ${reportName}`,
             },
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
-        rillet: {
-            rilletSetup: 'Rillet 设置',
-            enterCredentials: '输入你的 Rillet API 密钥',
-            howToFindAPIKey: '<strong>查找您的 API 密钥。</strong><ol><li>登录 Rillet</li><li>前往“账号”->“设置”</li><li>复制下面的 API 密钥</li></ol>',
-            subsidiary: '子公司',
-            subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
-            noSubsidiariesFound: '未找到子公司',
-            noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
-        },
     },
     getAssistancePage: {
         title: '获取帮助',
