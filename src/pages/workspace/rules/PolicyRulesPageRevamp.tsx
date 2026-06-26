@@ -584,7 +584,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             <GenericEmptyStateComponent
                 headerMedia={illustrations.SortingMachine}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
-                headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
+                headerContentStyles={styles.sortingMachineRulesEmptyStateIllustration}
                 title={translate('workspace.rules.requireFieldsEmptyState.title')}
                 subtitle={translate('workspace.rules.requireFieldsEmptyState.subtitle')}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
@@ -611,7 +611,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             <GenericEmptyStateComponent
                 headerMedia={illustrations.SortingMachine}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
-                headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
+                headerContentStyles={styles.sortingMachineRulesEmptyStateIllustration}
                 title={translate('workspace.rules.flagForReviewEmptyState.title')}
                 subtitle={translate('workspace.rules.flagForReviewEmptyState.subtitle')}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
