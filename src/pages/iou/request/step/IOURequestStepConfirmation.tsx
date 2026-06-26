@@ -41,6 +41,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    isParticipantP2P,
     navigateToStartMoneyRequestStep,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
@@ -312,7 +313,14 @@ function IOURequestStepConfirmation({
             if (!activeTransactionID) {
                 return;
             }
-            if (participantsList.at(0)?.isSelfDM) {
+            const selectedParticipant = participantsList.at(0);
+            // P2P chats don't support negative amounts. When a negative amount was entered before a participant
+            // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
+            // fail at submit. Mirror the resetToDefaultWorkspace behavior in AmountSubmission.ts and keep the
+            // expense on the self DM (its default) instead of assigning the P2P participant, so the user is
+            // stopped at selection rather than at submit.
+            const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && isParticipantP2P(selectedParticipant));
+            if (shouldKeepOnSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
                 navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
@@ -326,7 +334,7 @@ function IOURequestStepConfirmation({
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, transaction?.amount],
     );
 
     useEffect(() => {
