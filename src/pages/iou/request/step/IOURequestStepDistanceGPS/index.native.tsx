@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -86,6 +87,7 @@ function IOURequestStepDistanceGPS({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -158,6 +160,7 @@ function IOURequestStepDistanceGPS({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            isTrackIntentUser,
         });
     };
 

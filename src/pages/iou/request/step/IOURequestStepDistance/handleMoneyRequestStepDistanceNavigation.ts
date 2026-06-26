@@ -98,6 +98,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     optimisticChatReportID: string | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
     action: IOUAction;
+    isTrackIntentUser?: boolean;
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -190,6 +191,7 @@ function handleMoneyRequestStepDistanceNavigation({
     optimisticChatReportID,
     reportDraft,
     action,
+    isTrackIntentUser,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -392,6 +394,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyParams: {
                             policyTagList,
                         },
+                        isTrackIntentUser,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

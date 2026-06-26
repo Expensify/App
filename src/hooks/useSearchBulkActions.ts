@@ -1868,6 +1868,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             currentUserPersonalDetails?.login ?? '',
                             currentUserPersonalDetails?.accountID,
                             transactionViolations,
+                            isTrackIntentUser,
                         );
                     }
                     InteractionManager.runAfterInteractions(() => {

@@ -1,4 +1,4 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
@@ -139,6 +139,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Billing keys
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -255,6 +256,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                isTrackIntentUser,
             });
         }
     };
@@ -414,6 +416,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         recentWaypoints: recentWaypoints ?? [],
                         currentUserAccountID: currentUserPersonalDetails?.accountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                        isTrackIntentUser,
                     });
                 });
             },

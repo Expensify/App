@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyTypeSelector} from '@selectors/Policy';
 import {getReportOwnerAccountID} from '@selectors/Report';
 import React, {useCallback, useEffect} from 'react';
@@ -43,6 +44,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         selector: policyTypeSelector,
     });
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
@@ -65,7 +67,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, ancestors);
+        putOnHold(transactionID, values.comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, ancestors, isTrackIntentUser);
         Navigation.goBack(backTo);
     };
 

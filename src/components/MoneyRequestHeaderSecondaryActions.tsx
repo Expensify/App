@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useRef, useState} from 'react';
 import type {ValueOf} from 'type-fest';
@@ -154,6 +154,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -248,6 +249,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyTags,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
                 currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
+                isTrackIntentUser,
             });
         }
     };
@@ -256,7 +258,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations);
+            changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser);
         }
     };
 
@@ -264,7 +266,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser);
             }
         } else {
             dismissRejectUseExplanation();
@@ -317,7 +319,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
                 if (isDismissed || isParentChatReportDM) {
-                    changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations);
+                    changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -339,7 +341,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction, isOffline, currentUserLogin ?? '', accountID, rawTransactionViolations, isTrackIntentUser);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {

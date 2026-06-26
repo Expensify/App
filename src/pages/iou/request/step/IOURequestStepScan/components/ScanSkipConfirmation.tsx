@@ -1,4 +1,5 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -86,6 +87,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
     });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
@@ -265,6 +267,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             optimisticTransactionIDs,
             optimisticChatReportID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            isTrackIntentUser,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;

@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {ValueOf} from 'type-fest';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
@@ -47,6 +48,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const isChatReportDM = isDM(chatReport);
@@ -70,7 +72,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
                 } else if (isReportSubmitter) {
                     onHoldEducationalOpen();
                 } else {
@@ -93,7 +95,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {

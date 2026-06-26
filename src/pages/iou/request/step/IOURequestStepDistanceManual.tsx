@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -119,6 +120,7 @@ function IOURequestStepDistanceManual({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
         iouType,
@@ -266,6 +268,7 @@ function IOURequestStepDistanceManual({
             optimisticTransactionID,
             optimisticChatReportID,
             reportDraft,
+            isTrackIntentUser,
         });
     };
 
