@@ -1,7 +1,7 @@
 import {useState} from 'react';
-import useScreenInitialFocus from '@hooks/useScreenInitialFocus';
-import type {UseScreenInitialFocusOptions} from '@hooks/useScreenInitialFocus/types';
 import isHTMLElement from '@libs/isHTMLElement';
+import useScreenInitialFocus from './useScreenInitialFocus';
+import type {UseScreenInitialFocusOptions} from './useScreenInitialFocus/types';
 
 /** Returns a ref-callback for the element that should claim focus once its screen has mounted. Late attachment re-triggers the claim. */
 function useInitialFocusRef(options?: UseScreenInitialFocusOptions): (node: unknown) => void {

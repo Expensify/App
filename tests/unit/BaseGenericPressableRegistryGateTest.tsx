@@ -5,7 +5,7 @@ import React from 'react';
 const mockRegisterPressable = jest.fn<() => void, [string, string, {current: unknown}]>();
 const mockNotifyPressedTrigger = jest.fn<void, [ref: {current: unknown} | null, identifier?: string]>();
 
-let mockIsScreenReaderKnownOff = false;
+let mockScreenReaderState: 'enabled' | 'disabled' | 'unknown' = 'unknown';
 let mockIsScreenReaderActive = false;
 
 jest.mock('@libs/NavigationFocusReturn', () => ({
@@ -23,7 +23,7 @@ jest.mock('@libs/Accessibility', () => ({
     __esModule: true,
     default: {
         useScreenReaderStatus: () => mockIsScreenReaderActive,
-        useIsScreenReaderKnownOff: () => mockIsScreenReaderKnownOff,
+        useScreenReaderState: () => mockScreenReaderState,
         useAutoHitSlop: () => [undefined, jest.fn()],
         moveAccessibilityFocus: jest.fn(),
     },
@@ -51,13 +51,13 @@ function renderInsideRoute(node: React.ReactElement) {
 beforeEach(() => {
     mockRegisterPressable.mockClear();
     mockNotifyPressedTrigger.mockClear();
-    mockIsScreenReaderKnownOff = false;
+    mockScreenReaderState = 'unknown';
     mockIsScreenReaderActive = false;
 });
 
 describe('BaseGenericPressable — focus-return registry gate', () => {
-    it('registers during the SR warm-up window (`isScreenReaderKnownOff` is false) — symmetric with the capture-side `isScreenReaderKnownOff()` bail, so cold-start press → detach → back has a fallback target', () => {
-        mockIsScreenReaderKnownOff = false;
+    it("registers during the SR warm-up window (state is 'unknown') — symmetric with the capture-side `getScreenReaderState() === 'disabled'` bail, so cold-start press → detach → back has a fallback target", () => {
+        mockScreenReaderState = 'unknown';
         renderInsideRoute(
             <GenericPressable
                 id="row-1"
@@ -72,7 +72,7 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
     });
 
     it('skips registration when SR is known-off (cache warm + value false) so sighted users pay zero registry cost', () => {
-        mockIsScreenReaderKnownOff = true;
+        mockScreenReaderState = 'disabled';
         renderInsideRoute(
             <GenericPressable
                 id="row-1"
@@ -83,7 +83,7 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
     });
 
     it('registers when SR is known-on', () => {
-        mockIsScreenReaderKnownOff = false;
+        mockScreenReaderState = 'unknown';
         mockIsScreenReaderActive = true;
         renderInsideRoute(
             <GenericPressable
@@ -95,13 +95,13 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
     });
 
     it('does not register when no focusIdentifier is available (no id / nativeID / testID — the registry rescue has no key to use)', () => {
-        mockIsScreenReaderKnownOff = false;
+        mockScreenReaderState = 'unknown';
         renderInsideRoute(<GenericPressable onPress={() => {}} />);
         expect(mockRegisterPressable).not.toHaveBeenCalled();
     });
 
     it('does not register when routeKey is null (consumer outside a navigator)', () => {
-        mockIsScreenReaderKnownOff = false;
+        mockScreenReaderState = 'unknown';
         render(
             <GenericPressable
                 id="row-1"
@@ -112,7 +112,7 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
     });
 
     it('prefers `id` when `id`/`nativeID`/`testID` are all set', () => {
-        mockIsScreenReaderKnownOff = false;
+        mockScreenReaderState = 'unknown';
         renderInsideRoute(
             <GenericPressable
                 id="prefer-id"
@@ -125,7 +125,7 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
     });
 
     it('uses `nativeID` when `id` is absent', () => {
-        mockIsScreenReaderKnownOff = false;
+        mockScreenReaderState = 'unknown';
         renderInsideRoute(
             <GenericPressable
                 nativeID="native-id-only"
@@ -137,7 +137,7 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
     });
 
     it('uses `testID` when `id` and `nativeID` are absent', () => {
-        mockIsScreenReaderKnownOff = false;
+        mockScreenReaderState = 'unknown';
         renderInsideRoute(
             <GenericPressable
                 testID="test-id-only"
@@ -148,7 +148,7 @@ describe('BaseGenericPressable — focus-return registry gate', () => {
     });
 
     it('calls notifyPressedTrigger(internalRef, identifier) on press so the focus-return capture has a fresh trigger', () => {
-        mockIsScreenReaderKnownOff = false;
+        mockScreenReaderState = 'unknown';
         const onPress = jest.fn();
         renderInsideRoute(
             <GenericPressable

@@ -102,17 +102,18 @@ function isScreenReaderEnabledSync(): boolean {
     return cachedScreenReaderValue;
 }
 
-// True only after the platform query has resolved with false; returns false while warm-up is in-flight (cold start OR AppState resume) so 'unknown' is treated as 'might be on'.
-function isScreenReaderKnownOff(): boolean {
-    return isScreenReaderCacheWarm() && !cachedScreenReaderValue;
+type ScreenReaderState = 'enabled' | 'disabled' | 'unknown';
+
+/** Tri-state — `'unknown'` while the platform query is in-flight (cold start, AppState resume) so callers can register/capture defensively instead of bailing the moment the boolean cache says `false`. */
+function getScreenReaderState(): ScreenReaderState {
+    if (!isScreenReaderCacheWarm()) {
+        return 'unknown';
+    }
+    return cachedScreenReaderValue ? 'enabled' : 'disabled';
 }
 
-function getIsScreenReaderKnownOffSnapshot(): boolean {
-    return isScreenReaderKnownOff();
-}
-
-/** Reactive variant of {@link isScreenReaderKnownOff} — for effects that need the tri-state predicate (warm-up = unknown). */
-const useIsScreenReaderKnownOff = (): boolean => useSyncExternalStore(subscribeScreenReader, getIsScreenReaderKnownOffSnapshot, () => false);
+/** Reactive variant of {@link getScreenReaderState} — for effects that need the tri-state inside React. */
+const useScreenReaderState = (): ScreenReaderState => useSyncExternalStore(subscribeScreenReader, getScreenReaderState, () => 'unknown');
 
 let cachedReduceMotionValue = false;
 const reduceMotionSubscribers = new Set<() => void>();
@@ -236,12 +237,13 @@ const useAutoHitSlop = () => {
 };
 
 export {resetForTests};
+export type {ScreenReaderState};
 export default {
     moveAccessibilityFocus,
     useScreenReaderStatus,
-    useIsScreenReaderKnownOff,
+    useScreenReaderState,
     useAutoHitSlop,
     useReducedMotion,
     isScreenReaderEnabledSync,
-    isScreenReaderKnownOff,
+    getScreenReaderState,
 };

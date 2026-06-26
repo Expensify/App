@@ -75,9 +75,9 @@ function registerPressable(routeKey: string, identifier: string, ref: RefObject<
     };
 }
 
-// Gate on known-off so the warm-up window (cold start, AppState resume) still captures defensively.
+// Gate on `'disabled'` so the warm-up window (cold start, AppState resume) — which returns `'unknown'` — still captures defensively.
 function captureTriggerForRoute(routeKey: string): void {
-    if (Accessibility.isScreenReaderKnownOff()) {
+    if (Accessibility.getScreenReaderState() === 'disabled') {
         return;
     }
     if (!lastPressedTriggerRef || performance.now() - lastPressedTriggerAt > PRESS_TRIGGER_TTL_MS) {
@@ -153,7 +153,7 @@ function scheduleRestore(routeKey: string, {waitForUpcomingTransition}: {waitFor
     // Cancel first so a stale prior restore can't fire on the prior route after the user moved on (rapid double-back).
     cancelPendingRestore();
     // Consume the entry so a later SR re-enable + press-less nav can't replay this stale capture.
-    if (Accessibility.isScreenReaderKnownOff()) {
+    if (Accessibility.getScreenReaderState() === 'disabled') {
         triggerMap.delete(routeKey);
         return;
     }

@@ -126,7 +126,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const setBackButtonRef = useInitialFocusRef({claimOnlyForScreenReader: true});
+    const setBackButtonRef = useInitialFocusRef({shouldClaimOnlyForScreenReader: true});
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);

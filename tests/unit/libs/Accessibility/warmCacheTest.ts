@@ -1,8 +1,9 @@
 type AppStateChangeListener = (status: string) => void;
+type ScreenReaderState = 'enabled' | 'disabled' | 'unknown';
 type AccessibilityModule = {
     default: {
         isScreenReaderEnabledSync: () => boolean;
-        isScreenReaderKnownOff: () => boolean;
+        getScreenReaderState: () => ScreenReaderState;
     };
 };
 
@@ -135,19 +136,19 @@ describe('Accessibility warm cache — AppState refresh', () => {
         expect(mockReduceMotionFetchCount).toBe(initialReduceMotionFetches);
     });
 
-    it('isScreenReaderKnownOff returns false before warm resolves and true only after a false-resolution', async () => {
+    it("getScreenReaderState returns 'unknown' before warm resolves and 'disabled' only after a false-resolution", async () => {
         mockScreenReaderValue = false;
         const Accessibility = loadModule();
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+        expect(Accessibility.default.getScreenReaderState()).toBe('unknown');
         await flushPromises();
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(true);
+        expect(Accessibility.default.getScreenReaderState()).toBe('disabled');
     });
 
-    it('isScreenReaderKnownOff returns false after warm resolves with SR enabled', async () => {
+    it("getScreenReaderState returns 'enabled' after warm resolves with SR enabled", async () => {
         mockScreenReaderValue = true;
         const Accessibility = loadModule();
         await flushPromises();
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+        expect(Accessibility.default.getScreenReaderState()).toBe('enabled');
     });
 
     it('discards a superseded in-flight warm fetch on out-of-order resolution (newer value wins)', async () => {
@@ -163,28 +164,28 @@ describe('Accessibility warm cache — AppState refresh', () => {
         mockScreenReaderResolvers[1](true);
         await flushPromises();
         expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(true);
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+        expect(Accessibility.default.getScreenReaderState()).toBe('enabled');
 
         // The superseded initial fetch (#1) resolves later with the obsolete value — must NOT overwrite the refresh result.
         mockScreenReaderResolvers[0](false);
         await flushPromises();
         expect(Accessibility.default.isScreenReaderEnabledSync()).toBe(true);
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+        expect(Accessibility.default.getScreenReaderState()).toBe('enabled');
     });
 
-    it('isScreenReaderKnownOff returns false during a resume refresh (warmed flag invalidates until the new value resolves)', async () => {
+    it("getScreenReaderState returns 'unknown' during a resume refresh (warmed flag invalidates until the new value resolves)", async () => {
         mockScreenReaderValue = false;
         const Accessibility = loadModule();
         await flushPromises();
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(true);
+        expect(Accessibility.default.getScreenReaderState()).toBe('disabled');
 
         mockScreenReaderValue = true;
         emitAppState('background');
         emitAppState('active');
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+        expect(Accessibility.default.getScreenReaderState()).toBe('unknown');
 
         await flushPromises();
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
+        expect(Accessibility.default.getScreenReaderState()).toBe('enabled');
     });
 
     it('re-fetches the reduce-motion value on background→active transition', async () => {

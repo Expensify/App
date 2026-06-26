@@ -31,11 +31,11 @@ const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {
     const status = useContext(ScreenWrapperStatusContext);
     const {isInsideDialog} = useDialogLabelData();
     const claimedRef = useRef(false);
-    const skip = options?.skip ?? false;
-    const claimOnlyForScreenReader = options?.claimOnlyForScreenReader ?? false;
+    const shouldSkip = options?.shouldSkip ?? false;
+    const shouldClaimOnlyForScreenReader = options?.shouldClaimOnlyForScreenReader ?? false;
 
     useEffect(() => {
-        if (skip || isInsideDialog) {
+        if (shouldSkip || isInsideDialog) {
             return;
         }
         if (!status?.didScreenTransitionEnd) {
@@ -51,7 +51,7 @@ const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {
         if (hasHoverSupport() && !getHadTabNavigation()) {
             return;
         }
-        if (claimOnlyForScreenReader && Accessibility.isScreenReaderKnownOff()) {
+        if (shouldClaimOnlyForScreenReader && Accessibility.getScreenReaderState() === 'disabled') {
             return;
         }
         let rafId: number | null = null;
@@ -74,7 +74,7 @@ const useScreenInitialFocus: UseScreenInitialFocus = (node, options) => {
             }
             cancelAnimationFrame(rafId);
         };
-    }, [skip, claimOnlyForScreenReader, isInsideDialog, status?.didScreenTransitionEnd, node]);
+    }, [shouldSkip, shouldClaimOnlyForScreenReader, isInsideDialog, status?.didScreenTransitionEnd, node]);
 };
 
 export default useScreenInitialFocus;

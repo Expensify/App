@@ -8,13 +8,13 @@ jest.mock('@libs/DeviceCapabilities/hasHoverSupport', () => ({
     default: () => mockHasHoverSupport,
 }));
 
-let mockIsScreenReaderKnownOff = false;
+let mockScreenReaderState: 'enabled' | 'disabled' | 'unknown' = 'enabled';
 jest.mock('@libs/Accessibility', () => ({
     __esModule: true,
     default: {
-        isScreenReaderKnownOff: () => mockIsScreenReaderKnownOff,
-        isScreenReaderEnabledSync: () => !mockIsScreenReaderKnownOff,
-        useScreenReaderStatus: () => !mockIsScreenReaderKnownOff,
+        getScreenReaderState: () => mockScreenReaderState,
+        isScreenReaderEnabledSync: () => mockScreenReaderState === 'enabled',
+        useScreenReaderStatus: () => mockScreenReaderState === 'enabled',
         useReducedMotion: () => false,
         moveAccessibilityFocus: jest.fn(),
     },
@@ -22,7 +22,7 @@ jest.mock('@libs/Accessibility', () => ({
 
 /* eslint-disable import/extensions */
 const {default: useScreenInitialFocus} = require<{
-    default: (node: HTMLElement | null, options?: {skip?: boolean; claimOnlyForScreenReader?: boolean}) => void;
+    default: (node: HTMLElement | null, options?: {shouldSkip?: boolean; shouldClaimOnlyForScreenReader?: boolean}) => void;
 }>('../../src/hooks/useScreenInitialFocus/index.ts');
 const {resetCycle: resetArbiter, tryClaim: arbiterClaim, Priorities: arbiterPriorities} = require<{
     resetCycle: () => void;
@@ -45,22 +45,22 @@ function simulatePointer() {
     document.dispatchEvent(new Event('pointerdown', {bubbles: true}));
 }
 
-type HarnessProps = {target: HTMLElement | null; didScreenTransitionEnd: boolean; skip?: boolean; claimOnlyForScreenReader?: boolean};
+type HarnessProps = {target: HTMLElement | null; didScreenTransitionEnd: boolean; shouldSkip?: boolean; shouldClaimOnlyForScreenReader?: boolean};
 
-function MountedHarness({target, didScreenTransitionEnd, skip, claimOnlyForScreenReader}: HarnessProps) {
+function MountedHarness({target, didScreenTransitionEnd, shouldSkip, shouldClaimOnlyForScreenReader}: HarnessProps) {
     const contextValue = useMemo(() => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}), [didScreenTransitionEnd]);
     return (
         <ScreenWrapperStatusContext.Provider value={contextValue}>
             <Inner
                 target={target}
-                skip={skip}
-                claimOnlyForScreenReader={claimOnlyForScreenReader}
+                shouldSkip={shouldSkip}
+                shouldClaimOnlyForScreenReader={shouldClaimOnlyForScreenReader}
             />
         </ScreenWrapperStatusContext.Provider>
     );
 }
-function Inner({target, skip, claimOnlyForScreenReader}: {target: HTMLElement | null; skip?: boolean; claimOnlyForScreenReader?: boolean}) {
-    const options = skip === undefined && claimOnlyForScreenReader === undefined ? undefined : {skip, claimOnlyForScreenReader};
+function Inner({target, shouldSkip, shouldClaimOnlyForScreenReader}: {target: HTMLElement | null; shouldSkip?: boolean; shouldClaimOnlyForScreenReader?: boolean}) {
+    const options = shouldSkip === undefined && shouldClaimOnlyForScreenReader === undefined ? undefined : {shouldSkip, shouldClaimOnlyForScreenReader};
     useScreenInitialFocus(target, options);
     return null;
 }
@@ -86,7 +86,7 @@ beforeEach(() => {
     document.body.innerHTML = '';
     resetArbiter();
     mockHasHoverSupport = true;
-    mockIsScreenReaderKnownOff = false;
+    mockScreenReaderState = 'enabled';
     teardownHadTabNavigation();
     resetHadTabNavigation();
     setupHadTabNavigation();
@@ -261,7 +261,7 @@ describe('useScreenInitialFocus', () => {
         expect(spy).toHaveBeenCalledTimes(1);
     });
 
-    it('bails when skip=true so screens that opt out of post-transition focus', () => {
+    it('bails when shouldSkip=true so screens that opt out of post-transition focus', () => {
         simulateTab();
         const button = makeButton();
         const spy = jest.spyOn(button, 'focus');
@@ -269,14 +269,14 @@ describe('useScreenInitialFocus', () => {
             <MountedHarness
                 target={button}
                 didScreenTransitionEnd
-                skip
+                shouldSkip
             />,
         );
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('claimOnlyForScreenReader=true + SR known-off → bails (keyboard user does not see a ring flash before the screen auto-focuses its own target)', () => {
-        mockIsScreenReaderKnownOff = true;
+    it('shouldClaimOnlyForScreenReader=true + SR known-off → bails (keyboard user does not see a ring flash before the screen auto-focuses its own target)', () => {
+        mockScreenReaderState = 'disabled';
         simulateTab();
         const button = makeButton();
         const spy = jest.spyOn(button, 'focus');
@@ -284,14 +284,14 @@ describe('useScreenInitialFocus', () => {
             <MountedHarness
                 target={button}
                 didScreenTransitionEnd
-                claimOnlyForScreenReader
+                shouldClaimOnlyForScreenReader
             />,
         );
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('claimOnlyForScreenReader=true + SR on → claims (TalkBack/VoiceOver needs back-button orientation while the composer is delayed)', () => {
-        mockIsScreenReaderKnownOff = false;
+    it('shouldClaimOnlyForScreenReader=true + SR on → claims (TalkBack/VoiceOver needs back-button orientation while the composer is delayed)', () => {
+        mockScreenReaderState = 'enabled';
         simulateTab();
         const button = makeButton();
         const spy = jest.spyOn(button, 'focus');
@@ -299,14 +299,14 @@ describe('useScreenInitialFocus', () => {
             <MountedHarness
                 target={button}
                 didScreenTransitionEnd
-                claimOnlyForScreenReader
+                shouldClaimOnlyForScreenReader
             />,
         );
         expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
     });
 
-    it('claimOnlyForScreenReader=false (default) preserves the unconditional claim path so non-chat headers still focus for keyboard users', () => {
-        mockIsScreenReaderKnownOff = true;
+    it('shouldClaimOnlyForScreenReader=false (default) preserves the unconditional claim path so non-chat headers still focus for keyboard users', () => {
+        mockScreenReaderState = 'disabled';
         simulateTab();
         const button = makeButton();
         const spy = jest.spyOn(button, 'focus');

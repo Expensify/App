@@ -35,7 +35,12 @@ jest.mock('../../src/libs/Accessibility', () => ({
     default: {
         moveAccessibilityFocus: jest.fn(),
         isScreenReaderEnabledSync: () => mockScreenReaderEnabled,
-        isScreenReaderKnownOff: () => mockScreenReaderCacheWarmed && !mockScreenReaderEnabled,
+        getScreenReaderState: () => {
+            if (!mockScreenReaderCacheWarmed) {
+                return 'unknown';
+            }
+            return mockScreenReaderEnabled ? 'enabled' : 'disabled';
+        },
         useScreenReaderStatus: () => mockScreenReaderEnabled,
         useReducedMotion: () => false,
     },

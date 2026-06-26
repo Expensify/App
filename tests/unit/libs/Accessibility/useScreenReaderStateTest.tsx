@@ -24,10 +24,12 @@ jest.mock('react-native', () => ({
     },
 }));
 
+type ScreenReaderState = 'enabled' | 'disabled' | 'unknown';
+
 const Accessibility = require<{
     default: {
-        useIsScreenReaderKnownOff: () => boolean;
-        isScreenReaderKnownOff: () => boolean;
+        useScreenReaderState: () => ScreenReaderState;
+        getScreenReaderState: () => ScreenReaderState;
     };
     resetForTests: () => void;
 }>('@libs/Accessibility');
@@ -43,79 +45,79 @@ beforeEach(() => {
     mockScreenReaderResolvers.length = 0;
 });
 
-describe('useIsScreenReaderKnownOff', () => {
-    it('returns false during the warm-up window (cache not yet resolved) so callers register/capture defensively', () => {
-        const {result, unmount} = renderHook(() => Accessibility.default.useIsScreenReaderKnownOff());
-        expect(result.current).toBe(false);
+describe('useScreenReaderState', () => {
+    it("returns 'unknown' during the warm-up window (cache not yet resolved) so callers register/capture defensively", () => {
+        const {result, unmount} = renderHook(() => Accessibility.default.useScreenReaderState());
+        expect(result.current).toBe('unknown');
         unmount();
     });
 
-    it('re-renders to true after warm resolves with SR-off — the load-bearing reactivity a Pressable mounted mid-warm-up relies on', async () => {
+    it("re-renders to 'disabled' after warm resolves with SR-off — the load-bearing reactivity a Pressable mounted mid-warm-up relies on", async () => {
         let renderCount = 0;
         const {result, unmount} = renderHook(() => {
             renderCount += 1;
-            return Accessibility.default.useIsScreenReaderKnownOff();
+            return Accessibility.default.useScreenReaderState();
         });
-        expect(result.current).toBe(false);
+        expect(result.current).toBe('unknown');
         const initialRenderCount = renderCount;
 
         await act(async () => {
             mockScreenReaderResolvers[0]?.(false);
             await flushPromises();
         });
-        expect(result.current).toBe(true);
+        expect(result.current).toBe('disabled');
         expect(renderCount).toBeGreaterThan(initialRenderCount);
         unmount();
     });
 
-    it('stays false after warm resolves with SR-on — known-off is true ONLY for known-off', async () => {
-        const {result, unmount} = renderHook(() => Accessibility.default.useIsScreenReaderKnownOff());
-        expect(result.current).toBe(false);
+    it("re-renders to 'enabled' after warm resolves with SR-on", async () => {
+        const {result, unmount} = renderHook(() => Accessibility.default.useScreenReaderState());
+        expect(result.current).toBe('unknown');
 
         await act(async () => {
             mockScreenReaderResolvers[0]?.(true);
             await flushPromises();
         });
-        expect(result.current).toBe(false);
+        expect(result.current).toBe('enabled');
         unmount();
     });
 
-    it('snapshot stays consistent with `isScreenReaderKnownOff()` across the warm-up transition', async () => {
-        expect(Accessibility.default.isScreenReaderKnownOff()).toBe(false);
-        const {result, unmount} = renderHook(() => Accessibility.default.useIsScreenReaderKnownOff());
-        expect(result.current).toBe(Accessibility.default.isScreenReaderKnownOff());
+    it('snapshot stays consistent with `getScreenReaderState()` across the warm-up transition', async () => {
+        expect(Accessibility.default.getScreenReaderState()).toBe('unknown');
+        const {result, unmount} = renderHook(() => Accessibility.default.useScreenReaderState());
+        expect(result.current).toBe(Accessibility.default.getScreenReaderState());
 
         await act(async () => {
             mockScreenReaderResolvers[0]?.(false);
             await flushPromises();
         });
-        expect(result.current).toBe(Accessibility.default.isScreenReaderKnownOff());
-        expect(result.current).toBe(true);
+        expect(result.current).toBe(Accessibility.default.getScreenReaderState());
+        expect(result.current).toBe('disabled');
         unmount();
     });
 
-    it('an effect depending on the hook re-runs when warm resolves (the architectural contract `BaseGenericPressable`s registry effect relies on)', async () => {
-        const sideEffect = jest.fn<void, [boolean]>();
+    it("an effect depending on the hook re-runs when warm resolves (the architectural contract `BaseGenericPressable`'s registry effect relies on)", async () => {
+        const sideEffect = jest.fn<void, [ScreenReaderState]>();
         const {unmount} = renderHook(() => {
-            const knownOff = Accessibility.default.useIsScreenReaderKnownOff();
+            const state = Accessibility.default.useScreenReaderState();
             const isFirstRunRef = useRef(true);
             useEffect(() => {
-                sideEffect(knownOff);
+                sideEffect(state);
                 if (isFirstRunRef.current) {
                     isFirstRunRef.current = false;
                 }
-            }, [knownOff]);
-            return knownOff;
+            }, [state]);
+            return state;
         });
         expect(sideEffect).toHaveBeenCalledTimes(1);
-        expect(sideEffect).toHaveBeenLastCalledWith(false);
+        expect(sideEffect).toHaveBeenLastCalledWith('unknown');
 
         await act(async () => {
             mockScreenReaderResolvers[0]?.(false);
             await flushPromises();
         });
         expect(sideEffect).toHaveBeenCalledTimes(2);
-        expect(sideEffect).toHaveBeenLastCalledWith(true);
+        expect(sideEffect).toHaveBeenLastCalledWith('disabled');
         unmount();
     });
 });
