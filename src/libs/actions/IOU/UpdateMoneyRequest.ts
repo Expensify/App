@@ -9,7 +9,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticModifiedExpenseReportAction,
@@ -28,6 +28,7 @@ import {
 import {
     getAmount,
     getClearedPendingFields,
+    getDistanceRateTaxUpdates,
     getMerchant,
     getUpdatedTransaction,
     hasSubmissionBlockingViolationInReport,
@@ -75,6 +76,7 @@ type UpdateMoneyRequestDateParams = {
     isOffline: boolean;
     hash?: number;
     delegateAccountID: number | undefined;
+    policyForTrackExpense?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 type SearchSnapshotOnyxData = {
@@ -142,6 +144,64 @@ function getSearchSnapshotUpdates({
     };
 }
 
+function getRecalculatedDistanceRateIDForExpenseDate({
+    transaction,
+    transactionThreadReport,
+    parentReport,
+    policy,
+    expenseDate,
+}: {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    expenseDate: string;
+}): string | undefined {
+    if (!transaction || !isDistanceRequestTransactionUtils(transaction)) {
+        return undefined;
+    }
+
+    const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
+    const isWorkspaceDistanceExpense = isExpenseReport(parentReport);
+
+    if (!isWorkspaceDistanceExpense && !isTrackExpense) {
+        return undefined;
+    }
+
+    if (!policy || !isGroupPolicy(policy)) {
+        return undefined;
+    }
+
+    const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
+    if (!currentRateID || currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+        return undefined;
+    }
+
+    const currentMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy});
+    if (currentMileageRate && currentMileageRate.enabled !== false && DistanceRequestUtils.isRateEligibleForDate(currentMileageRate, expenseDate)) {
+        return undefined;
+    }
+
+    const newRateID = DistanceRequestUtils.getCustomUnitRateID({
+        reportID: parentReport?.reportID,
+        isPolicyExpenseChat: isWorkspaceDistanceExpense,
+        isTrackDistanceExpense: isTrackExpense,
+        policy,
+        expenseDate,
+    });
+
+    if (newRateID === currentRateID || newRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+        return undefined;
+    }
+
+    const newMileageRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: newRateID, policy});
+    if (!newMileageRate || !DistanceRequestUtils.isRateEligibleForDate(newMileageRate, expenseDate)) {
+        return undefined;
+    }
+
+    return newRateID;
+}
+
 /** Updates the created date of an expense */
 function updateMoneyRequestDate({
     transactionID,
@@ -160,21 +220,64 @@ function updateMoneyRequestDate({
     isOffline,
     hash,
     delegateAccountID,
+    policyForTrackExpense,
 }: UpdateMoneyRequestDateParams) {
+    const transaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
+    const effectivePolicy = isTrackExpense ? policyForTrackExpense : policy;
+    const newRateID = getRecalculatedDistanceRateIDForExpenseDate({
+        transaction,
+        transactionThreadReport,
+        parentReport,
+        policy: effectivePolicy,
+        expenseDate: value,
+    });
+    const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    const shouldRecalculateRate = !!(newRateID && newRateID !== currentRateID && transaction && effectivePolicy);
+
+    if (shouldRecalculateRate) {
+        const distanceRateTaxUpdates =
+            !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transaction ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID) : undefined;
+
+        updateMoneyRequestDistanceRate({
+            transaction,
+            transactionThreadReport,
+            parentReport,
+            rateID: newRateID,
+            created: value,
+            policy: effectivePolicy,
+            policyTagList: policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+            delegateAccountID,
+            hash,
+            transactions,
+            transactionViolations,
+            isOffline,
+            updatedTaxAmount: distanceRateTaxUpdates?.taxAmount,
+            updatedTaxCode: distanceRateTaxUpdates?.taxCode,
+            updatedTaxValue: distanceRateTaxUpdates?.taxValue,
+        });
+        return;
+    }
+
     const transactionChanges: TransactionChanges = {
         created: value,
     };
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
-    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
+    if (isTrackExpense) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, effectivePolicy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
             transactionChanges,
-            policy,
+            policy: effectivePolicy,
             policyTagList: policyTags,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
             reportPolicyTags: getPolicyTagsData(parentReport?.policyID),
@@ -565,7 +668,7 @@ function updateMoneyRequestVendor({transactionID, vendorID, transaction, transac
     }
 
     // Optimistically clear any existing inactive-vendor violation. This is the user-driven write
-    // path: the vendor selector RHP only offers vendors from `getQBOVendors(policy)`, so a user
+    // path: the vendor selector RHP only offers vendors from `getMatchingVendors(policy)`, so a user
     // pick is always a valid vendor (resolving the violation); clearing the vendor likewise
     // resolves it (no vendor → no inactive-vendor). Without this, the stale violation persists
     // in Onyx until some unrelated recalculation fires, keeping the expense incorrectly flagged.
@@ -1032,6 +1135,7 @@ function updateMoneyRequestDistanceRate({
     transactionThreadReport,
     parentReport,
     rateID,
+    created,
     policy,
     policyTagList,
     policyCategories,
@@ -1043,11 +1147,17 @@ function updateMoneyRequestDistanceRate({
     updatedTaxValue,
     parentReportNextStep,
     delegateAccountID,
+    hash,
+    transactions,
+    transactionViolations,
+    isOffline,
+    shouldBuildOptimisticModifiedExpenseReportAction = true,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     rateID: string;
+    created?: string;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -1059,9 +1169,15 @@ function updateMoneyRequestDistanceRate({
     updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     delegateAccountID: number | undefined;
+    hash?: number;
+    transactions?: OnyxCollection<OnyxTypes.Transaction>;
+    transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isOffline?: boolean;
+    shouldBuildOptimisticModifiedExpenseReportAction?: boolean;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
+        ...(created ? {created} : {}),
         ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
         ...(updatedTaxValue ? {taxValue: updatedTaxValue} : {}),
@@ -1083,7 +1199,15 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID);
+        data = getUpdateTrackExpenseParams(
+            transaction?.transactionID,
+            transactionThreadReport?.reportID,
+            transactionChanges,
+            policy,
+            delegateAccountID,
+            hash,
+            shouldBuildOptimisticModifiedExpenseReportAction,
+        );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -1099,13 +1223,20 @@ function updateMoneyRequestDistanceRate({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            isOffline,
+            hash,
             delegateAccountID,
+            shouldBuildOptimisticModifiedExpenseReportAction,
         });
+        if (created && transaction?.transactionID && transactions && transactionViolations) {
+            removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);
+        }
     }
     const {params, onyxData} = data;
-    // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
-    const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
+    // `taxAmount`, `taxCode`, and optionally `created` only need to be updated in the optimistic data, so we need to remove them from the params
+    const {taxAmount, taxCode, created: createdParam, ...paramsWithoutOptimisticOnlyData} = params;
+    const paramsForAPI = createdParam ? {...paramsWithoutOptimisticOnlyData, created: createdParam} : paramsWithoutOptimisticOnlyData;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsForAPI, onyxData);
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
@@ -1743,6 +1874,10 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedCategory && transactionChanges.category === ''
                 ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                 : optimisticViolations;
+        // Clearing the tag can't be "out of policy"; strip it here since the recompute skips tag logic when tags
+        // aren't required and the tag is now empty, which would otherwise leave the stale violation offline.
+        optimisticViolations =
+            hasModifiedTag && transactionChanges.tag === '' ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY) : optimisticViolations;
         if (hasPendingWaypoints) {
             optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
         }
