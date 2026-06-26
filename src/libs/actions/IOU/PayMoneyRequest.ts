@@ -75,6 +75,7 @@ type PayMoneyRequestData = {
         | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
         | typeof ONYXKEYS.COLLECTION.TRANSACTION
         | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         | BuildPolicyDataKeys
     >;
 };
