@@ -1540,6 +1540,21 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleKey: string;
     };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: {
+        policyID: string;
+        categoryName: string;
+    };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: {
+        policyID: string;
+        ruleKey: string;
+    };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: {
+        policyID: string;
+        ruleKey: string;
+    };
     [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
         policyID: string;
         ruleID: string;

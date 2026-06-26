@@ -7347,6 +7347,7 @@ const translations = {
                 cardRestrictions: 'Card restrictions',
                 expenseDefaults: 'Expense defaults',
                 requireFields: 'Require fields',
+                flagForReview: 'Flag for review',
             },
             bulkActions: {
                 deleteMultiple: () => ({
@@ -7522,6 +7523,8 @@ const translations = {
                 subtitle: 'What do you want to do?',
                 restrictCardSpend: 'Restrict card spend',
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
+                flagForReview: 'Flag for review',
+                flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
                 requireFields: 'Require fields',
                 requireFieldsDescription: 'Make sure key fields are filled in before expenses are submitted',
                 applyExpenseDefaults: 'Apply expense defaults',
@@ -7563,6 +7566,27 @@ const translations = {
                 saveRule: 'Save rule',
                 confirmErrorCategory: 'Please select a category.',
                 confirmErrorField: 'Please select at least one field to require.',
+            },
+            flagForReviewTable: {
+                tableColumnType: 'Type',
+                tableColumnCondition: 'Condition',
+                tableColumnRule: 'Rule',
+                findRule: 'Find rule',
+                typeLabel: 'Flag',
+                conditionCategoryAndAmount: (category: string, amount: string) => `Category is "${category}" and amount above ${amount}`,
+                flagForReview: 'Flag for review',
+            },
+            flagForReviewEmptyState: {
+                title: 'Catch overspending early',
+                subtitle: 'Notify approvers when expenses exceed category limits.',
+                cta: 'Add rule',
+            },
+            flagForReviewRule: {
+                title: 'Flag for review',
+                subtitle: 'Notify approvers when the following conditions are met.',
+                saveRule: 'Save rule',
+                confirmErrorCategory: 'Please select a category.',
+                confirmErrorAmount: 'Please enter an amount.',
             },
             categoryRules: {
                 title: 'Category rules',

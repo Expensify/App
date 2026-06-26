@@ -1072,6 +1072,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/AddRequireFieldsRulePage').default,
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/EditRequireFieldsRulePage').default,
     [SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS_RULE_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RequireFieldsRules/RequireFieldsRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/AddFlagForReviewRulePage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/EditFlagForReviewRulePage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/EditSpendRulePage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCardPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCategoryPage').default,

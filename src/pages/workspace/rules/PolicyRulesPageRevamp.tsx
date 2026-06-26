@@ -11,6 +11,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScrollView from '@components/ScrollView';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
+import WorkspaceFlagForReviewTable from '@components/Tables/WorkspaceFlagForReviewTable';
 import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFieldsTable';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
 import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTable';
@@ -42,6 +43,7 @@ import {deletePolicyCodingRule, openPolicyRulesPage} from '@libs/actions/Policy/
 import Tab from '@libs/actions/Tab';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -95,8 +97,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration', 'ReportReceipt']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Trashcan']);
+    const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration', 'ReportReceipt', 'F1Flags']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const {isBetaEnabled} = usePermissions();
@@ -113,6 +115,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const [selectedSpendRuleKeys, setSelectedSpendRuleKeys] = useState<string[]>([]);
     const [selectedExpenseDefaultKeys, setSelectedExpenseDefaultKeys] = useState<string[]>([]);
     const [selectedRequireFieldsRuleKeys, setSelectedRequireFieldsRuleKeys] = useState<string[]>([]);
+    const [selectedFlagForReviewRuleKeys, setSelectedFlagForReviewRuleKeys] = useState<string[]>([]);
 
     const {showConfirmModal} = useConfirmModal();
     const defaultFundID = useDefaultFundID(policyID);
@@ -267,6 +270,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         onNavigate: Navigation.navigate,
     });
 
+    const flagForReviewTableData = getFlagForReviewTableData({
+        policy,
+        policyCategories: policyData.categories,
+        translate,
+        convertToDisplayString,
+        onNavigate: Navigation.navigate,
+    });
+
     useEffect(() => {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
@@ -279,11 +290,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         selectedRuleKeys = selectedExpenseDefaultKeys;
     } else if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
         selectedRuleKeys = selectedRequireFieldsRuleKeys;
+    } else if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
+        selectedRuleKeys = selectedFlagForReviewRuleKeys;
     } else {
         selectedRuleKeys = [];
     }
     const hasSelectedRules = selectedRuleKeys.length > 0;
-    const isTableTab = activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS;
+    const isTableTab =
+        activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
     const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
     const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
 
@@ -294,6 +308,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             setSelectedExpenseDefaultKeys([]);
         } else if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
             setSelectedRequireFieldsRuleKeys([]);
+        } else if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
+            setSelectedFlagForReviewRuleKeys([]);
         }
         turnOffMobileSelectionMode();
     };
@@ -311,6 +327,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const handleRequireFieldsSelectionChange = (selectedRowKeys: string[]) => {
         const selectableKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
         setSelectedRequireFieldsRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
+    };
+
+    const handleFlagForReviewSelectionChange = (selectedRowKeys: string[]) => {
+        const selectableKeys = new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+        setSelectedFlagForReviewRuleKeys(selectedRowKeys.filter((key) => selectableKeys.has(key)));
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
@@ -386,6 +407,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         clearTableSelection();
     };
 
+    const deleteSelectedFlagForReviewRules = () => {
+        for (const categoryName of selectedFlagForReviewRuleKeys) {
+            deleteFlagForReviewRule(policyID, categoryName, policyData.categories);
+        }
+        clearTableSelection();
+    };
+
     const getBulkActionsButtonOptions = (): Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> => {
         return [
             {
@@ -412,6 +440,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
                     if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
                         deleteSelectedRequireFieldsRules();
+                        return;
+                    }
+
+                    if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
+                        deleteSelectedFlagForReviewRules();
                         return;
                     }
 
@@ -442,7 +475,20 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             title: translate('workspace.rules.tabs.requireFields'),
             icon: icons.Task,
         },
+        {
+            key: RULES_TAB.FLAG_FOR_REVIEW,
+            title: translate('workspace.rules.tabs.flagForReview'),
+            icon: icons.Flag,
+        },
     ];
+
+    const handleNewFlagForReviewRule = () => {
+        if (!canWriteRules) {
+            showReadOnlyModal();
+            return;
+        }
+        Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID));
+    };
 
     const handleNewRequireFieldsRule = () => {
         if (!canWriteRules) {
@@ -557,6 +603,33 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         </ScrollView>
     );
 
+    const flagForReviewEmptyState = (
+        <ScrollView
+            style={[styles.flex1, styles.mnh0]}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            addBottomSafeAreaPadding
+        >
+            <GenericEmptyStateComponent
+                headerMedia={illustrations.F1Flags}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
+                title={translate('workspace.rules.flagForReviewEmptyState.title')}
+                subtitle={translate('workspace.rules.flagForReviewEmptyState.subtitle')}
+                subtitleStyles={[styles.textLabel, styles.textSupporting]}
+                minModalHeight={0}
+                containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                buttons={[
+                    {
+                        buttonText: translate('workspace.rules.flagForReviewEmptyState.cta'),
+                        buttonAction: handleNewFlagForReviewRule,
+                        success: true,
+                        isDisabled: !canWriteRules,
+                    },
+                ]}
+            />
+        </ScrollView>
+    );
+
     const renderTabContent = () => {
         switch (activeTab) {
             case RULES_TAB.GENERAL:
@@ -621,6 +694,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         setSelectedSpendRuleKeys([]);
                                         setSelectedExpenseDefaultKeys([]);
                                         setSelectedRequireFieldsRuleKeys([]);
+                                        setSelectedFlagForReviewRuleKeys([]);
                                         turnOffMobileSelectionMode();
                                         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
                                     }}
@@ -657,6 +731,15 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         selectedKeys={selectedRequireFieldsRuleKeys}
                                         onRowSelectionChange={handleRequireFieldsSelectionChange}
                                         emptyStateContent={requireFieldsEmptyState}
+                                    />
+                                )}
+                                {activeTab === RULES_TAB.FLAG_FOR_REVIEW && (
+                                    <WorkspaceFlagForReviewTable
+                                        rulesData={flagForReviewTableData}
+                                        selectionEnabled={canWriteRules}
+                                        selectedKeys={selectedFlagForReviewRuleKeys}
+                                        onRowSelectionChange={handleFlagForReviewSelectionChange}
+                                        emptyStateContent={flagForReviewEmptyState}
                                     />
                                 )}
                             </View>

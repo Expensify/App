@@ -25,7 +25,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'CheckboxText', 'ReportReceipt']);
+    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'F1Flags', 'CheckboxText', 'ReportReceipt']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -46,6 +46,18 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         description={translate('workspace.rules.newRule.restrictCardSpendDescription')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                        displayInDefaultIconColor
+                        iconWidth={variables.iconSizeExtraLarge}
+                        iconHeight={variables.iconSizeExtraLarge}
+                        wrapperStyle={styles.rulesNewMenuItem}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
+                    />
+                    <MenuItem
+                        icon={illustrations.F1Flags}
+                        title={translate('workspace.rules.newRule.flagForReview')}
+                        description={translate('workspace.rules.newRule.flagForReviewDescription')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID))}
                         displayInDefaultIconColor
                         iconWidth={variables.iconSizeExtraLarge}
                         iconHeight={variables.iconSizeExtraLarge}

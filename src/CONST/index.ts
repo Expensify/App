@@ -6000,6 +6000,7 @@ const CONST = {
             CARD_RESTRICTIONS: 'cardRestrictions',
             EXPENSE_DEFAULTS: 'expenseDefaults',
             REQUIRE_FIELDS: 'requireFields',
+            FLAG_FOR_REVIEW: 'flagForReview',
         },
         SPLIT: {
             AMOUNT: 'amount',
@@ -8600,6 +8601,8 @@ const CONST = {
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
+                FLAG_FOR_REVIEW_RULE_ITEM: 'WorkspaceRules-FlagForReviewRuleItem',
+                FLAG_FOR_REVIEW_RULE_SAVE: 'WorkspaceRules-FlagForReviewRuleSave',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',

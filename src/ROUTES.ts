@@ -3173,6 +3173,22 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/require-fields-rules/:ruleKey/category',
         getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/require-fields-rules/${ruleKey ?? ROUTES.NEW}/category` as const,
     },
+    RULES_FLAG_FOR_REVIEW_RULE_NEW: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${encodeURIComponent(categoryName)}` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_CATEGORY: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/:ruleKey/category',
+        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${ruleKey ?? ROUTES.NEW}/category` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_AMOUNT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/:ruleKey/amount',
+        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${ruleKey ?? ROUTES.NEW}/amount` as const,
+    },
     RULES_MAX_EXPENSE_AMOUNT: {
         route: 'workspaces/:policyID/rules/max-expense-amount',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,
