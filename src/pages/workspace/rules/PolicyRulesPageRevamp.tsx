@@ -229,7 +229,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     useCleanupSelectedOptions(clearAllTableSelection);
 
-    const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+    const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled && !rule.isSelectionDisabled).map((rule) => rule.keyForList));
     const validSpendRuleKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
     const validRequireFieldsRuleKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
     const validFlagForReviewRuleKeys = new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
@@ -269,57 +269,21 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         turnOffMobileSelectionMode();
     };
 
-    const handleSpendRuleSelectionChange = useCallback(
-        (selectedRowKeys: string[]) => {
-            const selectableKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-            setSelectedSpendRuleKeys((previousKeys) =>
-                updateSelectionKeysIfChanged(
-                    previousKeys,
-                    selectedRowKeys.filter((key) => selectableKeys.has(key)),
-                ),
-            );
-        },
-        [spendRulesTableData],
-    );
+    const handleSpendRuleSelectionChange = useCallback((selectedRowKeys: string[]) => {
+        setSelectedSpendRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
+    }, []);
 
-    const handleExpenseDefaultSelectionChange = useCallback(
-        (selectedRowKeys: string[]) => {
-            const selectableKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled && !rule.isSelectionDisabled).map((rule) => rule.keyForList));
-            setSelectedExpenseDefaultKeys((previousKeys) =>
-                updateSelectionKeysIfChanged(
-                    previousKeys,
-                    selectedRowKeys.filter((key) => selectableKeys.has(key)),
-                ),
-            );
-        },
-        [expenseDefaultsTableData],
-    );
+    const handleExpenseDefaultSelectionChange = useCallback((selectedRowKeys: string[]) => {
+        setSelectedExpenseDefaultKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
+    }, []);
 
-    const handleRequireFieldsSelectionChange = useCallback(
-        (selectedRowKeys: string[]) => {
-            const selectableKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-            setSelectedRequireFieldsRuleKeys((previousKeys) =>
-                updateSelectionKeysIfChanged(
-                    previousKeys,
-                    selectedRowKeys.filter((key) => selectableKeys.has(key)),
-                ),
-            );
-        },
-        [requireFieldsTableData],
-    );
+    const handleRequireFieldsSelectionChange = useCallback((selectedRowKeys: string[]) => {
+        setSelectedRequireFieldsRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
+    }, []);
 
-    const handleFlagForReviewSelectionChange = useCallback(
-        (selectedRowKeys: string[]) => {
-            const selectableKeys = new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-            setSelectedFlagForReviewRuleKeys((previousKeys) =>
-                updateSelectionKeysIfChanged(
-                    previousKeys,
-                    selectedRowKeys.filter((key) => selectableKeys.has(key)),
-                ),
-            );
-        },
-        [flagForReviewTableData],
-    );
+    const handleFlagForReviewSelectionChange = useCallback((selectedRowKeys: string[]) => {
+        setSelectedFlagForReviewRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
+    }, []);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
