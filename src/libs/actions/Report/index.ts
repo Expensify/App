@@ -2087,6 +2087,7 @@ function createGroupChat(
 
 function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
 ): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
     const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
@@ -2095,7 +2096,7 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(
     const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
     const redundantParticipants: Record<number, null> = {};
     for (const accountID in existingReport.participants) {
-        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+        if (!personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             continue;
         }
         settledPersonalDetails[accountID] = null;
@@ -2212,8 +2213,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         reportID: optimisticTransactionThreadReportID,
         introSelected,
         participants,
-        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-        personalDetails: personalDetails ?? allPersonalDetails,
+        personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
@@ -3941,18 +3941,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            navigateToAndOpenReport(
-                [CONST.EMAIL.CONCIERGE],
-                personalDetails ?? allPersonalDetails,
-                currentUserAccountID,
-                introSelected,
-                isSelfTourViewed,
-                betas,
-                shouldDismissModal,
-                false,
-                linkToOptions,
-            );
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal, false, linkToOptions);
         });
     } else if (shouldDismissModal) {
         const reportParams = {reportID: conciergeReportID, reportActionID};
