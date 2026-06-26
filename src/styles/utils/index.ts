@@ -2121,6 +2121,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         opacity: isActive ? 1 : 0.3,
     }),
 
+    getFeatureTrainingCarouselCloseButtonContainerStyle: (padding: number): ViewStyle => ({
+        position: 'absolute',
+        top: padding,
+        right: padding,
+        zIndex: 1,
+    }),
+
+    getFeatureTrainingCarouselDotsContainerStyle: (bottomOffset: number): ViewStyle => ({
+        bottom: bottomOffset,
+    }),
+
     getScrollableFeatureTrainingModalStyles: (
         insets: EdgeInsets,
         isKeyboardOpen = false,

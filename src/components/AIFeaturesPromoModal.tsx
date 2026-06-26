@@ -65,19 +65,19 @@ function AIFeaturesPromoModal() {
     const isCloseButtonDismissalRef = useRef(false);
 
     const handleDismiss = () => {
-        Log.hmmm(`[AIFeaturesPromoModal] dismissing product training via ${isCloseButtonDismissalRef.current ? 'x' : 'click'}`);
+        Log.info(`[AIFeaturesPromoModal] dismissing product training via ${isCloseButtonDismissalRef.current ? 'x' : 'click'}`);
         dismissProductTraining(CONST.AI_FEATURES_PROMO_MODAL, isCloseButtonDismissalRef.current);
     };
 
     useBeforeRemove(handleDismiss);
 
     const onConfirm = () => {
-        Log.hmmm('[AIFeaturesPromoModal] onConfirm called');
+        Log.info('[AIFeaturesPromoModal] onConfirm called');
         Navigation.goBack();
     };
 
     const onClose = () => {
-        Log.hmmm(`[AIFeaturesPromoModal] onClose called, user closed modal without confirming`);
+        Log.info(`[AIFeaturesPromoModal] onClose called, user closed modal without confirming`);
         isCloseButtonDismissalRef.current = true;
         Navigation.goBack();
     };
@@ -99,6 +99,8 @@ function AIFeaturesPromoModal() {
                 illustrationAspectRatio={LottieAnimations.SpendAnalysis.w / LottieAnimations.SpendAnalysis.h}
                 contentInnerContainerStyles={styles.mb4}
                 titleStyles={styles.mb2}
+                confirmSentryLabel={CONST.SENTRY_LABEL.AI_FEATURES_PROMO_MODAL.CONFIRM_BUTTON}
+                helpSentryLabel={CONST.SENTRY_LABEL.AI_FEATURES_PROMO_MODAL.HELP_BUTTON}
             />
         </CenteredModalLayout>
     );

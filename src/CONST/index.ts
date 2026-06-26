@@ -8872,6 +8872,11 @@ const CONST = {
         },
         FEATURE_TRAINING: {
             CLOSE_BUTTON: 'FeatureTraining-CloseButton',
+            BACK_BUTTON: 'FeatureTraining-BackButton',
+        },
+        AI_FEATURES_PROMO_MODAL: {
+            CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
+            HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
         },
     },
 

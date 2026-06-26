@@ -246,7 +246,7 @@ function FeatureTrainingCarousel({
                                 styles.w100,
                                 styles.l0,
                                 styles.r0,
-                                {bottom: PAGINATION_DOTS_BOTTOM_OFFSET + CONTENT_PADDING},
+                                StyleUtils.getFeatureTrainingCarouselDotsContainerStyle(PAGINATION_DOTS_BOTTOM_OFFSET + CONTENT_PADDING),
                             ]}
                         >
                             {carouselPaginationDots}
@@ -272,7 +272,7 @@ function FeatureTrainingCarousel({
                         contentOuterContainerStyles={contentOuterContainerStyles}
                         shouldRenderHTMLDescription={shouldRenderHTMLDescription}
                     />
-                    <View style={[styles.pAbsolute, {top: CONTENT_PADDING, right: CONTENT_PADDING, zIndex: 1}]}>
+                    <View style={StyleUtils.getFeatureTrainingCarouselCloseButtonContainerStyle(CONTENT_PADDING)}>
                         <Tooltip text={translate('common.close')}>
                             <PressableWithFeedback
                                 onPress={onClose}

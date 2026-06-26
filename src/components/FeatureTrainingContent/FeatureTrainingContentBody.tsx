@@ -6,6 +6,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import OfflineIndicator from '@components/OfflineIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import FeatureTrainingContentBodyText from './FeatureTrainingContentBodyText';
 import type {FeatureTrainingContentBodyProps as BaseFeatureTrainingContentBodyProps, BaseFeatureTrainingContentProps} from './types';
 
@@ -103,7 +104,7 @@ function FeatureTrainingContentBody({
                         large
                         onPress={onBack}
                         text={translate('common.back')}
-                        sentryLabel={confirmSentryLabel}
+                        sentryLabel={CONST.SENTRY_LABEL.FEATURE_TRAINING.BACK_BUTTON}
                         style={styles.flex1}
                     />
                 )}

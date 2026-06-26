@@ -126,6 +126,7 @@ function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: 
                 if (typeof ref === 'function') {
                     ref(newRef);
                 } else if (ref && 'current' in ref) {
+                    // Forwarding the LottieView ref onto the caller-provided RefObject requires mutating `.current`.
                     // eslint-disable-next-line no-param-reassign
                     ref.current = newRef;
                 }
