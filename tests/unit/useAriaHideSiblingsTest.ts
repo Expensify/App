@@ -157,4 +157,36 @@ describe('useAriaHideSiblings (web)', () => {
             expect(attrs(sibling)).toEqual({ariaHidden: 'true', inert: ''});
         });
     });
+
+    describe('Restore guard — concurrent legacy mutations', () => {
+        it('leaves aria-hidden alone on release if a concurrent legacy mutation changed it from our value', () => {
+            const sibling = createBodyChild('legacy-target');
+            const portal = createBodyChild('portal', {portal: true});
+            const container = document.createElement('div');
+            portal.appendChild(container);
+
+            const layer = renderHook(() => useAriaHideSiblings(refTo(container), true));
+            expect(attrs(sibling).ariaHidden).toBe('true');
+
+            sibling.setAttribute('aria-hidden', 'false');
+
+            layer.unmount();
+
+            expect(sibling.getAttribute('aria-hidden')).toBe('false');
+        });
+
+        it('restores normally on release when aria-hidden still holds our value', () => {
+            const sibling = createBodyChild('untouched-target');
+            const portal = createBodyChild('portal', {portal: true});
+            const container = document.createElement('div');
+            portal.appendChild(container);
+
+            const layer = renderHook(() => useAriaHideSiblings(refTo(container), true));
+            expect(attrs(sibling).ariaHidden).toBe('true');
+
+            layer.unmount();
+
+            expect(sibling.getAttribute('aria-hidden')).toBeNull();
+        });
+    });
 });

@@ -69,25 +69,27 @@ function Presence({present, onExitComplete, children}: PresenceProps) {
     // owedRef gates onExitComplete to at-most-once (timer + animation can both fire).
     const handleAnimationEnd = useCallbackRef(() => {
         dispatch({type: 'animationEnd'});
-        if (!owedRef.current) {
-            return;
-        }
-        owedRef.current = false;
-        onExitCompleteRef.current?.();
     });
 
     const publishedState = derivePublishedState(present, internal);
 
     useEffect(() => {
+        // onExitComplete fires from the effect (not the worklet handler) so it observes the committed publishedState.
+        if (publishedState === 'unmounted') {
+            if (owedRef.current) {
+                owedRef.current = false;
+                onExitCompleteRef.current?.();
+            }
+            return undefined;
+        }
         if (publishedState !== 'unmountSuspended') {
-            // Drop owed callback on re-mount — a stale animation completion shouldn't fire onExitComplete on a visible overlay.
             owedRef.current = false;
             return undefined;
         }
         owedRef.current = true;
         const timeoutId = setTimeout(handleAnimationEnd, MAX_PRESENCE_EXIT_MS);
         return () => clearTimeout(timeoutId);
-    }, [publishedState, handleAnimationEnd]);
+    }, [publishedState, handleAnimationEnd, onExitCompleteRef]);
 
     useEffect(
         () => () => {

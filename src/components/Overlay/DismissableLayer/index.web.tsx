@@ -137,6 +137,7 @@ function LayerHost({
                 <View
                     ref={containerRef}
                     style={styles.flex1}
+                    pointerEvents="none"
                 >
                     {children}
                 </View>

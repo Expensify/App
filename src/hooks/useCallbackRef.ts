@@ -1,9 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
+import {useLayoutEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 
 function useRefMirror<T>(value: T): RefObject<T> {
     const ref = useRef(value);
-    useEffect(() => {
+    // useLayoutEffect so the ref is current before any post-commit synchronous read (e.g. native bridge callbacks).
+    useLayoutEffect(() => {
         ref.current = value;
     });
     return ref;

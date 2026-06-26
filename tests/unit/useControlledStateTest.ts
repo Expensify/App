@@ -72,12 +72,13 @@ describe('useControlledState', () => {
             expect(onChange).toHaveBeenNthCalledWith(2, 99);
         });
 
-        it('functional updater resolves against the current prop, not the previously requested value', () => {
+        it('chained functional updaters compose like React.useState (within-tick cache, regardless of parent acceptance)', () => {
             const onChange = jest.fn();
             const {result} = renderHook(() => useControlledState<number>(5, 0, onChange));
-            act(() => result.current[1](99));
             act(() => result.current[1]((prev) => prev + 1));
-            expect(onChange).toHaveBeenLastCalledWith(6);
+            act(() => result.current[1]((prev) => prev + 1));
+            expect(onChange).toHaveBeenNthCalledWith(1, 6);
+            expect(onChange).toHaveBeenNthCalledWith(2, 7);
         });
     });
 

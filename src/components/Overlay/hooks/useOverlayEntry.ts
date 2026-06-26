@@ -1,9 +1,15 @@
 import {useEffect, useLayoutEffect, useRef} from 'react';
 import {removeOverlayEntry, upsertOverlayEntry} from '@components/Overlay/libs/overlayStore';
 import type {OverlayEntry} from '@components/Overlay/libs/overlayStore';
+import useCallbackRef from '@hooks/useCallbackRef';
+
+const NOOP_CLOSE = () => {};
 
 function useOverlayEntry(entry: OverlayEntry | null): void {
     const publishedIdRef = useRef<string | null>(null);
+
+    // Stable so the store's ref-equality check doesn't churn on consumer-identity changes.
+    const stableClose = useCallbackRef(entry?.close ?? NOOP_CLOSE);
 
     useLayoutEffect(() => {
         if (entry !== null) {
@@ -11,7 +17,7 @@ function useOverlayEntry(entry: OverlayEntry | null): void {
                 removeOverlayEntry(publishedIdRef.current);
             }
             publishedIdRef.current = entry.id;
-            upsertOverlayEntry(entry);
+            upsertOverlayEntry({...entry, close: stableClose});
             return;
         }
         if (publishedIdRef.current !== null) {

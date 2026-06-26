@@ -44,37 +44,26 @@ function AnimatedSurface({enterSpec, exitSpec, enterTiming, exitTiming, easing, 
     const {opacity: enterOpacity, translateX: enterTranslateX, translateY: enterTranslateY} = enterSpec.to;
     const {opacity: exitOpacity, translateX: exitTranslateX, translateY: exitTranslateY} = exitSpec.to;
 
+    // Split per-state so an enter-spec change can't restart an in-flight exit (and vice-versa).
     useEffect(() => {
-        const resolvedEasing = easing ?? Easing.linear;
-        if (presenceState === 'mounted') {
-            const options = {duration: enterTiming, easing: resolvedEasing, reduceMotion: ReduceMotion.System};
-            opacity.set(withTiming(enterOpacity, options));
-            translateX.set(withTiming(enterTranslateX, options));
-            translateY.set(withTiming(enterTranslateY, options));
+        if (presenceState !== 'mounted') {
             return;
         }
-        if (presenceState === 'unmountSuspended') {
-            const options = {duration: exitTiming, easing: resolvedEasing, reduceMotion: ReduceMotion.System};
-            opacity.set(withTiming(exitOpacity, options, onAnimationFinished(onAnimationEnd)));
-            translateX.set(withTiming(exitTranslateX, options));
-            translateY.set(withTiming(exitTranslateY, options));
+        const options = {duration: enterTiming, easing: easing ?? Easing.linear, reduceMotion: ReduceMotion.System};
+        opacity.set(withTiming(enterOpacity, options));
+        translateX.set(withTiming(enterTranslateX, options));
+        translateY.set(withTiming(enterTranslateY, options));
+    }, [presenceState, enterOpacity, enterTranslateX, enterTranslateY, enterTiming, easing, opacity, translateX, translateY]);
+
+    useEffect(() => {
+        if (presenceState !== 'unmountSuspended') {
+            return;
         }
-    }, [
-        presenceState,
-        enterOpacity,
-        enterTranslateX,
-        enterTranslateY,
-        exitOpacity,
-        exitTranslateX,
-        exitTranslateY,
-        enterTiming,
-        exitTiming,
-        easing,
-        onAnimationEnd,
-        opacity,
-        translateX,
-        translateY,
-    ]);
+        const options = {duration: exitTiming, easing: easing ?? Easing.linear, reduceMotion: ReduceMotion.System};
+        opacity.set(withTiming(exitOpacity, options, onAnimationFinished(onAnimationEnd)));
+        translateX.set(withTiming(exitTranslateX, options));
+        translateY.set(withTiming(exitTranslateY, options));
+    }, [presenceState, exitOpacity, exitTranslateX, exitTranslateY, exitTiming, easing, onAnimationEnd, opacity, translateX, translateY]);
 
     const animatedStyle = useAnimatedStyle(
         (): ViewStyle => ({
@@ -89,8 +78,8 @@ function AnimatedSurface({enterSpec, exitSpec, enterTiming, exitTiming, easing, 
 
     return (
         <Animated.View
-            {...passthrough}
             pointerEvents="auto"
+            {...passthrough}
             style={[style, animatedStyle]}
         >
             {children}

@@ -59,6 +59,17 @@ describe('useDismissOnAnchorMove (web)', () => {
         document.body.removeChild(container);
     });
 
+    it('does NOT dismiss when the anchor element itself is the scroll target (target === anchorHost)', () => {
+        const {anchor, cleanup} = setupAnchor();
+        const onDismiss = jest.fn();
+        renderHook(() => useDismissOnAnchorMove(anchor, onDismiss, true));
+        act(() => {
+            anchor.dispatchEvent(new Event('scroll'));
+        });
+        expect(onDismiss).not.toHaveBeenCalled();
+        cleanup();
+    });
+
     it('does NOT dismiss when an unrelated element scrolls (overlay-internal or sibling)', () => {
         const {anchor, cleanup} = setupAnchor();
         const onDismiss = jest.fn();

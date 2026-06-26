@@ -51,15 +51,20 @@ function release(rootSibling: Element): void {
     if (existing.lockCount > 0) {
         return;
     }
-    if (existing.priorAriaHidden === null) {
-        rootSibling.removeAttribute('aria-hidden');
-    } else {
-        rootSibling.setAttribute('aria-hidden', existing.priorAriaHidden);
+    // Restore only if our value is still there — concurrent legacy mutations win.
+    if (rootSibling.getAttribute('aria-hidden') === 'true') {
+        if (existing.priorAriaHidden === null) {
+            rootSibling.removeAttribute('aria-hidden');
+        } else {
+            rootSibling.setAttribute('aria-hidden', existing.priorAriaHidden);
+        }
     }
-    if (existing.priorInert === null) {
-        rootSibling.removeAttribute('inert');
-    } else {
-        rootSibling.setAttribute('inert', existing.priorInert);
+    if (rootSibling.getAttribute('inert') !== null) {
+        if (existing.priorInert === null) {
+            rootSibling.removeAttribute('inert');
+        } else {
+            rootSibling.setAttribute('inert', existing.priorInert);
+        }
     }
     saved.delete(rootSibling);
 }
@@ -91,17 +96,14 @@ function useAriaHideSiblings(containerRef: RefObject<AnchorNode | null>, isActiv
         }
 
         const acquired = new Set<Element>();
-        let portalRoot: Element | null = null;
 
         const sweep = () => {
-            if (portalRoot === null) {
-                const host = asHostElement(containerRef.current);
-                portalRoot = findPortalRoot(host);
-                if (portalRoot === null) {
-                    return;
-                }
+            // Re-resolve every sweep — a cached portalRoot can detach mid-teardown and break compareDocumentPosition.
+            const host = asHostElement(containerRef.current);
+            const ownPortalRoot = findPortalRoot(host);
+            if (ownPortalRoot === null) {
+                return;
             }
-            const ownPortalRoot = portalRoot;
             for (const child of Array.from(document.body.children)) {
                 if (child === ownPortalRoot || acquired.has(child)) {
                     continue;

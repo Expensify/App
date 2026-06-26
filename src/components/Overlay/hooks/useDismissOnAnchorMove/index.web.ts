@@ -20,7 +20,7 @@ function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void
                 stableDismiss();
                 return;
             }
-            if (target instanceof Node && target.contains(anchorHost)) {
+            if (target instanceof Node && target !== anchorHost && target.contains(anchorHost)) {
                 stableDismiss();
             }
         };

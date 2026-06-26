@@ -7,12 +7,14 @@ function useControlledState<T>(controlledValue: T | undefined, defaultValue: T, 
     const [internal, setInternal] = useState(isControlled ? (controlledValue as T) : defaultValue);
     const current = isControlled ? (controlledValue as T) : internal;
 
-    const valueRef = useRef(current);
+    const currentRef = useRef(current);
+    const cachedRef = useRef(current);
     const onChangeRef = useRef(onChange);
     const isControlledRef = useRef(isControlled);
 
     useLayoutEffect(() => {
-        valueRef.current = current;
+        currentRef.current = current;
+        cachedRef.current = current;
         onChangeRef.current = onChange;
         if (__DEV__ && isControlledRef.current !== isControlled) {
             Log.warn(
@@ -25,13 +27,13 @@ function useControlledState<T>(controlledValue: T | undefined, defaultValue: T, 
     const [setValue] = useState<Dispatch<SetStateAction<T>>>(() => {
         const isUpdater = (a: SetStateAction<T>): a is (prevState: T) => T => typeof a === 'function';
         const apply: Dispatch<SetStateAction<T>> = (action) => {
-            const resolved = isUpdater(action) ? action(valueRef.current) : action;
-            if (Object.is(resolved, valueRef.current)) {
+            const resolved = isUpdater(action) ? action(cachedRef.current) : action;
+            // Equality against currentRef so a controlled-mode retry after a parent rejection still fires onChange.
+            if (Object.is(resolved, currentRef.current)) {
                 return;
             }
-            // Controlled mode: the layout effect re-syncs valueRef from the actual prop, so caching here would suppress retries against a rejected update.
+            cachedRef.current = resolved;
             if (!isControlledRef.current) {
-                valueRef.current = resolved;
                 setInternal(resolved);
             }
             onChangeRef.current?.(resolved);

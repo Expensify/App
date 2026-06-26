@@ -37,7 +37,7 @@ describe('useOverlayEntry', () => {
     it('upserts when an entry is provided', () => {
         const entry = makeEntry('a');
         renderHook(({current}: {current: OverlayEntry | null}) => useOverlayEntry(current), {initialProps: {current: entry}});
-        expect(mockUpsert).toHaveBeenCalledWith(entry);
+        expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({id: 'a', kind: entry.kind}));
         expect(mockRemove).not.toHaveBeenCalled();
     });
 
@@ -50,7 +50,7 @@ describe('useOverlayEntry', () => {
         rerender({current: entryB});
 
         expect(mockRemove).toHaveBeenCalledWith('a');
-        expect(mockUpsert).toHaveBeenLastCalledWith(entryB);
+        expect(mockUpsert).toHaveBeenLastCalledWith(expect.objectContaining({id: 'b'}));
     });
 
     it('does not call remove when only the entry shape changes (same id)', () => {
@@ -62,7 +62,28 @@ describe('useOverlayEntry', () => {
         rerender({current: entryAUpdated});
 
         expect(mockRemove).not.toHaveBeenCalled();
-        expect(mockUpsert).toHaveBeenLastCalledWith(entryAUpdated);
+        expect(mockUpsert).toHaveBeenLastCalledWith(expect.objectContaining({id: 'a'}));
+    });
+
+    it('publishes a stable close reference across renders (entries with same id but different close prop)', () => {
+        const closeA = jest.fn();
+        const closeB = jest.fn();
+        const entryA = {...makeEntry('same'), close: closeA};
+        const entryB = {...makeEntry('same'), close: closeB};
+
+        const {rerender} = renderHook(({current}: {current: OverlayEntry | null}) => useOverlayEntry(current), {initialProps: {current: entryA}});
+        const firstCloseRef = mockUpsert.mock.calls.at(0)?.[0].close;
+
+        rerender({current: entryB});
+        const secondCloseRef = mockUpsert.mock.calls.at(-1)?.[0].close;
+
+        // The published close has stable identity across renders (so entriesEqual won't churn the store).
+        expect(secondCloseRef).toBe(firstCloseRef);
+
+        // ...but invoking it dispatches to the LATEST consumer's close.
+        secondCloseRef?.();
+        expect(closeB).toHaveBeenCalled();
+        expect(closeA).not.toHaveBeenCalled();
     });
 
     it('removes the published id on unmount', () => {
