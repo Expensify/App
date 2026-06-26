@@ -139,9 +139,20 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         });
     }
 
-    // When the user opted out of Company cards and into the Expensify Card during onboarding, surface an Expensify Card setup
-    // step instead of the company-cards task, which would otherwise re-enable a feature the user explicitly deselected.
-    if (policy.areExpensifyCardsEnabled && !policy.areCompanyCardsEnabled) {
+    // The two card features are independent: each shows its own getting-started step only when that feature was enabled during
+    // onboarding. Both enabled shows both steps, only one enabled shows that one, and neither enabled shows no card step.
+    if (policy.areCompanyCardsEnabled) {
+        items.push({
+            key: 'linkCompanyCards',
+            label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+            isComplete: hasCompanyCardFeeds(allCardFeeds),
+            route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areCompanyCardsEnabled,
+            enableFeature: () => enableCompanyCards(activePolicyID, true, false),
+        });
+    }
+
+    if (policy.areExpensifyCardsEnabled) {
         items.push({
             key: 'issueExpensifyCards',
             label: translate('homePage.gettingStartedSection.issueExpensifyCards'),
@@ -150,15 +161,6 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             route: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(activePolicyID),
             isFeatureEnabled: policy.areExpensifyCardsEnabled,
             enableFeature: () => enableExpensifyCard(activePolicyID, true, false),
-        });
-    } else {
-        items.push({
-            key: 'linkCompanyCards',
-            label: translate('homePage.gettingStartedSection.linkCompanyCards'),
-            isComplete: hasCompanyCardFeeds(allCardFeeds),
-            route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
-            isFeatureEnabled: policy.areCompanyCardsEnabled,
-            enableFeature: () => enableCompanyCards(activePolicyID, true, false),
         });
     }
 
