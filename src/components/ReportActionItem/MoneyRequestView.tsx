@@ -815,6 +815,8 @@ function MoneyRequestView({
         });
     };
 
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+
     const showTagDisabledAlert = () => {
         const transactionID = transaction?.transactionID;
         if (!transactionID) {
@@ -845,6 +847,7 @@ function MoneyRequestView({
                 parentReportNextStep,
                 isOffline,
                 delegateAccountID,
+                reportPolicyTags,
             });
         });
     };
