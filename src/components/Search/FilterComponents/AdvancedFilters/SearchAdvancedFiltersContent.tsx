@@ -3,6 +3,7 @@ import {isAmountFilterKey, isDateFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {FilterComponentsProps} from '..';
 import type {AmountFilterContentProps} from './AmountFilterContent';
 import type {CommonFilterContentProps} from './CommonFilterContent';
@@ -10,7 +11,7 @@ import type {DateFilterContentProps} from './DateFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
 import type {TextInputFilterContentProps} from './TextInputFilterContent';
 
-type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
+type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'filterKey' | 'value' | 'merchantOperator' | 'onChange'>;
 type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
 type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'filterKey' | 'value' | 'hasFeed' | 'onChange'>;
 type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
@@ -38,9 +39,11 @@ function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filter
 
 function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
     const {Text: TextFilter, Amount: AmountFilter, Date: DateFilter, ReportField: ReportFieldFilter, Common: CommonFilter} = components;
+    const isMerchantFilter = filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+    const merchantOperator = values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
 
     if (
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
+        isMerchantFilter ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
@@ -49,10 +52,16 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
     ) {
         return (
             <TextFilter
-                key={filterKey}
+                key={`${filterKey}-${values?.[filterKey] ?? ''}-${isMerchantFilter ? merchantOperator : ''}`}
                 filterKey={filterKey}
                 value={values?.[filterKey]}
-                onChange={(newValue) => onChange({[filterKey]: newValue})}
+                merchantOperator={isMerchantFilter ? merchantOperator : undefined}
+                onChange={(newValue, newMerchantOperator) =>
+                    onChange({
+                        [filterKey]: newValue,
+                        ...(isMerchantFilter ? {[FILTER_KEYS.MERCHANT_OPERATOR]: newMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO} : {}),
+                    })
+                }
             />
         );
     }

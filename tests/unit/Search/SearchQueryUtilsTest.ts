@@ -226,7 +226,20 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense policyID:67890 merchant*:Amazon description:Electronics laptop category:electronics,gadgets');
+            expect(result).toEqual('type:expense policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
+        });
+
+        test('builds contains merchant query when merchant operator is contains', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                merchant: 'Amazon',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense merchant*:Amazon');
         });
 
         test('currencies and categories', () => {
@@ -495,7 +508,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc'});
 
-                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant*:Amazon limit:25');
+                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant:Amazon limit:25');
             });
 
             test('omits limit when not provided', () => {
@@ -863,6 +876,40 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildFilterFormValuesFromQuery', () => {
+        test('restores exact merchant operator from query', () => {
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense merchant:Uber');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                merchant: 'Uber',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            });
+        });
+
+        test('restores contains merchant operator from query', () => {
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense merchant*:Uber');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                merchant: 'Uber',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            });
+        });
+
         test('category filter includes empty values', () => {
             const policyID = generatePolicyID();
             const queryString = 'sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance';

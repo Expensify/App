@@ -8371,6 +8371,11 @@ const translations = {
                 },
                 equalTo: (amount?: string) => `Equal to ${amount ?? ''}`,
             },
+            merchant: {
+                matchType: 'Match type',
+                equalTo: 'Equal to',
+                contains: 'Contains',
+            },
             card: {
                 expensify: 'Expensify',
                 travelInvoicing: 'Travel invoicing',

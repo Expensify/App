@@ -34,7 +34,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {
+    ExpenseTypeValue,
+    ExpenseTypeValues,
+    HasFilterValue,
+    HasFilterValues,
+    IsFilterValue,
+    IsFilterValues,
+    MerchantMatchType,
+    SearchAdvancedFiltersKey,
+} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
@@ -68,6 +77,12 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
+
+const DEFAULT_MERCHANT_OPERATOR = CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+
+function getMerchantOperator(operator: MerchantMatchType | undefined): MerchantMatchType {
+    return operator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS ? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS : DEFAULT_MERCHANT_OPERATOR;
+}
 
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
@@ -791,7 +806,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, status, groupBy, view, columns, limit, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -857,12 +872,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    // For merchant filters:
-                    // - Non-negated: use *: (contains) for partial matching
-                    // - Negated: use : (eq) so parser correctly converts to neq operator
                     const operator =
                         filterKey === FILTER_KEYS.MERCHANT && !isNegated
-                            ? operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]
+                            ? operatorToCharMap[getMerchantOperator(merchantOperator)]
                             : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operator}${sanitizeSearchValue(filterValue as string)}`;
                 }
@@ -1098,6 +1110,11 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
             filtersForm[key as typeof filterKey] = filterValues.join(',');
+            if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && !isNegated) {
+                filtersForm[FILTER_KEYS.MERCHANT_OPERATOR] = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS)
+                    ? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS
+                    : DEFAULT_MERCHANT_OPERATOR;
+            }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
             const actionValue = filterValues.join(',');
