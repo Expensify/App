@@ -9,7 +9,7 @@ type AddressType = PersonalDetailsForm | Address | undefined;
  * Normalizes the address containing a country field by converting country names to country codes.
  * Handles the case where old data has "United States" instead of "US".
  */
-function normalizeCountryCode<T extends AddressType>(data: T): T {
+function normalizeCountryCode(data: AddressType): AddressType {
     if (!data?.country) {
         return data;
     }

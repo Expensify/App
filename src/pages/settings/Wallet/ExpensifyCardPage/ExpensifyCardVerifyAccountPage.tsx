@@ -5,12 +5,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getSubPageValues} from '@pages/MissingPersonalDetails/utils';
+import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +50,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         // That is why this action is handled manually and the response is stored in a local state.
         // Hence eslint disable here.
 
-        const personalDetailsForm = normalizeCountryCode(getSubPageValues(privatePersonalDetails, personalDetailsDraft));
+        const personalDetailsForm = getNormalizedSubPageValues(privatePersonalDetails, personalDetailsDraft);
         const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(personalDetailsForm, countryCode);
 
         setPersonalDetailsAndRevealExpensifyCard(personalDetailsParams, Number.parseInt(cardID, 10), validateCode)

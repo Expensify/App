@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import {getCountryCode} from '@libs/CountryUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -50,4 +51,21 @@ function getInitialSubPage(values: PersonalDetailsForm, shouldCollectPin = false
     return CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM;
 }
 
-export {getSubPageValues, getInitialSubPage};
+/**
+ * Builds the `PersonalDetailsForm` values used to populate the reveal payload, combining
+ * stored private details with any in-flight form draft and normalizing the country code
+ * so legacy "United States"-style data is converted to "US".
+ */
+function getNormalizedSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
+    const values = getSubPageValues(privatePersonalDetails, personalDetailsDraft);
+    if (!values[INPUT_IDS.COUNTRY]) {
+        return values;
+    }
+    const normalizedCountry = getCountryCode(values[INPUT_IDS.COUNTRY]);
+    if (!normalizedCountry) {
+        return values;
+    }
+    return {...values, [INPUT_IDS.COUNTRY]: normalizedCountry};
+}
+
+export {getSubPageValues, getInitialSubPage, getNormalizedSubPageValues};

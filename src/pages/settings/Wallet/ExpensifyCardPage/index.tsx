@@ -45,7 +45,6 @@ import {
     maskCard,
     maskPin,
 } from '@libs/CardUtils';
-import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -55,7 +54,7 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {clearRevealedPhysicalCardPin, clearRevealedVirtualCardDetails, useAllRevealedVirtualCardDetails, useRevealedPhysicalCardPin} from '@libs/RevealedCardSecretsStore';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {getSubPageValues} from '@pages/MissingPersonalDetails/utils';
+import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
@@ -518,7 +517,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                 }
 
                                                                 if (isUkEuExpensifyCard(card)) {
-                                                                    const personalDetailsForm = normalizeCountryCode(getSubPageValues(privatePersonalDetails, personalDetailsDraft));
+                                                                    const personalDetailsForm = getNormalizedSubPageValues(privatePersonalDetails, personalDetailsDraft);
                                                                     const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(personalDetailsForm, countryCode);
                                                                     executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
                                                                         ...personalDetailsParams,
