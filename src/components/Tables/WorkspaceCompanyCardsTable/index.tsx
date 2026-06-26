@@ -213,8 +213,19 @@ function WorkspaceCompanyCardsTable({
               };
           });
 
-    const selectedCardKeySet = new Set(selectedCardKeys);
-    const selectedCards = cardsData.filter((card) => selectedCardKeySet.has(card.keyForList));
+    const cardsDataSelectionSignature = [feedName ?? '', ...cardsData.map((card) => `${card.keyForList}:${card.disabled ? 'disabled' : 'enabled'}`)].join('\0');
+    const [selectedCardsDataSelectionSignature, setSelectedCardsDataSelectionSignature] = useState(cardsDataSelectionSignature);
+    const selectedCardKeysForCurrentData = selectedCardsDataSelectionSignature === cardsDataSelectionSignature ? selectedCardKeys : [];
+
+    if (selectedCardsDataSelectionSignature !== cardsDataSelectionSignature) {
+        setSelectedCardsDataSelectionSignature(cardsDataSelectionSignature);
+        if (selectedCardKeys.length > 0) {
+            setSelectedCardKeys([]);
+        }
+    }
+
+    const selectedCardKeySet = new Set(selectedCardKeysForCurrentData);
+    const selectedCards = cardsData.filter((card) => !card.disabled && selectedCardKeySet.has(card.keyForList));
     const validSelectedCardKeys = selectedCards.map((card) => card.keyForList);
     const selectedAssignedCards = selectedCards.filter(
         (card): card is WorkspaceCompanyCardTableItemData & {assignedCard: NonNullable<WorkspaceCompanyCardTableItemData['assignedCard']>} => card.isAssigned && !!card.assignedCard,
