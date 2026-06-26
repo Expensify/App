@@ -102,8 +102,8 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     // Global create from tabs where neither Search nor Report is topmost (Home, Settings,
     // Workspaces). The handler dismisses the modal and navigates to Search, avoiding the
     // slow DEFAULT path that runs createTransaction before navigation.
-    // Exclude destination-report flows (TRACK/per-diem) whose report may not be loaded yet -
-    // those need shouldHandleNavigation=true to reach the correct report after creation.
+    // Destination-report flows (TRACK, SPLIT) are excluded via navigatesToDestinationReport
+    // because their report may not be loaded yet and they need shouldHandleNavigation=true.
     if (snapshot.isFromGlobalCreate && snapshot.canDismissFromSearch && !snapshot.navigatesToDestinationReport && !snapshot.isSearchTopmostFullScreen && !snapshot.isReportTopmostSplit) {
         return SUBMIT_HANDLER.SEARCH_DISMISS;
     }
