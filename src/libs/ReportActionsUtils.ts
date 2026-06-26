@@ -514,6 +514,9 @@ function getReimbursedMessage(
 
     const {debitBankAccountLast4, creditBankAccountLast4, expectedDate, isInvoiceOrBill, isSubmitterAddingBankAccount, stripePaymentType} = originalMessage;
 
+    // The openReport path provides `debitBankAccountLast4`; real-time Pusher payloads carry the raw masked `accountNumber` instead.
+    const effectiveDebitBankAccountLast4 = debitBankAccountLast4 ?? originalMessage.accountNumber?.slice(-4);
+
     // Resolve submitter from report owner
     const submitterAccountID = reportOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUser = submitterAccountID === effectiveCurrentUserAccountID;
@@ -545,8 +548,8 @@ function getReimbursedMessage(
     if (isAutomation) {
         message += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
     }
-    if (debitBankAccountLast4) {
-        message += ` ${translate('iou.reimbursedFromBankAccount', debitBankAccountLast4)}`;
+    if (effectiveDebitBankAccountLast4) {
+        message += ` ${translate('iou.reimbursedFromBankAccount', effectiveDebitBankAccountLast4)}`;
     }
     return message + paymentSuffix;
 }

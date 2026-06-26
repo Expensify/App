@@ -68,6 +68,24 @@ function buildMessageFragmentForValue(
 }
 
 /**
+ * Builds the message fragment for a modified expense date, when both the old and new created dates are present.
+ */
+function buildDateChangeFragment(
+    translate: LocalizedTranslate,
+    oldCreated: string | undefined,
+    created: string | undefined,
+    setFragments: string[],
+    removalFragments: string[],
+    changeFragments: string[],
+) {
+    if (!oldCreated || !created) {
+        return;
+    }
+    const formattedOldCreated = DateUtils.formatWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    buildMessageFragmentForValue(translate, created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
+}
+
+/**
  * Get the absolute value for a tax amount.
  */
 function getTaxAmountAbsValue(taxAmount: number): number {
@@ -291,7 +309,18 @@ function getForReportAction({
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
         // We check the merchant is in distance format (includes @) as a sanity check
         if (hasModifiedMerchant && (reportActionOriginalMessage?.merchant ?? '').includes('@')) {
-            return getForDistanceRequest(translate, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
+            const distanceMessage = getForDistanceRequest(translate, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
+
+            // A date edit that moves the expense into a different mileage-rate window bundles the rate and the date
+            // change into a single MODIFIED_EXPENSE action. getForDistanceRequest only describes the rate/distance
+            // change, so append the date change here instead of letting it be dropped by the early return.
+            const dateChangeFragments: string[] = [];
+            buildDateChangeFragment(translate, reportActionOriginalMessage?.oldCreated, reportActionOriginalMessage?.created, [], [], dateChangeFragments);
+            if (dateChangeFragments.length > 0) {
+                return `${distanceMessage}${getMessageLine(translate, `\n${translate('iou.changed')}`, dateChangeFragments)}`;
+            }
+
+            return distanceMessage;
         }
         buildMessageFragmentForValue(
             translate,
@@ -326,10 +355,7 @@ function getForReportAction({
         );
     }
 
-    if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
-        const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
-        buildMessageFragmentForValue(translate, reportActionOriginalMessage.created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
-    }
+    buildDateChangeFragment(translate, reportActionOriginalMessage?.oldCreated, reportActionOriginalMessage?.created, setFragments, removalFragments, changeFragments);
 
     if (hasModifiedMerchant) {
         buildMessageFragmentForValue(

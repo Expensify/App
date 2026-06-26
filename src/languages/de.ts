@@ -3194,9 +3194,9 @@ ${amount} für ${merchant} – ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Ausgabe einreichen',
+                title: 'Ausgabe erstellen',
                 description: dedent(`
-                    *Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg einscannst.
+                    *Erstelle eine Ausgabe*, indem du einen Betrag eingibst oder einen Beleg einscannst.
 
                     1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
@@ -3208,9 +3208,9 @@ ${amount} für ${merchant} – ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Ausgabe einreichen',
+                title: 'Ausgabe erstellen',
                 description: dedent(`
-                    *Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.
+                    *Erstelle eine Ausgabe*, indem du einen Betrag eingibst oder einen Beleg scannst.
 
                     1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
@@ -5046,9 +5046,13 @@ ${amount} für ${merchant} – ${date}`,
             noCompaniesFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Unternehmen in Certinia hinzugefügt wurden.',
             prerequisites: {
                 title: 'Bevor Sie die Verbindung herstellen',
-                installBundle: 'Für FFA-Verbindungen',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken: <a href="${href}">FFA Expensify-Paket installieren (Version ${version})</a>`,
+                installBundle: 'Installieren Sie das Expensify-Paket',
+                installBundlePSAHeader: 'Für PSA/SRP-Verbindungen:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken: <a href="${href}">PSA/SRP Expensify Bundle installieren (Version ${version})</a>`,
+                installBundleFFAHeader: 'Für FFA-Verbindungen:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installieren Sie das Expensify-Paket in Salesforce, indem Sie auf diesen Link klicken: <a href="${href}">FFA-Expensify-Paket installieren (Version ${version})</a>`,
                 installBundleConfirm: 'Ich habe das Paket installiert',
                 setupContacts: 'Benutzer und Kontakte einrichten',
                 setupContactsBullet1:
@@ -7520,6 +7524,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             agentRules: {
                 title: 'Agentenregeln',
                 subtitle: 'Legen Sie Regeln fest, wie KI-Agenten mit Ausgaben in diesem Workspace umgehen.',
+                enforcedBy: 'Agentregeln werden erzwungen durch',
+                ruleBotName: 'RuleBot',
                 addRule: 'Agentenregel hinzufügen',
                 findRule: 'Agentenregel finden',
                 addRuleTitle: 'Regel hinzufügen',
