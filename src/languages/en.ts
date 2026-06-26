@@ -1132,7 +1132,7 @@ const translations = {
             begin: 'Begin',
             done: 'Done',
             createWorkspace: 'Create a workspace',
-            createWorkspaceSubText: 'Ready to configure expenses',
+            createWorkspaceSubText: 'Workspace ready for setup',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
             connectAccountingDefault: 'Connect to accounting',
             connectAccountingSubText: 'Sync your chart of accounts and more',
