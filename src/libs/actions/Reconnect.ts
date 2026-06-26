@@ -5,23 +5,15 @@ import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
 import {getIsOffline, onReachabilityConfirmed as onNetworkReachabilityConfirmed, refresh as refreshNetworkState, subscribe as subscribeNetworkState} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {openApp, reconnectApp} from './App';
+import {reconnectApp} from './App';
 
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
-let isLoadingApp: OnyxEntry<boolean>;
 let currentAccountID: number | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => {
         lastUpdateIDAppliedToClient = val;
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (val) => {
-        isLoadingApp = val;
     },
 });
 
