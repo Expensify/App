@@ -259,7 +259,10 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
                 const participantPolicy = participant.policyID ? participantsPolicies[participant.policyID] : policy;
-                return participant.accountID
+                // Phone contacts always have an optimistic accountID but no reportID; getReportOption
+                // is designed for report-backed participants and discards participant.text, so route
+                // any participant without a reportID to getParticipantsOption instead.
+                return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails)
                     : getReportOption(participant, privateIsArchived, participantPolicy, personalDetails, conciergeReportID, reportAttributesDerived, participantReportDraft);
             }) ?? [],
@@ -593,12 +596,6 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        // If the user came from Test Drive modal, we need to take him back there
-        if (transaction?.receipt?.isTestDriveReceipt && (transaction.participants?.length ?? 0) > 0) {
-            Navigation.goBack(ROUTES.TEST_DRIVE_MODAL_ROOT.getRoute(transaction.participants?.at(0)?.login));
-            return;
-        }
-
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
@@ -607,8 +604,6 @@ function IOURequestStepConfirmation({
         isCreatingTrackExpense,
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
-        transaction?.receipt?.isTestDriveReceipt,
-        transaction?.participants,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
         requestType,
