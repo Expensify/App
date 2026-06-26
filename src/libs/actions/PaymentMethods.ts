@@ -327,6 +327,13 @@ function clearPaymentCardFormErrorAndSubmit() {
 }
 
 /**
+ * Clear the 3DS link so reopening the flow (even with an identical backend link) counts as a change.
+ */
+function clearPaymentCard3dsVerification() {
+    Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
+}
+
+/**
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
@@ -656,6 +663,7 @@ export {
     clearAddPaymentMethodError,
     clearWalletError,
     setPaymentMethodCurrency,
+    clearPaymentCard3dsVerification,
     clearWalletTermsError,
     verifySetupIntent,
     addPaymentCardSCA,
