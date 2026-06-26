@@ -60,14 +60,20 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     // Move pre-selected rows to the top, each group keeping its natural sorted order. personalDetails use
     // keyForList (the stringified accountID) as their identity, which matches the values in `value`.
-    const orderedPersonalDetails = moveInitialSelectionToTop(
-        availableOptions.personalDetails.map((option) => ({...option, value: option.keyForList})),
-        initialSelectedValues,
-    );
+    const personalDetailsWithValue = availableOptions.personalDetails.map((option) => ({...option, value: option.keyForList}));
+    const orderedPersonalDetails = moveInitialSelectionToTop(personalDetailsWithValue, initialSelectedValues);
 
-    // The current user is excluded from personalDetails, so render it (when present) at the top, followed by
-    // the rest of the contacts. Selected rows already live within personalDetails in their sorted position.
-    const listData = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...orderedPersonalDetails] : orderedPersonalDetails;
+    // Number of pre-selected rows pinned to the top. moveInitialSelectionToTop returns the original array
+    // (same reference) when it leaves the order untouched, in which case nothing is pinned.
+    const selectedValues = new Set(initialSelectedValues);
+    const pinnedCount =
+        orderedPersonalDetails === personalDetailsWithValue ? 0 : personalDetailsWithValue.reduce((count, option) => (selectedValues.has(option.value) ? count + 1 : count), 0);
+
+    // The current user is excluded from personalDetails. Render it directly below the pinned pre-selected
+    // rows (not at the very top), followed by the remaining contacts.
+    const listData = availableOptions.currentUserOption
+        ? [...orderedPersonalDetails.slice(0, pinnedCount), availableOptions.currentUserOption, ...orderedPersonalDetails.slice(pinnedCount)]
+        : orderedPersonalDetails;
 
     const headerMessage = listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
