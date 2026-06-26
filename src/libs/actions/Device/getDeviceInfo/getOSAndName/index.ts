@@ -1,3 +1,3 @@
-import {Device} from 'expensify-common';
+import {getOSAndName} from 'expensify-common/dist/Device';
 
-export default Device.getOSAndName;
+export default getOSAndName;

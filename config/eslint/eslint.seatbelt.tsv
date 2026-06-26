@@ -1507,6 +1507,7 @@
 "../../src/types/utils/htmlDivElementRef.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/types/utils/textRef.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/types/utils/viewRef.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/utils/createDummySharedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/utils/keyboard/index.website.ts"	"no-restricted-imports"	1
 "../../src/utils/times.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/actions/AppTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1708,6 +1709,7 @@
 "../../tests/unit/ButtonStyleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/CIGitLogicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/CardFeedUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../tests/unit/CardFeedErrorsDerivedValueTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CardUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	152
 "../../tests/unit/CardsSectionUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/CategoryUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
