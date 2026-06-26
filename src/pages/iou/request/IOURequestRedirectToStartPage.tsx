@@ -1,9 +1,13 @@
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
+import {clearMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -14,11 +18,22 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
     const {iouType, iouRequestType} = route.params ?? {};
     const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouType);
     const isIouRequestTypeValid = Object.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useEffect(() => {
         if (!isIouTypeValid || !isIouRequestTypeValid) {
             return;
         }
+
+        // This page is the entry point for launcher quick-action deeplinks (e.g. the home-screen "Scan receipt" /
+        // "Track distance" shortcuts). Unlike the FAB, it never goes through startMoneyRequest, so a previous
+        // shortcut's draft survives under OPTIMISTIC_TRANSACTION_ID. A leftover "scan" draft has no
+        // `comment.waypoints`, and the distance start page only shows placeholder waypoints locally without
+        // writing them back, so tapping a waypoint opens the "Not here" page. Clear the stale draft here
+        // (mirroring startMoneyRequest) so the destination start page rebuilds a fresh draft with the correct
+        // shape — including the distance start/stop waypoints. The OPTIMISTIC_TRANSACTION_ID fallback covers the
+        // cold-start case where the draft collection has not hydrated yet and the selector is still empty (#88183).
+        clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs ?? [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]);
 
         // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
         Navigation.dismissModal();
