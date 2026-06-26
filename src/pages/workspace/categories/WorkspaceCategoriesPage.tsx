@@ -605,34 +605,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         canWriteCategories,
     ]);
 
-    const emptyStateContent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('workspace.categories.emptyCategories.title')}
-                subtitleText={subtitleText}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={
-                    !policyHasAccountingConnections
-                        ? [
-                              {
-                                  icon: icons.Table,
-                                  buttonText: translate('common.import'),
-                                  buttonAction: navigateToImportSpreadsheet,
-                              },
-                              {
-                                  icon: icons.Plus,
-                                  buttonText: translate('workspace.categories.addCategory'),
-                                  buttonAction: navigateToCreateCategoryPage,
-                                  success: true,
-                              },
-                          ]
-                        : undefined
-                }
-            />
-        </ScrollView>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -707,7 +679,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                             shouldShowApproverColumn={shouldShowApproverColumn}
                             onRowSelectionChange={setSelectedCategoryKeys}
-                            EmptyStateComponent={emptyStateContent}
                         />
                     </>
                 )}
