@@ -279,6 +279,7 @@ function BaseDomainMembersPage({
                 </HeaderWithBackButton>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <SelectionListWithModal
+                    key={preFilter}
                     data={filteredData}
                     shouldShowRightCaret
                     style={{
