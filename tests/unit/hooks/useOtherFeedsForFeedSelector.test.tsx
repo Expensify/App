@@ -22,7 +22,8 @@ const mockDomainCollection = {
 };
 
 const mockPolicyCollection = {
-    [`${ONYXKEYS.COLLECTION.POLICY}${otherPolicyID}`]: {name: 'Other workspace'},
+    // POLICY collection entries are keyed by uppercase policy IDs, matching how the hook indexes them.
+    [`${ONYXKEYS.COLLECTION.POLICY}${otherPolicyID.toUpperCase()}`]: {name: 'Other workspace'},
 };
 
 const mockUseOnyx = jest.fn();
