@@ -10,7 +10,7 @@ type ReportActionsListHeaderProps = {
 };
 
 function ReportActionsListHeader({reportID, hasActiveDraft}: ReportActionsListHeaderProps) {
-    if (!hasActiveDraft) {
+    if (hasActiveDraft) {
         return null;
     }
 

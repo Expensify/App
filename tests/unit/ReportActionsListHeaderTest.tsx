@@ -18,18 +18,18 @@ describe('ReportActionsListHeader', () => {
         jest.clearAllMocks();
     });
 
-    it('renders ConciergeThinkingMessage when there is an active draft', () => {
+    it('renders ConciergeThinkingMessage when there is no active draft', () => {
+        render(<ReportActionsListHeader reportID={REPORT_ID} />);
+        expect(screen.getByTestId('ConciergeThinkingMessage')).toBeTruthy();
+    });
+
+    it('renders nothing when there is an active draft', () => {
         render(
             <ReportActionsListHeader
                 reportID={REPORT_ID}
                 hasActiveDraft
             />,
         );
-        expect(screen.getByTestId('ConciergeThinkingMessage')).toBeTruthy();
-    });
-
-    it('renders nothing when there is no active draft', () => {
-        render(<ReportActionsListHeader reportID={REPORT_ID} />);
         expect(screen.queryByTestId('ConciergeThinkingMessage')).toBeNull();
     });
 });
