@@ -24,7 +24,7 @@ function getLastFourDigits(bankAccountNumber: string): string {
  */
 function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): string {
     // BE returns bankName with the first letter uppercase (e.g. "Chase") but CONST.BANK_NAMES_USER_FRIENDLY keys are lowercase, so lowercase before the lookup.
-    const bankName = bankAccount?.accountData?.additionalData?.bankName?.toLowerCase();
+    const bankName = bankAccount?.accountData?.additionalData?.bankName?.toLowerCase() as keyof typeof CONST.BANK_NAMES_USER_FRIENDLY | undefined;
     const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
     const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const maskedNumber = accountNumber ? `xx${getLastFourDigits(accountNumber)}` : '';
