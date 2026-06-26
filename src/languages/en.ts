@@ -7607,6 +7607,7 @@ const translations = {
                 saveRule: 'Save rule',
                 confirmErrorCategory: 'Please select a category.',
                 confirmErrorAmount: 'Please enter an amount.',
+                thenFlagForReview: 'Then flag for review when:',
             },
             categoryRules: {
                 title: 'Category rules',

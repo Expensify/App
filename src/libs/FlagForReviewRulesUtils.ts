@@ -26,6 +26,10 @@ function hasExplicitFlagAmount(maxExpenseAmount: number | null | undefined): max
     return maxExpenseAmount !== null && maxExpenseAmount !== undefined && maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
+function isCategoryFieldPending(pendingAction: PendingAction | undefined): boolean {
+    return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+}
+
 function getFlagForReviewRuleNavigationRoute(policyID: string, categoryName: string): Route {
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName);
 }
@@ -39,7 +43,7 @@ function getFlagForReviewFormFromCategory(
 
     return {
         category: category?.name,
-        maxExpenseAmount: hasExplicitFlagAmount(maxExpenseAmount) && maxExpenseAmount ? convertToFrontendAmountAsString(maxExpenseAmount, getCurrencyDecimals(policyCurrency)) : '',
+        maxExpenseAmount: hasExplicitFlagAmount(maxExpenseAmount) ? convertToFrontendAmountAsString(maxExpenseAmount, getCurrencyDecimals(policyCurrency)) : '',
         expenseLimitType: category?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
     };
 }
@@ -102,7 +106,7 @@ function getFlagForReviewTableData({
             ruleDescription,
             searchTokens: [decodedCategoryName, conditionText, ruleDescription, typeLabel],
             pendingAction: pendingFields?.maxExpenseAmount,
-            disabled: pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            disabled: isCategoryFieldPending(pendingFields?.maxExpenseAmount),
             action: () => onNavigate(getFlagForReviewRuleNavigationRoute(policyID, categoryName)),
         });
     }

@@ -2,6 +2,13 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {TableData} from '@components/Table';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type PolicyData from '@hooks/usePolicyData/types';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import type {RequireFieldsRuleForm} from '@src/types/form/RequireFieldsRuleForm';
+import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {
     removePolicyCategoryItemizedReceiptsRequired,
     removePolicyCategoryReceiptsRequired,
@@ -10,14 +17,7 @@ import {
     setPolicyCategoryItemizedReceiptsRequired,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryReceiptsRequired,
-} from '@libs/actions/Policy/Category';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
-import type {RequireFieldsRuleForm} from '@src/types/form/RequireFieldsRuleForm';
-import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 
 type RequireFieldsRuleType = DeepValueOf<typeof CONST.REQUIRE_FIELDS_RULE_TYPES>;
@@ -140,6 +140,38 @@ function hasExplicitReceiptThreshold(value: number | null | undefined): value is
     return value !== null && value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
+function isCategoryFieldPending(pendingAction: PendingAction | undefined): boolean {
+    return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+}
+
+function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
+    const parsedRule = parseRequireFieldsRuleKey(ruleKey);
+    if (!parsedRule || !policyData.policy?.id) {
+        return;
+    }
+
+    const {categoryName, ruleType} = parsedRule;
+    const policyID = policyData.policy.id;
+    const policyCategories = policyData.categories;
+
+    switch (ruleType) {
+        case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION:
+            setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyCategories);
+            break;
+        case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES:
+            setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories);
+            break;
+        case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER:
+            removePolicyCategoryReceiptsRequired(policyData, categoryName);
+            break;
+        case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER:
+            removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+            break;
+        default:
+            break;
+    }
+}
+
 function getRequireFieldsRuleDescription(
     translate: LocaleContextProps['translate'],
     ruleType: RequireFieldsRuleType,
@@ -226,7 +258,7 @@ function getRequireFieldsTableData({
                 ruleDescription,
                 searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
                 pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
-                disabled: pendingFields?.areCommentsRequired === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                disabled: isCategoryFieldPending(pendingFields?.areCommentsRequired),
                 action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
             });
         }
@@ -244,7 +276,7 @@ function getRequireFieldsTableData({
                 ruleDescription,
                 searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
                 pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
-                disabled: pendingFields?.areAttendeesRequired === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                disabled: isCategoryFieldPending(pendingFields?.areAttendeesRequired),
                 action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
             });
         }
@@ -262,7 +294,7 @@ function getRequireFieldsTableData({
                 ruleDescription,
                 searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
                 pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
-                disabled: pendingFields?.maxAmountNoReceipt === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                disabled: isCategoryFieldPending(pendingFields?.maxAmountNoReceipt),
                 action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
             });
         }
@@ -280,7 +312,7 @@ function getRequireFieldsTableData({
                 ruleDescription,
                 searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
                 pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
-                disabled: pendingFields?.maxAmountNoItemizedReceipt === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                disabled: isCategoryFieldPending(pendingFields?.maxAmountNoItemizedReceipt),
                 action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
             });
         }
@@ -290,6 +322,7 @@ function getRequireFieldsTableData({
 }
 
 export {
+    deleteRequireFieldsRule,
     getRequireFieldsFormFromCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleNavigationRoute,

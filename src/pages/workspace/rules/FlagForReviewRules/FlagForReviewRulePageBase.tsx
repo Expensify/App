@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -65,6 +65,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
@@ -75,13 +76,23 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
     useEffect(() => () => clearDraftFlagForReviewRule(), []);
 
     useEffect(() => {
-        if (!isEditing || !category) {
-            if (!isEditing) {
+        if (!isEditing) {
+            if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
+                initializedDraftForRuleKeyRef.current = ROUTES.NEW;
                 setDraftFlagForReviewRule({});
             }
             return;
         }
 
+        if (!category || !categoryName) {
+            return;
+        }
+
+        if (initializedDraftForRuleKeyRef.current === categoryName) {
+            return;
+        }
+
+        initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
     }, [category, categoryName, getCurrencyDecimals, isEditing, policyCurrency]);
 
@@ -180,7 +191,10 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
                         disabled={isEditing}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
                     />
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                    <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenFlagForReview')}</Text>
                     <MenuItemWithTopDescription
                         description={translate('iou.amount')}
                         title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : undefined}
@@ -192,6 +206,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_AMOUNT}
                     />
                 </ScrollView>
                 {footer}

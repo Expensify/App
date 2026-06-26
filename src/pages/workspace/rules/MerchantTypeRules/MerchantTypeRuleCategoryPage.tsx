@@ -49,6 +49,4 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
     );
 }
 
-MerchantTypeRuleCategoryPage.displayName = 'MerchantTypeRuleCategoryPage';
-
 export default MerchantTypeRuleCategoryPage;

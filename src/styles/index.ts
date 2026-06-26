@@ -5516,8 +5516,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sortingMachineRulesEmptyStateIllustration: {
-            width: 229,
-            height: 240,
+            width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
+            height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
         emptyStateSamlIllustration: {

@@ -1,23 +1,29 @@
+import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
-import {setWorkspaceDefaultSpendCategory} from '@libs/actions/Policy/Policy';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import Parser from '@libs/Parser';
-import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {buildOptimisticMccGroup} from './actions/Policy/Category';
+import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
+import {getDecodedCategoryName} from './CategoryUtils';
+import Parser from './Parser';
+import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
 const EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS = ['airlines', 'commuter', 'gas', 'goods', 'groceries', 'hotel', 'mail', 'rental', 'services', 'taxi', 'uncategorized', 'utilities'] as const;
 
-type ExpenseDefaultMerchantTypeGroupID = (typeof EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS)[number];
+type ExpenseDefaultMerchantTypeGroupID = TupleToUnion<typeof EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS>;
+
+function isPendingDeleteOrUpdate(pendingAction: PendingAction | undefined): boolean {
+    return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+}
 
 function getMerchantTypeRuleKey(groupID: string) {
     return `${MERCHANT_TYPE_RULE_KEY_PREFIX}${groupID}`;
@@ -107,6 +113,7 @@ function getMerchantTypeRulesTableData({
             ruleDescription,
             searchTokens: [merchantTypeName, conditionText, ruleDescription, decodedCategoryName],
             pendingAction: mccGroup[groupID]?.pendingAction,
+            disabled: isPendingDeleteOrUpdate(mccGroup[groupID]?.pendingAction),
             action: () => onNavigate(getMerchantTypeRuleNavigationRoute(policyID, groupID)),
         };
     });
@@ -183,7 +190,7 @@ function getMerchantCodingRulesTableData({
                 pendingAction: rule.pendingAction,
                 errors: rule.errors,
                 onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
-                disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                disabled: isPendingDeleteOrUpdate(rule.pendingAction),
                 action: () => onNavigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
             };
         });

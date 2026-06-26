@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -60,6 +60,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const initializedDraftForGroupIDRef = useRef<string | null>(null);
 
     const mccGroup = policy?.mccGroup;
     const currentCategory = mccGroup?.[groupID]?.category ?? getDefaultMccGroupCategory(groupID);
@@ -73,6 +74,11 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
             return;
         }
 
+        if (initializedDraftForGroupIDRef.current === groupID) {
+            return;
+        }
+
+        initializedDraftForGroupIDRef.current = groupID;
         setDraftMerchantTypeRule(getMerchantTypeRuleFormFromMccGroup(groupID, currentCategory));
     }, [currentCategory, groupID]);
 
@@ -93,6 +99,11 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
 
     const handleSave = () => {
         if (!form) {
+            return;
+        }
+
+        if (form.category === currentCategory) {
+            Navigation.goBack();
             return;
         }
 
@@ -174,6 +185,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
                         iconWidth={variables.iconSizeNormal}
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_CATEGORY}
                     />
                 </ScrollView>
                 {footer}

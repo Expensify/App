@@ -61,6 +61,4 @@ function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPagePro
     );
 }
 
-FlagForReviewRuleCategoryPage.displayName = 'FlagForReviewRuleCategoryPage';
-
 export default FlagForReviewRuleCategoryPage;

@@ -50,6 +50,4 @@ function RequireFieldsRuleCategoryPage({route}: RequireFieldsRuleCategoryPagePro
     );
 }
 
-RequireFieldsRuleCategoryPage.displayName = 'RequireFieldsRuleCategoryPage';
-
 export default RequireFieldsRuleCategoryPage;

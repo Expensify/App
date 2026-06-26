@@ -48,23 +48,16 @@ import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/Merchant
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getRequireFieldsTableData, parseRequireFieldsRuleKey} from '@libs/RequireFieldsRulesUtils';
+import {deleteRequireFieldsRule, getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import variables from '@styles/variables';
-import {
-    removePolicyCategoryItemizedReceiptsRequired,
-    removePolicyCategoryReceiptsRequired,
-    setPolicyCategoryAttendeesRequired,
-    setPolicyCategoryDescriptionRequired,
-} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DismissedProductTraining from '@src/types/onyx/DismissedProductTraining';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import AgentRulesSection from './AgentRulesSection';
 import IndividualExpenseRulesSectionRevamp from './IndividualExpenseRulesSectionRevamp';
 
 const RULES_TAB = CONST.TAB.RULES;
@@ -80,7 +73,7 @@ function isRulesTab(key: string): key is RulesTab {
 }
 
 function updateSelectionKeysIfChanged(previousKeys: string[], nextKeys: string[]) {
-    if (previousKeys.length === nextKeys.length && previousKeys.every((key, index) => key === nextKeys[index])) {
+    if (previousKeys.length === nextKeys.length && previousKeys.every((key, index) => key === nextKeys.at(index))) {
         return previousKeys;
     }
 
@@ -107,7 +100,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const {isOffline} = useNetwork();
@@ -377,31 +369,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const deleteSelectedRequireFieldsRules = () => {
         for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
-            const parsedRule = parseRequireFieldsRuleKey(ruleKey);
-            if (!parsedRule) {
-                continue;
-            }
-
-            const {categoryName, ruleType} = parsedRule;
-
-            if (ruleType === CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION) {
-                setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyData.categories);
-                continue;
-            }
-
-            if (ruleType === CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES) {
-                setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyData.categories);
-                continue;
-            }
-
-            if (ruleType === CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER) {
-                removePolicyCategoryReceiptsRequired(policyData, categoryName);
-                continue;
-            }
-
-            if (ruleType === CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER) {
-                removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
-            }
+            deleteRequireFieldsRule(policyData, ruleKey);
         }
         clearTableSelection();
     };
@@ -742,13 +710,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     />
                                 )}
                             </View>
-                        )}
-                        {isCustomAgentBetaEnabled && !isRulesRevampEnabled && (
-                            <AgentRulesSection
-                                policyID={policyID}
-                                canWriteRules={canWriteRules}
-                                showReadOnlyModal={showReadOnlyModal}
-                            />
                         )}
                     </View>
                 </View>

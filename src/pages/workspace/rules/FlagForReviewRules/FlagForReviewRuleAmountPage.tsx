@@ -96,6 +96,4 @@ function FlagForReviewRuleAmountPage({route}: FlagForReviewRuleAmountPageProps) 
     );
 }
 
-FlagForReviewRuleAmountPage.displayName = 'FlagForReviewRuleAmountPage';
-
 export default FlagForReviewRuleAmountPage;

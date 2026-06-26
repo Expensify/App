@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -68,6 +68,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
@@ -75,13 +76,23 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     useEffect(() => () => clearDraftRequireFieldsRule(), []);
 
     useEffect(() => {
-        if (!isEditing || !category) {
-            if (!isEditing) {
+        if (!isEditing) {
+            if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
+                initializedDraftForRuleKeyRef.current = ROUTES.NEW;
                 setDraftRequireFieldsRule({});
             }
             return;
         }
 
+        if (!category || !categoryName) {
+            return;
+        }
+
+        if (initializedDraftForRuleKeyRef.current === categoryName) {
+            return;
+        }
+
+        initializedDraftForRuleKeyRef.current = categoryName;
         setDraftRequireFieldsRule({
             category: categoryName,
             ...getRequireFieldsFormFromCategory(category),
@@ -89,9 +100,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     }, [category, categoryName, isEditing]);
 
     const fetchPolicyData = useCallback(() => {
-        if (policy?.areCategoriesEnabled && !policyCategories) {
-            openPolicyCategoriesPage(policyID);
+        if (!policy?.areCategoriesEnabled || policyCategories) {
+            return;
         }
+        openPolicyCategoriesPage(policyID);
     }, [policy?.areCategoriesEnabled, policyCategories, policyID]);
 
     useNetwork({onReconnect: fetchPolicyData});
@@ -202,6 +214,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
                         disabled={isEditing}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.requireFieldsRule.thenWarnMember')}</Text>
@@ -230,7 +243,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                                             />
                                         </View>
                                     }
-                                    sentryLabel="WorkspaceRules-RequireFieldsRuleFieldToggle"
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_FIELD_TOGGLE}
                                 />
                             );
                         })}
