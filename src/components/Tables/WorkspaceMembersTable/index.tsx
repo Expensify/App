@@ -117,37 +117,75 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'role') {
+            if (!item1.role && !item2.role) {
+                return localeCompare(item1.name, item2.name) * orderMultiplier;
+            }
+
             if (!item1.role) {
                 return 1;
             }
+
             if (!item2.role) {
                 return -1;
             }
-            return localeCompare(item1.role, item2.role) * orderMultiplier;
+
+            const roleComparison = localeCompare(item1.role, item2.role);
+
+            if (roleComparison !== 0) {
+                return roleComparison * orderMultiplier;
+            }
+
+            return localeCompare(item1.name, item2.name) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'customField1') {
             const item1CustomField1Value = item1.employeeUserID;
             const item2CustomField1Value = item2.employeeUserID;
+
+            if (!item1CustomField1Value && !item2CustomField1Value) {
+                return localeCompare(item1.name, item2.name) * orderMultiplier;
+            }
+
             if (!item1CustomField1Value) {
                 return 1;
             }
+
             if (!item2CustomField1Value) {
                 return -1;
             }
-            return localeCompare(item1CustomField1Value, item2CustomField1Value) * orderMultiplier;
+
+            const employeeIdComparison = localeCompare(item1CustomField1Value, item2CustomField1Value);
+
+            if (employeeIdComparison !== 0) {
+                return employeeIdComparison * orderMultiplier;
+            }
+
+            return localeCompare(item1.name, item2.name) * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'customField2') {
             const item1CustomField2Value = item1.employeePayrollID;
             const item2CustomField2Value = item2.employeePayrollID;
+
+            if (!item1CustomField2Value && !item2CustomField2Value) {
+                return localeCompare(item1.name, item2.name) * orderMultiplier;
+            }
+
             if (!item1CustomField2Value) {
                 return 1;
             }
+
             if (!item2CustomField2Value) {
                 return -1;
             }
-            return localeCompare(item1CustomField2Value, item2CustomField2Value) * orderMultiplier;
+
+            const payrollIdComparison = localeCompare(item1CustomField2Value, item2CustomField2Value);
+
+            if (payrollIdComparison !== 0) {
+                return payrollIdComparison * orderMultiplier;
+            }
+
+            return localeCompare(item1.name, item2.name) * orderMultiplier;
         }
 
         return 1;
