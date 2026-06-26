@@ -755,22 +755,48 @@ function buildPreviousApproverComparison(email: string): ApprovalWorkflowFilterC
 }
 
 /**
+ * Assemble the filter tree for a single rule from its parts. The `from` comparison is always
+ * present; the `previousApprover` gate and `amount` comparison are optional. When neither is
+ * present we return the bare `from` comparison rather than wrapping it in an `AND` with no `right`.
+ */
+function buildLevelFilters(
+    fromComparison: ApprovalWorkflowFilterComparison,
+    previousApproverComparison: ApprovalWorkflowFilterComparison | undefined,
+    amountComparison: ApprovalWorkflowFilterComparison | undefined,
+): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison {
+    let right: ApprovalWorkflowFilterComparison | ApprovalWorkflowFilter | undefined;
+    if (previousApproverComparison && amountComparison) {
+        right = {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: previousApproverComparison, right: amountComparison};
+    } else {
+        right = previousApproverComparison ?? amountComparison;
+    }
+
+    if (!right) {
+        return fromComparison;
+    }
+
+    return {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: fromComparison, right};
+}
+
+/**
  * Build the `rules.approvalWorkflows` rule chain for a single `ApprovalWorkflow`.
  *
- * For a workflow whose approver chain is `[A0, A1, ..., A_{N-1}]` and whose members are `M`,
- * we emit one rule per approver position. The rule at position `i` routes the report TO
- * `approvers[i]`:
+ * For a workflow whose approver chain is `[A0, A1, ..., A_{N-1}]` and whose members are `M`, we emit
+ * the rule(s) that route the report INTO each level. The split happens at the level being routed
+ * into: at level `i`, the approver `A_i` and their over-limit approver `A_i.overLimitForwardsTo`
+ * share the same `previousApprover` gate — `A_{i-1}.email` — or NO `previousApprover` at all for the
+ * first level (a freshly-submitted report). The level's `A_i.approvalLimit` drives the mirrored
+ * amount pair:
  *
- * - i == 0 (initial submission): filter is `from ∈ M`, nextReceiver is `A0.email`.
- * - i > 0 (after `A_{i-1}` approves): filter is `from ∈ M AND previousApprover == A_{i-1}.email`,
- *   nextReceiver is `A_i.email`.
+ * - i == 0, no limit:  `from ∈ M`                                             → A0
+ * - i == 0, limit:     `from ∈ M AND amount < limit`                          → A0
+ *                      `from ∈ M AND amount >= limit`                         → A0.overLimitForwardsTo
+ * - i > 0, no limit:   `from ∈ M AND previousApprover == A_{i-1}`             → A_i
+ * - i > 0, limit:      `from ∈ M AND (previousApprover == A_{i-1} AND amount < limit)`  → A_i
+ *                      `from ∈ M AND (previousApprover == A_{i-1} AND amount >= limit)` → A_i.overLimitForwardsTo
  *
- * When `A_{i-1}` has both `approvalLimit > 0` and `overLimitForwardsTo` set, the hop after
- * them splits into two rules — an under-limit rule that continues to `A_i` and an over-limit
- * counterpart that jumps directly to `A_{i-1}.overLimitForwardsTo` instead.
- *
- * No rule is emitted "after the last approver" because nothing forwards past the terminal
- * approver in the chain.
+ * The last approver still gets an "into" rule (routed from the previous level); there's just no rule
+ * forwarding back OUT of them, since nothing forwards past the terminal approver.
  */
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
     const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
@@ -784,61 +810,43 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     const rules: ApprovalWorkflowRule[] = [];
 
     for (let i = 0; i < approvers.length; i++) {
-        const current = approvers[i];
+        const approver = approvers.at(i);
+        if (!approver) {
+            continue;
+        }
+
+        // The level's `previousApprover` gate is the approver from the previous level. The first
+        // level has none — a freshly-submitted report is routed by `from` (and amount) alone.
         const previous = i > 0 ? approvers.at(i - 1) : undefined;
+        const previousApproverComparison = previous ? buildPreviousApproverComparison(previous.email) : undefined;
 
-        // Initial-submission rule: degenerate single-comparison filter, no previousApprover gate.
-        if (!previous) {
+        const hasLimitSplit = !!approver.approvalLimit && approver.approvalLimit > 0 && !!approver.overLimitForwardsTo;
+
+        if (hasLimitSplit) {
+            const limit = approver.approvalLimit as number;
+            const underAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit);
+            const overAmount = buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit);
+
+            // The approver and their over-limit approver share the same previousApprover gate (or lack
+            // of one at the first level) and differ only by the mirrored amount comparison.
             rules.push({
-                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: fromComparison},
+                filters: buildLevelFilters(fromComparison, previousApproverComparison, underAmount),
                 action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                nextReceiver: current.email,
+                nextReceiver: approver.email,
+            });
+            rules.push({
+                filters: buildLevelFilters(fromComparison, previousApproverComparison, overAmount),
+                action: APPROVAL_WORKFLOW_FORWARD_ACTION,
+                nextReceiver: approver.overLimitForwardsTo as string,
             });
             continue;
         }
 
-        const previousApproverComparison = buildPreviousApproverComparison(previous.email);
-        const hasLimitSplit = !!previous.approvalLimit && previous.approvalLimit > 0 && !!previous.overLimitForwardsTo;
-
-        if (!hasLimitSplit) {
-            rules.push({
-                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: fromComparison, right: previousApproverComparison},
-                action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-                nextReceiver: current.email,
-            });
-            continue;
-        }
-
-        // Split: amount < limit continues to the next approver, amount >= limit jumps to overLimit.
-        const limit = previous.approvalLimit as number;
-        const overLimitTarget = previous.overLimitForwardsTo as string;
-
+        // No limit at this level: a single rule routes the report to this approver.
         rules.push({
-            filters: {
-                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                left: fromComparison,
-                right: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                    left: previousApproverComparison,
-                    right: buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit),
-                },
-            },
+            filters: buildLevelFilters(fromComparison, previousApproverComparison, undefined),
             action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-            nextReceiver: current.email,
-        });
-
-        rules.push({
-            filters: {
-                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                left: fromComparison,
-                right: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                    left: previousApproverComparison,
-                    right: buildComparison(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, limit),
-                },
-            },
-            action: APPROVAL_WORKFLOW_FORWARD_ACTION,
-            nextReceiver: overLimitTarget,
+            nextReceiver: approver.email,
         });
     }
 

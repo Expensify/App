@@ -7,7 +7,14 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {getDefaultApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
-import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees, getOverLimitForwardsToDisplayName, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
+import {
+    buildApprovalWorkflowRules,
+    calculateApprovers,
+    convertApprovalWorkflowToPolicyEmployees,
+    getOverLimitForwardsToDisplayName,
+    mergeWorkflowMembersWithAvailableMembers,
+    reconcileApprovalWorkflowRulesForCreate,
+} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -343,6 +350,32 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousApprovalWorkflow
     API.write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Create an approval workflow using the new rules-based backend (SetApprovalWorkflow), gated
+ * behind the `multipleApprovers` beta. Mirrors `createApprovalWorkflow`'s signature and its
+ * onboarding-task side-effect, but writes to `Policy.rules.approvalWorkflows` instead of
+ * `employeeList`.
+ */
+function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
+    if (!policy) {
+        return;
+    }
+
+    const newRules = buildApprovalWorkflowRules(approvalWorkflow);
+    const memberEmails = approvalWorkflow.members.map((member) => member.email);
+    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const rulesDiff = reconcileApprovalWorkflowRulesForCreate(newRules, memberEmails, {existingRules});
+
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
+
+    if (
+        addExpenseApprovalsTaskReport &&
+        (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
+    ) {
+        completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined, undefined, false);
+    }
+}
+
 /** Set the members of the approval workflow that is currently edited */
 function setApprovalWorkflowMembers(members: Member[]) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members, errors: null});
@@ -504,6 +537,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
 
 export {
     createApprovalWorkflow,
+    createApprovalWorkflowRules,
     updateApprovalWorkflow,
     removeApprovalWorkflow,
     setApprovalWorkflowMembers,

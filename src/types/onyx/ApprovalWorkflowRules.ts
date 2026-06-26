@@ -53,8 +53,12 @@ type ApprovalWorkflowFilter = {
  * When all `filters` match a report, the report is forwarded to `nextReceiver`.
  */
 type ApprovalWorkflowRule = {
-    /** Conditions that must match the report for the rule to fire. */
-    filters: ApprovalWorkflowFilter;
+    /**
+     * Conditions that must match the report for the rule to fire. Usually an `AND` filter, but a
+     * rule with a single condition (e.g. the initial-submission rule that only checks `from`) is
+     * stored as a bare comparison rather than a degenerate `AND` with no `right`.
+     */
+    filters: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison;
 
     /** Currently the only supported action. Kept as a literal to leave room for future actions. */
     action: 'forward';

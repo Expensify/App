@@ -1042,6 +1042,7 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
+        MULTIPLE_APPROVERS: 'multipleApprovers',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
