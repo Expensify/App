@@ -26,6 +26,7 @@ import {View} from 'react-native';
 
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
+import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
 function ForYouSection() {
@@ -42,6 +43,7 @@ function ForYouSection() {
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
@@ -169,8 +171,9 @@ function ForYouSection() {
         </View>
     );
 
+    const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
+
     const renderContent = () => {
-        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData);
         if (isInitialLoad) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
                 context: 'ForYouSection.ForYouSkeleton',
@@ -183,6 +186,10 @@ function ForYouSection() {
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
+
+    if (shouldHideForYouSection({isInitialLoad, hasAnyTodos, firstDayFreeTrial, cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE})) {
+        return null;
+    }
 
     return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
 }
