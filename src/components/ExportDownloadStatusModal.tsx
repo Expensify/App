@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -89,12 +90,11 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const handleSendFromConcierge = () => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
     };
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
     const handleGoToConcierge = () => {
         onClose();
-        if (conciergeReportID) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: conciergeReportID}));
-        }
+        openConciergeAnywhere();
     };
 
     const handleDownloadFile = () => {
