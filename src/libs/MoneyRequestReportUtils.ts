@@ -140,9 +140,15 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
     // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
     // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
     const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
+    // Once the initial report actions have loaded at least once and no transactions came back, stop treating
+    // a stale cached `total` as "still loading". Otherwise a report whose transactions can never load (e.g. its
+    // owning report was orphaned during an account merge) shows the loading skeleton forever.
+    const hasFinishedInitialReportActionsLoad = !!reportLoadingState?.hasOnceLoadedReportActions;
     const isStillLoadingData =
         transactions?.length === 0 &&
-        ((!!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
+        ((!!reportLoadingState?.isLoadingInitialReportActions && !hasFinishedInitialReportActionsLoad) ||
+            (report?.total !== 0 && !hasFinishedInitialReportActionsLoad) ||
+            hasPendingDismissWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&
