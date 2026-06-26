@@ -23,11 +23,11 @@ import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ImportedTagsPageProps =
+type DynamicImportedTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORTED>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED>;
 
-function ImportedTagsPage({route}: ImportedTagsPageProps) {
+function DynamicImportedTagsPage({route}: DynamicImportedTagsPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingTags, setIsImportingTags] = useState(false);
@@ -143,7 +143,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
 
     return (
         <ScreenWrapper
-            testID="ImportedTagsPage"
+            testID="DynamicImportedTagsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -164,4 +164,4 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     );
 }
 
-export default ImportedTagsPage;
+export default DynamicImportedTagsPage;

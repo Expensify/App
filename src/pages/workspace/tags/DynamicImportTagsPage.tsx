@@ -16,11 +16,11 @@ import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ImportTagsPageProps =
+type DynamicImportTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_IMPORT>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT>;
 
-function ImportTagsPage({route}: ImportTagsPageProps) {
+function DynamicImportTagsPage({route}: DynamicImportTagsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -63,4 +63,4 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     );
 }
 
-export default ImportTagsPage;
+export default DynamicImportTagsPage;

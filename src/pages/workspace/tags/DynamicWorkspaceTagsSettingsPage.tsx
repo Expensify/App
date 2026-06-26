@@ -27,7 +27,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
-type WorkspaceTagsSettingsPageProps =
+type DynamicWorkspaceTagsSettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS>;
 
@@ -51,7 +51,7 @@ function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
     }
 }
 
-function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
+function DynamicWorkspaceTagsSettingsPage({route}: DynamicWorkspaceTagsSettingsPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
@@ -143,7 +143,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
                     style={[styles.defaultModalContainer]}
-                    testID="WorkspaceTagsSettingsPage"
+                    testID="DynamicWorkspaceTagsSettingsPage"
                 >
                     <HeaderWithBackButton
                         title={translate('common.settings')}
@@ -156,4 +156,4 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     );
 }
 
-export default WorkspaceTagsSettingsPage;
+export default DynamicWorkspaceTagsSettingsPage;
