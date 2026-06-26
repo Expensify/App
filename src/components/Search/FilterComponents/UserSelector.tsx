@@ -106,6 +106,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
                 canSelectMultiple
                 ListItem={UserSelectionListItem}
                 onSelectRow={selectUser}
+                shouldUpdateFocusedIndex
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
