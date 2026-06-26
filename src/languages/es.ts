@@ -1763,7 +1763,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Esperando a que <strong>tú</strong> lo marques como listo.`;
@@ -8166,6 +8165,7 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
             reportField: (name, value) => `${name} es ${value}`,
+            merchant: {matchType: 'Tipo de coincidencia', equalTo: 'Igual a', contains: 'Contiene'},
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

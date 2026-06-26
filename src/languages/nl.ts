@@ -8303,6 +8303,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Betalen',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
+            merchant: {matchType: 'Overeenkomsttype', equalTo: 'Gelijk aan', contains: 'Bevat'},
         },
         display: {
             label: 'Weergave',
