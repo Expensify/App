@@ -18,6 +18,7 @@ import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTabl
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -252,14 +253,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                       disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       action: () => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
                   };
-              })
-              .sort((a, b) => {
-                  const ruleA = codingRules[a.ruleID];
-                  const ruleB = codingRules[b.ruleID];
-                  if (ruleA?.created && ruleB?.created) {
-                      return ruleA.created < ruleB.created ? 1 : -1;
-                  }
-                  return 0;
               });
 
     const requireFieldsTableData = getRequireFieldsTableData({
@@ -283,15 +276,34 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         openPolicyRulesPage(policyID);
     }, [policyID]);
 
+    const clearAllTableSelection = () => {
+        setSelectedSpendRuleKeys((prev) => (prev.length > 0 ? [] : prev));
+        setSelectedExpenseDefaultKeys((prev) => (prev.length > 0 ? [] : prev));
+        setSelectedRequireFieldsRuleKeys((prev) => (prev.length > 0 ? [] : prev));
+        setSelectedFlagForReviewRuleKeys((prev) => (prev.length > 0 ? [] : prev));
+        turnOffMobileSelectionMode();
+    };
+
+    useCleanupSelectedOptions(clearAllTableSelection);
+
+    const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+    const validSpendRuleKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+    const validRequireFieldsRuleKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+    const validFlagForReviewRuleKeys = new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
+    const filteredSelectedExpenseDefaultKeys = canWriteRules ? selectedExpenseDefaultKeys.filter((key) => validExpenseDefaultKeys.has(key)) : [];
+    const filteredSelectedSpendRuleKeys = canWriteRules ? selectedSpendRuleKeys.filter((key) => validSpendRuleKeys.has(key)) : [];
+    const filteredSelectedRequireFieldsRuleKeys = canWriteRules ? selectedRequireFieldsRuleKeys.filter((key) => validRequireFieldsRuleKeys.has(key)) : [];
+    const filteredSelectedFlagForReviewRuleKeys = canWriteRules ? selectedFlagForReviewRuleKeys.filter((key) => validFlagForReviewRuleKeys.has(key)) : [];
+
     let selectedRuleKeys: string[];
     if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
-        selectedRuleKeys = selectedSpendRuleKeys;
+        selectedRuleKeys = filteredSelectedSpendRuleKeys;
     } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
-        selectedRuleKeys = selectedExpenseDefaultKeys;
+        selectedRuleKeys = filteredSelectedExpenseDefaultKeys;
     } else if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
-        selectedRuleKeys = selectedRequireFieldsRuleKeys;
+        selectedRuleKeys = filteredSelectedRequireFieldsRuleKeys;
     } else if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
-        selectedRuleKeys = selectedFlagForReviewRuleKeys;
+        selectedRuleKeys = filteredSelectedFlagForReviewRuleKeys;
     } else {
         selectedRuleKeys = [];
     }
@@ -350,7 +362,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return;
         }
 
-        for (const ruleID of selectedSpendRuleKeys) {
+        for (const ruleID of filteredSelectedSpendRuleKeys) {
             if (ruleID === DEFAULT_SPEND_RULE_ID) {
                 continue;
             }
@@ -370,14 +382,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return;
         }
 
-        for (const ruleID of selectedExpenseDefaultKeys) {
+        for (const ruleID of filteredSelectedExpenseDefaultKeys) {
             deletePolicyCodingRule(policy, ruleID);
         }
         clearTableSelection();
     };
 
     const deleteSelectedRequireFieldsRules = () => {
-        for (const ruleKey of selectedRequireFieldsRuleKeys) {
+        for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
             const parsedRule = parseRequireFieldsRuleKey(ruleKey);
             if (!parsedRule) {
                 continue;
@@ -408,7 +420,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     };
 
     const deleteSelectedFlagForReviewRules = () => {
-        for (const categoryName of selectedFlagForReviewRuleKeys) {
+        for (const categoryName of filteredSelectedFlagForReviewRuleKeys) {
             deleteFlagForReviewRule(policyID, categoryName, policyData.categories);
         }
         clearTableSelection();
@@ -711,7 +723,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     <WorkspaceSpendRulesTable
                                         rulesData={areCardsEnabled ? spendRulesTableData : []}
                                         selectionEnabled={canWriteRules}
-                                        selectedKeys={selectedSpendRuleKeys}
+                                        selectedKeys={filteredSelectedSpendRuleKeys}
                                         onRowSelectionChange={handleSpendRuleSelectionChange}
                                         emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
                                     />
@@ -720,7 +732,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     <WorkspaceExpenseDefaultsTable
                                         rulesData={expenseDefaultsTableData}
                                         selectionEnabled={canWriteRules}
-                                        selectedKeys={selectedExpenseDefaultKeys}
+                                        selectedKeys={filteredSelectedExpenseDefaultKeys}
                                         onRowSelectionChange={handleExpenseDefaultSelectionChange}
                                     />
                                 )}
@@ -728,7 +740,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     <WorkspaceRequireFieldsTable
                                         rulesData={requireFieldsTableData}
                                         selectionEnabled={canWriteRules}
-                                        selectedKeys={selectedRequireFieldsRuleKeys}
+                                        selectedKeys={filteredSelectedRequireFieldsRuleKeys}
                                         onRowSelectionChange={handleRequireFieldsSelectionChange}
                                         emptyStateContent={requireFieldsEmptyState}
                                     />
@@ -737,7 +749,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                     <WorkspaceFlagForReviewTable
                                         rulesData={flagForReviewTableData}
                                         selectionEnabled={canWriteRules}
-                                        selectedKeys={selectedFlagForReviewRuleKeys}
+                                        selectedKeys={filteredSelectedFlagForReviewRuleKeys}
                                         onRowSelectionChange={handleFlagForReviewSelectionChange}
                                         emptyStateContent={flagForReviewEmptyState}
                                     />

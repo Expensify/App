@@ -16,7 +16,16 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose, isSubmitPolicy} from '@libs/PolicyUtils';
+import {
+    arePaymentsEnabled,
+    getSubmitReportManagerAccountID,
+    hasDynamicExternalWorkflow,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isSubmitAndClose,
+    isSubmitPolicy,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
+} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction, isOlderReportAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
@@ -78,7 +87,6 @@ import {getReportFromHoldRequestsOnyxData} from './Hold';
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     expenseReportPolicy: OnyxEntry<OnyxTypes.Policy>;
-    policy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
@@ -118,6 +126,12 @@ function canApproveIOU(
 ) {
     const isSubmitWorkspace = isSubmitPolicy(policy);
     if (!isExpenseReport(iouReport) || !policy || !(isPaidGroupPolicy(policy) || isSubmitWorkspace)) {
+        return false;
+    }
+
+    // On a Submit workspace the submitter is also the report manager, so guard against approving your own expense,
+    // mirroring the same check used by isApproveAction and the other approval-eligibility entry points.
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, iouReport?.ownerAccountID, currentUserAccountID)) {
         return false;
     }
 
@@ -395,7 +409,6 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const {
         expenseReport,
-        policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -415,14 +428,11 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     }
 
     // If this is a Submit workspace, approving requires upgrading first.
-    // IMPORTANT: gate by the workspace that owns the expense report (`expenseReportPolicy`) instead of `policy`,
-    // since some call sites pass `policy` as the active/personal policy rather than the report's workspace policy.
-    const policyToUpgrade = expenseReportPolicy ?? policy;
-    if (isSubmitPolicy(policyToUpgrade) && policyToUpgrade?.id) {
+    if (isSubmitPolicy(expenseReportPolicy) && expenseReportPolicy?.id) {
         const upgradeFeatureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.alias;
         const backTo = Navigation.getActiveRoute() || ROUTES.REPORT_WITH_ID.getRoute(expenseReport.reportID);
 
-        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyToUpgrade.id, upgradeFeatureAlias, backTo, expenseReport.reportID));
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(expenseReportPolicy.id, upgradeFeatureAlias, backTo, expenseReport.reportID));
         return;
     }
 
@@ -436,13 +446,13 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const hasHeldExpenses = hasHeldExpensesReportUtils(reportTransactions);
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy, getAllTransactionViolations());
+    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, expenseReportPolicy, getAllTransactionViolations());
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
     const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
     const nextApproverAccountID = getNextApproverAccountID(expenseReport);
@@ -455,7 +465,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ? null
         : buildNextStepNew({
               report: expenseReport,
-              policy,
+              policy: expenseReportPolicy,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -466,7 +476,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ? null
         : buildOptimisticNextStep({
               report: expenseReport,
-              policy,
+              policy: expenseReportPolicy,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -710,7 +720,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             chatReport,
             iouReport: expenseReport,
             recipient: {accountID: expenseReport.ownerAccountID},
-            policy,
+            policy: expenseReportPolicy,
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
@@ -734,7 +744,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 currentUserEmailParam,
                 currentUserAccountIDParam,
                 expenseReport,
-                policy,
+                expenseReportPolicy,
                 // TODO: https://github.com/Expensify/App/issues/66512
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
@@ -1456,8 +1466,10 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
                 ...parentReport,
-                // In case its a manager who force submitted the report, they are the next user who needs to take an action
-                hasOutstandingChildRequest: isCurrentUserManager,
+                // In case its a manager who force submitted the report, they are the next user who needs to take an action.
+                // On a Submit workspace the submitter is also their own report manager but can't approve their own expense,
+                // so there's no outstanding action for them — keep the green dot off in that case.
+                hasOutstandingChildRequest: isCurrentUserManager && !isSubmitterApproveBlockedOnSubmitWorkspace(policy, expenseReport.ownerAccountID, currentUserAccountIDParam),
                 iouReportID: null,
             },
         });
