@@ -20,6 +20,8 @@ type TodoSingleReportIDs = {
     [CONST.SEARCH.SEARCH_KEYS.EXPORT]: string | undefined;
 };
 
+const TODO_KEYS = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT] as const;
+
 /**
  * Computes live to-do report counts and, for each bucket that contains exactly one report, that report's ID.
  * Runs the to-do classification on demand from live Onyx data, only while a consumer is mounted, replacing the
@@ -40,11 +42,11 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     // Holds the most recent result so a frozen (inactive) consumer can keep returning it without recomputing.
-    const [frozen, setFrozen] = useState<{signature: string; value: {counts: TodoCounts; singleReportIDs: TodoSingleReportIDs}} | null>(null);
+    const [frozen, setFrozen] = useState<{counts: TodoCounts; singleReportIDs: TodoSingleReportIDs} | null>(null);
 
     // While frozen, reuse the last captured result and skip the expensive classification below.
     if (!enabled && frozen) {
-        return frozen.value;
+        return frozen;
     }
 
     const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -78,21 +80,11 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
 
     const value = {counts, singleReportIDs};
 
-    // Capture the latest result so it can be returned verbatim once the consumer freezes. Guarded by a content
-    // signature so we only re-render when the counts/IDs actually change (avoids a setState-during-render loop).
-    const signature = [
-        counts[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
-        counts[CONST.SEARCH.SEARCH_KEYS.APPROVE],
-        counts[CONST.SEARCH.SEARCH_KEYS.PAY],
-        counts[CONST.SEARCH.SEARCH_KEYS.EXPORT],
-        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT],
-        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE],
-        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY],
-        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.EXPORT],
-    ].join('|');
-
-    if (frozen?.signature !== signature) {
-        setFrozen({signature, value});
+    // Capture the latest result so it can be returned verbatim once the consumer freezes. Only re-store when a
+    // count or single-report ID actually changes, so the setState-during-render can't loop.
+    const hasChanged = !frozen || TODO_KEYS.some((key) => frozen.counts[key] !== counts[key] || frozen.singleReportIDs[key] !== singleReportIDs[key]);
+    if (hasChanged) {
+        setFrozen(value);
     }
 
     return value;

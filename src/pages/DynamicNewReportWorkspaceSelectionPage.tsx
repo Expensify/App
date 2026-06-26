@@ -31,6 +31,7 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -40,7 +41,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceListItem = {
@@ -89,16 +89,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    const transactionsByReportID: Record<string, Transaction[]> = {};
-    for (const transaction of Object.values(allTransactions ?? {})) {
-        if (!transaction?.reportID) {
-            continue;
-        }
-        if (!transactionsByReportID[transaction.reportID]) {
-            transactionsByReportID[transaction.reportID] = [];
-        }
-        transactionsByReportID[transaction.reportID].push(transaction);
-    }
+    const transactionsByReportID = buildTransactionsByReportID(allTransactions);
 
     const policiesWithEmptyReportsForAccountSelector = policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID, !!hasDismissedEmptyReportsConfirmation);
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policiesWithEmptyReportsForAccountSelector});
