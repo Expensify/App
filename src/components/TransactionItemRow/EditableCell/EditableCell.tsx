@@ -1,4 +1,4 @@
-import React, {useDeferredValue, useEffect, useId, useRef, useState} from 'react';
+import React, {useDeferredValue, useEffect, useId, useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import Pencil from '@assets/images/pencil.svg';
@@ -65,10 +65,8 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
-    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const {wasRecentlyEditingCell} = useEditingCellState();
     const isInteractive = useDeferredValue(true, false);
-    const shouldConsumePressRef = useRef(false);
-    const shouldWaitForHoverOutRef = useRef(false);
 
     useEffect(() => {
         if (!isEditable || !isEditing) {
@@ -82,9 +80,6 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         if (!isEditable || !isEditing) {
             return;
         }
-
-        shouldConsumePressRef.current = false;
-        shouldWaitForHoverOutRef.current = false;
 
         const animationFrame = requestAnimationFrame(() => {
             setIsEditIconFocused(false);
@@ -114,13 +109,6 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }, [isEditIconFocused, wasRecentlyEditingCell]);
 
     const handleEditIconFocus = () => {
-        if (shouldWaitForHoverOutRef.current && shouldConsumePressRef.current) {
-            setIsEditIconFocused(false);
-            setFocusedCellId(null);
-            return;
-        }
-
-        shouldWaitForHoverOutRef.current = false;
         setShouldSuppressEditIconHover(false);
         setIsEditIconFocused(true);
         setFocusedCellId(cellId);
@@ -132,54 +120,13 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     };
 
     const handleCellHoverIn = () => {
-        if (shouldWaitForHoverOutRef.current) {
-            return;
-        }
-
         setShouldSuppressEditIconHover(false);
     };
 
-    const handleCellHoverOut = () => {
-        shouldConsumePressRef.current = false;
-        shouldWaitForHoverOutRef.current = false;
+    const handleEditIconMouseDown = () => {
         setShouldSuppressEditIconHover(false);
-    };
-
-    const suppressEditIconPress = () => {
-        shouldConsumePressRef.current = true;
-        shouldWaitForHoverOutRef.current = true;
-        setIsEditIconFocused(false);
-        setShouldSuppressEditIconHover(true);
-        setFocusedCellId(null);
-    };
-
-    const handleEditIconMouseDown = (event: React.MouseEvent) => {
-        if (!isEditingCell) {
-            return;
-        }
-
-        if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-        }
-        event.preventDefault();
-        suppressEditIconPress();
-    };
-
-    const handleEditIconPressIn = () => {
-        if (!isEditingCell) {
-            return;
-        }
-
-        suppressEditIconPress();
-    };
-
-    const handleEditIconPress = () => {
-        if (shouldConsumePressRef.current) {
-            shouldConsumePressRef.current = false;
-            return;
-        }
-
-        onStartEditing();
+        setIsEditIconFocused(true);
+        setFocusedCellId(cellId);
     };
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
@@ -216,10 +163,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <Hoverable
-            onHoverIn={handleCellHoverIn}
-            onHoverOut={handleCellHoverOut}
-        >
+        <Hoverable onHoverIn={handleCellHoverIn}>
             {(isCellHovered) => {
                 const shouldShowEditIcon = isEditIconFocused || (!wasRecentlyEditingCell && !shouldSuppressEditIconHover && isCellHovered);
 
@@ -238,8 +182,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                                 accessibilityLabel={translate('common.edit')}
                                 sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
                                 onMouseDown={handleEditIconMouseDown}
-                                onPressIn={handleEditIconPressIn}
-                                onPress={handleEditIconPress}
+                                onPress={onStartEditing}
                                 onFocus={handleEditIconFocus}
                                 onBlur={handleEditIconBlur}
                                 style={[styles.editableCellEditButton, shouldShowEditIcon ? styles.opacity1 : styles.opacity0]}
