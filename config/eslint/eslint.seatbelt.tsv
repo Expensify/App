@@ -1861,7 +1861,7 @@
 "../../tests/unit/ValidateAttachmentFileTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../tests/unit/ValidationUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/VideoRendererTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../tests/unit/ViolationUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	22
+"../../tests/unit/ViolationUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	23
 "../../tests/unit/WhisperContentMentionContextTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../tests/unit/WorkflowUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/unit/WorkspaceReportFieldUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
