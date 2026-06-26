@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
@@ -52,9 +52,23 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         shouldKeepSelectedInAvailableOptions: true,
     });
 
+    // Capture the accountIDs that were pre-selected when the filter first opened. We use this stable set
+    // (not the live selection) to float pre-selected rows to the top on first render while keeping rows in
+    // place when toggled afterwards (see https://github.com/Expensify/App/issues/61414).
+    const [initiallySelectedAccountIDs] = useState(() => new Set(value));
+
+    // Order personalDetails so pre-selected rows render at the top, each group keeping its natural sorted order.
+    const orderedPersonalDetails =
+        initiallySelectedAccountIDs.size === 0
+            ? availableOptions.personalDetails
+            : [
+                  ...availableOptions.personalDetails.filter((option) => initiallySelectedAccountIDs.has(option.accountID.toString())),
+                  ...availableOptions.personalDetails.filter((option) => !initiallySelectedAccountIDs.has(option.accountID.toString())),
+              ];
+
     // The current user is excluded from personalDetails, so render it (when present) at the top, followed by
     // the rest of the contacts. Selected rows already live within personalDetails in their sorted position.
-    const listData = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...availableOptions.personalDetails] : availableOptions.personalDetails;
+    const listData = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...orderedPersonalDetails] : orderedPersonalDetails;
 
     const headerMessage = listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
