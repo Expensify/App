@@ -183,36 +183,36 @@ function ParentNavigationSubtitle({
             }
         }
 
-        // When viewing a money request report in an RHP, open its parent (the workspace chat) as another RHP
-        // instead of navigating away full-page. This mirrors the Search flow (SEARCH_MONEY_REQUEST_REPORT). The
-        // EXPENSE_REPORT case is scoped to the Home tab — in the Reports/Inbox tab the parent chat is the fullscreen
-        // underneath, so the dismiss-to-reveal logic below should handle it instead.
         if (openParentReportInCurrentTab && currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             const lastRoute = currentFocusedNavigator?.state?.routes.at(-1);
-            if (
-                lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ||
-                (lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && currentFullScreenRoute?.name === SCREENS.HOME)
-            ) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
-                return;
-            }
 
-            // Specific case: when the parent report is already the previous RHP in the stack (e.g. the Home
-            // "Submit" flow opens EXPENSE_REPORT, then an expense detail as SEARCH_REPORT on top), avoid stacking
-            // a duplicate RHP — just go back to the already-open parent instead.
+            // Dedup must run before the navigate-to-parent branches below: when the parent report is already the
+            // previous RHP in the stack, go back to it instead of pushing a new copy. Otherwise hopping parent <->
+            // child repeatedly (e.g. workspace chat <-> expense report from Home) stacks [chat, report, chat,
+            // report, …] in history, forcing the back button to walk through every duplicate.
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
             if (
                 (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || previousRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) &&
                 previousRoute.params &&
-                'reportID' in previousRoute.params
+                'reportID' in previousRoute.params &&
+                previousRoute.params.reportID === parentReportID
             ) {
-                const reportIDFromParams = previousRoute.params.reportID;
+                Navigation.goBack();
+                return;
+            }
 
-                if (reportIDFromParams === parentReportID) {
-                    Navigation.goBack();
-                    return;
-                }
+            // When viewing a money request report in an RHP, open its parent (the workspace chat) as another RHP
+            // instead of navigating away full-page. This mirrors the Search flow (SEARCH_MONEY_REQUEST_REPORT). The
+            // EXPENSE_REPORT case is scoped to the Home tab — in the Reports/Inbox tab the parent chat is the
+            // fullscreen underneath, so the dismiss-to-reveal logic below should handle it instead.
+            if (
+                lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ||
+                (lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && currentFullScreenRoute?.name === SCREENS.HOME)
+            ) {
+                const backTo = currentFullScreenRoute?.name === SCREENS.HOME ? Navigation.getActiveRoute() : undefined;
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID, backTo}));
+                return;
             }
 
             // When the parent report is already the topmost route in the tab underneath the RHP,
