@@ -65,6 +65,7 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
     }
 
     if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+        Navigation.clearFullscreenPreInsertedFlag();
         startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         Navigation.dismissModal({
             afterTransition: () => executeWrite({shouldHandleNavigation: false}),

@@ -16,6 +16,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: (...args: unknown[]) => mockDismissModal(...args) as unknown,
     revealRouteBeforeDismissingModal: (...args: unknown[]) => mockRevealRouteBeforeDismissingModal(...args) as unknown,
     getIsFullscreenPreInsertedUnderRHP: () => mockGetIsFullscreenPreInsertedUnderRHP() as unknown,
+    clearFullscreenPreInsertedFlag: jest.fn(),
 }));
 jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id) as unknown,

@@ -150,7 +150,12 @@ function IOURequestStepAmount({
         const timer = setTimeout(() => {
             Navigation.preInsertFullscreenUnderRHP(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
         }, CONST.PRE_INSERT_FULLSCREEN_DELAY);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+                Navigation.removePreInsertedFullscreenIfNeeded();
+            }
+        };
     }, [shouldSkipConfirmation, iouType, report?.reportID]);
 
     useFocusEffect(
