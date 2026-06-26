@@ -3346,6 +3346,7 @@ const CONST = {
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
             CONFIRMATION: 'confirmation',
+            SUCCESS: 'success',
         },
     },
 

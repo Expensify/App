@@ -1,16 +1,21 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
-import Navigation from '@navigation/Navigation';
-import {addPersonalBankAccount} from '@userActions/BankAccounts';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import Navigation, {navigationRef} from '@navigation/Navigation';
+import {addPersonalBankAccount, clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -20,6 +25,7 @@ import LegalName from './substeps/LegalNameStep';
 import ManualBankAccountDetails from './substeps/ManualBankAccountDetailsStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
 import PlaidBankAccount from './substeps/PlaidBankAccountStep';
+import Success from './substeps/SuccessStep';
 import getSkippedStepsPersonalInfo from './utils/getSkippedStepsPersonalInfo';
 
 const SUB_PAGE_NAMES = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES;
@@ -29,6 +35,7 @@ const infoPages = [
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
     {pageName: SUB_PAGE_NAMES.PHONE_NUMBER, component: PhoneNumber},
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
+    {pageName: SUB_PAGE_NAMES.SUCCESS, component: Success},
 ];
 const pagesWithPlaid = [{pageName: SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT, component: PlaidBankAccount}, ...infoPages];
 const pagesWithManualSetup = [{pageName: SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS, component: ManualBankAccountDetails}, ...infoPages];
@@ -49,6 +56,39 @@ function PersonalInfoPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const kycWallRef = useContext(KYCWallContext);
+
+    const shouldShowSuccess = fullPersonalBankAccount?.shouldShowSuccess ?? false;
+
+    const exit = () => {
+        const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((rootRoute) => isFullScreenName(rootRoute.name));
+        const activeTab = getActiveTabName(topmostFullScreenRoute);
+        switch (activeTab) {
+            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+                break;
+            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
+                Navigation.closeRHPFlow();
+                break;
+            default:
+                Navigation.goBack();
+                break;
+        }
+    };
+
+    const exitFlow = (shouldContinue = false) => {
+        const exitReportID = fullPersonalBankAccount?.exitReportID;
+        const onSuccessFallbackRoute = fullPersonalBankAccount?.onSuccessFallbackRoute ?? '';
+
+        if (exitReportID) {
+            Navigation.dismissModalWithReport({reportID: exitReportID});
+        } else if (shouldContinue && onSuccessFallbackRoute) {
+            continueSetup(kycWallRef, onSuccessFallbackRoute);
+        } else {
+            exit();
+            clearPersonalBankAccount();
+        }
+    };
 
     const submitBankAccountForm = () => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -82,17 +122,35 @@ function PersonalInfoPage() {
     const route = useRoute();
     const buildRoute = (pageName: string, action?: 'edit') =>
         route.name === SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT ? ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(pageName, action) : ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(pageName, action);
+    const onFinished = (data?: unknown) => exitFlow(!!data);
 
-    const {CurrentPage, isEditing, nextPage, prevPage, moveTo, pageIndex, isRedirecting} = useSubPage<SubPageProps>({
+    const {CurrentPage, isEditing, nextPage, prevPage, moveTo, pageIndex, currentPageName, isRedirecting} = useSubPage<SubPageProps>({
         pages,
         skipPages,
-        onFinished: submitBankAccountForm,
+        onFinished,
         buildRoute,
     });
 
+    const confirmationIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.CONFIRMATION);
+
+    const handleNext = (data?: unknown) => {
+        // When editing a field from the confirmation step, jump straight back to it.
+        if (isEditing) {
+            moveTo(confirmationIndex, false);
+            return;
+        }
+        // On the confirmation step we submit the bank account first; the success step is
+        // only shown once the request succeeds (see the effect below).
+        if (currentPageName === SUB_PAGE_NAMES.CONFIRMATION) {
+            submitBankAccountForm();
+            return;
+        }
+        nextPage(data);
+    };
+
     const handleBackButtonPress = () => {
         if (isEditing) {
-            moveTo(pages.length - 1, false);
+            moveTo(confirmationIndex, false);
             return;
         }
         if (pageIndex === 0) {
@@ -101,6 +159,14 @@ function PersonalInfoPage() {
         }
         prevPage();
     };
+
+    // Advance to the success step once the bank account has been added successfully.
+    useEffect(() => {
+        if (!shouldShowSuccess || currentPageName !== SUB_PAGE_NAMES.CONFIRMATION) {
+            return;
+        }
+        nextPage();
+    }, [shouldShowSuccess, currentPageName, nextPage]);
 
     useEffect(() => {
         if (!error) {
@@ -126,7 +192,7 @@ function PersonalInfoPage() {
         >
             <CurrentPage
                 isEditing={isEditing}
-                onNext={nextPage}
+                onNext={handleNext}
                 onMove={moveTo}
             />
         </InteractiveStepWrapper>
