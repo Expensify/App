@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -136,7 +136,10 @@ function RulesRequireFieldsPage({
                         onToggle={setTagRequired}
                     />
                 </ScrollView>
-                <View style={[styles.ph5, styles.pb5]}>
+                <FixedFooter
+                    addBottomSafeAreaPadding
+                    addOfflineIndicatorBottomSafeAreaPadding
+                >
                     <Button
                         success
                         large
@@ -144,7 +147,7 @@ function RulesRequireFieldsPage({
                         onPress={handleSave}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_SAVE}
                     />
-                </View>
+                </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

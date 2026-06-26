@@ -79,6 +79,9 @@ type OriginalMessageIOU = {
     /** The bank account id */
     bankAccountID?: number;
 
+    /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
+    accountNumber?: string;
+
     /** True when the submitter marked the report as payment received outside Expensify */
     isSubmitterMarkedPaymentReceived?: boolean;
 
@@ -1270,8 +1273,11 @@ type OriginalMessageReimbursed = {
     /** Raw payment method field as stored by Auth (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) - set on real-time Pusher updates */
     method?: string;
 
-    /** Last 4 digits of the debit bank account used to fund the payment */
+    /** Last 4 digits of the debit bank account used to fund the payment - set by the openReport path */
     debitBankAccountLast4?: string;
+
+    /** Masked number (e.g., 'XXXXXX1234') of the debit bank account used to fund the payment - set on real-time Pusher updates */
+    accountNumber?: string;
 
     /** Last 4 digits of the credit bank account receiving the payment */
     creditBankAccountLast4?: string;
