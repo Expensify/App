@@ -37,7 +37,7 @@ function PlaidBankAccountStep({onNext, isEditing}: SubPageProps) {
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validatePlaidSelection}
-            style={[styles.mh5, styles.flex1]}
+            style={styles.flex1}
             shouldHideFixErrorsAlert
         >
             <InputWrapper
