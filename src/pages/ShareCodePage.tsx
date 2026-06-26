@@ -89,7 +89,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const subtitle = useMemo(() => {
         if (isReport) {
             if (isExpenseReport(report)) {
-                return getPolicyName({report});
+                return getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
             }
             if (isMoneyRequestReport(report)) {
                 // generate subtitle from participants
@@ -102,7 +102,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID]);
+    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID, translate]);
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 

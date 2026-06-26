@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -47,9 +47,12 @@ function DescriptionField({
     reportActionID,
     policy,
 }: DescriptionFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
+    // top border and label — into view rather than just the inner text area.
+    const fieldContainerRef = useRef<View>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -98,11 +101,15 @@ function DescriptionField({
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
                         {isNewManualExpenseFlowEnabled && !isReadOnly ? (
-                            <View style={[styles.mh4, styles.mv2]}>
+                            <View
+                                ref={fieldContainerRef}
+                                style={[styles.mh4, styles.mv2]}
+                            >
                                 <TextInput
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
+                                    onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
                                     autoGrowHeight
