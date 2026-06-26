@@ -329,6 +329,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_IMPORT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
         policyID: string;
     };
