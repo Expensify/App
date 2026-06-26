@@ -45,30 +45,51 @@ function useDismissableLayerWorker(kind: DismissableLayerKind, {onDismiss, escap
     return {myDepth};
 }
 
-function DismissableLayer({onDismiss, escapeBehavior, children}: DismissableLayerProps) {
+// The default and Modal layers differ only by kind, so they share one body.
+function PlainLayer({kind, onDismiss, escapeBehavior, children}: {kind: DismissableLayerKind} & Pick<DismissableLayerProps, 'onDismiss' | 'escapeBehavior' | 'children'>) {
     const styles = useThemeStyles();
-    const {myDepth} = useDismissableLayerWorker('floating', {onDismiss, escapeBehavior});
+    const {myDepth} = useDismissableLayerWorker(kind, {onDismiss, escapeBehavior});
     return (
         <LayerDepthContext value={myDepth}>
             <View style={styles.flex1}>{children}</View>
         </LayerDepthContext>
+    );
+}
+
+function DismissableLayer({onDismiss, escapeBehavior, children}: DismissableLayerProps) {
+    return (
+        <PlainLayer
+            kind="floating"
+            onDismiss={onDismiss}
+            escapeBehavior={escapeBehavior}
+        >
+            {children}
+        </PlainLayer>
     );
 }
 
 function ModalLayer({onDismiss, escapeBehavior, children}: DismissableLayerProps) {
-    const styles = useThemeStyles();
-    const {myDepth} = useDismissableLayerWorker('modal', {onDismiss, escapeBehavior});
     return (
-        <LayerDepthContext value={myDepth}>
-            <View style={styles.flex1}>{children}</View>
-        </LayerDepthContext>
+        <PlainLayer
+            kind="modal"
+            onDismiss={onDismiss}
+            escapeBehavior={escapeBehavior}
+        >
+            {children}
+        </PlainLayer>
     );
 }
 
-function FloatingLayer({onDismiss, escapeBehavior, children}: DismissableLayerProps) {
+function FloatingLayer({onDismiss, escapeBehavior, shouldCloseOnInteractOutside, children}: DismissableLayerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {myDepth} = useDismissableLayerWorker('floating', {onDismiss, escapeBehavior});
+    const onBackdropPress = () => {
+        if (shouldCloseOnInteractOutside && !shouldCloseOnInteractOutside(null)) {
+            return;
+        }
+        onDismiss?.();
+    };
     return (
         <LayerDepthContext value={myDepth}>
             <View style={styles.flex1}>
@@ -76,7 +97,7 @@ function FloatingLayer({onDismiss, escapeBehavior, children}: DismissableLayerPr
                     accessibilityLabel={translate('modal.backdropLabel')}
                     sentryLabel="DismissableLayer.FloatingBackdrop"
                     style={StyleSheet.absoluteFill}
-                    onPress={onDismiss}
+                    onPress={onBackdropPress}
                 />
                 {children}
             </View>

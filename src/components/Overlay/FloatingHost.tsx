@@ -30,23 +30,10 @@ type FloatingHostProps = {
     children: ReactNode;
 };
 
-const DEFAULT_FADE_DURATION_MS = CONST.MODAL.ANIMATION_TIMING.OVERLAY_FADE_IN_WEB;
-
-function FloatingHost({
-    isOpen,
-    anchor,
-    anchorRect,
-    alignment,
-    offsetPx,
-    fadeDuration = DEFAULT_FADE_DURATION_MS,
-    onDismiss,
-    onExitComplete,
-    surfaceStyle,
-    stackId,
-    containFocus = false,
-    children,
-}: FloatingHostProps) {
+function FloatingHost({isOpen, anchor, anchorRect, alignment, offsetPx, fadeDuration, onDismiss, onExitComplete, surfaceStyle, stackId, containFocus = false, children}: FloatingHostProps) {
     const {style: positionStyle, available, isPositioned, onContentLayout} = useAnchoredPosition({anchorRect, alignment, offsetPx});
+    const enterTiming = fadeDuration ?? CONST.MODAL.ANIMATION_TIMING.OVERLAY_FADE_IN_WEB;
+    const exitTiming = fadeDuration ?? CONST.MODAL.ANIMATION_TIMING.OVERLAY_FADE_OUT_WEB;
 
     useOverlayEntry(
         isOpen && anchor
@@ -77,8 +64,10 @@ function FloatingHost({
                     <AnimatedSurface
                         enterSpec={FADE_ONLY_ENTER_SPEC}
                         exitSpec={FADE_ONLY_EXIT_SPEC}
-                        enterTiming={fadeDuration}
-                        exitTiming={fadeDuration}
+                        enterTiming={enterTiming}
+                        exitTiming={exitTiming}
+                        // Hold the entrance fade until measured so it can't elapse behind the opacity gate above.
+                        enterEnabled={isPositioned}
                         style={surfaceStyle}
                     >
                         {children}
@@ -99,5 +88,4 @@ function FloatingHost({
 }
 
 export default FloatingHost;
-export {DEFAULT_FADE_DURATION_MS};
 export type {FloatingHostProps};

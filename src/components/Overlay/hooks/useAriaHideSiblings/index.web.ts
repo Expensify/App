@@ -74,7 +74,8 @@ function pushObserverEntry(sweep: () => void): () => void {
     const observer = new MutationObserver(sweep);
     const entry: ObserverEntry = {observer, sweep};
     observerStack.push(entry);
-    observer.observe(document.body, {childList: true, subtree: true});
+    // sweep() only inspects direct body children, so only body's own childList can change the result — no subtree.
+    observer.observe(document.body, {childList: true});
     return () => {
         observer.disconnect();
         const index = observerStack.indexOf(entry);
@@ -83,7 +84,7 @@ function pushObserverEntry(sweep: () => void): () => void {
         }
         const newTop = observerStack.at(-1);
         if (newTop) {
-            newTop.observer.observe(document.body, {childList: true, subtree: true});
+            newTop.observer.observe(document.body, {childList: true});
             newTop.sweep();
         }
     };

@@ -22,7 +22,7 @@ function nodeContains(node: AnchorNode | null, target: Node): boolean {
     return host?.contains(target) ?? false;
 }
 
-function useLayerStack(kind: DismissableLayerKind): {isTop: boolean; isTopOfKind: boolean; myDepth: number} {
+function useLayerStack(kind: DismissableLayerKind, trackTopOfKind?: boolean): {isTop: boolean; isTopOfKind: boolean; myDepth: number} {
     const parentDepth = use(LayerDepthContext);
     const myDepth = parentDepth + 1;
     const [entry] = useState<DismissableLayerEntry>(() => ({
@@ -35,13 +35,14 @@ function useLayerStack(kind: DismissableLayerKind): {isTop: boolean; isTopOfKind
         () => selectTopLayer(dismissableLayerStore.getSnapshot()),
         () => selectTopLayer(dismissableLayerStore.getServerSnapshot()),
     );
+    // Only ModalLayer consumes isTopOfKind, so floating layers skip the per-kind O(stack) scan entirely.
     const topOfKind = useSyncExternalStore(
         dismissableLayerStore.subscribe,
-        () => selectTopLayerOfKind(dismissableLayerStore.getSnapshot(), kind),
-        () => selectTopLayerOfKind(dismissableLayerStore.getServerSnapshot(), kind),
+        () => (trackTopOfKind ? selectTopLayerOfKind(dismissableLayerStore.getSnapshot(), kind) : null),
+        () => (trackTopOfKind ? selectTopLayerOfKind(dismissableLayerStore.getServerSnapshot(), kind) : null),
     );
     useEffect(() => pushDismissableLayer(entry), [entry]);
-    return {isTop: top === entry, isTopOfKind: topOfKind === entry, myDepth};
+    return {isTop: top === entry, isTopOfKind: trackTopOfKind === true && topOfKind === entry, myDepth};
 }
 
 function useDismissableLayerWorker(
@@ -161,7 +162,7 @@ function DismissableLayer(props: DismissableLayerProps) {
 }
 
 function ModalLayer(props: DismissableLayerProps) {
-    const {isTop, isTopOfKind, myDepth} = useLayerStack('modal');
+    const {isTop, isTopOfKind, myDepth} = useLayerStack('modal', true);
     const {containerRef, portalContextValue} = useDismissableLayerWorker(props, {isEscapeActive: isTop, isPointerOutsideActive: false});
     useBodyScrollLock(isTopOfKind);
     useAriaHideSiblings(containerRef, isTopOfKind);

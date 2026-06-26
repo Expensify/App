@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {BackHandler} from 'react-native';
@@ -117,5 +117,46 @@ describe('DismissableLayer (native) — Android hardware back', () => {
         rerender(tree(false));
         stub.handler?.();
         expect(dismissOuter).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('DismissableLayer.Floating (native) — backdrop interact-outside', () => {
+    it('backdrop press dismisses when no shouldCloseOnInteractOutside veto is provided', () => {
+        const onDismiss = jest.fn();
+        render(
+            <DismissableLayer.Floating onDismiss={onDismiss}>
+                <LayerContent>Floating</LayerContent>
+            </DismissableLayer.Floating>,
+        );
+        fireEvent.press(screen.getByLabelText('modal.backdropLabel'));
+        expect(onDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('backdrop press is vetoed when shouldCloseOnInteractOutside returns false', () => {
+        const onDismiss = jest.fn();
+        render(
+            <DismissableLayer.Floating
+                onDismiss={onDismiss}
+                shouldCloseOnInteractOutside={() => false}
+            >
+                <LayerContent>Floating</LayerContent>
+            </DismissableLayer.Floating>,
+        );
+        fireEvent.press(screen.getByLabelText('modal.backdropLabel'));
+        expect(onDismiss).not.toHaveBeenCalled();
+    });
+
+    it('backdrop press dismisses when shouldCloseOnInteractOutside returns true', () => {
+        const onDismiss = jest.fn();
+        render(
+            <DismissableLayer.Floating
+                onDismiss={onDismiss}
+                shouldCloseOnInteractOutside={() => true}
+            >
+                <LayerContent>Floating</LayerContent>
+            </DismissableLayer.Floating>,
+        );
+        fireEvent.press(screen.getByLabelText('modal.backdropLabel'));
+        expect(onDismiss).toHaveBeenCalledTimes(1);
     });
 });

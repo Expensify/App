@@ -1,18 +1,8 @@
 import {useEffect} from 'react';
+import {isMobileIOS} from '@libs/Browser';
 
 let lockCount = 0;
 let saved: {bodyOverflow: string; bodyPosition: string; bodyTop: string; bodyWidth: string; documentOverflow: string; scrollY: number} | null = null;
-
-function isIOS(): boolean {
-    if (typeof navigator === 'undefined') {
-        return false;
-    }
-    const ua = navigator.userAgent;
-    if (/iPad|iPhone|iPod/.test(ua)) {
-        return true;
-    }
-    return navigator.maxTouchPoints > 1 && /Macintosh/.test(ua);
-}
 
 function acquire(): void {
     if (lockCount === 0 && typeof document !== 'undefined') {
@@ -25,7 +15,7 @@ function acquire(): void {
             documentOverflow: documentElement.style.overflow,
             scrollY: window.scrollY,
         };
-        if (isIOS()) {
+        if (isMobileIOS()) {
             body.style.position = 'fixed';
             body.style.top = `-${saved.scrollY}px`;
             body.style.width = '100%';
@@ -45,7 +35,7 @@ function release(): void {
         body.style.top = saved.bodyTop;
         body.style.width = saved.bodyWidth;
         documentElement.style.overflow = saved.documentOverflow;
-        if (isIOS()) {
+        if (isMobileIOS()) {
             window.scrollTo(0, saved.scrollY);
         }
         saved = null;

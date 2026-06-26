@@ -24,6 +24,7 @@ function useDismissOnAnchorMove(anchor: AnchorNode | null, onDismiss: () => void
                 stableDismiss();
             }
         };
+        // The anchor rect is captured at open, so a viewport resize can leave it stale; dismiss rather than track to it.
         const onResize = () => stableDismiss();
         window.addEventListener('scroll', onScroll, {capture: true, passive: true});
         window.addEventListener('resize', onResize);

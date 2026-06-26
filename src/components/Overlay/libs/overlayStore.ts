@@ -74,4 +74,4 @@ const overlayStore = {
 
 export default overlayStore;
 export {upsertOverlayEntry, removeOverlayEntry, isPopoverEntry};
-export type {OverlayEntry, ModalOverlayEntry, PopoverOverlayEntry, EscapeBehavior, ModalKind};
+export type {OverlayEntry, ModalOverlayEntry, PopoverOverlayEntry, EscapeBehavior};

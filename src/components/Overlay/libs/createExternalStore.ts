@@ -58,4 +58,3 @@ function createExternalStore<T>(initial: T, emptyServerSnapshot: T = initial): E
 }
 
 export default createExternalStore;
-export type {ExternalStore, ExternalStoreHandle};

@@ -28,11 +28,12 @@ type AnimatedSurfaceProps = AnimatedViewPropsPassthrough & {
     enterTiming: number;
     exitTiming: number;
     easing?: EasingFunction | EasingFunctionFactory;
+    enterEnabled?: boolean;
     style?: StyleProp<ViewStyle>;
     children: ReactNode;
 };
 
-function AnimatedSurface({enterSpec, exitSpec, enterTiming, exitTiming, easing, style, children, ...passthrough}: AnimatedSurfaceProps) {
+function AnimatedSurface({enterSpec, exitSpec, enterTiming, exitTiming, easing, enterEnabled, style, children, ...passthrough}: AnimatedSurfaceProps) {
     const presence = usePresence('<Overlay.AnimatedSurface>');
     const {state: presenceState} = presence.state;
     const {onAnimationEnd} = presence.actions;
@@ -46,14 +47,14 @@ function AnimatedSurface({enterSpec, exitSpec, enterTiming, exitTiming, easing, 
 
     // Split per-state so an enter-spec change can't restart an in-flight exit (and vice-versa).
     useEffect(() => {
-        if (presenceState !== 'mounted') {
+        if (presenceState !== 'mounted' || enterEnabled === false) {
             return;
         }
         const options = {duration: enterTiming, easing: easing ?? Easing.linear, reduceMotion: ReduceMotion.System};
         opacity.set(withTiming(enterOpacity, options));
         translateX.set(withTiming(enterTranslateX, options));
         translateY.set(withTiming(enterTranslateY, options));
-    }, [presenceState, enterOpacity, enterTranslateX, enterTranslateY, enterTiming, easing, opacity, translateX, translateY]);
+    }, [presenceState, enterEnabled, enterOpacity, enterTranslateX, enterTranslateY, enterTiming, easing, opacity, translateX, translateY]);
 
     useEffect(() => {
         if (presenceState !== 'unmountSuspended') {

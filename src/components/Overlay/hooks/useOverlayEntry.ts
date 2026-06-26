@@ -24,7 +24,7 @@ function useOverlayEntry(entry: OverlayEntry | null): void {
             removeOverlayEntry(publishedIdRef.current);
             publishedIdRef.current = null;
         }
-    });
+    }, [entry, stableClose]);
 
     useEffect(
         () => () => {

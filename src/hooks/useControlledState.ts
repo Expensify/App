@@ -28,8 +28,10 @@ function useControlledState<T>(controlledValue: T | undefined, defaultValue: T, 
         const isUpdater = (a: SetStateAction<T>): a is (prevState: T) => T => typeof a === 'function';
         const apply: Dispatch<SetStateAction<T>> = (action) => {
             const resolved = isUpdater(action) ? action(cachedRef.current) : action;
-            // Equality against currentRef so a controlled-mode retry after a parent rejection still fires onChange.
-            if (Object.is(resolved, currentRef.current)) {
+            // Dedup against the committed value when controlled (so a retry after a silent parent rejection still fires
+            // onChange) and against the pending value when uncontrolled (so chained same-tick updates compose).
+            const dedupeAgainst = isControlledRef.current ? currentRef.current : cachedRef.current;
+            if (Object.is(resolved, dedupeAgainst)) {
                 return;
             }
             cachedRef.current = resolved;

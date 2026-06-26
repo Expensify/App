@@ -24,15 +24,16 @@ function usePointerDownOutside(callback: (event: PointerEvent) => void, contains
         const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
 
         const handlePointerDown = (event: PointerEvent) => {
+            // Cheap containment check first — only outside clicks pay for the getComputedStyle style recalc below.
+            if (stableContainsTarget(event.target)) {
+                return;
+            }
             const target = event.target;
             if (target instanceof Element) {
                 const computed = ownerDocument.defaultView?.getComputedStyle(target);
                 if (computed?.pointerEvents === 'none') {
                     return;
                 }
-            }
-            if (stableContainsTarget(event.target)) {
-                return;
             }
             // Defer touch so the synthesized click can land before the layer closes.
             if (event.pointerType === 'touch') {

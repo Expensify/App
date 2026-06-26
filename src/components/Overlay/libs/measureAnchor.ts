@@ -6,6 +6,7 @@ type AnchorRect = {top: number; bottom: number; left: number; right: number; wid
 type AnchorNode = PressableRefElement;
 
 function toRectOrNull(x: number, y: number, width: number, height: number): AnchorRect | null {
+    // An unlaid-out or display:none anchor measures 0×0 at the origin; anchoring there would misplace the surface.
     if (width <= 0 || height <= 0) {
         return null;
     }
