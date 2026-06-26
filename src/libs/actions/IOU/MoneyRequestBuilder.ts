@@ -23,6 +23,7 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
+    computeOptimisticReportName,
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
@@ -35,7 +36,6 @@ import {
     isOneTransactionReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
-    populateOptimisticReportFormula,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
@@ -1171,7 +1171,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     return onyxData;
 }
 
-function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): string | undefined {
+function recalculateOptimisticReportName(
+    iouReport: OnyxTypes.Report,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    optimisticTransactions: Record<string, OnyxTypes.Transaction> = {},
+): string | undefined {
     if (!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]) {
         return undefined;
     }
@@ -1179,18 +1183,41 @@ function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: On
     if (!titleFormula) {
         return undefined;
     }
-    return populateOptimisticReportFormula(titleFormula, iouReport as Parameters<typeof populateOptimisticReportFormula>[1], policy);
+
+    const transactionsRecord: Record<string, OnyxTypes.Transaction> = {};
+    for (const transaction of getReportTransactions(iouReport.reportID)) {
+        if (transaction?.transactionID) {
+            transactionsRecord[transaction.transactionID] = transaction;
+        }
+    }
+    for (const [id, transaction] of Object.entries(optimisticTransactions)) {
+        transactionsRecord[id] = transaction;
+    }
+
+    const computedName = computeOptimisticReportName(iouReport, policy, iouReport.policyID, transactionsRecord);
+    // Discard partial recomputes — the BE-stored title is more accurate than text containing raw {report:...}/{user:...}/{field:...} tokens
+    // (e.g. cross-currency totals only the BE can resolve).
+    if (computedName && /\{(report|user|field):[^}]*\}/i.test(computedName)) {
+        return undefined;
+    }
+    return computedName ?? undefined;
 }
 
-function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): OnyxTypes.Report {
+function maybeUpdateReportNameForFormulaTitle(
+    iouReport: OnyxTypes.Report,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    optimisticTransactions: Record<string, OnyxTypes.Transaction> = {},
+): OnyxTypes.Report {
     const allReportNameValuePairs = getAllReportNameValuePairs();
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
+
+    // Manual renames null out expensify_text_title in RNVP. If RNVP isn't loaded we can't tell, so skip rather than risk overwriting a manual title.
     if (titleField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA) {
         return iouReport;
     }
 
-    const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
+    const updatedReportName = recalculateOptimisticReportName(iouReport, policy, optimisticTransactions);
     if (!updatedReportName) {
         return iouReport;
     }
@@ -1339,6 +1366,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? rand64();
     const optimisticReportID = optimisticIOUReportID ?? generateReportID();
 
+    let didUpdateOptimisticTotal = false;
+
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const nonReimbursableTotal = reimbursable ? 0 : amount;
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
@@ -1375,8 +1404,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
                 }
-
-                iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
+                didUpdateOptimisticTotal = true;
             }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
@@ -1479,6 +1507,12 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
         }
+    }
+
+    // Must run after STEP 3 so the optimistic transaction is part of the formula context.
+    // Skip when totals weren't updated — formula would bake the stale total into the title.
+    if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat && didUpdateOptimisticTotal) {
+        iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, {[optimisticTransaction.transactionID]: optimisticTransaction});
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -1671,6 +1705,8 @@ function getUpdatedMoneyRequestReportData(
     policy: OnyxEntry<OnyxTypes.Policy>,
     actorAccountID?: number,
     transactionChanges?: TransactionChanges,
+    // Overlay on Onyx in the formula context — search snapshot entries, prior bulk-edit iterations, etc.
+    additionalTransactionsForFormula: Record<string, OnyxTypes.Transaction> = {},
 ) {
     const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
     const isTotalIndeterminate = calculatedDiffAmount === null;
@@ -1701,8 +1737,13 @@ function getUpdatedMoneyRequestReportData(
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
         }
-        if (transactionChanges && 'reimbursable' in transactionChanges) {
-            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy);
+        // Skip when total is indeterminate — formula would bake the stale total into the title.
+        if (transactionChanges && !isTotalIndeterminate) {
+            const optimisticTransactions = {...additionalTransactionsForFormula};
+            if (updatedTransaction?.transactionID) {
+                optimisticTransactions[updatedTransaction.transactionID] = updatedTransaction;
+            }
+            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy, optimisticTransactions);
         }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(iouReport, actorAccountID ?? CONST.DEFAULT_NUMBER_ID, diff, getCurrency(transaction), false, true, isTransactionOnHold);

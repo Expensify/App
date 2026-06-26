@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {CurrencyList, PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
+import {getCurrentUserEmail} from './CurrentUserStore';
 import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
@@ -331,7 +332,7 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
         return part.definition;
     }
 
-    const {startDate, endDate} = getAutoReportingDates(policy, report);
+    const {startDate, endDate} = getAutoReportingDates(policy, report, new Date(), context);
 
     switch (subField.toLowerCase()) {
         case 'start':
@@ -367,9 +368,10 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return formatType(report.type);
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID, context), format);
+            // Fall back to today when no valid date — otherwise '' bubbles up and shows the raw formula token in the title.
+            return formatDate(getOldestTransactionDate(report.reportID, context) ?? new Date().toISOString(), format);
         case 'enddate':
-            return formatDate(getNewestTransactionDate(report.reportID, context), format);
+            return formatDate(getNewestTransactionDate(report.reportID, context) ?? new Date().toISOString(), format);
         case 'total': {
             const formattedAmount = formatAmount(report.total, report.currency, format, context.currencyList);
             // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
@@ -481,8 +483,12 @@ function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
  * Compute the value of a user formula part
  */
 function computeUserPart(part: FormulaPart): string {
-    // User computation will be implemented later
-    return part.definition;
+    // Currently only {user:email} is resolved client-side — modifiers like |frontPart are applied later by applyFunctions.
+    const [field] = part.fieldPath;
+    if (field?.toLowerCase() !== 'email') {
+        return part.definition;
+    }
+    return getCurrentUserEmail() ?? '';
 }
 
 /**
@@ -664,13 +670,37 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
     const transactions = [...getReportTransactions(reportID)];
     const contextTransaction = context?.transaction;
 
-    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
-        const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
-        if (transactionIndex >= 0) {
-            transactions[transactionIndex] = contextTransaction;
-        } else {
-            transactions.push(contextTransaction);
+    // O(1) lookups instead of repeated findIndex scans.
+    const indexByTransactionID = new Map<string, number>();
+    for (const [i, transaction] of transactions.entries()) {
+        if (!transaction?.transactionID) {
+            continue;
         }
+        indexByTransactionID.set(transaction.transactionID, i);
+    }
+
+    const upsert = (transaction: Transaction) => {
+        const existingIndex = indexByTransactionID.get(transaction.transactionID);
+        if (existingIndex !== undefined) {
+            transactions[existingIndex] = transaction;
+        } else {
+            indexByTransactionID.set(transaction.transactionID, transactions.length);
+            transactions.push(transaction);
+        }
+    };
+
+    if (context?.allTransactions) {
+        for (const ctxTransaction of Object.values(context.allTransactions)) {
+            if (!ctxTransaction?.transactionID || ctxTransaction.reportID !== reportID) {
+                continue;
+            }
+            upsert(ctxTransaction);
+        }
+    }
+
+    // context.transaction takes precedence over allTransactions on ID collision.
+    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
+        upsert(contextTransaction);
     }
 
     return transactions;
@@ -775,7 +805,7 @@ function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; e
 /**
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
-function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date(), context?: FormulaContext): {startDate: Date | undefined; endDate: Date | undefined} {
     const frequency = policy?.autoReportingFrequency;
     const offset = policy?.autoReportingOffset;
 
@@ -828,10 +858,10 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
         }
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
-            // For trip-based, use oldest transaction as start
-            const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
+            const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
+            const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
-            endDate = currentDate;
+            endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
             break;
         }
 

@@ -4,6 +4,9 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, ReportActions, Transaction} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getAllReportActions: jest.fn(),
@@ -12,6 +15,10 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     getReportTransactions: jest.fn(),
+}));
+
+jest.mock('@libs/CurrentUserStore', () => ({
+    getCurrentUserEmail: jest.fn(() => 'jane@example.com'),
 }));
 
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
@@ -613,7 +620,7 @@ describe('CustomFormula', () => {
     });
 
     describe('Auto-reporting Frequency', () => {
-        const mockReport = {reportID: '123'} as Report;
+        const mockReport = {...createRandomReport(1, undefined), reportID: '123'};
         const createMockContext = (policy: Policy): FormulaContext => ({report: mockReport, policy});
 
         beforeEach(() => {
@@ -627,7 +634,7 @@ describe('CustomFormula', () => {
         });
 
         test('should compute weekly frequency dates', () => {
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY} as Policy;
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY};
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-13');
@@ -636,7 +643,7 @@ describe('CustomFormula', () => {
 
         test('should compute semi-monthly frequency dates', () => {
             jest.setSystemTime(new Date('2025-01-10T12:00:00Z'));
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY} as Policy;
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY};
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
@@ -649,9 +656,10 @@ describe('CustomFormula', () => {
 
         test('should compute monthly frequency with specific offset', () => {
             const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                 autoReportingOffset: 25,
-            } as Policy;
+            };
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2024-12-26');
@@ -660,9 +668,10 @@ describe('CustomFormula', () => {
 
         test('should compute monthly frequency with last business day', () => {
             const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
                 autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
-            } as Policy;
+            };
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-01');
@@ -671,21 +680,151 @@ describe('CustomFormula', () => {
 
         test('should compute trip frequency dates', () => {
             const mockTransactions = [
-                {transactionID: 'trans1', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
-                {transactionID: 'trans2', created: '2025-01-14T16:45:00Z', merchant: 'Restaurant', amount: 3000} as Transaction,
+                {...createRandomTransaction(1), transactionID: 'trans1', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000},
+                {...createRandomTransaction(1), transactionID: 'trans2', created: '2025-01-14T16:45:00Z', merchant: 'Restaurant', amount: 3000},
             ];
 
             mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
 
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should use context.transaction for trip end date when adding a new expense to existing report', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                {...createRandomTransaction(1), transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000},
+            ]);
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                transaction: {...createRandomTransaction(1), transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000},
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should use allTransactions for trip dates when Onyx is empty (new report optimistic flow)', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    trans1: {...createRandomTransaction(1), transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000},
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-08');
+        });
+
+        test('should use allTransactions to merge Onyx + optimistic transaction for trip date range', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                {...createRandomTransaction(1), transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000},
+            ]);
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    existing1: {...createRandomTransaction(1), transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000},
+                    optimistic1: {...createRandomTransaction(1), transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000},
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should fall back to current date for trip frequency when no transactions', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
+            const context = createMockContext(policy);
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
         });
 
+        test('should prefer context.transaction over context.allTransactions when transactionIDs match', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    sharedTxn: {...createRandomTransaction(1), transactionID: 'sharedTxn', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Stale', amount: 1000},
+                },
+                transaction: {...createRandomTransaction(1), transactionID: 'sharedTxn', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Fresh', amount: 2000},
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-14');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should ignore context.allTransactions for transactions belonging to other reports', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    inThisReport: {...createRandomTransaction(1), transactionID: 'inThisReport', reportID: '123', created: '2025-01-10T12:00:00Z', merchant: 'Hotel', amount: 5000},
+                    otherReport: {...createRandomTransaction(1), transactionID: 'otherReport', reportID: '999', created: '2025-01-01T12:00:00Z', merchant: 'Different report', amount: 9999},
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-10');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-10');
+        });
+
+        test('should let context.allTransactions override existing Onyx transactions with the same transactionID', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                {...createRandomTransaction(1), transactionID: 'shared1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Old Hotel', amount: 5000},
+            ]);
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    shared1: {...createRandomTransaction(1), transactionID: 'shared1', reportID: '123', created: '2025-01-12T12:00:00Z', merchant: 'Updated Hotel', amount: 7000},
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-12');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-12');
+        });
+
+        test('should pass context through to startdate/enddate via allTransactions', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP};
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    trans1: {...createRandomTransaction(1), transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000},
+                    trans2: {...createRandomTransaction(1), transactionID: 'trans2', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000},
+                },
+            };
+
+            expect(compute('{report:startdate}', context)).toBe('2025-01-08');
+            expect(compute('{report:enddate}', context)).toBe('2025-01-14');
+        });
+
         test('should apply custom date formats', () => {
-            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY} as Policy;
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY};
             const context = createMockContext(policy);
 
             expect(compute('{report:autoreporting:start:MMMM dd, yyyy}', context)).toBe('January 13, 2025');
@@ -694,7 +833,25 @@ describe('CustomFormula', () => {
 
         test('should return formula definition when policy or frequency is missing', () => {
             expect(compute('{report:autoreporting:start}', {report: mockReport, policy: undefined})).toBe('{report:autoreporting:start}');
-            expect(compute('{report:autoreporting:end}', createMockContext({} as Policy))).toBe('{report:autoreporting:end}');
+            expect(compute('{report:autoreporting:end}', createMockContext({...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), autoReportingFrequency: undefined}))).toBe(
+                '{report:autoreporting:end}',
+            );
+        });
+    });
+
+    describe('User formula parts', () => {
+        const mockUserContext: FormulaContext = {report: {...createRandomReport(1, undefined), reportID: '1'}, policy: undefined};
+
+        test('should resolve {user:email} to the current user email', () => {
+            expect(compute('{user:email}', mockUserContext)).toBe('jane@example.com');
+        });
+
+        test('should apply the frontPart modifier to the resolved email', () => {
+            expect(compute('{user:email|frontPart}', mockUserContext)).toBe('jane');
+        });
+
+        test('should leave unsupported user fields as the raw token', () => {
+            expect(compute('{user:phone}', mockUserContext)).toBe('{user:phone}');
         });
     });
 
@@ -706,7 +863,7 @@ describe('CustomFormula', () => {
 
         test('should handle undefined amounts', () => {
             const context: FormulaContext = {
-                report: {total: undefined} as Report,
+                report: {...createRandomReport(1, undefined), total: undefined},
                 policy: null as unknown as Policy,
             };
             const result = compute('{report:total}', context);
@@ -716,7 +873,7 @@ describe('CustomFormula', () => {
         test('should handle missing report actions for created', () => {
             mockReportActionsUtils.getAllReportActions.mockReturnValue({});
             const context: FormulaContext = {
-                report: {reportID: '123'} as Report,
+                report: {...createRandomReport(1, undefined), reportID: '123'},
                 policy: null as unknown as Policy,
             };
 
@@ -801,6 +958,31 @@ describe('CustomFormula', () => {
 
             const endResult = compute('{report:enddate}', context);
             expect(endResult).toBe('2025-01-15');
+        });
+
+        test('should fall back to current date when all transactions are partial (scan expense)', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-19T12:00:00Z'));
+
+            const mockTransactions = [
+                {
+                    transactionID: 'scan1',
+                    created: '2025-01-15T12:00:00Z',
+                    amount: 0,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                },
+            ] as Transaction[];
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+            const context: FormulaContext = {
+                report: {reportID: 'test-report-123'} as Report,
+                policy: null as unknown as Policy,
+            };
+
+            expect(compute('{report:startdate}', context)).toBe('2025-01-19');
+            expect(compute('{report:enddate}', context)).toBe('2025-01-19');
+
+            jest.useRealTimers();
         });
 
         test('should skip partial transactions (partial merchant)', () => {
