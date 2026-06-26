@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import type {ListRenderItem} from '@shopify/flash-list';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -14,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {createTransactionThreadReport} from '@libs/actions/Report';
+import {createTransactionThreadReport, openReport} from '@libs/actions/Report';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -65,6 +65,14 @@ function MoneyRequestReportPreview({
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
+    // Tracks how many actions the IOU report has loaded so a deferred expense press can be retried once
+    // the actions arrive (they may be missing right after a cache clear).
+    const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: (reportActions) => Object.keys(reportActions ?? {}).length,
+    });
+    // Holds a pressed transaction whose thread report could not be resolved yet, so the expense can be
+    // opened once the IOU report's actions have loaded instead of falling back to the parent report.
+    const pendingExpenseTransactionRef = useRef<Transaction | null>(null);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -144,56 +152,51 @@ function MoneyRequestReportPreview({
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
-    const openTransactionFromPreview = useCallback(
-        (transactionIOUAction: ReturnType<typeof getIOUActionForReportID>) => {
-            if (contextMenuRef.current?.isContextMenuOpening) {
-                return;
-            }
-
-            // A report with a single expense opens the report itself, not the lone expense — opening the
-            // expense directly would skip the report the user expects to land on.
-            if (transactions.length <= 1) {
-                openReportFromPreview();
-                return;
-            }
-
-            // Resolve the target transaction thread report. If the thread has not been materialized yet,
-            // create it inline so the click never lands on a dead route.
-            let childReportID = transactionIOUAction?.childReportID;
+    // Resolve the target transaction thread report. Prefer the IOU action's childReportID, then the
+    // transaction's own thread id, and finally create the thread inline so the press never lands on a dead route.
+    const resolveChildReportID = useCallback(
+        (transaction: Transaction) => {
+            const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (!childReportID && transactionIOUAction?.reportActionID) {
                 const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
                 if (transactionID) {
-                    const transactionThreadReport = createTransactionThreadReport({
+                    childReportID = createTransactionThreadReport({
                         introSelected,
                         currentUserLogin: currentUserEmail ?? '',
                         currentUserAccountID,
                         betas,
                         iouReport,
                         iouReportAction: transactionIOUAction,
-                    });
-                    childReportID = transactionThreadReport?.reportID;
+                    })?.reportID;
                 }
             }
+            return childReportID;
+        },
+        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport],
+    );
 
-            if (!childReportID) {
-                // Fall back to opening the parent report rather than swallowing the click.
-                openReportFromPreview();
-                return;
-            }
-
+    const navigateToExpense = useCallback(
+        (childReportID: string) => {
             startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${childReportID}`, {
                 name: 'MoneyRequestReportPreview.Transaction',
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            // On narrow layouts the wide RHP is unavailable, so navigate straight to the pressed expense with the
-            // report chained underneath it via backTo. Using a single navigation (rather than pushing the report
-            // and then the expense) keeps the transition a forward push and avoids the backward animation seen on
-            // iOS, while back still returns to the report and then the chat.
+            // On narrow layouts the wide RHP is unavailable. Push the report onto the stack first and then the
+            // expense on top of it, pointing the expense's backTo at the report (not the chat). Keeping the report
+            // as a real stack entry makes the OS/hardware back and the iOS swipe-back return to the report — matching
+            // the header back button — while chaining the expense's backTo to the report (instead of the chat) keeps
+            // it a forward push and avoids the backward animation seen previously on iOS.
             if (isSmallScreenWidth) {
                 const backTo = Navigation.getActiveRoute();
-                const reportRoute = iouReportID ? ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo) : backTo;
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
+                if (iouReportID) {
+                    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
+                    Navigation.navigate(reportRoute);
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, reportRoute));
+                } else {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, backTo));
+                }
                 return;
             }
 
@@ -222,20 +225,61 @@ function MoneyRequestReportPreview({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: Navigation.getActiveRoute()}));
             });
         },
-        [
-            betas,
-            currentUserAccountID,
-            currentUserEmail,
-            introSelected,
-            iouReport,
-            iouReportID,
-            isSmallScreenWidth,
-            markReportIDAsExpense,
-            markReportIDAsMultiTransactionExpense,
-            openReportFromPreview,
-            transactions,
-        ],
+        [isSmallScreenWidth, iouReportID, markReportIDAsExpense, markReportIDAsMultiTransactionExpense, transactions],
     );
+
+    const openTransactionFromPreview = useCallback(
+        (transaction: Transaction) => {
+            if (contextMenuRef.current?.isContextMenuOpening) {
+                return;
+            }
+
+            // A report with a single expense opens the report itself, not the lone expense — opening the
+            // expense directly would skip the report the user expects to land on.
+            if (transactions.length <= 1) {
+                openReportFromPreview();
+                return;
+            }
+
+            const childReportID = resolveChildReportID(transaction);
+            if (childReportID) {
+                navigateToExpense(childReportID);
+                return;
+            }
+
+            // The thread could not be resolved. If the IOU report's action for this expense isn't loaded yet
+            // (e.g. right after a cache clear), fetch the report's actions and open the expense once they arrive
+            // (see the effect below) instead of falling back to the parent report and losing the pressed expense.
+            const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            if (!isIOUActionLoaded && iouReportID) {
+                pendingExpenseTransactionRef.current = transaction;
+                openReport({reportID: iouReportID, introSelected, betas});
+                return;
+            }
+
+            openReportFromPreview();
+        },
+        [betas, introSelected, iouReportID, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
+    );
+
+    // Completes a deferred expense press once the IOU report's actions have loaded.
+    useEffect(() => {
+        const pendingTransaction = pendingExpenseTransactionRef.current;
+        if (!pendingTransaction) {
+            return;
+        }
+        const childReportID = resolveChildReportID(pendingTransaction);
+        if (childReportID) {
+            pendingExpenseTransactionRef.current = null;
+            navigateToExpense(childReportID);
+            return;
+        }
+        // The actions finished loading but the expense still has no resolvable thread — open the parent report.
+        if (iouReportActionCount) {
+            pendingExpenseTransactionRef.current = null;
+            openReportFromPreview();
+        }
+    }, [iouReportActionCount, navigateToExpense, openReportFromPreview, resolveChildReportID]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => {
         const transactionIOUAction = getIOUActionForReportID(item.reportID, item.transactionID);
@@ -254,7 +298,7 @@ function MoneyRequestReportPreview({
                 transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
                 transactionID={item.transactionID}
                 reportPreviewAction={action}
-                onPreviewPressed={() => openTransactionFromPreview(transactionIOUAction)}
+                onPreviewPressed={() => openTransactionFromPreview(item)}
                 shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
                 shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
             />
