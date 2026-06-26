@@ -6770,8 +6770,12 @@ const translations = {
                             return 'Importing dimensions';
                         case 'financialForceMarkAsReimbursed':
                             return 'Marking reports as reimbursed';
+                        case 'rilletSyncTitle':
+                            return 'Syncing Rillet data';
                         case 'rilletSyncConnection':
                             return 'Initializing connection to Rillet';
+                        case 'rilletSyncImportData':
+                            return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
