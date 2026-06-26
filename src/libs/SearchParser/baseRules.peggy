@@ -43,6 +43,9 @@ attendee = "attendee"i {return "attendee"}
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+receiptType
+  = "receiptType"
+  / "receipt-type"i { return "receiptType"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }

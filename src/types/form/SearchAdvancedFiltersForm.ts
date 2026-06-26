@@ -123,6 +123,9 @@ const FILTER_KEYS = {
     EXPENSE_TYPE_NOT: 'expenseTypeNot',
     EXPENSE_TYPE: 'expenseType',
 
+    RECEIPT_TYPE_NOT: 'receiptTypeNot',
+    RECEIPT_TYPE: 'receiptType',
+
     TAG_NOT: 'tagNot',
     TAG: 'tag',
 
@@ -199,6 +202,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.POLICY_ID,
         FILTER_KEYS.EXPENSE_TYPE,
         FILTER_KEYS.EXPENSE_TYPE_NOT,
+        FILTER_KEYS.RECEIPT_TYPE,
+        FILTER_KEYS.RECEIPT_TYPE_NOT,
         FILTER_KEYS.MERCHANT,
         FILTER_KEYS.MERCHANT_NOT,
         FILTER_KEYS.MERCHANT_OPERATOR,
@@ -598,6 +603,8 @@ type BooleanValue = ValueOf<typeof CONST.SEARCH.BOOLEAN>;
 type ExpenseTypeValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 type ExpenseTypeValues = ExpenseTypeValue[];
 type MerchantMatchType = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+type ReceiptTypeValue = ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>;
+type ReceiptTypeValues = ReceiptTypeValue[];
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
@@ -701,6 +708,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.EXPENSE_TYPE]: ExpenseTypeValues;
         [FILTER_KEYS.EXPENSE_TYPE_NOT]: ExpenseTypeValues;
 
+        [FILTER_KEYS.RECEIPT_TYPE]: ReceiptTypeValues;
+        [FILTER_KEYS.RECEIPT_TYPE_NOT]: ReceiptTypeValues;
+
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.TAG_NOT]: string[];
 
@@ -764,6 +774,18 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues, MerchantMatchType};
+export type {
+    SearchAdvancedFiltersForm,
+    SearchAdvancedFiltersKey,
+    HasFilterValue,
+    HasFilterValues,
+    IsFilterValue,
+    IsFilterValues,
+    ExpenseTypeValue,
+    ExpenseTypeValues,
+    MerchantMatchType,
+    ReceiptTypeValue,
+    ReceiptTypeValues,
+};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS};
