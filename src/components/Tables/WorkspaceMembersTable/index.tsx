@@ -111,14 +111,15 @@ export default function WorkspaceMembersTable({
 
     const compareTableItems: CompareItemsCallback<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+        const memberNameComparison = localeCompare(item1.name, item2.name) * orderMultiplier;
 
         if (activeSorting.columnKey === 'member') {
-            return localeCompare(item1.name, item2.name) * orderMultiplier;
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'role') {
             if (!item1.role && !item2.role) {
-                return localeCompare(item1.name, item2.name) * orderMultiplier;
+                return memberNameComparison;
             }
 
             if (!item1.role) {
@@ -135,7 +136,7 @@ export default function WorkspaceMembersTable({
                 return roleComparison * orderMultiplier;
             }
 
-            return localeCompare(item1.name, item2.name) * orderMultiplier;
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'customField1') {
@@ -160,7 +161,7 @@ export default function WorkspaceMembersTable({
                 return employeeIdComparison * orderMultiplier;
             }
 
-            return localeCompare(item1.name, item2.name) * orderMultiplier;
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'customField2') {
@@ -168,7 +169,7 @@ export default function WorkspaceMembersTable({
             const item2CustomField2Value = item2.employeePayrollID;
 
             if (!item1CustomField2Value && !item2CustomField2Value) {
-                return localeCompare(item1.name, item2.name) * orderMultiplier;
+                return memberNameComparison;
             }
 
             if (!item1CustomField2Value) {
@@ -185,7 +186,7 @@ export default function WorkspaceMembersTable({
                 return payrollIdComparison * orderMultiplier;
             }
 
-            return localeCompare(item1.name, item2.name) * orderMultiplier;
+            return memberNameComparison;
         }
 
         return 1;
