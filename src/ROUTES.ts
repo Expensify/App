@@ -26,6 +26,16 @@ type WorkspaceCompanyCardsAssignCardParams = {
     cardID: string;
 };
 
+function getEncodedRulesRuleKey(ruleKey?: string): string {
+    const resolvedRuleKey = ruleKey ?? 'new';
+
+    if (resolvedRuleKey === 'new') {
+        return resolvedRuleKey;
+    }
+
+    return encodeURIComponent(resolvedRuleKey);
+}
+
 // This is a file containing constants for all the routes we want to be able to go to
 
 /**
@@ -3181,7 +3191,7 @@ const ROUTES = {
     },
     RULES_REQUIRE_FIELDS_RULE_CATEGORY: {
         route: 'workspaces/:policyID/rules/require-fields-rules/:ruleKey/category',
-        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/require-fields-rules/${ruleKey ?? ROUTES.NEW}/category` as const,
+        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/require-fields-rules/${getEncodedRulesRuleKey(ruleKey)}/category` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_NEW: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
@@ -3193,15 +3203,15 @@ const ROUTES = {
     },
     RULES_FLAG_FOR_REVIEW_RULE_CATEGORY: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/:ruleKey/category',
-        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${ruleKey ?? ROUTES.NEW}/category` as const,
+        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getEncodedRulesRuleKey(ruleKey)}/category` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_AMOUNT: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/:ruleKey/amount',
-        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${ruleKey ?? ROUTES.NEW}/amount` as const,
+        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getEncodedRulesRuleKey(ruleKey)}/amount` as const,
     },
     RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: {
         route: 'workspaces/:policyID/rules/flag-for-review-rules/:ruleKey/expense-limit-type',
-        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${ruleKey ?? ROUTES.NEW}/expense-limit-type` as const,
+        getRoute: (policyID: string, ruleKey?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getEncodedRulesRuleKey(ruleKey)}/expense-limit-type` as const,
     },
     RULES_MERCHANT_TYPE_EDIT: {
         route: 'workspaces/:policyID/rules/merchant-type-rules/:groupID',

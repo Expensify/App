@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -269,21 +269,21 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         turnOffMobileSelectionMode();
     };
 
-    const handleSpendRuleSelectionChange = useCallback((selectedRowKeys: string[]) => {
+    const handleSpendRuleSelectionChange = (selectedRowKeys: string[]) => {
         setSelectedSpendRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
-    }, []);
+    };
 
-    const handleExpenseDefaultSelectionChange = useCallback((selectedRowKeys: string[]) => {
+    const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => {
         setSelectedExpenseDefaultKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
-    }, []);
+    };
 
-    const handleRequireFieldsSelectionChange = useCallback((selectedRowKeys: string[]) => {
+    const handleRequireFieldsSelectionChange = (selectedRowKeys: string[]) => {
         setSelectedRequireFieldsRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
-    }, []);
+    };
 
-    const handleFlagForReviewSelectionChange = useCallback((selectedRowKeys: string[]) => {
+    const handleFlagForReviewSelectionChange = (selectedRowKeys: string[]) => {
         setSelectedFlagForReviewRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
-    }, []);
+    };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
@@ -23,24 +23,22 @@ function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPagePro
 
     const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
 
-    const categoryItems = useMemo(() => {
-        return Object.values(policyCategories ?? {})
-            .filter((category) => {
-                if (!category.enabled || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    return false;
-                }
+    const categoryItems = Object.values(policyCategories ?? {})
+        .filter((category) => {
+            if (!category.enabled || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return false;
+            }
 
-                if (isEditing) {
-                    return true;
-                }
+            if (isEditing) {
+                return true;
+            }
 
-                return !hasExplicitFlagAmount(category.maxExpenseAmount);
-            })
-            .map((category) => {
-                const decodedCategoryName = getDecodedCategoryName(category.name);
-                return {name: decodedCategoryName, value: category.name};
-            });
-    }, [isEditing, policyCategories]);
+            return !hasExplicitFlagAmount(category.maxExpenseAmount);
+        })
+        .map((category) => {
+            const decodedCategoryName = getDecodedCategoryName(category.name);
+            return {name: decodedCategoryName, value: category.name};
+        });
 
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, ruleKey) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 

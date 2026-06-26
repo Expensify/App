@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -22,7 +22,7 @@ import Tab from '@libs/actions/Tab';
 import {clearDraftRequireFieldsRule, setDraftRequireFieldsRule, updateDraftRequireFieldsRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getRequireFieldsFormFromCategory, saveRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
+import {getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, saveRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -30,6 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {RequireFieldsRuleForm} from '@src/types/form/RequireFieldsRuleForm';
+import type {PolicyCategory} from '@src/types/onyx';
 
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
@@ -39,12 +40,14 @@ type RequireFieldsRulePageBaseProps = {
 
 type FieldToggleKey = Exclude<keyof RequireFieldsRuleForm, 'category'>;
 
-function getValidationError(form: RequireFieldsRuleForm | null | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
+function getValidationError(form: RequireFieldsRuleForm | null | undefined, category: PolicyCategory | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
     if (!form?.category) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorCategory');
     }
 
-    if (!form.requireDescription && !form.requireReceipt && !form.requireItemizedReceipt && !form.requireAttendees) {
+    const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
+
+    if (!effectiveForm.requireDescription && !effectiveForm.requireReceipt && !effectiveForm.requireItemizedReceipt && !effectiveForm.requireAttendees) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorField');
     }
 
@@ -70,6 +73,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
+    const selectedCategory = form?.category ? policyCategories?.[form.category] : undefined;
+    const effectiveForm = form && selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, form) : form;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
 
     useEffect(() => () => clearDraftRequireFieldsRule(), []);
@@ -98,12 +103,12 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         });
     }, [category, categoryName, isEditing]);
 
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policy?.areCategoriesEnabled, policyCategories, policyID]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -111,17 +116,14 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         fetchPolicyData();
     }, [fetchPolicyData]);
 
-    const fieldToggles: Array<{key: FieldToggleKey; label: string; isVisible: boolean}> = useMemo(
-        () => [
-            {key: 'requireDescription', label: translate('common.description'), isVisible: true},
-            {key: 'requireReceipt', label: translate('common.receipt'), isVisible: true},
-            {key: 'requireItemizedReceipt', label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'), isVisible: true},
-            {key: 'requireAttendees', label: translate('iou.attendees'), isVisible: true},
-        ],
-        [translate],
-    );
+    const fieldToggles: Array<{key: FieldToggleKey; label: string; isVisible: boolean}> = [
+        {key: 'requireDescription', label: translate('common.description'), isVisible: true},
+        {key: 'requireReceipt', label: translate('common.receipt'), isVisible: true},
+        {key: 'requireItemizedReceipt', label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'), isVisible: true},
+        {key: 'requireAttendees', label: translate('iou.attendees'), isVisible: true},
+    ];
 
-    const errorMessage = getValidationError(form, translate);
+    const errorMessage = getValidationError(form, selectedCategory, translate);
 
     const handleToggleField = (fieldKey: FieldToggleKey, value: boolean) => {
         updateDraftRequireFieldsRule({[fieldKey]: value});
@@ -214,7 +216,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                     {fieldToggles
                         .filter((field) => field.isVisible)
                         .map((field) => {
-                            const isChecked = !!form?.[field.key];
+                            const isChecked = !!effectiveForm?.[field.key];
                             const toggleField = () => handleToggleField(field.key, !isChecked);
 
                             return (

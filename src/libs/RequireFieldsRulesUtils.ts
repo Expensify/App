@@ -88,6 +88,18 @@ function getRequireFieldsFormFromCategory(category: PolicyCategory | undefined):
     };
 }
 
+function getEffectiveRequireFieldsRuleForm(category: PolicyCategory | undefined, form: RequireFieldsRuleForm): RequireFieldsRuleForm {
+    const categoryForm = getRequireFieldsFormFromCategory(category);
+
+    return {
+        category: form.category,
+        requireDescription: form.requireDescription ?? categoryForm.requireDescription,
+        requireAttendees: form.requireAttendees ?? categoryForm.requireAttendees,
+        requireReceipt: form.requireReceipt ?? categoryForm.requireReceipt,
+        requireItemizedReceipt: form.requireItemizedReceipt ?? categoryForm.requireItemizedReceipt,
+    };
+}
+
 function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleForm) {
     const categoryName = form.category;
     if (!categoryName || !policyData.policy?.id) {
@@ -97,17 +109,18 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
     const policyCategories = policyData.categories;
     const category = policyCategories?.[categoryName];
     const initialForm = getRequireFieldsFormFromCategory(category);
+    const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
 
-    if (form.requireDescription !== initialForm.requireDescription) {
-        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, !!form.requireDescription, policyCategories);
+    if (effectiveForm.requireDescription !== initialForm.requireDescription) {
+        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, !!effectiveForm.requireDescription, policyCategories);
     }
 
-    if (form.requireAttendees !== initialForm.requireAttendees) {
-        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, !!form.requireAttendees, policyCategories);
+    if (effectiveForm.requireAttendees !== initialForm.requireAttendees) {
+        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, !!effectiveForm.requireAttendees, policyCategories);
     }
 
-    const shouldRequireReceipt = !!form.requireReceipt;
-    const shouldRequireItemizedReceipt = !!form.requireItemizedReceipt;
+    const shouldRequireReceipt = !!effectiveForm.requireReceipt;
+    const shouldRequireItemizedReceipt = !!effectiveForm.requireItemizedReceipt;
     const hadReceipt = isRequireFieldEnabled(category, 'requireReceipt');
     const hadItemizedReceipt = isRequireFieldEnabled(category, 'requireItemizedReceipt');
 
@@ -321,5 +334,5 @@ function getRequireFieldsTableData({
     return rules.sort((a, b) => a.conditionText.localeCompare(b.conditionText));
 }
 
-export {deleteRequireFieldsRule, getRequireFieldsFormFromCategory, getRequireFieldsTableData, saveRequireFieldsRule};
+export {deleteRequireFieldsRule, getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, getRequireFieldsTableData, saveRequireFieldsRule};
 export type {RequireFieldsTableItem};

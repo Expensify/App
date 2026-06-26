@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
 import {updateDraftMerchantTypeRule} from '@libs/actions/User';
@@ -21,14 +21,12 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
 
     const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
 
-    const categoryItems = useMemo(() => {
-        return Object.values(policyCategories ?? {})
-            .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map((category) => {
-                const decodedCategoryName = getDecodedCategoryName(category.name);
-                return {name: decodedCategoryName, value: category.name};
-            });
-    }, [policyCategories]);
+    const categoryItems = Object.values(policyCategories ?? {})
+        .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map((category) => {
+            const decodedCategoryName = getDecodedCategoryName(category.name);
+            return {name: decodedCategoryName, value: category.name};
+        });
 
     const backToRoute = ROUTES.RULES_MERCHANT_TYPE_EDIT.getRoute(policyID, groupID);
 
