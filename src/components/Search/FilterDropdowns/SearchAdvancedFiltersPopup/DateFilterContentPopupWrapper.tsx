@@ -5,14 +5,14 @@ import type {DateFilterContentWrapperProps} from '@components/Search/FilterCompo
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
-function DateFilterContentPopupWrapper({filterKey, value, hasFeed, onChange}: DateFilterContentWrapperProps) {
+function DateFilterContentPopupWrapper({baseFilterKey, value, hasFeed, onChange}: DateFilterContentWrapperProps) {
     const styles = useThemeStyles();
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
 
     return (
         <View style={[styles.flex1, selectedDateModifier ? styles.pt2 : styles.pv2]}>
             <DateFilterContent
-                filterKey={filterKey}
+                baseFilterKey={baseFilterKey}
                 value={value}
                 hasFeed={hasFeed}
                 selectedDateModifier={selectedDateModifier}

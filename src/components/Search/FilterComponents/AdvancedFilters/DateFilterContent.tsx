@@ -13,7 +13,7 @@ import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 type DateFilterContentProps = {
-    filterKey: SearchDateFilterKeys;
+    baseFilterKey: SearchDateFilterKeys;
     value: SearchDateValues;
     selectedDateModifier: SearchDateModifier | null;
     hasFeed: boolean;
@@ -23,7 +23,7 @@ type DateFilterContentProps = {
     onChange: (values: SearchDateValues) => void;
 };
 
-function DateFilterContent({filterKey, value, selectedDateModifier, hasFeed, largeButton, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
+function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, largeButton, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const dateFilterRef = useRef<DateFilterBaseHandle>(null);
@@ -50,7 +50,7 @@ function DateFilterContent({filterKey, value, selectedDateModifier, hasFeed, lar
                 selectedDateModifier={selectedDateModifier}
                 onSelectDateModifier={onDateModifierSelected}
                 defaultDateValues={value}
-                presets={getDatePresets(filterKey, hasFeed)}
+                presets={getDatePresets(baseFilterKey, hasFeed)}
                 onSubmit={onChange}
                 shouldShowActionButtons={false}
             />

@@ -5,6 +5,7 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
+import type {SearchNegatableFilterKeys} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -450,6 +451,7 @@ export type {
     SelectedTransactions,
     SearchColumnType,
     SearchSortBy,
+    SearchNegatableFilterKeys,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchDateKey,

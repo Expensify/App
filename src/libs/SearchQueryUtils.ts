@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {FilterComponentsProps} from '@components/Search/FilterComponents';
 import type {
     ASTNode,
     QueryFilter,
@@ -17,6 +18,7 @@ import type {
     SearchDateKey,
     SearchDatePreset,
     SearchFilterKey,
+    SearchNegatableFilterKeys,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
@@ -32,7 +34,7 @@ import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, NEGATABLE_FILTERS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -2299,6 +2301,35 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
     return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
 
+function isNegated(filterKey: SearchAdvancedFiltersKey) {
+    return filterKey.endsWith(CONST.SEARCH.NOT_MODIFIER);
+}
+
+function isFilterNegatable(key: SearchAdvancedFiltersKey) {
+    return NEGATABLE_FILTERS.has(removeNegation(key) as SearchNegatableFilterKeys);
+}
+
+function removeNegation(filterKey: string) {
+    return filterKey.replace(CONST.SEARCH.NOT_MODIFIER, '');
+}
+
+function getFilterFormValues<K extends FilterComponentsProps['baseFilterKey']>(
+    baseFilterKey: K,
+    value: SearchAdvancedFiltersForm[K] | undefined,
+    isNegated: boolean,
+): Partial<SearchAdvancedFiltersForm> {
+    const update: Partial<SearchAdvancedFiltersForm> = {};
+    const negatedFilterKey = `${baseFilterKey}${CONST.SEARCH.NOT_MODIFIER}` as K;
+    if (isFilterNegatable(baseFilterKey)) {
+        update[negatedFilterKey] = isNegated ? value : undefined;
+        update[baseFilterKey] = isNegated ? undefined : value;
+    } else {
+        update[negatedFilterKey] = undefined;
+        update[baseFilterKey] = value;
+    }
+    return update;
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
@@ -2342,6 +2373,10 @@ export {
     getParamsState,
     getRoutes,
     isSearchRootParams,
+    isNegated,
+    isFilterNegatable,
+    removeNegation,
+    getFilterFormValues,
 };
 
 export type {BuildUserReadableQueryStringParams};

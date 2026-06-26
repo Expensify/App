@@ -8634,6 +8634,17 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pay',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
+            filterType: {
+                label: 'Filter type',
+                has: {
+                    positive: 'has',
+                    negative: "doesn't have",
+                },
+                is: {
+                    positive: 'is',
+                    negative: 'is not',
+                },
+            },
         },
         display: {
             label: 'Display',

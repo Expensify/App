@@ -3,11 +3,11 @@ import AmountFilterContent from '@components/Search/FilterComponents/AdvancedFil
 import type {AmountFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function AmountFilterContentPopupWrapper({filterKey, value, onChange}: AmountFilterContentWrapperProps) {
+function AmountFilterContentPopupWrapper({baseFilterKey, value, onChange}: AmountFilterContentWrapperProps) {
     const styles = useThemeStyles();
     return (
         <AmountFilterContent
-            filterKey={filterKey}
+            baseFilterKey={baseFilterKey}
             value={value}
             style={[styles.pt2]}
             onChange={onChange}

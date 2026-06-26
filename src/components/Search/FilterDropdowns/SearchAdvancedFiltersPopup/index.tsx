@@ -49,7 +49,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 >
                     <SearchAdvancedFiltersContent
                         values={searchAdvancedFiltersForm}
-                        filterKey={selectedFilter}
+                        baseFilterKey={selectedFilter}
                         policyIDQuery={queryJSON.policyID}
                         components={{
                             Common: CommonFilterContentPopupWrapper,
