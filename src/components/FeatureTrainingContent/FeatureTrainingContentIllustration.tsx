@@ -80,9 +80,9 @@ function FeatureTrainingContentIllustration({
             return;
         }
         if (isFocused) {
-            animationRef.current.play(0);
+            animationRef.current.play();
         } else {
-            animationRef.current.reset();
+            animationRef.current.pause();
         }
     }, [isFocused, isCarousel, isReduceMotionEnabled]);
 
