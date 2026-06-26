@@ -8,12 +8,16 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {getDefaultApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
 import {
+    applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
     getOverLimitForwardsToDisplayName,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
+    reconcileApprovalWorkflowRulesForEdit,
+    reconcileApprovalWorkflowRulesForMembersChange,
+    reconcileApprovalWorkflowRulesForRemove,
 } from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -361,10 +365,18 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
         return;
     }
 
-    const newRules = buildApprovalWorkflowRules(approvalWorkflow);
-    const memberEmails = approvalWorkflow.members.map((member) => member.email);
     const existingRules = policy.rules?.approvalWorkflows ?? {};
-    const rulesDiff = reconcileApprovalWorkflowRulesForCreate(newRules, memberEmails, {existingRules});
+    const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+
+    // A submitter can only belong to one workflow, so first drop these members from any OTHER
+    // workflow's rules, then add them to the new workflow.
+    const removeDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
+    const rulesAfterRemoval = applyApprovalWorkflowRulesDiff(existingRules, removeDiff);
+
+    const newRules = buildApprovalWorkflowRules(approvalWorkflow);
+    const createDiff = reconcileApprovalWorkflowRulesForCreate(newRules, memberEmails, {existingRules: rulesAfterRemoval});
+
+    const rulesDiff = {...removeDiff, ...createDiff};
 
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
 
@@ -374,6 +386,68 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
     ) {
         completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined, undefined, false);
     }
+}
+
+type UpdateApprovalWorkflowRulesParams = {
+    approvalWorkflow: ApprovalWorkflow;
+    initialApprovalWorkflow: ApprovalWorkflow;
+    policy: OnyxEntry<Policy>;
+};
+
+/**
+ * Update an existing workflow using the new rules-based backend, gated behind the `multipleApprovers`
+ * beta. A single edit can change both the membership and the approver chain, so we reconcile in two
+ * composable steps against the existing `rules.approvalWorkflows`:
+ *   1. Membership: add joiners / drop leavers across the workflow's rules (so an added member lands in
+ *      the same rules and stays in the same workflow rather than splitting off).
+ *   2. Chain: reconcile the (possibly changed) approver chain against the membership-updated rules.
+ * The two diffs are merged (the chain diff, computed against the membership-updated rules, wins on
+ * overlap) and sent as one SetApprovalWorkflow command.
+ */
+function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy}: UpdateApprovalWorkflowRulesParams) {
+    if (!policy) {
+        return;
+    }
+
+    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const previousMemberEmails = initialApprovalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const newMemberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+
+    // 1. A submitter can only belong to one workflow, so drop joining members (those not previously in
+    // this workflow) from any OTHER workflow's rules first. Joiners aren't in this workflow's rules
+    // yet, so this only touches other workflows.
+    const joiningMemberEmails = newMemberEmails.filter((email) => !previousMemberEmails.includes(email));
+    const removeFromOthersDiff = reconcileApprovalWorkflowRulesForRemove(joiningMemberEmails, {existingRules});
+    const rulesAfterRemoval = applyApprovalWorkflowRulesDiff(existingRules, removeFromOthersDiff);
+
+    // 2. Sync membership across this workflow's rules (add joiners, drop leavers).
+    const memberDiff = reconcileApprovalWorkflowRulesForMembersChange(previousMemberEmails, newMemberEmails, {existingRules: rulesAfterRemoval});
+    const rulesAfterMembers = applyApprovalWorkflowRulesDiff(rulesAfterRemoval, memberDiff);
+
+    // 3. Reconcile the approver chain against the membership-updated rules.
+    const newRules = buildApprovalWorkflowRules(approvalWorkflow);
+    const chainDiff = reconcileApprovalWorkflowRulesForEdit(newRules, newMemberEmails, {existingRules: rulesAfterMembers});
+
+    const rulesDiff = {...removeFromOthersDiff, ...memberDiff, ...chainDiff};
+
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
+}
+
+/**
+ * Delete a workflow using the new rules-based backend, gated behind the `multipleApprovers` beta.
+ * Strips the workflow's members from every rule's `from` filter and removes any rule that ends up
+ * with no submitters, via the SetApprovalWorkflow command.
+ */
+function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+    if (!policy) {
+        return;
+    }
+
+    const existingRules = policy.rules?.approvalWorkflows ?? {};
+    const memberEmails = approvalWorkflow.members.map((member) => member.email).filter((email): email is string => !!email);
+    const rulesDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules});
+
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousApprovalWorkflows: existingRules});
 }
 
 /** Set the members of the approval workflow that is currently edited */
@@ -538,7 +612,9 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
 export {
     createApprovalWorkflow,
     createApprovalWorkflowRules,
+    removeApprovalWorkflowRules,
     updateApprovalWorkflow,
+    updateApprovalWorkflowRules,
     removeApprovalWorkflow,
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,

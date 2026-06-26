@@ -9,6 +9,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
@@ -22,6 +23,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canEditWorkspaceSettings, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {getRulesSubmitterToFirstApprover} from '@libs/WorkflowUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -55,6 +57,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
 
     const personalDetailLogins = useMemo(() => Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])), [personalDetails]);
 
@@ -95,8 +99,14 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
-    // Build a map of member emails to their existing workflow's approver email (for non-default workflows only)
+    // Build a map of member emails to their existing workflow's first approver. With the beta on this
+    // is derived from `rules.approvalWorkflows`; otherwise it falls back to the legacy employeeList
+    // `submitsTo` (non-default workflows only).
     const membersInExistingWorkflows = (() => {
+        if (isMultipleApproversBetaEnabled) {
+            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policy?.rules?.approvalWorkflows ?? {})));
+        }
+
         const employees = policy?.employeeList ?? {};
         const defaultApprover = getDefaultApprover(policy);
         const map = new Map<string, string>();
@@ -469,12 +479,16 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 setSelectedMembers(nextMembers);
             };
 
-            // Only show warning when creating a new workflow and a member is being added (not removed)
-            if (isCreateAction && members.length > selectedMembers.length) {
+            // Warn when adding a member who already belongs to another workflow. With the beta on this
+            // applies to both create and edit (a submitter can only be in one workflow, so confirming
+            // moves them); legacy keeps the create-only behavior. The `!== firstApprover` check skips
+            // members who are already in the workflow being edited.
+            const shouldCheckCrossWorkflow = isCreateAction || isMultipleApproversBetaEnabled;
+            if (shouldCheckCrossWorkflow && members.length > selectedMembers.length) {
                 const newMember = members.find((m) => !selectedMembers.some((s) => s.login === m.login));
                 const existingApproverEmail = newMember?.login ? membersInExistingWorkflows.get(newMember.login) : undefined;
 
-                if (newMember && existingApproverEmail) {
+                if (newMember && existingApproverEmail && existingApproverEmail !== firstApprover) {
                     const memberName = Str.removeSMSDomain(newMember.text ?? newMember.login ?? '');
                     const approverDetails = getPersonalDetailByEmail(existingApproverEmail);
                     const approverName = Str.removeSMSDomain(approverDetails?.displayName ?? existingApproverEmail);
@@ -496,7 +510,18 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
             applySelection(members);
         },
-        [policy?.employeeList, invitedEmailsToAccountIDsDraft, route.params.policyID, isCreateAction, selectedMembers, membersInExistingWorkflows, showConfirmModal, translate],
+        [
+            policy?.employeeList,
+            invitedEmailsToAccountIDsDraft,
+            route.params.policyID,
+            isCreateAction,
+            isMultipleApproversBetaEnabled,
+            firstApprover,
+            selectedMembers,
+            membersInExistingWorkflows,
+            showConfirmModal,
+            translate,
+        ],
     );
 
     return (

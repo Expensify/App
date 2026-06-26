@@ -2787,6 +2787,8 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT]: {
         policyID: string;
         firstApproverEmail: string;
+        /** Disambiguates workflows that share a first approver (rule-based diverging chains). A member belongs to exactly one workflow. */
+        memberEmail?: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;

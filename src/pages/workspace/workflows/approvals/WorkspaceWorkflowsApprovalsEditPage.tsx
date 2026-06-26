@@ -12,17 +12,26 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
+import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearApprovalWorkflow, removeApprovalWorkflow, selectApprovalWorkflowForEdit, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
+import {
+    clearApprovalWorkflow,
+    removeApprovalWorkflow,
+    removeApprovalWorkflowRules,
+    selectApprovalWorkflowForEdit,
+    updateApprovalWorkflow,
+    updateApprovalWorkflowRules,
+    validateApprovalWorkflow,
+} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -41,6 +50,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowMetadata);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const formRef = useRef<ScrollView>(null);
     const {showConfirmModal} = useConfirmModal();
@@ -52,6 +62,15 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         if (!validateApprovalWorkflow(approvalWorkflow)) {
+            return;
+        }
+
+        if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+            Navigation.dismissModal({
+                afterTransition: () => {
+                    updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy});
+                },
+            });
             return;
         }
 
@@ -72,10 +91,15 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         // Mark as deleting to prevent the useEffect from clearing the workflow and causing a blink
         isDeleting.current = true;
+        const useRulesBackend = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
         Navigation.dismissModal({
             afterTransition: () => {
                 // Remove the approval workflow using the initial data as it could be already edited
-                removeApprovalWorkflow(initialApprovalWorkflow, policy);
+                if (useRulesBackend) {
+                    removeApprovalWorkflowRules(initialApprovalWorkflow, policy);
+                } else {
+                    removeApprovalWorkflow(initialApprovalWorkflow, policy);
+                }
             },
         });
     };
@@ -86,18 +110,29 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         const firstApprover = route.params.firstApproverEmail;
-        const result = convertPolicyEmployeesToApprovalWorkflows({
+        const conversionParams = {
             policy,
             personalDetails,
             firstApprover,
             localeCompare,
             currentUserLogin: currentUserPersonalDetails?.login,
-        });
+        };
+        const result = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)
+            ? convertApprovalWorkflowRulesToWorkflows(conversionParams)
+            : convertPolicyEmployeesToApprovalWorkflows(conversionParams);
+
+        // `firstApproverEmail` isn't unique once rule-based chains diverge, so prefer matching on the
+        // member that opened this workflow (a member belongs to exactly one workflow). Fall back to the
+        // first-approver match for the default workflow (no members) and legacy/unspecified cases.
+        const memberEmail = route.params.memberEmail;
+        const currentApprovalWorkflow =
+            (memberEmail ? result.approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === memberEmail)) : undefined) ??
+            result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover);
 
         return {
             defaultWorkflowMembers: result.availableMembers,
             usedApproverEmails: result.usedApproverEmails,
-            currentApprovalWorkflow: result.approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.email === firstApprover),
+            currentApprovalWorkflow,
         };
     };
 
