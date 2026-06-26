@@ -127,6 +127,9 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
             // right after navigating back the ref may not have re-attached yet. Retry on the next frame instead of
             // throwing/dropping the submit, but bound the retries so we never loop forever if the composer is truly gone.
             if (attemptsLeft <= 0) {
+                // We never got the composer back, so the attachment can't be sent. Drop the pending file so a
+                // future send in this same provider doesn't piggyback the stale attachment onto an unrelated message.
+                attachmentFileRef.current = null;
                 Log.hmmm('[ComposerProvider] Skipping clearComposer because composerRef.clearWorklet never re-attached');
                 return;
             }
