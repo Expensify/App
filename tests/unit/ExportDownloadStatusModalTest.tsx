@@ -25,6 +25,22 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isTopmostRouteModalScreen: jest.fn(() => false),
     getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
+jest.mock('@hooks/useOpenConciergeAnywhere', () => {
+    const {default: useOnyx} = jest.requireActual<typeof import('@hooks/useOnyx')>('@hooks/useOnyx');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const NavigationMock: {navigate: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
+    const ONYXKEYS_ACTUAL = jest.requireActual<typeof import('@src/ONYXKEYS')>('@src/ONYXKEYS').default;
+    return {
+        __esModule: true,
+        default: () => {
+            const [conciergeReportID] = useOnyx(ONYXKEYS_ACTUAL.CONCIERGE_REPORT_ID);
+            return {
+                openConciergeAnywhere: () => NavigationMock.navigate(`r/${conciergeReportID}`),
+                isInSidePanel: false,
+            };
+        },
+    };
+});
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
