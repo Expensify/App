@@ -1,6 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {format, parseISO} from 'date-fns';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -58,11 +58,32 @@ type WorkspaceCompanyCardsTableHeaderButtonsWithBulkActionsProps = Omit<React.Co
     clearCardSelection: () => void;
 };
 
+type WorkspaceCompanyCardsSelectionSearchPrunerProps = {
+    /** Clear selected card rows */
+    clearCardSelection: () => void;
+};
+
 function escapeCsvField(value: string): string {
     if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
         return `"${value.replaceAll('"', '""')}"`;
     }
     return value;
+}
+
+function WorkspaceCompanyCardsSelectionSearchPruner({clearCardSelection}: WorkspaceCompanyCardsSelectionSearchPrunerProps) {
+    const {activeSearchString} = useTableContext<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>();
+    const previousSearchStringRef = useRef(activeSearchString);
+
+    useEffect(() => {
+        if (previousSearchStringRef.current === activeSearchString) {
+            return;
+        }
+
+        previousSearchStringRef.current = activeSearchString;
+        clearCardSelection();
+    }, [activeSearchString, clearCardSelection]);
+
+    return null;
 }
 
 function WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions({
@@ -390,7 +411,7 @@ function WorkspaceCompanyCardsTable({
 
     const validSelectedCardKeys = selectedCardKeysForCurrentData;
 
-    const clearCardSelection = () => setSelectedCardKeys([]);
+    const clearCardSelection = useCallback(() => setSelectedCardKeys([]), []);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData) => item.keyForList;
 
@@ -591,6 +612,7 @@ function WorkspaceCompanyCardsTable({
             ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
+            <WorkspaceCompanyCardsSelectionSearchPruner clearCardSelection={clearCardSelection} />
             {!shouldUseNarrowTableLayout && ListHeader}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
