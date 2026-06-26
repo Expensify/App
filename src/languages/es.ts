@@ -4921,9 +4921,13 @@ ${amount} para ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Vuelve a sincronizar la conexión después de añadir las empresas en Certinia.',
             prerequisites: {
                 title: 'Antes de conectarte',
-                installBundle: 'Para conexiones FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Instala el paquete de Expensify en Salesforce haciendo clic en este enlace: <a href="${href}">Instalar FFA Expensify Bundle (Versión ${version})</a>`,
+                installBundle: 'Instala el paquete de Expensify',
+                installBundlePSAHeader: 'Para conexiones PSA/SRP:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Instala el paquete de Expensify en Salesforce haciendo clic en este enlace: <a href="${href}">Instalar paquete Expensify PSA/SRP (Versión ${version})</a>`,
+                installBundleFFAHeader: 'Para conexiones FFA:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Instala el paquete de Expensify en Salesforce haciendo clic en este enlace: <a href="${href}">Instalar el paquete de Expensify para FFA (versión ${version})</a>`,
                 installBundleConfirm: 'He instalado el paquete',
                 setupContacts: 'Configura usuario y contactos',
                 setupContactsBullet1:
@@ -7407,6 +7411,8 @@ ${amount} para ${merchant} - ${date}`,
             agentRules: {
                 title: 'Reglas del agente',
                 subtitle: 'Configura reglas para cómo los agentes de IA gestionan los gastos en este espacio de trabajo.',
+                enforcedBy: 'Las reglas del agente se aplican mediante',
+                ruleBotName: 'RuleBot',
                 addRule: 'Añadir regla de agente',
                 findRule: 'Encontrar regla de agente',
                 addRuleTitle: 'Añadir regla',

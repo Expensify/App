@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {Coordinate} from './MapViewTypes';
 import utils from './utils';
 
-type UseAnimatedTrailingDirectionCoordinateParams = {
+type UseAnimatedLeadingDirectionCoordinateParams = {
     // Whether the animation is enabled
     isEnabled: boolean;
 
@@ -16,7 +16,7 @@ type UseAnimatedTrailingDirectionCoordinateParams = {
 
 const ANIMATION_DURATION_MS = CONST.MAPBOX.GPS_ROUTE_ANIMATION_DURATION_MS;
 
-function getTrailingSegmentData(directionCoordinates: Coordinate[][]) {
+function getLeadingSegmentData(directionCoordinates: Coordinate[][]) {
     const lastSegment = directionCoordinates?.at(-1);
 
     if (!lastSegment?.length) {
@@ -35,15 +35,15 @@ function getTrailingSegmentData(directionCoordinates: Coordinate[][]) {
     };
 }
 
-function useAnimatedTrailingDirectionCoordinate({directionCoordinates, isEnabled, targetCoordinate}: UseAnimatedTrailingDirectionCoordinateParams): Coordinate | undefined {
+function useAnimatedLeadingDirectionCoordinate({directionCoordinates, isEnabled, targetCoordinate}: UseAnimatedLeadingDirectionCoordinateParams): Coordinate | undefined {
     const segmentCount = directionCoordinates.length;
 
-    const trailingSegmentData = getTrailingSegmentData(directionCoordinates);
+    const leadingSegmentData = getLeadingSegmentData(directionCoordinates);
     // Why second to last, and not last? Because in edge cases, the last coordinate from directionCoordinates
     // would be closer to real user location than the targetCoordinate passed from MapBox location engine updates
     // and the animation would go the opposite way
-    const secondToLastCoordinate = trailingSegmentData.secondToLastCoordinate;
-    const lastSegmentStartCoordinate = trailingSegmentData.lastSegmentStartCoordinate;
+    const secondToLastCoordinate = leadingSegmentData.secondToLastCoordinate;
+    const lastSegmentStartCoordinate = leadingSegmentData.lastSegmentStartCoordinate;
 
     const [animatedCoordinate, setAnimatedCoordinate] = useState<Coordinate | undefined>(undefined);
     const animationFrameRef = useRef<number | undefined>(undefined);
@@ -77,7 +77,7 @@ function useAnimatedTrailingDirectionCoordinate({directionCoordinates, isEnabled
 
             const elapsed = timestamp - animationStartTimeRef.current;
             const progress = Math.min(elapsed / ANIMATION_DURATION_MS, 1);
-            const nextCoordinate = utils.interpolateCoordinate(from, to, progress);
+            const nextCoordinate = utils.simpleInterpolateCoordinate(from, to, progress);
             animatedCoordinateRef.current = nextCoordinate;
             setAnimatedCoordinate(nextCoordinate);
 
@@ -136,4 +136,4 @@ function useAnimatedTrailingDirectionCoordinate({directionCoordinates, isEnabled
     return animatedCoordinate;
 }
 
-export default useAnimatedTrailingDirectionCoordinate;
+export default useAnimatedLeadingDirectionCoordinate;
