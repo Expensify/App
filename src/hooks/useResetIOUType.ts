@@ -47,6 +47,10 @@ type UseResetIOUTypeParams = {
 
     /** Whether to skip keyboard dismiss for per diem tab */
     skipKeyboardDismissForPerDiem?: boolean;
+
+    /** Whether the new manual expense flow beta is enabled. When true, the fresh transaction is seeded with
+     * participants from the current report so the embedded confirmation's auto-assign useEffect short-circuits. */
+    isNewManualExpenseFlowEnabled?: boolean;
 };
 
 /**
@@ -64,6 +68,7 @@ function useResetIOUType({
     policy,
     isTrackDistanceExpense = false,
     skipKeyboardDismissForPerDiem = false,
+    isNewManualExpenseFlowEnabled = false,
 }: UseResetIOUTypeParams): (newIOUType: IOURequestType) => void {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [hasOnlyPersonalPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesSelector});
@@ -81,23 +86,24 @@ function useResetIOUType({
         isLoadingSelectedTab,
     });
 
-    // Derive participants from the current report (or the global-create fallback) so the freshly-rebuilt transaction
-    // already includes them. This prevents the embedded confirmation's auto-assign useEffect from re-firing on every
-    // cleanup and dragging back unrelated draft state (receipt, billable, etc.).
+    // For the new manual flow, derive participants from the current report (or the global-create fallback) so the
+    // freshly-rebuilt transaction already includes them. This prevents the embedded confirmation's auto-assign
+    // useEffect from re-firing on every cleanup and dragging back unrelated draft state (receipt, billable, etc.).
     const resolvedDefaultParticipants = useDefaultParticipants({
         sourceReport: report,
         transaction,
         iouType,
+        isNewManualExpenseFlowEnabled,
     });
     const defaultParticipants = resolvedDefaultParticipants.length > 0 ? resolvedDefaultParticipants : undefined;
 
     const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
-        if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
-            Keyboard.dismiss();
-        }
-
         if (transaction?.iouRequestType === newIOUType) {
             return;
+        }
+
+        if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
+            Keyboard.dismiss();
         }
 
         const isFromGlobalCreate = !report?.reportID;
