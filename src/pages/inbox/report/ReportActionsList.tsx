@@ -431,7 +431,7 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML],
         [draftMessageHTML, draftReportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    // ListBoundaryLoader self-renders nothing outside its loading/error states, so the header is always safe to render.
+
     const listHeaderComponent = useMemo(
         () => (
             <ReportActionsListHeader
