@@ -19,6 +19,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
+import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
 function ForYouSection() {
@@ -33,6 +34,7 @@ function ForYouSection() {
     // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
     // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
@@ -162,8 +164,9 @@ function ForYouSection() {
         </View>
     );
 
+    const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
+
     const renderContent = () => {
-        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
         if (isInitialLoad) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
                 context: 'ForYouSection.ForYouSkeleton',
@@ -177,6 +180,10 @@ function ForYouSection() {
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
+
+    if (shouldHideForYouSection({isInitialLoad, hasAnyTodos, firstDayFreeTrial, cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE})) {
+        return null;
+    }
 
     return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
 }
