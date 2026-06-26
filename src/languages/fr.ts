@@ -8612,6 +8612,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
         expenseType: 'Type de dépense',
+        receiptType: 'Type de reçu',
+        receiptTypeValues: {
+            ereceipt: 'eReçu',
+            itemized: 'Détaillé',
+            hotel: 'Hôtel',
+        },
         withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',

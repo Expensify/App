@@ -8671,6 +8671,12 @@ const translations = {
         noMerchant: 'No merchant',
         noTag: 'No tag',
         expenseType: 'Expense type',
+        receiptType: 'Receipt type',
+        receiptTypeValues: {
+            ereceipt: 'eReceipt',
+            itemized: 'Itemized',
+            hotel: 'Hotel',
+        },
         withdrawalType: 'Withdrawal type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
