@@ -16,9 +16,6 @@ type FeatureTrainingModalTextContentProps = {
     /** Describe what is showing */
     description?: string;
 
-    /** Secondary description rendered with additional space */
-    secondaryDescription?: string;
-
     /** Style for the title */
     titleStyles?: StyleProp<TextStyle>;
 
@@ -39,7 +36,6 @@ function FeatureTrainingContentBodyText({
     title = '',
     subtitle = '',
     description = '',
-    secondaryDescription = '',
     titleStyles,
     contentInnerContainerStyles,
     shouldRenderHTMLDescription = false,
@@ -67,7 +63,6 @@ function FeatureTrainingContentBodyText({
             ) : (
                 <Text style={styles.textSupporting}>{description}</Text>
             )}
-            {!!secondaryDescription && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
             {children}
         </View>
     );

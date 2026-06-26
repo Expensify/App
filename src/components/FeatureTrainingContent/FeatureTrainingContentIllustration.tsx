@@ -1,8 +1,7 @@
 import type {SourceLoadEventPayload} from 'expo-video';
 import type LottieView from 'lottie-react-native';
 import React, {useEffect, useRef, useState} from 'react';
-import {Image, View} from 'react-native';
-import type {ImageResizeMode, ImageSourcePropType} from 'react-native';
+import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
@@ -30,10 +29,7 @@ const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
 
 type VideoStatus = 'video' | 'animation';
 
-type FeatureTrainingContentIllustrationProps = Pick<
-    BaseFeatureTrainingContentProps,
-    'shouldRenderSVG' | 'illustrationAspectRatio' | 'illustrationInnerContainerStyle' | 'illustrationOuterContainerStyle'
-> &
+type FeatureTrainingContentIllustrationProps = Pick<BaseFeatureTrainingContentProps, 'illustrationAspectRatio' | 'illustrationInnerContainerStyle' | 'illustrationOuterContainerStyle'> &
     BaseFeatureTrainingContentIllustrationProps & {
         /** Whether this illustration belongs to the currently-visible carousel page */
         isFocused?: boolean;
@@ -66,7 +62,6 @@ function FeatureTrainingContentIllustration({
     illustrationAspectRatio: illustrationAspectRatioProp,
     illustrationInnerContainerStyle,
     illustrationOuterContainerStyle,
-    shouldRenderSVG = true,
     isFocused = true,
     isCarousel = false,
 }: FeatureTrainingContentIllustrationProps) {
@@ -118,24 +113,15 @@ function FeatureTrainingContentIllustration({
                     (!!videoURL || !!image || (!!animation && !!illustrationAspectRatioProp)) && {aspectRatio},
                 ]}
             >
-                {!!image &&
-                    (shouldRenderSVG ? (
-                        <ImageSVG
-                            src={image}
-                            contentFit={contentFitImage}
-                            width={imageWidth}
-                            height={imageHeight}
-                            testID={CONST.IMAGE_SVG_TEST_ID}
-                        />
-                    ) : (
-                        <Image
-                            accessibilityIgnoresInvertColors
-                            source={image as ImageSourcePropType}
-                            resizeMode={contentFitImage as ImageResizeMode}
-                            style={styles.featureTrainingModalImage}
-                            testID={CONST.IMAGE_TEST_ID}
-                        />
-                    ))}
+                {!!image && (
+                    <ImageSVG
+                        src={image}
+                        contentFit={contentFitImage}
+                        width={imageWidth}
+                        height={imageHeight}
+                        testID={CONST.IMAGE_SVG_TEST_ID}
+                    />
+                )}
                 {!!videoURL && videoStatus === 'video' && (
                     <GestureHandlerRootView>
                         <VideoPlayer

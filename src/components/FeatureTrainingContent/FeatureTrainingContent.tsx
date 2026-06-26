@@ -24,7 +24,6 @@ function FeatureTrainingContent({
     title = '',
     subtitle = '',
     description = '',
-    secondaryDescription = '',
     titleStyles,
     shouldShowDismissModalOption = false,
     confirmText = '',
@@ -36,12 +35,9 @@ function FeatureTrainingContent({
     children,
     contentInnerContainerStyles,
     contentOuterContainerStyles,
-    shouldRenderSVG = true,
     shouldRenderHTMLDescription = false,
     shouldCloseOnConfirm = true,
     shouldUseScrollView: shouldUseScrollViewProp = false,
-    shouldShowConfirmationLoader = false,
-    canConfirmWhileOffline = true,
     helpSentryLabel,
     confirmSentryLabel,
     ...props
@@ -103,14 +99,12 @@ function FeatureTrainingContent({
                 illustrationAspectRatio={illustrationAspectRatioProp}
                 illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                 illustrationOuterContainerStyle={illustrationOuterContainerStyle}
-                shouldRenderSVG={shouldRenderSVG}
                 {...props}
             />
             <FeatureTrainingContentBody
                 title={title}
                 subtitle={subtitle}
                 description={description}
-                secondaryDescription={secondaryDescription}
                 confirmText={confirmText}
                 helpText={helpText}
                 onHelp={onHelp}
@@ -120,8 +114,6 @@ function FeatureTrainingContent({
                 willShowAgain={willShowAgain}
                 toggleWillShowAgain={toggleWillShowAgain}
                 onConfirm={handleConfirm}
-                shouldShowConfirmationLoader={shouldShowConfirmationLoader}
-                canConfirmWhileOffline={canConfirmWhileOffline}
                 titleStyles={titleStyles}
                 contentInnerContainerStyles={contentInnerContainerStyles}
                 contentOuterContainerStyles={contentOuterContainerStyles}

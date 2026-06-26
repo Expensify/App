@@ -55,9 +55,6 @@ type BaseFeatureTrainingContentProps = {
     /** Whether to disable the modal */
     isModalDisabled?: boolean;
 
-    /** Whether the modal image is a SVG */
-    shouldRenderSVG?: boolean;
-
     /** Whether the modal description is written in HTML */
     shouldRenderHTMLDescription?: boolean;
 
@@ -69,12 +66,6 @@ type BaseFeatureTrainingContentProps = {
 
     /** Whether the modal content is scrollable */
     shouldUseScrollView?: boolean;
-
-    /** Whether the modal is displaying a confirmation loading spinner (useful when fetching data from API during confirmation) */
-    shouldShowConfirmationLoader?: boolean;
-
-    /** Whether the user can confirm the tutorial while offline */
-    canConfirmWhileOffline?: boolean;
 
     /** Whether to navigate back when closing the modal */
     shouldGoBack?: boolean;
@@ -98,9 +89,6 @@ type FeatureTrainingContentBodyProps = {
 
     /** Describe what is showing */
     description?: string;
-
-    /** Secondary description rendered with additional space */
-    secondaryDescription?: string;
 
     /** Text to show on primary button */
     confirmText: string;

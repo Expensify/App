@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import OfflineIndicator from '@components/OfflineIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -18,8 +17,6 @@ type FeatureTrainingModalContentProps = Pick<
     | 'helpSentryLabel'
     | 'confirmSentryLabel'
     | 'shouldShowDismissModalOption'
-    | 'shouldShowConfirmationLoader'
-    | 'canConfirmWhileOffline'
     | 'titleStyles'
     | 'contentInnerContainerStyles'
     | 'contentOuterContainerStyles'
@@ -44,7 +41,6 @@ function FeatureTrainingContentBody({
     title = '',
     subtitle = '',
     description = '',
-    secondaryDescription = '',
     confirmText,
     onConfirm,
     helpText = '',
@@ -56,8 +52,6 @@ function FeatureTrainingContentBody({
     toggleWillShowAgain,
     shouldShowBackButton = false,
     onBack,
-    shouldShowConfirmationLoader = false,
-    canConfirmWhileOffline = true,
     titleStyles,
     contentInnerContainerStyles,
     contentOuterContainerStyles,
@@ -73,7 +67,6 @@ function FeatureTrainingContentBody({
                 title={title}
                 subtitle={subtitle}
                 description={description}
-                secondaryDescription={secondaryDescription}
                 titleStyles={titleStyles}
                 contentInnerContainerStyles={contentInnerContainerStyles}
                 shouldRenderHTMLDescription={shouldRenderHTMLDescription}
@@ -110,14 +103,12 @@ function FeatureTrainingContentBody({
                 )}
                 <FormAlertWithSubmitButton
                     onSubmit={() => onConfirm?.(willShowAgain)}
-                    isLoading={shouldShowConfirmationLoader}
                     buttonText={confirmText}
-                    enabledWhenOffline={canConfirmWhileOffline}
+                    enabledWhenOffline
                     sentryLabel={confirmSentryLabel}
                     containerStyles={styles.flex1}
                 />
             </View>
-            {!canConfirmWhileOffline && <OfflineIndicator />}
         </View>
     );
 }

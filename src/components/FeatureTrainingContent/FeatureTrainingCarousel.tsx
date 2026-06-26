@@ -41,15 +41,12 @@ function FeatureTrainingCarousel({
     illustrationAspectRatio,
     illustrationInnerContainerStyle,
     illustrationOuterContainerStyle,
-    shouldRenderSVG = true,
     shouldRenderHTMLDescription = false,
     shouldUseScrollView: shouldUseScrollViewProp = false,
     helpText = '',
     onHelp = () => {},
     helpSentryLabel,
     confirmSentryLabel,
-    shouldShowConfirmationLoader = false,
-    canConfirmWhileOffline = true,
     contentInnerContainerStyles,
     contentOuterContainerStyles,
     onConfirm,
@@ -195,7 +192,6 @@ function FeatureTrainingCarousel({
                                 title={page.title}
                                 subtitle={page.subtitle}
                                 description={page.description}
-                                secondaryDescription={page.secondaryDescription}
                                 titleStyles={titleStyles}
                                 contentInnerContainerStyles={contentInnerContainerStyles}
                                 shouldRenderHTMLDescription={shouldRenderHTMLDescription}
@@ -229,7 +225,6 @@ function FeatureTrainingCarousel({
                                         illustrationAspectRatio={illustrationAspectRatio}
                                         illustrationInnerContainerStyle={illustrationInnerContainerStyle}
                                         illustrationOuterContainerStyle={illustrationOuterContainerStyle}
-                                        shouldRenderSVG={shouldRenderSVG}
                                         isCarousel
                                         isFocused={index === currentPage}
                                         {...page}
@@ -256,7 +251,6 @@ function FeatureTrainingCarousel({
                         title={currentPageData?.title}
                         subtitle={currentPageData?.subtitle}
                         description={currentPageData?.description}
-                        secondaryDescription={currentPageData?.secondaryDescription}
                         confirmText={currentPageData?.confirmText ?? ''}
                         helpText={helpText}
                         onHelp={onHelp}
@@ -265,8 +259,6 @@ function FeatureTrainingCarousel({
                         onConfirm={handleConfirmPress}
                         shouldShowBackButton={currentPage > 0}
                         onBack={goBack}
-                        shouldShowConfirmationLoader={shouldShowConfirmationLoader}
-                        canConfirmWhileOffline={canConfirmWhileOffline}
                         titleStyles={titleStyles}
                         contentInnerContainerStyles={[contentInnerContainerStyles, contentMinHeight !== undefined && {minHeight: contentMinHeight}]}
                         contentOuterContainerStyles={contentOuterContainerStyles}
