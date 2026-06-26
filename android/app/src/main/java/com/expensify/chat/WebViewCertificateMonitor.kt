@@ -12,6 +12,7 @@ import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.SSLPeerUnverifiedException
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
@@ -28,10 +29,12 @@ import javax.net.ssl.X509TrustManager
  * telemetry.
  */
 object WebViewCertificateMonitor {
-    private const val TAG = "WebViewCertMonitor"
     private const val CERTIFICATE_PINNING_HOST_TAG = "certificate_pinning_host"
     private const val CERTIFICATE_PINNING_MODE_TAG = "certificate_pinning_mode"
     private const val CERTIFICATE_PINNING_CHANNEL_TAG = "certificate_pinning_channel"
+    private const val CERTIFICATE_PINNING_OUTCOME_TAG = "certificate_pinning_outcome"
+    private const val OUTCOME_TRUST_EXTENSIONS_UNAVAILABLE = "trust_extensions_unavailable"
+    private const val OUTCOME_CHAIN_REBUILD_FAILED = "chain_rebuild_failed"
 
     @Volatile
     private var initialized = false
@@ -39,6 +42,8 @@ object WebViewCertificateMonitor {
 
     /** Domain → set of base64-encoded SHA-256 SPKI hashes (without the "sha256/" prefix). */
     private var pinnedDomains: Map<String, Set<String>> = emptyMap()
+
+    private val trustExtensionsFailureReported = AtomicBoolean(false)
 
     private val trustManagerExtensions: X509TrustManagerExtensions? by lazy {
         try {
@@ -48,7 +53,16 @@ object WebViewCertificateMonitor {
                 .filterIsInstance<X509TrustManager>()
                 .firstOrNull() ?: return@lazy null
             X509TrustManagerExtensions(tm)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            if (trustExtensionsFailureReported.compareAndSet(false, true)) {
+                reportMonitoringFailure(
+                    message = "WebView certificate monitor failed to initialize trust manager extensions",
+                    hostname = null,
+                    url = null,
+                    outcome = OUTCOME_TRUST_EXTENSIONS_UNAVAILABLE,
+                    cause = e,
+                )
+            }
             null
         }
     }
@@ -87,7 +101,7 @@ object WebViewCertificateMonitor {
         val sslCertificate = webView.certificate ?: return
         val leafCert = extractX509Certificate(sslCertificate) ?: return
 
-        val chainHashes = buildChainHashes(leafCert, host)
+        val chainHashes = buildChainHashes(leafCert, host, url)
         if (chainHashes.isEmpty()) return
 
         if (chainHashes.any { it in expectedHashes }) return
@@ -100,7 +114,7 @@ object WebViewCertificateMonitor {
      * hashes for all certificates beyond the leaf (intermediates and root). Returns an empty list
      * if chain building fails.
      */
-    private fun buildChainHashes(leafCert: X509Certificate, host: String): List<String> {
+    private fun buildChainHashes(leafCert: X509Certificate, host: String, url: String): List<String> {
         val extensions = trustManagerExtensions ?: return emptyList()
 
         val authTypes = if (leafCert.publicKey.algorithm == "EC") {
@@ -109,6 +123,7 @@ object WebViewCertificateMonitor {
             arrayOf("RSA", "ECDHE_RSA")
         }
 
+        var lastException: Exception? = null
         for (authType in authTypes) {
             try {
                 val fullChain = extensions.checkServerTrusted(arrayOf(leafCert), authType, host)
@@ -116,10 +131,18 @@ object WebViewCertificateMonitor {
                 if (hashes.isNotEmpty()) {
                     return hashes
                 }
-            } catch (_: Exception) {
-                // try next authType
+            } catch (e: Exception) {
+                lastException = e
             }
         }
+
+        reportMonitoringFailure(
+            message = "WebView certificate chain reconstruction failed for $host",
+            hostname = host,
+            url = url,
+            outcome = OUTCOME_CHAIN_REBUILD_FAILED,
+            cause = lastException,
+        )
         return emptyList()
     }
 
@@ -145,6 +168,36 @@ object WebViewCertificateMonitor {
             android.util.Base64.encodeToString(digest, android.util.Base64.NO_WRAP)
         } catch (_: Exception) {
             null
+        }
+    }
+
+    private fun reportMonitoringFailure(
+        message: String,
+        hostname: String?,
+        url: String?,
+        outcome: String,
+        cause: Exception?,
+    ) {
+        val redactedUrl = url?.let {
+            try {
+                val uri = Uri.parse(it)
+                uri.buildUpon().clearQuery().fragment(null).build().toString()
+            } catch (_: Exception) {
+                hostname
+            }
+        }
+
+        val exception = cause ?: SSLPeerUnverifiedException(message)
+        Sentry.captureException(exception) { scope ->
+            scope.level = SentryLevel.WARNING
+            hostname?.let { scope.setTag(CERTIFICATE_PINNING_HOST_TAG, it) }
+            scope.setTag(CERTIFICATE_PINNING_MODE_TAG, if (enforcePinning) "enforce" else "monitor")
+            scope.setTag(CERTIFICATE_PINNING_CHANNEL_TAG, "WebView")
+            scope.setTag(CERTIFICATE_PINNING_OUTCOME_TAG, outcome)
+            redactedUrl?.let { scope.setExtra("url", it) }
+            if (cause != null) {
+                scope.setExtra("monitoringFailureMessage", message)
+            }
         }
     }
 
