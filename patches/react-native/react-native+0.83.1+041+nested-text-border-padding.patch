@@ -1,0 +1,160 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index 7d2774b443f..2e37b02fc46 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+@@ -21,6 +21,7 @@ import android.text.StaticLayout
+ import android.text.TextDirectionHeuristics
+ import android.text.TextPaint
+ import android.text.TextUtils
++import android.text.style.LeadingMarginSpan
+ import android.util.LayoutDirection
+ import android.view.Gravity
+ import android.view.View
+@@ -306,6 +307,19 @@ internal object TextLayoutManager {
+             null
+           }
+           span?.let { ops.add(SetSpanOperation(start, end, it)) }
++
++          // Reserve leading advance so a bordered span that begins a line isn't clipped at the
++          // left edge; the box is extended into it by half the border width in ReactBackgroundDrawSpan.
++          val leadingBorderDip = textAttributes.borderLeftWidth.takeIf { !it.isNaN() } ?: 0f
++          if (leadingBorderDip > 0f && (start == 0 || sb[start - 1] == '\n')) {
++            ops.add(
++                SetSpanOperation(
++                    start,
++                    end,
++                    LeadingMarginSpan.Standard(PixelUtil.toPixelFromDIP(leadingBorderDip).toInt()),
++                )
++            )
++          }
+         }
+         if (!textAttributes.opacity.isNaN()) {
+           ops.add(SetSpanOperation(start, end, ReactOpacitySpan(textAttributes.opacity)))
+@@ -509,6 +523,18 @@ internal object TextLayoutManager {
+             null
+           }
+           spannable.setSpan(bgSpan, start, end, spanFlags)
++
++          // Reserve leading advance so a bordered span that begins a line isn't clipped at the
++          // left edge; the box is extended into it by half the border width in ReactBackgroundDrawSpan.
++          val leadingBorderDip = fragment.props.borderLeftWidth.takeIf { !it.isNaN() } ?: 0f
++          if (leadingBorderDip > 0f && (start == 0 || spannable[start - 1] == '\n')) {
++            spannable.setSpan(
++                LeadingMarginSpan.Standard(PixelUtil.toPixelFromDIP(leadingBorderDip).toInt()),
++                start,
++                end,
++                spanFlags,
++            )
++          }
+         }
+ 
+         if (!fragment.props.opacity.isNaN()) {
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+index 48f6592b82d..94ac1642908 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+@@ -87,6 +87,16 @@ internal class ReactBackgroundDrawSpan(
+       val isFirstLine = line == startLine
+       val isLastLine = line == endLine
+ 
++      // Extend the box outward into the reserved advance (LeadingMarginSpan added in
++      // TextLayoutManager) by half the border width, so the centered stroke clears the glyphs
++      // and isn't clipped at the line edge.
++      if (isFirstLine && borderLeftWidth > 0f) {
++        rectF.left -= borderLeftWidth / 2f
++      }
++      if (isLastLine && borderRightWidth > 0f) {
++        rectF.right += borderRightWidth / 2f
++      }
++
+       drawFill(canvas, rectF, isFirstLine, isLastLine)
+       drawBorder(canvas, rectF, isFirstLine, isLastLine)
+     }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+index ed7ee76ce6a..3e4098c29ce 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+@@ -473,6 +473,62 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
+ 
+     [nsAttributedString appendAttributedString:nsAttributedStringFragment];
+   }
++
++  // Reserve horizontal advance around bordered / inline-code spans so the per-side border
++  // (drawn centered on the box edge in RCTTextLayoutManagerWithBorderRadius) has room at the
++  // very start/end of a line instead of being clipped by the text container. The drawn box is
++  // then extended by half the border width into this reserved space.
++  //   - Leading at a paragraph start: firstLineHeadIndent (no preceding glyph to kern).
++  //   - Trailing at a paragraph end: kern on the last glyph, which also grows the measured
++  //     width so a content-sized label isn't clipped on the right.
++  NSString *plainString = nsAttributedString.string;
++  NSUInteger fullLength = nsAttributedString.length;
++  [nsAttributedString enumerateAttribute:RCTTextBorderRadiusAttributeName
++                                 inRange:NSMakeRange(0, fullLength)
++                                 options:0
++                              usingBlock:^(id value, NSRange range, __unused BOOL *stop) {
++    if (![value isKindOfClass:[NSArray class]] || range.length == 0) {
++      return;
++    }
++    NSArray *attrs = (NSArray *)value;
++    if (attrs.count < 13) {
++      return;
++    }
++    // attrs layout matches RCTNSTextAttributesFromTextAttributes: rightW=attrs[10], leftW=attrs[12].
++    const CGFloat rightW = [attrs[10] floatValue];
++    const CGFloat leftW = [attrs[12] floatValue];
++
++    if (leftW > 0) {
++      const BOOL atParagraphStart =
++          range.location == 0 || [plainString characterAtIndex:range.location - 1] == '\n';
++      if (atParagraphStart) {
++        NSRange paragraphRange = [plainString paragraphRangeForRange:NSMakeRange(range.location, 0)];
++        NSParagraphStyle *existing = [nsAttributedString attribute:NSParagraphStyleAttributeName
++                                                          atIndex:range.location
++                                                   effectiveRange:NULL];
++        NSMutableParagraphStyle *paragraphStyle =
++            existing ? [existing mutableCopy] : [NSMutableParagraphStyle new];
++        paragraphStyle.firstLineHeadIndent = MAX(paragraphStyle.firstLineHeadIndent, leftW);
++        [nsAttributedString addAttribute:NSParagraphStyleAttributeName
++                                   value:paragraphStyle
++                                   range:paragraphRange];
++      }
++    }
++
++    if (rightW > 0) {
++      const BOOL atParagraphEnd =
++          NSMaxRange(range) >= fullLength || [plainString characterAtIndex:NSMaxRange(range)] == '\n';
++      if (atParagraphEnd) {
++        const NSUInteger lastIndex = NSMaxRange(range) - 1;
++        NSNumber *existingKern = [nsAttributedString attribute:NSKernAttributeName
++                                                       atIndex:lastIndex
++                                                effectiveRange:NULL];
++        const CGFloat kern = (existingKern ? [existingKern floatValue] : 0.0f) + rightW;
++        [nsAttributedString addAttribute:NSKernAttributeName value:@(kern) range:NSMakeRange(lastIndex, 1)];
++      }
++    }
++  }];
++
+   [nsAttributedString endEditing];
+ 
+   return nsAttributedString;
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
+index c2320fe9792..873c85c15d8 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
+@@ -116,6 +116,16 @@
+       CGFloat effectiveTR = isLast  ? tr : 0;
+       CGFloat effectiveBR = isLast  ? br : 0;
+ 
++      // Extend the box outward into the reserved advance (see RCTAttributedTextUtils) by half the
++      // border width, so the centered stroke clears the glyphs and isn't clipped at the line edge.
++      if (isFirst && leftW > 0) {
++        spanRect.origin.x -= leftW / 2.0;
++        spanRect.size.width += leftW / 2.0;
++      }
++      if (isLast && rightW > 0) {
++        spanRect.size.width += rightW / 2.0;
++      }
++
+       CGFloat x = CGRectGetMinX(spanRect);
+       CGFloat y = CGRectGetMinY(spanRect);
+       CGFloat w = CGRectGetWidth(spanRect);
