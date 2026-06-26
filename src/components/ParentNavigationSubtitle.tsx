@@ -186,7 +186,7 @@ function ParentNavigationSubtitle({
         if (openParentReportInCurrentTab && currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             const lastRoute = currentFocusedNavigator?.state?.routes.at(-1);
 
-            // Dedup must run before the navigate-to-parent branches below: when the parent report is already the
+            // Deduplication must run before the navigate-to-parent branches below: when the parent report is already the
             // previous RHP in the stack, go back to it instead of pushing a new copy. Otherwise hopping parent <->
             // child repeatedly (e.g. workspace chat <-> expense report from Home) stacks [chat, report, chat,
             // report, …] in history, forcing the back button to walk through every duplicate.
