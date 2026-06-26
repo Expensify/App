@@ -3200,9 +3200,9 @@ ${amount} pour ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Soumettre une dépense',
+                title: 'Créer une dépense',
                 description: dedent(`
-                    *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
+                    *Créez une dépense* en saisissant un montant ou en scannant un reçu.
 
                     1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
@@ -3214,9 +3214,9 @@ ${amount} pour ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Soumettre une dépense',
+                title: 'Créer une dépense',
                 description: dedent(`
-                    *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
+                    *Créez une dépense* en saisissant un montant ou en scannant un reçu.
 
                     1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
@@ -5052,9 +5052,13 @@ ${amount} pour ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Veuillez synchroniser à nouveau la connexion après l’ajout des entreprises dans Certinia.',
             prerequisites: {
                 title: 'Avant de vous connecter',
-                installBundle: 'Pour les connexions FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle FFA Expensify (version ${version})</a>`,
+                installBundle: 'Installer le module Expensify',
+                installBundlePSAHeader: 'Pour les connexions PSA/SRP :',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify PSA/SRP (version ${version})</a>`,
+                installBundleFFAHeader: 'Pour les connexions FFA :',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installez le bundle Expensify dans Salesforce en cliquant sur ce lien : <a href="${href}">Installer le bundle Expensify pour FFA (version ${version})</a>`,
                 installBundleConfirm: 'J’ai installé le paquet',
                 setupContacts: 'Configurer l’utilisateur et les contacts',
                 setupContactsBullet1:
@@ -7541,6 +7545,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             agentRules: {
                 title: 'Règles d’agent',
                 subtitle: 'Définissez des règles pour déterminer comment les agents IA gèrent les dépenses dans cet espace de travail.',
+                enforcedBy: 'Les règles des agents sont appliquées par',
+                ruleBotName: 'RuleBot',
                 addRule: 'Ajouter une règle d’agent',
                 findRule: 'Rechercher une règle d’agent',
                 addRuleTitle: 'Ajouter une règle',

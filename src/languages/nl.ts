@@ -3182,9 +3182,9 @@ ${amount} voor ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Dien een uitgave in',
+                title: 'Maak een uitgave',
                 description: dedent(`
-                    *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
+                    *Maak een uitgave* door een bedrag in te voeren of een bon te scannen.
 
                     1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
@@ -3196,9 +3196,9 @@ ${amount} voor ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Dien een uitgave in',
+                title: 'Maak een uitgave',
                 description: dedent(`
-                    *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
+                    *Maak een uitgave* door een bedrag in te voeren of een bon te scannen.
 
                     1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
@@ -5015,9 +5015,13 @@ ${amount} voor ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Synchroniseer de verbinding opnieuw nadat bedrijven zijn toegevoegd in Certinia.',
             prerequisites: {
                 title: 'Voordat je verbinding maakt',
-                installBundle: 'Voor FFA-verbindingen',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">FFA Expensify-bundel installeren (versie ${version})</a>`,
+                installBundle: 'Installeer het Expensify-pakket',
+                installBundlePSAHeader: 'Voor PSA/SRP-koppelingen:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Installeer PSA/SRP Expensify-bundel (versie ${version})</a>`,
+                installBundleFFAHeader: 'Voor FFA-verbindingen:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installeer de Expensify-bundel in Salesforce door op deze link te klikken: <a href="${href}">Expensify-bundel voor FFA installeren (versie ${version})</a>`,
                 installBundleConfirm: 'Ik heb de bundel geïnstalleerd',
                 setupContacts: 'Gebruiker en contacten instellen',
                 setupContactsBullet1:
@@ -7473,6 +7477,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             agentRules: {
                 title: 'Agentregels',
                 subtitle: 'Stel regels in voor hoe AI-agenten met uitgaven omgaan in deze werkruimte.',
+                enforcedBy: 'Agentregels worden afgedwongen door',
+                ruleBotName: 'RuleBot',
                 addRule: 'Agentregel toevoegen',
                 findRule: 'Agentregel zoeken',
                 addRuleTitle: 'Regel toevoegen',
