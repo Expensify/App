@@ -1,6 +1,5 @@
 import React, {useDeferredValue, useEffect, useId, useRef, useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import Pencil from '@assets/images/pencil.svg';
 import Hoverable from '@components/Hoverable';
@@ -159,12 +158,14 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
             return;
         }
 
-        (document.activeElement as HTMLElement | null)?.blur();
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         event.preventDefault();
         suppressEditIconPress();
     };
 
-    const handleEditIconPressIn = (_event: GestureResponderEvent) => {
+    const handleEditIconPressIn = () => {
         if (!isEditingCell) {
             return;
         }
