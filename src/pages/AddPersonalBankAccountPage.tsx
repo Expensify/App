@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -52,8 +52,6 @@ function AddPersonalBankAccountPage() {
             clearPersonalBankAccount();
         }
     };
-
-    useEffect(() => clearPersonalBankAccount, []);
 
     if (shouldShowSuccess) {
         return (
