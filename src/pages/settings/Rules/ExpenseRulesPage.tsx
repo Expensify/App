@@ -98,6 +98,7 @@ function ExpenseRulesPage() {
             deleteExpenseRules(expenseRules, selectedRules, getKeyForRule);
         }
         setDeleteConfirmModalVisible(false);
+        turnOffMobileSelectionMode();
         setSelectedRules([]);
     };
 
