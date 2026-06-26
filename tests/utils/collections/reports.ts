@@ -7,7 +7,7 @@ import type {Report} from '@src/types/onyx';
 /**
  * Creates a report with random settings
  */
-function createRandomReport(index: number, chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined): Report {
+function createRandomReport(index: number, chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>): Report {
     return {
         reportID: index.toString(),
         chatType,

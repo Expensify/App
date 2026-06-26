@@ -1231,10 +1231,8 @@ function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
 
-// TODO: currentUserDisplayName and currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function getCurrentUserDisplayNameOrEmail(currentUserDisplayName?: string, currentUserEmail?: string): string | undefined {
-    // TODO: deprecatedCurrentUserEmail fallback should be removed once the params are required. Refactor issue: https://github.com/Expensify/App/issues/66412
-    return currentUserDisplayName ?? currentUserEmail ?? currentUserPersonalDetails?.displayName ?? deprecatedCurrentUserEmail;
+function getCurrentUserDisplayNameOrEmail(): string | undefined {
+    return currentUserPersonalDetails?.displayName ?? deprecatedCurrentUserEmail;
 }
 
 function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
@@ -6212,7 +6210,7 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
 
     // TODO: deprecatedCurrentUserPrivateDomain fallback should be removed once currentUserEmailParam is required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     let userEmailDomain = deprecatedCurrentUserPrivateDomain;
-    if (currentUserEmailParam) {
+    if (currentUserEmailParam !== undefined) {
         userEmailDomain = isEmailPublicDomain(currentUserEmailParam) ? '' : Str.extractEmailDomain(currentUserEmailParam);
     }
 
@@ -7894,7 +7892,7 @@ function buildOptimisticCreatedReportAction({
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: getCurrentUserDisplayNameOrEmail(currentUserDisplayName, currentUserEmail),
+                text: currentUserDisplayName ?? currentUserEmail ?? getCurrentUserDisplayNameOrEmail(),
             },
         ],
         automatic: false,
