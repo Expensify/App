@@ -1,3 +1,5 @@
+import {useIsFocused} from '@react-navigation/native';
+import noop from 'lodash/noop';
 import {useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThread';
@@ -116,17 +118,18 @@ function getFlaggedExpenses(
  * Powers the "Review X expenses" row: scans the current user's OPEN expense reports for flagged transactions
  * and exposes a handler that opens the first one's transaction thread (single-expense RHP + review carousel).
  *
- * `isHomeTabFocused` gates the O(n) scan — while the Home tab is blurred it is skipped and the row keeps its
- * last count. The Onyx subscriptions stay live (they cannot be paused) but only trigger a cheap re-render.
+ * `useIsFocused()` gates the O(n) scan — while the screen is blurred it is skipped and the row keeps its last
+ * count. The Onyx subscriptions stay live (they cannot be paused) but only trigger a cheap re-render.
  */
-function useReviewFlaggedExpenses(isHomeTabFocused: boolean): ReviewFlaggedExpenses {
+function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
+    const isFocused = useIsFocused();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const flaggedExpenses = isHomeTabFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session) : undefined;
+    const flaggedExpenses = isFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session) : undefined;
 
     // Retain the count across blur via "adjust state during render". It's a primitive, so this guard can't loop
     // and doesn't depend on the scan being referentially stable.
@@ -141,23 +144,28 @@ function useReviewFlaggedExpenses(isHomeTabFocused: boolean): ReviewFlaggedExpen
 
     const navigateToTransactionThread = useNavigateToTransactionThread();
 
-    const reviewExpenses = () => {
-        // The row is only pressable while focused, so the live scan result is available here.
-        const firstFlaggedExpense = flaggedExpenses?.at(0);
-        if (!flaggedExpenses || !firstFlaggedExpense) {
-            return;
-        }
-        const firstFlaggedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstFlaggedExpense.reportID}`];
-        const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstFlaggedExpense.transactionID}`];
-        navigateToTransactionThread({
-            transactionID: firstFlaggedExpense.transactionID,
-            reportActions: Object.values(firstFlaggedReportActions ?? {}),
-            report: firstFlaggedReport,
-            transaction: firstFlaggedTransaction,
-            siblingTransactionIDs: flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID),
-            backTo: ROUTES.HOME,
-        });
-    };
+    // While blurred the row isn't pressable and the scan result is undefined, so expose a stable no-op
+    // instead of a fresh closure. The Onyx collection subscriptions keep firing on background writes while blurred;
+    // returning `noop` keeps `reviewExpenses` referentially stable so consumers don't re-render until refocus.
+    const reviewExpenses = isFocused
+        ? () => {
+              // The row is only pressable while focused, so the live scan result is available here.
+              const firstFlaggedExpense = flaggedExpenses?.at(0);
+              if (!flaggedExpenses || !firstFlaggedExpense) {
+                  return;
+              }
+              const firstFlaggedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstFlaggedExpense.reportID}`];
+              const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstFlaggedExpense.transactionID}`];
+              navigateToTransactionThread({
+                  transactionID: firstFlaggedExpense.transactionID,
+                  reportActions: Object.values(firstFlaggedReportActions ?? {}),
+                  report: firstFlaggedReport,
+                  transaction: firstFlaggedTransaction,
+                  siblingTransactionIDs: flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID),
+                  backTo: ROUTES.HOME,
+              });
+          }
+        : noop;
 
     return {count, reviewExpenses};
 }

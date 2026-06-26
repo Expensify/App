@@ -1,3 +1,4 @@
+import type * as ReactNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -22,11 +23,17 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockNavigateToTransactionThread = jest.fn();
 jest.mock('@hooks/useNavigateToTransactionThread', () => jest.fn(() => mockNavigateToTransactionThread));
 
-// useReviewFlaggedExpenses runs the flagged-expense scan only while the Home tab is the active tab. The test
-// harness has no root navigation state, so mock the focus hook with a toggleable flag: default focused so the
-// review row renders, flip it to exercise the blurred path (scan skipped, last count retained).
-let mockIsHomeTabFocused = true;
-jest.mock('@hooks/useIsHomeTabFocused', () => jest.fn(() => mockIsHomeTabFocused));
+// useReviewFlaggedExpenses runs the flagged-expense scan only while the screen is focused. The test harness has
+// no real navigation state, so mock useIsFocused with a toggleable flag: default focused so the review row
+// renders, flip it to exercise the blurred path (scan skipped, last count retained).
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: () => mockIsFocused,
+    };
+});
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -129,7 +136,7 @@ describe('ForYouSection', () => {
     });
 
     beforeEach(async () => {
-        mockIsHomeTabFocused = true;
+        mockIsFocused = true;
         mockUseResponsiveLayout.mockReturnValue({
             shouldUseNarrowLayout: false,
             isSmallScreenWidth: false,
@@ -268,7 +275,7 @@ describe('ForYouSection', () => {
         });
 
         it('does not surface flagged expenses while the Home tab is blurred (scan skipped)', async () => {
-            mockIsHomeTabFocused = false;
+            mockIsFocused = false;
             await act(async () => {
                 await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
                 await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
@@ -295,7 +302,7 @@ describe('ForYouSection', () => {
 
             // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
             // in state, so the row keeps its count instead of flashing back to the empty state.
-            mockIsHomeTabFocused = false;
+            mockIsFocused = false;
             rerender(<ForYouSection />);
             await waitForBatchedUpdatesWithAct();
 

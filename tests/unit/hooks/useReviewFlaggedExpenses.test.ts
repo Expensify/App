@@ -1,3 +1,4 @@
+import type * as ReactNavigation from '@react-navigation/native';
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReviewFlaggedExpenses from '@pages/home/ForYouSection/useReviewFlaggedExpenses';
@@ -9,6 +10,17 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 
 const mockNavigateToTransactionThread = jest.fn();
 jest.mock('@hooks/useNavigateToTransactionThread', () => jest.fn(() => mockNavigateToTransactionThread));
+
+// The hook gates its O(n) scan on useIsFocused(). Mock it with a toggleable flag so tests can exercise the
+// focused (live scan) and blurred (scan skipped, last count retained) paths.
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: () => mockIsFocused,
+    };
+});
 
 const ACCOUNT_ID = 1;
 
@@ -41,6 +53,7 @@ describe('useReviewFlaggedExpenses', () => {
     });
 
     beforeEach(async () => {
+        mockIsFocused = true;
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'test@example.com'});
         });
@@ -56,7 +69,7 @@ describe('useReviewFlaggedExpenses', () => {
     });
 
     it('returns count 0 and a no-op handler when nothing is flagged', async () => {
-        const {result} = renderHook(() => useReviewFlaggedExpenses(true));
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.count).toBe(0);
@@ -74,7 +87,7 @@ describe('useReviewFlaggedExpenses', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const {result} = renderHook(() => useReviewFlaggedExpenses(true));
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.count).toBe(3);
@@ -94,7 +107,7 @@ describe('useReviewFlaggedExpenses', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const {result} = renderHook(() => useReviewFlaggedExpenses(true));
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.count).toBe(2);
@@ -122,7 +135,7 @@ describe('useReviewFlaggedExpenses', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const {result} = renderHook(() => useReviewFlaggedExpenses(true));
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
         await waitForBatchedUpdatesWithAct();
         expect(result.current.count).toBe(1);
 
@@ -139,7 +152,8 @@ describe('useReviewFlaggedExpenses', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const {result} = renderHook(() => useReviewFlaggedExpenses(false));
+        mockIsFocused = false;
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
         await waitForBatchedUpdatesWithAct();
 
         expect(result.current.count).toBe(0);
@@ -157,12 +171,13 @@ describe('useReviewFlaggedExpenses', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const {result, rerender} = renderHook(({focused}) => useReviewFlaggedExpenses(focused), {initialProps: {focused: true}});
+        const {result, rerender} = renderHook(() => useReviewFlaggedExpenses());
         await waitForBatchedUpdatesWithAct();
         expect(result.current.count).toBe(2);
 
         // Blurring keeps the last computed count instead of flashing back to 0.
-        rerender({focused: false});
+        mockIsFocused = false;
+        rerender({});
         await waitForBatchedUpdatesWithAct();
         expect(result.current.count).toBe(2);
     });
@@ -173,12 +188,13 @@ describe('useReviewFlaggedExpenses', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const {result, rerender} = renderHook(({focused}) => useReviewFlaggedExpenses(focused), {initialProps: {focused: true}});
+        const {result, rerender} = renderHook(() => useReviewFlaggedExpenses());
         await waitForBatchedUpdatesWithAct();
         expect(result.current.count).toBe(1);
 
         // A new flagged expense arrives while blurred: the scan is skipped, so the count stays cached.
-        rerender({focused: false});
+        mockIsFocused = false;
+        rerender({});
         await act(async () => {
             await seedFlaggedExpenses({transactionID: 't2', reportID: 'r2'});
         });
@@ -186,8 +202,29 @@ describe('useReviewFlaggedExpenses', () => {
         expect(result.current.count).toBe(1);
 
         // Refocusing re-runs the scan and the count catches up.
-        rerender({focused: true});
+        mockIsFocused = true;
+        rerender({});
         await waitForBatchedUpdatesWithAct();
         expect(result.current.count).toBe(2);
+    });
+
+    it('keeps reviewExpenses referentially stable across background Onyx writes while blurred', async () => {
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        mockIsFocused = false;
+        const {result, rerender} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+        const blurredHandler = result.current.reviewExpenses;
+
+        // A background write churns the live collection subscriptions, but the blurred handler must not change identity.
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't2', reportID: 'r2'});
+        });
+        await waitForBatchedUpdatesWithAct();
+        rerender({});
+        expect(result.current.reviewExpenses).toBe(blurredHandler);
     });
 });

@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
-import useIsHomeTabFocused from '@hooks/useIsHomeTabFocused';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,10 +36,9 @@ function ForYouSection() {
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
 
-    // The flagged-expense scan subscribes to whole collections, so it only runs while the Home tab is focused;
+    // The flagged-expense scan subscribes to whole collections, so it only runs while this screen is focused;
     // while blurred the hook retains the last count (see useReviewFlaggedExpenses) and skips the O(n) scan.
-    const isHomeTabFocused = useIsHomeTabFocused();
-    const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses(isHomeTabFocused);
+    const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
