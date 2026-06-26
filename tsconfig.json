@@ -21,7 +21,8 @@
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
             "@selectors/*": ["./src/selectors/*"],
-            "tests/*": ["./tests/*"]
+            "tests/*": ["./tests/*"],
+            "expensify-common/dist/*": ["./node_modules/expensify-common/dist/*"]
         }
     },
     "ts-node": {
