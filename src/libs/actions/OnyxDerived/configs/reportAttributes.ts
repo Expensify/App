@@ -1,6 +1,6 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIsOffline} from '@libs/NetworkState';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
@@ -372,7 +372,7 @@ export default createOnyxDerivedValueConfig({
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
-                              isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+                              isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
