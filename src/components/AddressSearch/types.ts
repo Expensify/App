@@ -1,9 +1,11 @@
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {Country} from '@src/CONST';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
 import type {ForwardedRef, RefObject} from 'react';
 import type {BlurEvent, StyleProp, TextInputProps, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {Country} from '@src/CONST';
-import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type CurrentLocationButtonProps = {
     /** Callback that is called when the button is clicked */

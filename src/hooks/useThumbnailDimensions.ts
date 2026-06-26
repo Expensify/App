@@ -1,7 +1,10 @@
-import {useMemo} from 'react';
+import CONST from '@src/CONST';
+
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {DimensionValue} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
-import CONST from '@src/CONST';
+
+import {useMemo} from 'react';
+
 import useResponsiveLayout from './useResponsiveLayout';
 
 type ThumbnailDimensions = {

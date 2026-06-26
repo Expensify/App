@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Account} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const isActingAsDelegateSelector = (account: OnyxEntry<Account>) => !!account?.delegatedAccess?.delegate;
 

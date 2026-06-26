@@ -1,4 +1,5 @@
 import type Network from '@src/types/onyx/Network';
+
 import type {RequestQueuesInfo} from './RequestsQueuesState';
 
 /**

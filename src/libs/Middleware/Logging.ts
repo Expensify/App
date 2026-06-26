@@ -1,11 +1,14 @@
-import type {OnyxKey} from 'react-native-onyx';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
+
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './types';
 
 function getCircularReplacer() {

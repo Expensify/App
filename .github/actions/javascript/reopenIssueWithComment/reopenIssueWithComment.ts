@@ -1,7 +1,8 @@
-import * as core from '@actions/core';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import type {CreateCommentResponse} from '@github/libs/GithubUtils';
+
+import * as core from '@actions/core';
 
 const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
 const comment = core.getInput('COMMENT', {required: true});

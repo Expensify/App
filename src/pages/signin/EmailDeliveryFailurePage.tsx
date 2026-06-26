@@ -1,16 +1,21 @@
-import React, {useEffect} from 'react';
-import {Keyboard, View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {normalizeLogin} from '@libs/LoginUtils';
+
 import {clearSignInData} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect} from 'react';
+import {Keyboard, View} from 'react-native';
 
 function EmailDeliveryFailurePage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);

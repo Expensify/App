@@ -1,12 +1,18 @@
-import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
 import {isChatThread} from '@libs/ReportUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
+import type {View} from 'react-native';
+
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+
 import type {ProtectedCurrentRouteReportID} from './playbackContextReportIDUtils';
-import {findURLInReportOrAncestorAttachments, getCurrentRouteReportID, NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, normalizeReportID} from './playbackContextReportIDUtils';
 import type {OriginalParent, PlaybackActionsContext, PlaybackActionsContextValues, PlaybackStateContext, PlaybackStateContextValues} from './types';
+
+import {findURLInReportOrAncestorAttachments, getCurrentRouteReportID, NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, normalizeReportID} from './playbackContextReportIDUtils';
 import usePlaybackContextVideoRefs from './usePlaybackContextVideoRefs';
 
 const ContextState = React.createContext<PlaybackStateContext | null>(null);

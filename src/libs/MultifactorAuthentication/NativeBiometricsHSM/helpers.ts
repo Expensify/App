@@ -1,16 +1,20 @@
-/**
- * Helper utilities for native biometrics HSM (react-native-biometrics).
- */
-import {sha256} from '@sbaiahmed1/react-native-biometrics';
-import type {AuthType} from '@sbaiahmed1/react-native-biometrics/types';
-import {Buffer} from 'buffer';
-import type {ValueOf} from 'type-fest';
 import {getErrorMessage} from '@libs/ErrorUtils';
 import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
+
 import CONST from '@src/CONST';
+
+import type {AuthType} from '@sbaiahmed1/react-native-biometrics/types';
+import type {ValueOf} from 'type-fest';
+
+/**
+ * Helper utilities for native biometrics HSM (react-native-biometrics).
+ */
+import {sha256} from '@sbaiahmed1/react-native-biometrics';
+import {Buffer} from 'buffer';
+
 import NATIVE_BIOMETRICS_HSM_VALUES from './VALUES';
 
 type NativeBiometricsHSMTypeEntry = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE>;

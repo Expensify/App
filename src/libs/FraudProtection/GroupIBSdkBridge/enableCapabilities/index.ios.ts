@@ -1,5 +1,7 @@
 import type {FP} from 'group-ib-fp';
+
 import {Capability} from 'group-ib-fp';
+
 import logCapability from './log';
 
 function enableCapabilities(fp: FP) {

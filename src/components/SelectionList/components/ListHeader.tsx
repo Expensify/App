@@ -1,14 +1,18 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {DataDetailsType, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ListHeaderProps<TItem extends ListItem> = {
     /** Data details containing selection state and items info */

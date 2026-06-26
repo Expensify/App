@@ -1,6 +1,9 @@
-import React from 'react';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {
     SearchQueryActionsValue,
     SearchQueryContextValue,

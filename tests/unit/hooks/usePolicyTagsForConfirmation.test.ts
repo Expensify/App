@@ -1,8 +1,12 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import usePolicyTagsForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyTagsForConfirmation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const policyID = 'POLICY_TAGS_TEST';

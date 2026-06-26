@@ -1,4 +1,5 @@
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
 
 // This file is used to define relation between settings split navigator's central screens and RHP screens.
@@ -67,6 +68,8 @@ const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, str
         SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE,
         SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN,
         SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM,
+        SCREENS.MISSING_PERSONAL_DETAILS,
+        SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
     ],
     [SCREENS.SETTINGS.AGENTS.ROOT]: [
         SCREENS.SETTINGS.AGENTS.ADD,
@@ -133,7 +136,7 @@ const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, str
         SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION,
         SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY,
         SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS,
-        SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED,
+        SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED,
     ],
 };
 

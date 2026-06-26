@@ -1,17 +1,21 @@
-import {getLastClosedReportAction} from '@selectors/ReportAction';
-import lodashEscape from 'lodash/escape';
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {getPolicyName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {getLastClosedReportAction} from '@selectors/ReportAction';
+import lodashEscape from 'lodash/escape';
+import React from 'react';
+
 import Banner from './Banner';
 
 type ArchivedReportFooterProps = {
@@ -42,7 +46,7 @@ function ArchivedReportFooter({reportID}: ArchivedReportFooterProps) {
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT && archiveReason !== CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED;
 
-    let policyName = getPolicyName({report});
+    let policyName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
 
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED) {
         policyName = originalMessage?.receiverPolicyName ?? '';

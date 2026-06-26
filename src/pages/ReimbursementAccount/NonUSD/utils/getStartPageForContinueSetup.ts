@@ -1,7 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import getInitialSubPageForSignerInfoStep from './getInitialSubPageForSignerInfoStep';
 import requiresDocusignStep from './requiresDocusignStep';
 

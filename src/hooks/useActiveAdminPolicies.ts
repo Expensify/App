@@ -1,9 +1,12 @@
-import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import {useCallback} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {activeAdminPoliciesSelector} from '@selectors/Policy';
+import {useCallback} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 

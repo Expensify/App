@@ -1,19 +1,24 @@
-import React, {useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {clearContactMethodErrors, requestValidateCodeAction, resetValidateActionCodeSent, setContactMethodAsDefault} from '@libs/actions/User';
+
+import {clearContactMethodErrors, requestValidateCodeAction, setContactMethodAsDefault} from '@libs/actions/User';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {expensifyLoginsSelector, getContactMethod} from '@libs/UserUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
+
 import getDecodedContactMethodFromUriParam from './utils';
 
 type SetDefaultContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM>;
@@ -38,7 +43,6 @@ function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactM
             return;
         }
 
-        resetValidateActionCodeSent();
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
     }, [session?.email, contactMethod, loginData?.pendingFields?.defaultLogin, backTo]);
 
@@ -74,7 +78,6 @@ function SetDefaultContactMethodConfirmMagicCodePage({route}: SetDefaultContactM
                 clearContactMethodErrors(contactMethod, 'defaultLogin');
             }}
             onClose={() => {
-                resetValidateActionCodeSent();
                 Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(contactMethod, backTo));
             }}
         />

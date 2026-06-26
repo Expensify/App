@@ -1,7 +1,9 @@
 import React from 'react';
+
+import type {BaseErrorBoundaryProps} from './types';
+
 import BaseErrorBoundary from './BaseErrorBoundary';
 import logError from './logError';
-import type {BaseErrorBoundaryProps} from './types';
 
 function ErrorBoundary({errorMessage, children}: Omit<BaseErrorBoundaryProps, 'logError'>) {
     return (

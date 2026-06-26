@@ -1,5 +1,6 @@
-import React, {useContext, useState} from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React, {useContext, useState} from 'react';
 
 type InputBlurStateContextType = {
     isBlurred: boolean;

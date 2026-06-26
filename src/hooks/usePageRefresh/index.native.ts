@@ -1,4 +1,5 @@
 import {useErrorBoundary} from 'react-error-boundary';
+
 import type UsePageRefresh from './type';
 
 const usePageRefresh: UsePageRefresh = () => {

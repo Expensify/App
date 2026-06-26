@@ -1,4 +1,5 @@
 import type {FlashListProps} from '@shopify/flash-list';
+
 import {useEffect, useState} from 'react';
 
 type FlashListScrollKeyProps<T> = {

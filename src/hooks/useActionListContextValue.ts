@@ -1,6 +1,8 @@
-import {useRef} from 'react';
-import type {FlatList} from 'react-native';
 import type {ActionListContextType, ScrollPosition} from '@pages/inbox/ReportScreenContext';
+
+import type {FlatList} from 'react-native';
+
+import {useRef} from 'react';
 
 function useActionListContextValue(): ActionListContextType {
     const flatListRef = useRef<FlatList>(null);

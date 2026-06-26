@@ -1,15 +1,23 @@
-import React, {useRef} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, View, ViewStyle} from 'react-native';
+
+import React, {useRef} from 'react';
+
 import {useSearchRouterActions} from './SearchRouterContext';
 import startSearchPageVisibleSpan from './startSearchPageVisibleSpan';
 
@@ -40,7 +48,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
 
             startSearchPageVisibleSpan();
 
-            openSearchRouter();
+            openSearchRouter(undefined, isSearchTopmostFullScreenRoute());
         })();
     };
 

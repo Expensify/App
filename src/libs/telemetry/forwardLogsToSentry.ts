@@ -7,12 +7,21 @@ type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
  * Exact strings match the key literally, regexes match against the flattened dot-notation key.
  * Example: /^mfa\./ matches all keys under the `mfa` namespace (mfa.scenario, mfa.isOffline, etc.).
  */
-const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = ['timestamp', 'error', 'command', 'isSupportAuthTokenUsed', /^mfa\./];
+const PARAMETERS_WHITELIST: ReadonlyArray<string | RegExp> = [
+    'timestamp',
+    'error',
+    'command',
+    'isSupportAuthTokenUsed',
+    'type',
+    'lastUpdateID',
+    'previousLastUpdateIDAppliedToClient',
+    /^mfa\./,
+];
 
 /**
  * Only log lines whose message contains one of these prefixes are forwarded to Sentry.
  */
-const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]'] as const;
+const FORWARDED_LOG_PREFIXES = ['[Reauthenticate]', '[MFA]', '[OnyxUpdateManagerError]'] as const;
 
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.

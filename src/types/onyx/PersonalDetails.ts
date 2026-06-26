@@ -1,7 +1,10 @@
-import type {TupleToUnion} from 'type-fest';
 import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type TIMEZONES from '@src/TIMEZONES';
+
+import type {TupleToUnion} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Selectable timezones */

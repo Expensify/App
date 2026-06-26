@@ -1,5 +1,6 @@
-import React, {createContext, useContext, useRef} from 'react';
 import type {View} from 'react-native';
+
+import React, {createContext, useContext, useRef} from 'react';
 
 type LabelEntry = {id: number; text: string};
 

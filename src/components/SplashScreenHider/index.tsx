@@ -1,5 +1,7 @@
-import {useCallback, useEffect} from 'react';
 import BootSplash from '@libs/BootSplash';
+
+import {useCallback, useEffect} from 'react';
+
 import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types';
 
 function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): SplashScreenHiderReturnType {

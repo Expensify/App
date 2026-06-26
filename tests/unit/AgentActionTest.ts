@@ -1,14 +1,20 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
@@ -108,14 +114,14 @@ describe('createAgent', () => {
     });
 
     it('passes file to write params when provided', () => {
-        const mockFile = {uri: 'file://photo.jpg', name: 'photo.jpg'} as unknown as File;
+        const mockFile = createMock<File>({uri: 'file://photo.jpg', name: 'photo.jpg'});
         createAgent('Bot', 'My prompt', undefined, mockFile, 'file://photo.jpg');
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({firstName: 'Bot', prompt: 'My prompt', file: mockFile}), expect.any(Object));
     });
 
     it('uploads file in the CREATE_AGENT call itself — no separate UPDATE_AGENT_AVATAR write', () => {
-        const mockFile = {uri: 'file://photo.jpg', name: 'photo.jpg'} as unknown as File;
+        const mockFile = createMock<File>({uri: 'file://photo.jpg', name: 'photo.jpg'});
         createAgent('Bot', 'My prompt', undefined, mockFile, 'file://photo.jpg');
 
         expect(mockWrite).toHaveBeenCalledTimes(1);
@@ -536,7 +542,7 @@ describe('clearAgentUpdateError', () => {
 });
 
 describe('updateAgentAvatar (file upload)', () => {
-    const mockFile = {uri: 'file://photo.jpg', name: 'photo.jpg'} as unknown as File;
+    const mockFile = createMock<File>({uri: 'file://photo.jpg', name: 'photo.jpg'});
     const currentAvatar = 'https://cdn.example.com/old.jpg';
 
     beforeEach(() => {

@@ -1,15 +1,21 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useRef} from 'react';
-import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
-import NumberWithSymbolForm from './NumberWithSymbolForm';
+
+import type {ForwardedRef} from 'react';
+import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
-import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
+
+import NumberWithSymbolForm from './NumberWithSymbolForm';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 
 type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */

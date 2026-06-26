@@ -1,20 +1,27 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
+
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import {connectBankAccountManually, connectBankAccountWithPlaid, deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {hideBankAccountErrors} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import Manual from './subSteps/Manual';
 import Plaid from './subSteps/Plaid';
 

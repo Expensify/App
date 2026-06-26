@@ -1,19 +1,22 @@
-// eslint-disable-next-line lodash/import-scope
-import type {DebouncedFuncLeading} from 'lodash';
-import type React from 'react';
 import type {ComposerRef} from '@components/Composer/types';
-import useAncestors from '@hooks/useAncestors';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+
 import {clearAllReportActionDrafts, editReportComment} from '@libs/actions/Report';
-import {getOriginalReportID} from '@libs/ReportUtils';
+
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+// eslint-disable-next-line lodash/import-scope
+import type {DebouncedFuncLeading} from 'lodash';
+import type React from 'react';
 
 type UseEditMessageProps = {
     /** The report ID */
@@ -38,14 +41,9 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
     const {email} = useCurrentUserPersonalDetails();
     const actionOwnerReportID = originalReportID ?? reportID;
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionOwnerReportID}`);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const originalParentReportID = getOriginalReportID(actionOwnerReportID, reportAction, reportActions);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
-    const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
-    const ancestors = useAncestors(originalReport);
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -89,18 +87,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
         submitEdit();
 
-        editReportComment(
-            originalReport,
-            reportAction,
-            ancestors,
-            trimmedNewDraft,
-            isOriginalReportArchived,
-            isOriginalParentReportArchived,
-            email ?? '',
-            personalDetails,
-            Object.fromEntries(draftMessageVideoAttributeCache),
-            visibleReportActionsData,
-        );
+        editReportComment(originalReport, reportAction, trimmedNewDraft, isOriginalReportArchived, email ?? '', personalDetails, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }
 

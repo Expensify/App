@@ -1,7 +1,9 @@
-import {useEffect} from 'react';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
+
+import {useEffect} from 'react';
 
 type TelemetrySpanManagerProps = {
     iouType: IOUType;

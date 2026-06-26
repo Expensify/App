@@ -1,6 +1,9 @@
-import type {RouterConfigOptions} from '@react-navigation/native';
-import {StackRouter} from '@react-navigation/native';
 import {getPreservedNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+
+import type {RouterConfigOptions} from '@react-navigation/native';
+
+import {StackRouter} from '@react-navigation/native';
+
 import type SearchFullscreenNavigatorRouterOptions from './types';
 
 function SearchFullscreenRouter(options: SearchFullscreenNavigatorRouterOptions) {

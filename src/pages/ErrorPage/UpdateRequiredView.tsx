@@ -1,11 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -13,10 +12,17 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
+
 import variables from '@styles/variables';
+
 import {updateApp} from '@userActions/AppUpdate';
+
 import CONFIG from '@src/CONFIG';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();

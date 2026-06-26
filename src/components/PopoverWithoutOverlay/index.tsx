@@ -1,14 +1,19 @@
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {usePopoverActions} from '@components/PopoverProvider';
+
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs/actions/Modal';
+
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import type PopoverWithoutOverlayProps from './types';
 
 const NOOP = () => {};

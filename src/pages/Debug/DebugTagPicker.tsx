@@ -1,18 +1,23 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTagLists} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type DebugTagPickerProps = {
     /** The policyID we are getting tags for */

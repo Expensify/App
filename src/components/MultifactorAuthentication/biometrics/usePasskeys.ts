@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {
     arrayBufferToBase64URL,
     authenticateWithPasskey,
@@ -16,9 +17,13 @@ import {
 import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
+
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
+
 import CONST from '@src/CONST';
+
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
+
 import useServerCredentials from './shared/useServerCredentials';
 
 function usePasskeys(): UseBiometricsReturn {

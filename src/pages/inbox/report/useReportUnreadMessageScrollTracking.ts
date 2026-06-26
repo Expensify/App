@@ -1,8 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import CONST from '@src/CONST';
+
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
-import CONST from '@src/CONST';
+
+import {useIsFocused} from '@react-navigation/native';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 type Args = {
     /** The report ID */
@@ -28,6 +30,9 @@ type Args = {
 
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
+
+    /** Whether the report is aligned to the top. When true, the "Latest messages" pill should never be shown. */
+    shouldBeAlignedToTop?: boolean;
 };
 
 export default function useReportUnreadMessageScrollTracking({
@@ -39,6 +44,7 @@ export default function useReportUnreadMessageScrollTracking({
     unreadMarkerReportActionIndex,
     isInverted,
     actionBadgeTargetIndex = -1,
+    shouldBeAlignedToTop = false,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
@@ -88,7 +94,8 @@ export default function useReportUnreadMessageScrollTracking({
         if (
             currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
             !isFloatingMessageCounterVisible &&
-            !hasUnreadMarkerReportAction
+            !hasUnreadMarkerReportAction &&
+            !shouldBeAlignedToTop
         ) {
             setIsFloatingMessageCounterVisible(true);
         }

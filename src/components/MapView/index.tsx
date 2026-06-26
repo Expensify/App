@@ -1,6 +1,8 @@
 import React from 'react';
-import MapView from './MapView';
+
 import type {MapViewProps} from './MapViewTypes';
+
+import MapView from './MapView';
 
 function MapViewComponent(props: MapViewProps) {
     return <MapView {...props} />;

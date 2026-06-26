@@ -1,7 +1,9 @@
-import {useMemo} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {FlattenedItem, Section, SectionListItem} from '@components/SelectionList/SelectionListWithSections/types';
+
 import CONST from '@src/CONST';
+
+import {useMemo} from 'react';
 
 function isItemSelected<TItem extends ListItem>(item: TItem): boolean {
     return item?.isSelected ?? false;

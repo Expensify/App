@@ -1,8 +1,11 @@
-import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusBySuffix, getSecureWalletInfo} from '@expensify/react-native-wallet';
-import type {AndroidCardData, AndroidWalletData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
+
 import type {Card} from '@src/types/onyx';
+
+import type {AndroidCardData, AndroidWalletData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
+
+import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusBySuffix, getSecureWalletInfo} from '@expensify/react-native-wallet';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();

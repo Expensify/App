@@ -1,8 +1,10 @@
-import Onyx from 'react-native-onyx';
 import {read} from '@libs/API';
 import type {OpenPolicyRoomsPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 function openPolicyRoomsPage(policyID: string) {
     const params: OpenPolicyRoomsPageParams = {policyID};

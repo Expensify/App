@@ -1,9 +1,8 @@
-import {useCallback, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import {initBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -29,14 +28,18 @@ import {
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+
+import {useCallback, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
+
 import useAllTransactions from './useAllTransactions';
-import useArchivedReportsIDSet from './useArchivedReportsIDSet';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -49,8 +52,11 @@ import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
+import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 
 const {HOLD, UNHOLD, MOVE, MERGE, SPLIT, DUPLICATE} = CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES;
 
@@ -73,7 +79,7 @@ function useSelectedTransactionsActions({
     onExportFailed?: () => void;
     onExportOffline?: () => void;
     policy?: Policy;
-    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => void;
     isOnSearch?: boolean;
     onDeleteSelected?: (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => void | Promise<void>;
 }) {
@@ -84,7 +90,6 @@ function useSelectedTransactionsActions({
     const {currentSearchHash} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const allTransactions = useAllTransactions();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -94,6 +99,11 @@ function useSelectedTransactionsActions({
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const firstSelectedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
+    const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, firstSelectedTransaction);
+    const personalPolicy = usePersonalPolicy();
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -411,7 +421,7 @@ function useSelectedTransactionsActions({
                     text: template.name,
                     icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
-                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
+                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
                 });
             }
             return exportOptions;
@@ -437,7 +447,7 @@ function useSelectedTransactionsActions({
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
                 transaction,
-                archivedReportsIDSet,
+                reportNameValuePairs: allReportNameValuePairs,
             });
             return canMoveExpense;
         });
@@ -497,7 +507,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, policy, report, currentUserAccountID, {isProduction});
+                    initSplitExpense(firstTransaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, {isProduction});
                 },
             });
         }

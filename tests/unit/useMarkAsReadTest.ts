@@ -1,10 +1,14 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+
 import useMarkAsRead from '@hooks/useMarkAsRead';
+
 import type Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const REPORT_ID = '1';
 

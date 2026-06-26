@@ -1,8 +1,10 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getActiveScreenInRoute, isNavigatingToReportActionWithinSameReport, isSwitchingTabsWithinTabNavigator, shouldChangeToMatchingFullScreen} from '@libs/Navigation/helpers/linkTo';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 function makeRootState(routes: Array<{name: string; key?: string}>): NavigationState<RootNavigatorParamList> {
     return {

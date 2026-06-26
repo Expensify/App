@@ -1,11 +1,14 @@
-import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AddNewPersonalCard, AddNewPersonalCardFeedData, AddNewPersonalCardFeedStep} from '@src/types/onyx/PersonalCard';
+
+import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 type AddNewPersonalCardFlowData = {
     /** Step to be set in Onyx */

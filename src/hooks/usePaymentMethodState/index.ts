@@ -1,4 +1,5 @@
 import {useCallback, useState} from 'react';
+
 import type {PaymentMethodState} from './types';
 
 const initialState: PaymentMethodState = {

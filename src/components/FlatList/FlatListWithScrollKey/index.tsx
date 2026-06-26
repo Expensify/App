@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseFlatListWithScrollKey from './BaseFlatListWithScrollKey';
+
 import type {FlatListWithScrollKeyProps} from './types';
+
+import BaseFlatListWithScrollKey from './BaseFlatListWithScrollKey';
 
 /**
  * FlatList component that handles initial scroll key.

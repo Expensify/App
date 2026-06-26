@@ -1,8 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {subYears} from 'date-fns';
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
@@ -17,9 +12,11 @@ import type {State} from '@components/StateSelector';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
@@ -29,6 +26,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +34,12 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import {useRoute} from '@react-navigation/native';
+import {subYears} from 'date-fns';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 // StateSelector keys on 2-letter codes, but stored addresses may use full state names (e.g. "California").
 function resolveStateCode(stateValue: string): string {

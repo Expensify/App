@@ -7,7 +7,7 @@ declare module '@vue/preload-webpack-plugin' {
         include: string;
     }
 
-    declare class PreloadWebpackPlugin {
+    class PreloadWebpackPlugin {
         constructor(options?: Options);
 
         apply(compiler: Compiler): void;

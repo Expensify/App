@@ -1,9 +1,9 @@
 import {act, render, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import type {UseOnyxResult} from 'react-native-onyx';
+
 import type {TextSelection} from '@components/Composer/types';
 import type {Mention} from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -12,10 +12,17 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
+
 import SuggestionMention from '@pages/inbox/report/ReportActionCompose/SuggestionMention';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
+
+import type {UseOnyxResult} from 'react-native-onyx';
+
+import React from 'react';
 
 type MentionSuggestionsProps = {
     mentions: Mention[];

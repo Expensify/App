@@ -1,4 +1,5 @@
 import type {WithImplicitCoercion} from 'buffer';
+
 import {Buffer} from 'buffer';
 
 /**

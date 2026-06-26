@@ -1,13 +1,19 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
-import {usePlaidLink} from 'react-plaid-link';
 import ActivityIndicator from '@components/ActivityIndicator';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari, isSafari} from '@libs/Browser';
 import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
+
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+import {usePlaidLink} from 'react-plaid-link';
+
 import type PlaidLinkProps from './types';
 
 // Helper to remove the state added by Plaid on Safari after the Plaid flow ends.

@@ -1,20 +1,26 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getDraftValuesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForBeneficialOwners';
 import getOwnerDetailsAndOwnerFilesForBeneficialOwners from '@pages/ReimbursementAccount/NonUSD/utils/getOwnerDetailsAndOwnerFilesForBeneficialOwners';
+
 import {clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners, saveCorpayOnboardingBeneficialOwners} from '@userActions/BankAccounts';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString, Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+
 import BeneficialOwnerDetailsFormPages from './BeneficialOwnerDetailsFormPages';
 import BeneficialOwnersList from './BeneficialOwnersList';
 

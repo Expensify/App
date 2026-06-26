@@ -1,7 +1,8 @@
-import {NavigationContext} from '@react-navigation/core';
 import type {NavigationProp} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import type {ComponentType, ReactElement} from 'react';
+
+import {NavigationContext} from '@react-navigation/core';
 import React, {useContext, useMemo} from 'react';
 
 type AddListenerCallback = () => void;

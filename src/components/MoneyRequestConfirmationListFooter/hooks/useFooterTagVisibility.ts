@@ -1,9 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {tagSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
+
 import usePrevious from '@hooks/usePrevious';
+
 import {getTagVisibility} from '@libs/TagsOptionsListUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type UseFooterTagVisibilityParams = {
     /** Whether tags should be shown for the current confirmation (gated by policy + chat type) */

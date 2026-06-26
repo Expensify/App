@@ -1,23 +1,31 @@
-import React, {useEffect, useMemo} from 'react';
-import type {ComponentType} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import {getReportPrivateNote} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedReport, isSelfDM} from '@libs/ReportUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import LoadingPage from '@pages/LoadingPage';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ComponentType} from 'react';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {WithReportOrNotFoundProps} from './withReportOrNotFound';
+
 import withReportOrNotFound from './withReportOrNotFound';
 
 type WithReportAndPrivateNotesOrNotFoundOnyxProps = {

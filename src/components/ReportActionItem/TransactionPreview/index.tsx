@@ -1,13 +1,12 @@
-import {useRoute} from '@react-navigation/native';
-import React, {memo, useCallback, useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -16,26 +15,36 @@ import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportAc
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
+
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
 import {clearIOUError} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import useTransactionsByID from '@src/hooks/useTransactionsByID';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import TransactionPreviewContent from './TransactionPreviewContent';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import {useRoute} from '@react-navigation/native';
+import React, {memo, useCallback, useMemo} from 'react';
+
 import type {TransactionPreviewProps} from './types';
+
+import TransactionPreviewContent from './TransactionPreviewContent';
 
 function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {action, chatReportID, reportID, transactionID: transactionIDFromProps, onPreviewPressed, shouldHighlight, reportPreviewAction, contextAction} = props;
+    const {action, chatReport, reportID, transactionID: transactionIDFromProps, onPreviewPressed, shouldHighlight, reportPreviewAction, contextAction} = props;
+    const chatReportID = chatReport?.reportID;
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);

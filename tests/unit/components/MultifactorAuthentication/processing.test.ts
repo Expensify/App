@@ -1,5 +1,6 @@
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
+
 import CONST from '@src/CONST';
 
 jest.mock('@userActions/MultifactorAuthentication');

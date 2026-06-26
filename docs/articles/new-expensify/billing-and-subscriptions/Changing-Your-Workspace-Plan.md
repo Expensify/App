@@ -1,7 +1,7 @@
 ---
 title: Change Workspace Plan
 description: Learn how to update or cancel your Expensify workspace subscription, downgrade to a free account, or delete a workspace entirely.
-keywords: [New Expensify, change subscription, cancel subscription, downgrade annual subscription, delete workspace, free account, billing owner, transfer billing, cancel plan, downgrade, unsubscribe, stop subscription, end subscription, cancel billing]
+keywords: [New Expensify, change subscription, cancel, cancel subscription, downgrade annual subscription, delete workspace, free account, billing owner, transfer billing, cancel plan, downgrade, downgrade to free, per member to free, unsubscribe, stop subscription, end subscription, cancel billing]
 internalScope: Audience is billing owners. Covers how to change workspace plans and downgrade from annual billing. Does not cover personal account changes or domain-level billing controls.
 ---
 

@@ -1,4 +1,5 @@
 import StringUtils from '@libs/StringUtils';
+
 import oldRoutes from '@navigation/linkingConfig/OldRoutes';
 
 /**

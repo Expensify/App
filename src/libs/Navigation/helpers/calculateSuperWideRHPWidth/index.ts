@@ -1,4 +1,5 @@
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
+
 import variables from '@styles/variables';
 
 /**

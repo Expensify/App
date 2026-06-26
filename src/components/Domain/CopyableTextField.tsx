@@ -1,15 +1,19 @@
-import React, {useState} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type CopyableTextFieldProps = {
     /** Text to display and to copy */

@@ -1,16 +1,22 @@
-import isEmpty from 'lodash/isEmpty';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+import {View} from 'react-native';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';

@@ -1,29 +1,38 @@
-import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import {View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
+
 import ImageSVG from '@components/ImageSVG';
 import ScrollView from '@components/ScrollView';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isMobileSafari} from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import getPlatform from '@libs/getPlatform';
+
 // eslint-disable-next-line no-restricted-imports
 import themes from '@styles/theme';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+
+import type {SignInPageLayoutProps} from './types';
+
 import BackgroundImage from './BackgroundImage';
 import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
 import SignInPageHero from './SignInPageHero';
 import scrollViewContentContainerStyles from './signInPageStyles';
-import type {SignInPageLayoutProps} from './types';
 
 function SignInPageLayout({
     customHeadline,

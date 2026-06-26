@@ -1,20 +1,27 @@
-import React, {useEffect} from 'react';
-import type {ReactNode} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getArrayDepth from '@libs/getArrayDepth';
 import {getWaypointIndex} from '@libs/TransactionUtils';
+
 import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import DistanceMapView from './DistanceMapView';
+
+import type {ReactNode} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
+
 import type {WayPoint} from './MapView/MapViewTypes';
+
+import DistanceMapView from './DistanceMapView';
 import PendingMapView from './MapView/PendingMapView';
 
 type ConfirmedRouteProps = {
@@ -33,9 +40,12 @@ type ConfirmedRouteProps = {
 
     /** Whether the map is interactive or not */
     interactive?: boolean;
+
+    /** Whether it should display the compass on the map */
+    shouldDisplayCompass?: boolean;
 };
 
-function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive}: ConfirmedRouteProps) {
+function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive, shouldDisplayCompass = true}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -92,6 +102,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
             styleURL={CONST.MAPBOX.STYLE_URL}
             requireRouteToDisplayMap={requireRouteToDisplayMap}
             shouldDisplayCurrentLocation={false}
+            shouldDisplayCompass={shouldDisplayCompass}
         />
     ) : (
         <PendingMapView

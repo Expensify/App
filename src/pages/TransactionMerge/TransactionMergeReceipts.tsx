@@ -1,20 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RadioButton from '@components/RadioButton';
 import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getReportIDForExpense, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TransactionMergeReceiptsProps = {
     transactions: Transaction[];

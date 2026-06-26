@@ -1,8 +1,10 @@
+import type BaseModalProps from '@components/Modal/types';
+
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text, View} from 'react-native';
-import type BaseModalProps from '@components/Modal/types';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type PopoverWithoutOverlayProps = ChildrenProps &
     Omit<BaseModalProps, 'type' | 'popoverAnchorPosition'> & {

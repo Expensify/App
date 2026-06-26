@@ -1,5 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {receiptSliceSelector} from '@components/MoneyRequestConfirmationList/sections/selectors';
 import useTransactionSelector from '@components/MoneyRequestConfirmationList/sections/useTransactionSelector';
@@ -8,15 +6,22 @@ import useCompactReceiptDimensions from '@components/MoneyRequestConfirmationLis
 import useReceiptThumbnailSource from '@components/MoneyRequestConfirmationListFooter/hooks/useReceiptThumbnailSource';
 import shouldShowDistanceMap from '@components/MoneyRequestConfirmationListFooter/shouldShowDistanceMap';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isScanRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type ReceiptSectionProps = {
     /** Active policy (used to decide whether the receipt empty state should render) */

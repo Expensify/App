@@ -1,7 +1,9 @@
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Lottie from './Lottie';

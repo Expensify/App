@@ -1,13 +1,13 @@
 ---
 title: Expensify Card Spend Rules
 description: Learn how Workspace Admins use Expensify Card Spend rules to approve or decline card transactions in real time, including Allow and Block restriction types, default protections, and rule management.
-keywords: [New Expensify, Expensify Card Spend rule, block card transactions, allow list, decline transaction, merchant restrictions, spend category, default protections, Workspace Admin]
+keywords: [New Expensify, Expensify Card Spend rule, block card transactions, allow list, decline transaction, merchant restrictions, spend category, permitted currencies, currency restrictions, default protections, Workspace Admin]
 internalScope: Audience is Workspace Admins. Covers creating and managing Expensify Card Spend rules and understanding default protections. Does not cover post-submission expense rules, card limits, or cardholder-side card management.
 ---
 
 # Expensify Card Spend Rules 
 
-Expensify Card Spend Rules let Workspace Admins approve or decline card transactions in real time before a transaction is authorized. Use Spend Rules to control where cards can be used by restricting merchants, spend categories, and transaction amounts.
+Expensify Card Spend Rules let Workspace Admins approve or decline card transactions in real time before a transaction is authorized. Use Spend Rules to control where cards can be used by restricting merchants, spend categories, transaction amounts, and currencies.
 
 ---
 
@@ -94,6 +94,7 @@ Examples include:
    - **Merchant:** Add merchants using **Contains** or **Exact match**.
    - **Spend category:** Select one or more spend categories.
    - **Max amount:** Enter a maximum transaction amount.
+   - **Permitted currencies:** Allow all currencies or restrict spending to specific currencies.
 7. Click **Save**.
 
 Spend rules takes effect immediately and are applied to future transactions on the selected cards.
@@ -112,7 +113,7 @@ After a rule is created, you can review, change, or remove it.
 
 1. Go to **Workspaces > [Workspace Name] > Rules**.
 2. Locate the card's Spend Rule.
-3. Select the rule to update its merchants, spend categories, maximum amount, or mode.
+3. Select the rule to update its merchants, spend categories, maximum amount, permitted currencies, or mode.
 4. Click **Save**.
 
 To remove a rule: 

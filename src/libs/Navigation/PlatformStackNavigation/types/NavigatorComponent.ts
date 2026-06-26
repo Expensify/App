@@ -1,4 +1,5 @@
 import type {EventMapBase, ParamListBase, RouteProp, StackActionHelpers} from '@react-navigation/native';
+
 import type {
     PlatformSpecificEventMap,
     PlatformSpecificNavigationOptions,

@@ -1,8 +1,10 @@
-import React, {useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import {Button, View} from 'react-native';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle, InteractiveStepSubHeaderProps} from '@components/InteractiveStepSubHeader';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useRef} from 'react';
+import {Button, View} from 'react-native';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

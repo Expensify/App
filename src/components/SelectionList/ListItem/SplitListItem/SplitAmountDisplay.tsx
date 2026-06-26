@@ -1,10 +1,13 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type SplitAmountDisplayProps = {
     /** The split item data containing amount, currency, and editable state. */

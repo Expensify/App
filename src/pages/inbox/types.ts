@@ -1,5 +1,7 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+
 import type SCREENS from '@src/SCREENS';
 
 type ReportScreenNavigationProps =

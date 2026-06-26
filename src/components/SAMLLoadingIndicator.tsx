@@ -1,10 +1,13 @@
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import Icon from './Icon';
 import Text from './Text';
 

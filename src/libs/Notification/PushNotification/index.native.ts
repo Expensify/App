@@ -1,14 +1,19 @@
-import type {PushPayload} from '@ua/react-native-airship';
-import Airship, {EventType, PermissionStatus} from '@ua/react-native-airship';
 import Log from '@libs/Log';
 import ShortcutManager from '@libs/ShortcutManager';
+
 import CONFIG from '@src/CONFIG';
-import ForegroundNotifications from './ForegroundNotifications';
+
+import type {PushPayload} from '@ua/react-native-airship';
+
+import Airship, {EventType, PermissionStatus} from '@ua/react-native-airship';
+
 import type {NotificationDataMap, NotificationTypes} from './NotificationType';
-import NotificationType from './NotificationType';
-import parsePushNotificationPayload from './parsePushNotificationPayload';
 import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
 import type PushNotificationType from './types';
+
+import ForegroundNotifications from './ForegroundNotifications';
+import NotificationType from './NotificationType';
+import parsePushNotificationPayload from './parsePushNotificationPayload';
 
 type NotificationEventHandler<T extends NotificationTypes> = (data: NotificationDataMap[T]) => Promise<void>;
 

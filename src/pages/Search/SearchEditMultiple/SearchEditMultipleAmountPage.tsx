@@ -1,21 +1,27 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
+
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useMemo, useRef, useState} from 'react';
+
 import {withSnapshotReports, withSnapshotTransactions} from './SearchEditMultipleUtils';
 
 type CurrentMoney = {amount: string; currency: string};

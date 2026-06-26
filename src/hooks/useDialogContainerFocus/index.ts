@@ -1,9 +1,11 @@
-import {useEffect} from 'react';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
+
+import {useEffect} from 'react';
+
 import type UseDialogContainerFocus from './types';
 
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {

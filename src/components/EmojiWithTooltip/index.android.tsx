@@ -1,7 +1,11 @@
-import {useMemo} from 'react';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {containsCustomEmoji} from '@libs/EmojiUtils';
+
+import {useMemo} from 'react';
+
 import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {

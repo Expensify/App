@@ -1,6 +1,9 @@
-import {TextInput} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import {TextInput} from 'react-native';
+
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 type ModalId = number | undefined;
@@ -77,6 +80,10 @@ function releaseInput(input: InputElement) {
         }
         focusMap.delete(key);
     }
+}
+
+function blurActiveInput() {
+    getActiveInput()?.blur();
 }
 
 function getId() {
@@ -223,6 +230,8 @@ function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType
 }
 
 export default {
+    blurActiveInput,
+    getActiveInput,
     getId,
     saveFocusedInput,
     clearFocusedInput,

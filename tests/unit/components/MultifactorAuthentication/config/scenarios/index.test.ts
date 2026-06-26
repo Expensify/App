@@ -1,5 +1,6 @@
 import MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG from '@components/MultifactorAuthentication/config/scenarios';
 import type {MultifactorAuthenticationScenarioConfigRecord} from '@components/MultifactorAuthentication/config/types';
+
 import CONST from '@src/CONST';
 
 describe('MultifactorAuthentication Scenarios Config', () => {

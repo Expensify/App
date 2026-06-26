@@ -1,10 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/Button';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ActionableItem = {
     isPrimary?: boolean;
@@ -23,6 +27,7 @@ type ActionableItemButtonsProps = {
         text?: StyleProp<TextStyle>;
         button?: StyleProp<ViewStyle>;
     };
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function ActionableItemButtons(props: ActionableItemButtonsProps) {
@@ -30,7 +35,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart]]}>
+        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart], props.wrapperStyle]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}

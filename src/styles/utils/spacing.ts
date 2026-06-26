@@ -831,6 +831,10 @@ export default {
         gap: 2,
     },
 
+    gap1Half: {
+        gap: 6,
+    },
+
     gap2: {
         gap: 8,
     },

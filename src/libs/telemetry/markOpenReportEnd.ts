@@ -1,7 +1,10 @@
-import type {SpanAttributes} from '@sentry/core';
 import {isOneTransactionReport, isReportTransactionThread} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {SpanAttributes} from '@sentry/core';
+
 import {endSpanWithAttributes} from './activeSpans';
 
 type MarkOpenReportEndOptions = {

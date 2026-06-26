@@ -1,13 +1,14 @@
-import {findFocusedRoute} from '@react-navigation/core';
 import type {NavigationState, PartialState} from '@react-navigation/native';
-// eslint-disable-next-line no-restricted-imports -- idiomatic defer primitive past navigation transitions.
-import {InteractionManager} from 'react-native';
+
+import {findFocusedRoute} from '@react-navigation/core';
+
 import compoundParamsKey, {COMPOUND_KEY_DELIMITER} from './compoundParamsKey';
 import FOCUSABLE_SELECTOR from './focusableSelector';
 import hasFocusableAttributes from './focusGuards';
 import getHadTabNavigation from './hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
+import TransitionTracker from './Navigation/TransitionTracker';
 import {isCycleIdle, Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
 /** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
@@ -318,28 +319,29 @@ function scheduleRestore(routeKey: string): void {
 
     const attempt = () => {
         // Defer past the transition so useAutoFocusInput and React Navigation's own focus work settle first.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- idiomatic defer primitive despite type-def deprecation.
-        imHandle = InteractionManager.runAfterInteractions(() => {
-            if (cancelled) {
-                return;
-            }
-            frameId = requestAnimationFrame(() => {
+        imHandle = TransitionTracker.runAfterTransitions({
+            callback: () => {
                 if (cancelled) {
                     return;
                 }
-                attempts += 1;
-                const restored = restoreTriggerForRoute(routeKey);
-                if (restored || !triggerMap.has(routeKey)) {
-                    pendingRestore = null;
-                    return;
-                }
-                if (attempts >= MAX_RESTORE_ATTEMPTS) {
-                    triggerMap.delete(routeKey);
-                    pendingRestore = null;
-                    return;
-                }
-                retryTimerId = setTimeout(attempt, RESTORE_RETRY_MS);
-            });
+                frameId = requestAnimationFrame(() => {
+                    if (cancelled) {
+                        return;
+                    }
+                    attempts += 1;
+                    const restored = restoreTriggerForRoute(routeKey);
+                    if (restored || !triggerMap.has(routeKey)) {
+                        pendingRestore = null;
+                        return;
+                    }
+                    if (attempts >= MAX_RESTORE_ATTEMPTS) {
+                        triggerMap.delete(routeKey);
+                        pendingRestore = null;
+                        return;
+                    }
+                    retryTimerId = setTimeout(attempt, RESTORE_RETRY_MS);
+                });
+            },
         });
     };
 

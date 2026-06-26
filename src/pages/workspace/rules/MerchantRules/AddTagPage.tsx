@@ -1,7 +1,7 @@
-import React, {useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -9,11 +9,16 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
 
 type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAG>;
 

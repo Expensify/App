@@ -1,5 +1,8 @@
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
+
 import CONST from '@src/CONST';
-import {DEFAULT_STATE} from './state';
+
 import type {Action, MultifactorAuthenticationState} from './types';
 
 /**

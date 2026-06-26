@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type AgentInfoRowProps = {
     /** Account ID of the agent */

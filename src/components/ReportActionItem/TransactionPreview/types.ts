@@ -1,7 +1,8 @@
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 // string type union is here for percentage values
 type TransactionPreviewStyleType = {
@@ -13,8 +14,8 @@ type TransactionPreviewProps = {
     /** The active reportID linked to the transaction */
     iouReportID: string | undefined;
 
-    /** The associated chatReport */
-    chatReportID: string | undefined;
+    /** The associated chat report */
+    chatReport: OnyxEntry<Report>;
 
     /** The ID of the current report */
     reportID: string | undefined;
@@ -101,7 +102,7 @@ type TransactionPreviewContentProps = {
     violations: TransactionViolations;
 
     /** Holds the chat report entry from Onyx */
-    chatReport?: Report;
+    chatReport: OnyxEntry<Report>;
 
     /** Optional details about people involved in the transaction */
     personalDetails?: PersonalDetailsList;

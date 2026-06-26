@@ -1,0 +1,79 @@
+name: Onyx.connectWithoutView reviewers
+
+# Requests a review from the Onyx performance reviewers whenever a PR adds a new
+# `Onyx.connectWithoutView` call. CODEOWNERS can't express this because it triggers on file
+# paths, not on the content of a diff.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  requestReviewers:
+    name: Request reviewers for new Onyx.connectWithoutView calls
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request reviewers and leave a comment
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        with:
+          script: |
+            const REVIEWERS = ['tgolen', 'mountiny', 'luacmartins'];
+            const pr = context.payload.pull_request;
+            const {owner, repo} = context.repo;
+
+            // Trigger only on a net-new call. We compare added vs. removed call lines per file (a call
+            // matches `Onyx.connectWithoutView(`), so editing a call in place nets to zero, removed
+            // comments/strings don't count, and a removal in one file can't mask a new call in another.
+            const CALL = /Onyx\.connectWithoutView\s*\(/;
+            const files = await github.paginate(github.rest.pulls.listFiles, {owner, repo, pull_number: pr.number});
+            const addsNewCall = files.some((file) => {
+              if (!file.patch) {
+                return false;
+              }
+              let added = 0;
+              let removed = 0;
+              for (const line of file.patch.split('\n')) {
+                if (line.startsWith('+') && !line.startsWith('+++') && CALL.test(line)) {
+                  added++;
+                } else if (line.startsWith('-') && !line.startsWith('---') && CALL.test(line)) {
+                  removed++;
+                }
+              }
+              return added > removed;
+            });
+
+            if (!addsNewCall) {
+              return;
+            }
+
+            // Don't request the PR author on their own PR, anyone already requested, or anyone who
+            // already reviewed — so re-runs on `synchronize` never create duplicate requests.
+            const alreadyRequested = (pr.requested_reviewers ?? []).map((user) => user.login);
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {owner, repo, pull_number: pr.number});
+            const alreadyReviewed = reviews.map((review) => review.user?.login).filter(Boolean);
+            const skip = new Set([pr.user.login, ...alreadyRequested, ...alreadyReviewed]);
+            const reviewersToRequest = REVIEWERS.filter((reviewer) => !skip.has(reviewer));
+
+            if (reviewersToRequest.length === 0) {
+              return;
+            }
+
+            await github.rest.pulls.requestReviewers({owner, repo, pull_number: pr.number, reviewers: reviewersToRequest});
+
+            const mentions = REVIEWERS.map((reviewer) => `@${reviewer}`).join(', ');
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pr.number,
+              body: `This PR adds a new \`Onyx.connectWithoutView\` call, so I've requested a review from the Onyx performance reviewers (${mentions}) — a review from any one of them is enough. Please add a link in your PR description to the Slack discussion where the \`@frontend-performance\` team approved using \`connectWithoutView\` here.`,
+            });

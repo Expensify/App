@@ -1,4 +1,5 @@
 import React from 'react';
+
 import type CustomDevMenuElement from './types';
 
 // eslint-disable-next-line react/jsx-no-useless-fragment

@@ -1,9 +1,13 @@
-import type React from 'react';
-import {useEffect} from 'react';
 import usePrevious from '@hooks/usePrevious';
+
 import Parser from '@libs/Parser';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type React from 'react';
+
+import {useEffect} from 'react';
 
 type DraftMessageVideoAttributeCache = Map<string, string>;
 

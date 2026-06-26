@@ -1,11 +1,13 @@
-import type {RefObject} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text, View} from 'react-native';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
+
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
 
 type PopoverProps = BaseModalProps &
     ChildrenProps & {

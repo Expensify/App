@@ -1,12 +1,15 @@
 import type {FormInputErrors} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
-import {addErrorMessage} from './ErrorUtils';
+
 import type {FormulaPart} from './Formula';
+
+import {addErrorMessage} from './ErrorUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 /**

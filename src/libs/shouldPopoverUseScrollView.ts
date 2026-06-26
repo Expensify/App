@@ -1,4 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
 import CONST from '@src/CONST';
 
 function shouldPopoverUseScrollView<T>(options: Array<DropdownOption<T>>): boolean {

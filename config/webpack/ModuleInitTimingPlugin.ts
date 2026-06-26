@@ -1,6 +1,8 @@
-import path from 'path';
 import type {Chunk, Compiler, NormalModule} from 'webpack';
+
+import path from 'path';
 import webpack from 'webpack';
+
 // @libs alias is not available in Node.js/Storybook context — use relative path instead
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions, @dword-design/import-alias/prefer-alias

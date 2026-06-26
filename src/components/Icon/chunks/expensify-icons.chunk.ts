@@ -1,4 +1,3 @@
-import type {SvgProps} from 'react-native-svg';
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
@@ -63,6 +62,7 @@ import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
+import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
@@ -144,6 +144,7 @@ import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import RilletSquare from '@assets/images/integrationicons/rillet-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import TriNetSquare from '@assets/images/integrationicons/trinet-icon-square.svg';
@@ -272,12 +273,16 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+
 // These icons are React components because they have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
+import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocationPuck';
 import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
 import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
 import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
+
+import type {SvgProps} from 'react-native-svg';
 
 const Expensicons = {
     ReceiptBody,
@@ -412,6 +417,7 @@ const Expensicons = {
     MakeAdmin,
     Map,
     MapCurrentLocation,
+    MapCurrentLocationPuck,
     MapStartWaypoint,
     MapStopWaypoint,
     MapWaypoint,
@@ -462,6 +468,7 @@ const Expensicons = {
     ReportCopy,
     ReplaceReceipt,
     ReceiptMultiple,
+    RilletSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -557,6 +564,7 @@ const Expensicons = {
     LuggageWithLinesPlus,
     TreasureChestGreenWithSparkle,
     UserShield,
+    Compass,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

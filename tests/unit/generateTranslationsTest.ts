@@ -1,14 +1,15 @@
-/**
- * @jest-environment node
- */
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import dedent from '@libs/StringUtils/dedent';
 import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
 import Git from '@scripts/utils/Git';
 import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
 import Translator from '@scripts/utils/Translator/Translator';
+
+/**
+ * @jest-environment node
+ */
+import {Str} from 'expensify-common';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 let processExitSpy: jest.SpyInstance;
 let consoleErrorSpy: jest.SpyInstance;
@@ -91,7 +92,7 @@ describe('generateTranslations', () => {
         it('translates nested structures', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye',
@@ -111,9 +112,8 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
-                `${GENERATED_FILE_PREFIX}${dedent(`
+                `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -134,7 +134,7 @@ describe('generateTranslations', () => {
         it("doesn't translate strings or templates used in control flows", async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 import Log from '@libs/Log';
                 import CONST from '@src/CONST';
 
@@ -168,11 +168,12 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
-                `${GENERATED_FILE_PREFIX}${dedent(`
+                `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import Log from '@libs/Log';
-                import CONST from '@src/CONST';
-                import type en from './en';
 
+                import CONST from '@src/CONST';
+
+                import type en from './en';
                 if (CONST.REPORT.TYPE.EXPENSE == 'true') {
                     Log.info('This should not be translated');
                     console.log('This should not be translated either');
@@ -204,7 +205,7 @@ describe('generateTranslations', () => {
         it('handles nested template expressions', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     simple: (name: string, greeting: string) => \`\${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`\${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -244,9 +245,8 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
-                `${GENERATED_FILE_PREFIX}${dedent(`
+                `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     simple: (name: string, greeting: string) => \`[it] \${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`[it] \${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -287,7 +287,7 @@ describe('generateTranslations', () => {
         it('handles repeated ternaries in complex expressions', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
                         if (toggledOptionsCount > 1) {
@@ -303,9 +303,8 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
-                `${GENERATED_FILE_PREFIX}${dedent(`
+                `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
                         if (toggledOptionsCount > 1) {
@@ -322,7 +321,7 @@ describe('generateTranslations', () => {
         it('Handles context annotations', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     // @context As in a financial institution
                     bank: 'Bank',
@@ -360,9 +359,8 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
-                `${GENERATED_FILE_PREFIX}${dedent(`
+                `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     bank: '[it][ctx: As in a financial institution] Bank',
                     bankTemplate: \`[it][ctx: As in a financial institution] Bank\`,
@@ -408,7 +406,7 @@ describe('generateTranslations', () => {
         it('does not include any comments in generated translation files', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     // Regular comment before a string
                     greeting: 'Hello',
@@ -445,7 +443,7 @@ describe('generateTranslations', () => {
         it("doesn't request duplicate translations", async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye',
@@ -465,9 +463,8 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
-                `${GENERATED_FILE_PREFIX}${dedent(`
+                `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -490,7 +487,7 @@ describe('generateTranslations', () => {
         it("doesn't translate type annotations", async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`\${brand} Phone\`,
                 };
@@ -501,9 +498,8 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
-                `${GENERATED_FILE_PREFIX}${dedent(`
+                `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`[it] \${brand} Phone\`,
                 };
@@ -515,7 +511,7 @@ describe('generateTranslations', () => {
         it('unescapes unicode', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     hello: 'こんにちは',
                     world: 'world',
@@ -527,9 +523,8 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
-                `${GENERATED_FILE_PREFIX}${dedent(`
+                `${GENERATED_FILE_PREFIX}${Str.dedent(`
                 import type en from './en';
-
                 const strings = {
                     hello: '[it] こんにちは',
                     world: '[it] world',
@@ -545,7 +540,7 @@ describe('generateTranslations', () => {
             // Create English source with one new string
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     unchanged: 'Unchanged',
@@ -572,7 +567,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation without the new key
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -650,7 +645,7 @@ describe('generateTranslations', () => {
 
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
@@ -660,7 +655,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation file with some existing translations
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -726,7 +721,7 @@ describe('generateTranslations', () => {
 
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
@@ -736,7 +731,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation file
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -796,7 +791,7 @@ describe('generateTranslations', () => {
 
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
@@ -806,7 +801,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation file
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -852,7 +847,7 @@ describe('generateTranslations', () => {
 
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
@@ -869,7 +864,7 @@ describe('generateTranslations', () => {
         it('throws error for invalid paths', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     common: {
@@ -904,7 +899,7 @@ describe('generateTranslations', () => {
 
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
@@ -914,7 +909,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation file
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -971,7 +966,7 @@ describe('generateTranslations', () => {
             // Create English source file
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
@@ -981,7 +976,7 @@ describe('generateTranslations', () => {
             // Create an existing Italian translation file with all strings already translated
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1034,7 +1029,7 @@ describe('generateTranslations', () => {
             // Create English source
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                     import CONST from '@src/CONST';
 
                     const strings = {
@@ -1054,7 +1049,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                     import type en from './en';
 
                     const strings = {
@@ -1074,7 +1069,7 @@ describe('generateTranslations', () => {
             const FR_PATH = path.join(LANGUAGES_DIR, 'fr.ts');
             fs.writeFileSync(
                 FR_PATH,
-                dedent(`
+                Str.dedent(`
                     import type en from './en';
 
                     const strings = {
@@ -1138,7 +1133,7 @@ describe('generateTranslations', () => {
         it('validates compare-ref is a valid git reference', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                 };
@@ -1162,7 +1157,7 @@ describe('generateTranslations', () => {
             // Create English source with complex nested expressions
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     deepTemplate: (user: User, settings: Settings) => \`\${user.isAdmin ? 
                         \`Admin \${user.name}: \${settings.theme === 'dark' ? 'Dark mode' : 'Light mode'}\` : 
@@ -1178,7 +1173,7 @@ describe('generateTranslations', () => {
             // Create existing translation
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1234,7 +1229,7 @@ describe('generateTranslations', () => {
             // Create English source with some sections removed
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     keep: {
                         this: 'Keep this section'
@@ -1251,7 +1246,7 @@ describe('generateTranslations', () => {
             // Create existing translation with extra sections that will be removed
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1289,7 +1284,7 @@ describe('generateTranslations', () => {
 
             // Mock git show to return the old version of en.ts with the removed sections
             mockShow.mockReturnValue(
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     keep: {
                         this: 'Keep this section'
@@ -1330,7 +1325,7 @@ describe('generateTranslations', () => {
             // Create English source with a completely new nested section
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     existingSection: {
                         keep: 'Keep this existing translation',
@@ -1352,7 +1347,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation WITHOUT the manualTest section
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1412,7 +1407,7 @@ describe('generateTranslations', () => {
             // Create English source with existing nested structure and a new property added to it
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     existingSection: {
                         keep: 'Keep this existing translation',
@@ -1432,7 +1427,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation with the nested structure but WITHOUT the new property
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1490,7 +1485,7 @@ describe('generateTranslations', () => {
             // Create English source with a modified string value
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     testDrive: {
                         modal: {
@@ -1506,7 +1501,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation with the old value
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1538,7 +1533,7 @@ describe('generateTranslations', () => {
 
             // Mock Git.show to return the old version of en.ts
             mockShow.mockReturnValue(
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     testDrive: {
                         modal: {
@@ -1581,7 +1576,7 @@ describe('generateTranslations', () => {
 
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     onboarding: {
                         tasks: {
@@ -1600,7 +1595,7 @@ describe('generateTranslations', () => {
             // Create existing translation file
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1649,7 +1644,7 @@ describe('generateTranslations', () => {
 
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
@@ -1659,7 +1654,7 @@ describe('generateTranslations', () => {
             // Create existing translation file with satisfies expression on nested object
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1697,7 +1692,7 @@ describe('generateTranslations', () => {
             // Create English source with a context annotation on one translation
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     // @context as a verb, not a noun
@@ -1712,7 +1707,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation without the context annotation
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1742,7 +1737,7 @@ describe('generateTranslations', () => {
 
             // Mock Git.show to return the old version without the context annotation
             mockShow.mockReturnValue(
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     pin: 'Pin',
@@ -1775,7 +1770,7 @@ describe('generateTranslations', () => {
             // Create English source with a modified context annotation
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     // @context as a verb, not a noun
@@ -1790,7 +1785,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation with the old context
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1821,7 +1816,7 @@ describe('generateTranslations', () => {
 
             // Mock Git.show to return the old version with different context
             mockShow.mockReturnValue(
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     // @context original context
@@ -1863,7 +1858,7 @@ describe('generateTranslations', () => {
             // Create English source without context annotation
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     pin: 'Pin',
@@ -1877,7 +1872,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation with context
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1908,7 +1903,7 @@ describe('generateTranslations', () => {
 
             // Mock Git.show to return the old version with context
             mockShow.mockReturnValue(
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     // @context as a verb, not a noun
@@ -1945,7 +1940,7 @@ describe('generateTranslations', () => {
             // Create English source with a regular comment
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     // This is just a regular comment
@@ -1960,7 +1955,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation without any comment
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -1990,7 +1985,7 @@ describe('generateTranslations', () => {
 
             // Mock Git.show to return the old version without the comment
             mockShow.mockReturnValue(
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     pin: 'Pin',
@@ -2019,7 +2014,7 @@ describe('generateTranslations', () => {
             // Create English source with a modified regular comment
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     // TODO: update this translation later
@@ -2034,7 +2029,7 @@ describe('generateTranslations', () => {
             // Create existing Italian translation with different regular comment
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
+                Str.dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -2065,7 +2060,7 @@ describe('generateTranslations', () => {
 
             // Mock Git.show to return the old version with old comment
             mockShow.mockReturnValue(
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     unchanged: 'This stays the same',
                     // TODO: fix this
@@ -2094,11 +2089,11 @@ describe('generateTranslations', () => {
         it('works with multiline dedent template strings', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
-                import dedent from '@libs/StringUtils/dedent';
+                Str.dedent(`
+                import {Str} from 'expensify-common';
 
                 const strings = {
-                    codesLoseAccess: dedent(\`
+                    codesLoseAccess: Str.dedent(\`
                         If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
 
                             1. Sometimes we have further indentation
@@ -2118,7 +2113,7 @@ describe('generateTranslations', () => {
 
             // The translated output should preserve the dedent structure with proper indentation on empty lines
             // The empty line between the two paragraphs should have the same indentation as the content lines
-            const expectedFormat = `codesLoseAccess: dedent(\`
+            const expectedFormat = `codesLoseAccess: Str.dedent(\`
         [it] If you lose access to your authenticator app and don't have these codes, you'll lose access to your account.
 
             1. Sometimes we have further indentation
@@ -2132,12 +2127,12 @@ describe('generateTranslations', () => {
         it('works with simple template expressions in dedent calls', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
-                import dedent from '@libs/StringUtils/dedent';
+                Str.dedent(`
+                import {Str} from 'expensify-common';
 
                 const strings = {
                     welcomeMessage: (name: string, company: string) =>
-                        dedent(\`
+                        Str.dedent(\`
                             Welcome to \${company}, \${name}!
 
                             We're excited to have you here.
@@ -2154,7 +2149,7 @@ describe('generateTranslations', () => {
 
             expect(itContent).toContain(`
     welcomeMessage: (name: string, company: string) =>
-        dedent(\`
+        Str.dedent(\`
             [it] Welcome to \${company}, \${name}!
 
             We're excited to have you here.
@@ -2165,14 +2160,14 @@ describe('generateTranslations', () => {
             // This test reproduces a bug where unchanged properties get incorrectly
             // flagged as changed when nearby properties are modified and cause line number shifts
 
-            // OLD file (before changes) - line numbers before dedent():
+            // OLD file (before changes) - line numbers before Str.dedent():
             // 1: const strings = {
             // 2:     prop1: 'First property',
             // 3:     prop2: 'Second property',
             // 4:     prop3: 'Third property',
             // 5: };
             // 6: export default strings;
-            const oldEnContent = dedent(`
+            const oldEnContent = Str.dedent(`
                 const strings = {
                     prop1: 'First property',
                     prop2: 'Second property',
@@ -2181,11 +2176,11 @@ describe('generateTranslations', () => {
                 export default strings;
             `);
 
-            // NEW file (after changes) - line numbers after dedent():
-            // 1: import dedent from '@libs/StringUtils/dedent';
+            // NEW file (after changes) - line numbers after Str.dedent():
+            // 1: import {Str} from 'expensify-common';
             // 2: (empty line)
             // 3: const strings = {
-            // 4:     prop1: dedent(`
+            // 4:     prop1: Str.dedent(`
             // 5:         First property
             // 6:     `),
             // 7:     prop2: 'Second property',
@@ -2197,11 +2192,11 @@ describe('generateTranslations', () => {
             // prop2 and prop3 are unchanged, just shifted to new line numbers
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
-                    import dedent from '@libs/StringUtils/dedent';
+                Str.dedent(`
+                    import {Str} from 'expensify-common';
 
                     const strings = {
-                        prop1: dedent(\`
+                        prop1: Str.dedent(\`
                             First property
                         \`),
                         prop2: 'Second property',
@@ -2215,8 +2210,8 @@ describe('generateTranslations', () => {
             // Existing Italian translation (all properties already translated)
             fs.writeFileSync(
                 IT_PATH,
-                dedent(`
-                    import dedent from '@libs/StringUtils/dedent';
+                Str.dedent(`
+                    import {Str} from 'expensify-common';
                     import type en from './en';
 
                     const strings = {
@@ -2273,7 +2268,7 @@ describe('generateTranslations', () => {
         it('does not print error summary when there are no failures', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                 };
@@ -2291,7 +2286,7 @@ describe('generateTranslations', () => {
         it('prints error summary when there are failures', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                 };
@@ -2301,7 +2296,13 @@ describe('generateTranslations', () => {
             );
 
             // Mock getFailedTranslations to return failures
-            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error message'}];
+            const mockFailures = [
+                {
+                    text: 'Hello',
+                    targetLang: 'it' as const,
+                    error: 'Test error message',
+                },
+            ];
             jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
 
             await generateTranslations();
@@ -2315,7 +2316,7 @@ describe('generateTranslations', () => {
         it('displays locales in lowercase', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                 };
@@ -2338,7 +2339,7 @@ describe('generateTranslations', () => {
         it('displays the id (path) when present', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                 };
@@ -2348,7 +2349,14 @@ describe('generateTranslations', () => {
             );
 
             // Mock getFailedTranslations with id
-            const mockFailures = [{text: 'Hello', targetLang: 'it' as const, error: 'Test error', id: 'common.greeting'}];
+            const mockFailures = [
+                {
+                    text: 'Hello',
+                    targetLang: 'it' as const,
+                    error: 'Test error',
+                    id: 'common.greeting',
+                },
+            ];
             jest.spyOn(DummyTranslator.prototype, 'getFailedTranslations').mockReturnValue(mockFailures);
 
             await generateTranslations();
@@ -2360,7 +2368,7 @@ describe('generateTranslations', () => {
         it('does not display path line when id is not present', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                 };
@@ -2386,7 +2394,7 @@ describe('generateTranslations', () => {
         it('groups failures by locale', async () => {
             fs.writeFileSync(
                 EN_PATH,
-                dedent(`
+                Str.dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye',

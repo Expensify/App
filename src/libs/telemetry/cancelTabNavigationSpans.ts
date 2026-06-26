@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import {cancelSpan} from './activeSpans';
 
 // Spans grouped by the tab they belong to. The Reports tab owns three (legacy plus the FirstPaint/ContentLoad

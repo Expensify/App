@@ -1,8 +1,13 @@
-import {useEffect, useRef} from 'react';
-import type {RefObject} from 'react';
 import type {ComposerRef, TextSelection} from '@components/Composer/types';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+
+import {useEffect, useRef} from 'react';
+
 import {useComposerEditActions, useComposerEditState, useComposerText} from './ComposerContext';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
 import updateNativeTextInputValue from './updateNativeTextInputValue';

@@ -1,6 +1,9 @@
-import {RESULTS} from 'react-native-permissions';
 import useContactImport from '@hooks/useContactImportNew';
+
+import {RESULTS} from 'react-native-permissions';
+
 import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
+
 import usePersonalDetailSearchSelectorBase from './base';
 
 /**

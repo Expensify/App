@@ -1,12 +1,10 @@
-import {format, fromUnixTime, isBefore} from 'date-fns';
-import groupBy from 'lodash/groupBy';
-import lodashSortBy from 'lodash/sortBy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +16,7 @@ import type {
     CardList,
     CompanyCardFeed,
     CurrencyList,
+    Domain,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
@@ -46,11 +45,19 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {format, fromUnixTime, isBefore} from 'date-fns';
+import groupBy from 'lodash/groupBy';
+import lodashSortBy from 'lodash/sortBy';
+
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {CARD_FEED_COLORS, GENERIC_CARD_COLORS} from './CardArtworkColors';
 import DateUtils from './DateUtils';
 import {filterObject} from './ObjectUtils';
-import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {areAddressAndPersonalDetailsMissing, arePersonalDetailsMissing, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
 /**
@@ -522,12 +529,17 @@ function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, poli
     return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
 }
 
-function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Card[] {
+function sortCardsByCardholderName(
+    cards: Card[],
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocalizedTranslate,
+): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
         const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
-        const aName = getDisplayNameOrDefault(userA);
-        const bName = getDisplayNameOrDefault(userB);
+        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate});
+        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate});
         return localeCompare(aName, bName);
     });
 }
@@ -1045,6 +1057,18 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
+function getCompanyCardCustomName(
+    cardID: string | number | undefined,
+    sharedCardCustomNames: OnyxEntry<Record<string, string>>,
+    customCardNames: OnyxEntry<Record<string, string>>,
+): string | undefined {
+    if (!cardID) {
+        return undefined;
+    }
+    return sharedCardCustomNames?.[cardID] ?? customCardNames?.[cardID];
+}
+
 /** Returns the date option for a card assignment — CUSTOM when not editing, or the existing option when editing. */
 function getCardAssignmentDateOption(isEditing: boolean | undefined, existingDateOption?: string): ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS> {
     if (!isEditing) {
@@ -1223,44 +1247,6 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCard
 }
 
 /**
- * Filter out the Expensify cards from the list of cards
- *
- * @param cards the list of cards to filter
- * @returns the list of cards without Expensify cards
- */
-function filterCardsByNonExpensify(cards: CardList | undefined): CardList {
-    if (!cards) {
-        return {};
-    }
-
-    return Object.fromEntries(Object.entries(cards).filter(([key]) => !key.includes(CONST.EXPENSIFY_CARD.BANK)));
-}
-
-/**
- * Takes the list of cards divided by workspaces and feeds and returns the flattened non-Expensify cards related to the provided workspace
- *
- * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
- * @param workspaceAccountID the workspace account id we want to get cards for
- * @param domainIDs the domain ids we want to get cards for
- */
-function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): CardList | undefined {
-    if (!allCardsList) {
-        return;
-    }
-
-    return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        const isWorkspaceAccountCard = key.includes(workspaceAccountID.toString());
-        if (!isWorkspaceAccountCard || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
-            return acc;
-        }
-        const {cardList, ...feedCards} = cards ?? {};
-        const filteredCards = filterInactiveCards(feedCards);
-        Object.assign(acc, filteredCards);
-        return acc;
-    }, {});
-}
-
-/**
  * Check if the card has a broken connection
  *
  * @param card the card to check
@@ -1433,6 +1419,14 @@ function getDomainNameFromExpensifyCardSettings(settings: ExpensifyCardSettings 
     return undefined;
 }
 
+/**
+ * Resolves the domain backing a fund (card account). Domains are normally keyed by their account ID,
+ * but as a fallback we scan for a domain whose `accountID` matches the fund.
+ */
+function getDomainByFundID(domains: OnyxCollection<Domain> | undefined, fundID: number): OnyxEntry<Domain> {
+    return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${fundID}`] ?? Object.values(domains ?? {}).find((entry) => entry?.accountID === fundID);
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1483,6 +1477,29 @@ function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePerso
     const {cardList, ...assignedCards} = cards ?? {};
     return Object.values(assignedCards).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
 }
+
+/**
+ * A virtual Expensify card is actionable for the missing-personal-details flow only when it is active, not expired,
+ * and not a Travel CVV card. This is the same card set that renders the "Add details" CTA in the Wallet list
+ * (PaymentMethodList) and the home time-sensitive section, so all of those surfaces stay in sync.
+ */
+function isActionableVirtualExpensifyCard(card: Card | undefined): boolean {
+    return !!card && isExpensifyCard(card) && !!card.nameValuePairs?.isVirtual && !isTravelCard(card) && !isExpiredCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0);
+}
+
+function hasVirtualExpensifyCardMissingPersonalDetails(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails, isActingAsDelegate?: boolean) {
+    // Delegates can't complete the missing-personal-details flow (it requires the original
+    // account's magic code), so surfacing a brick road in the wallet would be misleading.
+    // Mirrors the same gate applied in useTimeSensitiveCards for the home prompt.
+    if (isActingAsDelegate) {
+        return false;
+    }
+    if (!areAddressAndPersonalDetailsMissing(privatePersonalDetails)) {
+        return false;
+    }
+    const {cardList, ...assignedCards} = cards ?? {};
+    return Object.values(assignedCards).some(isActionableVirtualExpensifyCard);
+}
 const isCurrencySupportedForECards = (currency?: string) => {
     if (!currency) {
         return false;
@@ -1500,20 +1517,6 @@ function getFundIdFromSettingsKey(key: string) {
 
     const fundID = Number(fundIDStr);
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
-}
-
-/**
- * Get card which has a broken connection
- *
- * @param feedCards the list of the cards, related to one or several feeds
- * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
- */
-function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExclude?: string): Card | undefined {
-    if (!feedCards || isEmptyObject(feedCards)) {
-        return undefined;
-    }
-
-    return Object.values(feedCards).find((card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card));
 }
 
 /** Extract feed from feed with domainID */
@@ -1537,11 +1540,6 @@ function isPersonalCard(card?: Card) {
     return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
 }
 
-type SplitMaskedCardNumberResult = {
-    firstDigits?: string;
-    lastDigits?: string;
-};
-
 /**
  * Split masked card number into first and last digits
  *
@@ -1555,20 +1553,6 @@ function formatMaskedCardName(cardName: string): string {
     }
     const padded = cardName.padStart(16, 'X');
     return padded.match(/.{1,4}/g)?.join('-') ?? padded;
-}
-
-function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR): SplitMaskedCardNumberResult {
-    if (!cardNumber) {
-        return {
-            firstDigits: undefined,
-            lastDigits: undefined,
-        };
-    }
-    const parts = cardNumber.split(maskChar);
-    return {
-        firstDigits: parts.at(0),
-        lastDigits: parts.at(-1),
-    };
 }
 
 function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number, feedName?: string): boolean {
@@ -1944,17 +1928,16 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
     getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,
-    filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
     getCSVFeedType,
     getFeedType,
-    flattenWorkspaceCardsList,
     isCardConnectionBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
@@ -1967,6 +1950,7 @@ export {
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
+    getDomainByFundID,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
@@ -1977,6 +1961,8 @@ export {
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
+    hasVirtualExpensifyCardMissingPersonalDetails,
+    isActionableVirtualExpensifyCard,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
     getCardsByCardholderName,
@@ -1984,7 +1970,6 @@ export {
     getCompanyCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
-    getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
     isDirectFeed,
     feedHasCards,
@@ -1998,7 +1983,6 @@ export {
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     formatMaskedCardName,
-    splitMaskedCardNumber,
     isCardAlreadyAssigned,
     getCardDescriptionForSearchTable,
     generateCardID,

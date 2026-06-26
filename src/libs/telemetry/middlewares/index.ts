@@ -1,4 +1,5 @@
 import type {EventHint, Log, TransactionEvent} from '@sentry/core';
+
 import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
 import httpClientCancelledFilter from './httpClientCancelledFilter';

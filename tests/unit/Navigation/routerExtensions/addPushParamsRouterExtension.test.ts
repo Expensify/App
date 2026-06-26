@@ -1,10 +1,13 @@
-import {CommonActions} from '@react-navigation/native';
-import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import addPushParamsRouterExtension, {resolveCursorForReset} from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import type {CustomHistoryEntry, PushParamsRouterAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import {cancelPendingFocusRestore, notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
+
 import CONST from '@src/CONST';
+
+import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+
+import {CommonActions} from '@react-navigation/native';
 
 jest.mock('@libs/NavigationFocusReturn', () => ({
     cancelPendingFocusRestore: jest.fn(),

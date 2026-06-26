@@ -1,9 +1,12 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import DateFilterContent from '@components/Search/FilterComponents/AdvancedFilters/DateFilterContent';
 import type {DateFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function DateFilterContentPopupWrapper({filterKey, value, hasFeed, onChange}: DateFilterContentWrapperProps) {
     const styles = useThemeStyles();

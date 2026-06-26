@@ -1,14 +1,10 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
-import {FlatList, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTripTransactions from '@hooks/useTripTransactions';
+
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -24,12 +21,21 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {ReservationData} from '@libs/TripReservationUtils';
 import {formatCancelledDescription, getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {FlatList, View} from 'react-native';
 
 type TripRoomPreviewProps = {
     /** All the data of the action */

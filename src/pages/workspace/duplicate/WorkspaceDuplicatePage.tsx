@@ -1,12 +1,18 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceDuplicateNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {clearDuplicateWorkspace} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
+
 import WorkspaceDuplicateForm from './WorkspaceDuplicateForm';
 
 function WorkspaceDuplicatePage() {

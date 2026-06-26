@@ -1,6 +1,8 @@
 import {createContext, useContext} from 'react';
-import {defaultDragAndDropActionsContextValue, defaultDragAndDropStateContextValue} from './default';
+
 import type {DragAndDropActionsContextType, DragAndDropStateContextType} from './types';
+
+import {defaultDragAndDropActionsContextValue, defaultDragAndDropStateContextValue} from './default';
 
 const DragAndDropStateContext = createContext<DragAndDropStateContextType>(defaultDragAndDropStateContextValue);
 const DragAndDropActionsContext = createContext<DragAndDropActionsContextType>(defaultDragAndDropActionsContextValue);

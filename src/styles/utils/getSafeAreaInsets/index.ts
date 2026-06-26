@@ -1,4 +1,5 @@
 import type {EdgeInsets} from 'react-native-safe-area-context';
+
 import defaultInsets from './defaultInsets';
 
 /**

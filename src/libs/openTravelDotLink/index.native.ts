@@ -1,5 +1,6 @@
 import {getTravelDotLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
 
 const openTravelDotLink = (activePolicyID?: string, postLoginPath?: string, spotnanaToken?: string, isTestAccount?: boolean) => {

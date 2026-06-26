@@ -1,11 +1,16 @@
-import isObject from 'lodash/isObject';
-import React, {useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
+import isObject from 'lodash/isObject';
+import React, {useMemo, useState} from 'react';
+
 import type {DebugForms} from './const';
+
 import {DETAILS_CONSTANT_FIELDS} from './const';
 
 type ConstantPickerProps = {

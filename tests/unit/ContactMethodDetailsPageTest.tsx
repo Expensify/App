@@ -1,11 +1,18 @@
 import {act, render} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
+
 import * as UserActions from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMethodDetailsPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import type {MockFetch} from '../utils/TestHelper';
+
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';

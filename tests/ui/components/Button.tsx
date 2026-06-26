@@ -1,9 +1,12 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import colors from '@styles/theme/colors';
+
 import Button from '@src/components/Button';
 import type {ButtonProps} from '@src/components/Button';
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 const buttonText = 'Click me';
 const accessibilityLabel = 'button-label';

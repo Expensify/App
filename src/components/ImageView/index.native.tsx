@@ -1,6 +1,8 @@
-import React from 'react';
 import Lightbox from '@components/Lightbox';
 import {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
+
+import React from 'react';
+
 import type ImageViewProps from './types';
 
 function ImageView({attachmentID, isAuthTokenRequired = false, url, style, zoomRange = DEFAULT_ZOOM_RANGE, onError}: ImageViewProps) {

@@ -1,6 +1,7 @@
+import type {AnyNode, Document, Element as DomElement} from 'domhandler';
+
 import render from 'dom-serializer';
 import {ElementType} from 'domelementtype';
-import type {AnyNode, Document, Element as DomElement} from 'domhandler';
 import {parseDocument} from 'htmlparser2';
 
 /**

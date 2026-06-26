@@ -1,5 +1,7 @@
 import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
+
 import createProxyForObject from '@src/utils/createProxyForObject';
 
 jest.mock('@userActions/OnyxUpdates');

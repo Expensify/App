@@ -1,18 +1,24 @@
-import React, {useImperativeHandle, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import type {Svg} from 'react-native-svg';
 import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {Svg} from 'react-native-svg';
+
+import React, {useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {QRShareProps} from './types';
 
 const QR_CODE_LANDSCAPE_SIZE_RATIO = 0.25;

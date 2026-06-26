@@ -1,4 +1,3 @@
-import {AppState} from 'react-native';
 import {
     cancelDeferredWrite,
     deferOrExecuteWrite,
@@ -10,7 +9,10 @@ import {
     reserveDeferredWriteChannel,
     resetForTesting,
 } from '@libs/deferredLayoutWrite';
+
 import CONST from '@src/CONST';
+
+import {AppState} from 'react-native';
 
 beforeEach(() => {
     jest.useFakeTimers();

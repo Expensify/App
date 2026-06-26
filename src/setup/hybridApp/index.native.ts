@@ -1,6 +1,7 @@
+import CONFIG from '@src/CONFIG';
+
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Linking} from 'react-native';
-import CONFIG from '@src/CONFIG';
 
 if (CONFIG.IS_HYBRID_APP) {
     // On HybridApp we need to shadow official implementation of Linking.getInitialURL on NewDot side with our custom implementation.

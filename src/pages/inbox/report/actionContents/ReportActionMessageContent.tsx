@@ -1,10 +1,8 @@
-import type {ReactElement} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {
     getOriginalMessage,
     getReportActionMessage,
@@ -13,9 +11,17 @@ import {
     isApprovedOrSubmittedReportAction as isApprovedOrSubmittedReportActionUtils,
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
+
 import ReportActionItemFragment from '@pages/inbox/report/ReportActionItemFragment';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {ReactElement} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ReportActionMessageContentProps = {
     /** The report action */

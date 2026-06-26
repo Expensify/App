@@ -1,8 +1,11 @@
-import {StackActions} from '@react-navigation/native';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+
+import {StackActions} from '@react-navigation/native';
+
 import getActiveTabName from './getActiveTabName';
 
 /**

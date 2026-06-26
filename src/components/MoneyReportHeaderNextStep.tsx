@@ -1,9 +1,13 @@
-import React from 'react';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 

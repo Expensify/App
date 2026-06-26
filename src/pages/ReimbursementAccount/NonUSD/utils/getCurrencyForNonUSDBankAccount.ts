@@ -1,10 +1,11 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type Policy from '@src/types/onyx/Policy';
 import type ReimbursementAccount from '@src/types/onyx/ReimbursementAccount';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function getCurrencyForNonUSDBankAccount(
     policy: OnyxEntry<Policy>,

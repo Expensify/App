@@ -1,10 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import {computePerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import type {getAttendees} from '@libs/TransactionUtils';
 import {isScanning, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type SubRates = NonNullable<NonNullable<NonNullable<OnyxTypes.Transaction['comment']>['customUnit']>['subRates']>;
 

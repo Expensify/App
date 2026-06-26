@@ -1,4 +1,5 @@
-import dedent from '@libs/StringUtils/dedent';
+import {Str} from 'expensify-common';
+
 import Glossary from './Glossary';
 
 const frenchGlossary = new Glossary([
@@ -66,7 +67,7 @@ const frenchGlossary = new Glossary([
     {sourceTerm: 'Permanently', targetTerm: 'Définitivement', usage: 'Irreversible action qualifier'},
 ]);
 
-export default dedent(`
+export default Str.dedent(`
     When translating to French, follow these rules:
 
     - Maintain French capitalization norms for UI labels and keep labels concise.

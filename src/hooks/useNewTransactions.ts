@@ -1,8 +1,11 @@
-import {useEffect, useMemo, useRef} from 'react';
 import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useEffect, useMemo, useRef} from 'react';
+
 import usePrevious from './usePrevious';
 
 /**

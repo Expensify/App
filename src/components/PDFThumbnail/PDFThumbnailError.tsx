@@ -1,10 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function PDFThumbnailError() {
     const styles = useThemeStyles();

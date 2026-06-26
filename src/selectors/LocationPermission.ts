@@ -1,6 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * Selector to derive whether we should start the location permission flow from the last prompt timestamp.

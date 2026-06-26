@@ -1,8 +1,9 @@
 import {useEffect, useRef} from 'react';
+
 import CONST from './CONST';
 import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';
-import {confirmReadyToOpenApp, openApp} from './libs/actions/App';
+import {openApp} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
@@ -68,7 +69,6 @@ function DelegateAccessHandler() {
             sessionAccountID,
             hasLoadedApp: !!hasLoadedApp,
         });
-        confirmReadyToOpenApp();
         openApp();
     }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
 

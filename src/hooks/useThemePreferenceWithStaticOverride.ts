@@ -1,4 +1,5 @@
 import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+
 import useThemePreference from './useThemePreference';
 
 const useThemePreferenceWithStaticOverride = (staticThemePreference: ThemePreferenceWithoutSystem | undefined) => {

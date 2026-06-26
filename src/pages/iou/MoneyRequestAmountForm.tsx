@@ -1,6 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -8,24 +5,42 @@ import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {isTaxAmountInvalid} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
+import type {ForwardedRef} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
+type MoneyRequestAmountFormHandle = {
+    /** Returns the currently typed (unsaved) amount, signed the same way the submit handler would send it */
+    getNumber: () => string;
+};
+
 type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad' | 'onFormatAmount'> & {
+    /** Exposes the currently typed amount to the parent (e.g. for unsaved-changes detection) */
+    amountFormRef?: ForwardedRef<MoneyRequestAmountFormHandle>;
+
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
 
@@ -97,6 +112,7 @@ function MoneyRequestAmountForm({
     hideCurrencySymbol = false,
     allowFlippingAmount = false,
     isP2P = false,
+    amountFormRef,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
@@ -108,6 +124,13 @@ function MoneyRequestAmountForm({
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [isNegative, setIsNegative] = useState(false);
+
+    useImperativeHandle(amountFormRef, () => ({
+        getNumber: () => {
+            const number = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+            return number && isNegative ? `-${number}` : number;
+        },
+    }));
 
     const [formError, setFormError] = useState<string>('');
 
@@ -217,7 +240,7 @@ function MoneyRequestAmountForm({
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                        buttonSize={CONST.BUTTON_SIZE.LARGE}
                         kycWallAnchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -310,4 +333,4 @@ function MoneyRequestAmountForm({
 }
 
 export default MoneyRequestAmountForm;
-export type {CurrentMoney};
+export type {CurrentMoney, MoneyRequestAmountFormHandle};

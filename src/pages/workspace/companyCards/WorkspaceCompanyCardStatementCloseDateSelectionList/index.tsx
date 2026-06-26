@@ -1,6 +1,3 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -12,11 +9,19 @@ import ScrollView from '@components/ScrollView';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import CustomCloseDateSelectionList from './CustomCloseDateSelectionList';
 
 type CompanyCardStatementCloseDate = ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>;

@@ -1,11 +1,15 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import SortableTableHeader from '@components/Search/SortableTableHeader';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@components/Search/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSortableColumnName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type SearchTableHeaderProps = {
     sortBy?: SearchSortBy;

@@ -1,9 +1,13 @@
-import React, {useState} from 'react';
 import FilterComponents from '@components/Search/FilterComponents';
 import type {FilterComponentsProps} from '@components/Search/FilterComponents';
+
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import BasePopup from './BasePopup';
+
+import React, {useState} from 'react';
+
 import type {PopoverComponentProps} from './FilterPopupButton';
+
+import BasePopup from './BasePopup';
 
 type CommonPopupProps = {
     filterKey: FilterComponentsProps['filterKey'];

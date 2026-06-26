@@ -1,12 +1,15 @@
-import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
+import {dynamicTabScreensByHost, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
+
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
+
 import splitPathAndQuery from './splitPathAndQuery';
 
 type LeafRoute = {
     name: string;
     path: string;
     params?: Record<string, unknown>;
+    state?: {routes: Array<{name: string}>; index: 0};
 };
 
 type NestedRoute = {
@@ -54,7 +57,7 @@ function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): str
     return null;
 }
 
-function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES, parentRouteParams?: Record<string, unknown>) {
+function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES, parentRouteParams?: Record<string, unknown>, activeTabPath?: string) {
     const routeConfig = getRouteNamesForDynamicRoute(DYNAMIC_ROUTES[dynamicRouteName].path);
     const [, query] = splitPathAndQuery(path);
     const params = getParamsFromQuery(query);
@@ -74,6 +77,19 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
             const mergedParams = {...(parentRouteParams ?? {}), ...(params ?? {})};
             const cleanedParams = Object.fromEntries(Object.entries(mergedParams).filter(([, v]) => v !== undefined));
             const paramsSpread = cleanedParams && Object.keys(cleanedParams).length > 0 ? {params: cleanedParams} : {};
+
+            // If this leaf hosts a tab navigator and we know which tab was active from the URL,
+            // build a partial tab state so TabRouter.getRehydratedState selects the correct tab on
+            // mount — without waiting for Onyx to load the stored selection.
+            if (activeTabPath && currentRoute && screensWithOnyxTabNavigator.has(currentRoute)) {
+                const tabScreenName = dynamicTabScreensByHost.get(currentRoute)?.get(activeTabPath) ?? activeTabPath;
+                return {
+                    name: currentRoute,
+                    path,
+                    ...paramsSpread,
+                    state: {routes: [{name: tabScreenName}], index: 0 as const},
+                };
+            }
 
             return {
                 name: currentRoute ?? '',

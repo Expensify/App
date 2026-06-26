@@ -1,5 +1,6 @@
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type UsePreferencesSectionIllustration from './types';
 
 const usePreferencesSectionIllustration: UsePreferencesSectionIllustration = () => {

@@ -1,6 +1,8 @@
-import type {NavigationState} from '@react-navigation/native';
-import {CommonActions} from '@react-navigation/native';
 import navigationRef from '@libs/Navigation/navigationRef';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import {CommonActions} from '@react-navigation/native';
 
 /**
  * Cleans stale reportActionID from `backTo` params on sibling routes.

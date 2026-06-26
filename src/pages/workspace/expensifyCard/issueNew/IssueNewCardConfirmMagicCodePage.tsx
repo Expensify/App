@@ -1,24 +1,29 @@
-import React, {useCallback, useEffect} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useEffect} from 'react';
 
 type IssueNewCardConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE>;
 
@@ -64,7 +69,6 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     );
 
     const handleClose = useCallback(() => {
-        resetValidateActionCodeSent();
         Navigation.goBack(backPath);
     }, [backPath]);
 

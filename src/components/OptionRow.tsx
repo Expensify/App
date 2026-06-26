@@ -1,18 +1,23 @@
-import {deepEqual} from 'fast-equals';
-import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {deepEqual} from 'fast-equals';
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';

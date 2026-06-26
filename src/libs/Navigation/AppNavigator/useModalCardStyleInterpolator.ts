@@ -1,13 +1,17 @@
-import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
-// Import Animated directly from 'react-native' as animations are used with navigation.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+
 import variables from '@styles/variables';
+
+import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
+
+// Import Animated directly from 'react-native' as animations are used with navigation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 
 type EnterAnimation = {kind: 'slide-and-fade'; distancePx: number} | {kind: 'slide-from-width'} | {kind: 'fade'} | {kind: 'none'};
 

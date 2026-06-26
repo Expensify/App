@@ -1,6 +1,3 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -11,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -21,23 +19,33 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/SpendRulesUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import React, {useCallback, useEffect, useState} from 'react';
 
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {
@@ -113,7 +121,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
     const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
-    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare);
+    const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate);
 
     const [inputValue, setInputValue, filteredCards] = useSearchResults(eligibleCards, filterCard, sortCards);
 
@@ -121,7 +129,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
         const cardName = card.nameValuePairs?.cardTitle;
-        const displayName = getDisplayNameOrDefault(cardOwnerPersonalDetails, '', false);
+        const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardOwnerPersonalDetails, defaultValue: '', shouldFallbackToHidden: false, translate});
         return {
             keyForList: String(card.cardID),
             text: displayName !== '' ? displayName : (cardName ?? ''),

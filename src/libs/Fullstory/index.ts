@@ -1,9 +1,13 @@
-import {FullStory, init, isInitialized} from '@fullstory/browser';
 import {isSupportAuthToken} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
-import {getChatFSClass, shouldInitializeFullstory} from './common';
+
+import {FullStory, init, isInitialized} from '@fullstory/browser';
+
 import type {FSPageLike, Fullstory} from './types';
+
+import {getChatFSClass, shouldInitializeFullstory} from './common';
 
 // Placeholder Browser API does not support Manual Page definition
 class FSPage implements FSPageLike {

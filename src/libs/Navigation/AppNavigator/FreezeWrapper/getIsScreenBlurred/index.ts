@@ -1,5 +1,6 @@
-import type {NavigationState} from '@react-navigation/native';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+
+import type {NavigationState} from '@react-navigation/native';
 
 type Options = {
     /** When true, treat state as tab navigator: focused route is at index, not findLast. Use for screens inside Tab.Navigator. */

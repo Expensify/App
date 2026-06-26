@@ -1,14 +1,19 @@
-import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {format, formatToParts} from '@libs/NumberFormatUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import {defaultCurrencyListActionsContextValue, defaultCurrencyListStateContextValue} from './default';
+
+import React, {createContext, useCallback, useContext, useMemo} from 'react';
+
 import type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';
+
+import {defaultCurrencyListActionsContextValue, defaultCurrencyListStateContextValue} from './default';
 
 const CurrencyListStateContext = createContext<CurrencyListStateContextType>(defaultCurrencyListStateContextValue);
 const CurrencyListActionsContext = createContext<CurrencyListActionsContextType>(defaultCurrencyListActionsContextValue);

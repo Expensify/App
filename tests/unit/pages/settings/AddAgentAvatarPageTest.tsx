@@ -1,9 +1,13 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import AddAgentAvatarPage from '@pages/settings/Agents/Fields/AddAgentAvatarPage';
 import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 const mockConsumeNavigationToken = jest.fn<boolean, []>();
 const mockGetInitialPresetID = jest.fn<string | undefined, []>(() => undefined);

@@ -1,8 +1,9 @@
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
+
+import Onyx from 'react-native-onyx';
 
 type ImportFinalModalResult = {
     promise: Promise<ImportFinalModal>;

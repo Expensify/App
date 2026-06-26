@@ -1,5 +1,3 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
@@ -8,6 +6,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -16,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {
     clearTravelInvoicingErrors,
     clearTravelInvoicingMonthlyLimitErrors,
@@ -43,11 +43,18 @@ import {
     hasTravelInvoicingSettlementAccount,
 } from '@libs/TravelInvoicingUtils';
 import {getSearchParamFromPath} from '@libs/Url';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import TravelInvoicingLearnHow from './TravelInvoicingLearnHow';
 import TravelInvoicingSubtitleWrapper from './TravelInvoicingSubtitleWrapper';
 
@@ -146,6 +153,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
     const isOnWaitlist = !!cardOnWaitlist;
     const isLoading = !!cardSettings?.isLoading;
+    const hasOutstandingBalance = hasOutstandingTravelBalance(travelSettings);
     const hasTravelProvisioningErrors = isTravelInvoicingEnabled && !!domainMemberData?.settings?.travelInvoicing?.errors?.length;
 
     /**
@@ -232,7 +240,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
         if (!isEnabled) {
             // Trying to disable - check for outstanding balance first
-            if (hasOutstandingTravelBalance(travelSettings)) {
+            if (hasOutstandingBalance) {
                 // Show blocker modal with error message
                 setIsOutstandingBalanceModalVisible(true);
                 return;
@@ -412,7 +420,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     isActive={isTravelInvoicingEnabled}
                     disabled={!canWriteMoreFeatures || isLoading || isOnWaitlist}
                     disabledAction={getToggleDisabledAction()}
-                    showLockIcon={!canWriteMoreFeatures || isOnWaitlist}
+                    showLockIcon={!canWriteMoreFeatures || isOnWaitlist || hasOutstandingBalance}
                     pendingAction={togglePendingAction}
                     errors={toggleErrors}
                     onCloseError={() => clearTravelInvoicingErrors(workspaceAccountID)}

@@ -1,11 +1,14 @@
+import type {GestureHandlerProps, SwipeDirection} from '@components/Modal/ReanimatedModal/types';
+
+import CONST from '@src/CONST';
+
 import type {PropsWithChildren} from 'react';
-import React, {useMemo} from 'react';
 import type {GestureStateChangeEvent, GestureType, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+
+import React, {useMemo} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import type {GestureHandlerProps, SwipeDirection} from '@components/Modal/ReanimatedModal/types';
-import CONST from '@src/CONST';
 
 function hasSwipeEnded(
     e: GestureStateChangeEvent<PanGestureHandlerEventPayload>,

@@ -1,11 +1,15 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+
 import DecisionModal from './DecisionModal';
 
 type ProcessMoneyReportHoldMenuProps = {

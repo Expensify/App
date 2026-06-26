@@ -1,23 +1,31 @@
-import {Str} from 'expensify-common';
-import type {ReactElement} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
+
+import type {ReactElement} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import Icon from './Icon';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
+
+const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
 
 type DotIndicatorMessageProps = {
     /**
@@ -74,7 +82,31 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         }
 
         const displayMessage = isTranslationKeyError(message) ? translate(message.translationKey) : message;
-        const formattedMessage = typeof displayMessage === 'string' ? Str.htmlDecode(displayMessage) : displayMessage;
+
+        if (typeof displayMessage !== 'string') {
+            return (
+                <Text
+                    key={index}
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, isTextSelectable ? styles.userSelectText : styles.userSelectNone]}
+                    accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                    accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
+                >
+                    {displayMessage}
+                </Text>
+            );
+        }
+
+        if (HTML_TAG_PATTERN.test(displayMessage)) {
+            const html = isErrorMessage ? `<rbr>${displayMessage}</rbr>` : `<muted-text-label>${displayMessage}</muted-text-label>`;
+
+            return (
+                <RenderHTML
+                    key={index}
+                    html={html}
+                    isSelectable={isTextSelectable}
+                />
+            );
+        }
 
         return (
             <Text
@@ -83,7 +115,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                 accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >
-                {formattedMessage}
+                {Str.htmlDecode(displayMessage)}
             </Text>
         );
     };

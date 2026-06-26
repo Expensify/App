@@ -1,15 +1,21 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import variables from '@styles/variables';
+
 import CONFIG from '@src/CONFIG';
+
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import type {EnterAnimation} from './useModalCardStyleInterpolator';
+
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
-import type {EnterAnimation} from './useModalCardStyleInterpolator';
 
 const IS_MOBILE_SAFARI = isMobileSafari();
 

@@ -1,4 +1,5 @@
 import React, {useDeferredValue} from 'react';
+
 import TransactionItemRowRBR from './TransactionItemRowRBR';
 
 type DeferredTransactionItemRowRBRProps = React.ComponentProps<typeof TransactionItemRowRBR>;

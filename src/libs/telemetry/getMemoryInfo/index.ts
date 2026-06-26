@@ -1,4 +1,5 @@
 import {Platform} from 'react-native';
+
 import type {MemoryInfo} from './types';
 
 const BYTES_PER_MB = 1024 * 1024;

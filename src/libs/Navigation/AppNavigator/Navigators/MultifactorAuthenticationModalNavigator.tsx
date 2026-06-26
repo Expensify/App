@@ -1,13 +1,9 @@
-import {BaseNavigationContainer, NavigationIndependentTree} from '@react-navigation/core';
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
 import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
@@ -15,19 +11,30 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNavigationBaseTheme from '@libs/Navigation/getNavigationBaseTheme';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
+
 import RHP_WEB_TRANSITION_SPEC from '@navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@navigation/AppNavigator/useModalCardStyleInterpolator';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
+type Phase = 'open' | 'closing' | 'closed';
 
 const Stack = createPlatformStackNavigator<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
@@ -108,7 +115,7 @@ function MultifactorAuthenticationModalNavigator() {
             return;
         }
         if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
-            mfaNavigationRef.goBack();
+            mfaNavigationRef.dispatch(StackActions.popToTop());
         }
         // Fade out in lockstep with the screen's slide-out - same duration and easing as the close
         // spec of Animations.SLIDE_FROM_RIGHT (Animated.timing defaults to inOut(ease)). The navigator

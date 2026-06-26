@@ -1,8 +1,10 @@
 import getOperatingSystem from '@libs/getOperatingSystem';
+
 // eslint-disable-next-line no-restricted-imports
 import type FontFamilyStyles from '@styles/utils/FontUtils/fontFamily/types';
 // eslint-disable-next-line no-restricted-imports
 import fontWeight from '@styles/utils/FontUtils/fontWeight';
+
 import CONST from '@src/CONST';
 
 // In windows and ubuntu, we need some extra system fonts for emojis to work properly

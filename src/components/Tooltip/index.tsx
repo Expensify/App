@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseTooltip from './BaseTooltip';
+
 import type {TooltipExtendedProps} from './types';
+
+import BaseTooltip from './BaseTooltip';
 
 function Tooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
     if (!shouldRender) {

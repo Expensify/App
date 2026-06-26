@@ -49,13 +49,13 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-              github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ inputs.APP_PR_NUMBER || 0 }},
-              body: `🚧 @${{ github.actor }} has triggered a test Expensify/App build. You can view the [workflow run here](${workflowURL}).`
-              });
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: ${{ inputs.APP_PR_NUMBER || 0 }},
+            body: `🚧 ${{ github.actor }} has triggered a test Expensify/App build. You can view the [workflow run here](${workflowURL}).`
+            });
 
       - name: Add build start comment to Expensify/Mobile-Expensify PR
         if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
@@ -64,13 +64,13 @@ jobs:
         with:
           github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
           script: |
-              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-              github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: 'Mobile-Expensify',
-              issue_number: ${{ inputs.MOBILE_EXPENSIFY_PR || 0 }},
-              body: `🚧 @${{ github.actor }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
-              });
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: 'Mobile-Expensify',
+            issue_number: ${{ inputs.MOBILE_EXPENSIFY_PR || 0 }},
+            body: `🚧 ${{ github.actor }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
+            });
 
   buildAndroid:
     name: Build Android

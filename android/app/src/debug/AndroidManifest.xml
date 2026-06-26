@@ -4,5 +4,12 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
-    <application android:usesCleartextTraffic="true" tools:targetApi="28" tools:ignore="GoogleAppIndexingWarning" />
+    <!-- Debug builds use a pin-free network security config so local dev servers and debugging
+         proxies keep working. tools:replace overrides the release config from the main manifest. -->
+    <application
+        android:networkSecurityConfig="@xml/network_security_config_debug"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="28"
+        tools:ignore="GoogleAppIndexingWarning"
+        tools:replace="android:networkSecurityConfig" />
 </manifest>

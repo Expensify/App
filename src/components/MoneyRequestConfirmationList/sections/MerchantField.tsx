@@ -1,24 +1,31 @@
-import React from 'react';
-import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import Navigation from '@libs/Navigation/Navigation';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {merchantStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type MerchantFieldProps = {
     isMerchantRequired: boolean | undefined;
+    isNewManualExpenseFlowEnabled: boolean;
     isReadOnly: boolean;
     didConfirm: boolean;
     shouldDisplayFieldError: boolean;
@@ -30,7 +37,19 @@ type MerchantFieldProps = {
     reportActionID: string | undefined;
 };
 
-function MerchantField({isMerchantRequired, isReadOnly, didConfirm, shouldDisplayFieldError, formError, transactionID, action, iouType, reportID, reportActionID}: MerchantFieldProps) {
+function MerchantField({
+    isMerchantRequired,
+    isNewManualExpenseFlowEnabled,
+    isReadOnly,
+    didConfirm,
+    shouldDisplayFieldError,
+    formError,
+    transactionID,
+    action,
+    iouType,
+    reportID,
+    reportActionID,
+}: MerchantFieldProps) {
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -88,7 +107,7 @@ function MerchantField({isMerchantRequired, isReadOnly, didConfirm, shouldDispla
         setMoneyRequestMerchant(transactionID, newMerchant, true, transactionHasReceipt);
     };
 
-    if (!isReadOnly) {
+    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput

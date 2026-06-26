@@ -1,4 +1,5 @@
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import type {IllustrationName} from './chunks/illustrations.chunk';
 
 type IllustrationsChunk = {

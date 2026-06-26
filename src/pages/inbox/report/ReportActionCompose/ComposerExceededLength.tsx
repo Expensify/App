@@ -1,5 +1,7 @@
-import React from 'react';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+
+import React from 'react';
+
 import {useComposerSendState} from './ComposerContext';
 
 function ComposerExceededLength() {

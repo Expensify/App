@@ -1,4 +1,5 @@
 import type {MultifactorAuthenticationReason} from './types';
+
 import VALUES from './VALUES';
 
 type MFAError = {

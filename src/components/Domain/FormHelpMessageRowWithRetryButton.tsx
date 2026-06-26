@@ -1,10 +1,12 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type FormHelpMessageRowWithRetryButtonProps = {
     /** The error message to display in the form help row. */

@@ -1,22 +1,30 @@
-import noop from 'lodash/noop';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeEventSubscription, ViewStyle} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
-import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {NativeEventSubscription, ViewStyle} from 'react-native';
+
+import noop from 'lodash/noop';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
+import {LayoutAnimationConfig} from 'react-native-reanimated';
+
+import type ReanimatedModalProps from './types';
+
 import Backdrop from './Backdrop';
 import Container from './Container';
-import type ReanimatedModalProps from './types';
 
 function ReanimatedModal({
     testID,

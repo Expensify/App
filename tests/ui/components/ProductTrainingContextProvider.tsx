@@ -1,14 +1,21 @@
 import {render, renderHook} from '@testing-library/react-native';
-import {createRef, useImperativeHandle} from 'react';
-import type {Ref} from 'react';
-import Onyx from 'react-native-onyx';
+
 import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {Ref} from 'react';
+
+import {createRef, useImperativeHandle} from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';

@@ -1,8 +1,12 @@
-import React from 'react';
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
-import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
+
+import React from 'react';
+
 import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
+
+import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
 
 function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsProps) {
     const onPressOpenPicker = (openPicker?: OpenPickerCallback) => {

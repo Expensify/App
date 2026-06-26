@@ -1,9 +1,11 @@
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function ComposerFooter({children}: PropsWithChildren) {
     const styles = useThemeStyles();

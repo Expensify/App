@@ -1,6 +1,5 @@
-import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
-import {createNavigatorFactory} from '@react-navigation/native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
@@ -11,6 +10,11 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+
+import {createNavigatorFactory} from '@react-navigation/native';
+
 import SidebarSpacerWrapper from './SidebarSpacerWrapper';
 import SplitRouter from './SplitRouter';
 import usePreserveNavigatorState from './usePreserveNavigatorState';

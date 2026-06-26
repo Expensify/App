@@ -1,16 +1,21 @@
-import React, {useCallback} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomListFormSubmit from '@hooks/useNetSuiteImportAddCustomListForm';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+
+import React, {useCallback} from 'react';
 
 const STEP_FIELDS = [INPUT_IDS.LIST_NAME, INPUT_IDS.INTERNAL_ID];
 

@@ -1,6 +1,9 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 

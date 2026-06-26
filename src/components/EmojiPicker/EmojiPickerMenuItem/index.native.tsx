@@ -1,11 +1,17 @@
-import React, {useEffect, useRef} from 'react';
-import type {View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+
 import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+
 import type EmojiPickerMenuItemProps from './types';
 
 function EmojiPickerMenuItem({

@@ -1,20 +1,26 @@
-import {Str} from 'expensify-common';
-import {Alert, Linking, Platform} from 'react-native';
-import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import ImageSize from 'react-native-image-size';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+import {Alert, Linking, Platform} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import ImageSize from 'react-native-image-size';
+
+import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
+
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
-import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
  * Show alert on successful attachment download
@@ -195,6 +201,15 @@ function getMimeTypeFromUri(uri: string): string | undefined {
  */
 function cleanFileName(fileName: string): string {
     return fileName.replaceAll(/[^a-zA-Z0-9\-._]/g, '_');
+}
+
+/**
+ * Builds a standardized export filename: `expensify_<exportName>_<uniqueID>.<extension>`.
+ * The export name is sanitized and the whole name is lowercased so it is safe and consistent
+ * to use as a filename, and the unique id keeps filenames distinct without relying on a timestamp.
+ */
+function getExportFileName(exportName: string, uniqueID: string, extension = 'csv'): string {
+    return `expensify_${cleanFileName(exportName)}_${uniqueID}.${extension}`.toLowerCase();
 }
 
 function appendTimeToFileName(fileName: string): string {
@@ -926,6 +941,7 @@ export {
     getFileName,
     getFileType,
     cleanFileName,
+    getExportFileName,
     appendTimeToFileName,
     ANDROID_SAFE_FILE_NAME_LENGTH,
     truncateFileNameToSafeLengthOnAndroid,

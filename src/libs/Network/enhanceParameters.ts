@@ -1,8 +1,11 @@
-import Onyx from 'react-native-onyx';
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import pkg from '../../../package.json';
 import {getAuthToken, getCurrentUserEmail} from './NetworkStore';
 

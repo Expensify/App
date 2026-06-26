@@ -1,8 +1,12 @@
 import {render, screen} from '@testing-library/react-native';
-import React, {use, useImperativeHandle} from 'react';
-import type {Context, Ref} from 'react';
+
 import Text from '@components/Text';
+
 import createContextNamespace from '@hooks/createContextNamespace';
+
+import type {Context, Ref} from 'react';
+
+import React, {use, useImperativeHandle} from 'react';
 
 type FooValue = {label: string};
 

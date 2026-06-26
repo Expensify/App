@@ -1,10 +1,14 @@
-import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {usePINActions} from '@pages/MissingPersonalDetails/PINContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import React, {useMemo} from 'react';
 
 function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, shouldCollectPIN = false}: CustomSubPageProps) {
     const {translate} = useLocalize();

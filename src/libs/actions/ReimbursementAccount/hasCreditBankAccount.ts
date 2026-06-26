@@ -1,6 +1,8 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import BankAccount from '@libs/models/BankAccount';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function hasCreditBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
     if (!bankAccountList) {

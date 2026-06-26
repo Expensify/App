@@ -1,10 +1,12 @@
-import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
-// eslint-disable-next-line no-restricted-imports
-import type {Animated, StyleProp, ViewStyle} from 'react-native';
 import type {ThemeColors} from '@styles/theme/types';
+
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
+// eslint-disable-next-line no-restricted-imports
+import type {Animated, StyleProp, ViewStyle} from 'react-native';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */

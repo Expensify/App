@@ -1,5 +1,6 @@
-import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
 import type {ValueOf} from 'type-fest';
+
+import {PERMISSIONS} from 'react-native-permissions/dist/commonjs/permissions';
 
 const RESULTS = {
     UNAVAILABLE: 'unavailable',

@@ -1,11 +1,15 @@
-import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
 import useDialogContainerFocus from '@hooks/useDialogContainerFocus';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {Linking, View} from 'react-native';
+
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 import TextLink from './TextLink';

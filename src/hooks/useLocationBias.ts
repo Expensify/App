@@ -1,7 +1,9 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {UserLocation} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
 
 /**
  * Construct the rectangular boundary based on user location and waypoints

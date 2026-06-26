@@ -1,6 +1,8 @@
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
-import emojis from './common';
+
 import type {Emoji, EmojisList} from './types';
+
+import emojis from './common';
 
 type EmojiTable = Record<string, Emoji>;
 

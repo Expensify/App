@@ -1,18 +1,25 @@
-import React, {useCallback, useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
+
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+
 import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
 import DateOfBirth from './BeneficialOwnerDetailsFormSubSteps/DateOfBirth';
@@ -35,7 +42,10 @@ type BeneficialOwnerSubPageProps = SubPageProps & {
 const pages = [
     {pageName: SUB_PAGE_NAMES.NAME, component: Name},
     {pageName: SUB_PAGE_NAMES.NATIONALITY, component: Nationality},
-    {pageName: SUB_PAGE_NAMES.OWNERSHIP_PERCENTAGE, component: OwnershipPercentage},
+    {
+        pageName: SUB_PAGE_NAMES.OWNERSHIP_PERCENTAGE,
+        component: OwnershipPercentage,
+    },
     {pageName: SUB_PAGE_NAMES.DATE_OF_BIRTH, component: DateOfBirth},
     {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
     {pageName: SUB_PAGE_NAMES.LAST_4_SSN, component: Last4SSN},
@@ -94,7 +104,14 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
     }, [beneficialOwnerNationality, beneficialOwnerAddressCountry, countryStepCountryValue, currency]);
 
     const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BENEFICIAL_OWNER_INFO, subPage: pageName, action, backTo}),
+        (pageName: string, action?: 'edit') =>
+            ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
+                policyID,
+                page: PAGE_NAME.BENEFICIAL_OWNER_INFO,
+                subPage: pageName,
+                action,
+                backTo,
+            }),
         [policyID, backTo],
     );
 
@@ -120,7 +137,9 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
 
         if (prevIndex < 0) {
             if (isEditingCreatedOwner) {
-                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isEditingCreatedOwner: false});
+                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+                    isEditingCreatedOwner: false,
+                });
                 Navigation.goBack(buildRoute(SUB_PAGE_NAMES.BENEFICIAL_OWNERS_LIST));
             } else {
                 Navigation.goBack(buildRoute(SUB_PAGE_NAMES.IS_USER_BENEFICIAL_OWNER));
@@ -131,7 +150,14 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
     }, [buildRoute, isEditing, isEditingCreatedOwner, pageIndex, prevPage, skipPages]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'BeneficialOwnerDetailsFormPages', isRedirecting}} />;
+        return (
+            <FullScreenLoadingIndicator
+                reasonAttributes={{
+                    context: 'BeneficialOwnerDetailsFormPages',
+                    isRedirecting,
+                }}
+            />
+        );
     }
 
     return (

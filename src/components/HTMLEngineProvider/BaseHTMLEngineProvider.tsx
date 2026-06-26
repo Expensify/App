@@ -1,11 +1,17 @@
-import React, {useMemo} from 'react';
-import type {TextProps} from 'react-native';
-import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
-import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import convertToLTR from '@libs/convertToLTR';
+
 import FontUtils from '@styles/utils/FontUtils';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {TextProps} from 'react-native';
+import type {TNode} from 'react-native-render-html';
+
+import React, {useMemo} from 'react';
+import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';

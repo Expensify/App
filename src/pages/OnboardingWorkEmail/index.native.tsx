@@ -1,9 +1,12 @@
+import {setOnboardingErrorMessage} from '@userActions/Welcome';
+
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import {setOnboardingErrorMessage} from '@userActions/Welcome';
-import BaseOnboardingWorkEmail from './BaseOnboardingWorkEmail';
+
 import type {OnboardingWorkEmailProps} from './types';
+
+import BaseOnboardingWorkEmail from './BaseOnboardingWorkEmail';
 
 function OnboardingWorkEmail(props: OnboardingWorkEmailProps) {
     // To block android native back button behavior

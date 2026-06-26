@@ -1,7 +1,10 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingWorkEmailValidation from './BaseOnboardingWorkEmailValidation';
+
+import React from 'react';
+
 import type {OnboardingWorkEmailValidationProps} from './types';
+
+import BaseOnboardingWorkEmailValidation from './BaseOnboardingWorkEmailValidation';
 
 function OnboardingWorkEmailValidation(props: OnboardingWorkEmailValidationProps) {
     return (

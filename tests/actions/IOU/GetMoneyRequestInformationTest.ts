@@ -1,8 +1,11 @@
-import Onyx from 'react-native-onyx';
 import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, PolicyTagLists, Report} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({

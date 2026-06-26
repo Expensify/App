@@ -1,6 +1,7 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ModalType from '@src/types/utils/ModalType';
+
+import Onyx from 'react-native-onyx';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
 

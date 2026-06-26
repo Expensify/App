@@ -1,7 +1,9 @@
-import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+
 import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';

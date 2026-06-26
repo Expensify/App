@@ -1,9 +1,11 @@
-import {format, parseISO} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {format, parseISO} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
+
 import Text from './Text';
 
 type DateIconProps = {

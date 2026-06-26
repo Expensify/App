@@ -1,7 +1,9 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type {CardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';

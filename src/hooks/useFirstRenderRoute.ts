@@ -1,5 +1,6 @@
-import {useEffect, useRef} from 'react';
 import Navigation from '@navigation/Navigation';
+
+import {useEffect, useRef} from 'react';
 
 /**
  * Custom hook for tracking the first route rendered by navigation and determining focus state.

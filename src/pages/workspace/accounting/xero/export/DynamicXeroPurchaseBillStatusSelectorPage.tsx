@@ -1,23 +1,31 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {updateXeroExportBillStatus} from '@userActions/connections/Xero';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import isEmpty from 'lodash/isEmpty';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.XERO_CONFIG.INVOICE_STATUS>;

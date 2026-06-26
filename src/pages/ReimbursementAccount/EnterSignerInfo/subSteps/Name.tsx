@@ -1,14 +1,18 @@
-import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+
 import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
+
+import React, {useCallback} from 'react';
 
 function Name({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();

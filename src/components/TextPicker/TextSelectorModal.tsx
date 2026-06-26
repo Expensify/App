@@ -1,7 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {TextInput as TextInputType} from 'react-native';
-import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -10,14 +6,24 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+
+import type {TextInput as TextInputType} from 'react-native';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {SafeString} from 'expensify-common';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
 import type {TextSelectorModalProps} from './types';
 
 function TextSelectorModal({

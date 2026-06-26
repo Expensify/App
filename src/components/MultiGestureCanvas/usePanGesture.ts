@@ -1,12 +1,16 @@
+import {isMobile} from '@libs/Browser';
+
+import type {PanGesture} from 'react-native-gesture-handler';
+
 import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
-import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {isMobile} from '@libs/Browser';
-import {SPRING_CONFIG} from './constants';
+
 import type {MultiGestureCanvasVariables} from './types';
+
+import {SPRING_CONFIG} from './constants';
 import * as MultiGestureCanvasUtils from './utils';
 
 // This value determines how fast the pan animation should phase out

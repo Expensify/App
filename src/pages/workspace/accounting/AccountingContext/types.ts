@@ -1,6 +1,7 @@
+import type {ConnectionName} from '@src/types/onyx/Policy';
+
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ActiveIntegration = {
     name: ConnectionName;

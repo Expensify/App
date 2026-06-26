@@ -1,6 +1,8 @@
-import type {KeyboardEvent} from 'react';
-import {useCallback} from 'react';
 import CONST from '@src/CONST';
+
+import type {KeyboardEvent} from 'react';
+
+import {useCallback} from 'react';
 
 /**
  * Custom hook that returns a keyboard event handler which triggers a callback

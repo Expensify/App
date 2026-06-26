@@ -1,9 +1,14 @@
-import {spanToJSON} from '@sentry/core';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
+import navigationRef from '@navigation/navigationRef';
+
+import CONST from '@src/CONST';
+
 import type {SpanAttributes} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import navigationRef from '@navigation/navigationRef';
-import CONST from '@src/CONST';
+
+import {spanToJSON} from '@sentry/core';
+
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from './activeSpans';
 
 type NavigateToReportsStartType = ValueOf<typeof CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE>;

@@ -1,15 +1,21 @@
-import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {PublicScreensParamList} from '@navigation/types';
+
 import {unlinkLogin} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
 
 type UnlinkLoginPageProps = PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.UNLINK_LOGIN>;
 

@@ -1,24 +1,30 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
-import type {AnimatedStyle} from 'react-native-reanimated';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import SignInButton from '@pages/inbox/sidebar/SignInButton';
+
 import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {AnimatedStyle} from 'react-native-reanimated';
+
+import React from 'react';
+import {Keyboard, View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type TopBarProps = {
     breadcrumbLabel: string;

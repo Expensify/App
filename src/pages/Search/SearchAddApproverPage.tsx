@@ -1,6 +1,3 @@
-import lodashIntersection from 'lodash/intersection';
-import lodashPick from 'lodash/pick';
-import React, {useEffect, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
@@ -8,18 +5,25 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import lodashIntersection from 'lodash/intersection';
+import lodashPick from 'lodash/pick';
+import React, {useEffect, useState} from 'react';
 
 function SearchAddApproverPage() {
     const styles = useThemeStyles();

@@ -1,18 +1,23 @@
-import type {ListRenderItem} from '@shopify/flash-list';
-import type {StoryFn} from '@storybook/react-webpack5';
-import React, {useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import MoneyRequestReportPreviewContent from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {StoryFn} from '@storybook/react-webpack5';
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';

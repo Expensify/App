@@ -1,9 +1,12 @@
-import React, {cloneElement} from 'react';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import getReturnValue from '@libs/getReturnValue';
 import mergeRefs from '@libs/mergeRefs';
-import ActiveHoverable from './ActiveHoverable';
+
+import React, {cloneElement} from 'react';
+
 import type HoverableProps from './types';
+
+import ActiveHoverable from './ActiveHoverable';
 
 /**
  * It is necessary to create a Hoverable component instead of relying solely on Pressable support for hover state,

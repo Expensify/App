@@ -1,8 +1,3 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
@@ -10,7 +5,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -21,12 +16,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+
 import {openDomainPage} from '@libs/actions/Domain';
 import {hasDomainAdminsErrors, hasDomainGroupsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +33,13 @@ import SCREENS from '@src/SCREENS';
 import {isAdminSelector} from '@src/selectors/Domain';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
 
 type DomainTopLevelScreens = keyof typeof DOMAIN_TO_RHP;
 
@@ -108,8 +113,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     }, [fetchDomainData]);
 
     useNetwork({onReconnect: fetchDomainData});
-
-    useConfirmReadyToOpenApp();
 
     const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
 

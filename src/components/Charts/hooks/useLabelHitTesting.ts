@@ -1,11 +1,15 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import type {SharedValue} from 'react-native-reanimated';
-import {useSharedValue} from 'react-native-reanimated';
-import type {Scale} from 'victory-native';
 import type {LabelRotation} from '@components/Charts/types';
 import {getAdditionalOffset, getFontLineMetrics, isCursorOverChartLabel, rotatedLabelYOffset} from '@components/Charts/utils';
 import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/VictoryTheme';
+
 import variables from '@styles/variables';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SharedValue} from 'react-native-reanimated';
+import type {Scale} from 'victory-native';
+
+import {useSharedValue} from 'react-native-reanimated';
+
 import type {HitTestArgs} from './useChartInteractions';
 
 type LabelHitGeometry = {
@@ -35,7 +39,7 @@ type LabelHitGeometry = {
 };
 
 type UseLabelHitTestingParams = {
-    fontMgr: SkTypefaceFontProvider | null | undefined;
+    fontManager: SkTypefaceFontProvider | null | undefined;
     fontSize: number;
     /** Pre-computed pixel widths of each truncated label, from useChartLabelLayout. */
     truncatedLabelWidths: number[];
@@ -57,12 +61,12 @@ type UseLabelHitTestingParams = {
  * Labels are right-aligned at the tick: the 45° parallelogram's upper-right corner is
  * offset by (iconSize/3 * sinA) left and down, placing the box just below the axis line.
  */
-function useLabelHitTesting({fontMgr, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, chartBottom}: UseLabelHitTestingParams) {
+function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, chartBottom}: UseLabelHitTestingParams) {
     const tickXPositions = useSharedValue<number[]>([]);
 
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
-    const fontMetrics = fontMgr ? getFontLineMetrics(fontMgr, fontSize) : null;
+    const fontMetrics = fontManager ? getFontLineMetrics(fontManager, fontSize) : null;
 
     let labelHitGeometry: LabelHitGeometry | null = null;
     if (fontMetrics) {

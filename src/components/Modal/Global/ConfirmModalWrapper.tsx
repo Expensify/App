@@ -1,11 +1,16 @@
-import React, {useState} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
+
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+
 import CONST from '@src/CONST';
-import {ModalActions} from './ModalContext';
+
+import React, {useState} from 'react';
+
 import type {ModalProps} from './ModalContext';
+
+import {ModalActions} from './ModalContext';
 
 type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
 

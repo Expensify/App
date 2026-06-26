@@ -1,5 +1,6 @@
-import {fs} from 'memfs';
 import type {FsPromisesApi} from 'memfs/lib/node/types';
+
+import {fs} from 'memfs';
 
 type PromisesMock = FsPromisesApi;
 

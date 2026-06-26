@@ -1,7 +1,10 @@
+import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+
 import React from 'react';
 import {Dimensions, View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
-import CONST from '@src/CONST';
+
 import SkeletonViewLines from './SkeletonViewLines';
 
 type ReportActionsSkeletonViewProps = {

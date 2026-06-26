@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
 import Icon from '@components/Icon';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TextWithIconCellProps = {
     icon: IconAsset;

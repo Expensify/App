@@ -1,5 +1,7 @@
 import {translateLocal} from '@libs/Localize';
+
 import CONST from '@src/CONST';
+
 import type {SearchOptionData} from './types';
 
 type SearchMatchConfig = {

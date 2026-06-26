@@ -1,10 +1,14 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
 
 function BlockingViewSubtitle({
     subtitle,

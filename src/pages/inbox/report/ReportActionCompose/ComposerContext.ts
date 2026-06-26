@@ -1,13 +1,19 @@
-import type {RefObject} from 'react';
-import {createContext, useContext} from 'react';
-import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import type {TextSelection} from '@components/Composer/types';
 import type {Mention} from '@components/MentionSuggestions';
+
 import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {RefObject} from 'react';
+import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
+
+import {createContext, useContext} from 'react';
+
 import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import type useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 

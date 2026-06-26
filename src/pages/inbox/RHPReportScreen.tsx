@@ -1,7 +1,10 @@
-import React from 'react';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
+
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import ReportScreen from './ReportScreen';
 
 type PageProps = PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;

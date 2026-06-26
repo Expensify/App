@@ -1,15 +1,21 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
 type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
@@ -156,7 +162,7 @@ export default function WorkspaceCategoriesTable({
             {isEmpty && EmptyStateComponent}
             {!isEmpty && (
                 <>
-                    {categories.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.categories.findCategory')} />}
+                    <Table.FilterBar label={translate('workspace.categories.findCategory')} />
                     <Table.Header />
                     <Table.Body />
                 </>

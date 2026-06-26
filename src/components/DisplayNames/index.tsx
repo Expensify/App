@@ -1,10 +1,14 @@
-import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
+
+import React, {useMemo} from 'react';
+
+import type DisplayNamesProps from './types';
+
 import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
 import DisplayNamesWithToolTip from './DisplayNamesWithTooltip';
-import type DisplayNamesProps from './types';
 
 function DisplayNames({
     fullTitle,

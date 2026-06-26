@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Possible states of an export download */
 type ExportDownloadState = ValueOf<typeof CONST.EXPORT_DOWNLOAD.STATE>;

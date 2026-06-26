@@ -1,8 +1,6 @@
-import {format, parseISO} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
@@ -10,6 +8,13 @@ import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {format, parseISO} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
+import DateUtils from './DateUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
@@ -342,15 +347,31 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 }
 
 /**
+ * Returns whether the distance custom unit rate ID is unset or represents a non-workspace rate (P2P or placeholder).
+ */
+function isUnsetDistanceCustomUnitRateID(customUnitRateID: string | undefined): boolean {
+    if (!customUnitRateID) {
+        return true;
+    }
+
+    return customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || customUnitRateID === CONST.CUSTOM_UNITS.UNSET_DISTANCE_RATE_ID;
+}
+
+/**
  * Checks if a mileage rate is eligible for a given expense date.
  * A rate is eligible if the date falls within its startDate/endDate bounds (inclusive).
  * Missing bounds mean unbounded in that direction.
  */
 function isRateEligibleForDate(rate: MileageRate, expenseDate: string): boolean {
-    if (rate.startDate && expenseDate < rate.startDate) {
+    const normalizedExpenseDate = DateUtils.formatWithUTCTimeZone(expenseDate, CONST.DATE.FNS_FORMAT_STRING);
+    if (!normalizedExpenseDate) {
+        return true;
+    }
+
+    if (rate.startDate && normalizedExpenseDate < rate.startDate) {
         return false;
     }
-    if (rate.endDate && expenseDate > rate.endDate) {
+    if (rate.endDate && normalizedExpenseDate > rate.endDate) {
         return false;
     }
     return true;
@@ -577,18 +598,10 @@ function getRate({
  * For example, if an expense is '10 mi @ $1.00 / mi' and the rate is updated to '$1.00 / km',
  * then the updated distance unit should be 'km' from the updated rate, not 'mi' from the currently stored transaction distance unit.
  */
-function getUpdatedDistanceUnit({
-    transaction,
-    policy,
-    policyDraft,
-    personalPolicyOutputCurrency,
-}: {
-    transaction: OnyxEntry<Transaction>;
-    policy: OnyxEntry<Policy>;
-    policyDraft?: OnyxEntry<Policy>;
-    personalPolicyOutputCurrency?: string;
-}) {
-    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, personalPolicyOutputCurrency}).unit;
+function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
+    // The distance unit doesn't depend on the currency (the rate is selected by ID/P2P, not currency), so
+    // personalPolicyOutputCurrency isn't accepted here and is passed as undefined to getRate.
+    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, personalPolicyOutputCurrency: undefined}).unit;
 }
 
 /**
@@ -597,6 +610,30 @@ function getUpdatedDistanceUnit({
  */
 function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID: string; policy: OnyxEntry<Policy>}): MileageRate | undefined {
     return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
+}
+
+/**
+ * Returns whether the selected custom unit rate is out of its valid date range for the given expense date.
+ */
+function isCustomUnitRateOutOfDateRange({
+    customUnitRateID,
+    policy,
+    expenseDate,
+}: {
+    customUnitRateID: string | undefined;
+    policy: OnyxEntry<Policy>;
+    expenseDate: string | undefined;
+}): boolean {
+    if (!expenseDate || isUnsetDistanceCustomUnitRateID(customUnitRateID) || !policy?.customUnits || !customUnitRateID) {
+        return false;
+    }
+
+    const mileageRate = getRateByCustomUnitRateID({customUnitRateID, policy});
+    if (!mileageRate || mileageRate.enabled === false) {
+        return false;
+    }
+
+    return !isRateEligibleForDate(mileageRate, expenseDate);
 }
 
 /**
@@ -681,7 +718,9 @@ export default {
     isDistanceAmountWithinLimit,
     normalizeOdometerText,
     prepareTextForDisplay,
+    isCustomUnitRateOutOfDateRange,
     isRateEligibleForDate,
+    isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,
     getRateDateLabel,
 };

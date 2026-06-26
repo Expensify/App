@@ -1,7 +1,10 @@
-import type {RefObject} from 'react';
 import type {ComposerRef} from '@components/Composer/types';
+
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 

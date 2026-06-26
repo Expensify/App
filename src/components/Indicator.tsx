@@ -1,7 +1,8 @@
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
 
 function Indicator() {
     const styles = useThemeStyles();

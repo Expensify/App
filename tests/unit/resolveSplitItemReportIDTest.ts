@@ -1,9 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {resolveSplitItemReportID} from '@libs/actions/IOU/SplitExpenseItems';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 const SELF_DM_CONTEXT_REPORT_ID = 'selfDM-1';
 const SELF_DM_FALLBACK_REPORT_ID = 'selfDM-fallback';

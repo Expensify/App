@@ -1,21 +1,25 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetSamlEnabledError, resetSamlRequiredError, setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {addLeadingForwardSlash} from '@libs/Url';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {domainMemberSettingsSelector, domainSamlSettingsStateSelector, metaIdentitySelector} from '@src/selectors/Domain';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type SamlLoginSectionContentProps = {
     /** The unique identifier for the domain. */

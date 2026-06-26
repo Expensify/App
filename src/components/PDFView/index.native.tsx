@@ -1,10 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, Linking, View} from 'react-native';
-import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,13 +10,23 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import PDFPasswordForm from './PDFPasswordForm';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Keyboard, Linking, View} from 'react-native';
+import PDF from 'react-native-pdf';
+
 import type {PDFViewNativeProps} from './types';
+
+import PDFPasswordForm from './PDFPasswordForm';
 
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is

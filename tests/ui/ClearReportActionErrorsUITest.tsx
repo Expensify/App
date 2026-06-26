@@ -1,22 +1,27 @@
-import {PortalProvider} from '@gorhom/portal';
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {setHasRadio} from '@libs/NetworkState';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -81,22 +86,20 @@ describe('ClearReportActionErrors UI', () => {
     function renderReportActionItem(action: ReportAction, report: Report) {
         return render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                <OptionsListContextProvider>
-                    <ScreenWrapper testID="test">
-                        <PortalProvider>
-                            <ReportActionItem
-                                report={report}
-                                chatReport={undefined}
-                                transactionThreadReport={undefined}
-                                parentReportAction={undefined}
-                                action={action}
-                                displayAsGroup={false}
-                                shouldDisplayNewMarker={false}
-                                isFirstVisibleReportAction={false}
-                            />
-                        </PortalProvider>
-                    </ScreenWrapper>
-                </OptionsListContextProvider>
+                <ScreenWrapper testID="test">
+                    <PortalProvider>
+                        <ReportActionItem
+                            report={report}
+                            chatReport={undefined}
+                            transactionThreadReport={undefined}
+                            parentReportAction={undefined}
+                            action={action}
+                            displayAsGroup={false}
+                            shouldDisplayNewMarker={false}
+                            isFirstVisibleReportAction={false}
+                        />
+                    </PortalProvider>
+                </ScreenWrapper>
             </ComposeProviders>,
         );
     }

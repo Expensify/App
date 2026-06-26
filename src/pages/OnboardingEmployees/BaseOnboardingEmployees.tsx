@@ -1,4 +1,3 @@
-import React, {useCallback, useMemo, useState} from 'react';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,19 +6,26 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import {getPreviousOnboardingRoute} from '@libs/getOnboardingStepCounter';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {setOnboardingCompanySize} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React, {useCallback, useMemo, useState} from 'react';
+
 import type {BaseOnboardingEmployeesProps} from './types';
 
 type OnboardingListItem = ListItem & {
@@ -47,8 +53,16 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
             purposeSelected: purposeSelected ?? undefined,
             isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
+            isAccountValidated: !!account?.validated,
         }),
-        [account?.hasAccessibleDomainPolicies, account?.isFromPublicDomain, onboardingValues?.isMergeAccountStepSkipped, onboardingValues?.signupQualifier, purposeSelected],
+        [
+            account?.hasAccessibleDomainPolicies,
+            account?.isFromPublicDomain,
+            account?.validated,
+            onboardingValues?.isMergeAccountStepSkipped,
+            onboardingValues?.signupQualifier,
+            purposeSelected,
+        ],
     );
 
     const handleBackButtonPress = useCallback(() => {

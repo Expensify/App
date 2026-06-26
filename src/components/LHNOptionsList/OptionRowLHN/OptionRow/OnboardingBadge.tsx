@@ -1,11 +1,16 @@
-import React from 'react';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {OptionData} from '@libs/ReportUtils';
 import {isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils} from '@libs/ReportUtils';
+
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 type OnboardingBadgeProps = {
     /** The option data for the report row this badge belongs to. Used to determine whether the report is the onboarding chat. */

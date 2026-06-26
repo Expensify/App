@@ -1,8 +1,10 @@
-import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {CSSProperties} from 'react';
+
+import React from 'react';
 import SkeletonViewContentLoader from 'react-content-loader';
 import {StyleSheet} from 'react-native';
+
 import type SkeletonViewContentLoaderProps from './types';
 
 function ContentLoader({style, ...props}: SkeletonViewContentLoaderProps) {

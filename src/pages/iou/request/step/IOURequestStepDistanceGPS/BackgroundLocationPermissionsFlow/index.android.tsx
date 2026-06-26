@@ -1,10 +1,13 @@
+import ConfirmModal from '@components/ConfirmModal';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+
 import {getBackgroundPermissionsAsync, getForegroundPermissionsAsync, PermissionStatus, requestBackgroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
 import React, {useEffect, useState} from 'react';
 import {Linking} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+
 import type BackgroundLocationPermissionsFlowProps from './types';
 
 async function requestForegroundPermissions({

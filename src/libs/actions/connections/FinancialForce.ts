@@ -1,14 +1,18 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import {openLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus, FinancialForceReportExportStatus} from '@src/types/onyx/Policy';
+
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function prepareOnyxDataForFinancialForceCodingUpdate<K extends keyof FinancialForceConnectionConfig['coding']>(
     policyID: string,
@@ -509,7 +513,7 @@ function updateFinancialForceParentTagMapping(
         parentTagMapping,
         previousValue ?? undefined,
     );
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, parentTagMapping}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, mappingType: parentTagMapping}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, previousValue?: boolean) {

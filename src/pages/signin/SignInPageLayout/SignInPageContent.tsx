@@ -1,16 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
 import ExpensifyWordmark from '@components/ExpensifyWordmark';
 import FormElement from '@components/FormElement';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import SignInHeroImage from './SignInHeroImage';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {SignInPageLayoutProps} from './types';
+
+import SignInHeroImage from './SignInHeroImage';
 
 type SignInPageContentProps = Pick<SignInPageLayoutProps, 'welcomeText' | 'welcomeHeader' | 'shouldShowWelcomeText' | 'shouldShowWelcomeHeader'> & {
     /** The children to show inside the layout */

@@ -1,10 +1,3 @@
-import {Str} from 'expensify-common';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as ScrollViewRN} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -12,20 +5,32 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 import UserPills from '@components/UserPills';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as ScrollViewRN} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type ApprovalWorkflowEditorProps = {
     /** The approval workflow to display */

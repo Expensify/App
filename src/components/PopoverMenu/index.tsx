@@ -1,8 +1,3 @@
-import {deepEqual} from 'fast-equals';
-import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -14,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -25,16 +21,27 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+
 import variables from '@styles/variables';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode, RefObject} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {deepEqual} from 'fast-equals';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 type PopoverMenuItem = MenuItemProps & {
     /** Text label */

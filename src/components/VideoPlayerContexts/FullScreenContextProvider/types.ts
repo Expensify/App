@@ -1,6 +1,7 @@
-import type {RefObject} from 'react';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type WindowDimensions from '@hooks/useWindowDimensions/types';
+
+import type {RefObject} from 'react';
 
 type ResponsiveLayoutProperties = WindowDimensions & {
     responsiveLayoutResults: Partial<ResponsiveLayoutResult>;
@@ -8,6 +9,9 @@ type ResponsiveLayoutProperties = WindowDimensions & {
 
 type FullScreenStateContextType = {
     /** Whether the application is currently in fullscreen mode. */
+    isFullScreen: boolean;
+
+    /** Ref that always reflects the current fullscreen state without triggering re-renders. */
     isFullScreenRef: RefObject<boolean>;
 
     /** Window dimensions saved before entering fullscreen mode. */
@@ -20,6 +24,9 @@ type FullScreenActionsContextType = {
 
     /** Clears the locked window dimensions. */
     unlockWindowDimensions: () => void;
+
+    /** Updates fullscreen state. */
+    setIsFullScreen: (next: boolean) => void;
 };
 
 export type {ResponsiveLayoutProperties, FullScreenStateContextType, FullScreenActionsContextType};

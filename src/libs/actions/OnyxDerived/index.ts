@@ -1,3 +1,11 @@
+import Log from '@libs/Log';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
 /**
  * This file contains logic for derived Onyx keys. The idea behind derived keys is that if there is a common computation
  * that we're doing in many places across the app to derive some value from multiple Onyx values, we can move that
@@ -8,14 +16,10 @@
 import Onyx from 'react-native-onyx';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import Log from '@libs/Log';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
-import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
+
 import type {DerivedValueContext} from './types';
+
+import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import {setDerivedValue} from './utils';
 
 /**

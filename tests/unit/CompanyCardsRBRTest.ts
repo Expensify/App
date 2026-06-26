@@ -1,10 +1,12 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import cardFeedErrorsConfig from '@src/libs/actions/OnyxDerived/configs/cardFeedErrors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, WorkspaceCardsList} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
     currentValue: undefined,

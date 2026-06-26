@@ -1,9 +1,12 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
+
+import type {PropsWithChildren} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
+
+import React from 'react';
 
 describe('PopoverMenu utils', () => {
     const menuItems: PopoverMenuItem[] = [

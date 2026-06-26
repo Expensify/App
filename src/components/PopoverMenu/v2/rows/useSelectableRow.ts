@@ -1,9 +1,12 @@
-import type {RefObject} from 'react';
-import type {View} from 'react-native';
 import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
+
 import {createCustomEvent} from '@libs/CustomEventUtils';
 import type {CustomEvent} from '@libs/CustomEventUtils';
+
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+
 import useFocusableRow from './useFocusableRow';
 
 const HOOK_NAME = 'useSelectableRow';

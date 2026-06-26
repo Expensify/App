@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import type GetAmountInputKeyboard from './type';
 
 const getAmountInputKeyboard: GetAmountInputKeyboard = (shouldAllowNegative = false) => {

@@ -61,7 +61,7 @@ No. Any workspace can use Expensify Travel, regardless of whether the Expensify 
 
 ## Why can’t I turn off Travel?
 
-If **Travel Invoicing** is enabled for your workspace, the **Travel** toggle in **More features** is locked, because Travel Invoicing requires Travel to stay on. When you press the locked toggle, a message appears asking you to turn off Travel Invoicing first.
+If **Consolidated Travel Billing** is enabled for your workspace, the **Travel** toggle in **More features** is locked, because Consolidated Travel Billing requires Travel to stay on. When you press the locked toggle, a message appears asking you to turn off Consolidated Travel Billing first.
 
 To turn off Travel:
 
@@ -69,7 +69,7 @@ To turn off Travel:
 2. Click your workspace name to access the settings for that workspace.
 3. In the left menu, click **More Features**.
 4. Press the locked **Travel** toggle, then click **Go to Travel settings**.
-5. In the **Travel Invoicing** section, switch the toggle off.
+5. In the **Consolidated Travel Billing** section, switch the toggle off.
 6. Return to **More features** and toggle off **Travel**.
 
-Learn more about [Travel Invoicing](/articles/travel/travel-invoicing/Enable-Travel-Invoicing-in-a-Workspace).
+Learn more about [Consolidated Travel Billing](/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace).

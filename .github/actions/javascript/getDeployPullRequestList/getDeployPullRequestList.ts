@@ -1,9 +1,10 @@
-import * as core from '@actions/core';
-import * as github from '@actions/github';
 import {getJSONInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
+
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 
 async function run() {
     try {

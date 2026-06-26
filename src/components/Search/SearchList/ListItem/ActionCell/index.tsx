@@ -1,18 +1,24 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+
 import actionTranslationsMap from './actionTranslationsMap';
 import PayActionCell from './PayActionCell';
 
@@ -85,7 +91,6 @@ function ActionCell({
                 reportID={reportID}
                 hash={hash}
                 amount={amount}
-                extraSmall={extraSmall}
                 shouldDisablePointerEvents={shouldDisablePointerEvents}
                 chatReport={chatReport}
             />

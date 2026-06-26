@@ -1,14 +1,17 @@
-/**
- * @jest-environment node
- */
-import * as core from '@actions/core';
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
-import {when} from 'jest-when';
 import ghAction from '@github/actions/javascript/postOrReplaceComment/postOrReplaceComment';
 import CONST from '@github/libs/CONST';
 import type {CreateCommentResponse} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
+
 import asMutable from '@src/types/utils/asMutable';
+
+import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
+
+/**
+ * @jest-environment node
+ */
+import * as core from '@actions/core';
+import {when} from 'jest-when';
 
 const mockGetInput = jest.fn();
 const createCommentMock = jest.spyOn(GithubUtils, 'createComment');

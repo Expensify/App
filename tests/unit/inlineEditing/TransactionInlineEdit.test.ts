@@ -1,5 +1,6 @@
 import type {TransactionEditPermissions, TransactionEditPermissionsParams} from '@libs/actions/TransactionInlineEdit';
 import {getTransactionEditPermissions} from '@libs/actions/TransactionInlineEdit';
+
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 

@@ -1,10 +1,13 @@
-import React, {useEffect, useMemo, useState} from 'react';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
+
 import type {AttachmentContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useEffect, useMemo, useState} from 'react';
 
 const convertFileToAttachment = (file: FileObject | undefined, index: number): Attachment => {
     if (!file) {

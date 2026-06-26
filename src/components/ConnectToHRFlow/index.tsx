@@ -1,6 +1,9 @@
-import {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
+
 import {openLink} from '@userActions/Link';
+
+import {useEffect} from 'react';
+
 import type ConnectToHRFlowProps from './types';
 
 function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {

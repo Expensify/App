@@ -1,7 +1,9 @@
-import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import type {MultifactorAuthenticationCancelConfirm} from '@components/MultifactorAuthentication/config/types';
+
 import useLocalize from '@hooks/useLocalize';
+
+import React from 'react';
 
 type BaseProps = Required<MultifactorAuthenticationCancelConfirm>;
 

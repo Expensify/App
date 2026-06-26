@@ -1,22 +1,30 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+
 import {clearPolicyAgentRuleErrors} from '@userActions/Policy/Rules';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type AgentRulesSectionProps = {
     policyID: string;
@@ -30,9 +38,18 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
+    const personalDetailsList = usePersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const agentRules = policy?.rules?.agentRules;
     const hasRules = !isEmptyObject(agentRules);
+
+    // RuleBot is the agent the backend provisions on the first Agent rule and stores on the policy.
+    const ruleBotAccountID = policy?.ruleBotAccountID;
+    const ruleBot = ruleBotAccountID ? personalDetailsList?.[ruleBotAccountID] : undefined;
+    const ruleBotDisplayName = ruleBot?.displayName ?? ruleBot?.login ?? translate('workspace.rules.agentRules.ruleBotName');
+
+    // ruleBotAccountID stays set on the policy after RuleBot is removed from the workspace, so also require it to still be an active member before showing the "enforced by" line.
+    const isRuleBotActiveMember = isPolicyMemberWithoutPendingDelete(ruleBot?.login, policy);
 
     const sortedRules = Object.entries(agentRules ?? {})
         .filter(([, rule]) => !!rule)
@@ -59,12 +76,29 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
         </View>
     );
 
+    const renderSubtitle = () => (
+        <View style={[styles.mt2, styles.gap2]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.agentRules.subtitle')}</Text>
+            {!!ruleBotAccountID && isRuleBotActiveMember && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1Half]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.agentRules.enforcedBy')}</Text>
+                    <UserPill
+                        accountID={ruleBotAccountID}
+                        avatar={ruleBot?.avatar}
+                        displayName={ruleBotDisplayName}
+                        email={ruleBot?.login}
+                        style={styles.flexShrink1}
+                    />
+                </View>
+            )}
+        </View>
+    );
+
     return (
         <Section
             isCentralPane
             renderTitle={renderTitle}
-            subtitle={translate('workspace.rules.agentRules.subtitle')}
-            subtitleMuted
+            renderSubtitle={renderSubtitle}
             childrenStyles={[styles.gap3]}
         >
             {hasRules && (

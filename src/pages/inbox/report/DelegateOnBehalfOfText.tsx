@@ -1,12 +1,15 @@
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
-import React from 'react';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import React from 'react';
 
 type DelegateOnBehalfOfTextFallbackProps = {
     /** Fallback login looked up in the personal-details map when the account ID is not yet hydrated. */

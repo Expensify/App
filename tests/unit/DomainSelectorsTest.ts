@@ -1,3 +1,9 @@
+import CONST from '@src/CONST';
+import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {
     accountLockSelector,
     adminAccountIDsSelector,
@@ -17,10 +23,6 @@ import {
     technicalContactSettingsSelector,
     vacationDelegateSelector,
 } from '@selectors/Domain';
-import type {OnyxEntry} from 'react-native-onyx';
-import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
-import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 describe('domainSelectors', () => {
     const userID1 = 123;

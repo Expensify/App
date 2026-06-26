@@ -1,5 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +6,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,9 +14,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {close} from '@libs/actions/Modal';
 import {cleanPolicyTags, downloadMultiLevelTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -29,13 +30,18 @@ import {
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 
 type ImportTagsOptionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS>;
 
@@ -56,6 +62,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const workspaceTagsImportPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
@@ -164,11 +171,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     danger: true,
                 });
                 if (action === ModalActions.CONFIRM) {
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                    );
+                    Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath);
                 } else {
                     setImportedSpreadsheetIsImportingMultiLevelTags(false);
                 }
@@ -184,9 +187,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     cleanPolicyTags(policyID);
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         Navigation.navigate(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                            isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath,
                         );
                     });
                 } else {
@@ -194,11 +195,20 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 }
             }
         } else {
-            Navigation.navigate(
-                isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-            );
+            Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath);
         }
-    }, [hasVisibleTags, isMultiLevelTags, showConfirmModal, translate, overrideMultiTagPrompt, isQuickSettingsFlow, policyID, backTo, switchSingleToMultiLevelTagPrompt]);
+    }, [
+        hasVisibleTags,
+        isMultiLevelTags,
+        showConfirmModal,
+        translate,
+        overrideMultiTagPrompt,
+        isQuickSettingsFlow,
+        policyID,
+        backTo,
+        switchSingleToMultiLevelTagPrompt,
+        workspaceTagsImportPath,
+    ]);
 
     useFocusEffect(
         useCallback(() => {
@@ -255,7 +265,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                         Navigation.navigate(
                                             isQuickSettingsFlow
                                                 ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                                                : workspaceTagsImportPath,
                                         );
                                     });
                                 } else {
@@ -263,9 +273,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                 }
                             } else {
                                 Navigation.navigate(
-                                    isQuickSettingsFlow
-                                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                                    isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath,
                                 );
                             }
                         }}

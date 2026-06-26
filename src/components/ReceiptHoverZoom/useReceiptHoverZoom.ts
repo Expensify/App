@@ -1,7 +1,9 @@
-import {useEffect, useRef, useState} from 'react';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
+import {useEffect, useRef, useState} from 'react';
 
 type UseReceiptHoverZoomConfig = {
     isEnabled: boolean;

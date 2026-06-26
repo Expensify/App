@@ -1,11 +1,15 @@
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import CountrySelection from '@pages/settings/Wallet/BankAccountPurposePage/substeps/CountrySelection';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
+
 import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 jest.mock('@components/FormAlertWithSubmitButton', () => jest.fn(() => null));
 jest.mock('@pages/settings/Wallet/CountrySelectionList', () => jest.fn(() => null));

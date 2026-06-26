@@ -1,5 +1,6 @@
-import * as core from '@actions/core';
 import GithubUtils from '@github/libs/GithubUtils';
+
+import * as core from '@actions/core';
 
 const run = function (): Promise<void> {
     const artifactName = core.getInput('ARTIFACT_NAME', {required: true});

@@ -1,10 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/navigateAfterExpenseCreate', () => jest.fn());
@@ -40,6 +42,7 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
         expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
             draftTransactionIDs: ['txn-1'],
             linkedTrackedExpenseReportAction,
+            shouldWaitForUpcomingTransition: true,
         });
         expect(navigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
     });
@@ -220,14 +223,32 @@ describe('cleanupAndNavigateAfterExpenseCreate', () => {
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
         });
 
-        it('should be false for CREATE when backToReport diverts navigation away from the receiving chat', () => {
+        it('should be true for CREATE when backToReport is the receiving chat (report-preview "Add expense" returns to the chat whose preview card shows the new expense)', () => {
+            jest.mocked(isMoneyRequestReport).mockReturnValue(false);
+
             cleanupAndNavigateAfterExpenseCreate({
                 action: CONST.IOU.ACTION.CREATE,
                 report: chatReport,
                 draftTransactionIDs: [],
                 transactionID: 'txn-1',
                 isFromGlobalCreate: false,
-                backToReport: 'somewhere-else',
+                backToReport: 'receiving-chat',
+            });
+
+            expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: true}));
+        });
+
+        it('should be false for CREATE when backToReport points to a money-request (expense) report that highlights via its own live diff', () => {
+            jest.mocked(getReportOrDraftReport).mockReturnValue(expenseReport);
+            jest.mocked(isMoneyRequestReport).mockReturnValue(true);
+
+            cleanupAndNavigateAfterExpenseCreate({
+                action: CONST.IOU.ACTION.CREATE,
+                report: chatReport,
+                draftTransactionIDs: [],
+                transactionID: 'txn-1',
+                isFromGlobalCreate: false,
+                backToReport: 'back-expense',
             });
 
             expect(navigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({shouldAddPendingNewTransactionIDs: false}));

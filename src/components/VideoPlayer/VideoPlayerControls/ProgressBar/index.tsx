@@ -1,11 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {LayoutChangeEvent} from 'react-native';
 import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+
+import React, {useEffect, useState} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type ProgressBarProps = {
     /** Total duration of a video. */

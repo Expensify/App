@@ -1,7 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 

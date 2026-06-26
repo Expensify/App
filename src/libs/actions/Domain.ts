@@ -1,7 +1,5 @@
-import {Num} from 'expensify-common';
-import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {
     AddAdminToDomainParams,
@@ -27,6 +25,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
@@ -35,7 +34,14 @@ import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+
+import {Num} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
+
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
 /**

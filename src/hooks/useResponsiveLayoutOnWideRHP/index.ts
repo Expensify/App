@@ -1,6 +1,9 @@
-import {useRoute} from '@react-navigation/native';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import {useRoute} from '@react-navigation/native';
+
 import type ResponsiveLayoutOnWideRHPResult from './types';
 
 /**

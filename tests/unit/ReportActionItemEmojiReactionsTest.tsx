@@ -5,10 +5,14 @@
  * consumed by EmojiReactionBubble.
  */
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
+
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
+
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
+
+import React from 'react';
 
 const USER_ACCOUNT_ID = 12345;
 const USER_ID_KEY = String(USER_ACCOUNT_ID);

@@ -1,9 +1,11 @@
-import React from 'react';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+
 import type {ForwardedRef} from 'react';
+import type {ScrollViewProps as RNScrollViewProps} from 'react-native';
+
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView as RNScrollView} from 'react-native';
-import type {ScrollViewProps as RNScrollViewProps} from 'react-native';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 
 type ScrollViewProps = RNScrollViewProps & {
     /** Whether to add bottom safe area padding to the content. */

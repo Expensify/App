@@ -1,12 +1,17 @@
-import React from 'react';
 import {ChartFontsProvider} from '@components/Charts/hooks';
 import useChartFonts from '@components/Charts/hooks/useChartFonts';
+import getVictoryChartTreeTypeface from '@components/Charts/utils/getVictoryChartTreeTypeface';
+
 import Log from '@libs/Log';
+
+import React from 'react';
+
+import type {VictoryChartRendererProps} from './types';
+
 import VictoryChartContainer from './components/VictoryChartContainer';
 import VictoryChartContent from './components/VictoryChartContent';
 import {VictoryChartProvider} from './context/VictoryChartContext';
 import processVictoryChartTree from './parsers/processVictoryChartTree';
-import type {VictoryChartRendererProps} from './types';
 import resolveVictoryChartType from './utils/resolveVictoryChartType';
 
 function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
@@ -14,7 +19,7 @@ function BaseVictoryChartRenderer({tnode}: VictoryChartRendererProps) {
 
     let processedResult;
     try {
-        processedResult = processVictoryChartTree(tnode, fonts.typefaces.EXP_NEUE, null);
+        processedResult = processVictoryChartTree(tnode, getVictoryChartTreeTypeface(fonts.typefaces), null);
     } catch (error) {
         // Malformed chart HTML can make a parser throw. Fail closed (render nothing) instead of crashing the whole report.
         Log.warn('[VictoryChartRenderer] Failed to process chart tree from malformed HTML', {error});

@@ -1,11 +1,14 @@
-import Onyx from 'react-native-onyx';
 import {updateXeroTravelInvoicingPayableAccount} from '@libs/actions/connections/Xero';
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxData} from '@src/types/onyx/Request';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');

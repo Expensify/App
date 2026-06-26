@@ -1,12 +1,14 @@
-import React from 'react';
-import {View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function AccessMoneyRequestReportPreviewPlaceHolder() {
     const icons = useMemoizedLazyExpensifyIcons(['EyeDisabled']);

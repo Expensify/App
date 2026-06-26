@@ -1,11 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
-import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
-import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import ImageSize from 'react-native-image-size';
-import {interpolate, useSharedValue} from 'react-native-reanimated';
-import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,17 +7,31 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
+import ImageSize from 'react-native-image-size';
+import {interpolate, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
+
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
 
@@ -382,11 +388,11 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     onBackButtonPress={onClose}
                 />
                 <Text style={[styles.mh5]}>{translate('avatarCropModal.description')}</Text>
-                <View
-                    style={[styles.flex1, styles.m5, styles.alignSelfStretch]}
-                    onLayout={initializeImageContainer}
-                >
-                    <GestureHandlerRootView style={[styles.flex1, styles.alignItemsCenter]}>
+                <GestureHandlerRootView style={[styles.flex1]}>
+                    <View
+                        style={[styles.flex1, styles.m5, styles.alignSelfStretch, styles.alignItemsCenter]}
+                        onLayout={initializeImageContainer}
+                    >
                         {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
                         {!isImageInitialized || !isImageContainerInitialized ? (
                             <ActivityIndicator
@@ -450,8 +456,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                 </View>
                             </>
                         )}
-                    </GestureHandlerRootView>
-                </View>
+                    </View>
+                </GestureHandlerRootView>
                 <Button
                     success
                     style={[styles.m5]}

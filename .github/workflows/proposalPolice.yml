@@ -6,7 +6,7 @@ on:
 jobs:
   proposal-police-workflow:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    if: "!contains(fromJSON('[\"OSBotify\", \"imgbot[bot]\", \"melvin-bot[bot]\", \"codecov[bot]\"]'), github.actor)"
+    if: '!contains(fromJSON(''["OSBotify", "imgbot[bot]", "melvin-bot[bot]", "codecov[bot]"]''), github.actor)'
     steps:
       - uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 

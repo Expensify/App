@@ -1,6 +1,8 @@
-import React from 'react';
 import CountryFullStep from '@components/SubStepForms/CountryFullStep';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+
+import React from 'react';
 
 function Country({onBackButtonPress, onSubmit, stepNames, policyID, isComingFromExpensifyCard}: NonUSDPageProps) {
     return (

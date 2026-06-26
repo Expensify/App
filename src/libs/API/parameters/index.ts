@@ -24,6 +24,7 @@ export type {default as ConnectPolicyToAccountingIntegrationParams} from './Conn
 export type {default as ConnectPolicyToGustoParams} from './ConnectPolicyToGustoParams';
 export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMergeParams';
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
+export type {default as ConnectPolicyToRilletParams} from './ConnectPolicyToRilletParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as SyncPolicyToGustoParams} from './SyncPolicyToGustoParams';
@@ -33,6 +34,11 @@ export type {default as SyncPolicyToFinancialForceParams} from './SyncPolicyToFi
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
+export type {default as SyncPolicyToRilletParams} from './SyncPolicyToRilletParams';
+export type {default as UpdateRilletSubsidiaryParams} from './UpdateRilletSubsidiaryParams';
+export type {default as UpdateRilletEnableNewCategoriesParams} from './UpdateRilletEnableNewCategoriesParams';
+export type {default as UpdateRilletSyncTaxRatesParams} from './UpdateRilletSyncTaxRatesParams';
+export type {default as UpdateRilletFieldMappingParams} from './UpdateRilletFieldMappingParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
@@ -87,7 +93,6 @@ export type {default as ResolveActionableMentionWhisperParams} from './ResolveAc
 export type {default as ChangePolicyUberBillingAccountPageParams} from './ChangePolicyUberBillingAccountPageParams';
 export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
-export type {default as RevealExpensifyCardDetailsWithSCAParams} from './RevealExpensifyCardDetailsWithSCAParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SearchForUsersParams} from './SearchForUsersParams';
@@ -329,7 +334,6 @@ export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
 export type {default as DowngradeToTeamParams} from './DowngradeToTeamParams';
 export type {default as RejectMoneyRequestInBulkParams} from './RejectMoneyRequestInBulkParams';
-export type {default as ApproveMoneyRequestOnSearchParams} from './ApproveMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
 export type {default as DeletePolicyReportField} from './DeletePolicyReportField';
 export type {default as ConnectPolicyToNetSuiteParams} from './ConnectPolicyToNetSuiteParams';
@@ -441,6 +445,8 @@ export type {default as UpdateCardTransactionStartDateParams} from './UpdateCard
 export type {default as SetPersonalCardReimbursableParams} from './SetPersonalCardReimbursableParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
+export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
+export type {default as SetPersonalDetailsAndRevealExpensifyCardWithSCAParams} from './SetPersonalDetailsAndRevealExpensifyCardWithSCAParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsWithPINParams} from './SetPersonalDetailsAndShipExpensifyCardsWithPINParams';
 export type {default as RequestFeedSetupParams} from './RequestFeedSetupParams';
 export type {default as SetInvoicingTransferBankAccountParams} from './SetInvoicingTransferBankAccountParams';
@@ -499,7 +505,6 @@ export type {default as SetVacationDelegateParams} from './SetVacationDelegatePa
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
-export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
 export type {default as ExportSearchWithTemplateParams} from './ExportSearchWithTemplateParams';
 export type {default as QueueExportSearchItemsToCSVParams} from './QueueExportSearchItemsToCSVParams';
 export type {default as QueueExportSearchWithTemplateParams} from './QueueExportSearchWithTemplateParams';

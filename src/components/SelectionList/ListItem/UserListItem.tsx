@@ -1,9 +1,13 @@
-import React from 'react';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import SelectableListItem from './SelectableListItem';
+
+import React from 'react';
+
 import type {ListItem, UserListItemProps} from './types';
+
+import SelectableListItem from './SelectableListItem';
 import UserListItemContent from './UserListItemContent';
 
 /**

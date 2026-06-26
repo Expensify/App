@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
     paths:
-      - "src/libs/SearchParser/**"
+      - 'src/libs/SearchParser/**'
 
 jobs:
   verify:

@@ -1,18 +1,22 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isDM, isIOUReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};

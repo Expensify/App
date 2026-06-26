@@ -1,21 +1,28 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import WorkspaceUpgradePage from '@pages/workspace/upgrade/WorkspaceUpgradePage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

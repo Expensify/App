@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useSearchSections from '@hooks/useSearchSections';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -31,11 +33,6 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 
 jest.mock('@hooks/useActionLoadingReportIDs', () => ({
-    __esModule: true,
-    default: () => new Set(),
-}));
-
-jest.mock('@hooks/useArchivedReportsIDSet', () => ({
     __esModule: true,
     default: () => new Set(),
 }));

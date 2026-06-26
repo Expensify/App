@@ -1,5 +1,5 @@
-import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getDemotedFromWorkspaceMessage,
@@ -13,9 +13,13 @@ import {
     isUnapprovedAction,
 } from '@libs/ReportActionsUtils';
 import {getDeletedTransactionMessage, getPolicyChangeMessage} from '@libs/ReportUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import React from 'react';
 
 type SimpleMessageContentProps = {
     action: OnyxTypes.ReportAction;

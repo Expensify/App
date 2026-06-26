@@ -1,5 +1,3 @@
-import React, {useEffect} from 'react';
-import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,6 +5,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -16,13 +15,21 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, openAgentsPage} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import React, {useEffect} from 'react';
+import {FlatList, View} from 'react-native';
+
 import AgentsListRow from './AgentsListRow';
 
 type AgentItem = {
@@ -143,16 +150,16 @@ function AgentsPage() {
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
             {hasAgents ? (
-                <>
-                    <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
-                        <RenderHTML html={translate('agentsPage.subtitle')} />
-                    </View>
-                    <FlatList
-                        data={agentItems}
-                        renderItem={renderItem}
-                        keyExtractor={keyExtractor}
-                    />
-                </>
+                <FlatList
+                    data={agentItems}
+                    renderItem={renderItem}
+                    keyExtractor={keyExtractor}
+                    ListHeaderComponent={
+                        <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
+                            <RenderHTML html={translate('agentsPage.subtitle')} />
+                        </View>
+                    }
+                />
             ) : (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <GenericEmptyStateComponent

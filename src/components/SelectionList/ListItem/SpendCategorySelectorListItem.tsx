@@ -1,9 +1,14 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import BaseListItem from './BaseListItem';
+
+import React from 'react';
+
 import type {ListItem, SpendCategorySelectorListItemProps} from './types';
+
+import BaseListItem from './BaseListItem';
 
 /**
  * A menu-item row showing a category name under a spend group label. Used in workspace

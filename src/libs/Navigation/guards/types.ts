@@ -1,5 +1,6 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Route} from '@src/ROUTES';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
 
 /**
  * Result returned by a navigation guard after evaluation

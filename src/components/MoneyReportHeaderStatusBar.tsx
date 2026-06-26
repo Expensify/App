@@ -1,17 +1,23 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {buildNextStepMessage, parseMessage} from '@libs/NextStepUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 

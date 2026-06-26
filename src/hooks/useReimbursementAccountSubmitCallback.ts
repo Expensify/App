@@ -1,5 +1,7 @@
-import {useCallback, useEffect, useRef} from 'react';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useCallback, useEffect, useRef} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**
@@ -15,9 +17,18 @@ export default function useReimbursementAccountSubmitCallback(onSubmit?: () => v
     const isSubmittingRef = useRef(false);
 
     useEffect(() => {
-        if (!isSubmittingRef.current || reimbursementAccount?.isLoading || reimbursementAccount?.errors) {
+        if (!isSubmittingRef.current || reimbursementAccount?.isLoading) {
             return;
         }
+
+        // The request has settled. If it failed, disarm the pending flag so that a later
+        // state change that clears the error (e.g. on reconnect after connectivity change) can't resurrect
+        // this stale submit and wrongly advance to the next step.
+        if (reimbursementAccount?.errors) {
+            isSubmittingRef.current = false;
+            return;
+        }
+
         isSubmittingRef.current = false;
         onSubmit?.();
     }, [reimbursementAccount?.isLoading, reimbursementAccount?.errors, onSubmit]);

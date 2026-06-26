@@ -1,12 +1,16 @@
-import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+
+import React from 'react';
+
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';

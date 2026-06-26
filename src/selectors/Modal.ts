@@ -1,6 +1,7 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Modal} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const willAlertModalBecomeVisibleSelector = (modal: OnyxEntry<Modal>) => modal?.willAlertModalBecomeVisible;
 

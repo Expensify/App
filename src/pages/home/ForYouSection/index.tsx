@@ -1,22 +1,29 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTodoCounts from '@hooks/useTodoCounts';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {accountIDSelector} from '@src/selectors/Session';
-import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
@@ -33,16 +40,16 @@ function ForYouSection() {
     // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
     // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
-    const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
+    const isFocused = useIsFocused();
+    const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
-    const submitCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.SUBMIT] ?? 0;
-    const approveCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.APPROVE] ?? 0;
-    const payCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.PAY] ?? 0;
-    const exportCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.EXPORT] ?? 0;
+    const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
+    const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
+    const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
+    const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
 
     const hasAnyTodos = flaggedExpensesCount > 0 || submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
 
@@ -163,14 +170,13 @@ function ForYouSection() {
     );
 
     const renderContent = () => {
-        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData || reportCounts === undefined);
+        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData);
         if (isInitialLoad) {
             const reasonAttributes: SkeletonSpanReasonAttributes = {
                 context: 'ForYouSection.ForYouSkeleton',
                 isLoadingApp,
                 isLoadingReportData,
                 hasLoadedApp,
-                isReportCountsUndefined: reportCounts === undefined,
             };
             return <ForYouSkeleton reasonAttributes={reasonAttributes} />;
         }

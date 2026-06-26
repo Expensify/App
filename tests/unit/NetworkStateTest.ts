@@ -1,5 +1,3 @@
-import NetInfo from '@react-native-community/netinfo';
-import Onyx from 'react-native-onyx';
 import {
     getDBTimeWithSkew,
     getIsOffline,
@@ -14,6 +12,10 @@ import {
     subscribe,
 } from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import NetInfo from '@react-native-community/netinfo';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Log triggers a circular dep chain (NetworkState → Log → Network → SequentialQueue → NetworkState.subscribe())

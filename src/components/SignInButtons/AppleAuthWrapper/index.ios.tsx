@@ -1,8 +1,11 @@
+import useOnyx from '@hooks/useOnyx';
+
+import {signOut} from '@userActions/Session';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import appleAuth from '@invertase/react-native-apple-authentication';
 import {useEffect} from 'react';
-import useOnyx from '@hooks/useOnyx';
-import {signOut} from '@userActions/Session';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Apple Sign In wrapper for iOS

@@ -1,29 +1,37 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
-import type {TupleToUnion} from 'type-fest';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 import {isCurrencySupportedForGlobalReimbursement, updateGeneralSettings} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
+
+import type {TupleToUnion} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspaceOverviewCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;

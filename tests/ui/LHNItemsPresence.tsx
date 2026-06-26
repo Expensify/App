@@ -1,20 +1,27 @@
-import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {act, screen} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
-import Onyx from 'react-native-onyx';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import FontUtils from '@styles/utils/FontUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+
+import type * as reactNavigationNativeImport from '@react-navigation/native';
+import type {ComponentType} from 'react';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomReportAction from '../utils/collections/reportActions';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -426,10 +433,13 @@ describe('SidebarLinksData', () => {
         it('should display the unread report in the focus mode with the bold text', async () => {
             // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
+            // The last action must be by another user (account 2) so the report is genuinely unread.
+            // A report whose last action is the current user's own is treated as read (see isUnread in ReportUtils).
+            const OTHER_USER_ACCOUNT_ID = 2;
             const report: Report = {
                 ...createReport(undefined, undefined, undefined, undefined, undefined, true),
                 lastMessageText: 'fake last message',
-                lastActorAccountID: TEST_USER_ACCOUNT_ID,
+                lastActorAccountID: OTHER_USER_ACCOUNT_ID,
             };
 
             await initializeState({

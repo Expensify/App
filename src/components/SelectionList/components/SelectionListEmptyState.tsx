@@ -1,6 +1,8 @@
-import React from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import React from 'react';
 
 type SelectionListEmptyStateProps = {
     /** Whether to show the loading placeholder */

@@ -1,7 +1,3 @@
-import {format, toZonedTime} from 'date-fns-tz';
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,23 +9,34 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import Text from '@components/Text';
+
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setIssueNewCardData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryText, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
+
+import type {ValueOf} from 'type-fest';
+
+import {format, toZonedTime} from 'date-fns-tz';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type SetSpendRulesStepProps = {
     /* The policy that the card will be issued under */
@@ -49,6 +56,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const domainAccountID = useDefaultFundID(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
 
@@ -63,7 +71,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const isEditing = issueNewCard?.isEditing;
     const currencyCode = issueNewCard?.data?.currency ?? CONST.CURRENCY.USD;
     const isVirtualCard = issueNewCard?.data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
-    const isSpendRuleVisible = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
+    const isSpendRuleVisible = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
     const spendRuleID = issueNewCard?.data?.spendRuleID;
     const spendRuleForm = issueNewCard?.data.spendRuleValue ?? {};

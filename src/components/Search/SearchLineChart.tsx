@@ -1,8 +1,12 @@
-import React from 'react';
 import {LineChart} from '@components/Charts';
 import type {ChartDataPoint} from '@components/Charts';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
+
+import React from 'react';
+
 import type {SearchChartProps} from './types';
 
 function SearchLineChart({data, getLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {

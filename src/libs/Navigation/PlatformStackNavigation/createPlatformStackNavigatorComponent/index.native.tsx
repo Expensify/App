@@ -1,8 +1,3 @@
-import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
-import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
-import {NativeStackView} from '@react-navigation/native-stack';
-import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import React, {useMemo} from 'react';
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
@@ -13,6 +8,14 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
+import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
+
+import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
+import {NativeStackView} from '@react-navigation/native-stack';
+import React, {useMemo} from 'react';
+
 import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(

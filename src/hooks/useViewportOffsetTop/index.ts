@@ -1,5 +1,6 @@
-import {useSyncExternalStore} from 'react';
 import addViewportResizeListener from '@libs/VisualViewport';
+
+import {useSyncExternalStore} from 'react';
 
 /**
  * A hook that returns the offset of the top edge of the visual viewport

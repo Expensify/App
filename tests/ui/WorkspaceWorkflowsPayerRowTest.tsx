@@ -1,22 +1,30 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {BankAccountList, Policy} from '@src/types/onyx';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -137,22 +145,13 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 
-    it('hides the Payer row when reimbursementChoice is REIMBURSEMENT_MANUAL', async () => {
+    it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_MANUAL', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.merge(
                 `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
                 buildPolicy({
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                    achAccount: {
-                        reimburser: 'test@user.com',
-                        bankAccountID: 123456,
-                        accountNumber: '1234567890',
-                        routingNumber: '011000015',
-                        bankName: 'Test Bank',
-                        addressName: 'Test Address',
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    },
                 }),
             );
         });
@@ -160,7 +159,7 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).not.toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 
     it('shows the Payer row when reimbursementChoice is undefined (legacy workspaces)', async () => {

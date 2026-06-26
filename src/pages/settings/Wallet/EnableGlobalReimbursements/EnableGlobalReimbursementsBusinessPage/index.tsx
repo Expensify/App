@@ -1,24 +1,31 @@
-import React, {useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+
 import {getCorpayOnboardingFields} from '@libs/actions/BankAccounts';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
+
+import type {BusinessInfoSubPageProps} from './types';
+
 import AverageReimbursement from './subPages/AverageReimbursement';
 import BusinessType from './subPages/BusinessType';
 import Confirmation from './subPages/Confirmation';
 import PaymentVolume from './subPages/PaymentVolume';
 import RegistrationNumber from './subPages/RegistrationNumber';
-import type {BusinessInfoSubPageProps} from './types';
 
 type EnableGlobalReimbursementsBusinessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS>;
 

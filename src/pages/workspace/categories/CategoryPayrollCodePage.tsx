@@ -1,25 +1,33 @@
-import React, {useCallback} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {setPolicyCategoryPayrollCode} from '@userActions/Policy/Category';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
+
+import React, {useCallback} from 'react';
 
 type EditCategoryPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_PAYROLL_CODE>
@@ -44,7 +52,11 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             if (newPayrollCode !== payrollCode) {
                 setPolicyCategoryPayrollCode(policyID, categoryName, newPayrollCode, policyCategories);
             }
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : workspaceBackPath);
+            Navigation.goBack(
+                isQuickSettingsFlow
+                    ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo))
+                    : workspaceBackPath,
+            );
         },
         [payrollCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories, workspaceBackPath],
     );
@@ -78,7 +90,14 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.categories.payrollCode')}
                     onBackButtonPress={() =>
-                        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo) : workspaceBackPath)
+                        Navigation.goBack(
+                            isQuickSettingsFlow
+                                ? createDynamicRoute(
+                                      DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(categoryName),
+                                      ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo),
+                                  )
+                                : workspaceBackPath,
+                        )
                     }
                 />
                 <FormProvider

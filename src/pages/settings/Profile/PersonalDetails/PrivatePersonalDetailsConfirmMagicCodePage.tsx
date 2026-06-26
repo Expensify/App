@@ -1,20 +1,24 @@
-import React, {useEffect, useRef} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors, updatePrivatePersonalDetails} from '@libs/actions/PersonalDetails';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestErrorField, getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPrivatePersonalDetailsFormValues} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useRef} from 'react';
 
 function PrivatePersonalDetailsConfirmMagicCodePage() {
     const {translate} = useLocalize();
@@ -47,7 +51,6 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
         }
         if (wasLoading.current && !hasErrors) {
             wasLoading.current = false;
-            resetValidateActionCodeSent();
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.goBack(ROUTES.SETTINGS_PROFILE.route);
         }
@@ -70,7 +73,6 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
             validateError={submitError}
             clearError={clearError}
             onClose={() => {
-                resetValidateActionCodeSent();
                 // Plain goBack pops the magic-code RHP screen. Passing the SETTINGS_PRIVATE_PERSONAL_DETAILS route
                 // here would compare params against the existing PrivatePersonalDetails route (which carries a
                 // fieldToFocus param), miss, and REPLACE — leaving a duplicate PrivatePersonalDetails on the stack

@@ -1,21 +1,26 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToAndOpenChildReport} from '@libs/actions/Report';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {View} from 'react-native';
 
 type ReportActionItemThreadProps = {
     /** The current report */

@@ -1,7 +1,11 @@
-import React, {useLayoutEffect, useRef} from 'react';
-import type {Role, View} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+
 import mergeRefs from '@libs/mergeRefs';
+
+import type {Role, View} from 'react-native';
+
+import React, {useLayoutEffect, useRef} from 'react';
+
 import GenericPressable from './BaseGenericPressable';
 
 function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {

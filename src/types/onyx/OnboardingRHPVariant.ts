@@ -5,8 +5,8 @@
  * @description 'rhpAdminsRoom' - Admin of workspace with the admins room
  * @description 'rhpHomePage' - Navigate to Home page with Concierge Anywhere accessible in #admins room
  * @description 'trackExpensesWithConcierge' - Track workspace admins land on Home page with Concierge side panel (desktop) or Concierge chat (mobile)
- * @description 'inbAdminsWel' - Bespoke welcome message delivered in #admins room instead of onboarding tasks
+ * @description 'inboxAdminsBespoke' - Bespoke welcome message delivered in #admins room instead of onboarding tasks
  */
-type OnboardingRHPVariant = 'rhpConciergeDm' | 'rhpAdminsRoom' | 'rhpHomePage' | 'trackExpensesWithConcierge' | 'control' | 'inbAdminsWel';
+type OnboardingRHPVariant = 'rhpConciergeDm' | 'rhpAdminsRoom' | 'rhpHomePage' | 'trackExpensesWithConcierge' | 'control' | 'inboxAdminsBespoke';
 
 export default OnboardingRHPVariant;

@@ -1,17 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+import {View} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
 
 type ScannerControlsBarProps = {
     /** Whether the device is currently in landscape orientation */

@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DatePicker from '@components/DatePicker';
@@ -9,28 +7,37 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateCreateDistanceRateForm, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {createPolicyDistanceRate} from '@userActions/Policy/DistanceRate';
 import {generateCustomUnitID} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
 
@@ -106,7 +113,8 @@ function CreateDistanceRatePage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
                 testID="CreateDistanceRatePage"
-                shouldEnableMaxHeight
+                shouldEnableMaxHeight={!isDateBoundMileageRateEnabled}
+                shouldEnableKeyboardAvoidingView={!isDateBoundMileageRateEnabled}
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
                 <FullPageBlockingView style={styles.flexGrow1}>
@@ -116,25 +124,23 @@ function CreateDistanceRatePage({
                         onSubmit={submit}
                         validate={validate}
                         enabledWhenOffline
-                        style={styles.flexGrow1}
+                        style={isDateBoundMileageRateEnabled ? [styles.mh5, styles.flex1] : styles.flexGrow1}
                         shouldHideFixErrorsAlert={!isDateBoundMileageRateEnabled}
-                        submitFlexEnabled={isDateBoundMileageRateEnabled}
-                        submitButtonStyles={[styles.mh5, styles.mt0]}
+                        {...(isDateBoundMileageRateEnabled ? {} : {submitFlexEnabled: false})}
+                        submitButtonStyles={isDateBoundMileageRateEnabled ? [styles.mt0] : [styles.mh5, styles.mt0]}
                         addBottomSafeAreaPadding
                     >
                         {isDateBoundMileageRateEnabled ? (
                             <>
-                                <View style={styles.mh5}>
-                                    <InputWrapper
-                                        ref={inputCallbackRef}
-                                        InputComponent={TextInput}
-                                        inputID={INPUT_IDS.NAME}
-                                        label={translate('common.name')}
-                                        accessibilityLabel={translate('common.name')}
-                                        role={CONST.ROLE.PRESENTATION}
-                                    />
-                                </View>
-                                <View style={[styles.mh5, styles.mt4]}>
+                                <InputWrapper
+                                    ref={inputCallbackRef}
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.NAME}
+                                    label={translate('common.name')}
+                                    accessibilityLabel={translate('common.name')}
+                                    role={CONST.ROLE.PRESENTATION}
+                                />
+                                <View style={styles.mt4}>
                                     <InputWrapper
                                         InputComponent={AmountForm}
                                         inputID={INPUT_IDS.RATE}
@@ -145,20 +151,22 @@ function CreateDistanceRatePage({
                                         label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
                                     />
                                 </View>
-                                <View style={[styles.mh5, styles.mt2]}>
+                                <View style={styles.mt2}>
                                     <InputWrapper
                                         InputComponent={DatePicker}
                                         inputID={INPUT_IDS.START_DATE}
                                         label={translate('workspace.distanceRates.startDate')}
+                                        shouldDeferShowUntilPositioned
+                                        shouldDismissKeyboardBeforeShow
                                     />
                                 </View>
-                                <View style={styles.mh5}>
-                                    <InputWrapper
-                                        InputComponent={DatePicker}
-                                        inputID={INPUT_IDS.END_DATE}
-                                        label={translate('workspace.distanceRates.endDate')}
-                                    />
-                                </View>
+                                <InputWrapper
+                                    InputComponent={DatePicker}
+                                    inputID={INPUT_IDS.END_DATE}
+                                    label={translate('workspace.distanceRates.endDate')}
+                                    shouldDeferShowUntilPositioned
+                                    shouldDismissKeyboardBeforeShow
+                                />
                             </>
                         ) : (
                             <InputWrapper

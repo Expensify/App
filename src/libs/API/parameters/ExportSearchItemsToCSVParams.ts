@@ -7,6 +7,7 @@ type ExportSearchItemsToCSVParams = {
     transactionIDList: string[];
     isBasicExport: boolean;
     exportColumnLabels: string;
+    exportName: string;
 };
 
 export default ExportSearchItemsToCSVParams;

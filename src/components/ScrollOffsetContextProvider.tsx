@@ -1,13 +1,17 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/native';
-import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type {ParamListBase} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of FlashList on given screen */

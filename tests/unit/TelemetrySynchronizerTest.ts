@@ -1,10 +1,14 @@
-import * as Sentry from '@sentry/react-native';
-import Onyx from 'react-native-onyx';
 import {getActivePolicies} from '@libs/PolicyUtils';
-import '@libs/telemetry/TelemetrySynchronizer';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import '@libs/telemetry/TelemetrySynchronizer';
+
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+
+import * as Sentry from '@sentry/react-native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 

@@ -1,12 +1,18 @@
-import React from 'react';
-import type {BlurEvent} from 'react-native';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
+
+import type {BlurEvent} from 'react-native';
+
+import React from 'react';
+
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {

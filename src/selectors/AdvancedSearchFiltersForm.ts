@@ -1,8 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {shouldShowFilter, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const columnsSelector = (form: OnyxEntry<SearchAdvancedFiltersForm>) => form?.columns;
 

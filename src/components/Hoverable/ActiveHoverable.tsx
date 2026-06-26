@@ -1,8 +1,11 @@
-import {cloneElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
 import getReturnValue from '@libs/getReturnValue';
 import mergeRefs from '@libs/mergeRefs';
+
 import CONST from '@src/CONST';
+
+import {cloneElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
+
 import type HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;

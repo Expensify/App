@@ -1,7 +1,10 @@
-import FullStory, {FSPage} from '@fullstory/react-native';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
-import {getChatFSClass, shouldInitializeFullstory} from './common';
+
+import FullStory, {FSPage} from '@fullstory/react-native';
+
 import type {Fullstory} from './types';
+
+import {getChatFSClass, shouldInitializeFullstory} from './common';
 
 const FS: Fullstory = {
     Page: FSPage,

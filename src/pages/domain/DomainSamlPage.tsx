@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
@@ -10,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -17,16 +15,24 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import colors from '@styles/theme/colors';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {domainMemberSettingsSelector, isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import SamlConfigurationDetailsSectionContent from './Saml/SamlConfigurationDetailsSectionContent';
 import SamlLoginSectionContent from './Saml/SamlLoginSectionContent';
 

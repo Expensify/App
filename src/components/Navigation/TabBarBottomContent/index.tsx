@@ -1,6 +1,9 @@
-import React from 'react';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import React from 'react';
+
 import type TabBarBottomContentProps from './types';
 
 function TabBarBottomContent({selectedTab}: TabBarBottomContentProps) {

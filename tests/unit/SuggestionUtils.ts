@@ -1,4 +1,5 @@
 import {getSortedPersonalDetails} from '@libs/SuggestionUtils';
+
 import {localeCompare} from '../utils/TestHelper';
 
 describe('SuggestionUtils', () => {

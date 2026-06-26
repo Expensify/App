@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
 
 type TagVisibilityEntry = {
     /** Whether this tag list should be displayed */

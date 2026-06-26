@@ -1,14 +1,20 @@
-import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
-import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+
 import useOnyx from '@hooks/useOnyx';
+
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+
 import {beginGoogleSignIn} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Locale from '@src/types/onyx/Locale';
+
+import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
+import React from 'react';
+
 import type {GoogleSignInProps} from '.';
 import type GoogleError from './types';
 

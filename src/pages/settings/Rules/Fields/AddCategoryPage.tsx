@@ -1,18 +1,23 @@
-import React, {useCallback} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {updateDraftRule} from '@libs/actions/User';
 import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React, {useCallback} from 'react';
 
 type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_CATEGORY>;
 

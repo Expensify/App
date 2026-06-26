@@ -1,6 +1,7 @@
-import {agentZeroProcessingAgentIDsSelector, getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
 import CONST from '@src/CONST';
 import type {ReportNameValuePairs} from '@src/types/onyx';
+
+import {agentZeroProcessingAgentIDsSelector, getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
 
 const CONCIERGE = CONST.ACCOUNT_ID.CONCIERGE;
 const CUSTOM_AGENT = 12345678;

@@ -1,4 +1,5 @@
 import getOnboardingRouteFromScreen from '@libs/Navigation/helpers/getOnboardingRouteFromScreen';
+
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 

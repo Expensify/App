@@ -1,25 +1,33 @@
-import {useRoute} from '@react-navigation/native';
-import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import {FlashList} from '@shopify/flash-list';
-import type {ReactElement} from 'react';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getPlatform from '@libs/getPlatform';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
+import type {ReactElement} from 'react';
+
+import {useRoute} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import type {LHNOptionsListProps, RenderItemProps} from './types';
+
 import LHNTooltipContextProvider from './LHNTooltipContextProvider';
 import OptionRowLHNData from './OptionRowLHN';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
-import type {LHNOptionsListProps, RenderItemProps} from './types';
 
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 const platform = getPlatform();

@@ -1,17 +1,23 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
+
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding, extractRHPVariantFromResponse} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback, useMemo} from 'react';
+
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -50,6 +56,9 @@ function useAutoCreateTrackWorkspace() {
     const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
 
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const {isBetaEnabled} = usePermissions();
@@ -104,6 +113,8 @@ function useAutoCreateTrackWorkspace() {
                     personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                     introSelected,
                     isSelfTourViewed,
+                    conciergeChat,
+                    selfDMReport,
                 });
 
                 if (isSidePanelReportSupported) {
@@ -156,6 +167,8 @@ function useAutoCreateTrackWorkspace() {
             conciergeChatReportID,
             reportNameValuePairs,
             mergedAccountConciergeReportID,
+            conciergeChat,
+            selfDMReport,
         ],
     );
 

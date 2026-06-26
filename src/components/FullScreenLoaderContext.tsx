@@ -1,5 +1,7 @@
-import React, {createContext, useContext, useState} from 'react';
 import type {ReactNode} from 'react';
+
+import React, {createContext, useContext, useState} from 'react';
+
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 type FullScreenLoaderStateContextType = {

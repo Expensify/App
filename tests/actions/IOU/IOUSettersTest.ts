@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     setMoneyRequestAmount,
     setMoneyRequestBillable,
@@ -12,8 +11,12 @@ import {
     setMoneyRequestTaxRate,
 } from '@libs/actions/IOU/MoneyRequest';
 import {resetSplitShares, setSplitShares} from '@libs/actions/IOU/Split';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';

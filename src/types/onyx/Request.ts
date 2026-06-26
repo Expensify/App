@@ -1,6 +1,8 @@
+import type {OnyxCollectionKey} from '@src/ONYXKEYS';
+
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import type {OnyxCollectionKey} from '@src/ONYXKEYS';
+
 import type Response from './Response';
 
 /** Expands an Onyx key, allowing template patterns for collections or enforcing literals otherwise. */

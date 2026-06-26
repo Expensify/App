@@ -1,6 +1,8 @@
 import {isExpiredSession} from '@libs/actions/Session';
+
 import CONST from '@src/CONST';
 import type Session from '@src/types/onyx/Session';
+
 import type {ImageProps} from './types';
 
 type GetImageSourceParams = {

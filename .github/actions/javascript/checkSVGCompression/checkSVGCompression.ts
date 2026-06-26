@@ -1,6 +1,7 @@
-import * as core from '@actions/core';
 import type {CompressionSummary} from '@scripts/compressSvg';
 import compressSvg from '@scripts/compressSvg';
+
+import * as core from '@actions/core';
 
 async function run() {
     try {

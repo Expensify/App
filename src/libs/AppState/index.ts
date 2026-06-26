@@ -1,14 +1,19 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isAuthenticating as isAuthenticatingNetworkStore} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network, Session} from '@src/types/onyx';
-import captureRequestsQueueState from './RequestsQueuesState';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {ExtraLoadingContext, GlobalStateSnapshot, NavigationStateInfo, NetworkStateInfo, SessionStateInfo} from './types';
+
+import captureRequestsQueueState from './RequestsQueuesState';
 
 let currentSession: OnyxEntry<Session>;
 let currentNetwork: OnyxEntry<Network>;

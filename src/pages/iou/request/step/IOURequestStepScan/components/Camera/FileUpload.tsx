@@ -1,5 +1,3 @@
-import React, {useState} from 'react';
-import {PanResponder, View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -8,12 +6,18 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import Icon from '@components/Icon';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React, {useState} from 'react';
+import {PanResponder, View} from 'react-native';
+
 import type {CameraProps} from './types';
 
 const panResponder = PanResponder.create({

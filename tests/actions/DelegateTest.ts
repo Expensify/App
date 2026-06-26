@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     addDelegate,
     clearDelegateErrorsByField,
@@ -10,10 +9,14 @@ import {
 } from '@libs/actions/Delegate';
 import DateUtils from '@libs/DateUtils';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DelegatedAccess} from '@src/types/onyx/Account';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();

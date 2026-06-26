@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+
 import type {CredentialsState} from './trackMFAFlowOutcome';
 
 type MFAFlowStartContext = {

@@ -1,15 +1,20 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
+
 import type Fund from '@src/types/onyx/Fund';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Text from './Text';
 

@@ -1,5 +1,3 @@
-import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -20,20 +19,30 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {switchToOldDot} from '@libs/actions/ExitSurvey';
 import {setErrorFields} from '@libs/actions/FormActions';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import StatusBar from '@libs/StatusBar';
+
 import Navigation from '@navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {openOldDotLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback} from 'react';
+
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[INPUT_IDS.RESPONSE];
