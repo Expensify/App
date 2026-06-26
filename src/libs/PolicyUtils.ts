@@ -310,7 +310,7 @@ function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: 
     }
 
     return Object.values(policies).find((policy) => {
-        if (!policy?.customUnits || !policy?.arePerDiemRatesEnabled) {
+        if (!policy?.customUnits || !isPerDiemEnabled(policy)) {
             return false;
         }
         return customUnitID in policy.customUnits;
