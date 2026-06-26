@@ -197,6 +197,14 @@ function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
+/**
+ * Whether a scan request's receipt has failed to scan. A failed scan leaves the transaction with its
+ * placeholder values (e.g. `amount === 0`) which consumers should treat as missing rather than real.
+ */
+function isScanFailed(transaction: OnyxEntry<Transaction>): boolean {
+    return isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+}
+
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
         return true;
@@ -2970,6 +2978,7 @@ export {
     getRequestType,
     getTransactionType,
     isScanRequest,
+    isScanFailed,
     getAmount,
     getAttendees,
     getTaxAmount,

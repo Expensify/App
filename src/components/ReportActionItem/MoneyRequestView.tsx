@@ -125,6 +125,7 @@ import {
     isMapDistanceRequest as isMapDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isScanFailed as isScanFailedTransactionUtils,
     isScanning,
     isTimeRequest as isTimeRequestTransactionUtils,
     isTransactionPendingDelete,
@@ -551,8 +552,11 @@ function MoneyRequestView({
         isOffline,
     );
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
+    // A failed scan leaves the amount as the placeholder `0`. Treat it as missing so the row renders empty (like the
+    // edit screen) and surfaces an error, instead of showing a misleading "$0.00".
+    const isScanFailedWithMissingAmount = isScanFailedTransactionUtils(transaction) && actualAmount === 0;
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
-    let amountTitle = formattedTransactionAmount?.toString() || '';
+    let amountTitle = isScanFailedWithMissingAmount ? '' : formattedTransactionAmount?.toString() || '';
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
@@ -697,6 +701,10 @@ function MoneyRequestView({
         // Checks applied when creating a new expense
         // NOTE: receipt field can return multiple violations, so we need to handle it separately
         const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
+            amount: {
+                isError: isScanFailedWithMissingAmount,
+                translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
+            },
             merchant: {
                 isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
                 translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
