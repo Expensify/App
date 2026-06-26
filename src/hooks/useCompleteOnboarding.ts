@@ -2,7 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useState} from 'react';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
-import {completeOnboarding} from '@libs/actions/Report';
+import {completeOnboarding, extractRHPVariantFromResponse} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import type {OnboardingFeatureMapItem} from '@libs/actions/Welcome/OnboardingFeatures';
 import Log from '@libs/Log';
@@ -95,7 +95,7 @@ function useCompleteOnboarding() {
                 setOnboardingPolicyID(policyID);
             }
 
-            await completeOnboarding({
+            const response = await completeOnboarding({
                 engagementChoice: onboardingPurposeSelected,
                 onboardingMessage: onboardingMessages[onboardingPurposeSelected],
                 adminsChatReportID,
@@ -109,6 +109,7 @@ function useCompleteOnboarding() {
                 introSelected,
                 isSelfTourViewed,
             });
+            const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
@@ -119,6 +120,7 @@ function useCompleteOnboarding() {
                 adminsChatReportID,
                 (session?.email ?? '').includes('+'),
                 {
+                    variantOverride: rhpVariant,
                     afterTransition: () => {
                         setOnboardingAdminsChatReportID();
                         setOnboardingPolicyID();
