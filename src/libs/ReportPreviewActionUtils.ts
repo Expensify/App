@@ -8,6 +8,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isPolicyAdmin,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -119,6 +120,7 @@ function canPay(
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
+    const canPayReport = isReportPayer || (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && isPolicyAdmin(policy));
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
@@ -136,7 +138,7 @@ function canPay(
 
     if (
         isExpense &&
-        isReportPayer &&
+        canPayReport &&
         isPaymentsEnabled &&
         isReportFinished &&
         (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
@@ -150,7 +152,7 @@ function canPay(
 
     const isIOU = isIOUReport(report);
 
-    if (isIOU && isReportPayer && !isReimbursed && reimbursableSpend > 0) {
+    if (isIOU && canPayReport && !isReimbursed && reimbursableSpend > 0) {
         return true;
     }
 
