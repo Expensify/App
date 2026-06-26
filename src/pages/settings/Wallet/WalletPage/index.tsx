@@ -806,7 +806,7 @@ function WalletPage() {
                                         getPersonalBankAccountOnSuccessFallbackRoute={(selectedPaymentMethod) =>
                                             !hasActivatedWallet && selectedPaymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ROUTES.SETTINGS_WALLET : undefined
                                         }
-                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute()}
                                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
@@ -877,7 +877,7 @@ function WalletPage() {
                                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                                                             return;
                                                         }
-                                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+                                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute());
                                                     }}
                                                     wrapperStyle={[
                                                         styles.transferBalance,

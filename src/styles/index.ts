@@ -5900,13 +5900,6 @@ const staticStyles = (theme: ThemeColors) =>
             border: 'none',
         },
 
-        featureTrainingModalImage: {
-            width: '100%',
-            height: '100%',
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
         featureTrainingModalNavButtons: {
             flexDirection: 'row',
             justifyContent: 'space-between',

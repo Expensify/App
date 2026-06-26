@@ -7477,6 +7477,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             agentRules: {
                 title: 'Agentregels',
                 subtitle: 'Stel regels in voor hoe AI-agenten met uitgaven omgaan in deze werkruimte.',
+                enforcedBy: 'Agentregels worden afgedwongen door',
+                ruleBotName: 'RuleBot',
                 addRule: 'Agentregel toevoegen',
                 findRule: 'Agentregel zoeken',
                 addRuleTitle: 'Regel toevoegen',

@@ -270,7 +270,6 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
-                policy: params.policy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
@@ -293,7 +292,6 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
-                policy: params.policy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,

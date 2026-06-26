@@ -843,7 +843,7 @@ function prepareRejectMoneyRequestData(
         });
     }
 
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticRejectReportAction.created, 1);
+    const lastReadTime = optimisticRejectReportAction.created;
     // Add optimistic data for all reports
     for (const {reportID: targetReportID, lastVisibleActionCreated} of reportsToUpdate) {
         optimisticData.push({
@@ -852,6 +852,7 @@ function prepareRejectMoneyRequestData(
             value: {
                 lastReadTime,
                 lastVisibleActionCreated,
+                lastActorAccountID: currentUserAccountIDParam,
             },
         });
     }
