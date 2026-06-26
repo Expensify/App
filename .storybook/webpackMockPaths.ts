@@ -10,5 +10,7 @@ export default {
     'react-native$': 'react-native-web',
     '@react-native-community/netinfo': path.resolve(dirname, '../__mocks__/@react-native-community/netinfo.ts'),
     '@react-navigation/native': path.resolve(dirname, '../__mocks__/@react-navigation/native'),
+    // expensify-common@2.0.187+ restricts package exports; live-markdown still deep-imports dist/utils.
+    'expensify-common/dist/utils': path.resolve(dirname, '../node_modules/expensify-common/dist/utils.js'),
 };
 /* eslint-enable @typescript-eslint/naming-convention */
