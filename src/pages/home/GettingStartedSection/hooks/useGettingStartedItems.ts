@@ -27,6 +27,7 @@ const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 type GettingStartedItem = {
     key: string;
     label: string;
+    subText: string;
     isComplete: boolean;
     route: Route;
     isFeatureEnabled?: boolean;
@@ -81,6 +82,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     items.push({
         key: 'createWorkspace',
         label: translate('homePage.gettingStartedSection.createWorkspace'),
+        subText: translate('homePage.gettingStartedSection.createWorkspaceSubText'),
         isComplete: true,
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
@@ -89,6 +91,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'customizeCategories',
             label: translate('homePage.gettingStartedSection.customizeCategories'),
+            subText: translate('homePage.gettingStartedSection.customizeCategoriesSubText'),
             isComplete: hasCustomCategories(policyCategories),
             route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             isFeatureEnabled: policy.areCategoriesEnabled,
@@ -99,6 +102,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'inviteAccountant',
             label: translate('homePage.gettingStartedSection.inviteAccountant'),
+            subText: translate('homePage.gettingStartedSection.inviteAccountantSubText'),
             isComplete: activeMemberCount >= MIN_MEMBERS_FOR_ACCOUNTANT_INVITED,
             route: ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID),
         });
@@ -119,6 +123,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'connectAccounting',
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
+            subText: translate('homePage.gettingStartedSection.connectAccountingSubText'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
             isFeatureEnabled: policy.areConnectionsEnabled,
@@ -128,6 +133,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'customizeCategories',
             label: translate('homePage.gettingStartedSection.customizeCategories'),
+            subText: translate('homePage.gettingStartedSection.customizeCategoriesSubText'),
             isComplete: hasCustomCategories(policyCategories),
             route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
             isFeatureEnabled: policy.areCategoriesEnabled,
@@ -138,6 +144,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     items.push({
         key: 'linkCompanyCards',
         label: translate('homePage.gettingStartedSection.linkCompanyCards'),
+        subText: translate('homePage.gettingStartedSection.linkCompanyCardsSubText'),
         isComplete: hasCompanyCardFeeds(allCardFeeds),
         route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
         isFeatureEnabled: policy.areCompanyCardsEnabled,
@@ -148,6 +155,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
+            subText: translate('homePage.gettingStartedSection.setupRulesSubText'),
             isComplete: hasConfiguredRules(policy),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });

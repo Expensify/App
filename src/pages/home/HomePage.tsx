@@ -85,6 +85,7 @@ function HomePage() {
                                         testID="homePageLeftColumn"
                                         style={styles.homePageLeftColumn}
                                     >
+                                        <GettingStartedSection />
                                         <TimeSensitiveSection />
                                         <ForYouSection />
                                         <RecentlyAddedSection />
@@ -95,7 +96,6 @@ function HomePage() {
                                         style={styles.homePageRightColumn}
                                     >
                                         <FreeTrialSection />
-                                        <GettingStartedSection />
                                         <UpcomingTravelSection />
                                         <YourSpendSection />
                                         <DiscoverSection />
