@@ -25,7 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardUnassignment, unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getDefaultCardName, maskCardNumber} from '@libs/CardUtils';
+import {formatMaskedCardName, getDefaultCardName} from '@libs/CardUtils';
 import localFileDownload from '@libs/localFileDownload';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -128,7 +128,7 @@ function WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions({
             return [
                 card.isAssigned ? (card.cardholder?.login ?? '') : 'unassigned',
                 card.isAssigned ? (card.cardholder?.displayName ?? '') : '',
-                maskCardNumber(card.cardName, bankName, true),
+                formatMaskedCardName(card.cardName),
                 card.isAssigned ? transactionStartDate : '',
                 card.isAssigned ? lastUpdated : '',
                 translate(card.isAssigned ? 'common.yes' : 'common.no'),
