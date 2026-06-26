@@ -379,7 +379,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldShowDescriptionOnTop: true,
                           interactive: canWriteAccounting,
                           pendingAction: policy.connections.rillet.config.pendingFields?.subsidiaryID,
-                          brickRoadIndicator: policy.connections.rillet.config.pendingFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          brickRoadIndicator: policy.connections.rillet.config.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress:
                               policyID && canWriteAccounting && rilletSubsidiaryList && rilletSubsidiaryList.length > 1
                                   ? () => {
