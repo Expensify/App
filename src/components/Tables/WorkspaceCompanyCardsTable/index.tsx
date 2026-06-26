@@ -396,20 +396,18 @@ function WorkspaceCompanyCardsTable({
                     {isLoading && LoadingComponent}
 
                     {!isLoading && isFeedPending && (
-                        <View style={styles.flex1}>
+                        <>
                             {shouldUseNarrowTableLayout && headerButtonsComponent}
                             <WorkspaceCompanyCardsFeedPendingPage />
-                        </View>
+                        </>
                     )}
 
                     {!isLoading && isNoFeed && (
-                        <View style={styles.flex1}>
-                            <WorkspaceCompanyCardPageEmptyState
-                                policyID={policyID}
-                                shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                                canWriteCompanyCards={canWriteCompanyCards}
-                            />
-                        </View>
+                        <WorkspaceCompanyCardPageEmptyState
+                            policyID={policyID}
+                            shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                            canWriteCompanyCards={canWriteCompanyCards}
+                        />
                     )}
                 </ScrollView>
             )}
