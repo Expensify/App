@@ -10,7 +10,7 @@
  * When the history chart is included, Chart.js is downloaded next to the HTML so file:// opens work;
  * tables work offline without Chart.js.
  */
-import {CLI} from 'expensify-common';
+import CLI from 'expensify-common/CLI';
 import {execSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -596,7 +596,10 @@ const openHtmlReport = (absPath: string): void => {
         spawnSync('open', [absolute], {stdio: 'ignore'});
     } else if (process.platform === 'win32') {
         // `start "" <path>` uses the empty window title so paths with spaces work.
-        spawnSync('cmd', ['/c', 'start', '', absolute], {stdio: 'ignore', windowsHide: true});
+        spawnSync('cmd', ['/c', 'start', '', absolute], {
+            stdio: 'ignore',
+            windowsHide: true,
+        });
     } else {
         spawnSync('xdg-open', [absolute], {stdio: 'ignore'});
     }

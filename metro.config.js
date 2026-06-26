@@ -17,9 +17,6 @@ const expoConfig = getExpoDefaultConfig(__dirname);
 
 const isDev = process.env.ENVIRONMENT === undefined || process.env.ENVIRONMENT === 'development';
 
-const expensifyCommonCLIStubPath = path.resolve(__dirname, 'config/metro/stubs/expensifyCommonCLI.js');
-const defaultResolveRequest = defaultConfig.resolver.resolveRequest;
-
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro
@@ -32,24 +29,6 @@ const config = {
     resolver: {
         assetExts: [...defaultConfig.resolver.assetExts, 'lottie'],
         sourceExts: [...defaultConfig.resolver.sourceExts, ...defaultConfig.watcher.additionalExts, 'jsx'],
-        resolveRequest: (context, moduleName, platform) => {
-            const originModulePath = context.originModulePath ?? '';
-            const isExpensifyCommonCLI =
-                moduleName.endsWith('expensify-common/dist/CLI.js') || (moduleName === './CLI' && originModulePath.includes(`${path.sep}expensify-common${path.sep}dist${path.sep}index.js`));
-
-            if (isExpensifyCommonCLI) {
-                return {
-                    type: 'sourceFile',
-                    filePath: expensifyCommonCLIStubPath,
-                };
-            }
-
-            if (defaultResolveRequest) {
-                return defaultResolveRequest(context, moduleName, platform);
-            }
-
-            return context.resolveRequest(context, moduleName, platform);
-        },
     },
     // We are merging the default config from Expo and React Native and expo one is overriding the React Native one so inlineRequires is set to false so we want to set it to true
     // for fix cycling dependencies and improve performance of app startup

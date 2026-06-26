@@ -1,4 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';

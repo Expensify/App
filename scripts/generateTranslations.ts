@@ -4,7 +4,8 @@
  */
 import {execFileSync} from 'child_process';
 import * as dotenv from 'dotenv';
-import {CLI, Str} from 'expensify-common';
+import {Str} from 'expensify-common';
+import CLI from 'expensify-common/CLI';
 import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import get from 'lodash/get';

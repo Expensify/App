@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/dist/str';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -65,7 +65,9 @@ function DynamicTravelTerms({route}: TravelTermsPageProps) {
             return;
         }
 
-        const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
+        const message = translate('travel.verifyCompany.conciergeMessage', {
+            domain: Str.extractEmailDomain(account?.primaryLogin ?? ''),
+        });
 
         addComment({
             report: conciergeReport,

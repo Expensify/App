@@ -1,4 +1,4 @@
-import {CLI} from 'expensify-common';
+import CLI from 'expensify-common/CLI';
 import fs from 'fs';
 import type {TupleToUnion} from 'type-fest';
 
