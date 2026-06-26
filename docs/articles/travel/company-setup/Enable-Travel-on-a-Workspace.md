@@ -59,6 +59,23 @@ Yes, a Workspace Admin can book on behalf of team members and retain full visibi
 
 No. Any workspace can use Expensify Travel, regardless of whether the Expensify Card is enabled.
 
+## Why can’t I enable Expensify Travel?
+
+Enabling Expensify Travel requires your workspace to have a company address. If one isn’t set, accepting the travel terms fails and you’ll see the message *A Workspace Address is required to enable Expensify Travel.* Add the address, then try again.
+
+To add a company address:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your workspace name to access the settings for that workspace.
+3. In the left menu, click **Overview**.
+4. Click **Company address** and enter an address associated with your business.
+
+<!-- SCREENSHOT:
+Suggestion: The travel terms screen showing the inline "A Workspace Address is required to enable Expensify Travel" error after clicking Continue
+Location: Under the "Why can’t I enable Expensify Travel?" FAQ
+Purpose: Helps users recognize the error they encounter when the workspace has no company address
+-->
+
 ## Why can’t I turn off Travel?
 
 If **Consolidated Travel Billing** is enabled for your workspace, the **Travel** toggle in **More features** is locked, because Consolidated Travel Billing requires Travel to stay on. When you press the locked toggle, a message appears asking you to turn off Consolidated Travel Billing first.
