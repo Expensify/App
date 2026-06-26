@@ -5,13 +5,13 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import LongTermsForm from '@pages/EnablePayments/shared/TermsForms/LongTermsForm';
 import ShortTermsForm from '@pages/EnablePayments/shared/TermsForms/ShortTermsForm';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function FeesStep({onNext}: SubStepProps) {
+function FeesStep({onNext}: SubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
