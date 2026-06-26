@@ -23,7 +23,8 @@ function getLastFourDigits(bankAccountNumber: string): string {
  * the bank name is missing or not in CONST.BANK_NAMES_USER_FRIENDLY.
  */
 function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): string {
-    const bankName = bankAccount?.accountData?.additionalData?.bankName;
+    // BE returns bankName with the first letter uppercase (e.g. "Chase") but CONST.BANK_NAMES_USER_FRIENDLY keys are lowercase, so lowercase before the lookup.
+    const bankName = bankAccount?.accountData?.additionalData?.bankName?.toLowerCase();
     const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
     const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const maskedNumber = accountNumber ? `xx${getLastFourDigits(accountNumber)}` : '';
@@ -32,6 +33,14 @@ function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>
 
 function isBankAccountPartiallySetup(state: string | undefined) {
     return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
+}
+
+/**
+ * A BUSINESS account in a state that has actually been usable for paying expenses (anything other than SETUP / VERIFYING / PENDING).
+ * Used by the search picker, the autocomplete suggestions, and the advanced-filter visibility gate so all three surfaces accept and count the same set of accounts.
+ */
+function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !isBankAccountPartiallySetup(bankAccount?.accountData?.state);
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -188,6 +197,7 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
 
 export {
     getBankAccountSearchLabel,
+    isFilterableBankAccount,
     getDefaultCompanyWebsite,
     getRequiredKYBDocuments,
     getLastFourDigits,
