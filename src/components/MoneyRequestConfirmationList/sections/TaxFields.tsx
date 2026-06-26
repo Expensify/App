@@ -70,12 +70,16 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const formattedMaxTaxAmount = convertToDisplayString(maxTaxAmount, effectiveCurrency);
     const shouldDisplayTaxAmountError = formError === 'iou.error.invalidTaxAmount';
 
+    // Converts the raw text from the tax amount input into a backend (smallest-currency-unit) amount,
+    // treating an empty field as 0. Kept in one place so the parsing rules can't drift between call sites.
+    const toBackendTaxAmount = (input: string) => (input.trim() === '' ? 0 : convertToBackendAmount(Number.parseFloat(input)));
+
     const handleTaxAmountChange = (newAmount: string) => {
         if (!transactionID) {
             return;
         }
 
-        const taxAmountInSmallestCurrencyUnits = newAmount.trim() === '' ? 0 : convertToBackendAmount(Number.parseFloat(newAmount));
+        const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
         // Clear a previously surfaced tax error as the user edits; validation re-runs on submit.
         clearFormErrors(['iou.error.invalidTaxAmount']);
@@ -100,7 +104,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         // tax rate changed and the amount was recalculated externally).
         const currentInput = numberFormRef.current?.getNumber();
         if (currentInput !== undefined) {
-            const currentBackendAmount = currentInput.trim() === '' ? 0 : convertToBackendAmount(Number.parseFloat(currentInput));
+            const currentBackendAmount = toBackendTaxAmount(currentInput);
             if (currentBackendAmount === taxAmount) {
                 return;
             }
