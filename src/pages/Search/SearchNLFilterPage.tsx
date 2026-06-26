@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -70,7 +71,7 @@ function SearchNLFilterPage() {
                     role={CONST.ROLE.PRESENTATION}
                     value={nlQuery}
                     onChangeText={setNlQuery}
-                    ref={inputCallbackRef}
+                    ref={inputCallbackRef as (ref: BaseTextInputRef | null) => void}
                 />
             </View>
             <FormAlertWithSubmitButton

@@ -8341,7 +8341,7 @@ ${amount} para ${merchant} - ${date}`,
             describeSearch: {
                 title: 'Describe tu búsqueda',
                 inputLabel: 'Tu búsqueda',
-                description: 'Usa lenguaje natural para describir lo que buscas, como "comidas de más de $50 el mes pasado."',
+                description: 'Usa un inglés sencillo para describir lo que buscas, como "comidas de más de 50 $ el mes pasado".',
                 buttonText: 'Crear filtros',
             },
         },

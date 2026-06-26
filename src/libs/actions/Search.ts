@@ -1762,4 +1762,4 @@ export {
     getReportFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
 };
-export type {TransactionPreviewData, ParseExpenseFiltersResult};
+export type {TransactionPreviewData};
