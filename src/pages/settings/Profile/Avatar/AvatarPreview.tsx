@@ -14,7 +14,7 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getDefaultAvatarName, isCatalogAvatar, isLetterAvatar} from '@libs/UserAvatarUtils';
+import {getDefaultAvatarName, isCatalogAvatar, isGeneratedLetterAvatarURL, isLetterAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -74,7 +74,12 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
     // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
-    const shouldHideAvatarEdit = (!imageData.uri && (isCatalogAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
+    const shouldHideAvatarEdit =
+        (!imageData.uri &&
+            (isCatalogAvatar(currentUserPersonalDetails?.avatar) ||
+                isGeneratedLetterAvatarURL(currentUserPersonalDetails?.avatar) ||
+                isLetterAvatar(currentUserPersonalDetails?.originalFileName))) ||
+        !!selected;
 
     /**
      * Validates an image and opens avatar crop modal if valid

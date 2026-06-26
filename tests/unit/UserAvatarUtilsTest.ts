@@ -211,6 +211,18 @@ describe('UserAvatarUtils', () => {
         });
     });
 
+    describe('isGeneratedLetterAvatarURL', () => {
+        it('should return true for a backend-generated letter-avatar URL so the edit flow treats it as a default', () => {
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(`${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1/blue100/DL.png`)).toBe(true);
+        });
+
+        it('should return false for uploaded photos and other avatar URLs', () => {
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL('https://example.com/custom-avatar.png')).toBe(false);
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(`${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_5.png`)).toBe(false);
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(undefined)).toBe(false);
+        });
+    });
+
     describe('getSmallSizeAvatar', () => {
         it('should add _128 suffix to CloudFront avatars', () => {
             const source = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatar.png';

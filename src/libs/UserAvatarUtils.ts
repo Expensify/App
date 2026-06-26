@@ -437,6 +437,7 @@ export {
     parseLetterAvatarURL,
     isCatalogAvatar,
     isDefaultAvatar,
+    isGeneratedLetterAvatarURL,
     isLetterAvatar,
 };
 export type {AvatarSource};
