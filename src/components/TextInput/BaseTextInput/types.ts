@@ -174,6 +174,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Style for the clear button */
         clearButtonStyle?: StyleProp<ViewStyle>;
 
+        /** The clear button icon size */
+        clearButtonIconSize?: number;
+
         /** The width of inner content */
         contentWidth?: number;
 
