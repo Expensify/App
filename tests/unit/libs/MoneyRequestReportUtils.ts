@@ -51,6 +51,29 @@ describe('isActionVisibleOnMoneyRequestReport', () => {
     });
 });
 
+describe('shouldWaitForTransactions', () => {
+    const moneyRequestReport = {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, total: 100} as Report;
+
+    test('never waits when offline', () => {
+        const reportLoadingState = {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false} as ReportLoadingState;
+        expect(shouldWaitForTransactions(moneyRequestReport, [], reportLoadingState, true)).toBe(false);
+    });
+
+    test('waits while the initial report actions are still loading', () => {
+        const reportLoadingState = {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false} as ReportLoadingState;
+        expect(shouldWaitForTransactions(moneyRequestReport, [], reportLoadingState, false)).toBe(true);
+    });
+
+    test('waits before the first load completes when a cached total is present', () => {
+        expect(shouldWaitForTransactions(moneyRequestReport, [], undefined, false)).toBe(true);
+    });
+
+    test('stops waiting once report actions have loaded but no transactions arrived (orphaned report)', () => {
+        const reportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true} as ReportLoadingState;
+        expect(shouldWaitForTransactions(moneyRequestReport, [], reportLoadingState, false)).toBe(false);
+    });
+});
+
 describe('getAllNonDeletedTransactions', () => {
     test('should return all transactions that have IOU actions', () => {
         const transactions = {
