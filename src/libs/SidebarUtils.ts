@@ -171,6 +171,7 @@ import {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
+    isChatReport,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
@@ -335,6 +336,7 @@ function shouldDisplayReportInLHN({
         isFocused ||
         isSystemChat ||
         !!report.isPinned ||
+        (isChatReport(report) && isAdminRoom(report)) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         requiresAttention ||
         (report.isOwnPolicyExpenseChat && !isReportArchived);
