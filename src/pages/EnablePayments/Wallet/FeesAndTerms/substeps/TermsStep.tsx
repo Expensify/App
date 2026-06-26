@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePressLoading from '@hooks/usePressLoading';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -30,7 +30,7 @@ function AgreeToTheLabel() {
     return <RenderHTML html={`${translate('termsStep.agreeToThe', walletAgreementUrl)}`} />;
 }
 
-function TermsStep({onNext}: SubStepProps) {
+function TermsStep({onNext}: SubPageProps) {
     const styles = useThemeStyles();
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
