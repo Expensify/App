@@ -26,7 +26,7 @@ describe('shouldHideForYouSection', () => {
         expect(shouldHideForYouSection({...baseParams, firstDayFreeTrial: undefined})).toBe(false);
     });
 
-    it('keeps the section when the trial start date is unparseable', () => {
+    it('keeps the section when the trial start date cannot be parsed', () => {
         expect(shouldHideForYouSection({...baseParams, firstDayFreeTrial: 'not-a-date'})).toBe(false);
     });
 
