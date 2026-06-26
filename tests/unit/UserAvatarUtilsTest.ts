@@ -30,6 +30,12 @@ describe('UserAvatarUtils', () => {
             expect(avatar).toBeDefined();
         });
 
+        it('should resolve the Notifications icon URL to the local Notifications avatar regardless of accountID', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const avatar = UserAvatarUtils.getAvatar({avatarSource: CONST.NOTIFICATIONS_ICON_URL, accountID: 999, defaultAvatars: avatars.current});
+            expect(avatar).toBe(avatars.current.NotificationsAvatar);
+        });
+
         it('should return default avatar SVG for default avatar URL', () => {
             const {result: avatars} = renderHook(() => useDefaultAvatars());
             const avatar = UserAvatarUtils.getAvatar({avatarSource: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png', accountID: 2, defaultAvatars: avatars.current});
@@ -68,6 +74,11 @@ describe('UserAvatarUtils', () => {
         it('should return Concierge icon URL for Concierge account', () => {
             const url = UserAvatarUtils.getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE});
             expect(url).toBe(CONST.CONCIERGE_ICON_URL);
+        });
+
+        it('should return Notifications icon URL for the Notifications account by accountID or email', () => {
+            expect(UserAvatarUtils.getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.NOTIFICATIONS})).toBe(CONST.NOTIFICATIONS_ICON_URL);
+            expect(UserAvatarUtils.getDefaultAvatarURL({accountID: 999, accountEmail: CONST.EMAIL.NOTIFICATIONS})).toBe(CONST.NOTIFICATIONS_ICON_URL);
         });
 
         it('should return default avatar URL for regular account', () => {
@@ -135,6 +146,10 @@ describe('UserAvatarUtils', () => {
 
         it('should return true for legacy Concierge icon URL', () => {
             expect(UserAvatarUtils.isDefaultAvatar(CONST.CONCIERGE_ICON_URL_2021)).toBe(true);
+        });
+
+        it('should return true for the Notifications icon URL', () => {
+            expect(UserAvatarUtils.isDefaultAvatar(CONST.NOTIFICATIONS_ICON_URL)).toBe(true);
         });
 
         it('should return false for custom avatar URLs', () => {
@@ -314,6 +329,9 @@ describe('UserAvatarUtils', () => {
             {accountID: 7, firstName: '', lastName: '', login: '+15551234567@expensify.sms', expected: ''},
             {accountID: CONST.ACCOUNT_ID.CONCIERGE, firstName: 'Concierge', lastName: '', login: 'concierge@expensify.com', expected: ''},
             {accountID: CONST.ACCOUNT_ID.NOTIFICATIONS, firstName: 'Notifications', lastName: '', login: 'notifications@expensify.com', expected: ''},
+            // System accounts are recognized by login too, so a non-system accountID (e.g. dev DB IDs) still gets no letter avatar.
+            {accountID: 999, firstName: '', lastName: '', login: 'concierge@expensify.com', expected: ''},
+            {accountID: 999, firstName: '', lastName: '', login: 'notifications@expensify.com', expected: ''},
         ];
 
         it.each(cases)('builds the canonical URL for $login ($firstName/$lastName)', ({accountID, firstName, lastName, login, expected}) => {

@@ -101,10 +101,10 @@ function getLetterAvatarScheme(avatarSchemeKey?: string): LetterAvatarColorStyle
  * @returns The avatar icon asset (SVG component), or undefined if no default avatar matches
  */
 function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL, defaultAvatars}: DefaultAvatarArgsType & DefaultAvatarsType): IconAsset | undefined {
-    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE || accountEmail === CONST.EMAIL.CONCIERGE || avatarURL === CONST.CONCIERGE_ICON_URL) {
         return defaultAvatars.ConciergeAvatar;
     }
-    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS || accountEmail === CONST.EMAIL.NOTIFICATIONS || avatarURL === CONST.NOTIFICATIONS_ICON_URL) {
         return defaultAvatars.NotificationsAvatar;
     }
 
@@ -138,8 +138,11 @@ function getDefaultAvatarName({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail
  *
  */
 function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): string {
-    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE || accountEmail === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
+    }
+    if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS || accountEmail === CONST.EMAIL.NOTIFICATIONS) {
+        return CONST.NOTIFICATIONS_ICON_URL;
     }
 
     // The local default has no name to read initials from, so they come from the email. The backend emits
@@ -181,6 +184,9 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
         }
         // We use a hardcoded "default" Concierge avatar
         if (avatarSource === CONST.CONCIERGE_ICON_URL_2021 || avatarSource === CONST.CONCIERGE_ICON_URL) {
+            return true;
+        }
+        if (avatarSource === CONST.NOTIFICATIONS_ICON_URL) {
             return true;
         }
     }
@@ -242,7 +248,7 @@ function firstLetterAvatarCharacter(name: string): string {
  * @returns The generated letter-avatar URL, or '' when no letter avatar applies
  */
 function getLetterAvatarURL(accountID: number, firstName: string, lastName: string, login: string): string {
-    if (accountID === CONST.ACCOUNT_ID.CONCIERGE || accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE || accountID === CONST.ACCOUNT_ID.NOTIFICATIONS || login === CONST.EMAIL.CONCIERGE || login === CONST.EMAIL.NOTIFICATIONS) {
         return '';
     }
 
