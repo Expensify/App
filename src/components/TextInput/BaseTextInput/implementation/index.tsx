@@ -85,6 +85,7 @@ function BaseTextInput({
     onClearInput,
     iconContainerStyle,
     clearButtonStyle,
+    clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
@@ -561,6 +562,7 @@ function BaseTextInput({
                                             setValue('');
                                             onClearInput?.();
                                         }}
+                                        iconSize={clearButtonIconSize}
                                         style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
                                         sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
                                     />
