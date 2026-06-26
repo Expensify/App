@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index 7d2774b443f..2e37b02fc46 100644
+index 7d2774b443f..3cee053c1a0 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 @@ -21,6 +21,7 @@ import android.text.StaticLayout
@@ -10,37 +10,57 @@ index 7d2774b443f..2e37b02fc46 100644
  import android.util.LayoutDirection
  import android.view.Gravity
  import android.view.View
-@@ -306,6 +307,19 @@ internal object TextLayoutManager {
+@@ -46,6 +47,7 @@ import com.facebook.react.views.text.internal.span.ReactForegroundColorSpan
+ import com.facebook.react.views.text.internal.span.ReactFragmentIndexSpan
+ import com.facebook.react.views.text.internal.span.ReactLinkSpan
+ import com.facebook.react.views.text.internal.span.ReactOpacitySpan
++import com.facebook.react.views.text.internal.span.ReactSpan
+ import com.facebook.react.views.text.internal.span.ReactStrikethroughSpan
+ import com.facebook.react.views.text.internal.span.ReactTagSpan
+ import com.facebook.react.views.text.internal.span.ReactTextPaintHolderSpan
+@@ -61,6 +63,11 @@ import kotlin.math.floor
+ import kotlin.math.max
+ import kotlin.math.min
+ 
++// A LeadingMarginSpan that is also a ReactSpan, so it can be added via SetSpanOperation (whose `what`
++// is typed ReactSpan). Used to reserve leading room for a bordered / inline-code span at a line start.
++// Standard(margin, 0): indent only the first line of the paragraph (rest = 0).
++private class ReactLeadingMarginSpan(margin: Int) : LeadingMarginSpan.Standard(margin, 0), ReactSpan
++
+ /** Class responsible of creating [Spanned] object for the JS representation of Text */
+ internal object TextLayoutManager {
+ 
+@@ -306,6 +313,19 @@ internal object TextLayoutManager {
              null
            }
            span?.let { ops.add(SetSpanOperation(start, end, it)) }
 +
-+          // Reserve leading advance so a bordered span that begins a line isn't clipped at the
-+          // left edge; the box is extended into it by half the border width in ReactBackgroundDrawSpan.
++          // Reserve leading advance (2x borderWidth: internal padding + border) so a bordered span
++          // that begins a line has room for its left border + padding; first line only.
 +          val leadingBorderDip = textAttributes.borderLeftWidth.takeIf { !it.isNaN() } ?: 0f
 +          if (leadingBorderDip > 0f && (start == 0 || sb[start - 1] == '\n')) {
 +            ops.add(
 +                SetSpanOperation(
 +                    start,
 +                    end,
-+                    LeadingMarginSpan.Standard(PixelUtil.toPixelFromDIP(leadingBorderDip).toInt()),
++                    ReactLeadingMarginSpan(PixelUtil.toPixelFromDIP(leadingBorderDip * 2.0f).toInt()),
 +                )
 +            )
 +          }
          }
          if (!textAttributes.opacity.isNaN()) {
            ops.add(SetSpanOperation(start, end, ReactOpacitySpan(textAttributes.opacity)))
-@@ -509,6 +523,18 @@ internal object TextLayoutManager {
+@@ -509,6 +529,18 @@ internal object TextLayoutManager {
              null
            }
            spannable.setSpan(bgSpan, start, end, spanFlags)
 +
-+          // Reserve leading advance so a bordered span that begins a line isn't clipped at the
-+          // left edge; the box is extended into it by half the border width in ReactBackgroundDrawSpan.
++          // Reserve leading advance (2x borderWidth: internal padding + border) so a bordered span
++          // that begins a line has room for its left border + padding; first line only.
 +          val leadingBorderDip = fragment.props.borderLeftWidth.takeIf { !it.isNaN() } ?: 0f
 +          if (leadingBorderDip > 0f && (start == 0 || spannable[start - 1] == '\n')) {
 +            spannable.setSpan(
-+                LeadingMarginSpan.Standard(PixelUtil.toPixelFromDIP(leadingBorderDip).toInt()),
++                ReactLeadingMarginSpan(PixelUtil.toPixelFromDIP(leadingBorderDip * 2.0f).toInt()),
 +                start,
 +                end,
 +                spanFlags,
@@ -50,21 +70,30 @@ index 7d2774b443f..2e37b02fc46 100644
  
          if (!fragment.props.opacity.isNaN()) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-index 48f6592b82d..94ac1642908 100644
+index 48f6592b82d..5be18e87503 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
+@@ -70,7 +70,7 @@ internal class ReactBackgroundDrawSpan(
+       val lineEnd = layout.getLineEnd(line)
+ 
+       val left =
+-          if (start <= lineStart) layout.getLineLeft(line)
++          if (start <= lineStart) layout.getPrimaryHorizontal(lineStart)
+           else layout.getPrimaryHorizontal(start)
+ 
+       val right =
 @@ -87,6 +87,16 @@ internal class ReactBackgroundDrawSpan(
        val isFirstLine = line == startLine
        val isLastLine = line == endLine
  
-+      // Extend the box outward into the reserved advance (LeadingMarginSpan added in
-+      // TextLayoutManager) by half the border width, so the centered stroke clears the glyphs
-+      // and isn't clipped at the line edge.
++      // Extend the fill box by 1.5x the border width (internal padding + half the centered stroke)
++      // so there's a borderWidth gap between the glyphs and the border. Left uses the reserved
++      // LeadingMarginSpan advance (TextLayoutManager); the right has no Android reservation yet.
 +      if (isFirstLine && borderLeftWidth > 0f) {
-+        rectF.left -= borderLeftWidth / 2f
++        rectF.left -= borderLeftWidth * 1.5f
 +      }
 +      if (isLastLine && borderRightWidth > 0f) {
-+        rectF.right += borderRightWidth / 2f
++        rectF.right += borderRightWidth * 1.5f
 +      }
 +
        drawFill(canvas, rectF, isFirstLine, isLastLine)
