@@ -154,6 +154,7 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings/edit/0')).toBe('/settings/p123/tags/settings-tags-settings/settings-tags-edit/0');
         expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings/settings-tags-edit/0')).toBe(undefined);
         expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/p123/tags/settings-tags-settings')).toBe(undefined);
     });
 
     it('preserves query params when redirecting old settings tag routes', () => {
