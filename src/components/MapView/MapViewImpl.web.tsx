@@ -323,7 +323,7 @@ function MapViewImpl({
                 {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
             </Map>
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}
