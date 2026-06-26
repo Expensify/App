@@ -367,7 +367,6 @@ function MoneyRequestReportTransactionList({
         return ids;
     }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, policy, reportActionsMap]);
 
-    // Column/RBR ordering shared by the ungrouped (None) list and the grouped (Category/Tag) layouts.
     const compareTransactionsByColumn = useCallback(
         (a: OnyxTypes.Transaction, b: OnyxTypes.Transaction) => {
             // When on default sort (Date/ASC), prioritize RBR-flagged transactions
@@ -392,9 +391,6 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions].sort((a, b) => {
-            // Scanning transactions are pinned ahead of the rest regardless of the sort column or direction — to the top
-            // of the ungrouped (None) list, and to the top of their own section in the grouped (Category/Tag) layouts.
-            // The section itself still sorts in its normal position (see sortGroupedTransactions); only the row within it is pinned.
             const scanningComparison = compareScanningPriority(a, b);
             if (scanningComparison !== 0) {
                 return scanningComparison;

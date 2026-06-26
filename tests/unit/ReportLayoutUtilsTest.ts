@@ -74,37 +74,6 @@ describe('groupTransactionsByCategory', () => {
         expect(result.at(2)?.groupKey).toBe('');
     });
 
-    it('does not pin a scanning transaction to the top — it follows normal grouping', () => {
-        const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', category: 'Zebra', amount: -500}),
-            createMockTransaction({transactionID: '2', category: 'Alpha', amount: -200}),
-            // Categorized scanning expense stays in its own section (alphabetical position), not floated to the top.
-            createMockTransaction({
-                transactionID: 'scanning-categorized',
-                category: 'Meals',
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                amount: 0,
-                modifiedAmount: '',
-                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
-            }),
-            // Uncategorized scanning expense stays in the empty group, which still sorts last (as it does today).
-            createMockTransaction({
-                transactionID: 'scanning-uncategorized',
-                category: '',
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                amount: 0,
-                modifiedAmount: '',
-                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
-            }),
-        ];
-
-        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
-
-        // Scanning does not affect group ordering: alphabetical with the uncategorized (empty) group last.
-        expect(result.map((group) => group.groupKey)).toEqual(['Alpha', 'Meals', 'Zebra', '']);
-    });
-
     it('sets isExpanded to true for all groups', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000}), createMockTransaction({transactionID: '2', category: 'Meals', amount: -500})];

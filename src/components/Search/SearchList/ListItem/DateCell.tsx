@@ -30,7 +30,6 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, isScanning
         onSave,
     });
 
-    // The scanning label replaces only the date; any suffix (the narrow layout's category) is still appended.
     const datePart = isScanning
         ? translate('iou.receiptStatusTitle')
         : DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);

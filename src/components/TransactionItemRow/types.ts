@@ -125,8 +125,6 @@ type TransactionItemRowNarrowComputedData = {
     missingFieldError: string;
     categoryForDisplay: string;
     createdAt: string;
-    /** Whether the receipt scan is in progress (shows the scanning label in the date cell) */
-    isScanning: boolean;
     transactionThreadReportID: string | undefined;
     shouldRenderChatBubbleCell: boolean;
 };

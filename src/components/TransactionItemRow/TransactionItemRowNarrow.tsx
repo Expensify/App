@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
@@ -73,13 +74,13 @@ function TransactionItemRowNarrow({
     transactionThreadReportID,
     categoryForDisplay,
     createdAt,
-    isScanning,
     shouldRenderChatBubbleCell,
 }: TransactionItemRowNarrowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const isTransactionScanning = isScanning(transactionItem);
 
     return (
         <>
@@ -137,7 +138,7 @@ function TransactionItemRowNarrow({
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                             <DateCell
                                 date={createdAt}
-                                isScanning={isScanning}
+                                isScanning={isTransactionScanning}
                                 showTooltip={shouldShowTooltip}
                                 isLargeScreenWidth={false}
                                 suffixText={categoryForDisplay}

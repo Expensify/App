@@ -36,6 +36,7 @@ import {
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
+    isScanning,
     isTimeRequest,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -112,7 +113,6 @@ function TransactionItemRowWide({
     totalPerAttendee,
     transactionThreadReportID,
     createdAt,
-    isScanning,
     isMarkAsDone,
 }: TransactionItemRowWideProps) {
     const styles = useThemeStyles();
@@ -121,6 +121,7 @@ function TransactionItemRowWide({
     const theme = useTheme();
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
+    const isTransactionScanning = isScanning(transactionItem);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
     const effectivePolicyID = isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : reportPolicyID;
@@ -186,7 +187,7 @@ function TransactionItemRowWide({
                         <DateCell
                             canEdit={canEditDate}
                             date={createdAt}
-                            isScanning={isScanning}
+                            isScanning={isTransactionScanning}
                             onSave={onEditDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
@@ -446,7 +447,7 @@ function TransactionItemRowWide({
                             <AmountCell
                                 total={totalPerAttendee ?? 0}
                                 currency={getCurrency(transactionItem)}
-                                isScanning={isScanning}
+                                isScanning={isTransactionScanning}
                             />
                         )}
                     </View>

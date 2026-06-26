@@ -8,7 +8,7 @@ import {getDecodedTagName, isTagMissing} from './TagUtils';
 import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
- * Sorts groups alphabetically (A→Z) with empty keys (uncategorized/untagged) at the end.
+ * Sorts groups alphabetically (A→Z) with empty keys at the end
  */
 function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     return groups.sort((a, b) => {
