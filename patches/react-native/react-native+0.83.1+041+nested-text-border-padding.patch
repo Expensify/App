@@ -71,20 +71,21 @@ index 48f6592b82d..94ac1642908 100644
        drawBorder(canvas, rectF, isFirstLine, isLastLine)
      }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index ed7ee76ce6a..d1cd9aa38c4 100644
+index ed7ee76ce6a..d3a57b31d66 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -473,6 +473,48 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
+@@ -473,6 +473,67 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
  
      [nsAttributedString appendAttributedString:nsAttributedStringFragment];
    }
 +
-+  // Reserve leading advance for a bordered / inline-code span that begins a paragraph via
-+  // firstLineHeadIndent: it both shifts the glyphs right (so the left border isn't drawn over
-+  // them) and grows the measured width (so the border isn't clipped). The trailing side is
-+  // handled in the measure step (RCTTextLayoutManager) by widening the measured size, because no
-+  // paragraph property grows the right edge of an intrinsic-width label — tailIndent only
-+  // constrains, and trailing kern just overflows and clips.
++  // Reserve horizontal advance around a bordered / inline-code span (the border width on each side)
++  // so the border has room instead of overlapping neighbouring words or getting clipped:
++  //   - Leading at a paragraph start: firstLineHeadIndent (shifts the line + grows the frame).
++  //   - Leading mid-paragraph: kern the preceding character (pushes the span right).
++  //   - Trailing at a paragraph end: handled by the measure step (RCTTextLayoutManager).
++  //   - Trailing mid-paragraph: kern the span's last character (pushes the next word right).
++  // (Soft-wrapped line starts are handled by RCTTextLayoutManagerWithBorderRadius's layout delegate.)
 +  NSString *plainString = nsAttributedString.string;
 +  NSUInteger fullLength = nsAttributedString.length;
 +  [nsAttributedString enumerateAttribute:RCTTextBorderRadiusAttributeName
@@ -98,26 +99,44 @@ index ed7ee76ce6a..d1cd9aa38c4 100644
 +    if (attrs.count < 13) {
 +      return;
 +    }
-+    // attrs layout matches RCTNSTextAttributesFromTextAttributes: leftW=attrs[12].
++    // attrs layout matches RCTNSTextAttributesFromTextAttributes: rightW=attrs[10], leftW=attrs[12].
++    const CGFloat rightW = [attrs[10] floatValue];
 +    const CGFloat leftW = [attrs[12] floatValue];
-+    if (leftW <= 0) {
-+      return;
-+    }
 +    const BOOL atParagraphStart =
 +        range.location == 0 || [plainString characterAtIndex:range.location - 1] == '\n';
-+    if (!atParagraphStart) {
-+      return;
++    const BOOL atParagraphEnd =
++        NSMaxRange(range) >= fullLength || [plainString characterAtIndex:NSMaxRange(range)] == '\n';
++
++    if (leftW > 0) {
++      if (atParagraphStart) {
++        NSRange paragraphRange = [plainString paragraphRangeForRange:NSMakeRange(range.location, 0)];
++        NSParagraphStyle *existing = [nsAttributedString attribute:NSParagraphStyleAttributeName
++                                                          atIndex:range.location
++                                                   effectiveRange:NULL];
++        NSMutableParagraphStyle *paragraphStyle =
++            existing ? [existing mutableCopy] : [NSMutableParagraphStyle new];
++        paragraphStyle.firstLineHeadIndent = MAX(paragraphStyle.firstLineHeadIndent, leftW);
++        [nsAttributedString addAttribute:NSParagraphStyleAttributeName
++                                   value:paragraphStyle
++                                   range:paragraphRange];
++      } else {
++        const NSUInteger prevIndex = range.location - 1;
++        NSNumber *existingKern = [nsAttributedString attribute:NSKernAttributeName
++                                                       atIndex:prevIndex
++                                                effectiveRange:NULL];
++        const CGFloat kern = (existingKern ? [existingKern doubleValue] : 0.0) + leftW;
++        [nsAttributedString addAttribute:NSKernAttributeName value:@(kern) range:NSMakeRange(prevIndex, 1)];
++      }
 +    }
-+    NSRange paragraphRange = [plainString paragraphRangeForRange:NSMakeRange(range.location, 0)];
-+    NSParagraphStyle *existing = [nsAttributedString attribute:NSParagraphStyleAttributeName
-+                                                      atIndex:range.location
-+                                               effectiveRange:NULL];
-+    NSMutableParagraphStyle *paragraphStyle =
-+        existing ? [existing mutableCopy] : [NSMutableParagraphStyle new];
-+    paragraphStyle.firstLineHeadIndent = MAX(paragraphStyle.firstLineHeadIndent, leftW);
-+    [nsAttributedString addAttribute:NSParagraphStyleAttributeName
-+                               value:paragraphStyle
-+                               range:paragraphRange];
++
++    if (rightW > 0 && !atParagraphEnd) {
++      const NSUInteger lastIndex = NSMaxRange(range) - 1;
++      NSNumber *existingKern = [nsAttributedString attribute:NSKernAttributeName
++                                                     atIndex:lastIndex
++                                              effectiveRange:NULL];
++      const CGFloat kern = (existingKern ? [existingKern doubleValue] : 0.0) + rightW;
++      [nsAttributedString addAttribute:NSKernAttributeName value:@(kern) range:NSMakeRange(lastIndex, 1)];
++    }
 +  }];
 +
    [nsAttributedString endEditing];
@@ -169,7 +188,7 @@ index d82b6a7062a..7690744c3ab 100644
  
    if (paragraphAttributes.maximumNumberOfLines != 0) {
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-index c2320fe9792..aec216234db 100644
+index c2320fe9792..c4a99f12bd0 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 @@ -9,8 +9,67 @@
@@ -240,7 +259,34 @@ index c2320fe9792..aec216234db 100644
  - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin
  {
    // Let super handle all spans that use NSBackgroundColorAttributeName (no border radius).
-@@ -116,6 +175,17 @@
+@@ -55,6 +114,10 @@
+ 
+     NSRange spanGlyphRange = [self glyphRangeForCharacterRange:attrRange actualCharacterRange:nil];
+ 
++    NSString *storageString = self.textStorage.string;
++    const BOOL spanAtParagraphEnd = NSMaxRange(attrRange) >= storageString.length ||
++        [storageString characterAtIndex:NSMaxRange(attrRange)] == '\n';
++
+     __block NSUInteger totalLines = 0;
+     [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
+                                    usingBlock:^(CGRect r, CGRect u, NSTextContainer *tc, NSRange gr, BOOL *s) {
+@@ -91,6 +154,15 @@
+           ? [self locationForGlyphAtIndex:endGlyph].x          // start of next glyph = tight right edge
+           : CGRectGetMaxX(usedRect) - lineRect.origin.x;       // span runs to line end → trailing-ws-trimmed edge
+ 
++      // Mid-paragraph, RCTAttributedTextUtils kerns the span's last glyph by rightW to reserve room
++      // for the right border; that shifts the *next* glyph and inflates endX. Undo it on the span's
++      // last line so the fill still hugs the glyphs (the centered border then sits in the reserved
++      // space). Line/paragraph ends don't kern (trailing kern is trimmed there; measure handles them).
++      if (endGlyph < NSMaxRange(lineGlyphRange) && endGlyph == NSMaxRange(spanGlyphRange) &&
++          rightW > 0 && !spanAtParagraphEnd) {
++        endX -= rightW;
++      }
++
+       CGRect spanRect;
+       spanRect.origin.x = lineRect.origin.x + startLoc.x + origin.x;
+       spanRect.size.width = endX - startLoc.x;
+@@ -116,6 +188,17 @@
        CGFloat effectiveTR = isLast  ? tr : 0;
        CGFloat effectiveBR = isLast  ? br : 0;
  
