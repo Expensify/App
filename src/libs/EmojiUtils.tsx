@@ -35,8 +35,7 @@ const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTo
 
 // Used for paste paths where shortcode text must be converted before the lazy emoji trie is ready.
 function convertEmojiShortcodesToUnicode(text: string): string {
-    const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
-    if (!emojiData) {
+    if (!text.match(CONST.REGEX.EMOJI_NAME)) {
         return text;
     }
 
