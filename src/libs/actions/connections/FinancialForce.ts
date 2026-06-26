@@ -509,7 +509,7 @@ function updateFinancialForceParentTagMapping(
         parentTagMapping,
         previousValue ?? undefined,
     );
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, parentTagMapping}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, mappingType: parentTagMapping}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, previousValue?: boolean) {
