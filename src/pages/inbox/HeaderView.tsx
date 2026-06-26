@@ -161,7 +161,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         : undefined;
     const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, isParentReportHeaderDataArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, translate, isParentReportHeaderDataArchived);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
     const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));

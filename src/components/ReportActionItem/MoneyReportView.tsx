@@ -38,6 +38,7 @@ import {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    isReportFieldTargetMatchingReport,
     isSettled as isSettledReportUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
@@ -142,7 +143,7 @@ function MoneyReportView({
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
         const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
         const sorted = Object.values(byName)
-            .filter((field) => field.target === report?.type)
+            .filter((field) => isReportFieldTargetMatchingReport(report, field))
             .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
         return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
     }, [policy?.fieldList, report]);
@@ -155,6 +156,7 @@ function MoneyReportView({
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
+    const areFieldsEnabledForReport = isInvoiceReport ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
         (isGroupPolicyExpenseReport || isInvoiceReport) &&
@@ -188,7 +190,7 @@ function MoneyReportView({
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isGroupPolicyExpenseReport || isInvoiceReport) &&
-                            !!policy?.areReportFieldsEnabled &&
+                            areFieldsEnabledForReport &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {

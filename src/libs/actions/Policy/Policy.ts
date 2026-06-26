@@ -29,6 +29,7 @@ import type {
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
     EnablePolicyHRParams,
+    EnablePolicyInvoiceFieldsParams,
     EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
@@ -3323,6 +3324,16 @@ function buildOptimisticDuplicatePolicy(
     const willCopyRulesDocument = isOverviewFeatureSelected && !!sourcePolicy?.rulesDocumentURL;
     const employeeListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.employeeList);
     const fieldListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.fieldList);
+    const reportFieldListWithoutPendingDelete = fieldListWithoutPendingDelete
+        ? Object.fromEntries(Object.entries(fieldListWithoutPendingDelete).filter(([, field]) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE))
+        : undefined;
+    const invoiceFieldListWithoutPendingDelete = fieldListWithoutPendingDelete
+        ? Object.fromEntries(Object.entries(fieldListWithoutPendingDelete).filter(([, field]) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE))
+        : undefined;
+    const copiedFieldList = {
+        ...(isReportsFeatureSelected ? reportFieldListWithoutPendingDelete : undefined),
+        ...(isInvoicesFeatureSelected ? invoiceFieldListWithoutPendingDelete : undefined),
+    };
     const connectionsWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.connections);
     const taxRatesWithoutPendingDelete = {
         ...sourcePolicy?.taxRates,
@@ -3338,6 +3349,7 @@ function buildOptimisticDuplicatePolicy(
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
         areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
+        areInvoiceFieldsEnabled: isInvoicesFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
         arePerDiemRatesEnabled: isPerDiemFeatureSelected,
         isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
@@ -3347,7 +3359,7 @@ function buildOptimisticDuplicatePolicy(
         employeeList: isMemberFeatureSelected ? employeeListWithoutPendingDelete : {[sourcePolicy.owner]: sourcePolicy?.employeeList?.[sourcePolicy.owner]},
         id: duplicatedPolicyID,
         name: duplicatedPolicyName,
-        fieldList: isReportsFeatureSelected ? fieldListWithoutPendingDelete : undefined,
+        fieldList: Object.keys(copiedFieldList).length > 0 ? copiedFieldList : undefined,
         connections: isConnectionsFeatureSelected ? connectionsWithoutPendingDelete : undefined,
         customUnits: getCustomUnitsForDuplication(sourcePolicy, isDistanceRatesFeatureSelected, isPerDiemFeatureSelected, {
             distanceCustomUnitID: duplicatedDistanceCustomUnitID,
@@ -3367,6 +3379,7 @@ function buildOptimisticDuplicatePolicy(
             description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            areInvoiceFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             ...(willCopyRulesDocument ? {rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {}),
         },
         avatarURL: duplicatedPolicyFile?.uri,
@@ -4939,16 +4952,19 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean) {
+function enablePolicyFields(policyID: string, enabled: boolean, command: typeof WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS | typeof WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS) {
+    const enableFieldKey =
+        command === WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED;
+
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReportFieldsEnabled: enabled,
+                    [enableFieldKey]: enabled,
                     pendingFields: {
-                        areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        [enableFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -4959,7 +4975,7 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     pendingFields: {
-                        areReportFieldsEnabled: null,
+                        [enableFieldKey]: null,
                     },
                 },
             },
@@ -4969,18 +4985,26 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    areReportFieldsEnabled: !enabled,
+                    [enableFieldKey]: !enabled,
                     pendingFields: {
-                        areReportFieldsEnabled: null,
+                        [enableFieldKey]: null,
                     },
                 },
             },
         ],
     };
 
-    const parameters: EnablePolicyReportFieldsParams = {policyID, enabled};
+    const parameters: EnablePolicyReportFieldsParams | EnablePolicyInvoiceFieldsParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
+    API.writeWithNoDuplicatesEnableFeatureConflicts(command, parameters, onyxData);
+}
+
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
+    enablePolicyFields(policyID, enabled, WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS);
+}
+
+function enablePolicyInvoiceFields(policyID: string, enabled: boolean) {
+    enablePolicyFields(policyID, enabled, WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS);
 }
 
 function enablePolicyTaxes(policyID: string, enabled: true, currentTaxRates: TaxRatesWithDefault | undefined, policyData?: PolicyData): void;
@@ -7598,6 +7622,7 @@ export {
     enablePolicyHR,
     enablePolicyReceiptPartners,
     enablePolicyReportFields,
+    enablePolicyInvoiceFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
     enablePolicyTimeTracking,

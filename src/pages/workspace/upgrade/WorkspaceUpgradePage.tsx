@@ -37,6 +37,7 @@ import {
     enablePolicyAutoReimbursementLimit,
     enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyInvoiceFields,
     enablePolicyInvoicing,
     enablePolicyReportFields,
     enablePolicyRules,
@@ -158,6 +159,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                return Navigation.goBack(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
                 return;
@@ -237,6 +240,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         enablePolicyReportFields(policyID, true);
                     }
                 }
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                enablePolicyInvoiceFields(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 enablePolicyRules(policy, true, false, policyDataRef.current);

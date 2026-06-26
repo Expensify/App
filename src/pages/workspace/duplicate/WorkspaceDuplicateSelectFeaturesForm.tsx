@@ -45,7 +45,10 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const categoriesCount = Object.values(policyCategories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const codingRulesCount = Object.values(policy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const reportFields = Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
+    const reportFields =
+        Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter(
+            (field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE,
+        ).length ?? 0;
     const customUnits = getPerDiemCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
