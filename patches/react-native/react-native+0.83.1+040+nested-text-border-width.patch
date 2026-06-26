@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-index 0f1f176..53faf04 100644
+index 0f1f176d50c..53faf049df6 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
 @@ -80,6 +80,54 @@ public class TextAttributeProps private constructor() {
@@ -92,7 +92,7 @@ index 0f1f176..53faf04 100644
        }
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index 5e7895c..7d2774b 100644
+index 5e7895c3c50..7d2774b443f 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 @@ -268,27 +268,44 @@ internal object TextLayoutManager {
@@ -225,7 +225,7 @@ index 5e7895c..7d2774b 100644
          }
  
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-index 326b049..48f6592 100644
+index 326b049ce2e..80f8d389475 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 @@ -14,11 +14,15 @@ import android.text.Layout
@@ -284,37 +284,16 @@ index 326b049..48f6592 100644
  
    override fun onPreDraw(start: Int, end: Int, canvas: Canvas, layout: Layout) {
      if (start >= end) return
-@@ -48,70 +69,132 @@ internal class ReactBackgroundDrawSpan(
-       val lineStart = layout.getLineStart(line)
-       val lineEnd = layout.getLineEnd(line)
- 
--      // When the span starts at or before this line, use the line's left edge.
--      // Otherwise use the actual character position of the span start.
+@@ -52,7 +73,7 @@ internal class ReactBackgroundDrawSpan(
+       // Otherwise use the actual character position of the span start.
        val left =
--          if (start <= lineStart) {
+           if (start <= lineStart) {
 -            layout.getLineLeft(line)
--          } else {
--            layout.getPrimaryHorizontal(start)
--          }
--
--      // When the span extends past this line, use the line's right edge.
--      // getLineEnd() returns the offset of the first char on the NEXT line for
--      // soft-wrapped lines, so getPrimaryHorizontal(lineEnd) would incorrectly
--      // give us the left margin of the next line instead of the right edge.
-+          if (start <= lineStart) layout.getLineLeft(line)
-+          else layout.getPrimaryHorizontal(start)
-+
-       val right =
--          if (end >= lineEnd) {
--            layout.getLineRight(line)
--          } else {
--            layout.getPrimaryHorizontal(end)
--          }
-+          if (end >= lineEnd) layout.getLineRight(line)
-+          else layout.getPrimaryHorizontal(end)
- 
-       val baseline = layout.getLineBaseline(line).toFloat()
-       val fm = layout.paint.fontMetrics
++            layout.getPrimaryHorizontal(lineStart)
+           } else {
+             layout.getPrimaryHorizontal(start)
+           }
+@@ -73,45 +94,119 @@ internal class ReactBackgroundDrawSpan(
        val top = baseline + fm.ascent
        val bottom = baseline + fm.descent
  
@@ -463,7 +442,7 @@ index 326b049..48f6592 100644
    }
  }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
-index 6eb899f..eb0d85b 100644
+index 6eb899f38a9..eb0d85b4b69 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
 @@ -42,6 +42,36 @@ void TextAttributes::apply(TextAttributes textAttributes) {
@@ -581,7 +560,7 @@ index 6eb899f..eb0d85b 100644
        // Font
        debugStringConvertibleItem(
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-index 2eaa3bc..af278a3 100644
+index 2eaa3bc26f3..af278a3921a 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h
 @@ -47,6 +47,16 @@ class TextAttributes : public DebugStringConvertible {
@@ -621,7 +600,7 @@ index 2eaa3bc..af278a3 100644
  };
  } // namespace std
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
-index 48c1fe2..3f7b481 100644
+index 48c1fe23ae2..3f7b4818f9e 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/attributedstring/conversions.h
 @@ -1031,6 +1031,14 @@ constexpr static MapBuffer::Key TA_KEY_BORDER_TOP_LEFT_RADIUS = 30;
@@ -690,7 +669,7 @@ index 48c1fe2..3f7b481 100644
  }
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
-index 44ef461..b9ae418 100644
+index 44ef4619b05..b9ae418a0fa 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
 @@ -252,6 +252,66 @@ static TextAttributes convertRawProp(
@@ -861,7 +840,7 @@ index 44ef461..b9ae418 100644
  
  #endif
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index 3bec610..ed7ee76 100644
+index 3bec61013b8..ed7ee76ce6a 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 @@ -184,19 +184,52 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
@@ -929,7 +908,7 @@ index 3bec610..ed7ee76 100644
        } else {
          attributes[NSBackgroundColorAttributeName] = bgColor;
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-index fd401a9..3ae5c60 100644
+index de879555fcf..c2320fe9792 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 @@ -26,13 +26,32 @@
@@ -979,7 +958,7 @@ index fd401a9..3ae5c60 100644
  
      __block NSUInteger lineIdx = 0;
      [self enumerateLineFragmentsForGlyphRange:spanGlyphRange
-@@ -76,6 +94,7 @@
+@@ -92,6 +110,7 @@
        BOOL isFirst = (lineIdx == 0);
        BOOL isLast  = (lineIdx == totalLines - 1);
  
@@ -987,7 +966,7 @@ index fd401a9..3ae5c60 100644
        CGFloat effectiveTL = isFirst ? tl : 0;
        CGFloat effectiveBL = isFirst ? bl : 0;
        CGFloat effectiveTR = isLast  ? tr : 0;
-@@ -86,24 +105,97 @@
+@@ -102,24 +121,97 @@
        CGFloat w = CGRectGetWidth(spanRect);
        CGFloat h = CGRectGetHeight(spanRect);
  
