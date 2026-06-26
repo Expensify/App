@@ -7556,7 +7556,7 @@ const translations = {
             requireFieldsEmptyState: {
                 title: 'Catch missing details upfront',
                 subtitle: 'Make sure key fields are filled in before expenses are submitted.',
-                cta: 'Add rule',
+                cta: 'Create require rule',
             },
             requireFieldsRule: {
                 title: 'Require fields',
@@ -7577,9 +7577,9 @@ const translations = {
                 flagForReview: 'Flag for review',
             },
             flagForReviewEmptyState: {
-                title: 'Catch overspending early',
-                subtitle: 'Notify approvers when expenses exceed category limits.',
-                cta: 'Add rule',
+                title: 'Surface expenses that need a closer look',
+                subtitle: 'Alert approvers when specific expenses are worth an extra review.',
+                cta: 'Create flag rule',
             },
             flagForReviewRule: {
                 title: 'Flag for review',
