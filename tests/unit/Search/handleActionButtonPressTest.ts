@@ -334,6 +334,7 @@ describe('handleActionButtonPress', () => {
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
@@ -341,6 +342,7 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
         });
         expect(goToItem).not.toHaveBeenCalled();
@@ -354,6 +356,7 @@ describe('handleActionButtonPress', () => {
             goToItem: jest.fn(),
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             userBillingGracePeriodEnds: undefined,
@@ -361,6 +364,7 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             onHoldMenuOpen,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
         });
 
@@ -375,12 +379,14 @@ describe('handleActionButtonPress', () => {
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
