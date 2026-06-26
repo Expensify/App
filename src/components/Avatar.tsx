@@ -3,7 +3,6 @@ import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,7 +75,6 @@ function Avatar({
     testID = 'Avatar',
 }: AvatarProps) {
     const defaultAvatars = useDefaultAvatars();
-    const {isBetaEnabled} = usePermissions();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -92,7 +90,7 @@ function Avatar({
 
     // Read the color and initials directly from the generated letter-avatar URL.
     const letterAvatarParts = parseLetterAvatarURL(source);
-    const shouldRenderLetterAvatar = !isWorkspace && !!letterAvatarParts && isBetaEnabled(CONST.BETAS.DEFAULT_LETTER_AVATARS);
+    const shouldRenderLetterAvatar = !isWorkspace && !!letterAvatarParts;
 
     let optimizedSource = source;
     const localFromCatalog = findLocalAvatarForURL(source);
