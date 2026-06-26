@@ -1,7 +1,7 @@
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import type BaseModalProps from '@components/Modal/types';
@@ -92,7 +92,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const {counts: reportCounts} = useTodoCounts();
+    const isFocused = useIsFocused();
+    const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
 
