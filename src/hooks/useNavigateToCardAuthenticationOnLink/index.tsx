@@ -29,11 +29,6 @@ function useNavigateToCardAuthenticationOnLink() {
     const firstRenderRef = useRef(true);
 
     const navigateToCardAuthentication = useEffectEvent(() => {
-        // The concrete reason for the mount-skip: on a reload/deep-link reconstruction the parent
-        // remounts with the URL already in Onyx, so this effect's mount run would fire
-        // createDynamicRoute() at the same moment React Navigation is still opening the screen. Those
-        // two competing navigations left the stack in a broken state. Skipping the mount run lets the
-        // reconstruction settle and only navigates on a later, genuine change of the link.
         if (firstRenderRef.current) {
             firstRenderRef.current = false;
             return;

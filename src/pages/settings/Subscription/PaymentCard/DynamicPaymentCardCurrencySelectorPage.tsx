@@ -8,6 +8,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
@@ -31,18 +32,17 @@ function DynamicPaymentCardCurrencySelectorPage() {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path);
+    // This selector is shared by two independent flows. Scope the read/write to the active flow's draft so a pick in one
+    // flow never bleeds into the other (the only cross-flow link is a real billing-currency change, via the card's currency).
+    const isChangeBillingCurrencyFlow = backPath === ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY;
     // The change-billing-currency screen already renders this note above its own form, so we only show it on the
     // selector for the other entry points (add payment card / workspace owner change) where it isn't displayed yet.
-    const shouldShowCurrencyNote = backPath !== ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY;
+    const shouldShowCurrencyNote = !isChangeBillingCurrencyFlow;
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT);
     const [addCardFormDraft] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const preferredCurrency = usePreferredCurrency();
 
-    const fallbackCurrency = useMemo(
-        () => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard)?.accountData?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
-        [fundList],
-    );
-    const currentCurrency = (formDraft?.[INPUT_IDS.CURRENCY] ?? addCardFormDraft?.currency ?? fallbackCurrency) as Currency;
+    const currentCurrency = ((isChangeBillingCurrencyFlow ? formDraft?.[INPUT_IDS.CURRENCY] : addCardFormDraft?.currency) ?? preferredCurrency) as Currency;
 
     const [draftCurrency, setDraftCurrency] = useState<Currency>();
     const selectedCurrency = draftCurrency ?? currentCurrency;
@@ -60,8 +60,11 @@ function DynamicPaymentCardCurrencySelectorPage() {
     }, [selectedCurrency, isBetaEnabled]);
 
     const saveAndGoBack = () => {
-        setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: selectedCurrency});
-        setPaymentMethodCurrency(selectedCurrency);
+        if (isChangeBillingCurrencyFlow) {
+            setDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {[INPUT_IDS.CURRENCY]: selectedCurrency});
+        } else {
+            setPaymentMethodCurrency(selectedCurrency);
+        }
         Navigation.goBack(backPath);
     };
 

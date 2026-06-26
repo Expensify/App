@@ -109,9 +109,10 @@ const mockSetPaymentMethodCurrency = jest.mocked(setPaymentMethodCurrency);
 const mockGoBack = jest.mocked(Navigation.goBack);
 
 /**
- * The page reads three Onyx keys in order: the CHANGE_BILLING_CURRENCY form draft, the
- * ADD_PAYMENT_CARD form draft (where the selector mirrors picks so the add-card form's
- * FormProvider hydrates correctly on next mount), and the fund list (billing card fallback).
+ * The selector is shared by two flows and scopes its read/write to the active one (via backPath):
+ * the change-billing flow uses the CHANGE_BILLING_CURRENCY draft, every other entry point (add
+ * payment card / workspace owner change) uses the ADD_PAYMENT_CARD draft. The fund list provides
+ * the billing-card fallback used by usePreferredCurrency when the active draft is empty.
  */
 const mockOnyx = (formDraftCurrency?: string, addCardDraftCurrency?: string, billingCardCurrency?: string) => {
     mockUseOnyx.mockImplementation((key: string) => {
@@ -168,7 +169,17 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(selected.at(0)?.value).toBe('AUD');
     });
 
-    it('falls back to the add-payment-card form draft currency when the change-billing-currency draft is empty', () => {
+    it('ignores the add-payment-card draft in the change-billing flow and falls back to the billing card currency', () => {
+        // Change-billing flow (default back path); a leftover add-card pick (NZD) must not leak into this flow's selection.
+        mockOnyx(undefined, 'NZD', 'GBP');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
+    });
+
+    it('selects the add-payment-card draft currency in the add payment card flow', () => {
+        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
         mockOnyx(undefined, 'NZD');
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
@@ -203,7 +214,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(selected.at(0)?.value).toBe('AUD');
     });
 
-    it('writes the chosen currency to both flows and navigates back when Save is tapped', () => {
+    it('writes only the change-billing draft (not the add-card draft) and navigates back when Save is tapped', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
         const aud = capturedData.find((option) => option.value === 'AUD');
@@ -219,7 +230,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         });
 
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
-        expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
+        expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
     });
 
@@ -238,6 +249,27 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         });
 
         expect(capturedConfirmButtonOptions?.isDisabled).toBe(false);
+    });
+
+    it('writes only the add-card draft (not the change-billing draft) when Save is tapped in the add payment card flow', () => {
+        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        act(() => {
+            capturedConfirmButtonOptions?.onConfirm?.();
+        });
+
+        expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
+        expect(mockSetDraftValues).not.toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/add-payment-card');
     });
 
     it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {
