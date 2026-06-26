@@ -239,13 +239,22 @@ function SubmitExpenseOrchestrator({
 
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
+        const wasPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.clearFullscreenPreInsertedFlag();
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
-        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, () => {
+
+        const afterTransition = () => {
             createTransaction(locationPermissionGranted, false);
             setIsConfirming(false);
-        });
+        };
+
+        if (wasPreInserted) {
+            Navigation.dismissModal({afterTransition});
+            return;
+        }
+
+        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, afterTransition);
     };
 
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {

@@ -18,14 +18,17 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -130,6 +133,25 @@ function IOURequestStepAmount({
 
         return !(isReportArchived || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
+
+    // Pre-insert the destination report under the RHP on narrow layout for skip-confirmation
+    // PAY flows. Without this, revealRouteBeforeDismissingModal inserts the route at submit
+    // time which causes a brief flash. The confirmation step handles its own pre-insertion
+    // but skip-confirmation PAY never mounts it.
+    const hasPreInsertedReport = useRef(false);
+    useEffect(() => {
+        if (hasPreInsertedReport.current || !shouldSkipConfirmation || !getIsNarrowLayout() || !report?.reportID) {
+            return;
+        }
+        if (iouType !== CONST.IOU.TYPE.PAY || isSearchTopmostFullScreenRoute()) {
+            return;
+        }
+        hasPreInsertedReport.current = true;
+        const timer = setTimeout(() => {
+            Navigation.preInsertFullscreenUnderRHP(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+        }, CONST.PRE_INSERT_FULLSCREEN_DELAY);
+        return () => clearTimeout(timer);
+    }, [shouldSkipConfirmation, iouType, report?.reportID]);
 
     useFocusEffect(
         useCallback(() => {
