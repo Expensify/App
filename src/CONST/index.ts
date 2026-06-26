@@ -7241,7 +7241,7 @@ const CONST = {
             [this.POLICY.CONNECTIONS.NAME.RILLET]: {
                 id: this.POLICY.CONNECTIONS.NAME.RILLET,
                 alias: 'rillet',
-                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialforce,
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.rillet,
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.RILLET}.description` as const,
                 icon: 'RilletSquare',
