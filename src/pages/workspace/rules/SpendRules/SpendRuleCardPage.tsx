@@ -27,7 +27,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/SpendRulesUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -121,7 +121,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
         const cardName = card.nameValuePairs?.cardTitle;
-        const displayName = getDisplayNameOrDefault(cardOwnerPersonalDetails, '', false);
+        const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardOwnerPersonalDetails, defaultValue: '', shouldFallbackToHidden: false, translate});
         return {
             keyForList: String(card.cardID),
             text: displayName !== '' ? displayName : (cardName ?? ''),
