@@ -5,7 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalBankAccountDetailsFormSubmit from '@hooks/usePersonalBankAccountDetailsFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,7 +16,7 @@ import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID];
 
-function PlaidBankAccountStep({onNext, isEditing}: SubStepProps) {
+function PlaidBankAccountStep({onNext, isEditing}: SubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
@@ -37,7 +37,7 @@ function PlaidBankAccountStep({onNext, isEditing}: SubStepProps) {
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validatePlaidSelection}
-            style={[styles.mh5, styles.flex1]}
+            style={styles.flex1}
             shouldHideFixErrorsAlert
         >
             <InputWrapper
