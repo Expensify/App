@@ -26,6 +26,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -123,10 +124,12 @@ function WorkspacesListPage() {
             workspaceRows.push(pendingWorkspaceRow);
         } else {
             const ownerDetails = policy.ownerAccountID ? ownerDisplayDetails?.[policy.ownerAccountID] : undefined;
+            const policyID = policy.id;
+            const isEligibleToCopy = isWorkspaceEligibleToCopy(policyID) && isPaidGroupPolicyByType(policy.type);
 
             const workspaceRow: WorkspaceRowData = {
-                keyForList: policy.id,
-                policyID: policy.id,
+                keyForList: policyID,
+                policyID,
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: policy.errors,
                 type: policy.type,
@@ -134,9 +137,9 @@ function WorkspacesListPage() {
                 role: policy.role,
                 ownerAccountID: policy.ownerAccountID,
                 isJoinRequestPending: false,
-                isEligibleToCopy: isWorkspaceEligibleToCopy(policy.id),
-                shouldAnimateInHighlight: duplicateWorkspace?.policyID === policy.id,
-                isDefault: activePolicyID === policy.id,
+                isEligibleToCopy,
+                shouldAnimateInHighlight: duplicateWorkspace?.policyID === policyID,
+                isDefault: activePolicyID === policyID,
                 isDeleted: policy.isPendingDelete,
                 ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                 ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
@@ -144,8 +147,8 @@ function WorkspacesListPage() {
                 iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                 pendingAction: policy.pendingAction,
-                action: (event) => navigateToWorkspace(policy.id, event),
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                action: (event) => navigateToWorkspace(policyID, event),
+                dismissError: () => dismissWorkspaceError(policyID, policy.pendingAction),
             };
 
             workspaceRows.push(workspaceRow);
