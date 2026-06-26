@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {cancelSavedViewEdits, saveSavedViewEdits, setSearchContext} from '@libs/actions/Search';
+import {cancelSavedViewEdits, saveSavedViewEdits} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSavedViewSaveButtonDisabledStates} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
@@ -101,12 +101,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
                             Date: DateFilterContentPopupWrapper,
                             ReportField: ReportFieldFilterContentPopupWrapper,
                         }}
-                        onChange={(values) => {
-                            updateFilterQueryParams(values);
-                            if (values.keyword) {
-                                setSearchContext(true);
-                            }
-                        }}
+                        onChange={updateFilterQueryParams}
                     />
                 </View>
             </View>

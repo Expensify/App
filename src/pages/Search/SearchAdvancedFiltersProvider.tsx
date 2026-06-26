@@ -73,14 +73,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     const {isSaveAsNewViewDisabled, isSaveEditsDisabled} = getSavedViewSaveButtonDisabledStates(savedSearches, editedQueryHash, editingSavedView?.hash);
 
     const applyFilters = () => {
-        Navigation.dismissModal({
-            afterTransition: () => {
-                setFilterQueryParams(values);
-                if (values.keyword) {
-                    setSearchContext(true);
-                }
-            },
-        });
+        Navigation.dismissModal({afterTransition: () => setFilterQueryParams(values)});
     };
 
     const resetFilters = () => {
