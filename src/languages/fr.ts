@@ -7545,6 +7545,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             agentRules: {
                 title: 'Règles d’agent',
                 subtitle: 'Définissez des règles pour déterminer comment les agents IA gèrent les dépenses dans cet espace de travail.',
+                enforcedBy: 'Les règles des agents sont appliquées par',
+                ruleBotName: 'RuleBot',
                 addRule: 'Ajouter une règle d’agent',
                 findRule: 'Rechercher une règle d’agent',
                 addRuleTitle: 'Ajouter une règle',
@@ -8609,6 +8611,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
         expenseType: 'Type de dépense',
+        receiptType: 'Type de reçu',
+        receiptTypeValues: {
+            ereceipt: 'eReçu',
+            itemized: 'Détaillé',
+            hotel: 'Hôtel',
+        },
         withdrawalType: 'Type de retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
