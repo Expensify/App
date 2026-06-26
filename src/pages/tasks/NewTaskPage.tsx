@@ -51,7 +51,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         localeCompare,
         formatPhoneNumber,
     );
-    const shareDestination = task?.shareDestination ? getShareDestination(parentReport, personalDetails, localeCompare, policy, reportAttributes) : undefined;
+    const shareDestination = task?.shareDestination ? getShareDestination(parentReport, personalDetails, localeCompare, policy, translate, reportAttributes) : undefined;
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
     const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
