@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -50,7 +50,22 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
 
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists));
+    // `isLoadingInitialReportActions` lives in a memory-only key that is not reset between navigations.
+    // Returning to a previously visited report (e.g. via direct URL) can leave a stale `false` here, so we
+    // only infer not-found once we've actually observed a loading phase for the current reportID — i.e. a
+    // fetch was in flight — instead of trusting the leaked flag. See issue #92920.
+    // This uses the documented "adjust state during render" pattern to keep the gate render-synchronous.
+    const [trackedReportID, setTrackedReportID] = useState(reportIDFromRoute);
+    const [hasSeenLoadingForCurrentReportID, setHasSeenLoadingForCurrentReportID] = useState(false);
+    if (trackedReportID !== reportIDFromRoute) {
+        setTrackedReportID(reportIDFromRoute);
+        setHasSeenLoadingForCurrentReportID(false);
+    }
+    if (isLoading && !hasSeenLoadingForCurrentReportID) {
+        setHasSeenLoadingForCurrentReportID(true);
+    }
+
+    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
