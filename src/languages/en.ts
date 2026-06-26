@@ -7122,7 +7122,7 @@ const translations = {
             },
             [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
                 title: 'Rillet',
-                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Rillet integration. Gain in-depth, real-time financial insights with user-defined dimensions, as well as expense coding by department, class, location, customer, and project (job).`,
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Rillet integration. Align expense coding dimensions and tax sync with your Rillet setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Rillet integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
