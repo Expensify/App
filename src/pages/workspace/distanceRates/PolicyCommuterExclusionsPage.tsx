@@ -96,7 +96,9 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             return;
         }
 
-        if (existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && existingCommuterExclusions?.fixedDistance === numeric) {
+        const isSameDistance = existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE && existingCommuterExclusions?.fixedDistance === numeric;
+        const isSameUnit = existingCommuterExclusions?.fixedDistanceUnit === workspaceUnit;
+        if (isSameDistance && isSameUnit) {
             goBackToSettings();
             return;
         }
@@ -126,6 +128,8 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 suffixStyle={styles.colorMuted}
                 role={CONST.ROLE.PRESENTATION}
                 autoFocus={existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}
+                onSubmitEditing={onSave}
+                submitBehavior="submit"
             />
         </View>
     );
@@ -179,6 +183,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                         shouldSingleExecuteRowSelect
                         shouldUpdateFocusedIndex
                         alternateNumberOfSupportedLines={2}
+                        disableKeyboardShortcuts
                     />
                 </OfflineWithFeedback>
                 <FixedFooter addBottomSafeAreaPadding>

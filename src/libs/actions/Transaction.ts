@@ -94,14 +94,6 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: OnyxCollection<TransactionViolation[]> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (value) => {
-        allTransactionViolations = value ?? {};
-    },
-});
-
 type SaveWaypointProps = {
     transactionID: string;
     index: string;
@@ -837,8 +829,8 @@ type ChangeTransactionsReportProps = {
     policy: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
-    allTransactions: OnyxCollection<Transaction>;
     policyTagList: OnyxEntry<PolicyTagLists>;
+    transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     allReports: OnyxCollection<Report>;
 };
@@ -852,15 +844,14 @@ function changeTransactionsReport({
     policy,
     reportNextStep,
     policyCategories,
-    allTransactions,
     policyTagList,
+    transactions,
     allTransactionViolation = {},
     allReports: allReportsParam,
 }: ChangeTransactionsReportProps) {
     const reports = allReportsParam ?? allReports;
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportTransactionCounts: Record<string, number> = {};
@@ -872,7 +863,6 @@ function changeTransactionsReport({
     const optimisticPendingFieldsByReport: Record<string, Partial<NonNullable<Report['pendingFields']>>> = {};
     const targetReportCurrenciesByReport: Record<string, Set<string>> = {};
 
-    // Store current violations for each transaction to restore on failure
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
     for (const id of transactionIDs) {
         currentTransactionViolations[id] = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
@@ -1156,17 +1146,15 @@ function changeTransactionsReport({
 
         // Optimistically clear all violations for the transaction when moving to self DM report
         if (isUnreported) {
-            const duplicateViolation = currentTransactionViolations?.[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-            const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
+            const duplicateTransactionIDs = currentTransactionViolations[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data
+                ?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
+                    const siblingViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-                        // For each duplicate, write its own violations minus the DUPLICATED_TRANSACTION marker.
-                        value: (allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []).filter(
-                            (violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-                        ),
+                        value: siblingViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
                 }
             }
@@ -1307,7 +1295,7 @@ function changeTransactionsReport({
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? null,
+                value: currentTransactionViolations[transaction.transactionID] ?? null,
             });
             if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
                 shouldFixViolations = true;

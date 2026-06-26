@@ -174,6 +174,7 @@ type GetIouParamsInput = {
     parentReportAction: OnyxEntry<ReportAction>;
     transactionThreadReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    policyForTrackExpense?: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
@@ -201,6 +202,7 @@ function getIouParamsForTransaction({
     parentReportAction,
     transactionThreadReport,
     policy,
+    policyForTrackExpense,
     policyCategories,
     policyTags,
     policyRecentlyUsedCategories,
@@ -263,6 +265,7 @@ function getIouParamsForTransaction({
         transactionThreadReport: resolvedTransactionThreadReport,
         parentReport: resolvedParentReport,
         policy,
+        policyForTrackExpense,
         policyCategories,
         parentReportNextStep,
         currentUserAccountIDParam: currentUserAccountID,
