@@ -1,5 +1,12 @@
 #import "RCTBootSplash.h"
 
+#if __has_include("DeviceIntegrityChecks.h")
+#import "DeviceIntegrityChecks.h"
+#define DIC_SHOULD_BLOCK_SPLASH dic_should_block_splash()
+#else
+#define DIC_SHOULD_BLOCK_SPLASH false
+#endif
+
 #import <React/RCTUtils.h>
 
 #import <React/RCTSurfaceHostingProxyRootView.h>
@@ -158,6 +165,10 @@ RCT_EXPORT_MODULE();
 }
 
 + (void)hide:(BOOL)fade {
+  if (DIC_SHOULD_BLOCK_SPLASH) {
+    return;
+  }
+
   if (![RCTBootSplash isLoadingViewVisible] || RCTRunningInAppExtension())
     return [RCTBootSplash clearResolveQueue];
 
@@ -178,6 +189,10 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(hide:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
+  if (DIC_SHOULD_BLOCK_SPLASH) {
+    return;
+  }
+
   [self hideImpl:0 resolve:resolve];
 }
 
