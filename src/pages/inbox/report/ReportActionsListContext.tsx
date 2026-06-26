@@ -96,7 +96,11 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     // action that is always injected for Concierge).
     const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !(isConciergeMainDM && hasCachedReportActions) && !isOffline;
 
-    const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
+    // When opening a linked message online, wait for the first load before rendering the list: the batch of
+    // actions that arrives right after the initial load shifts the list and breaks the anchor to the linked action.
+    const shouldShowSkeletonForLinkedMessageLoad = !!reportActionIDFromRoute && !isOffline && !hasOnceLoadedReportActions && !!isLoadingInitialReportActions;
+
+    const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad || shouldShowSkeletonForLinkedMessageLoad;
 
     const hasDerivedValueTimingIssue = reportActionsLength > 0 && isMissingReportActions;
 
