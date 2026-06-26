@@ -69,6 +69,7 @@ import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import collapseOnboardingNestedStack from '@libs/Navigation/helpers/collapseOnboardingNestedStack';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -5596,6 +5597,8 @@ async function completeOnboarding({
     adminsChatReport,
     selfDMReport,
 }: CompleteOnboardingProps) {
+    collapseOnboardingNestedStack();
+
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
         engagementChoice,

@@ -13,6 +13,8 @@ import Onyx from 'react-native-onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
+import dismissOnboardingModalBeforeExit from './Navigation/helpers/dismissOnboardingModalBeforeExit';
+import getOnboardingExitNavigationOptions from './Navigation/helpers/getOnboardingExitNavigationOptions';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
@@ -73,6 +75,7 @@ function navigateAfterOnboarding(
     variantOverride?: OnboardingRHPVariant | null,
 ) {
     setDisableDismissOnEscape(false);
+    const exitNavigationOptions = getOnboardingExitNavigationOptions();
 
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
@@ -80,12 +83,12 @@ function navigateAfterOnboarding(
     // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
     const variant = variantOverride ?? onboardingRHPVariant;
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), exitNavigationOptions);
         return;
     }
 
     if (shouldOpenRHPVariant(variantOverride)) {
-        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride, exitNavigationOptions);
         return;
     }
 
@@ -99,10 +102,10 @@ function navigateAfterOnboarding(
         shouldPreventOpenAdminRoom,
     );
     if (reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID), exitNavigationOptions);
     } else if (!isReportTopmostSplitNavigator()) {
         // Navigate to home to trigger guard evaluation
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, exitNavigationOptions);
     }
 }
 
@@ -116,7 +119,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     shouldPreventOpenAdminRoom = false,
     variantOverride?: OnboardingRHPVariant | null,
 ) {
-    Navigation.dismissModal();
+    dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateAfterOnboarding(
             isSmallScreenWidth,
@@ -138,9 +141,10 @@ function navigateAfterOnboardingWithMicrotaskQueue(
  */
 function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
     setDisableDismissOnEscape(false);
+    const exitNavigationOptions = getOnboardingExitNavigationOptions();
 
     if (!policyID) {
-        Navigation.navigate(ROUTES.HOME);
+        Navigation.navigate(ROUTES.HOME, exitNavigationOptions);
         return;
     }
 
@@ -148,13 +152,13 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 
     const categoriesRoute = ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID);
     const backToRoute = shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACES_LIST.route;
-    Navigation.navigate(`${categoriesRoute}?backTo=${encodeURIComponent(backToRoute)}` as Route);
+    Navigation.navigate(`${categoriesRoute}?backTo=${encodeURIComponent(backToRoute)}` as Route, exitNavigationOptions);
 
     SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
 function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
-    Navigation.dismissModal();
+    dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
     });
