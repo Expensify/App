@@ -1421,7 +1421,7 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     if (policy?.areRulesEnabled === false) {
         return false;
     }
-    // areRulesEnabled is undefined — derive from per-category rule fields set by OldDot Classic
+    // areRulesEnabled is undefined - this can happen in case of migrated old policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
