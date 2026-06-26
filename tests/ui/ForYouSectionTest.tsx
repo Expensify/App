@@ -233,6 +233,73 @@ describe('ForYouSection', () => {
         });
     });
 
+    describe('new-vs-old user visibility', () => {
+        // The cutoff splits "new" (on/after) from "old" (before) users.
+        const NEW_USER_TRIAL_START = '2099-01-01';
+        const OLD_USER_TRIAL_START = '2000-01-01';
+
+        it('renders nothing for a new user with no todos', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
+        });
+
+        it('renders the empty state for an old user with no todos', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, OLD_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
+                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+        });
+
+        it('renders to-do items for a new user who has todos', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
+                    ...BASE_TODOS,
+                    reportsToSubmit: [{reportID: '1'} as TodosDerivedValue['reportsToSubmit'][number]],
+                });
+                await Onyx.set(ONYXKEYS.DERIVED.FLAGGED_EXPENSES, EMPTY_FLAGGED_EXPENSES);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('Begin')).toBeOnTheScreen();
+        });
+
+        it('still shows the skeleton during the initial load for a new user', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            // The section wrapper (and its title) remain rendered while the skeleton is shown.
+            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+        });
+    });
+
     describe('review row', () => {
         it('is not rendered when there are no flagged expenses', async () => {
             await act(async () => {
