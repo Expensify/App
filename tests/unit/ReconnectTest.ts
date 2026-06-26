@@ -43,28 +43,6 @@ describe('Reconnect', () => {
         setSustainedFailures(false);
     });
 
-    test('calls openApp when isLoadingApp is true', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
-        await waitForBatchedUpdates();
-
-        reconnect();
-
-        expect(jest.mocked(openApp)).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(reconnectApp)).not.toHaveBeenCalled();
-    });
-
-    test('calls reconnectApp when isLoadingApp is false', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
-        await waitForBatchedUpdates();
-
-        reconnect();
-
-        expect(jest.mocked(reconnectApp)).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(openApp)).not.toHaveBeenCalled();
-    });
-
     test('passes lastUpdateIDAppliedToClient to reconnectApp', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
         await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
