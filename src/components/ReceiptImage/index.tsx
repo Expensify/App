@@ -194,10 +194,10 @@ function ReceiptImage({
     }
 
     if (isEReceipt && !isPerDiemRequest) {
-        if (shouldUseThumbnailImage) {
+        if (shouldUseThumbnailImage && transactionItem) {
             return (
                 <EReceiptStaticThumbnail
-                    transactionID={transactionID}
+                    transactionItem={transactionItem}
                     style={style}
                 />
             );

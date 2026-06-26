@@ -7,11 +7,11 @@ import iceThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_ice.png'
 import pinkThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_pink.png';
 import tangerineThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_tangerine.png';
 import yellowThumbnail from '@assets/images/eReceiptBGs/ereceipt_thumbnail_yellow.png';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
+import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 
 const eReceiptThumbnailSources = {
     [CONST.ERECEIPT_COLORS.YELLOW]: yellowThumbnail,
@@ -23,21 +23,21 @@ const eReceiptThumbnailSources = {
 };
 
 type EReceiptStaticThumbnailProps = {
-    transactionID: string | undefined;
+    transactionItem: TransactionListItemType | Transaction;
     style?: StyleProp<ViewStyle>;
 };
 
-function EReceiptStaticThumbnail({transactionID, style}: EReceiptStaticThumbnailProps) {
+function EReceiptStaticThumbnail({transactionItem, style}: EReceiptStaticThumbnailProps) {
+    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const colorCode = StyleUtils.getEReceiptColorCode(transaction);
+    const colorCode = StyleUtils.getEReceiptColorCode(transactionItem);
     const source = eReceiptThumbnailSources[colorCode];
 
     return (
-        <View style={[{flex: 1}, style]}>
+        <View style={[styles.flex1, style]}>
             <Image
                 source={source}
-                style={{width: '100%', height: '100%'}}
+                style={[styles.w100, styles.h100]}
                 resizeMode="cover"
                 accessibilityIgnoresInvertColors
             />
