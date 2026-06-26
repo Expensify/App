@@ -213,15 +213,20 @@ function WorkspaceCompanyCardsTable({
               };
           });
 
-    const cardsDataSelectionSignature = [feedName ?? '', ...cardsData.map((card) => `${card.keyForList}:${card.disabled ? 'disabled' : 'enabled'}`)].join('\0');
-    const [selectedCardsDataSelectionSignature, setSelectedCardsDataSelectionSignature] = useState(cardsDataSelectionSignature);
-    const selectedCardKeysForCurrentData = selectedCardsDataSelectionSignature === cardsDataSelectionSignature ? selectedCardKeys : [];
+    const [selectedCardsFeedName, setSelectedCardsFeedName] = useState(feedName);
+    const isSelectedCardsFeedCurrent = selectedCardsFeedName === feedName;
+    const selectableCardKeySet = new Set(cardsData.filter((card) => !card.disabled).map((card) => card.keyForList));
+    const selectedCardKeysForCurrentData = isSelectedCardsFeedCurrent ? selectedCardKeys.filter((key) => selectableCardKeySet.has(key)) : [];
+    const areSelectedCardKeysPruned =
+        selectedCardKeys.length === selectedCardKeysForCurrentData.length && selectedCardKeys.every((key, index) => key === selectedCardKeysForCurrentData.at(index));
 
-    if (selectedCardsDataSelectionSignature !== cardsDataSelectionSignature) {
-        setSelectedCardsDataSelectionSignature(cardsDataSelectionSignature);
+    if (!isSelectedCardsFeedCurrent) {
+        setSelectedCardsFeedName(feedName);
         if (selectedCardKeys.length > 0) {
             setSelectedCardKeys([]);
         }
+    } else if (!areSelectedCardKeysPruned) {
+        setSelectedCardKeys(selectedCardKeysForCurrentData);
     }
 
     const selectedCardKeySet = new Set(selectedCardKeysForCurrentData);
