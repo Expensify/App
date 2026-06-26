@@ -836,7 +836,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                         shouldShowRightIcon={false}
                         interactive={false}
                         description={translate('workspace.common.workspace')}
-                        title={getPolicyName({report})}
+                        title={getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')})}
                         numberOfLinesTitle={2}
                         shouldBreakWord
                     />
