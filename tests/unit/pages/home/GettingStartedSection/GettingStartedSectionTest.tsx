@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import GettingStartedSection from '@src/pages/home/GettingStartedSection';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const TEST_POLICY_ID = 'ABC123';
@@ -239,7 +240,7 @@ describe('GettingStartedSection', () => {
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/)).toBeTruthy();
+            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/)).toBeTruthy();
         });
 
         it('shows "Connect to [system]" row for Xero integration', async () => {
@@ -248,7 +249,7 @@ describe('GettingStartedSection', () => {
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/)).toBeTruthy();
+            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/)).toBeTruthy();
         });
 
         it('shows "Customize accounting categories" for non-direct-connect integrations', async () => {
@@ -330,6 +331,53 @@ describe('GettingStartedSection', () => {
         });
     });
 
+    describe('sub-text', () => {
+        it('renders the sub-text under the "Create a workspace" step', async () => {
+            await setManageTeamUserState();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.createWorkspaceSubText')).toBeTruthy();
+        });
+
+        it('renders the sub-text under the "Link company cards" step', async () => {
+            await setManageTeamUserState({areCompanyCardsEnabled: true});
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCardsSubText')).toBeTruthy();
+        });
+
+        it('renders the sub-text under the "Set up spend rules" step', async () => {
+            await setManageTeamUserState({areRulesEnabled: true});
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.setupRulesSubText')).toBeTruthy();
+        });
+
+        it('renders the sub-text under the "Connect to [system]" step', async () => {
+            await setManageTeamUserState({integration: 'quickbooksOnline', areAccountingEnabled: true});
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.connectAccountingSubText')).toBeTruthy();
+        });
+
+        it('renders the sub-text under the "Customize accounting categories" step', async () => {
+            await setManageTeamUserState({integration: 'other', areCategoriesEnabled: true});
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText('homePage.gettingStartedSection.customizeCategoriesSubText')).toBeTruthy();
+        });
+    });
+
     describe('checked state', () => {
         it('"Create a workspace" row is always checked', async () => {
             await setManageTeamUserState();
@@ -352,7 +400,46 @@ describe('GettingStartedSection', () => {
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/)).toBeTruthy();
+            expect(screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/)).toBeTruthy();
+        });
+    });
+
+    describe('footer help', () => {
+        const ADMINS_ROOM_REPORT_ID = 'adminsRoom1';
+
+        async function setAdminsRoom() {
+            const adminsRoom: Report = {
+                reportID: ADMINS_ROOM_REPORT_ID,
+                policyID: TEST_POLICY_ID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ADMINS_ROOM_REPORT_ID}`, adminsRoom);
+            await waitForBatchedUpdates();
+        }
+
+        it('renders the Concierge help footer copy', async () => {
+            await setManageTeamUserState();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            expect(screen.getByText(/homePage\.gettingStartedSection\.needHelp/)).toBeTruthy();
+            expect(screen.getByText('homePage.gettingStartedSection.talkToConcierge')).toBeTruthy();
+        });
+
+        it('opens the #admins room in the RHP when the footer link is pressed on wide layout', async () => {
+            await setManageTeamUserState();
+            await setAdminsRoom();
+
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            const link = screen.getByText('homePage.gettingStartedSection.talkToConcierge');
+            fireEvent.press(link, {preventDefault: () => {}});
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ADMINS_ROOM_REPORT_ID, backTo: ROUTES.HOME}));
+            // It must not navigate fully into the Inbox.
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ADMINS_ROOM_REPORT_ID, undefined, undefined, ROUTES.HOME));
         });
     });
 
@@ -375,7 +462,7 @@ describe('GettingStartedSection', () => {
             renderGettingStartedSection();
             await waitForBatchedUpdates();
 
-            const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting/);
+            const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/);
             fireEvent.press(row);
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_ACCOUNTING.getRoute(TEST_POLICY_ID));
