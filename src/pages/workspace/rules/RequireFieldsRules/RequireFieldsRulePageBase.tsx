@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -166,17 +165,15 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     }
 
     const footer = canWriteRules ? (
-        <FixedFooter addBottomSafeAreaPadding>
-            <FormAlertWithSubmitButton
-                buttonText={translate('workspace.rules.requireFieldsRule.saveRule')}
-                containerStyles={[styles.mh5, styles.mb5]}
-                isAlertVisible={shouldShowError && !!errorMessage}
-                message={errorMessage}
-                onSubmit={handleSubmit}
-                enabledWhenOffline
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_SAVE}
-            />
-        </FixedFooter>
+        <FormAlertWithSubmitButton
+            buttonText={translate('workspace.rules.requireFieldsRule.saveRule')}
+            containerStyles={[styles.m4, styles.mb5, styles.mh5]}
+            isAlertVisible={shouldShowError && !!errorMessage}
+            message={errorMessage}
+            onSubmit={handleSubmit}
+            enabledWhenOffline
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_SAVE}
+        />
     ) : null;
 
     return (
@@ -189,15 +186,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         >
             <ScreenWrapper
                 testID={testID}
-                enableEdgeToEdgeBottomSafeAreaPadding
-                shouldEnableMaxHeight
-                includeSafeAreaPaddingBottom={false}
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButton title={translate('workspace.rules.requireFieldsRule.title')} />
-                <ScrollView
-                    contentContainerStyle={[styles.flexGrow1, styles.pb5]}
-                    addBottomSafeAreaPadding
-                >
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>
                         <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
