@@ -5,7 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
-import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -432,10 +432,7 @@ function useAutocompleteSuggestions({
                 if (!bankAccountID) {
                     continue;
                 }
-                if (bankAccount?.accountData?.type !== CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
-                    continue;
-                }
-                if (isBankAccountPartiallySetup(bankAccount?.accountData?.state)) {
+                if (!isFilterableBankAccount(bankAccount)) {
                     continue;
                 }
                 const accountNumber = bankAccount?.accountData?.accountNumber ?? '';

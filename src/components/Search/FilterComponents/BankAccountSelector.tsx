@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -54,10 +54,7 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
         if (!bankAccountID) {
             continue;
         }
-        if (bankAccount?.accountData?.type !== CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
-            continue;
-        }
-        if (isBankAccountPartiallySetup(bankAccount?.accountData?.state)) {
+        if (!isFilterableBankAccount(bankAccount)) {
             continue;
         }
 
