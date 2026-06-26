@@ -76,6 +76,10 @@ export default function DomainAdminsTable({admins}: DomainAdminsTableProps) {
             keyExtractor={(item) => item.keyForList}
         >
             <Table.FilterBar label={translate('domain.admins.findAdmin')} />
+            <Table.NoResultsState
+                title="No domain admins found"
+                subtitle="Try adjusting your filters or a new search"
+            />
             <Table.Header />
             <Table.Body />
         </Table>

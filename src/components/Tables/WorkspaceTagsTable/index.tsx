@@ -46,7 +46,6 @@ type WorkspaceTagsTableProps = {
     hasDependentTags: boolean;
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
-    EmptyStateComponent: React.ReactElement;
 };
 
 export default function WorkspaceTagsTable({
@@ -58,7 +57,6 @@ export default function WorkspaceTagsTable({
     hasDependentTags,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
-    EmptyStateComponent,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -191,8 +189,6 @@ export default function WorkspaceTagsTable({
         />
     );
 
-    const isEmpty = tags.length === 0;
-
     return (
         <Table
             data={tags}
@@ -207,14 +203,17 @@ export default function WorkspaceTagsTable({
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    <Table.FilterBar label={translate('workspace.tags.findTag')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.tags.findTag')} />
+            <Table.EmptyState
+                title="No tags yet"
+                subtitle="Try creating one"
+            />
+            <Table.NoResultsState
+                title="No tags found"
+                subtitle="Try adjusting your filters or a new search"
+            />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

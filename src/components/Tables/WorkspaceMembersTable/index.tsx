@@ -257,8 +257,12 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.NoResultsState title="No results" />
             <Table.FilterBar label={translate('workspace.people.findMember')} />
+            <Table.NoResultsState
+                title="No members found"
+                subtitle="Try adjusting your filters or a new search"
+            />
+
             <Table.Header />
             <Table.Body />
         </Table>

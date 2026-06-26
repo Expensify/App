@@ -37,7 +37,6 @@ type WorkspaceCategoriesTableProps = {
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
 };
 
 export default function WorkspaceCategoriesTable({
@@ -48,7 +47,6 @@ export default function WorkspaceCategoriesTable({
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
     onRowSelectionChange,
-    EmptyStateComponent,
 }: WorkspaceCategoriesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -135,8 +133,6 @@ export default function WorkspaceCategoriesTable({
         />
     );
 
-    const isEmpty = categories.length === 0;
-
     return (
         <Table
             ref={ref}
@@ -152,14 +148,17 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    <Table.FilterBar label={translate('workspace.categories.findCategory')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.categories.findCategory')} />
+            <Table.EmptyState
+                title="No categories yet"
+                subtitle="Try creating one"
+            />
+            <Table.NoResultsState
+                title="No categories found"
+                subtitle="Try adjusting your filters or a new search"
+            />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

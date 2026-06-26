@@ -84,6 +84,14 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             keyExtractor={(row, index) => `${row.reportID}-${index}`}
         >
             <Table.FilterBar label={translate('workspace.common.findRoom')} />
+            <Table.EmptyState
+                title="No rooms yet"
+                subtitle="Try creating one"
+            />
+            <Table.NoResultsState
+                title="No rooms found"
+                subtitle="Try adjusting your filters or a new search"
+            />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
         </Table>

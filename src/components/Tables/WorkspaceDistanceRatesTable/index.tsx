@@ -19,7 +19,6 @@ type WorkspaceDistanceRatesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -29,7 +28,7 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -119,8 +118,6 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         />
     );
 
-    const isEmpty = ratesData.length === 0;
-
     return (
         <Table
             data={ratesData}
@@ -136,14 +133,17 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />
+            <Table.EmptyState
+                title="No distance rates yet"
+                subtitle="Try creating one"
+            />
+            <Table.NoResultsState
+                title="No distance rates found"
+                subtitle="Try adjusting your filters or a new search"
+            />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

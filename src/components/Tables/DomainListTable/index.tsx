@@ -85,6 +85,14 @@ export default function DomainListTable({domains}: DomainListTableProps) {
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
             <Table.FilterBar label={translate('workspace.common.findDomain')} />
+            <Table.EmptyState
+                title="No domains yet"
+                subtitle="Try creating one"
+            />
+            <Table.NoResultsState
+                title="No domains found"
+                subtitle="Try adjusting your filters or a new search"
+            />
             <Table.Header />
             <Table.Body />
         </Table>

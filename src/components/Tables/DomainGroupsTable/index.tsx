@@ -76,6 +76,10 @@ export default function DomainGroupsTable({groups}: DomainGroupsTableProps) {
             keyExtractor={(item) => item.keyForList}
         >
             <Table.FilterBar label={translate('domain.groups.findGroup')} />
+            <Table.NoResultsState
+                title="No domain groups found"
+                subtitle="Try adjusting your filters or a new search"
+            />
             <Table.Header />
             <Table.Body />
         </Table>

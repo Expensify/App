@@ -24,6 +24,8 @@ export default function TableNoResultsState(emptyStateProps: TableNoResultsState
         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
             <GenericEmptyStateComponent
                 headerMedia={illustrations.EmptyShelves}
+                headerContentStyles={styles.emptyShelvesIllustration}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
                 {...emptyStateProps}
             />
         </ScrollView>

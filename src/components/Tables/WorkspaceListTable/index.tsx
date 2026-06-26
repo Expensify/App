@@ -133,6 +133,14 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
             <Table.FilterBar label={translate('workspace.common.findWorkspace')} />
+            <Table.EmptyState
+                title="No workspaces yet"
+                subtitle="Try creating one"
+            />
+            <Table.NoResultsState
+                title="No workspace found"
+                subtitle="Try adjusting your filters or a new search"
+            />
             <Table.Header />
             <Table.Body />
         </Table>
