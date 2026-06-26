@@ -1,17 +1,15 @@
+import Badge from '@components/Badge';
+import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
-import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -26,10 +24,9 @@ type GettingStartedRowProps = {
 
 function GettingStartedRow({item}: GettingStartedRowProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
 
     const navigateToItem = () => {
         if (!item.isFeatureEnabled) {
@@ -46,37 +43,30 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
         >
             {({hovered}) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.pv3, hovered && styles.hoveredComponentBG]}>
-                    {item.isComplete ? (
-                        <View
-                            style={[
-                                StyleUtils.getSelectionButtonContainerStyle(variables.iconSizeNormal, variables.componentBorderRadiusSmall),
-                                {backgroundColor: theme.icon, borderColor: theme.icon},
-                            ]}
-                        >
-                            <Icon
-                                src={icons.Checkmark}
-                                fill={theme.textLight}
-                                height={variables.iconSizeSemiSmall}
-                                width={variables.iconSizeSemiSmall}
-                            />
-                        </View>
-                    ) : (
+                    <View style={styles.gettingStartedRowIconContainer}>
                         <Checkbox
-                            isChecked={false}
+                            isChecked={item.isComplete}
                             onPress={navigateToItem}
                             accessibilityLabel={item.label}
                         />
-                    )}
-                    <View style={styles.flex1}>
-                        <Text style={[styles.textBold, item.isComplete && {color: theme.textSupporting}]}>{item.label}</Text>
-                        {!!item.subtitle && <Text style={styles.textLabelSupporting}>{item.subtitle}</Text>}
                     </View>
-                    {!item.isComplete && (
-                        <Icon
-                            src={icons.ArrowRight}
-                            width={variables.iconSizeNormal}
-                            height={variables.iconSizeNormal}
-                            fill={theme.icon}
+                    <View style={styles.gettingStartedRowTextContainer}>
+                        <Text style={[styles.widgetItemTitle, item.isComplete && styles.textSupporting]}>{item.label}</Text>
+                        <Text style={styles.widgetItemSubtitle}>{item.subText}</Text>
+                    </View>
+                    {item.isComplete ? (
+                        <Badge
+                            text={translate('homePage.gettingStartedSection.done')}
+                            icon={icons.Checkmark}
+                            badgeStyles={[styles.widgetItemButton, styles.justifyContentCenter]}
+                        />
+                    ) : (
+                        <Button
+                            small
+                            success
+                            text={translate('homePage.gettingStartedSection.begin')}
+                            onPress={navigateToItem}
+                            style={styles.widgetItemButton}
                         />
                     )}
                 </View>
