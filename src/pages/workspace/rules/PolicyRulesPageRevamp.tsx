@@ -97,7 +97,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration', 'ReportReceipt', 'F1Flags']);
+    const illustrations = useMemoizedLazyIllustrations(['Flash', 'ExpensifyCardCoins', 'ExpensifyCardProtectionIllustration', 'SortingMachine']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Trashcan']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
@@ -583,7 +583,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             addBottomSafeAreaPadding
         >
             <GenericEmptyStateComponent
-                headerMedia={illustrations.ReportReceipt}
+                headerMedia={illustrations.SortingMachine}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
                 headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
                 title={translate('workspace.rules.requireFieldsEmptyState.title')}
@@ -610,7 +610,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             addBottomSafeAreaPadding
         >
             <GenericEmptyStateComponent
-                headerMedia={illustrations.F1Flags}
+                headerMedia={illustrations.SortingMachine}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
                 headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
                 title={translate('workspace.rules.flagForReviewEmptyState.title')}

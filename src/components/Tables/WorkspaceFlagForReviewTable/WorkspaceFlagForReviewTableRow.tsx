@@ -11,8 +11,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {FlagForReviewTableItem} from '@libs/FlagForReviewRulesUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+
+const FLAG_BADGE_BACKGROUND_COLOR = colors.tangerine200;
+const FLAG_BADGE_TEXT_COLOR = colors.tangerine700;
 
 type WorkspaceFlagForReviewTableRowProps = {
     item: FlagForReviewTableItem;
@@ -36,7 +40,6 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
     };
 
     const accessibilityLabel = `${tableRowItem.typeLabel}. ${tableRowItem.conditionText}. ${tableRowItem.ruleDescription}`;
-    const badgeColors = theme.reportStatusBadge.outstanding;
 
     return (
         <Table.Row
@@ -57,15 +60,15 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                 <Badge
                                     text={tableRowItem.typeLabel}
                                     icon={Expensicons.Flag}
-                                    iconFill={badgeColors.textColor}
+                                    iconFill={FLAG_BADGE_TEXT_COLOR}
                                     badgeStyles={[
                                         styles.ml0,
                                         styles.justifyContentCenter,
                                         styles.borderNone,
                                         StyleUtils.getMinimumWidth(variables.componentSizeNormal),
-                                        StyleUtils.getBackgroundColorStyle(badgeColors.backgroundColor),
+                                        StyleUtils.getBackgroundColorStyle(FLAG_BADGE_BACKGROUND_COLOR),
                                     ]}
-                                    textStyles={StyleUtils.getColorStyle(badgeColors.textColor)}
+                                    textStyles={StyleUtils.getColorStyle(FLAG_BADGE_TEXT_COLOR)}
                                     isCondensed
                                 />
                                 <TextWithTooltip
@@ -88,15 +91,15 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                 <Badge
                                     text={tableRowItem.typeLabel}
                                     icon={Expensicons.Flag}
-                                    iconFill={badgeColors.textColor}
+                                    iconFill={FLAG_BADGE_TEXT_COLOR}
                                     badgeStyles={[
                                         styles.ml0,
                                         styles.justifyContentCenter,
                                         styles.borderNone,
                                         StyleUtils.getMinimumWidth(variables.componentSizeNormal),
-                                        StyleUtils.getBackgroundColorStyle(badgeColors.backgroundColor),
+                                        StyleUtils.getBackgroundColorStyle(FLAG_BADGE_BACKGROUND_COLOR),
                                     ]}
-                                    textStyles={StyleUtils.getColorStyle(badgeColors.textColor)}
+                                    textStyles={StyleUtils.getColorStyle(FLAG_BADGE_TEXT_COLOR)}
                                     isCondensed
                                 />
                             </View>

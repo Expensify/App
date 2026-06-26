@@ -25,7 +25,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'F1Flags', 'CheckboxText', 'ReportReceipt']);
+    const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt']);
 
     return (
         <AccessOrNotFoundWrapper
@@ -53,7 +53,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
                     />
                     <MenuItem
-                        icon={illustrations.F1Flags}
+                        icon={illustrations.Flag}
                         title={translate('workspace.rules.newRule.flagForReview')}
                         description={translate('workspace.rules.newRule.flagForReviewDescription')}
                         shouldShowRightIcon
