@@ -37,6 +37,11 @@ const createDisplayDetailsByAccountIDsSelector =
         return result;
     };
 
+const doesPersonalDetailExistSelector =
+    (accountID: number | undefined) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean =>
+        accountID !== undefined && !!personalDetailsList?.[accountID];
+
 const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
     const map: Record<number, string> = {};
     for (const report of reportsToArchive) {
@@ -68,6 +73,7 @@ export {
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
     conciergePersonalDetailSelector,
+    doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,

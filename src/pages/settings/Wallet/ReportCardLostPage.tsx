@@ -50,7 +50,7 @@ type ReportCardLostPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 
 function ReportCardLostPage({
     route: {
-        params: {cardID = ''},
+        params: {cardID = '', isFromDomainCardDetail},
     },
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
@@ -100,7 +100,7 @@ function ReportCardLostPage({
             setShouldShowAddressError(true);
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
     };
 
     const handleOptionSelect = (value: string) => {
@@ -117,7 +117,8 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+        const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
+        Navigation.goBack(cardDetailRoute, {compareParams: false});
     };
 
     const isDamaged = reason?.key === OPTIONS_KEYS.DAMAGED;
