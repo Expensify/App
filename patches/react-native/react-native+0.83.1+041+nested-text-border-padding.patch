@@ -50,37 +50,41 @@ index 7d2774b443f..2e37b02fc46 100644
  
          if (!fragment.props.opacity.isNaN()) {
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-index 48f6592b82d..ebae321ec92 100644
+index 48f6592b82d..94ac1642908 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundDrawSpan.kt
-@@ -87,6 +87,13 @@ internal class ReactBackgroundDrawSpan(
+@@ -87,6 +87,16 @@ internal class ReactBackgroundDrawSpan(
        val isFirstLine = line == startLine
        val isLastLine = line == endLine
  
 +      // Extend the box outward into the reserved advance (LeadingMarginSpan added in
-+      // TextLayoutManager) by half the border width, so the centered left stroke clears the glyphs
-+      // and isn't clipped at the line's start.
++      // TextLayoutManager) by half the border width, so the centered stroke clears the glyphs
++      // and isn't clipped at the line edge.
 +      if (isFirstLine && borderLeftWidth > 0f) {
 +        rectF.left -= borderLeftWidth / 2f
++      }
++      if (isLastLine && borderRightWidth > 0f) {
++        rectF.right += borderRightWidth / 2f
 +      }
 +
        drawFill(canvas, rectF, isFirstLine, isLastLine)
        drawBorder(canvas, rectF, isFirstLine, isLastLine)
      }
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index ed7ee76ce6a..1a00f2edcdd 100644
+index ed7ee76ce6a..d1cd9aa38c4 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -473,6 +473,47 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
+@@ -473,6 +473,48 @@ NSAttributedString *RCTNSAttributedStringFromAttributedString(const AttributedSt
  
      [nsAttributedString appendAttributedString:nsAttributedStringFragment];
    }
 +
-+  // Reserve leading advance for a bordered / inline-code span that begins a PARAGRAPH via
++  // Reserve leading advance for a bordered / inline-code span that begins a paragraph via
 +  // firstLineHeadIndent: it both shifts the glyphs right (so the left border isn't drawn over
-+  // them) and grows the measured width (so the border isn't clipped). A span that soft-wraps to a
-+  // later line's start is handled separately in RCTTextLayoutManagerWithBorderRadius's
-+  // layout-fragment delegate.
++  // them) and grows the measured width (so the border isn't clipped). The trailing side is
++  // handled in the measure step (RCTTextLayoutManager) by widening the measured size, because no
++  // paragraph property grows the right edge of an intrinsic-width label — tailIndent only
++  // constrains, and trailing kern just overflows and clips.
 +  NSString *plainString = nsAttributedString.string;
 +  NSUInteger fullLength = nsAttributedString.length;
 +  [nsAttributedString enumerateAttribute:RCTTextBorderRadiusAttributeName
@@ -119,8 +123,50 @@ index ed7ee76ce6a..1a00f2edcdd 100644
    [nsAttributedString endEditing];
  
    return nsAttributedString;
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+index d82b6a7062a..7fe7815b1c6 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+@@ -375,6 +375,37 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+ 
+   if (textDidWrap) {
+     size.width = textContainer.size.width;
++  } else {
++    // Grow the (intrinsic) width to fit the trailing border of a bordered / inline-code span that
++    // ends a paragraph. The border is drawn centered on the box edge (extended by half its width)
++    // in RCTTextLayoutManagerWithBorderRadius, so its outer edge reaches borderRightWidth past the
++    // last glyph; usedRect is tight to the glyphs, so without this the border would be clipped.
++    // (The leading side is reserved via firstLineHeadIndent in RCTAttributedTextUtils.)
++    NSString *string = textStorage.string;
++    NSUInteger length = string.length;
++    __block CGFloat trailingBorderPadding = 0;
++    [textStorage enumerateAttribute:RCTTextBorderRadiusAttributeName
++                            inRange:NSMakeRange(0, length)
++                            options:0
++                         usingBlock:^(id value, NSRange range, __unused BOOL *stop) {
++      if (![value isKindOfClass:[NSArray class]] || range.length == 0) {
++        return;
++      }
++      NSArray *attrs = (NSArray *)value;
++      if (attrs.count < 13) {
++        return;
++      }
++      const CGFloat rightW = [attrs[10] floatValue];
++      if (rightW <= 0) {
++        return;
++      }
++      const BOOL atParagraphEnd =
++          NSMaxRange(range) >= length || [string characterAtIndex:NSMaxRange(range)] == '\n';
++      if (atParagraphEnd) {
++        trailingBorderPadding = MAX(trailingBorderPadding, rightW);
++      }
++    }];
++    size.width += trailingBorderPadding;
+   }
+ 
+   if (paragraphAttributes.maximumNumberOfLines != 0) {
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
-index c2320fe9792..16d764774f0 100644
+index c2320fe9792..9688bbf8dc5 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
 @@ -9,8 +9,67 @@
@@ -142,9 +188,9 @@ index c2320fe9792..16d764774f0 100644
 +
 +// Indent a visual line that BEGINS with a bordered / inline-code span so its left border has room.
 +// firstLineHeadIndent (RCTAttributedTextUtils) only covers a paragraph's first line; this covers the
-+// remaining case: a span that soft-wraps to the start of a later line. We only act on soft-wrapped
-+// line starts (index 0 and post-newline paragraph starts are left to firstLineHeadIndent so the two
-+// mechanisms never double-indent the same line).
++// remaining case the user hit: a span that soft-wraps to the start of a later line. We only act on
++// soft-wrapped line starts (index 0 and post-newline paragraph starts are left to firstLineHeadIndent
++// so the two mechanisms never double-indent the same line).
 +- (BOOL)layoutManager:(NSLayoutManager *)layoutManager
 +    shouldSetLineFragmentRect:(inout CGRect *)lineFragmentRect
 +         lineFragmentUsedRect:(inout CGRect *)lineFragmentUsedRect
@@ -191,16 +237,18 @@ index c2320fe9792..16d764774f0 100644
  - (void)drawBackgroundForGlyphRange:(NSRange)glyphsToShow atPoint:(CGPoint)origin
  {
    // Let super handle all spans that use NSBackgroundColorAttributeName (no border radius).
-@@ -116,6 +175,14 @@
+@@ -116,6 +175,16 @@
        CGFloat effectiveTR = isLast  ? tr : 0;
        CGFloat effectiveBR = isLast  ? br : 0;
  
-+      // Extend the box outward into the reserved advance (firstLineHeadIndent / the layout-fragment
-+      // delegate) by half the border width, so the centered left stroke clears the glyphs and isn't
-+      // clipped at the line's start.
++      // Extend the box outward into the reserved advance (see RCTAttributedTextUtils) by half the
++      // border width, so the centered stroke clears the glyphs and isn't clipped at the line edge.
 +      if (isFirst && leftW > 0) {
 +        spanRect.origin.x -= leftW / 2.0;
 +        spanRect.size.width += leftW / 2.0;
++      }
++      if (isLast && rightW > 0) {
++        spanRect.size.width += rightW / 2.0;
 +      }
 +
        CGFloat x = CGRectGetMinX(spanRect);
