@@ -1,5 +1,6 @@
-import React, {useDeferredValue, useEffect, useId, useState} from 'react';
+import React, {useDeferredValue, useEffect, useId, useRef, useState} from 'react';
 import type {ReactNode, RefObject} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import Pencil from '@assets/images/pencil.svg';
 import Hoverable from '@components/Hoverable';
@@ -65,8 +66,10 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
-    const {wasRecentlyEditingCell} = useEditingCellState();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
     const isInteractive = useDeferredValue(true, false);
+    const shouldConsumePressRef = useRef(false);
+    const shouldWaitForHoverOutRef = useRef(false);
 
     useEffect(() => {
         if (!isEditable || !isEditing) {
@@ -77,19 +80,48 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }, [isEditing, isEditable, setIsEditingCell]);
 
     useEffect(() => {
+        if (!isEditable || !isEditing) {
+            return;
+        }
+
+        shouldConsumePressRef.current = false;
+        shouldWaitForHoverOutRef.current = false;
+
+        const animationFrame = requestAnimationFrame(() => {
+            setIsEditIconFocused(false);
+            setShouldSuppressEditIconHover(true);
+            setFocusedCellId(null);
+        });
+
+        return () => cancelAnimationFrame(animationFrame);
+    }, [isEditing, isEditable, setFocusedCellId]);
+
+    useEffect(() => {
         if (!wasRecentlyEditingCell) {
             return;
         }
 
         const animationFrame = requestAnimationFrame(() => {
+            if (isEditIconFocused) {
+                setShouldSuppressEditIconHover(false);
+                return;
+            }
+
             setIsEditIconFocused(false);
             setShouldSuppressEditIconHover(true);
         });
 
         return () => cancelAnimationFrame(animationFrame);
-    }, [wasRecentlyEditingCell]);
+    }, [isEditIconFocused, wasRecentlyEditingCell]);
 
     const handleEditIconFocus = () => {
+        if (shouldWaitForHoverOutRef.current && shouldConsumePressRef.current) {
+            setIsEditIconFocused(false);
+            setFocusedCellId(null);
+            return;
+        }
+
+        shouldWaitForHoverOutRef.current = false;
         setShouldSuppressEditIconHover(false);
         setIsEditIconFocused(true);
         setFocusedCellId(cellId);
@@ -101,7 +133,52 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     };
 
     const handleCellHoverIn = () => {
+        if (shouldWaitForHoverOutRef.current) {
+            return;
+        }
+
         setShouldSuppressEditIconHover(false);
+    };
+
+    const handleCellHoverOut = () => {
+        shouldConsumePressRef.current = false;
+        shouldWaitForHoverOutRef.current = false;
+        setShouldSuppressEditIconHover(false);
+    };
+
+    const suppressEditIconPress = () => {
+        shouldConsumePressRef.current = true;
+        shouldWaitForHoverOutRef.current = true;
+        setIsEditIconFocused(false);
+        setShouldSuppressEditIconHover(true);
+        setFocusedCellId(null);
+    };
+
+    const handleEditIconMouseDown = (event: React.MouseEvent) => {
+        if (!isEditingCell) {
+            return;
+        }
+
+        (document.activeElement as HTMLElement | null)?.blur();
+        event.preventDefault();
+        suppressEditIconPress();
+    };
+
+    const handleEditIconPressIn = (_event: GestureResponderEvent) => {
+        if (!isEditingCell) {
+            return;
+        }
+
+        suppressEditIconPress();
+    };
+
+    const handleEditIconPress = () => {
+        if (shouldConsumePressRef.current) {
+            shouldConsumePressRef.current = false;
+            return;
+        }
+
+        onStartEditing();
     };
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
@@ -138,9 +215,12 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     return (
-        <Hoverable onHoverIn={handleCellHoverIn}>
+        <Hoverable
+            onHoverIn={handleCellHoverIn}
+            onHoverOut={handleCellHoverOut}
+        >
             {(isCellHovered) => {
-                const shouldShowEditIcon = !wasRecentlyEditingCell && !shouldSuppressEditIconHover && (isCellHovered || isEditIconFocused);
+                const shouldShowEditIcon = isEditIconFocused || (!wasRecentlyEditingCell && !shouldSuppressEditIconHover && isCellHovered);
 
                 return (
                     <View style={styles.editableCell}>
@@ -156,7 +236,9 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.edit')}
                                 sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
-                                onPress={onStartEditing}
+                                onMouseDown={handleEditIconMouseDown}
+                                onPressIn={handleEditIconPressIn}
+                                onPress={handleEditIconPress}
                                 onFocus={handleEditIconFocus}
                                 onBlur={handleEditIconBlur}
                                 style={[styles.editableCellEditButton, shouldShowEditIcon ? styles.opacity1 : styles.opacity0]}
