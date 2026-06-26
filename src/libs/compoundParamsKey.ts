@@ -65,4 +65,4 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
 }
 
 export default compoundParamsKey;
-export {COMPOUND_KEY_DELIMITER, UNDEFINED_SENTINEL, normalizeForKey};
+export {COMPOUND_KEY_DELIMITER, normalizeForKey};

@@ -226,6 +226,11 @@ platforms:
         icon: /assets/images/simple-illustration__concierge-bot.svg
         description: Learn about Concierge AI and what it can do.
 
+      - href: ai-agents
+        title: AI Agents
+        icon: /assets/images/simple-illustration__ai-bot.svg
+        description: Learn about AI Agents and what they can do. 
+
       - href: workspaces
         title: Workspaces
         icon: /assets/images/shield.svg
@@ -319,3 +324,8 @@ platforms:
         title: Event Management
         icon: /assets/images/envelope-receipt.svg
         description: "Learn how to create and manage Travel Events for group bookings."
+
+      - href: consolidated-travel-billing
+        title: Consolidated Travel Billing
+        icon: /assets/images/subscription-annual.svg
+        description: "Centralize travel payments so employees can book trips without using personal cards or submitting reimbursements."  

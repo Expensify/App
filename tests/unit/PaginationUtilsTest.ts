@@ -250,6 +250,67 @@ describe('PaginationUtils', () => {
             expect(result.hasNextPage).toBe(true);
         });
 
+        it('includes known newer actions before the first page for the default chain', () => {
+            const input = createItems([
+                // Given these sortedItems
+                '18',
+                '17',
+                '16',
+                '15',
+                '14',
+                // Gap
+                '12',
+                '11',
+                '10',
+                '9',
+            ]);
+
+            const pages = [
+                // Given these pages
+                ['17', '16', '15', '14'],
+                ['12', '11', '10', '9'],
+            ];
+
+            const expectedResult = createItems([
+                // Expect these sortedItems
+                '18',
+                '17',
+                '16',
+                '15',
+                '14',
+            ]);
+            const result = getContinuousChain(input, pages, getID, '');
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(true);
+            expect(result.hasNextPage).toBe(true);
+        });
+
+        it('when linked to an item newer than the newest page boundary, returns the newest chain instead of a single item', () => {
+            const input = createItems([
+                '18',
+                '17',
+                '16',
+                '15',
+                '14',
+                // Gap
+                '12',
+                '11',
+                '10',
+                '9',
+            ]);
+
+            const pages = [
+                ['17', '16', '15', '14'],
+                ['12', '11', '10', '9'],
+            ];
+
+            const expectedResult = createItems(['18', '17', '16', '15', '14']);
+            const result = getContinuousChain(input, pages, getID, '18');
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(true);
+            expect(result.hasNextPage).toBe(true);
+        });
+
         it('given a page with an empty firstItemID include actions until the start', () => {
             const input = createItems([
                 // Given these sortedItems

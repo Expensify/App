@@ -58,6 +58,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Configuration options for the text input */
     textInputOptions?: TextInputOptions;
 
+    /** Search value used for focus synchronization. Defaults to textInputOptions.value */
+    searchValueForFocusSync?: string;
+
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
@@ -295,8 +298,6 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     isDisabled?: boolean;
 };
 
-type InteractiveElementRoles = 'button' | 'checkbox' | 'switch';
-
 type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
     scrollAndHighlightItem: (items: string[]) => void;
@@ -342,7 +343,6 @@ export type {
     TextInputOptions,
     ConfirmButtonOptions,
     ListItem,
-    InteractiveElementRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
     SelectionListWithSectionsProps,

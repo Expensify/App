@@ -72,7 +72,6 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     })()}
                 />
             </OfflineWithFeedback>
-
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow
                     key={item.title}

@@ -1,3 +1,4 @@
+import type {RefObject} from 'react';
 import {createContext, useContext} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -32,7 +33,7 @@ function useShowContextMenuActions(): ShowContextMenuActionsContextType {
  */
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
-    anchor: ContextMenuAnchor,
+    anchor: RefObject<ContextMenuAnchor> | null,
     reportID: string | undefined,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
@@ -46,7 +47,7 @@ function showContextMenuForReport(
         type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
         selection: '',
-        contextMenuAnchor: anchor,
+        contextMenuAnchor: anchor?.current,
         report: {
             reportID,
             originalReportID: originalReportID ?? reportID,

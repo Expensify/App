@@ -27,7 +27,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 import {AddWorkEmail} from '@userActions/Session';
-import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
+import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import Log from '@src/libs/Log';
@@ -50,9 +50,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile']);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (acc) => ({
+            validated: acc?.validated,
+            isFromPublicDomain: acc?.isFromPublicDomain,
+        }),
+    });
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
+    const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -69,6 +75,25 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     }, []);
 
     useEffect(() => {
+        const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
+            if (isVsb || isSmb) {
+                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+                return;
+            }
+            if (!shouldSkipPrivateDomain && !onboardingValues?.isMergeAccountStepSkipped) {
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+        };
+
+        // A validated account has no reason to be on the onboarding "add work email" screen. For a public-domain primary the
+        // PRIVATE_DOMAIN screen would reference gmail.com (etc.) so skip it.
+        if (account?.validated) {
+            navigateToNextStep(account?.isFromPublicDomain);
+            return;
+        }
+
         if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
@@ -78,28 +103,48 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
             return;
         }
-        // Once we verify that shouldValidate is false, we need to force replace the screen
-        // so that we don't navigate back on back button press
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-            return;
-        }
 
-        if (isSmb) {
-            Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
-            return;
-        }
-
-        if (!onboardingValues?.isMergeAccountStepSkipped) {
-            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
-            return;
-        }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.isMergeAccountStepSkipped]);
+        navigateToNextStep();
+    }, [
+        account?.validated,
+        account?.isFromPublicDomain,
+        onboardingValues?.shouldValidate,
+        isVsb,
+        isSmb,
+        isFocused,
+        onboardingValues?.isMergeAccountStepCompleted,
+        onboardingValues?.isMergeAccountStepSkipped,
+    ]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
+    }, []);
+
+    useEffect(() => {
+        if (!onboardingErrorMessageTranslationKey) {
+            clearWorkEmailFormErrors();
+            return;
+        }
+
+        addWorkEmailFormError(translate(onboardingErrorMessageTranslationKey));
+    }, [onboardingErrorMessageTranslationKey, translate]);
+
+    const clearOnboardingErrorMessage = useCallback(() => {
+        if (!onboardingErrorMessageTranslationKey) {
+            return;
+        }
+        setOnboardingErrorMessage(null);
+    }, [onboardingErrorMessageTranslationKey]);
+
+    const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
+        if (
+            errorTranslation !== 'onboarding.workEmail2FAError' &&
+            errorTranslation !== 'onboarding.mergeBlockScreen.workAccountClosedSubtitle' &&
+            errorTranslation !== 'onboarding.singleSignOnError'
+        ) {
+            return true;
+        }
+        return false;
     }, []);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
@@ -182,7 +227,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove
                             style={styles.mb3}
-                            errors={onboardingErrorMessage ? {addWorkEmailError: translate(onboardingErrorMessage)} : undefined}
+                            errors={
+                                onboardingErrorMessageTranslationKey && shouldRenderOfflineFeedback(onboardingErrorMessageTranslationKey)
+                                    ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)}
+                                    : undefined
+                            }
                             errorRowStyles={[styles.mt2, styles.textWrap]}
                             onClose={() => setOnboardingErrorMessage(null)}
                         >
@@ -260,6 +309,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                             spellCheck={false}
                             autoComplete="email"
+                            onValueChange={clearOnboardingErrorMessage}
                         />
                     </View>
                 </FormProvider>

@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
 
@@ -17,7 +18,7 @@ function useCreateReportRestrictionCheck(session: OnyxEntry<Session>): (restrict
         if (!restrictionPolicy) {
             return false;
         }
-        return shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID);
+        return shouldRestrictUserBillableActions(restrictionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     };
 }
 

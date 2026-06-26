@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -13,7 +13,7 @@ Expensify offers four ways to create a Distance expense: **GPS tracking** on mob
 
 ## How to create a GPS Distance expense (Mobile only)
 
-GPS tracking lets Expensify record your actual driving route in the background while you drive. When you stop, the app generates a receipt with a map of the route you took.
+GPS tracking lets Expensify record your actual driving route in the background while you drive. You can pause and resume tracking to capture multi-segment trips (for example, if you make a stop and then continue driving from a different location).
 
 To create an expense using GPS tracking based on the distance traveled: 
 
@@ -21,9 +21,11 @@ To create an expense using GPS tracking based on the distance traveled:
 2. Select **Track distance**.
 3. Select **GPS** from the top row.
 4. Tap **Start** and drive to your destination — tracking runs in the background.
-5. Tap **Stop** when you arrive and confirm by selecting **Stop GPS tracking**.
-6. Review the route summary showing your start and end addresses, then tap **Next**.
-7. Review the expense details, then tap **Create expense**.
+5. Tap **Stop** when you arrive.
+6. (Optional) To continue the trip from a new location, tap **Resume**. Each resumed section appears as a separate segment on the map. Tap **Stop** again when you're done.
+7. To discard the trip, tap the trash icon next to the distance counter and confirm.
+8. To save the trip, review the route summary showing your start and end addresses, then tap **Save**.
+9. Review the expense details, then tap **Create expense**.
 
 **Note:** GPS tracking is available on iOS and Android only. On Web, you'll see a prompt to download the mobile app when selecting the GPS option.
 
@@ -147,7 +149,7 @@ The expense amount is automatically calculated by multiplying the distance by th
 
 ## Can I edit a Distance expense after I’ve created it?
 
-Yes! You can edit the expense before it is approved. This includes editing the distance itself — select the **Distance** field on the expense to update the route using the **Map** tab or enter a new distance using the **Manual** tab. To learn how to manage other expense fields, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+Yes! You can edit the expense before it is approved. When editing a map-based Distance expense, two tabs appear at the top: **Map** and **Manual**. Select **Map** to update waypoints, or select **Manual** to type in the distance directly. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
 
 ## Can I update the Distance expense unit or rate?
 
@@ -165,7 +167,7 @@ No. GPS tracking runs in the background on your mobile device. A notification co
 
 ## What does the GPS Distance expense receipt look like?
 
-The GPS receipt shows a map of your actual route driven, along with the total distance and calculated reimbursement amount. It looks similar to a map-based distance receipt, but reflects the path you actually took rather than a suggested route.
+The GPS receipt shows a map of your actual route driven, along with the total distance and calculated reimbursement amount. It looks similar to a map-based distance receipt, but reflects the path you actually took rather than a suggested route. If you paused and resumed during the trip, the receipt shows each segment separately with its own start and stop waypoints.
 
 ## Can I use GPS tracking on web or desktop?
 

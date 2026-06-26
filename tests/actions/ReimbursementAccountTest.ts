@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import resetNonUSDBankAccount from '@src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount';
 import resetUSDBankAccount from '@src/libs/actions/ReimbursementAccount/resetUSDBankAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ACHAccount} from '@src/types/onyx/Policy';
@@ -59,6 +60,175 @@ describe('ReimbursementAccount', () => {
                         });
                     }),
             );
+        });
+
+        it('should optimistically mark bank account as pending deletion', async () => {
+            (fetch as MockFetch)?.pause?.();
+            const achAccount: ACHAccount = {
+                bankAccountID,
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+                reimburser: TEST_EMAIL,
+                accountNumber: '1234567890',
+                routingNumber: '123456789',
+            };
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {bankCurrency: 'USD', bankCountry: 'US'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {achAccount});
+            resetUSDBankAccount(bankAccountID, session, policyID, achAccount);
+
+            await waitForBatchedUpdates();
+            return new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    callback: (bankAccountList) => {
+                        Onyx.disconnect(connection);
+                        expect(bankAccountList?.[bankAccountID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should remove bank account from list on success', async () => {
+            const achAccount: ACHAccount = {
+                bankAccountID,
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+                reimburser: TEST_EMAIL,
+                accountNumber: '1234567890',
+                routingNumber: '123456789',
+            };
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {bankCurrency: 'USD', bankCountry: 'US'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {achAccount});
+            resetUSDBankAccount(bankAccountID, session, policyID, achAccount);
+
+            await waitForBatchedUpdates();
+            return new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    callback: (bankAccountList) => {
+                        Onyx.disconnect(connection);
+                        expect(bankAccountList?.[bankAccountID]).toBeUndefined();
+                        resolve();
+                    },
+                });
+            });
+        });
+    });
+
+    describe('resetNonUSDBankAccount', () => {
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
+        it('should optimistically mark bank account as pending deletion', async () => {
+            (fetch as MockFetch)?.pause?.();
+            const achAccount: ACHAccount = {
+                bankAccountID,
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+                reimburser: TEST_EMAIL,
+                accountNumber: '1234567890',
+                routingNumber: '123456789',
+            };
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {bankCurrency: 'CAD', bankCountry: 'CA'},
+            });
+            resetNonUSDBankAccount(policyID, achAccount, bankAccountID);
+
+            await waitForBatchedUpdates();
+            return new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    callback: (bankAccountList) => {
+                        Onyx.disconnect(connection);
+                        expect(bankAccountList?.[bankAccountID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should remove bank account from list on success', async () => {
+            const achAccount: ACHAccount = {
+                bankAccountID,
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+                reimburser: TEST_EMAIL,
+                accountNumber: '1234567890',
+                routingNumber: '123456789',
+            };
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {bankCurrency: 'CAD', bankCountry: 'CA'},
+            });
+            resetNonUSDBankAccount(policyID, achAccount, bankAccountID);
+
+            await waitForBatchedUpdates();
+            return new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    callback: (bankAccountList) => {
+                        Onyx.disconnect(connection);
+                        expect(bankAccountList?.[bankAccountID]).toBeUndefined();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should clear policy achAccount optimistically', async () => {
+            (fetch as MockFetch)?.pause?.();
+            const achAccount: ACHAccount = {
+                bankAccountID,
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+                reimburser: TEST_EMAIL,
+                accountNumber: '1234567890',
+                routingNumber: '123456789',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {achAccount});
+            resetNonUSDBankAccount(policyID, achAccount, bankAccountID);
+
+            await waitForBatchedUpdates();
+            return new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.achAccount).toBeUndefined();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should reset locally without API call when no bankAccountID', async () => {
+            const achAccount: ACHAccount = {
+                bankAccountID: 0,
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+                reimburser: TEST_EMAIL,
+                accountNumber: '1234567890',
+                routingNumber: '123456789',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {achAccount});
+            resetNonUSDBankAccount(policyID, achAccount);
+
+            await waitForBatchedUpdates();
+            return new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    callback: (reimbursementAccount) => {
+                        Onyx.disconnect(connection);
+                        expect(reimbursementAccount).toEqual(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+                        resolve();
+                    },
+                });
+            });
         });
     });
 });

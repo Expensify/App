@@ -82,8 +82,8 @@ function Template(
 
     return (
         <ThemeProvider theme={theme}>
-            <ScreenWrapper testID="testID">
-                <ThemeStylesProvider>
+            <ThemeStylesProvider>
+                <ScreenWrapper testID="testID">
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
@@ -97,8 +97,8 @@ function Template(
                         columns={columns}
                         onButtonPress={() => {}}
                     />
-                </ThemeStylesProvider>
-            </ScreenWrapper>
+                </ScreenWrapper>
+            </ThemeStylesProvider>
         </ThemeProvider>
     );
 }

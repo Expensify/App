@@ -7,6 +7,7 @@ import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@co
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
@@ -43,18 +44,40 @@ function validateCardNumber(value: string): boolean {
 }
 
 /**
- * Validating that this is a valid address (PO boxes are not allowed)
+ * Returns whether the value is a PO box or a private mailbox (PMB / mail drop), which are not accepted as physical addresses.
  */
-function isValidAddress(value: FormValue): boolean {
+function isPOBoxOrMailDrop(value: FormValue): boolean {
     if (typeof value !== 'string') {
         return false;
     }
 
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
-        return false;
+    return CONST.REGEX.PO_BOX.test(value) || CONST.REGEX.PMB.test(value);
+}
+
+/**
+ * Returns the translation path for the error to display on an invalid address input, or undefined when the value is valid.
+ */
+function getInvalidAddressErrorTranslationPath(value: FormValue): TranslationPaths | undefined {
+    if (typeof value !== 'string') {
+        return 'bankAccount.error.addressStreet';
     }
 
-    return !CONST.REGEX.PO_BOX.test(value);
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
+        return 'bankAccount.error.addressStreet';
+    }
+
+    if (isPOBoxOrMailDrop(value)) {
+        return 'bankAccount.error.physicalAddressRequired';
+    }
+
+    return undefined;
+}
+
+/**
+ * Validating that this is a valid address (PO boxes and PMBs are not allowed)
+ */
+function isValidAddress(value: FormValue): boolean {
+    return getInvalidAddressErrorTranslationPath(value) === undefined;
 }
 
 /**
@@ -288,6 +311,27 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     // We accept these as valid US phone numbers for wallet/bank account verification.
     const validUSRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP];
     return parsedPhoneNumber.possible && validUSRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
+}
+
+/**
+ * Validates a phone number from the North American Numbering Plan (+1 calling code).
+ * Accepts the US, US territories, and Canada. Canada shares the +1 calling code under NANP
+ * but parses to its own ISO region code (CA), so isValidUSPhone rejects it.
+ */
+function isValidNANPPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
+    const phone = phoneNumber || '';
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : undefined;
+
+    // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
+    // so we need to check if it is a valid phone.
+    if (regionCode && !Str.isValidPhoneFormat(phone)) {
+        return false;
+    }
+
+    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
+
+    const validNANPRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP, CONST.COUNTRY.CA];
+    return parsedPhoneNumber.possible && validNANPRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
 }
 
 function isValidPhoneNumber(phoneNumber: string): boolean {
@@ -767,11 +811,51 @@ function isValidPIN(pin: string): boolean {
     return !(CONST.EXPENSIFY_CARD.PIN.INVALID_PINS as readonly string[]).includes(pin);
 }
 
+/**
+ * Returns true if the given string contains a non-whitelisted HTML-like tag.
+ *
+ * Mirrors the HTML-tag check in FormProvider.onValidate so callers that don't go through
+ * FormProvider (e.g. inline edit-in-place sections) can produce the same `Invalid character`
+ * error for inputs like `<script>...</script>` while still allowing the harmless tokens listed
+ * in CONST.WHITELISTED_TAGS (`<>`, `<->`, `<br>`, etc.).
+ *
+ * @param strict - When true, uses STRICT_VALIDATE_FOR_HTML_TAG_REGEX, which also flags
+ * non-standard angle-bracket content (e.g. `<✓>`). Defaults to the non-strict variant
+ * to match FormProvider's default.
+ */
+function containsHtmlTag(value: string, strict = false): boolean {
+    if (!value) {
+        return false;
+    }
+    const tagRegex = strict ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
+    const foundHtmlTagIndex = value.search(tagRegex);
+    const leadingSpaceIndex = value.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
+
+    if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
+        return false;
+    }
+
+    const matchedHtmlTags = value.match(tagRegex);
+    let isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(value));
+    if (matchedHtmlTags) {
+        for (const htmlTag of matchedHtmlTags) {
+            isWhitelisted = CONST.WHITELISTED_TAGS.some((regex) => regex.test(htmlTag));
+            if (!isWhitelisted) {
+                break;
+            }
+        }
+    }
+
+    return !(isWhitelisted && leadingSpaceIndex === -1);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
+    isPOBoxOrMailDrop,
+    getInvalidAddressErrorTranslationPath,
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
@@ -783,6 +867,7 @@ export {
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
+    isValidNANPPhone,
     isValidPhoneNumber,
     isValidWebsite,
     isValidTwoFactorCode,
@@ -822,4 +907,5 @@ export {
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
     isValidPIN,
+    containsHtmlTag,
 };

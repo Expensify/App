@@ -3,13 +3,13 @@
 // For the web version, we use the Mapbox Web library called react-map-gl, while for the native mobile version,
 // we utilize a different Mapbox library @rnmapbox/maps tailored for mobile development.
 import {useFocusEffect} from '@react-navigation/native';
-import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {MapRef, ViewState} from 'react-map-gl';
-import Map, {Marker} from 'react-map-gl';
+import type {MapRef, ViewState} from 'react-map-gl/mapbox';
+import Map, {Marker} from 'react-map-gl/mapbox';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import ImageSVG from '@components/ImageSVG';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -47,6 +47,7 @@ function MapViewImpl({
     distanceInMeters,
     unit,
     ref,
+    shouldDisplayCurrentLocation = true,
 }: MapViewProps) {
     const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
 
@@ -59,7 +60,7 @@ function MapViewImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
 
     const [mapRef, setMapRef] = useState<MapRef | null>(null);
     const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
@@ -74,7 +75,10 @@ function MapViewImpl({
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+    const shouldPanMapToCurrentPosition = useCallback(
+        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
+        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
+    );
 
     const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
         (error) => {
@@ -260,20 +264,23 @@ function MapViewImpl({
             <Map
                 onDrag={() => setUserInteractedWithMap(true)}
                 ref={setRef}
-                mapLib={mapboxgl}
                 mapboxAccessToken={accessToken}
                 initialViewState={initialViewState}
                 style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                 mapStyle={styleURL}
                 interactive={interactive}
             >
-                {interactive && (
+                {interactive && shouldDisplayCurrentLocation && (
                     <Marker
                         key="Current-position"
                         longitude={currentPosition?.longitude ?? 0}
                         latitude={currentPosition?.latitude ?? 0}
                     >
-                        <View style={styles.currentPositionDot} />
+                        <ImageSVG
+                            src={expensifyIcons.MapCurrentLocation}
+                            width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
+                            height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
+                        />
                     </Marker>
                 )}
                 {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
@@ -296,7 +303,11 @@ function MapViewImpl({
                 )}
                 {waypoints?.map(({coordinate, markerComponent, id}) => {
                     const MarkerComponent = markerComponent;
-                    if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
+                    if (
+                        utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
+                        interactive &&
+                        shouldDisplayCurrentLocation
+                    ) {
                         return null;
                     }
                     return (
@@ -312,7 +323,7 @@ function MapViewImpl({
                 {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
             </Map>
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
                         iconFill={theme.icon}

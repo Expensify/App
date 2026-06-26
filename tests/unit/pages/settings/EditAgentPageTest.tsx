@@ -131,6 +131,13 @@ jest.mock('@components/ReportActionAvatars', () => {
     return MockReportActionAvatars;
 });
 
+jest.mock('@pages/ErrorPage/NotFoundPage', () => {
+    function MockNotFoundPage() {
+        return 'notFound.notHere';
+    }
+    return MockNotFoundPage;
+});
+
 const mockUseOnyx = jest.mocked(useOnyx);
 
 const TEST_ACCOUNT_ID = 12345;
@@ -144,7 +151,15 @@ const mockNavigation = {} as EditAgentPageNavigation;
 describe('EditAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
+        mockUseOnyx.mockImplementation((key, options) => {
+            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
+                return [{displayName: 'Default Agent'}, {status: 'loaded'}];
+            }
+            if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT)) {
+                return [{prompt: 'Default prompt'}, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
     });
 
     it('renders agent name from personalDetails', () => {
@@ -228,5 +243,33 @@ describe('EditAgentPage', () => {
         );
 
         expect(JSON.stringify(toJSON())).toContain('agentsPage.error.updatePrompt');
+    });
+
+    it('renders NotFoundPage when agent and personalDetails are both missing after Onyx is loaded', () => {
+        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
+
+        const {toJSON} = render(
+            <EditAgentPage
+                route={mockRoute}
+                navigation={mockNavigation}
+            />,
+        );
+
+        const serialized = JSON.stringify(toJSON());
+        expect(serialized).toContain('notFound.notHere');
+        expect(serialized).not.toContain('editAgentPage.deleteAgent');
+    });
+
+    it('does not render NotFoundPage while Onyx is still loading', () => {
+        mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
+
+        const {toJSON} = render(
+            <EditAgentPage
+                route={mockRoute}
+                navigation={mockNavigation}
+            />,
+        );
+
+        expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
     });
 });

@@ -8,8 +8,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import createDynamicRoute from '@src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@src/libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
@@ -55,7 +56,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.CTA}
                 onPress={() => {
-                    Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(referralContentType), Navigation.getActiveRouteWithoutParams()));
                 }}
                 style={[styles.pAbsolute, styles.t0, styles.b0, styles.l0, {right: CLOSE_BUTTON_OFFSET}]}
                 accessibilityLabel={translate(`referralProgram.${referralContentType}.header`)}

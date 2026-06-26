@@ -168,6 +168,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserAccountIDParam: 123456,
             activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
@@ -179,6 +180,7 @@ describe('GoogleTagManagerTest', () => {
             activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: true,
@@ -190,6 +192,7 @@ describe('GoogleTagManagerTest', () => {
             activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
+            currency: undefined,
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: true,
@@ -199,6 +202,50 @@ describe('GoogleTagManagerTest', () => {
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, 123456, email);
+    });
+
+    test('workspace_created_sales_eligible', async () => {
+        // When we create a first workspace with the "Manage my team" intent, a company of 5+ employees, and a private email domain
+        createWorkspace({
+            policyName: '',
+            introSelected: undefined,
+            currentUserAccountIDParam: 123456,
+            activePolicy: undefined,
+            currentUserEmailParam: 'test@test.com',
+            currency: undefined,
+            isSelfTourViewed: false,
+            betas: undefined,
+            hasActiveAdminPolicies: false,
+            engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then we publish the sales-eligible workspace_created event
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED_SALES_ELIGIBLE.NAME, 123456, email);
+    });
+
+    test('workspace_created - public email domain is not sales eligible', async () => {
+        // When we create a first workspace that meets the intent and company size criteria but uses a public email domain
+        createWorkspace({
+            policyName: '',
+            introSelected: undefined,
+            currentUserAccountIDParam: 123456,
+            activePolicy: undefined,
+            currentUserEmailParam: 'test@gmail.com',
+            currency: undefined,
+            isSelfTourViewed: false,
+            betas: undefined,
+            hasActiveAdminPolicies: false,
+            engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then we publish the standard workspace_created event
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, 123456, 'test@gmail.com');
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
@@ -231,19 +278,20 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
             isASAPSubmitBetaEnabled: false,
-            currentUserAccountIDParam: accountID,
-            currentUserEmailParam: 'test@test.com',
+            currentUser: {accountID, email: 'test@test.com'},
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
-            draftTransactionIDs: [],
             isSelfTourViewed: false,
+            currentUserLocalCurrency: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then we publish a workspace_created event only once
+        // Then we publish the standard workspace_created event only once. This path always builds the workspace with the
+        // "Track expenses for my business" intent (see TrackExpense.ts), which never meets the sales-eligible criteria, so
+        // it can never publish workspace_created_sales_eligible.
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, accountID, email);
     });

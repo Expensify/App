@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {DetachReceiptParams, ReplaceReceiptParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -7,7 +8,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -20,21 +21,32 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {ReplaceReceipt} from '.';
-import {getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getAllReports, getAllTransactions} from '.';
 import {getReceiptError} from './MoneyRequestBuilder';
+
+type ReplaceReceipt = {
+    transactionID: string;
+    file?: File;
+    source: string;
+    state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
+    isSameReceipt?: boolean;
+    transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
+};
 
 function detachReceipt(
     transactionID: string | undefined,
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
     transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     if (!transactionID) {
         return;
     }
     const allTransactions = getAllTransactions();
-    const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -88,17 +100,17 @@ function detachReceipt(
         },
     ];
 
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            newTransaction,
-            currentTransactionViolations,
-            transactionPolicy,
-            transactionPolicyTagList ?? {},
-            transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceReportReportUtils(expenseReport),
-        );
+    if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
+        const currentTransactionViolations = transactionViolations ?? [];
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: newTransaction,
+            transactionViolations: currentTransactionViolations,
+            policy: transactionPolicy,
+            policyTagList: transactionPolicyTagList ?? {},
+            policyCategories: transactionPolicyCategories ?? {},
+            hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
+            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+        });
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -162,13 +174,22 @@ function detachReceipt(
     );
 }
 
-function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt, transactionPolicyTagList}: ReplaceReceipt) {
+function replaceReceipt({
+    transactionID,
+    file,
+    source,
+    state,
+    transactionPolicy,
+    transactionPolicyCategories,
+    isSameReceipt,
+    transactionPolicyTagList,
+    transactionViolations,
+}: ReplaceReceipt) {
     if (!file) {
         return;
     }
 
     const allTransactions = getAllTransactions();
-    const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -181,7 +202,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         filename: file.name,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
-    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories, transactionPolicyTagList};
+    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories, transactionPolicyTagList, transactionViolations};
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
@@ -224,17 +245,17 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         },
     ];
 
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            newTransaction,
-            currentTransactionViolations,
-            transactionPolicy,
-            transactionPolicyTagList ?? {},
-            transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceReportReportUtils(expenseReport),
-        );
+    if (transactionPolicy && isGroupPolicy(transactionPolicy) && newTransaction) {
+        const currentTransactionViolations = transactionViolations ?? [];
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({
+            updatedTransaction: newTransaction,
+            transactionViolations: currentTransactionViolations,
+            policy: transactionPolicy,
+            policyTagList: transactionPolicyTagList ?? {},
+            policyCategories: transactionPolicyCategories ?? {},
+            hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
+            isInvoiceTransaction: isInvoiceReportReportUtils(expenseReport),
+        });
         optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -343,3 +364,4 @@ function checkIfLocalFileIsAccessible(
 }
 
 export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
+export type {ReplaceReceipt};

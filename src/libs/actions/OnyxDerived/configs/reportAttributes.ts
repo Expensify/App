@@ -1,5 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIsOffline} from '@libs/NetworkState';
+import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -88,12 +89,12 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
-        ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CONCIERGE_REPORT_ID,
+        ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.NETWORK,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, conciergeReportID],
         {currentValue, sourceValues},
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
@@ -209,6 +210,21 @@ export default createOnyxDerivedValueConfig({
                     let transactionReportIDs: string[] = [];
                     if (transactionsUpdates) {
                         transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+
+                        const updatedTransactionIDs = new Set(Object.keys(transactionsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION, '')));
+                        if (updatedTransactionIDs.size > 0) {
+                            for (const report of Object.values(reports)) {
+                                if (!report?.reportID || !report.parentReportID || !report.parentReportActionID) {
+                                    continue;
+                                }
+
+                                const parentReportAction = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
+                                const linkedTransactionID = getLinkedTransactionID(parentReportAction);
+                                if (linkedTransactionID && updatedTransactionIDs.has(linkedTransactionID)) {
+                                    transactionReportIDs.push(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
+                                }
+                            }
+                        }
                     }
                     // Also handle transaction violations updates by extracting transaction IDs and finding their reports
                     if (transactionViolationsUpdates) {
@@ -338,6 +354,8 @@ export default createOnyxDerivedValueConfig({
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
                               allPolicyTags: policyTags,
+                              conciergeReportID: conciergeReportID ?? undefined,
+                              reportAttributes: currentValue?.reports,
                           })
                         : '',
                     isEmpty: generateIsEmptyReport(report, isReportArchived),

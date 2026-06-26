@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {IOURequestType} from '@libs/actions/IOU';
+import type {IOURequestType} from '@src/CONST';
 import type CONST from '@src/CONST';
 import type Form from './Form';
 

@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
@@ -15,9 +15,9 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: jest.fn((key: string) =
 jest.mock('@hooks/useOnyx', () => jest.fn());
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 
-jest.mock('@hooks/useHasEmptyReportsForPolicy', () => jest.fn(() => false));
+jest.mock('@hooks/useShouldShowEmptyReportConfirmation', () => jest.fn(() => false));
 
-const mockUseHasEmptyReportsForPolicy = require('@hooks/useHasEmptyReportsForPolicy') as jest.Mock;
+const mockUseShouldShowEmptyReportConfirmation = require('@hooks/useShouldShowEmptyReportConfirmation') as jest.Mock;
 
 const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
@@ -27,24 +27,36 @@ jest.mock('@hooks/useCreateEmptyReportConfirmation', () =>
     })),
 );
 
-jest.mock('@libs/PolicyUtils', () => ({
-    getDefaultChatEnabledPolicy: jest.fn((policies: Array<OnyxEntry<Policy>>, activePolicy: OnyxEntry<Policy>) => {
-        // Mirror the real helper: prefer activePolicy if it's a paid group with chat enabled, otherwise the single non-personal candidate.
-        if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && (activePolicy.type === 'team' || activePolicy.type === 'corporate')) {
-            return activePolicy;
-        }
-        if (policies.length === 1) {
-            return policies.at(0);
-        }
-        return undefined;
-    }),
-    isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === 'team' || policy?.type === 'corporate'),
-}));
+jest.mock('@libs/PolicyUtils', () => {
+    // `requireActual` inside the factory because jest hoists `jest.mock` above the top-level `CONST` import.
+    const CONSTANTS = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
+    return {
+        getDefaultChatEnabledPolicy: jest.fn((policies: Array<OnyxEntry<Policy>>, activePolicy: OnyxEntry<Policy>) => {
+            // Mirror the real helper: prefer activePolicy if it's a paid group with chat enabled, otherwise the single non-personal candidate.
+            if (
+                activePolicy &&
+                activePolicy.isPolicyExpenseChatEnabled &&
+                (activePolicy.type === CONSTANTS.POLICY.TYPE.TEAM || activePolicy.type === CONSTANTS.POLICY.TYPE.CORPORATE || activePolicy.type === CONSTANTS.POLICY.TYPE.SUBMIT)
+            ) {
+                return activePolicy;
+            }
+            if (policies.length === 1) {
+                return policies.at(0);
+            }
+            return undefined;
+        }),
+        isPaidGroupPolicy: jest.fn((policy: OnyxEntry<Policy>) => policy?.type === CONSTANTS.POLICY.TYPE.TEAM || policy?.type === CONSTANTS.POLICY.TYPE.CORPORATE),
+        isGroupPolicy: jest.fn(
+            (policy: OnyxEntry<Policy>) => policy?.type === CONSTANTS.POLICY.TYPE.TEAM || policy?.type === CONSTANTS.POLICY.TYPE.CORPORATE || policy?.type === CONSTANTS.POLICY.TYPE.SUBMIT,
+        ),
+    };
+});
 
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
 }));
 
 const reportIDCounter = {value: 100};
@@ -75,6 +87,11 @@ function makePaidPolicy(id = POLICY_ID): OnyxEntry<Policy> {
     } as OnyxEntry<Policy>;
 }
 
+function makeSubmitPolicy(id = POLICY_ID): OnyxEntry<Policy> {
+    const policy = makePaidPolicy(id);
+    return policy ? {...policy, type: CONST.POLICY.TYPE.SUBMIT} : policy;
+}
+
 function setupUseOnyx(overrides: Record<string, unknown> = {}) {
     const impl = ((key: string, options?: {selector?: (value: unknown) => unknown}) => {
         const rawValue = key in overrides ? overrides[key] : undefined;
@@ -91,7 +108,7 @@ describe('useCreateReport', () => {
         jest.clearAllMocks();
         reportIDCounter.value = 100;
         mockShouldRestrictUserBillableActions.mockReturnValue(false);
-        mockUseHasEmptyReportsForPolicy.mockReturnValue(false);
+        mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
         setupUseOnyx();
     });
 
@@ -135,7 +152,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).not.toHaveBeenCalled();
         });
 
@@ -161,7 +178,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
         });
 
         it('navigates to workspace selector when default is personal and there are 2+ non-personal workspaces', () => {
@@ -188,7 +205,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).not.toHaveBeenCalled();
         });
 
@@ -212,7 +229,32 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(onCreateReport).toHaveBeenCalledWith(false);
+        });
+
+        it('does NOT show selector when default is a Submit workspace, even with 2+ Submit workspaces', () => {
+            // Regression: a Submit workspace is a valid non-personal default, so creating a report
+            // should go straight to it instead of opening the workspace selector.
+            setupUseOnyx({
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'p1',
+                [`${ONYXKEYS.COLLECTION.POLICY}p1`]: makeSubmitPolicy('p1'),
+            });
+            const onCreateReport = jest.fn();
+            const policies = [makeSubmitPolicy('p1'), makeSubmitPolicy('p2')];
+
+            const {result} = renderHook(() =>
+                useCreateReport({
+                    onCreateReport,
+                    groupPoliciesWithChatEnabled: policies,
+                }),
+            );
+
+            act(() => {
+                result.current.createReport();
+            });
+
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).toHaveBeenCalledWith(false);
         });
 
@@ -240,7 +282,7 @@ describe('useCreateReport', () => {
                 result.current.createReport();
             });
 
-            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
             expect(onCreateReport).toHaveBeenCalledWith(false);
         });
     });
@@ -266,7 +308,7 @@ describe('useCreateReport', () => {
         });
 
         it('opens empty report confirmation when policy has empty reports', () => {
-            mockUseHasEmptyReportsForPolicy.mockReturnValue(true);
+            mockUseShouldShowEmptyReportConfirmation.mockReturnValue(true);
             const onCreateReport = jest.fn();
             const policies = [makePaidPolicy()];
 
@@ -357,7 +399,7 @@ describe('useCreateReport', () => {
 
     describe('empty report confirmation dismissed', () => {
         it('calls onCreateReport directly when confirmation was previously dismissed', () => {
-            mockUseHasEmptyReportsForPolicy.mockReturnValue(true);
+            mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
             setupUseOnyx({
                 [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: true,
             });

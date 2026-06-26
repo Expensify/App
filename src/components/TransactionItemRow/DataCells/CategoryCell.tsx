@@ -7,7 +7,7 @@ import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/
 import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type CategoryCellProps = TransactionDataCellProps &
@@ -18,17 +18,21 @@ type CategoryCellProps = TransactionDataCellProps &
 function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({canEdit});
 
     // For display: decoded category name for user-readable text
-    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedLeafCategoryName(transactionItem?.category ?? '');
 
     // For picker comparison: raw category name (empty if missing, matches IOURequestStepCategory)
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
+        canEdit,
+        value: categoryForComparison,
+        onSave,
+    });
+
     const handleCategorySelected = (item: ListItem) => {
-        onSave?.(item.keyForList);
-        cancelEditing();
+        handleSave(item.keyForList);
     };
 
     const displayContent = shouldUseNarrowLayout ? (

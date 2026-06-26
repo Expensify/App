@@ -30,7 +30,8 @@ type ReportScreenRoute =
 const reportDetailScreens = [
     ...Object.values(SCREENS.REPORT_DETAILS),
     ...Object.values(SCREENS.REPORT_SETTINGS),
-    ...Object.values(SCREENS.PRIVATE_NOTES),
+    SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
+    SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT,
     ...Object.values(SCREENS.REPORT_PARTICIPANTS),
 ];
 
@@ -101,6 +102,15 @@ function ReportNavigateAwayHandler() {
             typeof currentRoute.params === 'object' &&
             'reportID' in currentRoute.params &&
             reportIDFromRoute === currentRoute.params.reportID;
+        // A thread open at the top of the search RHP just became empty - its parent message and last reply were both
+        // deleted, so the parent action went from a "[Deleted message]" placeholder to fully removed. Pop only that
+        // screen (any wider RHP below stays open) instead of letting the narrow-pane guard leave an empty report on
+        // screen. Scoped to this trigger so deleting an expense in the search RHP still no-ops here (the original
+        // reason for the guard below). See https://github.com/Expensify/App/issues/91603.
+        if (prevDeletedParentAction && !deletedParentAction && isFocused && isTopmostSearchReportID) {
+            Navigation.goBack();
+            return;
+        }
         // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
         // Prevent auto navigation for report in RHP
         if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {

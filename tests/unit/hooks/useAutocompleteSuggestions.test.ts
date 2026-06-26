@@ -38,14 +38,17 @@ jest.mock('@libs/SearchAutocompleteUtils', () => ({
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({
-        personalDetails: [
-            {text: 'John Doe', login: 'john@example.com', accountID: 1},
-            {text: 'Jane Smith', login: 'jane@example.com', accountID: 2},
-        ],
-        recentReports: [
-            {text: 'General Chat', reportID: 'report1'},
-            {text: 'Team Updates', reportID: 'report2'},
-        ],
+        options: {
+            personalDetails: [
+                {text: 'John Doe', login: 'john@example.com', accountID: 1},
+                {text: 'Jane Smith', login: 'jane@example.com', accountID: 2},
+            ],
+            recentReports: [
+                {text: 'General Chat', reportID: 'report1'},
+                {text: 'Team Updates', reportID: 'report2'},
+            ],
+        },
+        hasMore: false,
     })),
 }));
 
@@ -53,6 +56,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     getAllTaxRates: jest.fn(() => ({})),
     getCleanedTagName: jest.fn((tag: string) => tag),
     shouldShowPolicy: jest.fn(() => true),
+    getExpensifyTeamExclusions: jest.fn(() => ({})),
 }));
 
 jest.mock('@libs/CardFeedUtils', () => ({
@@ -89,6 +93,8 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 }));
 
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
+const {getSearchOptions} = jest.requireMock<{getSearchOptions: jest.Mock}>('@libs/OptionsListUtils');
+const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
 
 const defaultParams = {
     autocompleteQueryValue: '',
@@ -101,6 +107,7 @@ const defaultParams = {
     loginList: {},
     policies: {},
     visibleReportActionsData: undefined,
+    sortedActions: undefined,
     currentUserAccountID: 100,
     currentUserEmail: 'me@example.com',
     personalDetails: {},
@@ -354,6 +361,78 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.autocompleteID).toBe('policyC');
         expect(result.current.at(0)?.text).toBe('Test Workspace');
     });
+
+    /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use accountID-keyed maps and email-keyed exclusion records */
+    describe('Expensify team exclusions on user-filter autocomplete', () => {
+        const personalDetailsWithMix = {
+            '1': {accountID: 1, login: 'am@expensify.com'},
+            '2': {accountID: 2, login: 'guide@team.expensify.com'},
+            '3': {accountID: 3, login: 'customer@acme.com'},
+        };
+
+        const lastSearchOptionsCallExclusions = (): Record<string, boolean> | undefined => {
+            const calls = getSearchOptions.mock.calls as Array<[{excludeFromSuggestionsOnly?: Record<string, boolean>}]>;
+            return calls.at(-1)?.[0]?.excludeFromSuggestionsOnly;
+        };
+
+        it('passes Expensify-team exclusions to getSearchOptions for from: autocomplete', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: ''},
+                ranges: [],
+            });
+            getExpensifyTeamExclusions.mockReturnValue({'am@expensify.com': true, 'guide@team.expensify.com': true});
+
+            renderHook(() =>
+                useAutocompleteSuggestions({
+                    ...defaultParams,
+                    autocompleteQueryValue: 'from:',
+                    currentUserEmail: 'customer@acme.com',
+                    personalDetails: personalDetailsWithMix,
+                }),
+            );
+
+            expect(lastSearchOptionsCallExclusions()).toEqual({'am@expensify.com': true, 'guide@team.expensify.com': true});
+        });
+
+        it('passes Expensify-team exclusions to getSearchOptions for to: autocomplete as well', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, value: ''},
+                ranges: [],
+            });
+            getExpensifyTeamExclusions.mockReturnValue({'am@expensify.com': true});
+
+            renderHook(() =>
+                useAutocompleteSuggestions({
+                    ...defaultParams,
+                    autocompleteQueryValue: 'to:',
+                    currentUserEmail: 'customer@acme.com',
+                    personalDetails: personalDetailsWithMix,
+                }),
+            );
+
+            expect(lastSearchOptionsCallExclusions()).toEqual({'am@expensify.com': true});
+        });
+
+        it('passes an empty exclusion map when the helper returns nothing', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: ''},
+                ranges: [],
+            });
+            getExpensifyTeamExclusions.mockReturnValue({});
+
+            renderHook(() =>
+                useAutocompleteSuggestions({
+                    ...defaultParams,
+                    autocompleteQueryValue: 'from:',
+                    currentUserEmail: 'customer@acme.com',
+                    personalDetails: personalDetailsWithMix,
+                }),
+            );
+
+            expect(lastSearchOptionsCallExclusions()).toEqual({});
+        });
+    });
+    /* eslint-enable @typescript-eslint/naming-convention */
 
     describe('withdrawal-status autocomplete', () => {
         it('returns all three settlement statuses when value is empty', () => {

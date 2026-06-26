@@ -33,7 +33,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,13 +47,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import {
-    deletePaymentBankAccount,
-    openPersonalBankAccountSetupView,
-    pressLockedBankAccount,
-    resetPersonalBankAccountForUpdate,
-    setPersonalBankAccountContinueKYCOnSuccess,
-} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
@@ -115,7 +108,6 @@ function WalletPage() {
     const styles = useThemeStyles();
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
@@ -612,7 +604,7 @@ function WalletPage() {
     };
 
     const cardThreeDotsMenuItems = useMemo(() => {
-        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
+        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
         return [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             {
@@ -659,7 +651,7 @@ function WalletPage() {
                   ]
                 : []),
         ];
-    }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
+    }, [bottomMountItem, confirmDeleteCard, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
@@ -808,14 +800,13 @@ function WalletPage() {
                                     <KYCWall
                                         ref={kycWallRef}
                                         onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
-                                        onSelectPaymentMethod={(selectedPaymentMethod: string) => {
-                                            if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                                                return;
-                                            }
-                                            // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
-                                            setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
-                                        }}
-                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                        // Wallet cannot pass personalBankAccountOnSuccessFallbackRoute via triggerKYCFlow like pay flows do, because the fallback route
+                                        // depends on wallet-specific state (hasActivatedWallet) and is only known when the user selects "Personal bank account".
+                                        // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
+                                        getPersonalBankAccountOnSuccessFallbackRoute={(selectedPaymentMethod) =>
+                                            !hasActivatedWallet && selectedPaymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? ROUTES.SETTINGS_WALLET : undefined
+                                        }
+                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute()}
                                         addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
@@ -886,7 +877,7 @@ function WalletPage() {
                                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                                                             return;
                                                         }
-                                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+                                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute());
                                                     }}
                                                     wrapperStyle={[
                                                         styles.transferBalance,

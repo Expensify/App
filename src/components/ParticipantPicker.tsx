@@ -24,6 +24,9 @@ type ParticipantPickerProps = {
     /** Whether this is a time expense request */
     isTimeRequest?: boolean;
 
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
+
     /** Callback fired when participants are updated */
     onParticipantsAdded: (value: Participant[]) => void;
 
@@ -43,22 +46,30 @@ function ParticipantPicker({
     action,
     isPerDiemRequest = false,
     isTimeRequest = false,
+    isWorkspacesOnly = false,
     onParticipantsAdded,
     onFinish,
     isVisible = true,
     onClose,
 }: ParticipantPickerProps) {
     const {translate} = useLocalize();
+    const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
+    const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
+    const selectedParticipantsWithoutReport = selectedParticipant && !selectedParticipant.reportID ? [selectedParticipant] : CONST.EMPTY_ARRAY;
 
     const pickerContent = (
         <MoneyRequestParticipantsSelector
-            participants={participants}
+            participants={isSplitRequest ? participants : selectedParticipantsWithoutReport}
             onParticipantsAdded={onParticipantsAdded}
             onFinish={onFinish}
             iouType={iouType}
             action={action}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
+            isWorkspacesOnly={isWorkspacesOnly}
+            onRestrictedParticipantSelected={onClose}
+            initiallySelectedReportID={selectedParticipant?.reportID}
+            shouldMoveSelectedToTop
         />
     );
 

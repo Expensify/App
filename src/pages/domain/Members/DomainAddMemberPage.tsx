@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {isValidEmail} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
@@ -23,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
+import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/AddDomainMemberForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -52,7 +52,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const [memberIDs = getEmptyArray<number>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: memberAccountIDsSelector,
     });
-    const personalDetails = getPersonalDetailsByIDs({accountIDs: memberIDs});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: multiPersonalDetailsSelector(memberIDs)}, [memberIDs]);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
 
@@ -79,7 +79,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             addErrorMessage(errors, 'email', translate('common.error.characterLimitExceedCounter', fullEmail.length, CONST.LOGIN_CHARACTER_LIMIT));
         }
 
-        const isUserAlreadyAMember = !!values.email && personalDetails.some(({login}) => login?.toLowerCase() === fullEmail.toLowerCase());
+        const isUserAlreadyAMember = !!values.email && personalDetails?.some(({login}) => login?.toLowerCase() === fullEmail.toLowerCase());
         const isEmailInvalid = !!domainName && !!values.email && !isValidEmail(fullEmail);
 
         if (isEmailInvalid) {

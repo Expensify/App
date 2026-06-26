@@ -2,13 +2,22 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {BankAccountList, Policy, Report, ReportMetadata, Transaction, TransactionViolation} from '@src/types/onyx';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    getSubmitToAccountID,
+    getValidConnectedIntegration,
+    hasDynamicExternalWorkflow,
+    hasIntegrationAutoSync,
+    isPreferredExporter,
+    isSubmitterApproveBlockedOnSubmitWorkspace,
+} from './PolicyUtils';
 import {hasPendingDEWApprove} from './ReportActionsUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
+    hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
     isClosedReport,
     isCurrentUserSubmitter,
@@ -40,10 +49,6 @@ function canSubmit(
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
 
-    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
     if (hasSmartScanFailedWithMissingFields(transactions ?? [], report)) {
@@ -64,6 +69,10 @@ function canSubmit(
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -122,7 +131,7 @@ function canPay(
     const isReimbursed = isSettled(report);
 
     const isExported = report.isExportedToIntegration ?? false;
-    const hasExportError = report?.hasExportError ?? false;
+    const hasExportError = hasExportErrorUtil(undefined, report);
     const didExportFail = !isExported && hasExportError;
 
     if (
@@ -177,7 +186,7 @@ function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
         return false;
     }
 
-    const hasExportError = report.hasExportError ?? false;
+    const hasExportError = hasExportErrorUtil(undefined, report);
     if (syncEnabled && !hasExportError) {
         return false;
     }
