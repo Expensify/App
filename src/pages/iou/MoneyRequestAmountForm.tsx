@@ -168,8 +168,7 @@ function MoneyRequestAmountForm({
      */
     const submitAndNavigateToNextPage = useCallback(
         ({paymentType: iouPaymentType}: PaymentActionParams = {}) => {
-            const TAX_AMOUNT_PATH_PREFIX = 'money-request/tax-amount';
-            const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes(TAX_AMOUNT_PATH_PREFIX);
+            const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
