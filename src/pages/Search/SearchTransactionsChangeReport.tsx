@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -32,18 +31,10 @@ function SearchTransactionsChangeReport() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
-    const transactions = useMemo(
-        () =>
-            Object.values(selectedTransactions).reduce(
-                (transactionsCollection, transactionItem) => {
-                    // eslint-disable-next-line no-param-reassign
-                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction?.transactionID}`] = transactionItem.transaction;
-                    return transactionsCollection;
-                },
-                {} as NonNullable<OnyxCollection<Transaction>>,
-            ),
-        [selectedTransactions],
-    );
+    // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
+    const transactions = Object.values(selectedTransactions)
+        .map((transactionItem) => transactionItem.transaction)
+        .filter((transaction): transaction is Transaction => !!transaction);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -159,8 +150,8 @@ function SearchTransactionsChangeReport() {
                 policy: policyForMovingExpenses,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
-                allTransactions: transactions,
                 policyTagList,
+                transactions,
                 allTransactionViolation: transactionViolations,
                 allReports,
             });
@@ -181,15 +172,13 @@ function SearchTransactionsChangeReport() {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
                 Navigation.navigate(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: firstTransactionID,
-                            reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.EDIT,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: firstTransactionID,
+                        reportID: selectedTransactions[firstTransactionID]?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
                 );
             }
             return;
@@ -201,15 +190,13 @@ function SearchTransactionsChangeReport() {
         }
         if (!policyForMovingExpensesID) {
             Navigation.navigate(
-                createDynamicRoute(
-                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CREATE,
-                        iouType: CONST.IOU.TYPE.CREATE,
-                        transactionID: generateReportID(),
-                        reportID: generateReportID(),
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
-                ),
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: CONST.IOU.ACTION.CREATE,
+                    iouType: CONST.IOU.TYPE.CREATE,
+                    transactionID: generateReportID(),
+                    reportID: generateReportID(),
+                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                }),
             );
             return;
         }
@@ -241,8 +228,8 @@ function SearchTransactionsChangeReport() {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-            allTransactions: transactions,
             policyTagList,
+            transactions,
             allTransactionViolation: transactionViolations,
             allReports,
         });
@@ -260,8 +247,8 @@ function SearchTransactionsChangeReport() {
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-            allTransactions: transactions,
             policyTagList,
+            transactions,
             allTransactionViolation: transactionViolations,
             allReports,
         });

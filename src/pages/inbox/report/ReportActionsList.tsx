@@ -310,6 +310,13 @@ function ReportActionsList({
         onScroll?.(event);
     };
 
+    const loadOlderChatsOnEndReached = () => {
+        if (showHiddenHistory) {
+            return;
+        }
+        loadOlderChats(false);
+    };
+
     const loadNewerChatsAfterTransitions = () => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
@@ -461,6 +468,11 @@ function ReportActionsList({
         isTrackIntentUser,
     });
 
+    // Decide where the list should be positioned on mount.
+    // 1. If we're opening a linked message (initialScrollKey), find that action in the list and scroll it to the top
+    //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
+    // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
+    //    the window height so we land at top of the top message for sure.
     const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
@@ -509,7 +521,7 @@ function ReportActionsList({
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
-                    onEndReached={() => loadOlderChats(false)}
+                    onEndReached={loadOlderChatsOnEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChatsAfterTransitions}
                     onStartReachedThreshold={0.75}
