@@ -12,12 +12,10 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
-import Navigation from '@libs/Navigation/Navigation';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 import {sendExportFileFromConcierge} from '@userActions/Export';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Modal from './Modal';
@@ -47,7 +45,6 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {environment} = useEnvironment();
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [encryptedAuthToken] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.encryptedAuthToken});
 
     const [exportDownload] = useOnyx(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
