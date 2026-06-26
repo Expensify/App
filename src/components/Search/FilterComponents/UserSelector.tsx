@@ -49,8 +49,6 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         includeRecentReports: false,
         shouldInitialize: ready,
         onSelectionChange: onChange,
-        // Keep selected options inside personalDetails so a row stays in its sorted position when toggled,
-        // instead of jumping to the top of the list (see https://github.com/Expensify/App/issues/61414).
         shouldKeepSelectedInAvailableOptions: true,
     });
 
