@@ -132,13 +132,14 @@ const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUs
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
 
 /**
- * Creates a selector returning only whether the user has any active paid policy with an expense chat,
+ * Creates a selector returning only whether the user has any active workspace they can submit expenses to
+ * (paid Collect/Control workspaces, plus free Submit (submit2026) workspaces when the beta is enabled),
  * so subscribers don't re-render when anything else on the policy collection changes.
  */
 const createHasWorkspaceToSubmitToSelector =
-    (currentUserLogin: string | undefined) =>
+    (currentUserLogin: string | undefined, isSubmit2026BetaEnabled = false) =>
     (policies: OnyxCollection<Policy>): boolean =>
-        getActivePoliciesWithExpenseChat(policies, currentUserLogin).length > 0;
+        getActivePoliciesWithExpenseChat(policies, currentUserLogin, isSubmit2026BetaEnabled).length > 0;
 
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,

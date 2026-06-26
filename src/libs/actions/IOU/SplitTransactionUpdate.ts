@@ -747,15 +747,13 @@ function updateSplitTransactions({
 
             if (isReverseSplitOperation) {
                 delete transactionChanges.transactionID;
-                if (isSelfDMSplit) {
-                    // For revert selfDM splits, ALL field changes are already captured in
-                    // requestMoneyInformation.transactionParams (amount, date, merchant, category, etc.).
-                    for (const key of Object.keys(transactionChanges)) {
-                        delete transactionChanges[key as keyof typeof transactionChanges];
-                    }
-                    // Ensure moneyRequestInformationOnyxData is applied even though transactionChanges is now empty.
-                    hasChanges = true;
+                // For revert splits (self-DM and workspace alike), ALL field changes are already captured in
+                // requestMoneyInformation.transactionParams (amount, date, merchant, category, etc.)
+                for (const key of Object.keys(transactionChanges)) {
+                    delete transactionChanges[key as keyof typeof transactionChanges];
                 }
+                // Ensure moneyRequestInformationOnyxData is applied even though transactionChanges is now empty.
+                hasChanges = true;
             }
 
             if (Object.keys(transactionChanges).length > 0) {
@@ -1169,10 +1167,18 @@ function updateSplitTransactions({
                 const expectedMerchant = optimisticTransactionFromGetMoneyRequest?.merchant;
                 if (expectedMerchant && transactionUpdateValue.merchant !== expectedMerchant) {
                     transactionUpdateValue.merchant = expectedMerchant;
-                    // For distance transactions, also update modifiedMerchant to ensure consistency
-                    if (isDistanceRequestTransactionUtils(transactionUpdateValue)) {
-                        transactionUpdateValue.modifiedMerchant = expectedMerchant;
-                    }
+                }
+                // For distance transactions, the split inherits the original transaction's modifiedMerchant
+                // (e.g. the full-distance "10.00 mi @ rate" string set when the original's rate was edited).
+                // The UI shows modifiedMerchant in preference to merchant, so align it with the split's own
+                // merchant — otherwise the split displays the stale original merchant instead of its own.
+                if (
+                    expectedMerchant &&
+                    isDistanceRequestTransactionUtils(transactionUpdateValue) &&
+                    !!transactionUpdateValue.modifiedMerchant &&
+                    transactionUpdateValue.modifiedMerchant !== expectedMerchant
+                ) {
+                    transactionUpdateValue.modifiedMerchant = expectedMerchant;
                 }
             }
         }
@@ -1183,10 +1189,18 @@ function updateSplitTransactions({
             // as the Onyx transactions. This prevents getChildTransactions from treating them as separate
             // orphaned children on the next edit, which would incorrectly delete them from the snapshot.
             const snapshotTransactionID = isCreationOfSplits ? splitExpense.transactionID : optimisticTransactionFromGetMoneyRequest.transactionID;
+            // Align the snapshot's modifiedMerchant with the split's own merchant for distance transactions,
+            // so the Search/Expenses view doesn't show the stale inherited original merchant (see the same fix
+            // applied to the main transaction's optimisticData above).
+            const snapshotModifiedMerchant =
+                isDistanceRequestTransactionUtils(optimisticTransactionFromGetMoneyRequest) && !!optimisticTransactionFromGetMoneyRequest.modifiedMerchant
+                    ? optimisticTransactionFromGetMoneyRequest.merchant
+                    : optimisticTransactionFromGetMoneyRequest.modifiedMerchant;
             newSelfDMSplitTransactions.push(
                 resetSnapshotGroupAmount({
                     ...optimisticTransactionFromGetMoneyRequest,
                     transactionID: snapshotTransactionID,
+                    modifiedMerchant: snapshotModifiedMerchant,
                     ...(!isCreationOfSplits && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 }),
             );
