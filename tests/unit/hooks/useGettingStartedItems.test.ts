@@ -329,8 +329,10 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem?.isComplete).toBe(true);
+            await waitFor(() => {
+                const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+                expect(connectItem?.isComplete).toBe(true);
+            });
         });
 
         it('should not be completed when the initial connection attempt failed', async () => {
@@ -373,8 +375,10 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem?.isComplete).toBe(true);
+            await waitFor(() => {
+                const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+                expect(connectItem?.isComplete).toBe(true);
+            });
         });
 
         it('should not show the categories row when showing the connect row', async () => {
@@ -404,9 +408,11 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem).toBeDefined();
-            expect(connectItem?.label).toContain('connectAccountingDefault');
+            await waitFor(() => {
+                const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+                expect(connectItem).toBeDefined();
+                expect(connectItem?.label).toContain('connectAccountingDefault');
+            });
         });
 
         it('should show "Customize accounting categories" when reportedIntegration is not set and no connections exist (e.g. cache cleared before connecting)', async () => {
@@ -447,9 +453,11 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem).toBeDefined();
-            expect(connectItem?.isFeatureEnabled).toBe(false);
+            await waitFor(() => {
+                const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+                expect(connectItem).toBeDefined();
+                expect(connectItem?.isFeatureEnabled).toBe(false);
+            });
         });
     });
 
@@ -551,8 +559,10 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
             await waitForBatchedUpdates();
 
-            const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
-            expect(categoriesItem?.isComplete).toBe(true);
+            await waitFor(() => {
+                const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+                expect(categoriesItem?.isComplete).toBe(true);
+            });
         });
     });
 
