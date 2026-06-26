@@ -49,7 +49,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
@@ -192,8 +191,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
 
     useEffect(() => {
-        const handle = TransitionTracker.runAfterTransitions({callback: fetchData});
-        return handle.cancel;
+        fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

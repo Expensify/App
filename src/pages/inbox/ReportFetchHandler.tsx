@@ -342,6 +342,7 @@ function ReportFetchHandler() {
                     subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
                     didSubscribeToReportLeavingEvents.current = true;
                 },
+                waitForUpcomingTransition: true,
             });
         }
         return () => {

@@ -13,7 +13,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getContactMethod} from '@libs/UserUtils';
 import {clearAccountMessages, replaceTwoFactorDevice} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -57,12 +56,8 @@ function ReplaceDeviceVerifyNewPage() {
     }, [account, account?.twoFactorAuthSecretKey]);
 
     const handleInputFocus = () => {
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                requestAnimationFrame(() => {
-                    scrollViewRef.current?.scrollToEnd({animated: true});
-                });
-            },
+        requestAnimationFrame(() => {
+            scrollViewRef.current?.scrollToEnd({animated: true});
         });
     };
 

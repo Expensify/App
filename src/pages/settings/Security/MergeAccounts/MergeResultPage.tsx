@@ -201,6 +201,7 @@ function MergeResultPage() {
             callback: () => {
                 Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
             },
+            waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
     }, [result]);

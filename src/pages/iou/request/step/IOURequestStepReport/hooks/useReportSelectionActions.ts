@@ -177,37 +177,35 @@ function useReportSelectionActions({
         TransitionTracker.runAfterTransitions({
             waitForUpcomingTransition: true,
             callback: () => {
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    const participants = buildParticipants(report);
+                const participants = buildParticipants(report);
 
-                    setTransactionReport(
-                        transaction.transactionID,
-                        {
-                            reportID: item.value,
-                            participants,
-                        },
-                        !isEditing,
-                    );
+                setTransactionReport(
+                    transaction.transactionID,
+                    {
+                        reportID: item.value,
+                        participants,
+                    },
+                    !isEditing,
+                );
 
-                    if (isEditing) {
-                        const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
-                        changeTransactionsReport({
-                            transactionIDs: [transaction.transactionID],
-                            isASAPSubmitBetaEnabled,
-                            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                            email: session?.email ?? '',
-                            newReport: report,
-                            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                            reportNextStep: undefined,
-                            policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                            allTransactions,
-                            policyTagList,
-                            allTransactionViolation: transactionViolations,
-                            allReports,
-                        });
-                        removeTransaction(transaction.transactionID);
-                    }
-                });
+                if (isEditing) {
+                    const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
+                    changeTransactionsReport({
+                        transactionIDs: [transaction.transactionID],
+                        isASAPSubmitBetaEnabled,
+                        accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        email: session?.email ?? '',
+                        newReport: report,
+                        policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                        reportNextStep: undefined,
+                        policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                        allTransactions,
+                        policyTagList,
+                        allTransactionViolation: transactionViolations,
+                        allReports,
+                    });
+                    removeTransaction(transaction.transactionID);
+                }
             },
         });
     };
