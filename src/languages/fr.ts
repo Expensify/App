@@ -8332,6 +8332,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `Devise ${adjective} « ${value} »` : `devise « ${value} »`),
                 bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `Devise ${adjective} de « ${oldValue} » à « ${newValue} »` : `devise de « ${oldValue} » à « ${newValue} »`,
+                bodyCurrencyRestriction: 'la restriction de devise',
             },
             allowedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ${currencies}`,
             blockedCurrencyFilters: ({currencies}: {currencies: string}) => `devises ne figurant pas dans ${currencies}`,

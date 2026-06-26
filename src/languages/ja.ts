@@ -8187,9 +8187,10 @@ ${reportName}`,
                 bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective}通貨を「${oldValue}」から「${newValue}」に変更しました` : `通貨を「${oldValue}」から「${newValue}」に変更しました`,
+                bodyCurrencyRestriction: '通貨制限',
             },
             allowedCurrencyFilters: ({currencies}: {currencies: string}) => `通貨 ${currencies}`,
-            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `${currencies} に含まれない通貨`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `${currencies} に含まれていない通貨`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `「${categoryName}」カテゴリのデフォルト税率を「${newTax}」に変更しました（以前は「${oldTax}」）`,

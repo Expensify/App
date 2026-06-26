@@ -8297,7 +8297,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} Währung „${value}“` : `Währung „${value}“`),
                 bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `${adjective} Währung von „${oldValue}“ zu „${newValue}“` : `Währung von „${oldValue}“ in „${newValue}“`,
+                    adjective !== '' ? `${adjective} Währung von „${oldValue}“ zu „${newValue}“` : `Währung von „${oldValue}“ zu „${newValue}“`,
+                bodyCurrencyRestriction: 'die Währungsbeschränkung',
             },
             allowedCurrencyFilters: ({currencies}: {currencies: string}) => `Währungen ${currencies}`,
             blockedCurrencyFilters: ({currencies}: {currencies: string}) => `Währungen, die nicht in ${currencies} sind`,

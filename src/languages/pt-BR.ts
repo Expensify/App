@@ -8245,6 +8245,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
                     adjective !== '' ? `${adjective} moeda de '${oldValue}' para '${newValue}'` : `moeda de '${oldValue}' para '${newValue}'`,
+                bodyCurrencyRestriction: 'a restrição de moeda',
             },
             allowedCurrencyFilters: ({currencies}: {currencies: string}) => `moedas ${currencies}`,
             blockedCurrencyFilters: ({currencies}: {currencies: string}) => `moedas que não estão em ${currencies}`,

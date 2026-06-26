@@ -8246,10 +8246,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 bodyCurrency: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} waluta „${value}”` : `waluta „${value}”`),
                 bodyCurrencyValueOnly: ({value}: {value: string}) => `'${value}'`,
                 bodyCurrencyChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
-                    adjective !== '' ? `zmieniono walutę ${adjective} z „${oldValue}” na „${newValue}”` : `walutę z „${oldValue}” na „${newValue}”`,
+                    adjective !== '' ? `${adjective} walutę z „${oldValue}” na „${newValue}”` : `walutę z „${oldValue}” na „${newValue}”`,
+                bodyCurrencyRestriction: 'ograniczenie waluty',
             },
             allowedCurrencyFilters: ({currencies}: {currencies: string}) => `waluty ${currencies}`,
-            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `waluty inne niż ${currencies}`,
+            blockedCurrencyFilters: ({currencies}: {currencies: string}) => `waluty spoza ${currencies}`,
         },
         updatedCategoryTaxRate: ({categoryName, oldTax, newTax}: {categoryName: string; oldTax: string; newTax: string}) =>
             `zmienił(a) domyślną stawkę podatku dla kategorii „${categoryName}” na „${newTax}” (wcześniej „${oldTax}”)`,
