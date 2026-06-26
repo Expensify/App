@@ -10,16 +10,17 @@ import type {DateFilterContentProps} from './DateFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
 import type {TextInputFilterContentProps} from './TextInputFilterContent';
 
-type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
-type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'filterKey' | 'value' | 'onChange'>;
-type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'filterKey' | 'value' | 'hasFeed' | 'onChange'>;
-type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
-type CommonFilterContentWrapperProps = Omit<CommonFilterContentProps, 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'>;
+type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'filterKey' | 'value' | 'onChange' | 'buttonText'>;
+type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'filterKey' | 'value' | 'onChange' | 'buttonText'>;
+type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'filterKey' | 'value' | 'hasFeed' | 'onChange'> & {buttonText?: string};
+type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'> & {buttonText?: string};
+type CommonFilterContentWrapperProps = Omit<CommonFilterContentProps, 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'> & {buttonText?: string};
 type SearchAdvancedFiltersContentProps = {
     filterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     policyIDQuery: string[] | undefined;
     ready?: boolean;
+    buttonText?: string;
     components: {
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
         Amount: React.ComponentType<AmountFilterContentWrapperProps>;
@@ -36,7 +37,7 @@ function getFilterFormValue<K extends FilterComponentsProps['filterKey']>(filter
     return update;
 }
 
-function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
+function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, buttonText, components, onChange}: SearchAdvancedFiltersContentProps) {
     const {Text: TextFilter, Amount: AmountFilter, Date: DateFilter, ReportField: ReportFieldFilter, Common: CommonFilter} = components;
 
     if (
@@ -52,6 +53,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
                 key={filterKey}
                 filterKey={filterKey}
                 value={values?.[filterKey]}
+                buttonText={buttonText}
                 onChange={(newValue) => onChange({[filterKey]: newValue})}
             />
         );
@@ -67,6 +69,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
                     [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: values?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
                     [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: values?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
                 }}
+                buttonText={buttonText}
                 onChange={onChange}
             />
         );
@@ -89,6 +92,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
                     [rangeModifier]: values?.[`${filterKey}${rangeModifier}`],
                 }}
                 hasFeed={!!values?.feed}
+                buttonText={buttonText}
                 onChange={(newValues) =>
                     onChange({
                         [`${filterKey}${onModifier}`]: newValues[onModifier],
@@ -105,6 +109,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
         return (
             <ReportFieldFilter
                 values={values}
+                buttonText={buttonText}
                 onChange={onChange}
             />
         );
@@ -119,6 +124,7 @@ function SearchAdvancedFiltersContent({filterKey, values, policyIDQuery, ready, 
             policyIDs={values?.policyID}
             policyIDQuery={policyIDQuery}
             ready={ready}
+            buttonText={buttonText}
             onChange={(newValue) => onChange(getFilterFormValue(filterKey, newValue))}
         />
     );

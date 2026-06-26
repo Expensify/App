@@ -7,7 +7,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PolicyReportField} from '@src/types/onyx';
 
-function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: ReportFieldFilterContentWrapperProps) {
+type ReportFieldFilterContentPageWrapperProps = ReportFieldFilterContentWrapperProps;
+
+function ReportFieldFilterContentPageWrapper({values: initialValues, onChange, buttonText}: ReportFieldFilterContentPageWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
@@ -27,7 +29,7 @@ function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: 
                     style={[styles.ph5, styles.pb5, styles.pt3, styles.mtAuto]}
                     success
                     large
-                    text={translate('common.confirm')}
+                    text={buttonText ?? translate('common.confirm')}
                     pressOnEnter
                     onPress={() => {
                         if (!values) {

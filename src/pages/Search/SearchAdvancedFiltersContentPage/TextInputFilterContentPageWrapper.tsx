@@ -2,13 +2,14 @@ import React from 'react';
 import type {TextInputFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import TextInputFilterContent from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 
-function TextInputFilterContentPageWrapper({filterKey, value, onChange}: TextInputFilterContentWrapperProps) {
+function TextInputFilterContentPageWrapper({filterKey, value, onChange, buttonText}: TextInputFilterContentWrapperProps) {
     return (
         <TextInputFilterContent
             filterKey={filterKey}
             value={value}
             autoFocus
             largeButton
+            buttonText={buttonText}
             onChange={onChange}
         />
     );

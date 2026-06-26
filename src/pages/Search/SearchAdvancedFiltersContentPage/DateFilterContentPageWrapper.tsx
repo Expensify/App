@@ -7,7 +7,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
-function DateFilterContentPageWrapper({filterKey, value: initialValue, hasFeed, onChange}: DateFilterContentWrapperProps) {
+type DateFilterContentPageWrapperProps = DateFilterContentWrapperProps & {buttonText?: string};
+
+function DateFilterContentPageWrapper({filterKey, value: initialValue, hasFeed, onChange, buttonText}: DateFilterContentPageWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -30,7 +32,7 @@ function DateFilterContentPageWrapper({filterKey, value: initialValue, hasFeed, 
                     style={[styles.ph5, styles.pb5, styles.pt3]}
                     success
                     large
-                    text={translate('common.confirm')}
+                    text={buttonText ?? translate('common.confirm')}
                     pressOnEnter
                     onPress={() => onChange(value)}
                 />
