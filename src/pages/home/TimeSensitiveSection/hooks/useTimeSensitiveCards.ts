@@ -1,6 +1,15 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
 import useOnyx from '@hooks/useOnyx';
-import {isCard, isCardPendingActivate, isCardPendingIssue, isCardPendingReplace, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard, isTravelCard} from '@libs/CardUtils';
+import {
+    isActionableVirtualExpensifyCard,
+    isCard,
+    isCardPendingActivate,
+    isCardPendingIssue,
+    isCardPendingReplace,
+    isCardWithCustomZeroLimit,
+    isCardWithPotentialFraud,
+    isExpensifyCard,
+} from '@libs/CardUtils';
 import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -42,7 +51,7 @@ function useTimeSensitiveCards() {
 
         const isVirtualCard = !!card.nameValuePairs?.isVirtual;
         if (isVirtualCard) {
-            if (personalDetailsMissing && !isActingAsDelegate && !isTravelCard(card)) {
+            if (personalDetailsMissing && !isActingAsDelegate && isActionableVirtualExpensifyCard(card)) {
                 virtualCardsNeedingPersonalDetails.push(card);
             }
             continue;

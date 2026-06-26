@@ -1484,12 +1484,21 @@ function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePerso
     return Object.values(assignedCards).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
 }
 
+/**
+ * A virtual Expensify card is actionable for the missing-personal-details flow only when it is active, not expired,
+ * and not a Travel CVV card. This is the same card set that renders the "Add details" CTA in the Wallet list
+ * (PaymentMethodList) and the home time-sensitive section, so all of those surfaces stay in sync.
+ */
+function isActionableVirtualExpensifyCard(card: Card | undefined): boolean {
+    return !!card && isExpensifyCard(card) && !!card.nameValuePairs?.isVirtual && !isTravelCard(card) && !isExpiredCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0);
+}
+
 function hasVirtualExpensifyCardMissingPersonalDetails(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
     if (!arePersonalDetailsMissing(privatePersonalDetails)) {
         return false;
     }
     const {cardList, ...assignedCards} = cards ?? {};
-    return Object.values(assignedCards).some((card) => isExpensifyCard(card) && !!card?.nameValuePairs?.isVirtual);
+    return Object.values(assignedCards).some(isActionableVirtualExpensifyCard);
 }
 const isCurrencySupportedForECards = (currency?: string) => {
     if (!currency) {
@@ -1986,6 +1995,7 @@ export {
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
     hasVirtualExpensifyCardMissingPersonalDetails,
+    isActionableVirtualExpensifyCard,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
     getCardsByCardholderName,

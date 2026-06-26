@@ -26,6 +26,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
+    isActionableVirtualExpensifyCard,
     isCardConnectionBroken,
     isCardFrozen,
     isCardInactive,
@@ -385,7 +386,7 @@ function PaymentMethodList({
                     iconHeight: variables.cardIconHeight,
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
-                    shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isExpensifyCard(card) && !!card?.nameValuePairs?.isVirtual && hasMissingPersonalDetails,
+                    shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
                 });
             }
 
