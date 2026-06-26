@@ -65,7 +65,7 @@ describe('BankAccountPurpose CountrySelection', () => {
         });
     });
 
-    it('keeps the child list mounted while persisting the selected country and navigating', () => {
+    it('keeps the child list mounted while persisting the selected country and navigating', async () => {
         render(
             <NavigationContainer>
                 <Stack.Navigator>
@@ -90,7 +90,8 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
 
-        act(() => {
+        // Async act flushes the microtask after usePressLoading's deferring await, so the deferred actions run before the assertions.
+        await act(async () => {
             updatedSelectionProps?.onConfirm();
             jest.runOnlyPendingTimers();
         });
