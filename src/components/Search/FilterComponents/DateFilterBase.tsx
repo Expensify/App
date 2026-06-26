@@ -188,7 +188,7 @@ function DateFilterBase({
             setSelectedDateModifier(null);
             setShouldShowRangeError(false);
             onDateModifierChange?.(false);
-            startWithLoading(() => onSubmit(dateValues));
+            onSubmit(dateValues);
             return;
         }
 
