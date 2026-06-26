@@ -2244,6 +2244,64 @@ describe('getViolationsOnyxData', () => {
             });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
+
+        it('does not add the violation while the QBO vendor list is still hydrating (vendors undefined)', () => {
+            // Given a QBO-configured workspace whose vendor list has not yet synced (data.vendors is undefined)
+            policy = {
+                requiresTag: false,
+                requiresCategory: false,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {},
+                    },
+                },
+            } as unknown as Policy;
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-anything', isManuallySet: true}};
+
+            // When violations are recomputed
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            // Then no inactive-vendor violation is added — we can't know whether the assigned vendor is missing until the list loads
+            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+        });
+
+        it('preserves an existing violation while the QBO vendor list is still hydrating', () => {
+            // Given the vendor list is still hydrating but an inactive-vendor violation already exists from a prior real check
+            policy = {
+                requiresTag: false,
+                requiresCategory: false,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {},
+                    },
+                },
+            } as unknown as Policy;
+            transaction.comment = {...transaction.comment, vendor: {externalID: 'v-active', isManuallySet: true}};
+
+            // When violations are recomputed
+            const result = ViolationsUtils.getViolationsOnyxData({
+                updatedTransaction: transaction,
+                transactionViolations: [inactiveVendorViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            // Then the existing violation is not stripped — stripping it pre-hydration would briefly hide a legitimate violation
+            expect(result.value).toContainEqual(inactiveVendorViolation);
+        });
     });
     describe('shouldRemoveRejectedExpenseViolation (move transaction / explicit removal)', () => {
         const autoRejectedViolation: TransactionViolation = {
