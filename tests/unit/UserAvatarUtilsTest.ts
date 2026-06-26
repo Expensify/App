@@ -144,6 +144,10 @@ describe('UserAvatarUtils', () => {
         it('should return false for undefined', () => {
             expect(UserAvatarUtils.isDefaultAvatar(undefined)).toBe(false);
         });
+
+        it('should return false for a generated letter-avatar URL so getAvatarURL passes it through instead of recomputing', () => {
+            expect(UserAvatarUtils.isDefaultAvatar(`${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1/blue100/DL.png`)).toBe(false);
+        });
     });
 
     describe('isCatalogAvatar', () => {

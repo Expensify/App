@@ -1,7 +1,21 @@
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {LetterAvatarColorStyle} from '@libs/Avatars/letterAvatarPalette';
 import Text from './Text';
+
+/** Initials height relative to the avatar diameter, matching the generated letter-avatar images. */
+const INITIALS_FONT_SIZE_RATIO = 0.28;
+
+const styles = StyleSheet.create({
+    circle: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    text: {
+        includeFontPadding: false,
+    },
+});
 
 type UserInitialsAvatarProps = {
     /** The initials to render */
@@ -16,23 +30,13 @@ type UserInitialsAvatarProps = {
 
 function UserInitialsAvatar({text, colors, size}: UserInitialsAvatarProps) {
     return (
-        <View
-            style={{
-                width: size,
-                height: size,
-                borderRadius: size / 2,
-                backgroundColor: colors.backgroundColor,
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-            }}
-        >
+        <View style={[styles.circle, {width: size, height: size, borderRadius: size / 2, backgroundColor: colors.backgroundColor}]}>
             <Text
                 family="EXP_NEUE_BOLD"
                 color={colors.fillColor}
-                fontSize={Math.round(size * 0.28)}
+                fontSize={Math.round(size * INITIALS_FONT_SIZE_RATIO)}
                 textAlign="center"
-                style={{includeFontPadding: false}}
+                style={styles.text}
             >
                 {text}
             </Text>
