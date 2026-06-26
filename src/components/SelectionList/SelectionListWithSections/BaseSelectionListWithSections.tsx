@@ -8,6 +8,7 @@ import Footer from '@components/SelectionList/components/Footer';
 import SelectionListEmptyState from '@components/SelectionList/components/SelectionListEmptyState';
 import TextInput from '@components/SelectionList/components/TextInput';
 import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@components/SelectionList/hooks/useFlattenedSections';
+import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import useSelectionListKeyboardFocus from '@components/SelectionList/hooks/useSelectionListKeyboardFocus';
@@ -90,6 +91,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
     const listRef = useRef<FlashListRef<FlattenedItem<TItem>> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
+    const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
     const {focusedIndex, setFocusedIndex, setFocusedIndexFromRowFocus, setFocusedIndexWithoutScrollOnChange, suppressNextFocusScroll, isKeyboardNavigating, setHasKeyBeenPressed} =
         useSelectionListKeyboardFocus({
@@ -180,8 +182,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             updateAndScrollToFocusedIndex,
             updateExternalTextInputFocus,
             getFocusedOption: getFocusedItem,
+            scrollInputIntoView,
         }),
-        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem],
+        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem, scrollInputIntoView],
     );
 
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
@@ -301,6 +304,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     return (
         <View
+            ref={containerRef}
             style={[styles.flex1, addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}
             onLayout={onLayout}
         >
@@ -327,7 +331,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     onEndReachedThreshold={onEndReachedThreshold}
                     onScrollBeginDrag={onScrollBeginDrag}
                     scrollEnabled={scrollEnabled}
-                    onScroll={() => {
+                    onScroll={(event) => {
+                        trackScrollOffset(event);
                         onScroll?.();
                         triggerScrollEvent();
                     }}

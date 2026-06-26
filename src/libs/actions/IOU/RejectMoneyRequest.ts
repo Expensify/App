@@ -8,7 +8,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {
@@ -384,7 +383,8 @@ function prepareRejectMoneyRequestData(
                 amount: transactionAmount,
                 currency: getCurrency(transaction),
                 comment: parsedComment,
-                payeeEmail: getLoginByAccountID(report.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '',
+                // We only care for the iouAction and it doesn't use payeeEmail at all
+                payeeEmail: '',
                 participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
@@ -843,7 +843,7 @@ function prepareRejectMoneyRequestData(
         });
     }
 
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticRejectReportAction.created, 1);
+    const lastReadTime = optimisticRejectReportAction.created;
     // Add optimistic data for all reports
     for (const {reportID: targetReportID, lastVisibleActionCreated} of reportsToUpdate) {
         optimisticData.push({
@@ -852,6 +852,7 @@ function prepareRejectMoneyRequestData(
             value: {
                 lastReadTime,
                 lastVisibleActionCreated,
+                lastActorAccountID: currentUserAccountIDParam,
             },
         });
     }
