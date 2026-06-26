@@ -370,7 +370,10 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     const categoryDiff = computeSpendRuleStringDiff(oldCategories, newCategories);
     const amountDiff = computeSpendRuleAmountDiff(oldAmounts, newAmounts);
     const cardDiff = computeSpendRuleCardDiff(oldCards, newCards);
-    const currencyDiff = computeSpendRuleStringDiff(getSpendRuleCurrencyValues(oldCurrencies), getSpendRuleCurrencyValues(newCurrencies));
+    const oldCurrencyValues = getSpendRuleCurrencyValues(oldCurrencies);
+    const newCurrencyValues = getSpendRuleCurrencyValues(newCurrencies);
+    const wasCurrencyRestrictionRemoved = oldCurrencyValues.length > 0 && newCurrencyValues.length === 0;
+    const currencyDiff = wasCurrencyRestrictionRemoved ? {added: [], removed: []} : computeSpendRuleStringDiff(oldCurrencyValues, newCurrencyValues);
 
     const merchantsChanged = merchantDiff.added.length > 0 || merchantDiff.removed.length > 0;
     const categoriesChanged = categoryDiff.added.length > 0 || categoryDiff.removed.length > 0;
@@ -432,6 +435,11 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
             (params) => translate('workspaceActions.expensifyCardRule.update.bodyCurrencyChange', params),
         ),
     ];
+
+    if (wasCurrencyRestrictionRemoved) {
+        const body = translate('workspaceActions.expensifyCardRule.update.bodyCurrencyRestriction');
+        phrases.push({verb: 'removed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
+    }
 
     if (amountDiff.added.length === 1 && amountDiff.removed.length === 1) {
         const oldValue = formatSpendRuleAmount(amountDiff.removed.at(0)?.value ?? [], currency);
