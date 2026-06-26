@@ -155,12 +155,14 @@ function useReportActionsScroll({
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const shouldBeAlignedToTop = isTransactionThreadReport || isMoneyRequestOrInvoiceReport;
-    const initialScrollActionID = linkedReportActionID ?? unreadMarkerReportActionID;
-    // The CREATED-action case is intentionally excluded here; its scroll behavior is handled by shouldFocusToTopOnMount logic instead.
-    const initialScrollKey =
-        initialScrollActionID && !(shouldBeAlignedToTop && sortedVisibleReportActionsObjects[initialScrollActionID]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-            ? initialScrollActionID
-            : undefined;
+
+    // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
+    // Otherwise, prefer the linked action and fall back to the unread marker.
+    let initialScrollKey = linkedReportActionID;
+    if (!shouldBeAlignedToTop && !linkedReportActionID && unreadMarkerReportActionID) {
+        initialScrollKey = unreadMarkerReportActionID;
+    }
+
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
 
