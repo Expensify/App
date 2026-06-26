@@ -1499,8 +1499,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
+            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
+
             exportOptions.push({
-                text: translate('export.basicExport'),
+                // Group by exports dont have a basicExport, at the same time the backend expects isBasicExport to be false for grouped exports, so we just rename the option here
+                // Fixing here https://github.com/Expensify/Expensify/issues/652978
+                text: translate(isGroupedSearch ? 'export.currentView' : 'export.basicExport'),
                 icon: expensifyIcons.Table,
                 onSelected: () => {
                     handleBasicExport();
@@ -1509,7 +1513,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 shouldCallAfterModalHide: true,
             });
 
-            const isGroupedSearch = !!getValidGroupBy(queryJSON?.groupBy);
             if (!isGroupedSearch) {
                 exportOptions.push({
                     text: translate('export.currentView'),
