@@ -124,7 +124,6 @@ function BaseValidateCodeForm({
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
-    const [isCountdownRunning, setIsCountdownRunning] = useState(true);
 
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
     const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -133,10 +132,17 @@ function BaseValidateCodeForm({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
+    const lastValidateCodeRequestedAt = validateCodeAction?.lastValidateCodeRequestedAt;
+    // A code is sent (or resumed) on mount and re-sent on resend, so the resend countdown is running whenever a code was recently requested.
+    const [isCountdownRunning, setIsCountdownRunning] = useState(true);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
+    // A request stamps `lastValidateCodeRequestedAt` and reverts it to null on failure, so a present timestamp with no in-flight request and no error means the code was sent successfully.
+    const isCodeSentSuccessfully = !!lastValidateCodeRequestedAt && !validateCodeAction?.isLoading && isEmptyObject(defaultValidateCodeError);
+    // Flows that supply `hasMagicCodeBeenSent` track the magic code outside VALIDATE_ACTION_CODE; otherwise reflect whether a code was sent successfully.
+    const validateCodeSent = hasMagicCodeBeenSent ?? isCodeSentSuccessfully;
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
+    const isFirstCountdownRunRef = useRef(true);
 
     const clearDefaultValidationCodeError = useCallback(() => {
         // Clear "Failed to send magic code" error
@@ -218,6 +224,11 @@ function BaseValidateCodeForm({
 
     useEffect(() => {
         if (!isCountdownRunning) {
+            return;
+        }
+        // On the initial run, the countdown is seeded with the resumed `initialTimeRemaining`; only reset to the full delay on later restarts (e.g. manual resend).
+        if (isFirstCountdownRunRef.current) {
+            isFirstCountdownRunRef.current = false;
             return;
         }
 
@@ -337,12 +348,13 @@ function BaseValidateCodeForm({
                 <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
                     <ValidateCodeCountdown
                         ref={countdownRef}
+                        requestedAt={hasMagicCodeBeenSent !== undefined ? undefined : lastValidateCodeRequestedAt}
                         onCountdownFinish={handleCountdownFinish}
                     />
                 </View>
             )}
             <OfflineWithFeedback
-                pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
+                pendingAction={validateCodeAction?.pendingFields?.actionVerified}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearValidateCodeActionError(validateCodeActionErrorField)}
             >
