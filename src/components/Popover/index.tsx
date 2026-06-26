@@ -72,6 +72,7 @@ function Popover(props: PopoverProps) {
 
         let isActive = true;
         let baselineKey: string | undefined;
+        let baselineParamsStr: string | undefined;
         // Holds the unsubscribe function once the subscription is set up asynchronously.
         const unsubscribeRef: {current: (() => void) | undefined} = {current: undefined};
 
@@ -79,12 +80,15 @@ function Popover(props: PopoverProps) {
             if (!isActive) {
                 return;
             }
-            baselineKey = navigationRef.getCurrentRoute()?.key;
+            const initialRoute = navigationRef.getCurrentRoute();
+            baselineKey = initialRoute?.key;
+            baselineParamsStr = JSON.stringify(initialRoute?.params);
             unsubscribeRef.current = subscribeToRootNavigation(() => {
                 if (!isActive || baselineKey === undefined) {
                     return;
                 }
-                if (navigationRef.getCurrentRoute()?.key !== baselineKey) {
+                const currentRoute = navigationRef.getCurrentRoute();
+                if (currentRoute?.key !== baselineKey || JSON.stringify(currentRoute?.params) !== baselineParamsStr) {
                     onClose?.();
                 }
             });
