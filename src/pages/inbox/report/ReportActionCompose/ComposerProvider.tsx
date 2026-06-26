@@ -113,16 +113,27 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     });
 
     const clearComposer = () => {
-        const clearWorklet = composerRef.current?.clearWorklet;
-        if (!clearWorklet) {
-            // The composer ref is reset to null on unmount, so a missing ref here is an expected lifecycle state
-            // (e.g. clearing right after navigating away, or during a react-native-screens freeze/unfreeze where the
-            // ref hasn't re-attached yet) rather than a developer error. The draft is independently cleared via Onyx,
-            // so skipping the native UI-thread clear on an unmounted input loses nothing.
-            Log.hmmm('[ComposerProvider] Skipping clearComposer because composerRef.clearWorklet is not set yet');
-            return;
-        }
-        scheduleOnUI(clearWorklet);
+        const tryClear = (attemptsLeft: number) => {
+            const clearWorklet = composerRef.current?.clearWorklet;
+            if (clearWorklet) {
+                scheduleOnUI(clearWorklet);
+                return;
+            }
+
+            // On the attachment-send path, clearComposer is the trigger for the actual send: clearWorklet runs the
+            // native input clear, whose onClear handler calls validateAndSubmitDraft -> addAttachmentWithComment. So a
+            // missing ref must not be swallowed, or the attachment is silently dropped. The composer lives on an
+            // RNSScreen that react-native-screens freezes while another screen (e.g. ReportAddAttachment) is on top, so
+            // right after navigating back the ref may not have re-attached yet. Retry on the next frame instead of
+            // throwing/dropping the submit, but bound the retries so we never loop forever if the composer is truly gone.
+            if (attemptsLeft <= 0) {
+                Log.hmmm('[ComposerProvider] Skipping clearComposer because composerRef.clearWorklet never re-attached');
+                return;
+            }
+            requestAnimationFrame(() => tryClear(attemptsLeft - 1));
+        };
+
+        tryClear(CONST.COMPOSER.CLEAR_WORKLET_MAX_RETRIES);
     };
 
     const setComposerRef = (ref: ComposerWithSuggestionsRef | null) => {
