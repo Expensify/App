@@ -68,7 +68,7 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
             const plaidUrl = getPlaidInstitutionIconUrl(feedName);
             const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
             const firstLinkedPolicyID = feed?.linkedPolicyIDs?.at(0);
-            // POLICY collection entries are keyed by uppercased policy IDs, so uppercase before indexing (matches the Expensify-card path).
+            // POLICY collection entries are keyed by uppercase policy IDs, so we uppercase before indexing (matches the Expensify-card path).
             const linkedPolicy = firstLinkedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstLinkedPolicyID.toUpperCase()}`] : undefined;
             const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
             const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feed.id];
