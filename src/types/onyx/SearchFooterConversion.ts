@@ -1,8 +1,17 @@
 /** A converted amount keyed by target currency code */
 type ConvertedAmountByCurrency = Record<string, number>;
 
+/** A whole-search converted total in a single target currency */
+type ConvertedTotal = {
+    /** Converted total amount */
+    total: number;
+
+    /** Number of transactions the total covers */
+    count: number;
+};
+
 /** A whole-search converted total keyed by target currency code */
-type ConvertedTotalByCurrency = Record<string, {total: number; count: number}>;
+type ConvertedTotalByCurrency = Record<string, ConvertedTotal>;
 
 /** Cache of converted footer-total figures for the Search footer currency picker, populated by GetTransactionsConvertedAmount */
 type SearchFooterConversion = {
@@ -14,4 +23,3 @@ type SearchFooterConversion = {
 };
 
 export default SearchFooterConversion;
-export type {ConvertedAmountByCurrency, ConvertedTotalByCurrency};

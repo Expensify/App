@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import {isGroupEntry} from '@libs/SearchUIUtils';
@@ -29,17 +28,12 @@ type FooterCurrencyState = {
     defaultCurrency: string | undefined;
 };
 
-function getObjectMember(value: unknown, memberName: string): unknown {
-    if (!value || typeof value !== 'object') {
-        return undefined;
+function getGroupCount(group: unknown): number {
+    if (group && typeof group === 'object' && 'count' in group && typeof group.count === 'number') {
+        return group.count;
     }
 
-    return Reflect.get(value, memberName);
-}
-
-function getNumberMember(value: unknown, memberName: string): number | undefined {
-    const memberValue = getObjectMember(value, memberName);
-    return typeof memberValue === 'number' ? memberValue : undefined;
+    return 0;
 }
 
 // Every selected expense has a converted amount cached for the target currency, so the selected total can be
@@ -79,13 +73,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // target currency); the live search snapshot stays in its original currency.
     const [footerConversion] = useOnyx(ONYXKEYS.SEARCH_FOOTER_CONVERSION);
     const convertedTransactions = footerConversion?.transactions;
-    const convertedSearchTotal = currentSearchHash !== undefined ? footerConversion?.searchTotals?.[currentSearchHash] : undefined;
+    const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
 
     const metadata = searchResults?.search;
     const metadataCount = metadata?.count;
     const metadataCurrency = metadata?.currency;
     const metadataTotal = metadata?.total;
-    const isMetadataLoading = !!metadata?.isLoading;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const hasSelectedGroup = selectedTransactionsKeys.some(isGroupEntry);
     const selectedExpenseCount = useMemo(
@@ -93,7 +86,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             selectedTransactionsKeys.reduce((count, key) => {
                 if (isGroupEntry(key)) {
                     const group: unknown = searchResults?.data?.[key];
-                    return count + (getNumberMember(group, 'count') ?? 0);
+                    return count + getGroupCount(group);
                 }
                 const item = selectedTransactions[key];
                 if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
@@ -127,11 +120,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const isFooterTotalConverting = hasCustomFooterCurrency && (shouldUseClientTotal ? !areAllSelectedConverted : !selectedCurrencyConvertedTotal);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
-    const wasMetadataLoading = usePrevious(isMetadataLoading);
 
-    const shouldResetCustomCurrencyAfterLiveRefresh = hasCustomFooterCurrency && !!wasMetadataLoading && !isMetadataLoading && metadata?.offset === 0;
-    const shouldResetCustomCurrencyForGroupSelection = hasSelectedGroup && !!selectedCurrency;
-    if (shouldResetCustomCurrencyAfterLiveRefresh || shouldResetCustomCurrencyForGroupSelection) {
+    // A group selection disables the picker, so drop any custom currency chosen before the group was selected.
+    if (hasSelectedGroup && selectedCurrency) {
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: undefined,
