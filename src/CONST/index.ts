@@ -6407,6 +6407,11 @@ const CONST = {
             PER_DIEM: 'perDiem',
             TIME: 'time',
         },
+        RECEIPT_TYPE: {
+            ERECEIPT: 'ereceipt',
+            ITEMIZED: 'itemized',
+            HOTEL: 'hotel',
+        },
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
@@ -6786,6 +6791,7 @@ const CONST = {
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
+            RECEIPT_TYPE: 'receiptType',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
@@ -6861,6 +6867,7 @@ const CONST = {
             AMOUNT: 'amount',
             TOTAL: 'total',
             EXPENSE_TYPE: 'expense-type',
+            RECEIPT_TYPE: 'receipt-type',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
