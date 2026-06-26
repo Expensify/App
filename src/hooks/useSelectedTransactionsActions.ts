@@ -49,7 +49,9 @@ import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
+import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 
 const {HOLD, UNHOLD, MOVE, MERGE, SPLIT, DUPLICATE} = CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES;
 
@@ -92,6 +94,10 @@ function useSelectedTransactionsActions({
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const firstSelectedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
+    const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, firstSelectedTransaction);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -495,7 +501,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, policy, report, currentUserAccountID, {isProduction});
+                    initSplitExpense(firstTransaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, {isProduction});
                 },
             });
         }
