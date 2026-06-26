@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
@@ -71,7 +72,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         setIsPdfModalVisible,
         pdfReportID,
         handlePdfModalHide,
-        exportDownloadStatusModal,
+        activeExportID,
+        handleExportModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -274,7 +276,13 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     onConfirm={dismissModalAndUpdateUseHold}
                 />
             )}
-            {exportDownloadStatusModal}
+            {!!activeExportID && (
+                <ExportDownloadStatusModal
+                    exportID={activeExportID}
+                    isVisible
+                    onClose={handleExportModalClose}
+                />
+            )}
         </>
     );
 }

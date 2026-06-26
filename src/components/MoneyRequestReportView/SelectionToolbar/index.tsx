@@ -11,7 +11,6 @@ import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useExportDownloadStatusModal from '@hooks/useExportDownloadStatusModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -75,7 +74,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(undefined, true));
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -93,18 +91,26 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             return;
         }
 
-        const exportID = queueExportSearchWithTemplate(
-            {
-                templateName,
-                templateType,
-                jsonQuery: '{}',
-                reportIDList: [report.reportID],
-                transactionIDList,
-                policyID: policy?.id,
-            },
-            true,
-        );
-        trackExport(exportID);
+        queueExportSearchWithTemplate({
+            templateName,
+            templateType,
+            jsonQuery: '{}',
+            reportIDList: [report.reportID],
+            transactionIDList,
+            policyID: policy?.id,
+        });
+
+        showConfirmModal({
+            title: translate('export.exportInProgress'),
+            prompt: translate('export.conciergeWillSend'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            clearSelectedTransactions(undefined, true);
+        });
     };
 
     const onDeleteSelected = (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
@@ -229,7 +235,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     return (
         <>
-            {exportDownloadStatusModal}
             {isDuplicateOptionVisible && (
                 <BulkDuplicateHandler
                     selectedTransactionsKeys={selectedTransactionIDs}
