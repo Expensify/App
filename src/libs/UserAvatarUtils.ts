@@ -233,7 +233,17 @@ function isGeneratedLetterAvatarURL(avatarSource?: AvatarSource): boolean {
  * @param name - The string to read the first character from
  */
 function firstLetterAvatarCharacter(name: string): string {
-    return (name.match(/[a-z0-9]/i)?.at(0) ?? '').toUpperCase();
+    for (const character of name) {
+        // A non-ASCII codepoint has no pre-generated image, so fall back instead of skipping to a
+        // later ASCII letter, which would be a misleading initial for the name.
+        if ((character.codePointAt(0) ?? 0) >= 0x80) {
+            return '';
+        }
+        if (/[a-z0-9]/i.test(character)) {
+            return character.toUpperCase();
+        }
+    }
+    return '';
 }
 
 /**
@@ -248,20 +258,28 @@ function firstLetterAvatarCharacter(name: string): string {
  * @returns The generated letter-avatar URL, or '' when no letter avatar applies
  */
 function getLetterAvatarURL(accountID: number, firstName: string, lastName: string, login: string): string {
-    if (accountID === CONST.ACCOUNT_ID.CONCIERGE || accountID === CONST.ACCOUNT_ID.NOTIFICATIONS || login === CONST.EMAIL.CONCIERGE || login === CONST.EMAIL.NOTIFICATIONS) {
+    // The displayed login has the merge prefix stripped, so derive the initial and color from the
+    // stripped form to match what users see. This is a no-op for non-merged logins.
+    const normalizedLogin = login.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    if (
+        accountID === CONST.ACCOUNT_ID.CONCIERGE ||
+        accountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
+        normalizedLogin === CONST.EMAIL.CONCIERGE ||
+        normalizedLogin === CONST.EMAIL.NOTIFICATIONS
+    ) {
         return '';
     }
 
     let initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
     // Only a real email seeds the initial. Phone numbers (raw or @expensify.sms) fall back to the illustrated default.
-    if (initials === '' && !login.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(login)) {
-        initials = firstLetterAvatarCharacter(login);
+    if (initials === '' && !normalizedLogin.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(normalizedLogin)) {
+        initials = firstLetterAvatarCharacter(normalizedLogin);
     }
     if (initials === '') {
         return '';
     }
 
-    const colorIndex = login !== '' ? parseInt(md5(login).substring(0, 4), 16) % LETTER_AVATAR_COLOR_KEYS.length : accountID % LETTER_AVATAR_COLOR_KEYS.length;
+    const colorIndex = normalizedLogin !== '' ? parseInt(md5(normalizedLogin).substring(0, 4), 16) % LETTER_AVATAR_COLOR_KEYS.length : accountID % LETTER_AVATAR_COLOR_KEYS.length;
     const colorKey = LETTER_AVATAR_COLOR_KEYS.at(colorIndex) ?? LETTER_AVATAR_COLOR_KEYS.at(0);
     return `${CONST.CLOUDFRONT_URL}/images/avatars/generated/letter/v1/${colorKey}/${initials}.png`;
 }

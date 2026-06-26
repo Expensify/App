@@ -338,6 +338,21 @@ describe('UserAvatarUtils', () => {
             expect(UserAvatarUtils.getLetterAvatarURL(accountID, firstName, lastName, login)).toBe(expected);
         });
 
+        it('falls back instead of using a later ASCII letter when the name starts with a non-ASCII character', () => {
+            // "Élodie" must not become "L" and a leading CJK name must not become "A".
+            expect(UserAvatarUtils.getLetterAvatarURL(42, 'Élodie', '', '')).toBe('');
+            expect(UserAvatarUtils.getLetterAvatarURL(42, '李Ann', '', '')).toBe('');
+            // An ASCII first letter still wins even when later characters are non-ASCII.
+            expect(UserAvatarUtils.getLetterAvatarURL(42, 'José', '', 'dave@example.com')).toBe(`${BASE}/blue100/J.png`);
+        });
+
+        it('derives the initial and color from the merge-stripped login', () => {
+            const merged = UserAvatarUtils.getLetterAvatarURL(42, '', '', 'MERGED_0@real@example.com');
+            const stripped = UserAvatarUtils.getLetterAvatarURL(42, '', '', 'real@example.com');
+            expect(merged).toBe(stripped);
+            expect(merged.endsWith('/R.png')).toBe(true);
+        });
+
         it('derives color from the login so it stays stable across an optimistic accountID change', () => {
             const optimistic = UserAvatarUtils.getLetterAvatarURL(1, '', '', 'consistent@example.com');
             const real = UserAvatarUtils.getLetterAvatarURL(999, '', '', 'consistent@example.com');
