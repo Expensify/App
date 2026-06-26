@@ -1,11 +1,17 @@
+import React from 'react';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {GenericEmptyStateComponentProps} from '@components/EmptyStateComponent/types';
 import ScrollView from '@components/ScrollView';
 import {useTableContext} from '@components/Table/TableContext';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-export default function TableEmptyState(emptyStateProps: GenericEmptyStateComponentProps) {
+type TableEmptyStateProps = Omit<GenericEmptyStateComponentProps, 'headerMedia'> & {
+    headerMedia?: IconAsset;
+};
+
+export default function TableEmptyState(emptyStateProps: TableEmptyStateProps) {
     const styles = useThemeStyles();
     const {originalDataLength} = useTableContext();
     // We default the empty state to the default folders illustration, but passed props override it

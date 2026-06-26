@@ -1,3 +1,4 @@
+import React from 'react';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {GenericEmptyStateComponentProps} from '@components/EmptyStateComponent/types';
 import ScrollView from '@components/ScrollView';
