@@ -1120,6 +1120,7 @@ function getShareDestination(
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
     policy: OnyxEntry<OnyxTypes.Policy>,
+    conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): ShareDestination {
@@ -1143,7 +1144,7 @@ function getShareDestination(
         const login = personalDetails?.[participantAccountID]?.login ?? '';
         subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
-        subtitle = ReportUtils.getChatRoomSubtitle(report, policy, false, false, translate) ?? '';
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, false, false, translate) ?? '';
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, FallbackAvatar),

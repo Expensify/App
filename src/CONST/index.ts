@@ -1751,6 +1751,7 @@ const CONST = {
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
             ACTION_VISIBLE_THRESHOLD: 250,
+            LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
         },
         CANCEL_PAYMENT_REASONS: {
@@ -6406,6 +6407,11 @@ const CONST = {
             PER_DIEM: 'perDiem',
             TIME: 'time',
         },
+        RECEIPT_TYPE: {
+            ERECEIPT: 'ereceipt',
+            ITEMIZED: 'itemized',
+            HOTEL: 'hotel',
+        },
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
@@ -6785,6 +6791,7 @@ const CONST = {
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
+            RECEIPT_TYPE: 'receiptType',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
@@ -6860,6 +6867,7 @@ const CONST = {
             AMOUNT: 'amount',
             TOTAL: 'total',
             EXPENSE_TYPE: 'expense-type',
+            RECEIPT_TYPE: 'receipt-type',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
@@ -8585,6 +8593,9 @@ const CONST = {
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
                 ROW: 'DomainGroups-Row',
+            },
+            MEMBERS: {
+                ROW: 'DomainMembers-Row',
             },
         },
     },

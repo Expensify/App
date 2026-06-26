@@ -5953,6 +5953,7 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
 function getChatRoomSubtitle(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    conciergeReportID: string | undefined,
     isPolicyNamePreferred = false,
     isReportArchived = false,
     translate: LocalizedTranslate,
@@ -5966,7 +5967,7 @@ function getChatRoomSubtitle(
     if (isInvoiceRoom(report)) {
         return translate('workspace.common.invoices');
     }
-    if (isConciergeChatReport(report)) {
+    if (isConciergeChatReport(report, conciergeReportID)) {
         return translate('reportActionsView.conciergeSupport');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
@@ -9565,6 +9566,7 @@ function reasonForReportToBeInOptionList({
         isEmptyChat &&
         isChatReport(report) &&
         !isPolicyExpenseChat(report) &&
+        !isAdminRoom(report) &&
         !isTripRoom(report) &&
         !isConciergeChatReport(report) &&
         !isSystemChatReport &&
@@ -12227,7 +12229,7 @@ function isChatUsedForOnboarding(
 
     return isPostingTasksInAdminsRoom(onboardingPurposeSelected)
         ? isAdminRoom(optionOrReport) && !isChatThread(optionOrReport)
-        : ((optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport));
+        : ((optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport, conciergeReportID));
 }
 
 /**
