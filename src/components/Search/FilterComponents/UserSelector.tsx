@@ -1,9 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
@@ -11,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
@@ -52,26 +54,18 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
         shouldKeepSelectedInAvailableOptions: true,
     });
 
-    // Capture the accountIDs that were pre-selected when the filter first opened. Using this stable set
-    // (not the live selection) keeps pre-selected rows pinned to the top on first render while rows stay in
-    // place when toggled afterwards (see https://github.com/Expensify/App/issues/61414).
-    const [initiallySelectedAccountIDs] = useState(() => new Set(value));
+    // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
+    // top on first render without repinning rows that are toggled afterwards (see https://github.com/Expensify/App/issues/61414).
+    const initialSelectedValues = useInitialSelection(value);
 
-    // Split contacts into pre-selected rows (pinned to the top) and the rest, each keeping their natural
-    // sorted order. Pin only once the list is long enough to show the search input, matching its visibility
-    // threshold (CONST.STANDARD_LIST_ITEM_LIMIT) — shorter lists are fully visible so pinning isn't needed.
-    const shouldPinSelectedRows = initiallySelectedAccountIDs.size > 0 && availableOptions.personalDetails.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const pinnedPersonalDetails: OptionData[] = [];
-    const remainingPersonalDetails: OptionData[] = [];
-    for (const option of availableOptions.personalDetails) {
-        const isPinned = shouldPinSelectedRows && initiallySelectedAccountIDs.has(option.accountID.toString());
-        (isPinned ? pinnedPersonalDetails : remainingPersonalDetails).push(option);
-    }
-
-    // Render order: pinned pre-selected rows → current user (excluded from personalDetails) → remaining contacts.
-    const listData = availableOptions.currentUserOption
-        ? [...pinnedPersonalDetails, availableOptions.currentUserOption, ...remainingPersonalDetails]
-        : [...pinnedPersonalDetails, ...remainingPersonalDetails];
+    // The current user is excluded from personalDetails, so include it (when present) in the list. moveInitialSelectionToTop
+    // keys on `value`, so map each option's accountID (keyForList) onto it. Pre-selected rows are moved to the top,
+    // leaving the current user just below them in its natural sorted position.
+    const baseListData = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...availableOptions.personalDetails] : availableOptions.personalDetails;
+    const listData = moveInitialSelectionToTop(
+        baseListData.map((option) => ({...option, value: option.keyForList})),
+        initialSelectedValues,
+    );
 
     const headerMessage = listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
