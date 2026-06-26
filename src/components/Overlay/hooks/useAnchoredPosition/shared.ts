@@ -126,7 +126,6 @@ function useAnchoredPositionShared({anchorRect, alignment, offsetPx = 0, gutterP
     }
 
     let horizontalStyle: ViewStyle;
-    let availableWidth: number;
 
     if (horizontalIntent === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
         let contentLeft = clampedLeft;
@@ -134,14 +133,12 @@ function useAnchoredPositionShared({anchorRect, alignment, offsetPx = 0, gutterP
             contentLeft = Math.max(gutterPx, viewport.width - gutterPx - contentSize.width);
         }
         horizontalStyle = {left: contentLeft};
-        availableWidth = Math.max(0, viewport.width - contentLeft - gutterPx);
     } else if (horizontalIntent === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT) {
         let contentRight = viewport.width - clampedRight;
         if (contentSize && clampedRight - contentSize.width < gutterPx) {
             contentRight = Math.max(gutterPx, viewport.width - gutterPx - contentSize.width);
         }
         horizontalStyle = {right: contentRight};
-        availableWidth = Math.max(0, viewport.width - contentRight - gutterPx);
     } else {
         const centerX = clampedLeft + clampedWidth / 2;
         let contentLeft = contentSize ? centerX - contentSize.width / 2 : centerX;
@@ -149,9 +146,10 @@ function useAnchoredPositionShared({anchorRect, alignment, offsetPx = 0, gutterP
             contentLeft = Math.max(gutterPx, Math.min(contentLeft, viewport.width - gutterPx - contentSize.width));
         }
         horizontalStyle = {left: contentLeft};
-        const halfRoom = Math.min(centerX - gutterPx, viewport.width - gutterPx - centerX);
-        availableWidth = Math.max(0, halfRoom * 2);
     }
+
+    // Intentionally content-independent (not the per-position room) so applying it as maxWidth can't feed back into measurement.
+    const availableWidth = Math.max(0, viewport.width - 2 * gutterPx);
 
     return {
         edgeStyle: {...verticalStyle, ...horizontalStyle},

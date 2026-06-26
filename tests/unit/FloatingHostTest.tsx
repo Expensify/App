@@ -87,8 +87,8 @@ beforeEach(() => {
     };
 });
 
-describe('FloatingHost — maxHeight gating', () => {
-    it('does NOT apply maxHeight while isPositioned is false (lets the first onLayout measure natural height)', () => {
+describe('FloatingHost — maxHeight/maxWidth gating', () => {
+    it('does NOT apply maxHeight/maxWidth while isPositioned is false (lets the first onLayout measure natural size)', () => {
         const {root} = render(
             <FloatingHost
                 isOpen
@@ -104,10 +104,11 @@ describe('FloatingHost — maxHeight gating', () => {
 
         const style = flattenStyle(findLayoutView(root).props.style);
         expect(style.maxHeight).toBeUndefined();
+        expect(style.maxWidth).toBeUndefined();
         expect(style.opacity).toBe(0);
     });
 
-    it('applies available.height as maxHeight once isPositioned becomes true', () => {
+    it('applies available.height/width as maxHeight/maxWidth once isPositioned becomes true', () => {
         mockPositionState.current = {
             ...mockPositionState.current,
             isPositioned: true,
@@ -129,6 +130,7 @@ describe('FloatingHost — maxHeight gating', () => {
 
         const style = flattenStyle(findLayoutView(root).props.style);
         expect(style.maxHeight).toBe(420);
+        expect(style.maxWidth).toBe(300);
         expect(style.opacity).toBe(1);
     });
 });

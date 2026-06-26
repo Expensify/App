@@ -3,7 +3,7 @@
  */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import useAnchoredPosition from '@components/Overlay/hooks/useAnchoredPosition/index.web';
 import type {UseAnchoredPositionInput} from '@components/Overlay/hooks/useAnchoredPosition/shared';
@@ -29,11 +29,12 @@ function makeAnchorRect(left: number, top: number, width: number, height: number
 type ProbeState = {
     style: ViewStyle;
     isPositioned: boolean;
+    available: {height: number; width: number};
 };
 
 function Probe({input, onState}: {input: UseAnchoredPositionInput; onState: (state: ProbeState) => void}) {
-    const {style, isPositioned, onContentLayout} = useAnchoredPosition(input);
-    onState({style, isPositioned});
+    const {style, isPositioned, available, onContentLayout} = useAnchoredPosition(input);
+    onState({style, isPositioned, available});
     return (
         <View
             testID="probe-surface"
@@ -91,5 +92,27 @@ describe('useAnchoredPosition (web) — centered pre-measure', () => {
         );
         dispatchLayout(150, 60);
         expect(states.at(-1)?.style).not.toHaveProperty('transform');
+    });
+});
+
+describe('useAnchoredPosition (web) — width cap', () => {
+    it('caps available.width to a content-independent bound (viewport minus both gutters), stable across content widths', () => {
+        const states: ProbeState[] = [];
+        render(
+            <Probe
+                input={{anchorRect: makeAnchorRect(100, 100, 200, 40), alignment: {horizontal: horizontal.LEFT, vertical: vertical.TOP}}}
+                onState={(state) => states.push(state)}
+            />,
+        );
+        const expectedWidth = Dimensions.get('window').width - 2 * 8;
+
+        dispatchLayout(150, 60);
+        const narrowContentWidth = states.at(-1)?.available.width;
+
+        dispatchLayout(5000, 60);
+        const wideContentWidth = states.at(-1)?.available.width;
+
+        expect(narrowContentWidth).toBe(expectedWidth);
+        expect(wideContentWidth).toBe(narrowContentWidth);
     });
 });
