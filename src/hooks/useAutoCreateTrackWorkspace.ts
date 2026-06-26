@@ -1,8 +1,6 @@
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
-import {waitForWrites} from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import isTrackOnboardingChoice from '@libs/OnboardingUtils';
@@ -107,12 +105,6 @@ function useAutoCreateTrackWorkspace() {
                     introSelected,
                     isSelfTourViewed,
                 });
-
-                if (!isSidePanelReportSupported) {
-                    // Native navigates immediately to Concierge after Track onboarding, so wait for the
-                    // sequential write queue to settle before building the LHN from hydrated reports.
-                    await waitForWrites(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
-                }
 
                 if (isSidePanelReportSupported) {
                     rhpVariant = extractRHPVariantFromResponse(response);
