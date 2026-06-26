@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import {View as MockedAvatarData} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
+import IconsAvatar from '@components/Avatars/IconsAvatar';
 import {getDefaultWorkspaceAvatar, getIcons} from '@libs/ReportUtils';
 import {getSearchReportAvatarProps} from '@libs/SearchUIUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -12,12 +12,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {actionR14932} from '../../__mocks__/reportData/actions';
-import personalDetails from '../../__mocks__/reportData/personalDetails';
-import {policy420A} from '../../__mocks__/reportData/policies';
-import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import {actionR14932} from '../../../../__mocks__/reportData/actions';
+import personalDetails from '../../../../__mocks__/reportData/personalDetails';
+import {policy420A} from '../../../../__mocks__/reportData/policies';
+import {chatReportR14932, iouReportR14932} from '../../../../__mocks__/reportData/reports';
+import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 type AvatarData = {
     uri: string;
@@ -199,11 +199,12 @@ const onyxState = {
 /* --- Helpers --- */
 
 function renderSearchReportAvatar(props: {primaryAvatar?: Icon; secondaryAvatar?: Icon; avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>; reportID: string}) {
+    const icons = [props.primaryAvatar, props.secondaryAvatar].filter((icon): icon is NonNullable<typeof icon> => !!icon);
     return render(
-        <SearchReportAvatar
-            primaryAvatar={props.primaryAvatar}
-            secondaryAvatar={props.secondaryAvatar}
+        <IconsAvatar
+            icons={icons}
             avatarType={props.avatarType ?? CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE}
+            size={CONST.AVATAR_SIZE.DEFAULT}
             shouldShowTooltip={false}
             subscriptAvatarBorderColor="transparent"
             reportID={props.reportID}

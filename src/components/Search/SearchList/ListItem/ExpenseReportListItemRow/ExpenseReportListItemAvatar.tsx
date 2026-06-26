@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
+import IconsAvatar from '@components/Avatars/IconsAvatar';
 import type {ExpenseReportListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -25,16 +25,18 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
     const finalAvatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(isSelected, isFocused || isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
+    const icons = [item.primaryAvatar, item.secondaryAvatar].filter((icon) => icon !== undefined);
+    const avatarSize = isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+
     return (
         <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>
-            <SearchReportAvatar
-                primaryAvatar={item.primaryAvatar}
-                secondaryAvatar={item.secondaryAvatar}
+            <IconsAvatar
+                icons={icons}
                 avatarType={item.avatarType}
+                size={avatarSize}
                 shouldShowTooltip={showTooltip}
                 subscriptAvatarBorderColor={finalAvatarBorderColor}
                 reportID={item.reportID}
-                isLargeScreenWidth={isLargeScreenWidth}
             />
         </View>
     );
