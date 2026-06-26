@@ -61,6 +61,7 @@ function CopyPolicySettingsUpgradePage() {
     // targets flip to Corporate optimistically, emptying policiesToUpgrade, so we can't read them later).
     const [hasRequestedUpgrade, setHasRequestedUpgrade] = useState(false);
     const [upgradedWorkspacesName, setUpgradedWorkspacesName] = useState('');
+    const [pendingControlOnlyFeatures, setPendingControlOnlyFeatures] = useState('');
 
     // The bulk upgrade is in flight while any requested target still has isPendingUpgrade set.
     const isUpgradePending = targetPolicies.some((policy) => policy?.isPendingUpgrade);
@@ -69,6 +70,9 @@ function CopyPolicySettingsUpgradePage() {
     // and none of the targets are Collect anymore. On failure the targets revert to Collect, so
     // policiesToUpgrade becomes non-empty again and the intro stays visible for a retry.
     const showSuccess = hasRequestedUpgrade && !isUpgradePending && policiesToUpgrade.length === 0;
+
+    // Optimistic upgrade clears Collect targets, so live controlOnlyFeatures goes empty while pending.
+    const displayedControlOnlyFeatures = isUpgradePending && pendingControlOnlyFeatures ? pendingControlOnlyFeatures : controlOnlyFeatures;
 
     // The upgrade step only exists when Control-only settings target a Collect workspace. If the user
     // lands here without that condition (e.g. back navigation after upgrading), skip to Confirm. We
@@ -85,6 +89,7 @@ function CopyPolicySettingsUpgradePage() {
             return;
         }
         setUpgradedWorkspacesName(formatList(policiesToUpgrade.map((policy) => policy.name)));
+        setPendingControlOnlyFeatures(controlOnlyFeatures);
         bulkUpgradeToCorporate(policiesToUpgrade);
         setHasRequestedUpgrade(true);
     };
@@ -123,7 +128,7 @@ function CopyPolicySettingsUpgradePage() {
                             iconSrc={illustrations.ShieldYellow}
                             isIllustration
                             title={translate('workspace.copyPolicySettings.upgrade.title')}
-                            description={translate('workspace.copyPolicySettings.upgrade.description', {workspaceName: sourcePolicy?.name ?? '', features: controlOnlyFeatures})}
+                            description={translate('workspace.copyPolicySettings.upgrade.description', {workspaceName: sourcePolicy?.name ?? '', features: displayedControlOnlyFeatures})}
                             buttonText={translate('common.upgrade')}
                             onUpgrade={onUpgrade}
                             buttonDisabled={isOffline || policiesToUpgrade.length === 0}
