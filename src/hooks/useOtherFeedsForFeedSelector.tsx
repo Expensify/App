@@ -53,19 +53,23 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
         const otherPolicyFeeds: CardFeedListItem[] = [];
         for (const feed of visibleFeeds) {
             // Feeds linked to the active policy are shown as available feeds, not under "From other workspaces".
-            if (feed?.linkedPolicyIDs?.includes(policyID)) {
+            // Linked policy IDs can differ in casing, so compare case-insensitively (matches the Expensify-card path).
+            if (feed?.linkedPolicyIDs?.some((linkedPolicyID) => linkedPolicyID.toUpperCase() === policyID.toUpperCase())) {
                 continue;
             }
             // Skip feeds already present in the active policy's available list to avoid duplicate rows across the two lists.
-            const feedValueForActivePolicy = getCardFeedWithDomainID(feed.feed, Number(feed.fundID)) as CompanyCardFeedWithDomainID;
-            if (companyCardFeeds?.[feedValueForActivePolicy as CompanyCardFeedWithNumber]) {
+            // `companyCardFeeds` is keyed at runtime by the domain-ID-suffixed feed value (`${feed}${separator}${fundID}`),
+            // so a membership check on that value avoids an unsafe assertion to the narrower `CompanyCardFeedWithNumber` key type.
+            const feedValueForActivePolicy = getCardFeedWithDomainID(feed.feed, Number(feed.fundID));
+            if (companyCardFeeds && feedValueForActivePolicy in companyCardFeeds) {
                 continue;
             }
             const feedName = feed.feed;
             const plaidUrl = getPlaidInstitutionIconUrl(feedName);
             const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
             const firstLinkedPolicyID = feed?.linkedPolicyIDs?.at(0);
-            const linkedPolicy = firstLinkedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstLinkedPolicyID}`] : undefined;
+            // POLICY collection entries are keyed by uppercased policy IDs, so uppercase before indexing (matches the Expensify-card path).
+            const linkedPolicy = firstLinkedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstLinkedPolicyID.toUpperCase()}`] : undefined;
             const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
             const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feed.id];
 
