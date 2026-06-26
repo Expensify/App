@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,6 +6,7 @@ import FilterList from '@components/Search/FilterComponents/AdvancedFilters/Filt
 import SavedViewEditFooter from '@components/Search/SavedViewEditFooter';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {exitSavedViewEditMode} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 import ROUTES from '@src/ROUTES';
@@ -15,6 +16,15 @@ function SearchAdvancedFiltersBase() {
     const {translate} = useLocalize();
     const {currentDraftFilters, shouldShowResetFilters, isEditingSavedView, isSaveEditsDisabled, isSaveAsNewViewDisabled} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters, saveEdits, saveAsNewView, cancelEdits} = useContext(SearchAdvancedFiltersActionContext);
+
+    // Clear edit mode if the fullscreen filters route is dismissed by any means (hardware/browser back, swipe), not
+    // only the header back button or footer Cancel, so a stale SEARCH_EDITING_SAVED_VIEW can't keep a view highlighted.
+    useEffect(
+        () => () => {
+            exitSavedViewEditMode();
+        },
+        [],
+    );
 
     return (
         <ScreenWrapper

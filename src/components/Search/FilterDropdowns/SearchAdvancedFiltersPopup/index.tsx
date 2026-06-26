@@ -64,7 +64,7 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
 
     const onSaveEdits = () => {
         if (editingSavedView) {
-            saveSavedViewEdits({queryJSON, name: editingSavedView.name, previousHash: editingSavedView.hash});
+            saveSavedViewEdits({queryJSON, editingSavedView});
         }
         closeOverlay?.();
     };

@@ -103,7 +103,7 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         Navigation.dismissModal({
             afterTransition: () => {
                 setFilterQueryParams(values);
-                saveSavedViewEdits({queryJSON, name: editingSavedView.name, previousHash: editingSavedView.hash});
+                saveSavedViewEdits({queryJSON, editingSavedView});
             },
         });
     };

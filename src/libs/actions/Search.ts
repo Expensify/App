@@ -722,8 +722,11 @@ function cancelSavedViewEdits(editingSavedView: EditingSavedSearch) {
  * Persists the edited filters back onto the existing saved view. Saved views are keyed by their query hash, so when the
  * edits change the query we pass the old hash as previousHash and the backend overrides it, keeping a single LHN entry.
  */
-function saveSavedViewEdits({queryJSON, name, previousHash}: {queryJSON: Readonly<SearchQueryJSON>; name: string; previousHash: number}) {
-    saveSearch({queryJSON, newName: name, previousHash});
+function saveSavedViewEdits({queryJSON, editingSavedView}: {queryJSON: Readonly<SearchQueryJSON>; editingSavedView: EditingSavedSearch}) {
+    // Auto-named views (name === their query) re-auto-name to the edited query so SavedSearchList derives a fresh
+    // title (passing undefined lets saveSearch default newName to the edited query); custom names are preserved.
+    const wasAutoNamed = editingSavedView.name === editingSavedView.query;
+    saveSearch({queryJSON, newName: wasAutoNamed ? undefined : editingSavedView.name, previousHash: editingSavedView.hash});
     Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
 }
 

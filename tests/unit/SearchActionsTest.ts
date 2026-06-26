@@ -165,17 +165,32 @@ describe('saveSearch', () => {
 describe('saveSavedViewEdits', () => {
     beforeEach(() => jest.clearAllMocks());
 
-    it('saves the edited query under the existing name and forwards the original hash as previousHash so the backend updates the view in place', () => {
+    it('preserves a custom name and forwards the original hash as previousHash so the backend updates the view in place', () => {
         const originalQuery = buildSearchQueryJSON('type:expense');
         const editedQuery = buildSearchQueryJSON('type:invoice');
         if (!originalQuery || !editedQuery) {
             throw new Error('failed to build query JSON');
         }
 
-        saveSavedViewEdits({queryJSON: editedQuery, name: 'My view', previousHash: originalQuery.hash});
+        saveSavedViewEdits({queryJSON: editedQuery, editingSavedView: {hash: originalQuery.hash, name: 'My view', query: 'type:expense', requestID: 1}});
 
         const [command, parameters] = mockWrite.mock.calls.at(-1) ?? [];
         expect(command).toBe(WRITE_COMMANDS.SAVE_SEARCH);
         expect(parameters).toEqual(expect.objectContaining({newName: 'My view', previousHash: originalQuery.hash}));
+    });
+
+    it('re-auto-names an auto-named view (name === query) to the edited query so it does not show the stale old query', () => {
+        const originalQuery = buildSearchQueryJSON('type:expense');
+        const editedQuery = buildSearchQueryJSON('type:invoice');
+        if (!originalQuery || !editedQuery) {
+            throw new Error('failed to build query JSON');
+        }
+
+        // The view was auto-named, so its name equals its original query string.
+        saveSavedViewEdits({queryJSON: editedQuery, editingSavedView: {hash: originalQuery.hash, name: originalQuery.inputQuery, query: originalQuery.inputQuery, requestID: 1}});
+
+        const parameters = mockWrite.mock.calls.at(-1)?.at(1);
+        // newName defaults to the EDITED query so SavedSearchList re-derives a readable title (not the stale old query).
+        expect(parameters).toEqual(expect.objectContaining({newName: editedQuery.inputQuery, previousHash: originalQuery.hash}));
     });
 });
