@@ -96,6 +96,8 @@ If these conditions aren’t met, the section won’t appear.
 
 The checklist items vary based on the intent selected during onboarding. Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, and inviting an accountant.
 
+As soon as every checklist item is complete, the **Getting started** section is hidden from Home, even if you’re still within the onboarding window. The window only acts as an upper limit for members who still have setup steps left to finish.
+
 ---
 
 ## How the Discover section works on Home
@@ -164,7 +166,7 @@ The **Discover** section only appears until you’ve watched the demo. Once you�
 
 ## Why don’t I see the Getting started section?
 
-The **Getting started** section only appears if you selected the **manage my team** or **track and budget my expenses** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
+The **Getting started** section only appears if you selected the **manage my team** or **track and budget my expenses** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. The section is also hidden once you’ve completed every checklist item, even if you’re still within the 60-day window. If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Your spend section?
 
