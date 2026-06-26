@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-on
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import {
     canAccessSubmitWorkspaceFeatures,
     canMemberRead,
@@ -3429,5 +3430,55 @@ describe('PolicyUtils', () => {
             const policy = buildMergeHRPolicy(5, mergeHRBase);
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
+    });
+});
+
+describe('arePolicyRulesEnabled', () => {
+    const corporateBase = {id: 'policy1', type: CONST.POLICY.TYPE.CORPORATE} as unknown as Policy;
+    const teamBase = {id: 'policy2', type: CONST.POLICY.TYPE.TEAM} as unknown as Policy;
+
+    it('returns true for a corporate policy with areRulesEnabled explicitly true', () => {
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: true})).toBe(true);
+    });
+
+    it('returns false for a corporate policy with areRulesEnabled explicitly false', () => {
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false})).toBe(false);
+    });
+
+    it('returns false for a corporate policy with areRulesEnabled undefined and no categories', () => {
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined})).toBe(false);
+    });
+
+    it('returns false for a corporate policy with areRulesEnabled undefined and categories with no rule fields', () => {
+        const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(false);
+    });
+
+    it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxExpenseAmount set', () => {
+        const categories = {Advertising: {name: 'Advertising', enabled: true, maxExpenseAmount: 50000}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+    });
+
+    it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxAmountNoReceipt = 0', () => {
+        const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+    });
+
+    it('returns true for a corporate policy with areRulesEnabled undefined and a category with areCommentsRequired = true', () => {
+        const categories = {Meals: {name: 'Meals', enabled: true, areCommentsRequired: true}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+    });
+
+    it('returns true for a corporate policy with areRulesEnabled undefined and a category with commentHint set', () => {
+        const categories = {Car: {name: 'Car', enabled: true, commentHint: 'Enter purpose'}};
+        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+    });
+
+    it('returns false for a team policy with areRulesEnabled undefined', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
+    });
+
+    it('returns false for a team policy even when areRulesEnabled is true', () => {
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true})).toBe(false);
     });
 });

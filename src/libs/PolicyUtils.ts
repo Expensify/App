@@ -45,7 +45,7 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getApiRoot} from './ApiUtils';
-import {getCategoryApproverRule} from './CategoryUtils';
+import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from './HRUtils';
 import Navigation from './Navigation/Navigation';
@@ -1411,7 +1411,24 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
+    if (!isControlPolicy(policy)) {
+        return false;
+    }
+    if (policy?.areRulesEnabled === true) {
+        return true;
+    }
+    if (policy?.areRulesEnabled === false) {
+        return false;
+    }
+    // areRulesEnabled is undefined — derive from per-category rule fields set by OldDot Classic
+    return hasAnyCategoryRules(policyCategories ?? undefined);
+}
+
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
+        return arePolicyRulesEnabled(policy, policyCategories);
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
     }
@@ -2629,6 +2646,7 @@ export {
     isPolicyAuditor,
     hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
+    arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
     getUberConnectionErrorDirectlyFromPolicy,
