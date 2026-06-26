@@ -438,6 +438,109 @@ describe('ConciergeDraftContext', () => {
         unmount();
     });
 
+    it('ignores stale draft chunks that arrive after a contentless completion', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(
+                Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
+                createDraftEvent('', {
+                    sequence: 356,
+                    status: 'completed',
+                    bodyMarkdown: undefined,
+                    finalRenderedHTML: undefined,
+                }),
+            );
+        });
+        expect(result.current.draftReportAction).toBeNull();
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_STARTED, createDraftEvent('Here', {sequence: 1, status: 'started'}));
+        });
+
+        expect(result.current.draftReportAction).toBeNull();
+        expect(getCachedDraft(REPORT_ID)).toBeNull();
+
+        unmount();
+    });
+
+    it('ignores delayed lower-sequence chunks after an active body draft receives a contentless completion', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent('Here', {sequence: 1}));
+        });
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+
+        act(() => {
+            emitPusherEvent(
+                Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
+                createDraftEvent('', {
+                    sequence: 3,
+                    status: 'completed',
+                    bodyMarkdown: undefined,
+                    finalRenderedHTML: undefined,
+                }),
+            );
+        });
+
+        expect(getCachedDraft(REPORT_ID)?.pusherTerminalEvent?.sequence).toBe(3);
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent('Wrong delayed chunk', {sequence: 2}));
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Wrong delayed chunk');
+        expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe('Here');
+
+        unmount();
+    });
+
+    it('ignores delayed lower-sequence chunks after a batched contentless completion', async () => {
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+
+        await waitFor(() => {
+            expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+        });
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {
+                events: [
+                    createDraftEvent('Here', {sequence: 1, status: 'started'}),
+                    createDraftEvent('', {
+                        sequence: 3,
+                        status: 'completed',
+                        bodyMarkdown: undefined,
+                        finalRenderedHTML: undefined,
+                    }),
+                ],
+            });
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+        expect(getCachedDraft(REPORT_ID)?.pusherTerminalEvent?.sequence).toBe(3);
+
+        act(() => {
+            emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent('Wrong delayed chunk', {sequence: 2}));
+        });
+
+        expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Wrong delayed chunk');
+        expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe('Here');
+
+        unmount();
+    });
+
     it('applies ordered batched Pusher draft events', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
