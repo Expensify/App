@@ -26,6 +26,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
+    getReportActionHtml,
     getReportActionMessage,
     isConsecutiveActionMadeByPreviousActor,
     isDeletedParentAction,
@@ -163,7 +164,7 @@ function ReportActionsList({
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {scrollOffsetRef} = useContext(ActionListContext);
     const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
-    const {clearDraft} = useConciergeDraftActions();
+    const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
     const {sessionStartTime: conciergeSessionStartTime} = useConciergeSessionState();
 
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -219,6 +220,14 @@ function ReportActionsList({
         hasNewerActions,
     });
 
+    const persistedDraftReportAction = useMemo(() => {
+        if (!draftReportAction) {
+            return undefined;
+        }
+
+        return sortedVisibleReportActions.find((action) => action.reportActionID === draftReportAction.reportActionID);
+    }, [draftReportAction, sortedVisibleReportActions]);
+
     const renderedVisibleReportActions = useMemo(() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
@@ -231,7 +240,8 @@ function ReportActionsList({
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
-                if (!isDraftPendingCompletion) {
+                const isDraftStillRevealingPersistedAction = getReportActionHtml(action) !== getReportActionHtml(draftReportAction);
+                if (!isDraftPendingCompletion && !isDraftStillRevealingPersistedAction) {
                     return sortedVisibleReportActions;
                 }
 
@@ -263,6 +273,14 @@ function ReportActionsList({
 
         clearDraft();
     }, [clearDraft, draftReportAction, isSyntheticDraftVisible]);
+
+    useEffect(() => {
+        if (!draftReportAction || !persistedDraftReportAction || getReportActionHtml(draftReportAction) === getReportActionHtml(persistedDraftReportAction)) {
+            return;
+        }
+
+        revealDraftFromReportAction(persistedDraftReportAction);
+    }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
 
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetIndex = useMemo(() => {

@@ -23,6 +23,7 @@ type ConciergeDraftActions = {
      * `reportActionID`-based reconciliation works unchanged.
      */
     dispatchLocalDraftEvent: (event: ConciergeDraftEvent) => void;
+    revealDraftFromReportAction: (reportAction: ReportAction) => void;
 };
 
 const defaultState: ConciergeDraftState = {
@@ -34,6 +35,7 @@ const defaultState: ConciergeDraftState = {
 const defaultActions: ConciergeDraftActions = {
     clearDraft: () => {},
     dispatchLocalDraftEvent: () => {},
+    revealDraftFromReportAction: () => {},
 };
 
 const ConciergeDraftStateContext = createContext<ConciergeDraftState>(defaultState);
@@ -67,7 +69,7 @@ function ConciergeDraftProvider({reportID, children}: React.PropsWithChildren<{r
 }
 
 function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
-    const {clearDraft, dispatchLocalDraftEvent, draft} = usePusherDraftPacing(reportID);
+    const {clearDraft, dispatchLocalDraftEvent, draft, revealDraftFromReportAction} = usePusherDraftPacing(reportID);
     const stateValue: ConciergeDraftState = {
         draftReportAction: draft?.reportAction ?? null,
         hasActiveDraft: !!draft?.reportAction,
@@ -76,6 +78,7 @@ function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{repor
     const actionsValue: ConciergeDraftActions = {
         clearDraft,
         dispatchLocalDraftEvent,
+        revealDraftFromReportAction,
     };
 
     return (
