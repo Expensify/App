@@ -22,8 +22,10 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, isScanning
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    // A scanning receipt has no real date yet, so its date cell must not be editable until the scan completes.
+    const canEditDate = canEdit && !isScanning;
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
-        canEdit,
+        canEdit: canEditDate,
         value: date,
         onSave,
     });
@@ -44,7 +46,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, isScanning
 
     return (
         <EditableCell
-            canEdit={canEdit}
+            canEdit={canEditDate}
             isEditing={isEditing}
             onStartEditing={startEditing}
             anchorRef={anchorRef}
