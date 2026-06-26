@@ -63,8 +63,7 @@ const isEmojiImage = (image: HTMLImageElement): boolean => {
     return (
         dataset.stringifyEmoji !== undefined || // For Slack
         dataset.emoji !== undefined || // For gmail
-        dataset.stringifyType === 'emoji' ||
-        Object.keys(dataset).some((key) => key.toLowerCase().includes('emoji'))
+        dataset.stringifyType === 'emoji'
     );
 };
 
