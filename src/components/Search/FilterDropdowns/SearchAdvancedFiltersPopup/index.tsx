@@ -1,12 +1,11 @@
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
+import SavedViewEditFooter from '@components/Search/SavedViewEditFooter';
 import type {SearchQueryJSON} from '@components/Search/types';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +37,6 @@ type SearchAdvancedFiltersPopupProps = {
 function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const [selectedFilter, setSelectedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
     const filterContentRef = useRef<View>(null);
@@ -122,30 +120,14 @@ function SearchAdvancedFiltersPopup({queryJSON, editingSavedView, closeOverlay}:
     return (
         <View style={[styles.flexColumn, StyleUtils.getHeight(popoverHeight)]}>
             <View style={[styles.flex1, styles.mnh0]}>{masterDetail}</View>
-            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap2, styles.ph3, styles.pv3, styles.borderTop]}>
-                <Button
-                    text={translate('common.cancel')}
-                    onPress={onCancel}
-                    innerStyles={styles.bgTransparent}
-                    textStyles={styles.textSupporting}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-                />
-                <View style={[styles.flexRow, styles.gap2]}>
-                    <Button
-                        text={translate('search.saveAsNewView')}
-                        onPress={onSaveAsNewView}
-                        isDisabled={isSaveAsNewViewDisabled}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
-                    />
-                    <Button
-                        success
-                        text={translate('search.saveEdits')}
-                        onPress={onSaveEdits}
-                        isDisabled={isSaveEditsDisabled}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
-                    />
-                </View>
-            </View>
+            <SavedViewEditFooter
+                style={[styles.ph3, styles.pv3, styles.borderTop]}
+                onCancel={onCancel}
+                onSaveEdits={onSaveEdits}
+                onSaveAsNewView={onSaveAsNewView}
+                isSaveEditsDisabled={isSaveEditsDisabled}
+                isSaveAsNewViewDisabled={isSaveAsNewViewDisabled}
+            />
         </View>
     );
 }

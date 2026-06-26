@@ -38,15 +38,21 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
 
     // On small screens the filters are a fullscreen route (not a popover), so a saved-view "Edit filters" request opens
     // that route here. Keyed by requestID so each click opens it once (and doesn't re-open after the user backs out).
+    // We wait until the active search has navigated to the view being edited (queryJSON.hash === editingSavedView.hash)
+    // so useSearchFilterSync has populated the form with that view's filters before the fullscreen page reads them —
+    // otherwise editing a view other than the current search would open with the previous search's (stale) filters.
     const lastAutoNavRequestIDRef = useRef<number | undefined>(undefined);
     useEffect(() => {
         const requestID = editingSavedView?.requestID;
         if (!isSmallScreenWidth || requestID === undefined || lastAutoNavRequestIDRef.current === requestID) {
             return;
         }
+        if (queryJSON.hash !== editingSavedView?.hash) {
+            return;
+        }
         lastAutoNavRequestIDRef.current = requestID;
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [isSmallScreenWidth, editingSavedView?.requestID]);
+    }, [isSmallScreenWidth, editingSavedView?.requestID, editingSavedView?.hash, queryJSON.hash]);
 
     if (isSmallScreenWidth) {
         return (

@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
+import SavedViewEditFooter from '@components/Search/SavedViewEditFooter';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,29 +34,14 @@ function SearchAdvancedFiltersBase() {
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
             {isEditingSavedView ? (
-                <>
-                    <Button
-                        style={[styles.ph5, styles.pb3]}
-                        large
-                        success
-                        text={translate('search.saveEdits')}
-                        isDisabled={isSaveEditsDisabled}
-                        onPress={saveEdits}
-                    />
-                    <Button
-                        style={[styles.ph5, styles.pb3]}
-                        large
-                        text={translate('search.saveAsNewView')}
-                        isDisabled={isSaveAsNewViewDisabled}
-                        onPress={saveAsNewView}
-                    />
-                    <Button
-                        style={[styles.ph5, styles.pb5]}
-                        large
-                        text={translate('common.cancel')}
-                        onPress={cancelEdits}
-                    />
-                </>
+                <SavedViewEditFooter
+                    style={[styles.ph5, styles.pt3, styles.pb5]}
+                    onCancel={cancelEdits}
+                    onSaveEdits={saveEdits}
+                    onSaveAsNewView={saveAsNewView}
+                    isSaveEditsDisabled={isSaveEditsDisabled}
+                    isSaveAsNewViewDisabled={isSaveAsNewViewDisabled}
+                />
             ) : (
                 <>
                     {shouldShowResetFilters && (

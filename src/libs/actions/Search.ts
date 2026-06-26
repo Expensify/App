@@ -701,6 +701,16 @@ function exitSavedViewEditMode() {
     Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
 }
 
+/** Carries the edited query to the save page for the narrow "Save as new view" flow (without changing the active search). */
+function setSaveAsNewViewQuery(query: string) {
+    Onyx.set(ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY, query);
+}
+
+/** Clears the carried "Save as new view" query (on leaving the save page) so it can't leak into a later save. */
+function clearSaveAsNewViewQuery() {
+    Onyx.set(ONYXKEYS.SEARCH_SAVE_AS_NEW_VIEW_QUERY, null);
+}
+
 /** Abandons any in-progress edits and re-executes the saved view's original query. */
 function cancelSavedViewEdits(editingSavedView: EditingSavedSearch) {
     Onyx.set(ONYXKEYS.SEARCH_EDITING_SAVED_VIEW, null);
@@ -1755,6 +1765,8 @@ export {
     resolveSearchPayPaymentMethod,
     enterSavedViewEditMode,
     exitSavedViewEditMode,
+    setSaveAsNewViewQuery,
+    clearSaveAsNewViewQuery,
     cancelSavedViewEdits,
     saveSavedViewEdits,
 };

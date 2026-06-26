@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useOnyx from '@hooks/useOnyx';
-import {exitSavedViewEditMode, saveSavedViewEdits, setSearchContext} from '@libs/actions/Search';
+import {exitSavedViewEditMode, saveSavedViewEdits, setSaveAsNewViewQuery, setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
 import {getSavedViewSaveButtonDisabledStates} from '@libs/SearchUIUtils';
@@ -116,9 +116,16 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     };
 
     const saveAsNewView = () => {
+        const queryString = buildFilterQueryString(values);
+        if (!queryString) {
+            return;
+        }
+        // Carry the edited query to the save page WITHOUT changing the active search. Mobile filters are a draft (nothing
+        // is applied until you save), so the active search stays on the view being edited — backing out of the save page
+        // returns there, and the save page saves these edited filters (and lands on the new view once saved).
+        setSaveAsNewViewQuery(queryString);
         Navigation.dismissModal({
             afterTransition: () => {
-                setFilterQueryParams(values);
                 exitSavedViewEditMode();
                 Navigation.navigate(ROUTES.SEARCH_SAVE);
             },
