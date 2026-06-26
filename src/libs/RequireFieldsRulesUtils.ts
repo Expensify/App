@@ -132,6 +132,9 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
                 setPolicyCategoryReceiptsRequired(policyData, categoryName, 0);
             } else {
                 removePolicyCategoryReceiptsRequired(policyData, categoryName);
+                if (hadItemizedReceipt) {
+                    removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+                }
             }
         }
 

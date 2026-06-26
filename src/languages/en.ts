@@ -7547,6 +7547,7 @@ const translations = {
                     groceries: 'Groceries',
                     hotel: 'Hotel',
                     mail: 'Mail',
+                    meals: 'Meals',
                     rental: 'Rental',
                     services: 'Services',
                     taxi: 'Taxi',

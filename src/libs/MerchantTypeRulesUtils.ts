@@ -17,7 +17,21 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
-const EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS = ['airlines', 'commuter', 'gas', 'goods', 'groceries', 'hotel', 'mail', 'rental', 'services', 'taxi', 'uncategorized', 'utilities'] as const;
+const EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS = [
+    'airlines',
+    'commuter',
+    'gas',
+    'goods',
+    'groceries',
+    'hotel',
+    'mail',
+    'meals',
+    'rental',
+    'services',
+    'taxi',
+    'uncategorized',
+    'utilities',
+] as const;
 
 type ExpenseDefaultMerchantTypeGroupID = TupleToUnion<typeof EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS>;
 
