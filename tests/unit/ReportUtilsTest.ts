@@ -17638,6 +17638,7 @@ describe('ReportUtils', () => {
             };
 
             expect(getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
+            expect(getTransactionSortValue(transaction, CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
         });
 
         it('should return 1 for billable and 0 for non-billable', () => {

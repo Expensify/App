@@ -13056,6 +13056,7 @@ const sortableColumnNames = [
     CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
+    CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL,
     CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
@@ -13104,6 +13105,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
             return getTag(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
+        case CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE:
             return getTagGLCode(policyTagLists, getTag(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
