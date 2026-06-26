@@ -58,9 +58,9 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
     const [initiallySelectedAccountIDs] = useState(() => new Set(value));
 
     // Split contacts into pre-selected rows (pinned to the top) and the rest, each keeping their natural
-    // sorted order. Short lists are fully visible, so skip pinning for them (same threshold as the shared
-    // moveInitialSelectionToTop util).
-    const shouldPinSelectedRows = initiallySelectedAccountIDs.size > 0 && availableOptions.personalDetails.length > CONST.STANDARD_LIST_ITEM_LIMIT;
+    // sorted order. Pin only once the list is long enough to show the search input, matching its visibility
+    // threshold (CONST.STANDARD_LIST_ITEM_LIMIT) — shorter lists are fully visible so pinning isn't needed.
+    const shouldPinSelectedRows = initiallySelectedAccountIDs.size > 0 && availableOptions.personalDetails.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const pinnedPersonalDetails: OptionData[] = [];
     const remainingPersonalDetails: OptionData[] = [];
     for (const option of availableOptions.personalDetails) {
