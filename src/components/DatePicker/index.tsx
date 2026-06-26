@@ -1,7 +1,7 @@
 import {format, setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, TextInput as RNTextInput, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {TextInputKeyPressEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {isNumeric} from '@libs/ValidationUtils';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -18,10 +19,6 @@ import DatePickerModal from './DatePickerModal';
 import type {DateInputWithPickerProps} from './types';
 
 const PADDING_MODAL_DATE_PICKER = 8;
-
-function blurActiveTextInput() {
-    RNTextInput.State.currentlyFocusedInput?.()?.blur();
-}
 
 function DatePicker({
     defaultValue,
@@ -103,7 +100,7 @@ function DatePicker({
 
         if (shouldDismissKeyboardBeforeShow) {
             // Blur whichever input is focused (e.g. a preceding text field) so closing the picker does not briefly restore its keyboard.
-            blurActiveTextInput();
+            ComposerFocusManager.blurActiveInput();
             // Dismiss in parallel with opening — do not await the hide animation or the open feels sluggish.
             Keyboard.dismiss();
         }
@@ -136,7 +133,7 @@ function DatePicker({
         }
 
         textInputRef.current?.blur();
-        blurActiveTextInput();
+        ComposerFocusManager.blurActiveInput();
         Keyboard.dismiss();
     }, [shouldDismissKeyboardBeforeShow]);
 

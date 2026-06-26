@@ -31,6 +31,7 @@ function BaseEducationalTooltip({
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<(() => void) | undefined>(undefined);
+    const hasDisplayedTooltipRef = useRef(false);
 
     const navigator = useContext(NavigationContext);
     const isFocused = useIsFocused();
@@ -154,7 +155,13 @@ function BaseEducationalTooltip({
         if (!shouldRender || !shouldShowTooltip || shouldSuppressTooltip || !shouldMeasure) {
             return;
         }
-        renderTooltip();
+        // Re-measure immediately only after the tooltip has been shown at least once (e.g. when
+        // shouldDisplayTooltip flips back to true after scroll/product-training gating). The first
+        // display still relies on the delayed onLayout path above so animated containers can settle.
+        if (hasDisplayedTooltipRef.current) {
+            renderTooltip();
+        }
+        hasDisplayedTooltipRef.current = true;
     }, [shouldRender, shouldShowTooltip, shouldSuppressTooltip, shouldMeasure, renderTooltip]);
 
     useEffect(() => {
