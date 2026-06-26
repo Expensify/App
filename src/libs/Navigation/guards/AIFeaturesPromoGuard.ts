@@ -205,7 +205,7 @@ function shouldBlockWhileModalActive(state: NavigationState, action: NavigationA
     }
 
     // RESET actions are how deep links / share intents enter the app — never block them.
-    if (action.type === 'RESET') {
+    if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET) {
         return false;
     }
 
@@ -221,7 +221,8 @@ function shouldBlockWhileModalActive(state: NavigationState, action: NavigationA
 /** Prevents redirect loops by detecting when we're already on or resetting to the modal. */
 function isNavigatingToAIFeaturesPromoModal(state: NavigationState, action: NavigationAction): boolean {
     const isOnModal = findFocusedRoute(state)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT;
-    const isResettingToModal = action.type === 'RESET' && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT;
+    const isResettingToModal =
+        action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && !!action.payload && findFocusedRoute(action.payload as NavigationState)?.name === SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT;
 
     return isOnModal || isResettingToModal;
 }
