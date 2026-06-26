@@ -7,6 +7,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Growl from '@libs/Growl';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
+import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -19,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
+import getTopmostFullScreenRoute from './getTopmostFullScreenRoute';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
@@ -330,9 +332,13 @@ function navigateAfterExpenseCreate({
     // That fires API.write, which applies optimistic data → our reportActions subscription fires
     // → we have a valid iouAction to build the thread from → show growl with working "View" link.
     const queryString = buildCannedSearchQuery({type});
-    const rootState = navigationRef.getRootState();
-    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
+    // SEARCH_FULLSCREEN_NAVIGATOR is nested inside TAB_NAVIGATOR, not at the root, and its `state`
+    // can be undefined when the split navigator isn't actively rendered - so we resolve it via the
+    // same TAB_NAVIGATOR traversal isSearchTopmostFullScreenRoute uses, then fall back to the
+    // preserved navigator state for the search navigator's own inner routes.
+    const searchNavigatorRoute = isUserOnSpend ? getTopmostFullScreenRoute() : undefined;
+    const searchNavigatorState = searchNavigatorRoute?.state ?? (searchNavigatorRoute?.key ? getPreservedNavigatorState(searchNavigatorRoute.key) : undefined);
+    const lastSearchRoute = searchNavigatorState?.routes?.at(-1);
     const alreadyOnSearchRoot = isUserOnSpend && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
     const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
     const isSameSearchType = currentSearchQueryJSON?.type === type;
