@@ -315,6 +315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         showLess: 'Mostra meno',
         plusMore: ({count}: {count: number}) => `+${count} altri`,
         merchant: 'Esercente',
+        googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
+        searchOnGoogle: ({merchant}: {merchant: string}) => `Cerca ${merchant} su Google`,
         change: 'Modifica',
         category: 'Categoria',
         vendor: 'Fornitore',
@@ -1657,13 +1659,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Sposta nel report',
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
-        submitReportTo: {
-            subtitle: 'Scegli un membro dello spazio di lavoro o inserisci l’indirizzo email di chi deve ricevere questa richiesta.',
-            emailLabel: 'Indirizzo email',
-            workspaceMembers: 'Membri dell’area di lavoro',
-            sendExpense: 'Invia la tua spesa a chiunque',
-            sendExpenseSubtitle: 'Invita chiunque su Expensify usando il suo indirizzo email o numero di telefono.',
-        },
         changeApprover: {
             title: 'Cambia approvatore',
             header: (workflowSettingLink: string) =>
@@ -2653,6 +2648,7 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalsTitle: 'Approvazioni',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `spese di ${members} e l'approvatore è ${approvers}`,
         addApprovalButton: 'Aggiungi flusso di approvazione',
+        loadMoreWorkflows: ({count}: {count: number}) => `Carica altri ${count}`,
         editWorkflowAction: 'Modifica',
         findWorkflow: 'Cerca flusso di lavoro',
         addApprovalTip: 'Questo flusso di lavoro predefinito si applica a tutti i membri, a meno che non esista un flusso di lavoro più specifico.',
@@ -2848,7 +2844,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     agentsPage: {
         title: 'Agenti',
-        subtitle: `<muted-text>Crea agenti per gestire il tuo flusso di lavoro. Salta il lavoro manuale e recupera ore nella tua giornata. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Scopri di più</a>.</muted-text>`,
+        subtitle: `<muted-text>Gli agenti gestiscono i tuoi flussi di lavoro al posto tuo, così ti ritrovi ore in più nella tua giornata. <a href="${CONST.CUSTOM_AGENTS_HELP_URL}">Scopri di più</a>.</muted-text>`,
         newAgent: 'Nuovo agente',
         emptyAgents: {
             title: 'Nessun agente creato',
@@ -3190,9 +3186,9 @@ ${amount} per ${merchant} - ${date}`,
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Invia una spesa',
+                title: 'Crea una spesa',
                 description: dedent(`
-                    *Invia una spesa* inserendo un importo o scansionando una ricevuta.
+                    *Crea una spesa* inserendo un importo o scansionando una ricevuta.
 
                     1. Fai clic sul pulsante *+*.
                     2. Scegli *Crea spesa*.
@@ -3204,9 +3200,9 @@ ${amount} per ${merchant} - ${date}`,
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Invia una spesa',
+                title: 'Crea una spesa',
                 description: dedent(`
-                    *Invia una spesa* inserendo un importo o scansionando una ricevuta.
+                    *Crea una spesa* inserendo un importo o scansionando una ricevuta.
 
                     1. Fai clic sul pulsante *+*.
                     2. Scegli *Crea spesa*.
@@ -3369,9 +3365,6 @@ ${amount} per ${merchant} - ${date}`,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Fai un [giro di prova](${testDriveURL})` : 'Fai un giro di prova'),
             embeddedDemoIframeTitle: 'Prova su strada',
-            employeeFakeReceipt: {
-                description: 'La ricevuta del mio test drive!',
-            },
         },
         messages: {
             onboardingEmployerOrSubmitMessage: 'Essere rimborsati è facile quanto inviare un messaggio. Vediamo le basi.',
@@ -3627,6 +3620,7 @@ ${amount} per ${merchant} - ${date}`,
             companyName: 'Inserisci un nome aziendale valido',
             addressCity: 'Inserisci una città valida',
             addressStreet: 'Inserisci un indirizzo stradale valido',
+            physicalAddressRequired: 'È richiesto un indirizzo fisico. Non sono accettate caselle postali o servizi di inoltro posta.',
             addressState: 'Seleziona uno stato valido',
             incorporationDateFuture: 'La data di costituzione non può essere nel futuro',
             incorporationState: 'Seleziona uno stato valido',
@@ -3845,12 +3839,14 @@ ${amount} per ${merchant} - ${date}`,
         legalFirstName: 'Nome legale di battesimo',
         legalLastName: 'Cognome legale',
         legalName: 'Nome legale',
+        legalNameSubtitle: 'Inserisci il tuo nome legale completo come appare sul tuo documento d’identità.',
         enterYourDateOfBirth: 'Qual è la tua data di nascita?',
         enterTheLast4: 'Quali sono le ultime quattro cifre del tuo codice di previdenza sociale?',
         dontWorry: 'Non preoccuparti, non effettuiamo alcun controllo del credito personale!',
         last4SSN: 'Ultime 4 cifre del SSN',
         enterYourAddress: 'Qual è il tuo indirizzo?',
         address: 'Indirizzo',
+        addressSubtitle: 'È richiesto un indirizzo fisico. Non sono accettate caselle postali o servizi di inoltro posta.',
         letsDoubleCheck: 'Controlliamo che sia tutto corretto.',
         byAddingThisBankAccount: 'Aggiungendo questo conto bancario, confermi di aver letto, compreso e accettato',
         whatsYourLegalName: 'Qual è il tuo nome legale?',
@@ -3986,6 +3982,7 @@ ${amount} per ${merchant} - ${date}`,
         regulationRequiresUsToVerifyTheIdentity: 'La normativa ci impone di verificare l’identità di ogni persona fisica che possiede più del 25% dell’attività.',
         companyOwner: 'Titolare d’azienda',
         enterLegalFirstAndLastName: 'Qual è il nome legale del titolare?',
+        legalNameSubtitle: 'Inserisci il nome legale completo del titolare come appare sul suo documento d’identità.',
         legalFirstName: 'Nome legale di battesimo',
         legalLastName: 'Cognome legale',
         enterTheDateOfBirthOfTheOwner: 'Qual è la data di nascita del titolare?',
@@ -4412,7 +4409,7 @@ ${amount} per ${merchant} - ${date}`,
             defaultNote: `Le ricevute inviate a ${CONST.EMAIL.RECEIPTS} verranno visualizzate in questo workspace.`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
-            deleteOpenExpensifyCardsError: 'La tua azienda ha ancora carte Expensify attive.',
+            deleteOpenExpensifyCardsError: 'La tua azienda ha ancora delle Carte Expensify. Per favore, <concierge-link>contatta Concierge</concierge-link> per rimuoverle.',
             outstandingBalanceWarning:
                 'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
             settleBalance: 'Vai all’abbonamento',
@@ -4466,6 +4463,8 @@ ${amount} per ${merchant} - ${date}`,
             auditorAlternateText: 'Visualizza e commenta i report.',
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Proprietario';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Amministratore spazio di lavoro';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4477,7 +4476,7 @@ ${amount} per ${merchant} - ${date}`,
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
                         return 'Amministrazione persone';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-                        return 'Amministratore pagamenti';
+                        return 'Amministrazione pagamenti';
                     case CONST.POLICY.ROLE.USER:
                         return 'Membro';
                     default:
@@ -4981,6 +4980,12 @@ ${amount} per ${merchant} - ${date}`,
             autoSyncDescription: 'Expensify si sincronizzerà automaticamente con Certinia ogni giorno.',
             syncReimbursedReportsDescription:
                 'Con questa opzione abilitata, ogni volta che una fattura da pagare viene saldata in FFA, il relativo report Expensify sarà automaticamente contrassegnato come rimborsato.',
+            taxNonBillable: 'Esporta imposte come non fatturabili',
+            taxNonBillableDescription:
+                'Quando esporti spese fatturabili codificate con aliquote fiscali da Expensify, la parte relativa alle imposte verrà contrassegnata come non fatturabile durante l’esportazione in Certinia PSA.',
+            foreignCurrencyAmount: 'Esporta importo in valuta estera',
+            foreignCurrencyAmountDescription:
+                'Se esporti le spese rimborsabili come note spese, esporteremo in Certinia l’importo originale in valuta estera di ogni transazione, se esiste.',
             exportDescription: 'Configura come i dati di Expensify vengono esportati in Certinia.',
             payableInvoices: 'Fatture da pagare',
             exportStatus: {
@@ -5021,9 +5026,13 @@ ${amount} per ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Sincronizza di nuovo la connessione dopo che le aziende sono state aggiunte in Certinia.',
             prerequisites: {
                 title: 'Prima di connetterti',
-                installBundle: 'Per connessioni FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Installa il bundle Expensify in Salesforce facendo clic su questo link: <a href="${href}">Installa FFA Expensify Bundle (Versione ${version})</a>`,
+                installBundle: 'Installa il bundle Expensify',
+                installBundlePSAHeader: 'Per le connessioni PSA/SRP:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installa il bundle Expensify in Salesforce cliccando su questo link: <a href="${href}">Installa il bundle PSA/SRP Expensify (versione ${version})</a>`,
+                installBundleFFAHeader: 'Per le connessioni FFA:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Installa il bundle Expensify in Salesforce facendo clic su questo link: <a href="${href}">Installa il bundle Expensify per FFA (versione ${version})</a>`,
                 installBundleConfirm: 'Ho installato il pacchetto',
                 setupContacts: 'Configura utente e contatti',
                 setupContactsBullet1:
@@ -5047,6 +5056,16 @@ ${amount} per ${merchant} - ${date}`,
                     [CONST.CERTINIA_MAPPING_VALUE.DEFAULT]: 'Non mappare',
                     [CONST.CERTINIA_MAPPING_VALUE.TAG]: 'Importato come tag',
                     [CONST.CERTINIA_MAPPING_VALUE.REPORT_FIELD]: 'Importato come campi del report',
+                },
+                expenseTypeGlaMappings: 'Mappature GLA per tipo di spesa',
+                expenseTypeGlaMappingsDescription: 'Le mappature GLA dei tipi di spesa di FinancialForce vengono importate in Expensify come categorie.',
+                tagsMappedTo: 'I tag dovrebbero essere mappati a',
+                milestones: 'Traguardi',
+                milestonesDescription: 'Quando è attivata, le milestone associate ai progetti PSA vengono sincronizzate in Expensify.',
+                parentTagMappingTypes: {
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS_AND_ASSIGNMENTS]: 'Progetti e incarichi',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_PROJECTS]: 'Progetti',
+                    [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Assegnazioni',
                 },
             },
         },
@@ -6349,6 +6368,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             syncWithHR: (providerName: string) => `Sincronizza con ${providerName}`,
             makeCardAdmin: () => ({one: 'Rendi amministratore carta', other: 'Rendi amministratori carta'}),
             cardAdmins: 'Amministratori carta',
+            members: 'Membri',
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -7484,6 +7504,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             agentRules: {
                 title: 'Regole agente',
                 subtitle: 'Imposta le regole su come gli agenti IA gestiscono le spese in questo spazio di lavoro.',
+                enforcedBy: 'Le regole degli agenti sono applicate da',
+                ruleBotName: 'RuleBot',
                 addRule: 'Aggiungi regola agente',
                 findRule: 'Trova regola agente',
                 addRuleTitle: 'Aggiungi regola',
@@ -9762,18 +9784,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         quickAction: {
             takeATwoMinuteTestDrive: 'Fai una prova di 2 minuti',
         },
-        modal: {
-            title: 'Mettici alla prova',
-            description: 'Fai un breve tour del prodotto per metterti subito al passo.',
-            confirmText: 'Avvia prova di guida',
-            helpText: 'Salta',
-            employee: {
-                description:
-                    '<muted-text>Ottieni per il tuo team <strong>3 mesi gratuiti di Expensify!</strong> Ti basta inserire l’email del tuo capo qui sotto e inviargli una spesa di prova.</muted-text>',
-                email: "Inserisci l'email del tuo capo",
-                error: 'Quella persona è titolare di uno spazio di lavoro, inserisci un nuovo membro per effettuare il test.',
-            },
-        },
         banner: {
             currentlyTestDrivingExpensify: 'Al momento stai provando Expensify',
             readyForTheRealThing: 'Pronto per la cosa reale?',
@@ -9808,7 +9818,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         pdfFailedBody: 'Your file could not be generated. Try again, or reach out to Concierge for help.',
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
-
         close: 'Close',
     },
     domain: {
