@@ -366,6 +366,14 @@ function Search({
             return;
         }
 
+        // The page-level initiator (useSearchPageSetup) already fetches the offset-0 results. This effect
+        // re-runs when handleSearch's identity changes as data arrives, which would fire a redundant
+        // duplicate /api/Search for page 1. Skip it once data is loaded (issue #94485); pagination
+        // (offset > 0) and the offline-recovery path are unaffected.
+        if (offset === 0 && isDataLoaded && !comingBackOnlineWithNoResults) {
+            return;
+        }
+
         // When mounting after the pre-insert fast path, the deferred write hasn't
         // been flushed yet. Triggering a search now would race with the CREATE
         // API call and return stale results that overwrite the optimistic row.
@@ -393,7 +401,7 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
+    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy, isDataLoaded]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
