@@ -353,7 +353,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     required: isSwitchEnabled,
                     tagCount,
                     disabled: isDisabled,
-                    isDisabledCheckbox: isSwitchDisabled,
+                    isSelectionDisabled: isSwitchDisabled,
                     isSwitchDisabled,
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
@@ -779,7 +779,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{getHeaderSubtitle()}</View>;
+    const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>{getHeaderSubtitle()}</View>;
 
     const subtitleText = useMemo(() => {
         const emptyTagsSubtitle = hasAccountingConnections
@@ -880,7 +880,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 hasDependentTags={hasDependentTags}
                                 shouldShowGLCodeColumn={shouldShowGLCodeColumn}
                                 shouldShowApproverColumn={shouldShowApproverColumn}
-                                onRowSelectionChange={(selectedRowKeys) => setSelectedTagKeys(selectedRowKeys)}
+                                onRowSelectionChange={setSelectedTagKeys}
                                 EmptyStateComponent={emptyStateContent}
                             />
                         </>

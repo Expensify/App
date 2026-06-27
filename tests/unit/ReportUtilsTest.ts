@@ -19,7 +19,6 @@ import type {FormulaContext} from '@libs/Formula';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -177,7 +176,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {
     BankAccountList,
     Beta,
@@ -234,6 +233,7 @@ import {
     createWorkspaceThread,
 } from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
@@ -526,6 +526,22 @@ describe('ReportUtils', () => {
             expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
 
+        it('should show the bank account from the action accountNumber instead of the policy default', async () => {
+            // Given a policy whose default reimbursement account ends in 0000
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithBank);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+
+            // When the pay action carries the masked accountNumber of the bank account actually used
+            const actionWithAccountNumber = {
+                ...reportAction,
+                originalMessage: {...reportAction.originalMessage, accountNumber: 'XXXXXX4321'},
+            };
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
+
+            // Then the message shows the last 4 digits of that account, not the policy default
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, undefined, iouReport)).toBe(paidSystemMessage);
+        });
+
         it('should return received payment when submitter marked payment received', () => {
             const paymentReceivedReportAction = {
                 ...createRandomReportAction(45),
@@ -569,7 +585,7 @@ describe('ReportUtils', () => {
                 'assigneeChatReportID',
                 'parentReportID',
                 'Task title',
-                {} as unknown as OnyxEntry<Report>,
+                createMock<OnyxEntry<Report>>({}),
                 passedCurrentUserEmail,
                 passedCurrentUserAccountID,
             );
@@ -593,7 +609,7 @@ describe('ReportUtils', () => {
                 'assigneeChatReportID',
                 'parentReportID',
                 'Task title',
-                {} as unknown as OnyxEntry<Report>,
+                createMock<OnyxEntry<Report>>({}),
                 passedCurrentUserEmail,
                 passedCurrentUserAccountID,
             );
@@ -606,7 +622,7 @@ describe('ReportUtils', () => {
         });
 
         it('does not create optimistic assignee comment when assigneeChatReportID equals parentReportID', () => {
-            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', {} as unknown as OnyxEntry<Report>, 'email@user.com', 50);
+            const result = getTaskAssigneeChatOnyxData(1, 2, 'taskReportID', 'sameReportID', 'sameReportID', 'Task title', createMock<OnyxEntry<Report>>({}), 'email@user.com', 50);
 
             expect(result.optimisticAssigneeAddComment).toBeUndefined();
         });
@@ -1116,30 +1132,30 @@ describe('ReportUtils', () => {
 
     describe('getPolicyExpenseChatName', () => {
         it("returns owner's display name when available", () => {
-            const report = {
+            const report = createMock<OnyxEntry<Report>>({
                 ownerAccountID: 1,
                 reportName: 'Fallback Report Name',
-            } as unknown as OnyxEntry<Report>;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
         it('falls back to owner login when display name not present', () => {
-            const report = {
+            const report = createMock<OnyxEntry<Report>>({
                 ownerAccountID: 2,
                 reportName: 'Fallback Report Name',
-            } as unknown as OnyxEntry<Report>;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
         it('returns report name when no personal details or owner', () => {
-            const report = {
+            const report = createMock<OnyxEntry<Report>>({
                 ownerAccountID: undefined,
                 reportName: 'Fallback Report Name',
-            } as unknown as OnyxEntry<Report>;
+            });
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: {}});
             expect(name).toBe('Fallback Report Name');
@@ -1510,14 +1526,14 @@ describe('ReportUtils', () => {
 
         describe('ParentReportAction is', () => {
             test('Manually Submitted Report Action', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     originalMessage: {
                         amount: 169,
                         currency: 'USD',
                     },
-                } as ReportAction;
+                });
                 const threadOfSubmittedReportAction = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1543,7 +1559,7 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                     policyID: policy.id,
                 };
-                const removedParentReportAction = {
+                const removedParentReportAction = createMock<ReportAction>({
                     reportActionID: '102',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
                     message: [
@@ -1556,7 +1572,7 @@ describe('ReportUtils', () => {
                     originalMessage: {
                         targetAccountIDs: [1],
                     },
-                } as ReportAction;
+                });
                 const threadOfRemovedRoomMemberAction = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
@@ -1709,7 +1725,7 @@ describe('ReportUtils', () => {
 
         describe('Automatically approved report message via automatic (not by a human) action is', () => {
             test('shown when the report is forwarded (Control feature)', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
                     originalMessage: {
@@ -1718,7 +1734,7 @@ describe('ReportUtils', () => {
                         automaticAction: true,
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     },
-                } as ReportAction;
+                });
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1737,7 +1753,7 @@ describe('ReportUtils', () => {
             });
 
             test('shown when the report is approved', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
                     originalMessage: {
@@ -1745,7 +1761,7 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         automaticAction: true,
                     },
-                } as ReportAction;
+                });
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1766,7 +1782,7 @@ describe('ReportUtils', () => {
 
         describe('Automatically submitted via harvesting (delayed submit) report message is', () => {
             test('shown when report is submitted and status is submitted', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     originalMessage: {
@@ -1774,7 +1790,7 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         harvesting: true,
                     },
-                } as ReportAction;
+                });
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1793,7 +1809,7 @@ describe('ReportUtils', () => {
             });
 
             test('shown when report is submitted and status is closed', () => {
-                const submittedParentReportAction = {
+                const submittedParentReportAction = createMock<ReportAction>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
                     originalMessage: {
@@ -1801,7 +1817,7 @@ describe('ReportUtils', () => {
                         currency: 'USD',
                         harvesting: true,
                     },
-                } as ReportAction;
+                });
                 const expenseReport = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
@@ -1856,13 +1872,13 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-                const unreportedTransactionAction = {
+                const unreportedTransactionAction = createMock<ReportAction>({
                     reportActionID: 'unreported-action-id',
                     actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                     originalMessage: {
                         fromReportID: '789',
                     },
-                } as ReportAction;
+                });
 
                 const transactionThread = {
                     ...LHNTestUtils.getFakeReport(),
@@ -3030,10 +3046,10 @@ describe('ReportUtils', () => {
                         chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
                     };
 
-                    const chatReport: Report = {
+                    const chatReport: Report = createMock<Report>({
                         reportID: chatReportID,
                         invoiceReceiver: {policyID: invoiceReceiverPolicy.id, type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS},
-                    } as Report;
+                    });
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicy.id}`, invoiceReceiverPolicy);
@@ -3181,24 +3197,24 @@ describe('ReportUtils', () => {
                 policyID: 'testPolicyID',
                 ownerAccountID: currentUserAccountID,
             };
-            const testPolicy = {
+            const testPolicy = createMock<Policy>({
                 id: 'testPolicyID',
                 name: 'Direct Policy Name',
                 type: CONST.POLICY.TYPE.CORPORATE,
                 role: CONST.POLICY.ROLE.ADMIN,
-            } as Policy;
+            });
 
             const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
         it('should use the policy name from the passed policy parameter for invoice reports', () => {
-            const testPolicy = {
+            const testPolicy = createMock<Policy>({
                 id: 'invoicePolicyID',
                 name: 'Invoice Policy',
                 type: CONST.POLICY.TYPE.CORPORATE,
                 role: CONST.POLICY.ROLE.ADMIN,
-            } as Policy;
+            });
             const parentInvoiceRoom = {
                 reportID: '200',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -3281,28 +3297,28 @@ describe('ReportUtils', () => {
         });
 
         it('should return text from reportAction message when no html', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 message: [{type: 'COMMENT', text: 'Hello world'}],
-            } as unknown as ReportAction;
+            });
             const result = parseReportActionHtmlToText(reportAction, '123', undefined);
             expect(result).toBe('Hello world');
         });
 
         it('should parse html to text with conciergeReportID', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 message: [{type: 'COMMENT', html: '<p>Hello world</p>', text: 'Hello world'}],
-            } as unknown as ReportAction;
+            });
             const result = parseReportActionHtmlToText(reportAction, '123', '999');
             expect(result).toBe('Hello world');
         });
 
         it('should handle conciergeReportID being undefined', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 message: [{type: 'COMMENT', html: '<p>Test message</p>', text: 'Test message'}],
-            } as unknown as ReportAction;
+            });
             const result = parseReportActionHtmlToText(reportAction, '456', undefined);
             expect(result).toBe('Test message');
         });
@@ -3603,46 +3619,46 @@ describe('ReportUtils', () => {
 
         it('should return empty string for chat thread', () => {
             const report = createWorkspaceThread(1);
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe('');
         });
 
         it('should return "Your space" for self DM', () => {
             const report = createSelfDM(1, currentUserAccountID);
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe('Your space');
         });
 
         it('should return "Invoices" for invoice room', () => {
             const report = createInvoiceRoom(1);
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe('Invoices');
         });
 
         it('should return empty string for non-default, non-user-created, non-policy-expense chat', () => {
             const report = createRegularChat(1, [currentUserAccountID, 2]);
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe('');
         });
 
         it('should return domain name for domain room', () => {
             const report = createDomainRoom(1);
             report.reportName = '#example.com';
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe('example.com');
         });
 
         it('should return policy name for admin room', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe(policy.name);
         });
 
         it('should return policy name for announce room', () => {
             const report = createAnnounceRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe(policy.name);
         });
 
@@ -3652,42 +3668,42 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 policyID: policy.id,
             };
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe(policy.name);
         });
 
         it('should return policy name for policy expense chat when not in create expense flow', () => {
             const report = createPolicyExpenseChat(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe(policy.name);
         });
 
         it('should return empty string for expense report (not default/user-created/policy-expense)', () => {
             const report = createExpenseReport(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe('');
         });
 
         it('should return empty string for expense report in create expense flow (not default/user-created/policy-expense)', () => {
             const report = createExpenseReport(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy, true, false);
+            const result = getChatRoomSubtitle(report, policy, undefined, true, false);
             expect(result).toBe('');
         });
 
         it('should return oldPolicyName when report is archived', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = 'Old Policy Name';
-            const result = getChatRoomSubtitle(report, policy, false, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, false, true);
             expect(result).toBe('Old Policy Name');
         });
 
         it('should return empty string when report is archived but has no oldPolicyName', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = undefined;
-            const result = getChatRoomSubtitle(report, policy, false, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, false, true);
             expect(result).toBe('');
         });
 
@@ -3695,15 +3711,27 @@ describe('ReportUtils', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
             report.oldPolicyName = 'Archived Policy';
-            const result = getChatRoomSubtitle(report, policy, true, true);
+            const result = getChatRoomSubtitle(report, policy, undefined, true, true);
             expect(result).toBe('Archived Policy');
         });
 
         it('should handle with only report data', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, policy);
+            const result = getChatRoomSubtitle(report, policy, undefined);
             expect(result).toBe(policy.name);
+        });
+
+        it('should return "Concierge support" when the report is the Concierge chat passed via conciergeReportID', () => {
+            const report = createRegularChat(1, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]);
+            const result = getChatRoomSubtitle(report, policy, report.reportID, false, false);
+            expect(result).toBe('Your personal AI agent');
+        });
+
+        it('should not return "Concierge support" when conciergeReportID does not match the report', () => {
+            const report = createRegularChat(1, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]);
+            const result = getChatRoomSubtitle(report, policy, 'some-other-report-id', false, false);
+            expect(result).not.toBe('Your personal AI agent');
         });
     });
 
@@ -4462,7 +4490,7 @@ describe('ReportUtils', () => {
                 {reportID: '2', lastReadTime: undefined},
                 {reportID: '3', lastReadTime: '2023-07-06 07:15:44.030'},
                 {reportID: '4', lastReadTime: '2023-07-07 07:15:44.030', type: CONST.REPORT.TYPE.IOU},
-                {lastReadTime: '2023-07-09 07:15:44.030'} as Report,
+                createMock<Report>({lastReadTime: '2023-07-09 07:15:44.030'}),
                 {reportID: '6'},
                 undefined,
             ];
@@ -4496,33 +4524,33 @@ describe('ReportUtils', () => {
         });
 
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
                     whisperedTo: [123456],
                 },
-            } as ReportAction;
+            });
             expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
         it('should disable on thread first chat', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 childReportID: reportID,
-            } as ReportAction;
+            });
             expect(shouldDisableThread(reportAction, true)).toBeTruthy();
         });
 
         it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
-            } as ReportAction;
+            });
             expect(shouldDisableThread(reportAction, false, false)).toBeTruthy();
         });
 
         describe('deleted threads', () => {
             it('should be enabled if the report action is not-deleted and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4532,7 +4560,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
@@ -4543,7 +4571,7 @@ describe('ReportUtils', () => {
 
             it('should be enabled if the report action is not-deleted and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4553,7 +4581,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 0,
-                } as ReportAction;
+                });
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
@@ -4563,7 +4591,7 @@ describe('ReportUtils', () => {
             });
             it('should be enabled if the report action is deleted and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4573,7 +4601,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
@@ -4584,7 +4612,7 @@ describe('ReportUtils', () => {
 
             it('should be disabled if the report action is deleted and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4594,7 +4622,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 0,
-                } as ReportAction;
+                });
 
                 // When it's checked to see if the thread should be disabled
                 const isThreadDisabled = shouldDisableThread(reportAction, false);
@@ -4607,7 +4635,7 @@ describe('ReportUtils', () => {
         describe('archived report threads', () => {
             it('should be enabled if the report is not-archived and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4617,7 +4645,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // And a report that is not archived
                 const isReportArchived = false;
@@ -4630,7 +4658,7 @@ describe('ReportUtils', () => {
             });
             it('should be enabled if the report is not-archived and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action counts
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4640,7 +4668,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // And a report that is not archived
                 const isReportArchived = false;
@@ -4653,7 +4681,7 @@ describe('ReportUtils', () => {
             });
             it('should be enabled if the report is archived and child visible action count is 1', () => {
                 // Given a normal report action with one child visible action count
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4663,7 +4691,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 1,
-                } as ReportAction;
+                });
 
                 // And a report that is not archived
                 const isReportArchived = true;
@@ -4676,7 +4704,7 @@ describe('ReportUtils', () => {
             });
             it('should be disabled if the report is archived and child visible action count is 0', () => {
                 // Given a normal report action with zero child visible action counts
-                const reportAction = {
+                const reportAction = createMock<ReportAction>({
                     message: [
                         {
                             translationKey: '',
@@ -4686,7 +4714,7 @@ describe('ReportUtils', () => {
                         },
                     ],
                     childVisibleActionCount: 0,
-                } as ReportAction;
+                });
 
                 // And a report that is not archived
                 const isReportArchived = true;
@@ -4751,7 +4779,7 @@ describe('ReportUtils', () => {
 
         it("should use the report id from the onboarding NVP if it's set", async () => {
             const reportID = '8010';
-            const onboardingValue = {chatReportID: reportID, hasCompletedGuidedSetupFlow: true} as Onboarding;
+            const onboardingValue = createMock<Onboarding>({chatReportID: reportID, hasCompletedGuidedSetupFlow: true});
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
@@ -4771,7 +4799,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for admins rooms chat when posting tasks in admins room', async () => {
-            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+            const onboardingValue = createMock<Onboarding>({hasCompletedGuidedSetupFlow: true});
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
@@ -4785,7 +4813,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for admins rooms thread when posting tasks in admins room', async () => {
-            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+            const onboardingValue = createMock<Onboarding>({hasCompletedGuidedSetupFlow: true});
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
@@ -4802,7 +4830,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for admins room when engagement choice is TRACK_WORKSPACE (Concierge is used for onboarding)', async () => {
-            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+            const onboardingValue = createMock<Onboarding>({hasCompletedGuidedSetupFlow: true});
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
@@ -4976,10 +5004,10 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReport.reportID,
             });
             expenseCreatedAction.actorAccountID = 99997;
-            const adminPolicy = {
+            const adminPolicy = createMock<Policy>({
                 id: expenseReport.policyID,
                 role: CONST.POLICY.ROLE.ADMIN,
-            } as Policy;
+            });
 
             expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, adminPolicy, currentUserAccountID)).toEqual({
                 canHoldRequest: false,
@@ -5105,11 +5133,11 @@ describe('ReportUtils', () => {
             const policyID = '102';
             const transactionID = '123';
             const childReportID = '555';
-            const moneyRequestReport = {
+            const moneyRequestReport = createMock<Report>({
                 ...createExpenseReport(101),
                 reportID,
                 policyID,
-            } as Report;
+            });
             const reportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: 123,
@@ -5121,14 +5149,14 @@ describe('ReportUtils', () => {
             });
             reportAction.childReportID = childReportID;
 
-            const iouTransaction = {
+            const iouTransaction = createMock<Transaction>({
                 ...createRandomTransaction(123),
                 transactionID,
                 reportID: moneyRequestReport.reportID,
                 comment: {
                     hold: '999',
                 },
-            } as Transaction;
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
@@ -5153,11 +5181,11 @@ describe('ReportUtils', () => {
             const policyID = '202';
             const transactionID = '456';
             const childReportID = '777';
-            const moneyRequestReport = {
+            const moneyRequestReport = createMock<Report>({
                 ...createExpenseReport(201),
                 reportID,
                 policyID,
-            } as Report;
+            });
 
             const reportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -5170,12 +5198,12 @@ describe('ReportUtils', () => {
             });
             reportAction.childReportID = childReportID;
 
-            const iouTransaction = {
+            const iouTransaction = createMock<Transaction>({
                 ...createRandomTransaction(456),
                 transactionID,
                 reportID: moneyRequestReport.reportID,
                 comment: {},
-            } as Transaction;
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
@@ -5197,14 +5225,14 @@ describe('ReportUtils', () => {
     describe('getLinkedIOUTransaction', () => {
         it('should return the matching transaction for a money request action', () => {
             const transactionID = 'txn-123';
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 ...createRandomTransaction(100),
                 transactionID,
-            } as Transaction;
-            const otherTransaction = {
+            });
+            const otherTransaction = createMock<Transaction>({
                 ...createRandomTransaction(200),
                 transactionID: 'txn-other',
-            } as Transaction;
+            });
 
             const reportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -5237,10 +5265,10 @@ describe('ReportUtils', () => {
 
         it('should return undefined for non-money-request actions', () => {
             const action = buildOptimisticCreatedReportAction({emailCreatingAction: 'user@test.com'});
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 ...createRandomTransaction(100),
                 transactionID: 'txn-123',
-            } as Transaction;
+            });
 
             const result = getLinkedIOUTransaction(action, [transaction]);
             expect(result).toBeUndefined();
@@ -7018,6 +7046,29 @@ describe('ReportUtils', () => {
             ).toBeTruthy();
         });
 
+        it('should return true for empty admin room even when excludeEmptyChats is true', () => {
+            const report: Report = {
+                ...createAdminRoom(1),
+                participants: buildParticipantsFromAccountIDs([1, 2]),
+                lastMessageText: '',
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+
+            expect(
+                shouldReportBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId: '',
+                    isInFocusMode: false,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                }),
+            ).toBeTruthy();
+        });
+
         it('should return false when the report has an unsupported type', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -7061,10 +7112,10 @@ describe('ReportUtils', () => {
         });
 
         it('should return false when the report has no type', () => {
-            const report = {
+            const report = createMock<Report>({
                 ...LHNTestUtils.getFakeReport(),
                 type: undefined,
-            } as unknown as Report;
+            });
 
             expect(
                 shouldReportBeInOptionList({
@@ -8484,13 +8535,13 @@ describe('ReportUtils', () => {
                 },
             };
 
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountID]: {
                     accountData: {
                         sharees: [reimburserEmail, adminEmail],
                     },
                 },
-            } as unknown as BankAccountList;
+            });
 
             const report: Report = {
                 ...createRandomReport(3, undefined),
@@ -8529,13 +8580,13 @@ describe('ReportUtils', () => {
                 },
             };
 
-            const bankAccountList = {
+            const bankAccountList = createMock<BankAccountList>({
                 [bankAccountID]: {
                     accountData: {
                         sharees: [reimburserEmail, otherAdminEmail],
                     },
                 },
-            } as unknown as BankAccountList;
+            });
 
             const report: Report = {
                 ...createRandomReport(4, undefined),
@@ -10818,14 +10869,14 @@ describe('ReportUtils', () => {
             expect(isWhisperAction(whisperReportAction)).toBe(true);
         });
         it('an action where reportAction.originalMessage.whisperedTo does not exist is not a whisper action', () => {
-            const nonWhisperReportAction = {
+            const nonWhisperReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 message: [
                     {
                         whisperedTo: undefined,
                     },
                 ],
-            } as ReportAction;
+            });
             expect(isWhisperAction(nonWhisperReportAction)).toBe(false);
         });
     });
@@ -10863,7 +10914,7 @@ describe('ReportUtils', () => {
 
         describe('a non-whisper action', () => {
             const report = createRandomReport(1, undefined);
-            const nonWhisperReportAction = {
+            const nonWhisperReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 message: [
@@ -10871,7 +10922,7 @@ describe('ReportUtils', () => {
                         whisperedTo: undefined,
                     },
                 ],
-            } as ReportAction;
+            });
 
             beforeAll(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -10898,7 +10949,7 @@ describe('ReportUtils', () => {
             });
 
             it('cannot be flagged if the action is deleted', () => {
-                const deletedReportAction = {
+                const deletedReportAction = createMock<ReportAction>({
                     ...nonWhisperReportAction,
                     message: [
                         {
@@ -10907,18 +10958,18 @@ describe('ReportUtils', () => {
                             deleted: getRandomDate(),
                         },
                     ],
-                } as ReportAction;
+                });
                 expect(canFlagReportAction(deletedReportAction, report.reportID)).toBe(false);
             });
 
             it('cannot be flagged if the action is a created task report', () => {
-                const createdTaskReportAction = {
+                const createdTaskReportAction = createMock<ReportAction>({
                     ...nonWhisperReportAction,
                     originalMessage: {
                         // This signifies that the action is a created task report along with the ADD_COMMENT action name
                         taskReportID: '123456',
                     },
-                } as ReportAction;
+                });
                 expect(canFlagReportAction(createdTaskReportAction, report.reportID)).toBe(false);
             });
 
@@ -10929,12 +10980,12 @@ describe('ReportUtils', () => {
 
             it('cannot be flagged if the report is not allowed to be commented on', () => {
                 // eslint-disable-next-line rulesdir/no-negated-variables
-                const reportThatCannotBeCommentedOn = {
+                const reportThatCannotBeCommentedOn = createMock<Report>({
                     ...createRandomReport(2, undefined),
 
                     // If the permissions does not contain WRITE, then it cannot be commented on
                     permissions: [],
-                } as Report;
+                });
                 expect(canFlagReportAction(nonWhisperReportAction, reportThatCannotBeCommentedOn.reportID)).toBe(false);
             });
 
@@ -11473,12 +11524,18 @@ describe('ReportUtils', () => {
             };
 
             const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
-            const updatedPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, '', {
-                transactionID: 'transaction-1',
-                amount: 0,
-                created: '2026-05-19 10:00:00',
-                receipt: {source: 'receipt.jpg'},
-            } as Transaction);
+            const updatedPreviewAction = updateReportPreview(
+                iouReport,
+                reportPreviewAction,
+                false,
+                '',
+                createMock<Transaction>({
+                    transactionID: 'transaction-1',
+                    amount: 0,
+                    created: '2026-05-19 10:00:00',
+                    receipt: {source: 'receipt.jpg'},
+                }),
+            );
 
             expect(updatedPreviewAction.childLastActorAccountID).toBe(currentUserAccountID);
         });
@@ -11795,19 +11852,19 @@ describe('ReportUtils', () => {
     });
 
     describe('excludeParticipantsForDisplay', () => {
-        const mockParticipants = {
+        const mockParticipants = createMock<Participants>({
             1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
             3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY},
             4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-        } as Participants;
+        });
 
-        const mockReportMetadata = {
+        const mockReportMetadata = createMock<OnyxEntry<ReportMetadata>>({
             pendingChatMembers: [
                 {accountID: '3', pendingAction: 'delete'},
                 {accountID: '4', pendingAction: 'add'},
             ],
-        } as OnyxEntry<ReportMetadata>;
+        });
 
         it('should return original array when no exclude options provided', () => {
             const participantsIDs = [1, 2, 3, 4];
@@ -11895,12 +11952,12 @@ describe('ReportUtils', () => {
 
         it('should only exclude based on last pending action when multiple actions for same user', () => {
             const participantsIDs = [1, 2, 3];
-            const metadataWithMultipleActions = {
+            const metadataWithMultipleActions = createMock<OnyxEntry<ReportMetadata>>({
                 pendingChatMembers: [
                     {accountID: '3', pendingAction: 'add'},
                     {accountID: '3', pendingAction: 'delete'},
                 ],
-            } as OnyxEntry<ReportMetadata>;
+            });
             const result = excludeParticipantsForDisplay(participantsIDs, mockParticipants, metadataWithMultipleActions, {
                 shouldExcludeDeleted: true,
             });
@@ -12250,7 +12307,7 @@ describe('ReportUtils', () => {
         });
 
         it('should handle empty object as parent report action', () => {
-            const result = shouldExcludeAncestorReportAction({} as ReportAction, true);
+            const result = shouldExcludeAncestorReportAction(createMock<ReportAction>({}), true);
             expect(result).toBe(false);
         });
     });
@@ -12436,10 +12493,10 @@ describe('ReportUtils', () => {
             });
 
             it('should handle undefined policy type gracefully', () => {
-                const policyWithUndefinedType = {
+                const policyWithUndefinedType = createMock<Policy>({
                     ...createRandomPolicy(4),
                     type: undefined,
-                } as unknown as Policy;
+                });
                 expect(shouldEnableNegative(chatReport, policyWithUndefinedType)).toBe(false);
             });
 
@@ -13679,7 +13736,7 @@ describe('ReportUtils', () => {
                 parentReportID: policyExpenseChat.reportID,
             };
 
-            const iouReport = {
+            const iouReport = createMock<Report>({
                 reportName: 'Expense Report 2025-07-10',
                 reportID: '5186125925096828',
                 policyID: policy.id,
@@ -13691,7 +13748,7 @@ describe('ReportUtils', () => {
                 parentReportID: policyExpenseChat.reportID,
                 parentReportActionID: lastReportPreviewAction.reportActionID,
                 chatReportID: policyExpenseChat.reportID,
-            } as Report;
+            });
 
             const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
             expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
@@ -14921,6 +14978,60 @@ describe('ReportUtils', () => {
             });
             expect(result).toBe('Computed Report Name');
         });
+
+        describe('settled report paid with a business bank account', () => {
+            const settledPolicyID = '445';
+            const settledPolicy = {
+                ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: settledPolicyID,
+                achAccount: {
+                    accountNumber: 'XXXXXXXXXXXX0000',
+                },
+            };
+            const settledReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: settledPolicyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const payOriginalMessage = {
+                IOUReportID: settledReport.reportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const payReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: payOriginalMessage,
+            };
+
+            beforeEach(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+            });
+
+            it('shows the bank account from the action accountNumber instead of the policy default', () => {
+                // Given a pay action that carries the masked accountNumber of the bank account actually used
+                const actionWithAccountNumber: ReportAction = {
+                    ...payReportAction,
+                    originalMessage: {...payOriginalMessage, accountNumber: 'XXXXXX4321'},
+                };
+
+                const result = getReportPreviewMessage({reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber});
+
+                // Then the preview shows the last 4 digits of that account, not the policy default
+                expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321'));
+            });
+
+            it('falls back to the policy default bank account when the action has no accountNumber', () => {
+                const result = getReportPreviewMessage({reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction});
+
+                expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
+            });
+        });
     });
 
     describe('isConciergeChatReport', () => {
@@ -14952,13 +15063,13 @@ describe('ReportUtils', () => {
 
     describe('getUnreportedTransactionMessage', () => {
         it('should return unreported transaction message when fromReportID is UNREPORTED_REPORT_ID', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                 originalMessage: {
                     fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -14969,13 +15080,13 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                 originalMessage: {
                     fromReportID: fromReport.reportID,
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getUnreportedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -14986,13 +15097,13 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
                 originalMessage: {
                     fromReportID: fromReport.reportID,
                 },
-            } as unknown as ReportAction;
+            });
 
             const result1 = getUnreportedTransactionMessage(translateLocal, action);
             const result2 = getUnreportedTransactionMessage(translateLocal, action);
@@ -15027,7 +15138,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getAvailableReportFields', () => {
-        const fieldList1 = {
+        const fieldList1 = createMock<NonNullable<Policy['fieldList']>>({
             expensify_field_id_LIST: {
                 type: 'dropdown',
                 values: ['value 1'],
@@ -15035,8 +15146,8 @@ describe('ReportUtils', () => {
                 fieldID: 'field_id_LIST',
                 name: 'field list 1',
             },
-        } as unknown as NonNullable<Policy['fieldList']>;
-        const fieldList2 = {
+        });
+        const fieldList2 = createMock<NonNullable<Policy['fieldList']>>({
             expensify_field_id_LIST_POLICY: {
                 type: 'dropdown',
                 values: ['value 1'],
@@ -15044,25 +15155,25 @@ describe('ReportUtils', () => {
                 fieldID: 'field_id_LIST_POLICY',
                 name: 'field list 2',
             },
-        } as unknown as NonNullable<Policy['fieldList']>;
+        });
 
         it('should return report fieldList if report is settled', async () => {
-            const settledReport = {
+            const settledReport = createMock<Report>({
                 reportID: '1',
                 policyID: '1',
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 fieldList: fieldList1,
-            } as Report;
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
             expect(getAvailableReportFields(settledReport, Object.values(fieldList2))).toEqual(Object.values(fieldList1));
         });
 
         it('should merge report and policy field list', async () => {
-            const report = {
+            const report = createMock<Report>({
                 reportID: '2',
                 policyID: '1',
                 fieldList: fieldList1,
-            } as Report;
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             const mergedFieldList = [
                 {
@@ -15084,13 +15195,13 @@ describe('ReportUtils', () => {
         });
 
         it('should overwrite report fieldList disabledOptions and values if field list exists in both report and policy', async () => {
-            const report = {
+            const report = createMock<Report>({
                 reportID: '2',
                 policyID: '1',
                 fieldList: fieldList1,
-            } as Report;
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            const policyFieldList = [
+            const policyFieldList = createMock<PolicyReportField[]>([
                 {
                     type: 'dropdown',
                     values: ['value 2'],
@@ -15105,8 +15216,8 @@ describe('ReportUtils', () => {
                     fieldID: 'field_id_LIST_2',
                     name: 'field list',
                 },
-            ] as unknown as PolicyReportField[];
-            const expectedFieldList = [
+            ]);
+            const expectedFieldList = createMock<PolicyReportField[]>([
                 {
                     type: 'dropdown',
                     values: ['value 2'],
@@ -15121,7 +15232,7 @@ describe('ReportUtils', () => {
                     fieldID: 'field_id_LIST_2',
                     name: 'field list',
                 },
-            ] as unknown as PolicyReportField[];
+            ]);
             expect(getAvailableReportFields(report, policyFieldList)).toEqual(expectedFieldList);
         });
     });
@@ -15337,29 +15448,29 @@ describe('ReportUtils', () => {
 
     describe('shouldHideSingleReportField', () => {
         it('should return true if report field has title type', () => {
-            const reportField = {
+            const reportField = createMock<PolicyReportField>({
                 fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
-            } as PolicyReportField;
+            });
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
         it('should return false if report field is not of type list', () => {
-            const reportField = {
+            const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
-            } as PolicyReportField;
+            });
             expect(shouldHideSingleReportField(reportField)).toBe(false);
         });
         it('should return false if list report field has some options enabled', () => {
-            const reportField = {
+            const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.LIST,
                 disabledOptions: [false, true, false],
-            } as PolicyReportField;
+            });
             expect(shouldHideSingleReportField(reportField)).toBe(false);
         });
         it('should return false if all items in list report field are disabled', () => {
-            const reportField = {
+            const reportField = createMock<PolicyReportField>({
                 type: CONST.REPORT_FIELD_TYPES.LIST,
                 disabledOptions: [true, true, true],
-            } as PolicyReportField;
+            });
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
@@ -16215,17 +16326,7 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
@@ -16268,17 +16369,7 @@ describe('ReportUtils', () => {
 
                 // Then it should automatically pick the available policy and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
@@ -16308,16 +16399,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CATEGORIZE,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: transaction.transactionID,
-                            reportID: '1',
-                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            shouldSubmitExpense: true,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CATEGORIZE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: transaction.transactionID,
+                        reportID: '1',
+                        backTo: '',
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldSubmitExpense: true,
+                    }),
                 );
             });
 
@@ -16360,16 +16450,15 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CATEGORIZE,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            transactionID: transaction.transactionID,
-                            reportID: '1',
-                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            shouldSubmitExpense: true,
-                        }),
-                    ),
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.CATEGORIZE,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: transaction.transactionID,
+                        reportID: '1',
+                        backTo: '',
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldSubmitExpense: true,
+                    }),
                 );
             });
 
@@ -16456,17 +16545,7 @@ describe('ReportUtils', () => {
                 // Then it should NOT navigate to restricted action page, but to category step
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            CONST.IOU.TYPE.SUBMIT,
-                            transaction.transactionID,
-                            policyExpenseReport.reportID,
-                            undefined,
-                            true,
-                        ),
-                    ),
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.TYPE.SUBMIT, transaction.transactionID, policyExpenseReport.reportID),
                 );
             });
 
@@ -16659,7 +16738,7 @@ describe('ReportUtils', () => {
         it('should return true when a money request action has errors matching the transaction', () => {
             const reportID = '125';
             const transaction = createRandomTransaction(3);
-            const reportAction: ReportAction = {
+            const reportAction: ReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(3),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
@@ -16667,7 +16746,7 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
                 errors: {transactionError: 'Transaction has an error'},
-            } as ReportAction;
+            });
             const reportActions = {
                 [reportAction.reportActionID]: reportAction,
             };
@@ -16680,7 +16759,7 @@ describe('ReportUtils', () => {
             const reportID = '126';
             const transaction = createRandomTransaction(4);
             const differentTransaction = createRandomTransaction(5);
-            const reportAction: ReportAction = {
+            const reportAction: ReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(4),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
@@ -16688,7 +16767,7 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
                 errors: {transactionError: 'Transaction has an error'},
-            } as ReportAction;
+            });
             const reportActions = {
                 [reportAction.reportActionID]: reportAction,
             };
@@ -16770,7 +16849,7 @@ describe('ReportUtils', () => {
 
         it('should add the transaction ID for a money request action with errors', () => {
             const transaction = createRandomTransaction(12);
-            const reportAction: ReportAction = {
+            const reportAction: ReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(12),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
@@ -16778,7 +16857,7 @@ describe('ReportUtils', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
                 errors: {transactionError: 'Transaction has an error'},
-            } as ReportAction;
+            });
             const reportActions = {
                 [reportAction.reportActionID]: reportAction,
             };
@@ -16789,14 +16868,14 @@ describe('ReportUtils', () => {
         });
 
         it('should flag a global action error for a money request action with errors but no IOUTransactionID', () => {
-            const reportAction: ReportAction = {
+            const reportAction: ReportAction = createMock<ReportAction>({
                 ...createRandomReportAction(13),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
                 errors: {transactionError: 'Transaction has an error'},
-            } as ReportAction;
+            });
             const reportActions = {
                 [reportAction.reportActionID]: reportAction,
             };
@@ -16832,7 +16911,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return empty string when report is an empty object', () => {
-            const result = getPolicyName({report: {} as Report, returnEmptyIfNotFound: true});
+            const result = getPolicyName({report: createMock<Report>({}), returnEmptyIfNotFound: true});
             expect(result).toBe('');
         });
 
@@ -17014,6 +17093,42 @@ describe('ReportUtils', () => {
             // Cleanup
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, null);
         });
+
+        it('should use unavailableTranslation param as fallback when no policy is found', () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+            const result = getPolicyName({report, unavailableTranslation: 'Custom Unavailable'});
+            expect(result).toBe('Custom Unavailable');
+        });
+
+        it('should prefer unavailableTranslation param over cached module-level translation', () => {
+            const result = getPolicyName({report: null, unavailableTranslation: 'Passed In'});
+            expect(result).toBe('Passed In');
+        });
+
+        it('should not use unavailableTranslation when returnEmptyIfNotFound is true', () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+            const result = getPolicyName({report, returnEmptyIfNotFound: true});
+            expect(result).toBe('');
+        });
+
+        it('should not use unavailableTranslation when a valid policy name exists', () => {
+            const result = getPolicyName({
+                report: testReport,
+                policy: testPolicy,
+                unavailableTranslation: 'Should Not Appear',
+            });
+            expect(result).toBe('Test Policy Name');
+        });
     });
 
     describe('getBillableAndTaxTotal', () => {
@@ -17178,10 +17293,10 @@ describe('ReportUtils', () => {
 
         it('should return reportID when reportActions is undefined but reportAction has no reportActionID', () => {
             const reportID = '123';
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 ...createRandomReportAction(1),
                 reportActionID: undefined,
-            } as unknown as ReportAction;
+            });
 
             const result = getOriginalReportID(reportID, reportAction, undefined);
             expect(result).toBe(reportID);
@@ -17642,12 +17757,12 @@ describe('ReportUtils', () => {
     });
 
     describe('getTransactionSortValue', () => {
-        const mockReport: Report = {
+        const mockReport: Report = createMock<Report>({
             reportID: 'test-report-id',
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
+        });
 
-        const mockPolicy = {
+        const mockPolicy = createMock<Policy>({
             id: 'test-policy-id',
             name: 'Test Policy',
             role: CONST.POLICY.ROLE.ADMIN,
@@ -17663,10 +17778,10 @@ describe('ReportUtils', () => {
                     },
                 },
             },
-        } as unknown as Policy;
+        });
 
         const createMockTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
-            ({
+            createMock<Transaction>({
                 transactionID: 'test-transaction-id',
                 reportID: 'test-report-id',
                 amount: 0,
@@ -17678,7 +17793,7 @@ describe('ReportUtils', () => {
                 billable: false,
                 reimbursable: true,
                 ...overrides,
-            }) as Transaction;
+            });
 
         it('should return created date for DATE column', () => {
             const transaction = createMockTransaction({created: '2024-01-15'});
@@ -17825,7 +17940,7 @@ describe('ReportUtils', () => {
 
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
-        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
+        const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const policyID = '5001';
         const iouReportID = 'reportABC';
         const ownerAccountID = 999;
@@ -17874,12 +17989,12 @@ describe('ReportUtils', () => {
             });
 
             it('should navigate to restricted action when non-personal policy owner is past due', async () => {
-                const testPolicy = {
+                const testPolicy = createMock<Policy>({
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
-                } as Policy;
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
@@ -17908,11 +18023,11 @@ describe('ReportUtils', () => {
 
         describe('ADD_EXISTING_EXPENSE', () => {
             it('should navigate to restricted action when policy owner is past due', async () => {
-                const testPolicy = {
+                const testPolicy = createMock<Policy>({
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
-                } as Policy;
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
@@ -17940,11 +18055,11 @@ describe('ReportUtils', () => {
 
             it('should pass ownerBillingGracePeriodEnd to restrict owner with past-due billing', async () => {
                 const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
-                const testPolicy = {
+                const testPolicy = createMock<Policy>({
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID: currentUserAccountID,
-                } as Policy;
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
                 await waitForBatchedUpdates();
@@ -18264,7 +18379,7 @@ describe('ReportUtils', () => {
 
     describe('getDeletedTransactionMessage', () => {
         it('should return a formatted deleted transaction message', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
                 originalMessage: {
@@ -18272,7 +18387,7 @@ describe('ReportUtils', () => {
                     currency: 'USD',
                     merchant: 'Starbucks',
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getDeletedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -18280,11 +18395,11 @@ describe('ReportUtils', () => {
         });
 
         it('should handle missing amount and currency gracefully', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
                 originalMessage: {},
-            } as unknown as ReportAction;
+            });
 
             const result = getDeletedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -18296,13 +18411,13 @@ describe('ReportUtils', () => {
             const toReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {
                     toReportID: toReport.reportID,
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -18313,14 +18428,14 @@ describe('ReportUtils', () => {
             const fromReport = LHNTestUtils.getFakeReport();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {
                     fromReportID: fromReport.reportID,
                     toReportID: '99999',
                 },
-            } as unknown as ReportAction;
+            });
 
             const result = getMovedTransactionMessage(translateLocal, action);
             expect(typeof result).toBe('string');
@@ -18330,10 +18445,10 @@ describe('ReportUtils', () => {
 
     describe('getMovedActionMessage', () => {
         it('should return empty string for non-moved action', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            } as unknown as ReportAction;
+            });
 
             const report = LHNTestUtils.getFakeReport();
             const result = getMovedActionMessage(translateLocal, action, report);
@@ -18341,11 +18456,11 @@ describe('ReportUtils', () => {
         });
 
         it('should return empty string when original message is missing', () => {
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                 originalMessage: undefined,
-            } as unknown as ReportAction;
+            });
 
             const report = LHNTestUtils.getFakeReport();
             const result = getMovedActionMessage(translateLocal, action, report);
@@ -18356,7 +18471,7 @@ describe('ReportUtils', () => {
             const testPolicy = createRandomPolicy(0);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicy.id}`, testPolicy);
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                 originalMessage: {
@@ -18364,7 +18479,7 @@ describe('ReportUtils', () => {
                     newParentReportID: '11111',
                     movedReportID: '22222',
                 },
-            } as unknown as ReportAction;
+            });
 
             const report = LHNTestUtils.getFakeReport();
             const result = getMovedActionMessage(translateLocal, action, report);
@@ -18637,7 +18752,7 @@ describe('ReportUtils', () => {
         const actorAccountID = 42;
 
         const buildIOUAction = (overrides?: Partial<ReportAction>) =>
-            ({
+            createMock<ReportAction>({
                 ...buildOptimisticIOUReportAction({
                     type: 'create',
                     amount: 100,
@@ -18649,7 +18764,7 @@ describe('ReportUtils', () => {
                 }),
                 actorAccountID,
                 ...overrides,
-            }) as ReportAction;
+            });
 
         const buildExpenseReport = () =>
             buildOptimisticExpenseReport({
@@ -18787,41 +18902,41 @@ describe('ReportUtils', () => {
 
     describe('hasExportError', () => {
         it('returns true when report.hasExportError is true', () => {
-            const report = {hasExportError: true} as Report;
+            const report = createMock<Report>({hasExportError: true});
             expect(hasExportError([], report)).toBe(true);
         });
 
         it('returns true when errorFields.export is populated but hasExportError is false', () => {
-            const report = {
+            const report = createMock<Report>({
                 hasExportError: false,
                 errorFields: {export: {'1708946640843000': 'export failed'}},
-            } as unknown as Report;
+            });
             expect(hasExportError([], report)).toBe(true);
         });
 
         it('returns false when errorFields.export is cleared', () => {
-            const report = {
+            const report = createMock<Report>({
                 hasExportError: false,
                 errorFields: {export: null},
-            } as unknown as Report;
+            });
             expect(hasExportError([], report)).toBe(false);
         });
 
         it('returns true when an integration message action exists in reportActions', () => {
-            const report = {hasExportError: false} as Report;
-            const reportActions = [
+            const report = createMock<Report>({hasExportError: false});
+            const reportActions = createMock<ReportAction[]>([
                 {
                     actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
                     reportActionID: '1',
                     created: '2024-01-01',
                 },
-            ] as ReportAction[];
+            ]);
             expect(hasExportError(reportActions, report)).toBe(true);
         });
     });
 
     describe('getReportFieldsByPolicyID', () => {
-        const mockFieldList = {
+        const mockFieldList = createMock<NonNullable<Policy['fieldList']>>({
             expensify_title: {
                 fieldID: 'title',
                 name: 'title',
@@ -18834,45 +18949,48 @@ describe('ReportUtils', () => {
                 type: 'text',
                 defaultValue: '',
             },
-        } as unknown as NonNullable<Policy['fieldList']>;
+        });
 
         it('returns empty object when policy is undefined', () => {
             expect(getReportFieldsByPolicyID(undefined)).toEqual({});
         });
 
         it('returns empty object when policy has no id', () => {
-            const testPolicy = {fieldList: mockFieldList} as unknown as Policy;
+            const testPolicy = createMock<Policy>({fieldList: mockFieldList});
             expect(getReportFieldsByPolicyID(testPolicy)).toEqual({});
         });
 
         it('returns fieldList from policy when policy has fieldList', () => {
-            const testPolicy = {id: 'policyA', fieldList: mockFieldList} as unknown as Policy;
+            const testPolicy = createMock<Policy>({id: 'policyA', fieldList: mockFieldList});
             expect(getReportFieldsByPolicyID(testPolicy)).toEqual(mockFieldList);
         });
 
         it('returns empty object when policy has no fieldList', () => {
-            const testPolicy = {id: 'policyA'} as unknown as Policy;
+            const testPolicy = createMock<Policy>({id: 'policyA'});
             expect(getReportFieldsByPolicyID(testPolicy)).toEqual({});
         });
 
         it('prefers policy over policyDraft when both exist', async () => {
             const testPolicyID = 'bothExist';
-            const draftFieldList = {
+            const draftFieldList = createMock<NonNullable<Policy['fieldList']>>({
                 expensify_draft_field: {
                     fieldID: 'draft_field',
                     name: 'draft field',
                     type: 'text',
                     defaultValue: 'draft',
                 },
-            } as unknown as NonNullable<Policy['fieldList']>;
+            });
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`, {
-                id: testPolicyID,
-                fieldList: draftFieldList,
-            } as unknown as Policy);
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`,
+                createMock<Policy>({
+                    id: testPolicyID,
+                    fieldList: draftFieldList,
+                }),
+            );
             await waitForBatchedUpdates();
 
-            const testPolicy = {id: testPolicyID, fieldList: mockFieldList} as unknown as Policy;
+            const testPolicy = createMock<Policy>({id: testPolicyID, fieldList: mockFieldList});
             expect(getReportFieldsByPolicyID(testPolicy)).toEqual(mockFieldList);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${testPolicyID}`, null);
@@ -18881,20 +18999,20 @@ describe('ReportUtils', () => {
 
     describe('canModifyHoldStatus', () => {
         const makeReport = (overrides: Partial<Report> = {}): Report =>
-            ({
+            createMock<Report>({
                 reportID: '1',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: currentUserAccountID,
                 ...overrides,
-            }) as Report;
+            });
 
         const makeReportAction = (overrides: Partial<ReportAction> = {}): ReportAction =>
-            ({
+            createMock<ReportAction>({
                 reportActionID: '100',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: currentUserAccountID,
                 ...overrides,
-            }) as ReportAction;
+            });
 
         it('returns false for non-money-request reports', () => {
             const chatReport = makeReport({type: CONST.REPORT.TYPE.CHAT});
@@ -18974,39 +19092,39 @@ describe('ReportUtils', () => {
     describe('getBankAccountRoute', () => {
         it('returns the policy bank account setup route when the report is a policy expense chat', () => {
             const policyID = 'POLICY_EXP_1';
-            const report = {
+            const report = createMock<Report>({
                 reportID: '1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 policyID,
-            } as Report;
+            });
 
             expect(getBankAccountRoute(report, undefined)).toBe(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: 'mock-route'}));
         });
 
         it('returns the workspace invoices route when the report is a business invoice room and areInvoicesEnabled is true', () => {
             const invoiceReceiverPolicyID = 'POLICY_INVOICE_1';
-            const report = {
+            const report = createMock<Report>({
                 reportID: '2',
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
                 invoiceReceiver: {
                     type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
                     policyID: invoiceReceiverPolicyID,
                 },
-            } as Report;
+            });
 
             expect(getBankAccountRoute(report, true)).toBe(ROUTES.WORKSPACE_INVOICES.getRoute(invoiceReceiverPolicyID));
         });
 
         it('returns the personal add bank account route when the report is a business invoice room and areInvoicesEnabled is false', () => {
             const invoiceReceiverPolicyID = 'POLICY_INVOICE_2';
-            const report = {
+            const report = createMock<Report>({
                 reportID: '3',
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
                 invoiceReceiver: {
                     type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
                     policyID: invoiceReceiverPolicyID,
                 },
-            } as Report;
+            });
 
             expect(getBankAccountRoute(report, false)).toBe(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
         });
@@ -19017,126 +19135,126 @@ describe('shouldShowMarkAsDone', () => {
     const otherAccountID = 42;
 
     it('should return false when user is not a track-intent user', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: 'report1',
             ownerAccountID: currentUserAccountID,
             managerID: currentUserAccountID,
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
-        const testPolicy = {
+        });
+        const testPolicy = createMock<Policy>({
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
-        } as Policy;
+        });
 
         expect(shouldShowMarkAsDone({isTrackIntentUser: false, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when policy is not submit-and-close', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: 'report1',
             ownerAccountID: currentUserAccountID,
             managerID: currentUserAccountID,
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
-        const testPolicy = {
+        });
+        const testPolicy = createMock<Policy>({
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             type: CONST.POLICY.TYPE.TEAM,
-        } as Policy;
+        });
 
         expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when user does not own the report', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: 'report1',
             ownerAccountID: otherAccountID,
             managerID: otherAccountID,
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
-        const testPolicy = {
+        });
+        const testPolicy = createMock<Policy>({
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
-        } as Policy;
+        });
 
         expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when next approver is different from owner', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: 'report1',
             ownerAccountID: currentUserAccountID,
             managerID: otherAccountID,
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
-        const testPolicy = {
+        });
+        const testPolicy = createMock<Policy>({
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
-        } as Policy;
+        });
 
         expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when isTrackIntentUser is undefined', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: 'report1',
             ownerAccountID: currentUserAccountID,
             managerID: currentUserAccountID,
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
-        const testPolicy = {
+        });
+        const testPolicy = createMock<Policy>({
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
-        } as Policy;
+        });
 
         expect(shouldShowMarkAsDone({isTrackIntentUser: undefined, report, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when report is undefined', () => {
-        const testPolicy = {
+        const testPolicy = createMock<Policy>({
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
-        } as Policy;
+        });
 
         expect(shouldShowMarkAsDone({isTrackIntentUser: true, report: undefined, policy: testPolicy})).toBe(false);
     });
 
     it('should return false when policy is undefined', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: 'report1',
             ownerAccountID: currentUserAccountID,
             managerID: currentUserAccountID,
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
+        });
 
         expect(shouldShowMarkAsDone({isTrackIntentUser: true, report, policy: undefined})).toBe(false);
     });
 
     it('should return true when user is track-intent, policy is submit-and-close, user owns report, and submits to self', async () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: 'report1',
             ownerAccountID: currentUserAccountID,
             managerID: currentUserAccountID,
             policyID,
             type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
-        const testPolicy = {
+        });
+        const testPolicy = createMock<Policy>({
             id: policyID,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             type: CONST.POLICY.TYPE.TEAM,
             owner: currentUserEmail,
-        } as Policy;
+        });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},

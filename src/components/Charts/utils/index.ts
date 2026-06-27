@@ -1,7 +1,8 @@
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import {scaleLinear} from 'd3-scale';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 import variables from '@styles/variables';
 
 /** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
@@ -403,70 +404,44 @@ function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, ha
     return cursorX >= targetX - padding && cursorX <= targetX + padding && cursorY >= yMin90 && cursorY <= yMax90;
 }
 
-/**
- * Computes the D3 nice step size for a given range and tick count.
- * Mirrors D3's tickStep logic (1 / 2 / 5 / 10 multiples of the magnitude).
- */
-function getNiceStep(range: number, tickCount: number): number {
-    const intervals = tickCount - 1;
-    const roughStep = range / intervals;
-    const magnitude = 10 ** Math.floor(Math.log10(roughStep));
-    const normalized = roughStep / magnitude;
-    // D3 nice steps: 1, 2, 5, 10 (powers of 10)
-    if (normalized >= 5) {
-        return 5 * magnitude;
+/** Predicts Y-axis tick values that victory-native will generate from the data extremes. */
+function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: number, padTop = 0, padBottom = 0, chartHeight = CHART_Y_SCALE_HEIGHT): number[] {
+    if (tickCount <= 0) {
+        return [];
     }
-    if (normalized >= 2) {
-        return 2 * magnitude;
+    if (tickCount === 1) {
+        return [rawDataMax];
     }
-    return magnitude;
+
+    const effectiveMin = rawDataMin > 0 ? 0 : rawDataMin;
+
+    const range = rawDataMax - effectiveMin;
+    const [paddedMin, paddedMax] =
+        effectiveMin === rawDataMax ? [effectiveMin - 1, rawDataMax + 1] : [effectiveMin - range * (padBottom / chartHeight), rawDataMax + range * (padTop / chartHeight)];
+
+    return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
-/**
- * Predicts the highest Y-axis tick value that Victory-native will generate.
- *
- * Victory (via D3) applies a "nice" algorithm that rounds the domain upper bound up
- * to the next clean tick step. Pass rawMin when negative values are present so that
- * the step is computed from the full range (rawMax − rawMin) rather than rawMax alone.
- */
-function getNiceUpperBound(rawMax: number, tickCount: number, rawMin = 0): number {
-    const range = rawMax - rawMin;
-    if (range <= 0 || tickCount <= 1) {
-        return rawMax;
+/** Returns the pixel width needed for Y-axis labels given the chart data. */
+function getYAxisLabelWidth(
+    data: ChartDataPoint[],
+    formatValue: (value: number) => string,
+    fontMgr: SkTypefaceFontProvider | null,
+    fontSize: number,
+    domainPadding: {top: number; bottom: number},
+): number {
+    if (!fontMgr) {
+        return 0;
     }
-    const niceStep = getNiceStep(range, tickCount);
-    return Math.ceil(rawMax / niceStep) * niceStep;
-}
-
-/**
- * Predicts the lowest Y-axis tick value that Victory-native will generate.
- *
- * Mirrors D3's nice algorithm for the lower domain bound: floors rawMin to the
- * nearest nice step derived from the full range (rawMax − rawMin).
- */
-function getNiceLowerBound(rawMin: number, tickCount: number, rawMax = 0): number {
-    if (rawMin >= 0) {
-        return rawMin;
-    }
-    const range = rawMax - rawMin;
-    if (range <= 0 || tickCount <= 1) {
-        return rawMin;
-    }
-    const niceStep = getNiceStep(range, tickCount);
-    return Math.floor(rawMin / niceStep) * niceStep;
-}
-
-/**
- * Returns the pixel width needed for Y-axis labels given the data extremes.
- *
- * Both nice bounds are measured because negative labels (e.g. "−2 000 zł") are
- * typically wider than their positive counterparts. Pass rawDataMin = 0 when
- * there are no negative values.
- */
-function getYAxisLabelWidth(rawDataMax: number, rawDataMin: number, tickCount: number, formatValue: (value: number) => string, fontMgr: SkTypefaceFontProvider, fontSize: number): number {
-    const niceMax = getNiceUpperBound(rawDataMax, tickCount, rawDataMin);
-    const niceMin = getNiceLowerBound(rawDataMin, tickCount, rawDataMax);
-    return Math.max(measureTextWidth(formatValue(niceMax), fontMgr, fontSize), measureTextWidth(formatValue(niceMin), fontMgr, fontSize));
+    const totals = data.map((p) => p.total);
+    const rawDataMax = totals.length ? Math.max(...totals) : 0;
+    const rawDataMin = totals.length ? Math.min(...totals) : 0;
+    return Math.max(
+        0,
+        ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
+            measureTextWidth(formatValue(tick), fontMgr, fontSize),
+        ),
+    );
 }
 
 export {
@@ -491,8 +466,7 @@ export {
     edgeMaxLabelWidth,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
-    getNiceUpperBound,
-    getNiceLowerBound,
+    getNiceYAxisTicks,
     getYAxisLabelWidth,
 };
 

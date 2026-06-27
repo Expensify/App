@@ -3275,9 +3275,9 @@ const translations = {
                     `),
             },
             combinedTrackSubmitExpenseTask: {
-                title: 'Submit an expense',
+                title: 'Create an expense',
                 description: dedent(`
-                    *Submit an expense* by entering an amount or scanning a receipt.
+                    *Create an expense* by entering an amount or scanning a receipt.
 
                     1. Click the *+* button.
                     2. Choose *Create expense*.
@@ -3289,9 +3289,9 @@ const translations = {
                 `),
             },
             adminSubmitExpenseTask: {
-                title: 'Submit an expense',
+                title: 'Create an expense',
                 description: dedent(`
-                    *Submit an expense* by entering an amount or scanning a receipt.
+                    *Create an expense* by entering an amount or scanning a receipt.
 
                     1. Click the *+* button.
                     2. Choose *Create expense*.
@@ -3722,6 +3722,7 @@ const translations = {
             companyName: 'Please enter a valid business name',
             addressCity: 'Please enter a valid city',
             addressStreet: 'Please enter a valid street address',
+            physicalAddressRequired: 'A physical address is required. PO boxes and mail drops are not accepted.',
             addressState: 'Please select a valid state',
             incorporationDateFuture: "Incorporation date can't be in the future",
             incorporationState: 'Please select a valid state',
@@ -3938,12 +3939,14 @@ const translations = {
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         legalName: 'Legal name',
+        legalNameSubtitle: 'Please enter your full legal name as it appears on your ID.',
         enterYourDateOfBirth: "What's your date of birth?",
         enterTheLast4: 'What are the last four digits of your Social Security Number?',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         last4SSN: 'Last 4 of SSN',
         enterYourAddress: "What's your address?",
         address: 'Address',
+        addressSubtitle: 'A physical address is required. PO boxes and mail drops are not accepted.',
         letsDoubleCheck: "Let's double check that everything looks right.",
         byAddingThisBankAccount: "By adding this bank account, you confirm that you've read, understand, and accept",
         whatsYourLegalName: 'What’s your legal name?',
@@ -4079,6 +4082,7 @@ const translations = {
         regulationRequiresUsToVerifyTheIdentity: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
         companyOwner: 'Business owner',
         enterLegalFirstAndLastName: "What's the owner's legal name?",
+        legalNameSubtitle: "Please enter the owner's full legal name as it appears on their ID.",
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         enterTheDateOfBirthOfTheOwner: "What's the owner's date of birth?",
@@ -4574,6 +4578,8 @@ const translations = {
             },
             roleName: (role?: string) => {
                 switch (role) {
+                    case CONST.POLICY.ROLE.OWNER:
+                        return 'Owner';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Workspace Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -4620,7 +4626,7 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: (displayName: string) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
-            travelInvoicing: 'Export travel invoicing expenses as',
+            travelInvoicing: 'Export Consolidated Travel Billing expenses as',
             travelInvoicingVendor: 'Travel vendor',
             travelInvoicingPayableAccount: 'Travel payable account',
         },
@@ -5130,8 +5136,12 @@ const translations = {
             noCompaniesFoundDescription: 'Please sync the connection again after companies are added in Certinia.',
             prerequisites: {
                 title: 'Before you connect',
-                installBundle: 'For FFA Connections',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
+                installBundle: 'Install the Expensify bundle',
+                installBundlePSAHeader: 'For PSA/SRP Connections:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install PSA/SRP Expensify Bundle (Version ${version})</a>`,
+                installBundleFFAHeader: 'For FFA Connections:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
                     `Install the Expensify bundle in Salesforce by clicking this link: <a href="${href}">Install FFA Expensify Bundle (Version ${version})</a>`,
                 installBundleConfirm: "I've installed the bundle",
                 setupContacts: 'Set up user and contacts',
@@ -5858,8 +5868,8 @@ const translations = {
             travel: {
                 title: 'Travel',
                 subtitle: 'Book, manage, and reconcile all your business travel.',
-                disableTravelTitle: 'Turn off Travel Invoicing first',
-                disableTravelPrompt: 'Travel Invoicing is enabled for this workspace. Turn it off before you can disable Travel.',
+                disableTravelTitle: 'Turn off Consolidated Travel Billing first',
+                disableTravelPrompt: 'Consolidated Travel Billing is enabled for this workspace. Turn it off before you can disable Travel.',
                 disableTravelButton: 'Go to Travel settings',
                 getStarted: {
                     title: 'Get started with Expensify Travel',
@@ -5889,8 +5899,8 @@ const translations = {
                         manageTravelLabel: 'Manage travel',
                     },
                     travelInvoicingSection: {
-                        title: 'Travel invoicing',
-                        subtitle: 'Centralize all travel spend in a monthly invoice instead of paying at time of purchase.',
+                        title: 'Consolidated Travel Billing',
+                        subtitle: 'Centralize all travel spend in a monthly bill instead of paying at time of purchase.',
                         learnHow: 'Learn how.',
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
@@ -5905,16 +5915,16 @@ const translations = {
                             reduceLimitTitle: 'Reduce travel spend limit?',
                             reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
                             provisioningError:
-                                "We weren't able to provision some of the members of your workspace for travel invoicing. Please try again later or reach out to Concierge for assistance.",
+                                "We weren't able to provision some of the members of your workspace for Consolidated Travel Billing. Please try again later or reach out to Concierge for assistance.",
                         },
                     },
                     disableModal: {
-                        title: 'Turn off Travel Invoicing?',
+                        title: 'Turn off Consolidated Travel Billing?',
                         body: 'Upcoming hotel and car rental reservations may need to be re-booked with a different payment method to avoid cancellation.',
                         confirm: 'Turn off',
                     },
                     outstandingBalanceModal: {
-                        title: "Can't turn off Travel Invoicing",
+                        title: "Can't turn off Consolidated Travel Billing",
                         body: 'You still have an outstanding travel balance. Please pay your balance first.',
                         confirm: 'Got it',
                     },
@@ -5926,8 +5936,8 @@ const translations = {
                     exportToCSV: 'Export to CSV',
                     selectDateRangeError: 'Please select a date range to export',
                     invalidDateRangeError: 'The start date must be before the end date',
-                    enabled: 'Travel Invoicing enabled!',
-                    enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly invoice.',
+                    enabled: 'Consolidated Travel Billing enabled!',
+                    enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly bill.',
                 },
                 personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
             },
@@ -6412,6 +6422,7 @@ const translations = {
             approvers: 'Approvers',
             auditors: 'Auditors',
             editors: 'Editors',
+            members: 'Members',
             emptyRoleFilter: {
                 title: 'No members match this filter',
                 subtitle: 'Invite a member or change the filter above.',
@@ -6768,18 +6779,18 @@ const translations = {
             cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
-            syncTravelInvoicingSettlements: 'Sync travel invoicing settlements',
+            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
                 `<muted-text-label>In order to enable Continuous Reconciliation, please enable <a href="${accountingAdvancedSettingsLink}">auto-sync</a> for ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
-                chooseTravelInvoicingBankAccount: 'Choose the bank account that your travel invoicing payments will be reconciled against.',
+                chooseTravelInvoicingBankAccount: 'Choose the bank account that your Consolidated Travel Billing payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
-                    `Make sure this account matches your travel invoicing settlement account (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+                    `Make sure this account matches your Consolidated Travel Billing settlement account (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
         hr: {
@@ -7702,6 +7713,8 @@ const translations = {
             agentRules: {
                 title: 'Agent rules',
                 subtitle: 'Set rules for how AI agents handle expenses on this workspace.',
+                enforcedBy: 'Agent rules are enforced by',
+                ruleBotName: 'RuleBot',
                 addRule: 'Add agent rule',
                 findRule: 'Find agent rule',
                 addRuleTitle: 'Add rule',
@@ -8235,7 +8248,7 @@ const translations = {
                 case 'Expensify Cards':
                     return `${enabled ? 'enabled' : 'disabled'} Expensify Cards`;
                 case 'travel invoicing':
-                    return `${enabled ? 'enabled' : 'disabled'} travel invoicing`;
+                    return `${enabled ? 'enabled' : 'disabled'} Consolidated Travel Billing`;
                 case 'company cards':
                     return `${enabled ? 'enabled' : 'disabled'} company cards`;
                 case 'invoicing':
@@ -8612,7 +8625,7 @@ const translations = {
             },
             card: {
                 expensify: 'Expensify',
-                travelInvoicing: 'Travel invoicing',
+                travelInvoicing: 'Consolidated Travel Billing',
                 individualCards: 'Individual cards',
                 closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
@@ -8652,7 +8665,7 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Travel invoicing',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Consolidated Travel Billing',
             },
             is: 'Is',
             action: {
@@ -8697,6 +8710,12 @@ const translations = {
         noMerchant: 'No merchant',
         noTag: 'No tag',
         expenseType: 'Expense type',
+        receiptType: 'Receipt type',
+        receiptTypeValues: {
+            ereceipt: 'eReceipt',
+            itemized: 'Itemized',
+            hotel: 'Hotel',
+        },
         withdrawalType: 'Withdrawal type',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
@@ -9053,7 +9072,7 @@ const translations = {
         personalCard: 'Personal card',
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
-        travelInvoicing: 'Travel invoicing',
+        travelInvoicing: 'Consolidated Travel Billing',
         travelCard: 'Travel Card',
     },
     distance: {

@@ -71,7 +71,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
-    const selectableRows = processedData.filter((row) => !row.disabled && !row.isDisabledCheckbox);
+    const selectableRows = processedData.filter((row) => !row.disabled && !row.isSelectionDisabled);
     const hasSelectableRows = selectableRows.length > 0;
     let isSelectionIndeterminate = false;
     let isEverySelectableRowSelected = hasSelectableRows;
@@ -80,8 +80,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     // consider all active rows to be selected
     if (isSelectionCheckboxVisible) {
         for (const row of selectableRows) {
-            isSelectionIndeterminate = row.selected || isSelectionIndeterminate;
-            isEverySelectableRowSelected = row.selected && isEverySelectableRowSelected;
+            isSelectionIndeterminate = !!row.selected || isSelectionIndeterminate;
+            isEverySelectableRowSelected = !!row.selected && isEverySelectableRowSelected;
         }
     }
 
@@ -89,7 +89,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                styles.ph3,
+                shouldUseNarrowTableLayout && !isSelectionCheckboxVisible ? styles.ph4 : styles.ph3,
                 styles.mh5,
                 styles.highlightBG,
                 styles.borderBottom,
