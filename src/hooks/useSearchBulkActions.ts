@@ -521,7 +521,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserPersonalDetails.accountID,
     ]);
 
-    const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
+    const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
