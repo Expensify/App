@@ -17,6 +17,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isExpenseUnreported, isManagedCardTransaction} from '@libs/TransactionUtils';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +49,7 @@ function SearchTransactionsChangeReport() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
+    const hasUnreportedManagedCardTransactions = transactions.some((transaction) => isExpenseUnreported(transaction) && isManagedCardTransaction(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -63,7 +65,12 @@ function SearchTransactionsChangeReport() {
     // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
     // This ensures the "Create report" button shows the correct workspace instead of the user's default
     const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReportPolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(
+        hasPerDiemTransactions,
+        undefined,
+        selectedReportPolicyID,
+        hasUnreportedManagedCardTransactions,
+    );
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
@@ -275,6 +282,7 @@ function SearchTransactionsChangeReport() {
             targetOwnerAccountID={targetOwnerAccountID}
             transactionPolicyID={selectedReportPolicyID}
             isPerDiemRequest={hasPerDiemTransactions}
+            isUnreportedManagedCardTransactions={hasUnreportedManagedCardTransactions}
         />
     );
 }

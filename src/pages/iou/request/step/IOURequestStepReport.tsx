@@ -16,7 +16,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
-import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {isExpenseUnreported, isManagedCardTransaction, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -198,6 +198,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             isPerDiemRequest={transaction ? isPerDiemTransaction : false}
             isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
+            isUnreportedManagedCardTransactions={transaction ? isExpenseUnreported(transaction) && isManagedCardTransaction(transaction) : false}
             createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
             targetOwnerAccountID={ownerAccountID}
         />

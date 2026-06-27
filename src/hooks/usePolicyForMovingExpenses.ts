@@ -84,7 +84,7 @@ type PolicyForMovingExpenses = {
     shouldNavigateToUpgradePath: boolean;
 };
 
-function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string, isNonOwnedManagedCardTransaction?: boolean): PolicyForMovingExpenses {
+function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string, isUnreportedManagedCardTransaction?: boolean): PolicyForMovingExpenses {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         selector: activePolicySelector,
@@ -95,7 +95,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
 
     // If this is an employee's card transaction that we manage, then we should report it to their default policy
     // which we don't know. Sending an empty `policyID` instructs the backend to auto-select the preferred policy.
-    if (isNonOwnedManagedCardTransaction) {
+    if (isUnreportedManagedCardTransaction) {
         return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
