@@ -3,7 +3,9 @@ import Onyx from 'react-native-onyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
+import {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -20,6 +22,7 @@ describe('useTransactionViolations distance rate date sync', () => {
     const policyID = 'workspace-policy';
 
     const policy: Policy = {
+        ...createRandomPolicy(1),
         id: policyID,
         customUnits: {
             unitId: {
@@ -41,7 +44,9 @@ describe('useTransactionViolations distance rate date sync', () => {
                 },
             },
         },
-    } as Policy;
+    };
+
+    const baseTransaction = createRandomDistanceRequestTransaction(1);
 
     beforeAll(() => {
         Onyx.init({
@@ -57,17 +62,19 @@ describe('useTransactionViolations distance rate date sync', () => {
             reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+            ...baseTransaction,
             transactionID,
             reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
             created: '2026-06-15',
             comment: {
+                ...baseTransaction.comment,
                 customUnit: {
+                    ...baseTransaction.comment?.customUnit,
                     customUnitRateID,
                 },
             },
-        } as Transaction);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [] as TransactionViolations);
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
         await waitForBatchedUpdates();
     });
 
