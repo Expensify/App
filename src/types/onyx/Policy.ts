@@ -1747,6 +1747,11 @@ type RilletCoding = {
 };
 
 /**
+ * Offline feedback keys for `RilletCoding`
+ */
+type RilletCodingOfflineFeedbackKeys = keyof Omit<RilletCoding, 'fieldMappings'> | ValueOf<typeof CONST.RILLET_CONFIG.FIELD_MAPPINGS>;
+
+/**
  * Available dates that can be used as the export date.
  */
 type RilletExportDate = 'LAST_EXPENSE' | 'REPORT_EXPORTED' | 'REPORT_SUBMITTED';
@@ -1861,7 +1866,7 @@ type RilletConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    keyof RilletCoding | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
+    RilletCodingOfflineFeedbackKeys | keyof RilletExport | keyof RilletAutoSync | keyof RilletSync
 >;
 
 /** Gusto connection data */
