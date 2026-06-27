@@ -50,8 +50,10 @@ import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import {setSearchContext} from '@userActions/Search';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import {emailSelector, sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
@@ -86,6 +88,7 @@ type WorkspaceContextProps = {
 const MAX_NAVIGATION_SUGGESTIONS = 8;
 const MIN_NAVIGATION_QUERY_LENGTH = 3;
 const EXCLUDED_SETTINGS_ITEMS = new Set<string>(['initialSettingsPage.whatIsNew', 'sidebarScreen.saveTheWorld', 'initialSettingsPage.signOut', 'initialSettingsPage.restoreStashed']);
+const ACCOUNT_NAVIGATION_KEYWORDS = new Map<TranslationPaths, string[]>([['initialSettingsPage.security', ['password', '2fa', 'two factor', 'two-factor']]]);
 
 function WorkspaceContext({policy}: WorkspaceContextProps) {
     const styles = useThemeStyles();
@@ -134,6 +137,15 @@ function matchesNavigationQuery(query: string, ...values: Array<string | undefin
 
 function getGoToText(translate: LocaleContextProps['translate'], destination: string) {
     return translate('search.goTo', {destination});
+}
+
+function replaceTopmostModalWithAction(action: () => void) {
+    if (!Navigation.isTopmostRouteModalScreen()) {
+        action();
+        return;
+    }
+
+    Navigation.dismissModal({afterTransition: action});
 }
 
 function useNavigationSuggestions(query: string): SearchQueryItem[] {
@@ -319,7 +331,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                         action: item.action,
                         keyForList: `account_${item.translationKey}`,
                         rightElement: accountContext,
-                        matchTerms: [itemText],
+                        matchTerms: [itemText, ...(ACCOUNT_NAVIGATION_KEYWORDS.get(item.translationKey) ?? [])],
                     };
                 }),
         [accountContext, accountMenuItemsData.items, generalMenuItemsData.items, translate],
@@ -370,7 +382,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     action: () => navigateToWorkspaceSettingsRoute(item.route, policy.id, shouldUseNarrowLayout),
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
                     rightElement: <WorkspaceContext policy={policy} />,
-                    matchTerms: [itemText],
+                    matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],
                 };
             });
         });
@@ -445,8 +457,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     text: translate('iou.createExpense'),
                     icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                     action: () =>
-                        interceptAnonymousUser(() => {
-                            startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
+                        replaceTopmostModalWithAction(() => {
+                            interceptAnonymousUser(() => {
+                                startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
+                            });
                         }),
                     keyForList: 'create_expense',
                 },
@@ -455,8 +469,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     text: translate('iou.trackDistance'),
                     icon: icons.Location,
                     action: () =>
-                        interceptAnonymousUser(() => {
-                            startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
+                        replaceTopmostModalWithAction(() => {
+                            interceptAnonymousUser(() => {
+                                startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
+                            });
                         }),
                     keyForList: 'create_trackDistance',
                 },
@@ -464,14 +480,14 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     visible: isCreateReportVisible,
                     text: translate('report.newReport.createReport'),
                     icon: icons.Document,
-                    action: createReport,
+                    action: () => replaceTopmostModalWithAction(createReport),
                     keyForList: 'create_report',
                 },
                 {
                     visible: true,
                     text: translate('sidebarScreen.fabNewChat'),
                     icon: icons.ChatBubble,
-                    action: () => interceptAnonymousUser(startNewChat),
+                    action: () => replaceTopmostModalWithAction(() => interceptAnonymousUser(startNewChat)),
                     keyForList: 'create_chat',
                 },
                 {
@@ -479,8 +495,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     text: translate('workspace.invoices.sendInvoice'),
                     icon: icons.InvoiceGeneric,
                     action: () =>
-                        interceptAnonymousUser(() => {
-                            startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
+                        replaceTopmostModalWithAction(() => {
+                            interceptAnonymousUser(() => {
+                                startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
+                            });
                         }),
                     keyForList: 'create_invoice',
                 },
@@ -503,8 +521,10 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                     text: translate('workspace.new.newWorkspace'),
                     icon: icons.NewWorkspace,
                     action: () =>
-                        interceptAnonymousUser(() => {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path));
+                        replaceTopmostModalWithAction(() => {
+                            interceptAnonymousUser(() => {
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path));
+                            });
                         }),
                     keyForList: 'create_workspace',
                 },
