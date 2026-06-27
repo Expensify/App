@@ -25,6 +25,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isMoneyRequest = isMoneyRequestReport(report);
     const currentNotificationPreference = getReportNotificationPreference(report);
+
     // Keep the draft undefined until the user picks a row so we always fall back to the live preference.
     // This avoids freezing a stale/partial value (e.g. a defaulted `hidden`) that could be saved over the real one.
     const [draftNotificationPreference, setDraftNotificationPreference] = useState<ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> | undefined>(undefined);

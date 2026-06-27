@@ -53,6 +53,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
         if (!report || !selectedVisibility) {
             return;
         }
+
         // Selecting Public is a sensitive change, so it still has to be confirmed before we persist it.
         if (selectedVisibility === CONST.REPORT.VISIBILITY.PUBLIC) {
             const result = await showConfirmModal({
