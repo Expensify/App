@@ -3980,7 +3980,7 @@ function buildNewReportOptimisticData(
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas);
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -7068,6 +7068,7 @@ function buildOptimisticChangePolicyData({
     policy,
     currentUserAccountID,
     currentUserEmail,
+    ownerLogin,
     managerLogin,
     hasViolationsParam,
     isASAPSubmitBetaEnabled,
@@ -7081,6 +7082,7 @@ function buildOptimisticChangePolicyData({
     policy: Policy;
     currentUserAccountID: number;
     currentUserEmail: string;
+    ownerLogin: string | undefined;
     managerLogin: string | undefined;
     hasViolationsParam: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -7117,7 +7119,7 @@ function buildOptimisticChangePolicyData({
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    const newManagerAccountID = getSubmitToAccountID(policy, report);
+    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin);
     const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && managerLogin && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
@@ -7567,6 +7569,7 @@ function changeReportPolicy({
     policy,
     currentUserAccountID,
     email,
+    ownerLogin,
     managerLogin,
     hasViolationsParam,
     isChangePolicyTrainingModalDismissed,
@@ -7580,6 +7583,7 @@ function changeReportPolicy({
     policy: Policy;
     currentUserAccountID: number;
     email: string;
+    ownerLogin: string | undefined;
     managerLogin: string | undefined;
     hasViolationsParam: boolean;
     isChangePolicyTrainingModalDismissed: boolean;
@@ -7598,6 +7602,7 @@ function changeReportPolicy({
         policy,
         currentUserAccountID,
         currentUserEmail: email,
+        ownerLogin,
         managerLogin,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
@@ -7699,6 +7704,7 @@ function changeReportPolicyAndInviteSubmitter({
         policy,
         currentUserAccountID,
         currentUserEmail,
+        ownerLogin: submitterLogin,
         managerLogin,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,

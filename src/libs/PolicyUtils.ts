@@ -1536,28 +1536,30 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
     return firstCategoryApprover || firstTagApprover;
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
-    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginByAccountID(employeeAccountID) ?? '';
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined): string {
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
+        return defaultApprover;
     }
 
-    const employee = policy?.employeeList?.[employeeLogin];
+    const employee = policy?.employeeList?.[ownerLogin ?? ''];
     if (!employee && !defaultApprover) {
-        return -1;
+        return '';
     }
 
-    return getAccountIDsByLogins([employee?.submitsTo ?? defaultApprover]).at(0) ?? -1;
+    return employee?.submitsTo ?? defaultApprover ?? '';
+}
+
+function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined) {
+    return getAccountIDsByLogins([getManagerAccountEmail(policy, ownerLogin)]).at(0) ?? -1;
 }
 
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
+function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined): number {
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
@@ -1567,7 +1569,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
         }
     }
 
-    return getManagerAccountID(policy, expenseReport);
+    return getManagerAccountID(policy, ownerLogin);
 }
 
 function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
@@ -1575,7 +1577,7 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     const existingManagerID = expenseReport?.managerID;
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport) : '';
-    const submitToAccountID = ruleApprover ? (getAccountIDsByLogins([ruleApprover]).at(0) ?? -1) : getManagerAccountID(policy, expenseReport);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, submitterLogin);
     const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
     const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
     const hasReliablePolicyRoute =
@@ -1592,11 +1594,6 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     }
 
     return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
-}
-
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
-    const managerAccountID = getManagerAccountID(policy, expenseReport);
-    return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
 }
 
 /**

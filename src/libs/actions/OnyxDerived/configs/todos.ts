@@ -1,10 +1,11 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 type CreateTodosReportsAndTransactionsParams = {
     allReports: OnyxCollection<Report>;
@@ -13,6 +14,7 @@ type CreateTodosReportsAndTransactionsParams = {
     allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
     allReportActions: OnyxCollection<ReportActions>;
     allReportMetadata: OnyxCollection<ReportMetadata>;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
     bankAccountList: OnyxEntry<BankAccountList>;
     currentUserAccountID: number;
     login: string;
@@ -25,6 +27,7 @@ const createTodosReportsAndTransactions = ({
     allReportNameValuePairs,
     allReportActions,
     allReportMetadata,
+    personalDetailsList,
     bankAccountList,
     currentUserAccountID,
     login,
@@ -59,7 +62,20 @@ const createTodosReportsAndTransactions = ({
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
         const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
-        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld) {
+        if (
+            isSubmitAction(
+                report,
+                reportTransactions,
+                reportMetadata,
+                getLoginByAccountID(report.ownerAccountID, personalDetailsList),
+                policy,
+                reportNameValuePair,
+                undefined,
+                login,
+                currentUserAccountID,
+            ) &&
+            !allExpensesHeld
+        ) {
             reportsToSubmit.push(report);
         }
         if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld) {
@@ -112,6 +128,7 @@ export default createOnyxDerivedValueConfig({
             allReportNameValuePairs,
             allReportActions,
             allReportMetadata,
+            personalDetailsList,
             bankAccountList,
             currentUserAccountID: userAccountID,
             login,
