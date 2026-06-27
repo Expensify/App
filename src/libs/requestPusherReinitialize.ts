@@ -1,4 +1,9 @@
-type PusherReinitializeHandler = () => Promise<void>;
+type PusherReinitializeHandlerParams = {
+    accountID?: number;
+    email?: string;
+};
+
+type PusherReinitializeHandler = (params?: PusherReinitializeHandlerParams) => Promise<void>;
 
 let registeredHandler: PusherReinitializeHandler | null = null;
 
@@ -6,8 +11,9 @@ function registerPusherReinitializeHandler(handler: PusherReinitializeHandler | 
     registeredHandler = handler;
 }
 
-function requestPusherReinitialize(): Promise<void> {
-    return registeredHandler?.() ?? Promise.resolve();
+function requestPusherReinitialize(params?: PusherReinitializeHandlerParams): Promise<void> {
+    return registeredHandler?.(params) ?? Promise.resolve();
 }
 
 export {registerPusherReinitializeHandler, requestPusherReinitialize};
+export type {PusherReinitializeHandlerParams};

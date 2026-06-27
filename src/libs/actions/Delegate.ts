@@ -223,7 +223,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 .then(() => {
                     confirmReadyToOpenApp();
                     return openApp()
-                        .then(() => requestPusherReinitialize())
+                        .then(() => requestPusherReinitialize({accountID: response.accountID, email: response.email}))
                         .then(() => {
                             if (!CONFIG.IS_HYBRID_APP || !policyID) {
                                 return true;
@@ -331,7 +331,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
                     confirmReadyToOpenApp();
                     openApp()
-                        .then(() => requestPusherReinitialize())
+                        .then(() => requestPusherReinitialize({accountID: response.requesterID, email: requesterEmail}))
                         .then(() => {
                             if (!CONFIG.IS_HYBRID_APP) {
                                 return;
