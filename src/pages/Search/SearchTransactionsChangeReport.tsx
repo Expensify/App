@@ -63,7 +63,7 @@ function SearchTransactionsChangeReport() {
     // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
     // This ensures the "Create report" button shows the correct workspace instead of the user's default
     const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReportPolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReportPolicyID);
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
@@ -170,7 +170,7 @@ function SearchTransactionsChangeReport() {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy && selectedTransactionsKeys.length > 0) {
+        if (shouldNavigateToUpgradePath && selectedTransactionsKeys.length > 0) {
             const firstTransactionID = selectedTransactionsKeys.at(0);
             if (firstTransactionID) {
                 Navigation.navigate(
@@ -190,7 +190,7 @@ function SearchTransactionsChangeReport() {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true)));
             return;
         }
-        if (!policyForMovingExpensesID) {
+        if (shouldNavigateToUpgradePath) {
             Navigation.navigate(
                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                     action: CONST.IOU.ACTION.CREATE,
