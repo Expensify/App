@@ -1,6 +1,6 @@
 # Overlay
 
-Low-level primitives for anchored and modal overlays positioning, dismissal, portalling, animation, and accessible naming.
+Low-level primitives for anchored and modal overlays positioning, dismissal, portals, animation, and accessible naming.
 
 ## Usage
 
