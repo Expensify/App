@@ -13,7 +13,6 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
-    SearchAutocompleteResult,
     SearchDateFilterKeys,
     SearchDateKey,
     SearchDatePreset,
@@ -34,7 +33,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {
+    ExpenseTypeValue,
+    ExpenseTypeValues,
+    HasFilterValue,
+    HasFilterValues,
+    IsFilterValue,
+    IsFilterValues,
+    ReceiptTypeValue,
+    SearchAdvancedFiltersKey,
+} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
@@ -50,7 +58,6 @@ import {isRecord} from './ObjectUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
-import {parse as parseForAutocomplete} from './SearchParser/autocompleteParser';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -83,6 +90,7 @@ const operatorToCharMap = {
 
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
+const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
@@ -151,6 +159,26 @@ function sanitizeSearchValue(str: string) {
         return `"${str}"`;
     }
     return str;
+}
+
+const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
+/**
+ * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
+ * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
+ * keyword instead of being parsed as the `type` filter. Plain keywords (e.g. `foo`) are left untouched.
+ */
+function escapeKeyword(keywords: string) {
+    return (
+        keywords
+            .match(/"([^"]*)"|(\S+)/g)
+            ?.map((q) => {
+                if (q.toLowerCase().match(syntaxRegex)) {
+                    return `"${q}"`;
+                }
+                return q;
+            })
+            .join(' ') ?? ''
+    );
 }
 
 function getRangeQueryValue(from?: string, to?: string) {
@@ -314,9 +342,9 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
-        if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
-            filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
-        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
+            filterValueString += `${delimiter}${escapeKeyword(sanitizeSearchValue(queryFilter.value.toString()))}`;
+        } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
             filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
@@ -702,8 +730,8 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     const filters = queryJSON.flatFilters;
 
     for (const filter of filters) {
-        const filterValueString = buildFilterValuesString(filter.key, filter.filters);
-        queryParts.push(filterValueString.trim());
+        const filterValueString = buildFilterValuesString(filter.key, filter.filters).trim();
+        queryParts.push(filterValueString);
     }
 
     return queryParts.join(' ');
@@ -885,8 +913,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             }
 
             if (filterKey === FILTER_KEYS.KEYWORD && filterValue) {
-                const value = (filterValue as string).split(' ').map(sanitizeSearchValue).join(' ');
-                return `${value}`;
+                return `${escapeKeyword(filterValue as string)}`;
             }
 
             if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && filterValue) {
@@ -944,6 +971,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.CARD_ID ||
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
+                    filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
@@ -1111,6 +1139,14 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ExpenseTypeValue)) as ExpenseTypeValues;
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE) {
+            const receiptTypeValues = filterValues.filter((receiptType): receiptType is ReceiptTypeValue => VALID_RECEIPT_TYPES.has(receiptType));
+            if (isNegated) {
+                filtersForm[FILTER_KEYS.RECEIPT_TYPE_NOT] = receiptTypeValues;
+            } else {
+                filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
+            }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             const validHasFilters = filterList.filter((item) => VALID_HAS_TYPES.has(item.value as HasFilterValue));
@@ -1892,15 +1928,9 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
 }
 
 function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString, currentQueryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
-    const autocompleteRanges = (parseForAutocomplete(queryString) as SearchAutocompleteResult).ranges;
-    const hasOnlyKeywordSearch = queryString.trim().length > 0 && autocompleteRanges.length === 0;
-    if (!hasOnlyKeywordSearch) {
-        return queryString;
-    }
-
     const currentFiltersWithoutKeywords = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
     const currentQueryString = buildSearchQueryString({...currentQueryJSON, flatFilters: currentFiltersWithoutKeywords});
-    return `${currentQueryString} ${queryString}`;
+    return `${currentQueryString} ${escapeKeyword(queryString)}`;
 }
 
 /**
@@ -2288,44 +2318,6 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
     return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
 
-/**
- * Returns the query used to fetch footer totals in a separate snapshot from the user-facing search,
- * dropping any grouping so grouped list header/row totals are shown in the original currency.
- *
- * targetCurrency scopes the returned hash so the footer-conversion snapshot can't collide with (and
- * overwrite) the live search snapshot, keeping the live search in its original currency.
- */
-function buildFlatQueryWithoutGroupBy(queryJSON: Readonly<SearchQueryJSON>, targetCurrency?: string): Readonly<SearchQueryJSON> | undefined {
-    const hasGroupCurrencyFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY);
-    if (!queryJSON.groupBy && !hasGroupCurrencyFilter) {
-        if (!targetCurrency) {
-            return queryJSON;
-        }
-        return {...queryJSON, hash: hashText(`${queryJSON.hash}:${targetCurrency}`, 2 ** 32)};
-    }
-
-    const defaultQueryJSON = getDefaultSearchQueryJSON();
-
-    // Sort only affects totals when a limit is set. Without a limit, reset sort so equivalent footer
-    // total queries can reuse the existing ungrouped snapshot instead of making another request.
-    const shouldPreserveSort = queryJSON.limit !== undefined;
-    const flatQueryJSON = {
-        ...queryJSON,
-        groupBy: undefined,
-        view: defaultQueryJSON.view,
-        sortBy: shouldPreserveSort ? queryJSON.sortBy : defaultQueryJSON.sortBy,
-        sortOrder: shouldPreserveSort ? queryJSON.sortOrder : defaultQueryJSON.sortOrder,
-        flatFilters: queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY),
-    };
-
-    const flatQuery = buildSearchQueryJSON(buildSearchQueryString(flatQueryJSON));
-    if (!flatQuery || !targetCurrency) {
-        return flatQuery;
-    }
-
-    return {...flatQuery, hash: hashText(`${flatQuery.hash}:${targetCurrency}`, 2 ** 32)};
-}
-
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
@@ -2336,6 +2328,7 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    buildFilterValuesString,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getPolicyNameWithFallback,
@@ -2364,7 +2357,6 @@ export {
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
-    buildFlatQueryWithoutGroupBy,
     getLastRouteByName,
     getParamsState,
     getRoutes,
