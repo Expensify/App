@@ -7509,6 +7509,14 @@ describe('ReportUtils', () => {
             expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`copied 0 tags from ${buildLink(undefined, '')}`);
         });
 
+        it('HTML-encodes a source policy name that contains markup characters', async () => {
+            const htmlPolicyID = 'htmlPolicy';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${htmlPolicyID}`, {id: htmlPolicyID, name: 'A <b>B</b>'});
+            await waitForBatchedUpdates();
+            const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW, {sourcePolicyID: htmlPolicyID});
+            expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe(`copied overview from ${buildLink(htmlPolicyID, 'A &lt;b&gt;B&lt;/b&gt;')}`);
+        });
+
         it('returns an empty string for an action that is not a policy copy action', () => {
             const action = buildCopyAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {sourcePolicyID});
             expect(getPolicyChangeLogCopyMessage(translateLocal, action)).toBe('');
