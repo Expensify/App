@@ -44,9 +44,6 @@ function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentPr
     const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    // Gate on any group workspace (paid Collect/Control or free Submit), not just paid ones: Submit
-    // workspaces (submit2026) still surface next steps (e.g. "Waiting for … to approve") via their
-    // internal advanced approval workflow.
     const shouldShowNextStep = isGroupPolicy(policy) && !isInvoiceReport && !shouldShowStatusBar;
 
     const shouldShowMoreContent = shouldShowNextStep || !!statusBarType || isReportInSearch;
