@@ -12,11 +12,13 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
@@ -67,6 +69,10 @@ function ReportSubmitToContent({
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const isBottomDockedInLandscape = isSmallScreenWidth && isInLandscapeMode;
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -402,7 +408,7 @@ function ReportSubmitToContent({
     }
 
     return (
-        <View style={[styles.w100, styles.flex1, styles.pt3, styles.pb3, {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
+        <View style={[styles.w100, styles.flex1, styles.pt3, styles.pb3, !isBottomDockedInLandscape && {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
             <SelectionList
                 data={submitToSelectionData}
                 ListItem={InviteMemberListItem}

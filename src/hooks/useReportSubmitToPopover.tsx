@@ -9,11 +9,13 @@ import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import usePopoverPosition from './usePopoverPosition';
 import useResponsiveLayout from './useResponsiveLayout';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
+import useWindowDimensions from './useWindowDimensions';
 
 const popoverDimensions = {
     width: CONST.POPOVER_DROPDOWN_WIDTH,
@@ -43,9 +45,20 @@ type UseReportSubmitToPopoverParams = {
 function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, getAnchorRef}: UseReportSubmitToPopoverParams) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions();
+    const isInLandscapeMode = useIsInLandscapeMode();
     // Bottom-docked Modal path only; aligns with Popover path that omits modal shell padding chrome
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const isBottomDockedInLandscape = isSmallScreenWidth && isInLandscapeMode;
+
+    const submitToPopoverContentHeight = useMemo(() => {
+        if (!isBottomDockedInLandscape) {
+            return popoverDimensions.height;
+        }
+
+        return Math.min(popoverDimensions.height, windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE);
+    }, [isBottomDockedInLandscape, windowHeight]);
     const anchorRef = useRef<View>(null);
     const oneShotOnSubmitSuccessRef = useRef<(() => void) | undefined>(undefined);
     const onSubmitWithManagerEmailRef = useRef<ReportSubmitToPopoverOpenOptions['onSubmitWithManagerEmail']>(undefined);
@@ -188,7 +201,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 anchorAlignment={anchorAlignment}
                 innerContainerStyle={{
                     ...(isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}),
-                    minHeight: popoverDimensions.minHeight,
+                    ...(isBottomDockedInLandscape ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
                 }}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldSwitchPositionIfOverflow
@@ -200,7 +213,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -222,6 +235,9 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
             styles.flexColumn,
             styles.pt4,
             isSmallScreenWidth,
+            isBottomDockedInLandscape,
+            submitToPopoverContentHeight,
+            windowHeight,
             isVisible,
             closeReportSubmitToPopover,
             handleReportSubmitToPopoverModalHide,
