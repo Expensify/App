@@ -343,7 +343,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [childReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReport?.reportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
-    const parentReportAction = useParentReportAction(report);
+    const childParentReportAction = useParentReportAction(childReport);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
@@ -398,7 +398,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             deleteAppReport({
                 report: childReport,
                 reportActions: childReportActions,
-                parentReportAction,
+                parentReportAction: childParentReportAction,
                 selfDMReport,
                 currentUserEmailParam: email ?? '',
                 currentUserAccountIDParam: currentUserAccountID,
@@ -427,7 +427,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     }, [
         report,
         childReportActions,
-        parentReportAction,
+        childParentReportAction,
         childReport,
         selfDMReport,
         iouReport,
