@@ -146,7 +146,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!isPerDiemTransaction && !policyForMovingExpenses?.id) {
+        if (!isPerDiemTransaction && !isUnreportedManagedCardTransaction && !policyForMovingExpenses?.id) {
             return;
         }
 
@@ -172,7 +172,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             handleCreateReport();
             return;
         }
-        if (!isPerDiemTransaction && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (!isPerDiemTransaction && !isUnreportedManagedCardTransaction && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
