@@ -46,6 +46,22 @@ Expensify provides two ways to export reports:
 
 ---
 
+## How to create a custom export for unsupported accounting software
+
+If your accounting software supports CSV imports but isn't listed above, you can create a saved search that matches the format required by your accounting software.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
+2. Select **Reports**.
+3. Use **Filters** and **Display** to build a view that matches the fields required by your accounting software.
+   - Use **Filters** to set the criteria for which reports and expenses should be included in the exported file.
+   - Use **Display** to add, remove, and reorder columns to match your required file format.
+4. Click **Save** and enter a name for the saved search, such as "Accounting Software Export".
+
+After creating the saved search, open it and select **Export current view** to download a CSV file that you can upload into your accounting software. [Learn how to export data to CSV](/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses#export-as-csv).
+
+
+---
+
 # FAQ
 
 ## Which accounting packages support indirect integration with Expensify?
@@ -57,12 +73,4 @@ Expensify offers pre-configured flat-file integrations for the following account
 - **MYOB**
 - **Oracle**
 - **SAP**
-
-## What if my accounting package isn’t listed?
-
-If your accounting software supports flat-file imports but isn’t listed above, you can create a custom export template:
-
-1. Select **Other** when completing the **Accounting Software** task on your **Home** page.
-2. Alternatively, go to **Settings** > **Workspaces** > **Group** > _Your workspace_ > **Export Formats**.
-3. Create a custom export template that matches the format required by your accounting system.
 
