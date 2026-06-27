@@ -77,7 +77,13 @@ function getPolicyQualificationResult(
     return {singlePolicyID, isMemberOfMoreThanOnePolicy, validExpensePolicyID};
 }
 
-function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string) {
+type PolicyForMovingExpenses = {
+    policyForMovingExpensesID: string | undefined;
+    policyForMovingExpenses: OnyxEntry<Policy>;
+    shouldSelectPolicy: boolean;
+};
+
+function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string): PolicyForMovingExpenses {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         selector: activePolicySelector,
