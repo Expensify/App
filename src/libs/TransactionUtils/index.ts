@@ -72,6 +72,7 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {
     Comment,
@@ -279,6 +280,18 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
             return 'common.perDiem';
         case CONST.SEARCH.TRANSACTION_TYPE.TIME:
             return 'iou.time';
+    }
+}
+
+function getReceiptTypeTranslationKey(receiptType: ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (receiptType) {
+        case CONST.SEARCH.RECEIPT_TYPE.ERECEIPT:
+            return 'search.receiptTypeValues.ereceipt';
+        case CONST.SEARCH.RECEIPT_TYPE.ITEMIZED:
+            return 'search.receiptTypeValues.itemized';
+        case CONST.SEARCH.RECEIPT_TYPE.HOTEL:
+            return 'search.receiptTypeValues.hotel';
     }
 }
 
@@ -2183,6 +2196,25 @@ function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transacti
 }
 
 /**
+ * Computes tax amount, code, and value when a workspace distance expense uses a given mileage rate.
+ */
+function getDistanceRateTaxUpdates(
+    policy: OnyxEntry<Policy>,
+    transaction: OnyxEntry<Transaction>,
+    customUnitRateID: string,
+    distanceUnit?: Unit,
+): {taxAmount: number; taxCode: string; taxValue: string | undefined} {
+    const taxCode = getDefaultTaxCode(policy, transaction, undefined, customUnitRateID) ?? '';
+    const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, distanceUnit ?? transaction?.comment?.customUnit?.distanceUnit));
+    const taxValue = taxCode ? getTaxValue(policy, transaction, taxCode) : undefined;
+    const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+    const rateCurrency = mileageRates[customUnitRateID]?.currency ?? transaction?.currency ?? CONST.CURRENCY.USD;
+    const taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rateCurrency)));
+
+    return {taxAmount, taxCode, taxValue};
+}
+
+/**
  * Returns the maximum allowed tax amount (in the smallest currency units) for a transaction,
  * i.e. the tax computed from the selected tax rate (or the policy default) and the expense amount.
  * Used to validate manually entered tax amounts so they can't exceed the calculated tax.
@@ -2947,6 +2979,7 @@ export {
     transformedTaxRates,
     getTaxValue,
     getCalculatedTaxAmount,
+    getDistanceRateTaxUpdates,
     getTaxName,
     getTaxRateTitle,
     hasTaxRateWithMatchingValue,
@@ -3087,6 +3120,7 @@ export {
     shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
+    getReceiptTypeTranslationKey,
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
