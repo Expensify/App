@@ -63,11 +63,14 @@ type WorkspaceCompanyCardsSelectionSearchPrunerProps = {
     clearCardSelection: () => void;
 };
 
+const CSV_FORMULA_PREFIX_REGEXP = /^(?:[\t\r\n]|\s*[=+\-@])/;
+
 function escapeCsvField(value: string): string {
-    if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
-        return `"${value.replaceAll('"', '""')}"`;
+    const safeValue = CSV_FORMULA_PREFIX_REGEXP.test(value) ? `'${value}` : value;
+    if (safeValue.includes('"') || safeValue.includes(',') || safeValue.includes('\n') || safeValue.includes('\r')) {
+        return `"${safeValue.replaceAll('"', '""')}"`;
     }
-    return value;
+    return safeValue;
 }
 
 function WorkspaceCompanyCardsSelectionSearchPruner({clearCardSelection}: WorkspaceCompanyCardsSelectionSearchPrunerProps) {

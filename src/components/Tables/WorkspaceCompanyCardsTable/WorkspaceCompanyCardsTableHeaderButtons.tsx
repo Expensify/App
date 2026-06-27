@@ -112,6 +112,10 @@ function WorkspaceCompanyCardsFilterPopup({closeOverlay}: WorkspaceCompanyCardsP
     );
 }
 
+function renderWorkspaceCompanyCardsFilterPopup({closeOverlay}: WorkspaceCompanyCardsPopupProps) {
+    return <WorkspaceCompanyCardsFilterPopup closeOverlay={closeOverlay} />;
+}
+
 function WorkspaceCompanyCardsFilterButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -124,7 +128,7 @@ function WorkspaceCompanyCardsFilterButton() {
             innerStyles={styles.gap2}
             labelStyle={styles.fontSizeLabel}
             caretWrapperStyle={styles.gap2}
-            PopoverComponent={WorkspaceCompanyCardsFilterPopup}
+            PopoverComponent={renderWorkspaceCompanyCardsFilterPopup}
         />
     );
 }
@@ -279,6 +283,10 @@ function WorkspaceCompanyCardsDisplayPopover({closeOverlay}: WorkspaceCompanyCar
     );
 }
 
+function renderWorkspaceCompanyCardsDisplayPopover({closeOverlay}: WorkspaceCompanyCardsPopupProps) {
+    return <WorkspaceCompanyCardsDisplayPopover closeOverlay={closeOverlay} />;
+}
+
 function WorkspaceCompanyCardsDisplayButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -291,7 +299,7 @@ function WorkspaceCompanyCardsDisplayButton() {
             innerStyles={styles.gap2}
             labelStyle={styles.fontSizeLabel}
             caretWrapperStyle={styles.gap2}
-            PopoverComponent={WorkspaceCompanyCardsDisplayPopover}
+            PopoverComponent={renderWorkspaceCompanyCardsDisplayPopover}
         />
     );
 }
