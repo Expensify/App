@@ -1,42 +1,27 @@
+import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
-import type {View as RNView} from 'react-native';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 import isSkiaWebSupported from '@components/Charts/SkiaWebChart/isSkiaWebSupported';
 
 jest.mock('@components/Charts/SkiaWebChart/isSkiaWebSupported', () => jest.fn());
 
-jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({chartWebFallback: {}, textSupporting: {}, textAlignCenter: {}})));
+jest.mock('@shopify/react-native-skia/lib/module/web', () => ({WithSkiaWeb: jest.fn(() => null)}));
+
+// Every style lookup returns an empty object so the real Text/View render without a ThemeProvider.
+jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
-jest.mock('@components/Text', () => {
-    const ReactLib = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
-    return {
-        __esModule: true,
-        default: ({children}: {children: React.ReactNode}) => ReactLib.createElement(Text, null, children),
-    };
-});
+jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({Monitor: () => null})}));
 
-jest.mock('@components/ActivityIndicator', () => {
-    const ReactLib = require('react') as typeof React;
-    const {View} = require('react-native') as {View: typeof RNView};
-    return {
-        __esModule: true,
-        default: () => ReactLib.createElement(View, {testID: 'skia-loading'}),
-    };
-});
-
-jest.mock('@shopify/react-native-skia/lib/module/web', () => {
-    const ReactLib = require('react') as typeof React;
-    const {View} = require('react-native') as {View: typeof RNView};
-    return {
-        WithSkiaWeb: () => ReactLib.createElement(View, {testID: 'with-skia-web'}),
-    };
-});
+jest.mock('@components/Icon', () => ({
+    __esModule: true,
+    default: () => null,
+}));
 
 const mockIsSkiaWebSupported = jest.mocked(isSkiaWebSupported);
+const mockWithSkiaWeb = jest.mocked(WithSkiaWeb);
 
 describe('SkiaWebChart', () => {
     const getComponent = () => Promise.resolve({default: () => null});
@@ -45,7 +30,7 @@ describe('SkiaWebChart', () => {
         jest.clearAllMocks();
     });
 
-    it('should show the enable-WebGL message without mounting Skia when WebGL is unsupported', () => {
+    it('should show the unable-to-display empty state without mounting Skia when WebGL is unsupported', () => {
         mockIsSkiaWebSupported.mockReturnValue(false);
 
         render(
@@ -56,8 +41,9 @@ describe('SkiaWebChart', () => {
             />,
         );
 
-        expect(screen.getByText('common.enableWebGLToDisplayCharts')).toBeTruthy();
-        expect(screen.queryByTestId('with-skia-web')).toBeNull();
+        expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
+        expect(screen.getByText('common.webGLNotSupported')).toBeTruthy();
+        expect(mockWithSkiaWeb).not.toHaveBeenCalled();
     });
 
     it('should mount Skia when WebGL is supported', () => {
@@ -71,6 +57,6 @@ describe('SkiaWebChart', () => {
             />,
         );
 
-        expect(screen.getByTestId('with-skia-web')).toBeTruthy();
+        expect(mockWithSkiaWeb).toHaveBeenCalled();
     });
 });

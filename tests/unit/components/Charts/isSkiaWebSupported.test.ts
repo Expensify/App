@@ -22,7 +22,9 @@ function makeGl(format: WebGLShaderPrecisionFormat | null): GLStub {
 }
 
 function mockCanvas(getContext: jest.Mock) {
-    return jest.spyOn(document, 'createElement').mockReturnValue({getContext} as unknown as HTMLCanvasElement);
+    const canvas = document.createElement('canvas');
+    jest.spyOn(canvas, 'getContext').mockImplementation(getContext);
+    return jest.spyOn(document, 'createElement').mockReturnValue(canvas);
 }
 
 describe('isSkiaWebSupported', () => {
