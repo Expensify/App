@@ -82,6 +82,7 @@ function useUnreadMarker({
         return actions;
     }, {});
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
+    const [prevUnreadMarkerReportActionID, setPrevUnreadMarkerReportActionID] = useState<string | null>(null);
 
     let earliestReceivedOfflineMessageIndex: number | undefined;
     for (let i = sortedReportActions.length - 1; i >= 0; i--) {
@@ -111,12 +112,17 @@ function useUnreadMarker({
         isOffline,
         isReversed: false,
         isAnonymousUser,
+        prevUnreadMarkerReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
         oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
+
+    if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
+        setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
+    }
 
     // When the user reads a new message as it is received, push unreadMarkerTime down to the
     // latest action's timestamp so new incoming actions display over those new messages instead of
