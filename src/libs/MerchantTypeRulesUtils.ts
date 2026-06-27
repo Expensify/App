@@ -47,10 +47,6 @@ function isMerchantTypeRuleKey(key: string) {
     return key.startsWith(MERCHANT_TYPE_RULE_KEY_PREFIX);
 }
 
-function getMerchantTypeGroupIDFromRuleKey(key: string) {
-    return key.replace(MERCHANT_TYPE_RULE_KEY_PREFIX, '');
-}
-
 function isExpenseDefaultMerchantTypeGroupID(groupID: string): groupID is ExpenseDefaultMerchantTypeGroupID {
     return (EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS as readonly string[]).includes(groupID);
 }

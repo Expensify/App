@@ -6,7 +6,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getEffectiveRequireFieldsRuleForm} from '@libs/RequireFieldsRulesUtils';
+import {categoryHasAnyRequireFieldsRule, getEffectiveRequireFieldsRuleForm} from '@libs/RequireFieldsRulesUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,7 +24,17 @@ function RequireFieldsRuleCategoryPage({route}: RequireFieldsRuleCategoryPagePro
     const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
-        .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .filter((category) => {
+            if (!category.enabled || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return false;
+            }
+
+            if (isEditing) {
+                return true;
+            }
+
+            return !categoryHasAnyRequireFieldsRule(category);
+        })
         .map((category) => {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {name: decodedCategoryName, value: category.name};

@@ -39,6 +39,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {deleteExpensifyCardRule} from '@libs/actions/Card';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {enableExpensifyCard, openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {deletePolicyCodingRule, openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
@@ -85,10 +86,12 @@ type PolicyRulesPageRevampProps = PlatformStackScreenProps<WorkspaceSplitNavigat
 const agentsRulesBannerDismissedSelector = (value: OnyxEntry<DismissedProductTraining>): boolean => !!value?.[CONST.AGENTS_RULES_BANNER];
 
 function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
     const policyData = usePolicyData(policyID);
+    const [policyCategoriesOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const arePolicyCategoriesLoading = !!policy?.areCategoriesEnabled && policyCategoriesOnyx === undefined;
     const {convertToDisplayString} = useCurrencyListActions();
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
@@ -200,15 +203,16 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
     const requireFieldsTableData = getRequireFieldsTableData({
         policy,
-        policyCategories: policyData.categories,
+        policyCategories: arePolicyCategoriesLoading ? undefined : policyData.categories,
         translate,
         convertToDisplayString,
+        localeCompare,
         onNavigate: Navigation.navigate,
     });
 
     const flagForReviewTableData = getFlagForReviewTableData({
         policy,
-        policyCategories: policyData.categories,
+        policyCategories: arePolicyCategoriesLoading ? undefined : policyData.categories,
         translate,
         convertToDisplayString,
         onNavigate: Navigation.navigate,
@@ -218,6 +222,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         // Fetch once on mount (and when policyID changes). setPolicyCodingRule already updates Onyx — refetching after saves can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
     }, [policyID]);
+
+    useEffect(() => {
+        if (!policy?.areCategoriesEnabled || policyCategoriesOnyx !== undefined) {
+            return;
+        }
+
+        openPolicyCategoriesPage(policyID);
+    }, [policy?.areCategoriesEnabled, policyCategoriesOnyx, policyID]);
 
     const clearAllTableSelection = () => {
         setSelectedSpendRuleKeys((prev) => (prev.length > 0 ? [] : prev));
@@ -661,7 +673,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedRequireFieldsRuleKeys}
                                         onRowSelectionChange={handleRequireFieldsSelectionChange}
-                                        emptyStateContent={requireFieldsEmptyState}
+                                        emptyStateContent={arePolicyCategoriesLoading ? undefined : requireFieldsEmptyState}
                                     />
                                 )}
                                 {activeTab === RULES_TAB.FLAG_FOR_REVIEW && (
@@ -670,7 +682,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedFlagForReviewRuleKeys}
                                         onRowSelectionChange={handleFlagForReviewSelectionChange}
-                                        emptyStateContent={flagForReviewEmptyState}
+                                        emptyStateContent={arePolicyCategoriesLoading ? undefined : flagForReviewEmptyState}
                                     />
                                 )}
                             </View>

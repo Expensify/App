@@ -41,7 +41,9 @@ function getValidationError(form: FlagForReviewRuleForm | null | undefined, tran
         return translate('workspace.rules.flagForReviewRule.confirmErrorCategory');
     }
 
-    if (!form.maxExpenseAmount?.trim()) {
+    const parsedAmount = Number.parseFloat(form.maxExpenseAmount ?? '');
+
+    if (!form.maxExpenseAmount?.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
         return translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
     }
 

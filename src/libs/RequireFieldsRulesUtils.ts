@@ -37,19 +37,27 @@ type RequireFieldsTableItem = TableData & {
 const RULE_KEY_SEPARATOR = '::';
 
 function getRequireFieldsRuleKey(categoryName: string, ruleType: RequireFieldsRuleType): string {
-    return `${categoryName}${RULE_KEY_SEPARATOR}${ruleType}`;
+    return `${encodeURIComponent(categoryName)}${RULE_KEY_SEPARATOR}${ruleType}`;
 }
 
 function parseRequireFieldsRuleKey(ruleKey: string): {categoryName: string; ruleType: RequireFieldsRuleType} | undefined {
-    const separatorIndex = ruleKey.indexOf(RULE_KEY_SEPARATOR);
+    const separatorIndex = ruleKey.lastIndexOf(RULE_KEY_SEPARATOR);
     if (separatorIndex === -1) {
         return undefined;
     }
 
-    const categoryName = ruleKey.slice(0, separatorIndex);
-    const ruleType = ruleKey.slice(separatorIndex + RULE_KEY_SEPARATOR.length) as RequireFieldsRuleType;
+    const encodedCategoryName = ruleKey.slice(0, separatorIndex);
+    const ruleTypeCandidate = ruleKey.slice(separatorIndex + RULE_KEY_SEPARATOR.length);
+    const ruleType = Object.values(CONST.REQUIRE_FIELDS_RULE_TYPES).find((type) => type === ruleTypeCandidate);
 
-    if (!Object.values(CONST.REQUIRE_FIELDS_RULE_TYPES).includes(ruleType)) {
+    if (!ruleType) {
+        return undefined;
+    }
+
+    let categoryName: string;
+    try {
+        categoryName = decodeURIComponent(encodedCategoryName);
+    } catch {
         return undefined;
     }
 
@@ -58,6 +66,31 @@ function parseRequireFieldsRuleKey(ruleKey: string): {categoryName: string; rule
 
 function getRequireFieldsRuleNavigationRoute(policyID: string, categoryName: string): Route {
     return ROUTES.RULES_REQUIRE_FIELDS_RULE_EDIT.getRoute(policyID, categoryName);
+}
+
+function hasExplicitReceiptThreshold(value: number | null | undefined): value is number {
+    return value !== null && value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
+}
+
+function isNeverReceiptRequired(value: number | null | undefined): boolean {
+    return value === CONST.DISABLED_MAX_EXPENSE_VALUE;
+}
+
+function hasCustomNonZeroReceiptThreshold(value: number | null | undefined): boolean {
+    return hasExplicitReceiptThreshold(value) && value !== 0;
+}
+
+function hasCategoryReceiptOverride(value: number | null | undefined): boolean {
+    return value !== null && value !== undefined;
+}
+
+function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
+    return (
+        !!category.areCommentsRequired ||
+        !!category.areAttendeesRequired ||
+        hasCategoryReceiptOverride(category.maxAmountNoReceipt) ||
+        hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt)
+    );
 }
 
 function isRequireFieldEnabled(category: PolicyCategory | undefined, field: keyof RequireFieldsRuleForm): boolean {
@@ -123,37 +156,41 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
     const shouldRequireItemizedReceipt = !!effectiveForm.requireItemizedReceipt;
     const hadReceipt = isRequireFieldEnabled(category, 'requireReceipt');
     const hadItemizedReceipt = isRequireFieldEnabled(category, 'requireItemizedReceipt');
+    const hadNeverReceipt = isNeverReceiptRequired(category?.maxAmountNoReceipt);
+    const hadNeverItemizedReceipt = isNeverReceiptRequired(category?.maxAmountNoItemizedReceipt);
+    const skipReceiptSave = hasCustomNonZeroReceiptThreshold(category?.maxAmountNoReceipt);
+    const skipItemizedSave = hasCustomNonZeroReceiptThreshold(category?.maxAmountNoItemizedReceipt);
 
-    if (shouldRequireItemizedReceipt && !shouldRequireReceipt && !hadReceipt) {
+    if (!skipReceiptSave && !skipItemizedSave && shouldRequireItemizedReceipt && !shouldRequireReceipt && !hadReceipt && !hadNeverReceipt) {
         setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
     } else {
-        if (shouldRequireReceipt !== hadReceipt) {
-            if (shouldRequireReceipt) {
-                setPolicyCategoryReceiptsRequired(policyData, categoryName, 0);
-            } else {
-                removePolicyCategoryReceiptsRequired(policyData, categoryName);
-                if (hadItemizedReceipt) {
+        if (!skipReceiptSave && (form.requireReceipt !== undefined || form.requireItemizedReceipt !== undefined)) {
+            if (shouldRequireReceipt !== hadReceipt || (shouldRequireReceipt && hadNeverReceipt)) {
+                if (shouldRequireReceipt) {
+                    setPolicyCategoryReceiptsRequired(policyData, categoryName, 0);
+                } else {
+                    removePolicyCategoryReceiptsRequired(policyData, categoryName);
+                    if (hadItemizedReceipt || hadNeverItemizedReceipt) {
+                        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+                    }
+                }
+            }
+        }
+
+        if (!skipItemizedSave && form.requireItemizedReceipt !== undefined) {
+            if (shouldRequireItemizedReceipt !== hadItemizedReceipt || (shouldRequireItemizedReceipt && hadNeverItemizedReceipt)) {
+                if (shouldRequireItemizedReceipt) {
+                    if (shouldRequireReceipt || hadReceipt || category?.maxAmountNoReceipt === 0) {
+                        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, 0);
+                    } else {
+                        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
+                    }
+                } else {
                     removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
                 }
             }
         }
-
-        if (shouldRequireItemizedReceipt !== hadItemizedReceipt) {
-            if (shouldRequireItemizedReceipt) {
-                if (shouldRequireReceipt || hadReceipt || category?.maxAmountNoReceipt === 0) {
-                    setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, 0);
-                } else {
-                    setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
-                }
-            } else {
-                removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
-            }
-        }
     }
-}
-
-function hasExplicitReceiptThreshold(value: number | null | undefined): value is number {
-    return value !== null && value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
 function isCategoryFieldPending(pendingAction: PendingAction | undefined): boolean {
@@ -169,6 +206,7 @@ function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
     const {categoryName, ruleType} = parsedRule;
     const policyID = policyData.policy.id;
     const policyCategories = policyData.categories;
+    const category = policyCategories?.[categoryName];
 
     switch (ruleType) {
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION:
@@ -179,6 +217,13 @@ function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
             break;
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER:
             removePolicyCategoryReceiptsRequired(policyData, categoryName);
+            if (
+                isRequireFieldEnabled(category, 'requireItemizedReceipt') ||
+                isNeverReceiptRequired(category?.maxAmountNoItemizedReceipt) ||
+                hasCustomNonZeroReceiptThreshold(category?.maxAmountNoItemizedReceipt)
+            ) {
+                removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+            }
             break;
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER:
             removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
@@ -201,11 +246,17 @@ function getRequireFieldsRuleDescription(
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES:
             return translate('workspace.rules.requireFieldsTable.requireAttendees');
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER:
+            if (amount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                return translate('workspace.rules.categoryRules.requireReceiptsOverList.never');
+            }
             if (amount === 0) {
                 return translate('workspace.rules.requireFieldsTable.alwaysRequireReceipt');
             }
             return translate('workspace.rules.requireFieldsTable.requireReceiptOver', convertToDisplayString(amount ?? 0, policyCurrency));
         case CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER:
+            if (amount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                return translate('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never');
+            }
             if (amount === 0) {
                 return translate('workspace.rules.requireFieldsTable.requireItemizedReceipt');
             }
@@ -235,12 +286,14 @@ function getRequireFieldsTableData({
     policyCategories,
     translate,
     convertToDisplayString,
+    localeCompare,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    localeCompare: LocaleContextProps['localeCompare'];
     onNavigate: (route: Route) => void;
 }): RequireFieldsTableItem[] {
     if (!policy?.id || !policyCategories) {
@@ -297,9 +350,9 @@ function getRequireFieldsTableData({
             });
         }
 
-        if (hasExplicitReceiptThreshold(category.maxAmountNoReceipt)) {
+        if (hasCategoryReceiptOverride(category.maxAmountNoReceipt)) {
             const ruleType = CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER;
-            const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, category.maxAmountNoReceipt, convertToDisplayString, policyCurrency);
+            const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, category.maxAmountNoReceipt ?? undefined, convertToDisplayString, policyCurrency);
             rules.push({
                 keyForList: getRequireFieldsRuleKey(categoryName, ruleType),
                 ruleID: getRequireFieldsRuleKey(categoryName, ruleType),
@@ -315,7 +368,7 @@ function getRequireFieldsTableData({
             });
         }
 
-        if (hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt)) {
+        if (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt)) {
             const ruleType = CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER;
             const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, category.maxAmountNoItemizedReceipt ?? undefined, convertToDisplayString, policyCurrency);
             rules.push({
@@ -334,8 +387,18 @@ function getRequireFieldsTableData({
         }
     }
 
-    return rules.sort((a, b) => a.conditionText.localeCompare(b.conditionText));
+    return rules.sort((a, b) => localeCompare(a.conditionText, b.conditionText));
 }
 
-export {deleteRequireFieldsRule, getEffectiveRequireFieldsRuleForm, getRequireFieldsFormFromCategory, getRequireFieldsTableData, saveRequireFieldsRule};
+export {
+    categoryHasAnyRequireFieldsRule,
+    deleteRequireFieldsRule,
+    getEffectiveRequireFieldsRuleForm,
+    getRequireFieldsFormFromCategory,
+    getRequireFieldsRuleDescription,
+    getRequireFieldsTableData,
+    hasCustomNonZeroReceiptThreshold,
+    isNeverReceiptRequired,
+    saveRequireFieldsRule,
+};
 export type {RequireFieldsTableItem};
