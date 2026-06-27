@@ -400,11 +400,13 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [
-                    // s77rt TODO for release 2 make sure to subscribe to mapping fields errors
                     CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.RILLET_CONFIG.SYNC_TAX_RATES,
+                    CONST.RILLET_CONFIG.FIELD_MAPPINGS.DEPARTMENTS,
+                    CONST.RILLET_CONFIG.FIELD_MAPPINGS.PROJECTS,
+                    CONST.RILLET_CONFIG.FIELD_MAPPINGS.CLASSES,
                 ],
                 onExportPagePress: () => null,
                 subscribedExportSettings: [
