@@ -3032,16 +3032,16 @@ describe('actions/Report', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 },
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            const reportActions = {
                 [firstIOUAction.reportActionID]: firstIOUAction,
                 [secondIOUAction.reportActionID]: secondIOUAction,
                 [payAction.reportActionID]: payAction,
-            });
+            };
 
             // When deleting the expense report
             Report.deleteAppReport({
                 report: expenseReport,
-                reportActions: undefined,
+                reportActions,
                 parentReportAction: undefined,
                 selfDMReport: undefined,
                 currentUserEmailParam: '',
@@ -3226,7 +3226,7 @@ describe('actions/Report', () => {
             Report.deleteAppReport({
                 report: expenseReport,
                 reportActions: undefined,
-                parentReportAction: undefined,
+                parentReportAction: reportPreview,
                 selfDMReport: undefined,
                 currentUserEmailParam: '',
                 currentUserAccountIDParam: currentUserAccountID,
