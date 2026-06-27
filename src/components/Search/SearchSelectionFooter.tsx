@@ -119,7 +119,11 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const selectedConvertibleIDs = isReportsSearch ? selectedReportIDs : selectedTransactionIDs;
     const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
-    const shouldUseClientTotal = !metadataCount || hasPartialSelection;
+    // On the Reports search a selection is converted per report, so use the per-report client path for any explicit
+    // (loaded) report selection — including when every loaded report is selected — rather than the whole-search query
+    // path, which only produces flat per-transaction rows and so can't be reused for reports.
+    const hasExplicitReportSelection = isReportsSearch && !areAllMatchingItemsSelected && selectedReportIDs.length > 0;
+    const shouldUseClientTotal = !metadataCount || hasPartialSelection || hasExplicitReportSelection;
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
     const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
@@ -140,7 +144,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // the default-currency total behind a skeleton until the cache fills. A partial selection can only convert once
     // it has IDs to fetch, so a selection with none to convert stays on the default total instead of a skeleton
     // that would never resolve.
-    const isFooterTotalConverting = hasCustomFooterCurrency && (shouldUseClientTotal ? selectedConvertibleIDs.length > 0 && !areAllSelectedConverted : !selectedCurrencyConvertedTotal);
+    const isFooterTotalConverting =
+        hasCustomFooterCurrency && (shouldUseClientTotal ? selectedConvertibleIDs.length > 0 && !areAllSelectedConverted : !isReportsSearch && !selectedCurrencyConvertedTotal);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -173,7 +178,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return;
         }
 
-        if (!selectedCurrencyConvertedTotal) {
+        // The whole-search query path produces flat per-transaction rows, which the Reports search has no equivalent
+        // of, so skip it there; an explicit report selection is converted via the report path above instead.
+        if (!isReportsSearch && !selectedCurrencyConvertedTotal) {
             getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency});
         }
     }, [
