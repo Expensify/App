@@ -69,7 +69,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         : selectedReport?.ownerAccountID;
     const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
     const isPerDiemTransaction = isPerDiemRequest(transaction);
-    const isUnreportedManagedCardTransactions = isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
+    const isUnreportedManagedCardTransaction = isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
 
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
     // When moving an expense that belongs to another user, or when the selection includes per diem
@@ -84,7 +84,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         isPerDiemTransaction,
         isTimeRequestUtil(transaction),
         targetExpensePolicyID,
-        isUnreportedManagedCardTransactions,
+        isUnreportedManagedCardTransaction,
     );
 
     // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
@@ -204,7 +204,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             isPerDiemRequest={transaction ? isPerDiemTransaction : false}
             isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
-            isUnreportedManagedCardTransactions={transaction ? isUnreportedManagedCardTransactions : false}
+            isUnreportedManagedCardTransaction={transaction ? isUnreportedManagedCardTransaction : false}
             createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
             targetOwnerAccountID={ownerAccountID}
         />

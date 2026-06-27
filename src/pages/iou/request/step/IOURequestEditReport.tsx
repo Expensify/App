@@ -184,7 +184,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isEditing={action === CONST.IOU.ACTION.EDIT}
             createReport={createReport}
             isPerDiemRequest={hasPerDiemTransactions}
-            isUnreportedManagedCardTransactions={hasUnreportedManagedCardTransactions}
+            isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             transactionPolicyID={targetExpensePolicyID}
         />
     );

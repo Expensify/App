@@ -282,7 +282,7 @@ function SearchTransactionsChangeReport() {
             targetOwnerAccountID={targetOwnerAccountID}
             transactionPolicyID={selectedReportPolicyID}
             isPerDiemRequest={hasPerDiemTransactions}
-            isUnreportedManagedCardTransactions={hasUnreportedManagedCardTransactions}
+            isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
         />
     );
 }
