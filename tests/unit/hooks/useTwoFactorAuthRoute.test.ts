@@ -13,7 +13,7 @@ jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () =
     default: jest.fn((suffix: string, backTo?: string) => `${backTo ?? 'active-route'}/${suffix}` as const),
 }));
 
-const mockUseOnyx = useOnyx as jest.Mock;
+const mockUseOnyx = jest.mocked(useOnyx);
 
 describe('useTwoFactorAuthRoute', () => {
     beforeEach(() => {

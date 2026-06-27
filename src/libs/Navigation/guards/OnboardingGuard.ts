@@ -121,21 +121,26 @@ function getShouldShowRequire2FAPage(): boolean {
     return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlowSelector(onboarding) ?? false);
 }
 
+type DeepestFocusedScreenInput = NonNullable<Parameters<typeof getDeepestFocusedScreen>[0]>;
+
+function isDeepestFocusedScreenInput(value: unknown): value is DeepestFocusedScreenInput {
+    return typeof value === 'object' && value !== null;
+}
+
+function getActionPayloadScreenName(action: NavigationAction): string | undefined {
+    if (!isDeepestFocusedScreenInput(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.name;
+}
+
 function isTwoFactorSetupRouteName(screenName: string | undefined): boolean {
     return isTwoFactorSetupScreen(screenName) || screenName === SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH;
 }
 
 function isTargetTwoFactorSetupRoute(action: NavigationAction): boolean {
-    if (!action.payload) {
-        return false;
-    }
-
-    // Use getDeepestFocusedScreen (not findFocusedRoute) because action payloads for NAVIGATE/PUSH are not full
-    // NavigationStates (they have no `routes` array) and would crash findFocusedRoute. getDeepestFocusedScreen safely
-    // handles state-with-routes, nested state, and the NAVIGATE `params.screen` shape.
-    const screenName = getDeepestFocusedScreen(action.payload as Parameters<typeof getDeepestFocusedScreen>[0])?.name;
-
-    return isTwoFactorSetupRouteName(screenName);
+    return isTwoFactorSetupRouteName(getActionPayloadScreenName(action));
 }
 
 function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
@@ -207,7 +212,7 @@ const OnboardingGuard: NavigationGuard = {
         if (getShouldShowRequire2FAPage() && (isTargetTwoFactorSetupRoute(action) || isCurrentlyOnTwoFactorSetupRoute(state))) {
             Log.info('[OnboardingGuard] Allowing navigation to 2FA setup while required-2FA overlay is active', false, {
                 actionType: action.type,
-                targetScreen: action.payload ? getDeepestFocusedScreen(action.payload as Parameters<typeof getDeepestFocusedScreen>[0])?.name : undefined,
+                targetScreen: getActionPayloadScreenName(action),
                 currentScreen: getDeepestFocusedScreen(state)?.name,
             });
             return {type: 'ALLOW'};

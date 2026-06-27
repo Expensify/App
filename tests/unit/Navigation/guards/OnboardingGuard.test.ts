@@ -598,10 +598,12 @@ describe('OnboardingGuard', () => {
         });
 
         it('should still REDIRECT unrelated navigation when required-2FA overlay is active', () => {
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
 
             expect(result.type).toBe('REDIRECT');
-            expect(result.route).toContain('onboarding');
+            if (result.type === 'REDIRECT') {
+                expect(result.route).toContain('onboarding');
+            }
         });
     });
 });
