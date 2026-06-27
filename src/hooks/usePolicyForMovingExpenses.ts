@@ -81,6 +81,7 @@ type PolicyForMovingExpenses = {
     policyForMovingExpensesID: string | undefined;
     policyForMovingExpenses: OnyxEntry<Policy>;
     shouldSelectPolicy: boolean;
+    shouldNavigateToUpgradePath: boolean;
 };
 
 function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string): PolicyForMovingExpenses {
@@ -107,22 +108,22 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
 
     // If an expense policy ID is provided and valid, prefer it over the active policy
     if (validExpensePolicyID) {
-        return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false};
+        return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) && (!isTimeRequest || isTimeTrackingEnabled(activePolicy))) {
-        return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false};
+        return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (singlePolicyID && !isMemberOfMoreThanOnePolicy) {
-        return {policyForMovingExpensesID: singlePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false};
+        return {policyForMovingExpensesID: singlePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
     }
 
     if (isMemberOfMoreThanOnePolicy) {
-        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: true};
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: true, shouldNavigateToUpgradePath: false};
     }
 
-    return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false};
+    return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: true};
 }
 
 export default usePolicyForMovingExpenses;
