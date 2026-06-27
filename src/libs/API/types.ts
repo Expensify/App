@@ -504,6 +504,7 @@ const WRITE_COMMANDS = {
     UPDATE_RILLET_SUBSIDIARY: 'UpdateRilletSubsidiary',
     UPDATE_RILLET_ENABLE_NEW_CATEGORIES: 'UpdateRilletEnableNewCategories',
     UPDATE_RILLET_SYNC_TAX_RATES: 'UpdateRilletSyncTaxRates',
+    UPDATE_RILLET_FIELD_MAPPING: 'UpdateRilletFieldMapping',
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
     EXPORT_SEARCH_ITEMS_TO_CSV: 'ExportSearchToCSV',
@@ -1112,6 +1113,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_RILLET_SUBSIDIARY]: Parameters.UpdateRilletSubsidiaryParams;
     [WRITE_COMMANDS.UPDATE_RILLET_ENABLE_NEW_CATEGORIES]: Parameters.UpdateRilletGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_TAX_RATES]: Parameters.UpdateRilletGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_FIELD_MAPPING]: Parameters.UpdateRilletFieldMappingParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;

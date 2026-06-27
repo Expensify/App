@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
-import type {ConnectPolicyToRilletParams, UpdateRilletGenericTypeParams, UpdateRilletSubsidiaryParams} from '@libs/API/parameters';
+import type {ConnectPolicyToRilletParams, UpdateRilletFieldMappingParams, UpdateRilletGenericTypeParams, UpdateRilletSubsidiaryParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -26,7 +27,7 @@ function prepareRilletOptimisticData<TSettingName extends keyof Connections['ril
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<Connections['rillet']['config'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['rillet']['config'][TSettingName]> | null,
+    oldSettingValue: Partial<Connections['rillet']['config'][TSettingName]> | null,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -97,7 +98,7 @@ function prepareRilletCodingOptimisticData<TSettingName extends keyof Connection
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<Connections['rillet']['config']['coding'][TSettingName]>,
-    oldSettingValue?: Partial<Connections['rillet']['config']['coding'][TSettingName]> | null,
+    oldSettingValue: Partial<Connections['rillet']['config']['coding'][TSettingName]> | null,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -168,8 +169,89 @@ function prepareRilletCodingOptimisticData<TSettingName extends keyof Connection
     return {optimisticData, successData, failureData};
 }
 
-function updateRilletSubsidiary(policyID: string, subsidiaryID: Connections['rillet']['config']['subsidiaryID'], oldSubsidiaryID: Connections['rillet']['config']['subsidiaryID']) {
-    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID);
+function prepareRilletFieldMappingOptimisticData(
+    policyID: string,
+    fieldID: keyof Connections['rillet']['config']['coding']['fieldMappings'],
+    mapping: ValueOf<Connections['rillet']['config']['coding']['fieldMappings']>,
+    oldMapping: ValueOf<Connections['rillet']['config']['coding']['fieldMappings']> | null,
+) {
+    const fieldOfflineFeedbackKey = `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${fieldID}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            coding: {
+                                fieldMappings: {
+                                    [fieldID]: mapping,
+                                },
+                            },
+                            pendingFields: {
+                                [fieldOfflineFeedbackKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [fieldOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            pendingFields: {
+                                [fieldOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            coding: {
+                                fieldMappings: {
+                                    [fieldID]: oldMapping ?? null,
+                                },
+                            },
+                            pendingFields: {
+                                [fieldOfflineFeedbackKey]: null,
+                            },
+                            errorFields: {
+                                [fieldOfflineFeedbackKey]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
+function updateRilletSubsidiary(policyID: string, subsidiaryID: Connections['rillet']['config']['subsidiaryID'], oldSubsidiaryID?: Connections['rillet']['config']['subsidiaryID']) {
+    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateRilletSubsidiaryParams = {
         policyID,
         subsidiaryID,
@@ -180,9 +262,9 @@ function updateRilletSubsidiary(policyID: string, subsidiaryID: Connections['ril
 function updateRilletEnableNewCategories(
     policyID: string,
     enableNewCategories: Connections['rillet']['config']['enableNewCategories'],
-    oldEnableNewCategories: Connections['rillet']['config']['enableNewCategories'],
+    oldEnableNewCategories?: Connections['rillet']['config']['enableNewCategories'],
 ) {
-    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES, enableNewCategories, oldEnableNewCategories);
+    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES, enableNewCategories, oldEnableNewCategories ?? null);
     const parameters: UpdateRilletGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(enableNewCategories),
@@ -194,9 +276,9 @@ function updateRilletEnableNewCategories(
 function updateRilletSyncTaxRates(
     policyID: string,
     syncTaxRates: Connections['rillet']['config']['coding']['syncTaxRates'],
-    oldSyncTaxRates: Connections['rillet']['config']['coding']['syncTaxRates'],
+    oldSyncTaxRates?: Connections['rillet']['config']['coding']['syncTaxRates'],
 ) {
-    const onyxData = prepareRilletCodingOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES, syncTaxRates, oldSyncTaxRates);
+    const onyxData = prepareRilletCodingOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES, syncTaxRates, oldSyncTaxRates ?? null);
     const parameters: UpdateRilletGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(syncTaxRates),
@@ -205,4 +287,19 @@ function updateRilletSyncTaxRates(
     write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_TAX_RATES, parameters, onyxData);
 }
 
-export {connectToRillet, clearRilletErrorField, updateRilletSubsidiary, updateRilletEnableNewCategories, updateRilletSyncTaxRates};
+function updateRilletFieldMapping(
+    policyID: string,
+    fieldID: keyof Connections['rillet']['config']['coding']['fieldMappings'],
+    mapping: ValueOf<Connections['rillet']['config']['coding']['fieldMappings']>,
+    oldMapping?: ValueOf<Connections['rillet']['config']['coding']['fieldMappings']>,
+) {
+    const onyxData = prepareRilletFieldMappingOptimisticData(policyID, fieldID, mapping, oldMapping ?? null);
+    const parameters: UpdateRilletFieldMappingParams = {
+        policyID,
+        fieldID,
+        mapping,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_FIELD_MAPPING, parameters, onyxData);
+}
+
+export {connectToRillet, clearRilletErrorField, updateRilletSubsidiary, updateRilletEnableNewCategories, updateRilletSyncTaxRates, updateRilletFieldMapping};

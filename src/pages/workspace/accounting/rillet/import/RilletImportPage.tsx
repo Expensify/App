@@ -7,7 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletFieldMapping, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
 import {clearSageIntacctErrorField, updateSageIntacctBillable} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,7 +55,7 @@ function RilletImportPage({policy}: WithPolicyProps) {
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={rilletConfig?.enableNewCategories ?? false}
-                onToggle={() => policyID && updateRilletEnableNewCategories(policyID, !rilletConfig?.enableNewCategories, !!rilletConfig?.enableNewCategories)}
+                onToggle={() => policyID && updateRilletEnableNewCategories(policyID, !rilletConfig?.enableNewCategories, rilletConfig?.enableNewCategories)}
                 pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES], rilletConfig?.pendingFields)}
                 errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES)}
                 onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES)}
@@ -71,7 +71,15 @@ function RilletImportPage({policy}: WithPolicyProps) {
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.mh5]}
                     isActive={rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG}
-                    onToggle={() => null}
+                    onToggle={() =>
+                        policyID &&
+                        updateRilletFieldMapping(
+                            policyID,
+                            field.id,
+                            rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG ? CONST.RILLET_MAPPING_VALUE.NONE : CONST.RILLET_MAPPING_VALUE.TAG,
+                            rilletConfig?.coding.fieldMappings[field.id],
+                        )
+                    }
                     pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`], rilletConfig?.pendingFields)}
                     errors={getLatestErrorField(rilletConfig ?? {}, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
                     onCloseError={() => policyID && clearRilletErrorField(policyID, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
@@ -86,7 +94,7 @@ function RilletImportPage({policy}: WithPolicyProps) {
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={rilletConfig?.coding.syncTaxRates ?? false}
-                        onToggle={() => policyID && updateRilletSyncTaxRates(policyID, !rilletConfig?.coding.syncTaxRates, !!rilletConfig?.coding.syncTaxRates)}
+                        onToggle={() => policyID && updateRilletSyncTaxRates(policyID, !rilletConfig?.coding.syncTaxRates, rilletConfig?.coding.syncTaxRates)}
                         pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_TAX_RATES], rilletConfig?.pendingFields)}
                         errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
                         onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
