@@ -7,6 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestRedirectToStartPage from '@pages/iou/request/IOURequestRedirectToStartPage';
+import * as MoneyRequestActions from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -125,5 +126,46 @@ describe('IOURequestRedirectToStartPage', () => {
 
         // ...and the redirect still forwards the user to the distance start page
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    // PR review (codex P1): on a cold start / hard-refresh the draft collection may not be hydrated when this
+    // effect runs, and `validTransactionDraftIDsSelector` maps that to `[]` (not `undefined`). So the clear must
+    // ALWAYS include OPTIMISTIC_TRANSACTION_ID — a `?? [...]` fallback alone would pass an empty list and remove
+    // nothing, letting the stale scan draft survive and reopen the "Not here" page.
+    it('always clears the OPTIMISTIC_TRANSACTION_ID draft even when the selector returns an empty list', async () => {
+        const clearSpy = jest.spyOn(MoneyRequestActions, 'clearMoneyRequest');
+
+        // Given no loaded drafts (validTransactionDraftIDsSelector returns [])
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <NavigationContainer>
+                        <IOURequestRedirectToStartPage
+                            route={{
+                                key: 'Money_Request_Start-test',
+                                name: SCREENS.MONEY_REQUEST.START,
+                                params: {
+                                    iouType: CONST.IOU.TYPE.CREATE,
+                                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                                    reportID: '',
+                                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                },
+                            }}
+                            report={undefined}
+                            reportDraft={undefined}
+                            // @ts-expect-error minimal navigation for test
+                            navigation={undefined}
+                        />
+                    </NavigationContainer>
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then clearMoneyRequest is still called with OPTIMISTIC_TRANSACTION_ID in the removal list (exactly once)
+        expect(clearSpy).toHaveBeenCalledTimes(1);
+        expect(clearSpy).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, expect.arrayContaining([CONST.IOU.OPTIMISTIC_TRANSACTION_ID]));
+
+        clearSpy.mockRestore();
     });
 });
