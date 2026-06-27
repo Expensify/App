@@ -1,9 +1,9 @@
 import type {ImageContentFit} from 'expo-image';
 import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useEffect, useRef, useState} from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports -- type-only import from react-native
-import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -29,8 +29,6 @@ import type ImageSVGProps from './ImageSVG/types';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import type DotLottieAnimation from './LottieAnimations/types';
-import OfflineIndicator from './OfflineIndicator';
-import RenderHTML from './RenderHTML';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
@@ -56,9 +54,6 @@ type BaseFeatureTrainingContentProps = {
 
     /** Describe what is showing */
     description?: string;
-
-    /** Secondary description rendered with additional space */
-    secondaryDescription?: string;
 
     /** Style for the title */
     titleStyles?: StyleProp<TextStyle>;
@@ -96,29 +91,11 @@ type BaseFeatureTrainingContentProps = {
     /** Content width for wide layouts */
     width?: number;
 
-    /** Whether the image is a SVG */
-    shouldRenderSVG?: boolean;
-
-    /** Whether the description is written in HTML */
-    shouldRenderHTMLDescription?: boolean;
-
     /** Whether closing should happen on confirm */
     shouldCloseOnConfirm?: boolean;
 
     /** Whether the content is scrollable */
     shouldUseScrollView?: boolean;
-
-    /** Whether to show a confirmation loading spinner */
-    shouldShowConfirmationLoader?: boolean;
-
-    /** Whether the user can confirm while offline */
-    canConfirmWhileOffline?: boolean;
-
-    /** Sentry label for the help/skip button */
-    helpSentryLabel?: string;
-
-    /** Sentry label for the confirm/submit button */
-    confirmSentryLabel?: string;
 };
 
 type FeatureTrainingContentVideoProps = {
@@ -175,7 +152,6 @@ function FeatureTrainingContent({
     width = variables.featureTrainingModalWidth,
     title = '',
     description = '',
-    secondaryDescription = '',
     titleStyles,
     shouldShowDismissModalOption = false,
     confirmText = '',
@@ -189,14 +165,8 @@ function FeatureTrainingContent({
     contentOuterContainerStyles,
     imageWidth,
     imageHeight,
-    shouldRenderSVG = true,
-    shouldRenderHTMLDescription = false,
     shouldCloseOnConfirm = true,
     shouldUseScrollView: shouldUseScrollViewProp = false,
-    shouldShowConfirmationLoader = false,
-    canConfirmWhileOffline = true,
-    helpSentryLabel,
-    confirmSentryLabel,
 }: FeatureTrainingContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -233,26 +203,15 @@ function FeatureTrainingContent({
 
         return (
             <View style={[isInLandscapeMode ? styles.h100 : styles.w100, illustrationInnerContainerStyle, (!!videoURL || !!image) && {aspectRatio}]}>
-                {!!image &&
-                    (shouldRenderSVG ? (
-                        <ImageSVG
-                            src={image}
-                            contentFit={contentFitImage}
-                            width={imageWidth}
-                            height={imageHeight}
-                            testID={CONST.IMAGE_SVG_TEST_ID}
-                        />
-                    ) : (
-                        <Image
-                            accessibilityIgnoresInvertColors
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- IconAsset union narrowed by !shouldRenderSVG branch
-                            source={image as ImageSourcePropType}
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ImageContentFit and ImageResizeMode are compatible
-                            resizeMode={contentFitImage as ImageResizeMode}
-                            style={styles.featureTrainingModalImage}
-                            testID={CONST.IMAGE_TEST_ID}
-                        />
-                    ))}
+                {!!image && (
+                    <ImageSVG
+                        src={image}
+                        contentFit={contentFitImage}
+                        width={imageWidth}
+                        height={imageHeight}
+                        testID={CONST.IMAGE_SVG_TEST_ID}
+                    />
+                )}
                 {!!videoURL && videoStatus === 'video' && (
                     <GestureHandlerRootView>
                         <VideoPlayer
@@ -338,16 +297,9 @@ function FeatureTrainingContent({
             </View>
             <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                 {!!title && !!description && (
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [shouldRenderHTMLDescription ? styles.mb5 : styles.mb10], contentInnerContainerStyles]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : styles.mb10, contentInnerContainerStyles]}>
                         {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
-                        {shouldRenderHTMLDescription ? (
-                            <View style={styles.mb2}>
-                                <RenderHTML html={description} />
-                            </View>
-                        ) : (
-                            <Text style={styles.textSupporting}>{description}</Text>
-                        )}
-                        {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
+                        <Text style={styles.textSupporting}>{description}</Text>
                         {children}
                     </View>
                 )}
@@ -355,7 +307,7 @@ function FeatureTrainingContent({
                     <CheckboxWithLabel
                         label={translate('featureTraining.doNotShowAgain')}
                         accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                        style={[styles.mb5]}
+                        style={styles.mb5}
                         isChecked={!willShowAgain}
                         onInputChange={toggleWillShowAgain}
                     />
@@ -363,20 +315,16 @@ function FeatureTrainingContent({
                 {!!helpText && (
                     <Button
                         large
-                        style={[styles.mb3]}
+                        style={styles.mb3}
                         onPress={() => onHelp?.()}
                         text={helpText}
-                        sentryLabel={helpSentryLabel}
                     />
                 )}
                 <FormAlertWithSubmitButton
                     onSubmit={handleConfirm}
-                    isLoading={shouldShowConfirmationLoader}
                     buttonText={confirmText}
-                    enabledWhenOffline={canConfirmWhileOffline}
-                    sentryLabel={confirmSentryLabel}
+                    enabledWhenOffline
                 />
-                {!canConfirmWhileOffline && <OfflineIndicator />}
             </View>
         </Wrapper>
     );

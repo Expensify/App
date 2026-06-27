@@ -514,6 +514,7 @@ function ParticipantSearchResults({
                     />
                 }
                 footerContent={footerContent}
+                addBottomSafeAreaPadding
                 listEmptyContent={EmptySelectionListContentWithPermission}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
