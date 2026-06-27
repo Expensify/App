@@ -21,7 +21,7 @@ describe('useTwoFactorAuthRoute', () => {
     });
 
     it('should return SETTINGS_2FA_ENABLED when 2FA is enabled and forceSetup is not set', () => {
-        mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: true, validated: true}]);
+        mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: true, validated: true}, {status: 'loaded'}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
 
@@ -29,7 +29,7 @@ describe('useTwoFactorAuthRoute', () => {
     });
 
     it('should return a setup route when 2FA is enabled but forceSetup is true', () => {
-        mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: true, validated: true}]);
+        mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: true, validated: true}, {status: 'loaded'}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
 
@@ -37,7 +37,7 @@ describe('useTwoFactorAuthRoute', () => {
     });
 
     it('should return verify-account route for unvalidated accounts with forceSetup', () => {
-        mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: true, validated: false}]);
+        mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: true, validated: false}, {status: 'loaded'}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
 
