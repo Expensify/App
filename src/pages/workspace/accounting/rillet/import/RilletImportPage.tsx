@@ -58,6 +58,7 @@ function RilletImportPage({policy}: WithPolicyProps) {
             </View>
             {rilletData?.fields.map((field) => (
                 <ToggleSettingOptionRow
+                    key={field.id}
                     title={field.name}
                     switchAccessibilityLabel={field.name}
                     shouldPlaceSubtitleBelowSwitch
