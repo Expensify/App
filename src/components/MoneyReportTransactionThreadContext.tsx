@@ -57,8 +57,6 @@ function MoneyReportTransactionThreadProvider({reportID, children}: MoneyReportT
         reportActions: reportActions ?? [],
     };
 
-    console.log('money report parent action', requestParentReportAction);
-
     return <MoneyReportTransactionThreadContext.Provider value={value}>{children}</MoneyReportTransactionThreadContext.Provider>;
 }
 
