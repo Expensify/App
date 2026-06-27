@@ -14,7 +14,7 @@ import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import isTrackOnboardingChoice from './OnboardingUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID, isSubmitPolicy} from './PolicyUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -231,10 +231,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            // Submit workspaces (submit2026) hide approvals in the UI but always submit to an approver
-            // internally, so we never short-circuit them to the no-approval path even if their synced
-            // approvalMode is optional.
-            if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && !isSubmitPolicy(policy)) {
+            if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
                 nextStep = reimbursableSpend === 0 ? nextStepNoActionRequired : nextStepFixOrPayExpense;
                 break;
             }
@@ -744,10 +741,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            // Submit workspaces (submit2026) hide approvals in the UI but always submit to an approver
-            // internally, so we never short-circuit them to the no-approval path even if their synced
-            // approvalMode is optional.
-            if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && !isSubmitPolicy(policy)) {
+            if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
                 optimisticNextStep = reimbursableSpend === 0 ? noActionRequired : nextStepPayExpense;
                 break;
             }

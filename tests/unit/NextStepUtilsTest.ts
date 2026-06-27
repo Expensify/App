@@ -876,14 +876,14 @@ describe('libs/NextStepUtils', () => {
                 });
             });
 
-            test('submit workspace shows the approve next step even when approvals are disabled in the UI', () => {
+            test('submit workspace shows the approve next step', () => {
                 report.managerID = strangeAccountID;
-                // Submit workspaces (submit2026) hide approvals in the UI, so their synced approvalMode can be
-                // optional, but the report is always waiting on the configured approver.
+                // Submit workspaces (submit2026) hide approvals in the UI, but they always run an advanced
+                // approval workflow internally, so the report is waiting on the configured approver.
                 const submitPolicy: Policy = {
                     ...policy,
                     type: CONST.POLICY.TYPE.SUBMIT,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
                 optimisticNextStep.message = [
@@ -908,7 +908,7 @@ describe('libs/NextStepUtils', () => {
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     type: CONST.POLICY.TYPE.SUBMIT,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 }).then(() => {
                     const result = buildNextStepNew({
                         report,
