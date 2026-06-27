@@ -1011,6 +1011,36 @@ const keywordTests = [
         },
     },
     {
+        query: 'receipt-type:ereceipt',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'receiptType',
+                right: 'ereceipt',
+            },
+        },
+    },
+    {
+        query: 'receipt-type:hotel,itemized',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'receiptType',
+                right: ['hotel', 'itemized'],
+            },
+        },
+    },
+    {
         query: 'columns:per-diem,drafts,draft,tax-rate,policy-name,withdrawal-id,bank-account',
         expected: {
             type: 'expense',
