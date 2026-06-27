@@ -33,6 +33,7 @@ import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {searchUserInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -74,6 +75,7 @@ function ReportSubmitToContent({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -286,6 +288,7 @@ function ReportSubmitToContent({
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            submitterLogin,
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
             onSubmitted: () => {
@@ -321,6 +324,7 @@ function ReportSubmitToContent({
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        submitterLogin,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,
