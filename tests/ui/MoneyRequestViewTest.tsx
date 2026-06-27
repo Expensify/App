@@ -42,9 +42,9 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
     return () => <RN.View testID="animated-bg" />;
 });
 
-// Mock MenuItemWithTopDescription to expose interactive state via text for assertions, plus the rendered title via a sibling testID.
-// Title lives in a sibling element (not nested inside the menu-item View) so existing `toHaveTextContent('editable'|'readonly')`
-// assertions on the menu-item testID stay strict-equal — they don't pick up the title text.
+// Mock MenuItemWithTopDescription to expose interactive state via text and title via a sibling testID.
+// Title lives in a sibling element so existing toHaveTextContent('editable'|'readonly') assertions on
+// the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
     return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
@@ -512,11 +512,6 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    // Regression test for https://github.com/Expensify/Expensify/issues/651950 item 3.
-    // When the QBO vendor list sync drops a vendor (deactivated / deleted in QBO), expenses that referenced
-    // that vendor were rendering with an empty Vendor field — looking like the vendor had been stripped off
-    // the expense. The vendor object on the transaction is intentionally preserved as the audit trail; the
-    // render now falls back to the inactive-vendor copy so the staleness is visible.
     it('shows the inactive-vendor fallback copy when the assigned vendor is missing from the synced vendor list', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -526,10 +521,7 @@ describe('MoneyRequestView edit fields', () => {
 
         await setupTestData();
         await act(async () => {
-            // Vendor matching is gated on a workspace beta + an integration that scopes the vendor field.
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
-
-            // Non-reimbursable transaction whose stored vendor.externalID is no longer in the synced list.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
                 comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
@@ -537,8 +529,6 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // MoneyRequestView reads `policy` from the `expensePolicy` prop, not from Onyx — pass the QBO
-        // connection config there. The empty vendors array represents the loaded-but-vendor-removed state.
         renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
@@ -550,15 +540,10 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            // The translate mock returns the i18n key verbatim, so we assert the key the production code requests.
             expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('violations.inactiveVendor');
         });
     });
 
-    // Codex review caught this: when the policy's vendor list hasn't loaded yet (Onyx still hydrating
-    // or sync hasn't finished), the active-scoped lookup returns undefined for every vendor — so the fallback
-    // above must NOT fire until the list is known. We pin that distinction here by setting the QBO
-    // connection config without a vendors array — the inactive-vendor copy must stay hidden.
     it('does not show the inactive-vendor fallback when the synced vendor list has not loaded yet', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -576,7 +561,6 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Intentionally omit `data.vendors` from the QBO connection to simulate the pre-sync hydration state.
         renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
@@ -593,11 +577,6 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    // Codex review caught this: in a dual-connected workspace the active integration's vendor list can drop
-    // the transaction's externalID while a stale entry with the same ID still lives on an inactive integration.
-    // The permissive cross-connection `findVendorByID` would resolve to that stale vendor and show its name —
-    // even though the INACTIVE_VENDOR violation (scoped to the active list via `getMatchingVendorByID`) fires.
-    // The render now scopes its lookup to the active integration too, so UI and violation stay consistent.
     it('shows the inactive-vendor fallback when only an inactive integration still has the vendor', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -615,9 +594,6 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // QBO is the active vendor-matching integration (credit-card export) and its synced list no longer
-        // contains the vendor. Sage Intacct is also connected but is NOT in vendor-matching mode, yet its
-        // stale data still has a vendor with the same ID. The active-scoped lookup must ignore it.
         renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
