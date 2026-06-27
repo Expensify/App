@@ -134,6 +134,13 @@ function IOURequestStepParticipants({
             // safe area inset via `addBottomSafeAreaPadding`. Opt into edge-to-edge so the screen container
             // doesn't also reserve the inset, which would double-pad and leave a blank gap below the banner.
             enableEdgeToEdgeBottomSafeAreaPadding
+            // In edge-to-edge mode the screen's offline indicator becomes an absolutely-positioned sticky bar.
+            // In the no-footer state (banner dismissed + no selection) the SelectionList only reserves the
+            // bottom inset, so the sticky bar would overlap the last rows. The SelectionList already owns the
+            // bottom padding, so mirror `NewChatPage`: don't render the sticky indicator and don't reserve
+            // space for it here.
+            shouldShowOfflineIndicator={false}
+            disableOfflineIndicatorSafeAreaPadding
         >
             {!!skipConfirmation && (
                 <FormHelpMessage

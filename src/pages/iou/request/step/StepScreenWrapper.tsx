@@ -38,6 +38,9 @@ type StepScreenWrapperProps = {
     /** Whether to opt into edge-to-edge bottom safe area handling, so the inner content (e.g. a SelectionList footer) owns the bottom inset instead of the screen container */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
+    /** Whether to disable the safe area padding that offsets the offline indicator in nested scrollable content (e.g. a SelectionList). Useful when the screen does not render the sticky offline indicator and the inner content owns the bottom padding. */
+    disableOfflineIndicatorSafeAreaPadding?: boolean;
+
     /** Returns a function as a child to pass insets to or a node to render without insets */
     children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
@@ -61,6 +64,7 @@ function StepScreenWrapper({
     shouldShowNotFoundPage,
     includeSafeAreaPaddingBottom,
     enableEdgeToEdgeBottomSafeAreaPadding,
+    disableOfflineIndicatorSafeAreaPadding,
     shouldShowOfflineIndicator = true,
     shouldEnableKeyboardAvoidingView = true,
     threeDotsMenuItems,
@@ -76,6 +80,7 @@ function StepScreenWrapper({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+            disableOfflineIndicatorSafeAreaPadding={disableOfflineIndicatorSafeAreaPadding}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
             shouldEnableMaxHeight={canUseTouchScreen()}
