@@ -5008,9 +5008,13 @@ ${amount} dla ${merchant} - ${date}`,
             noCompaniesFoundDescription: 'Po dodaniu firm w Certinia zsynchronizuj ponownie to połączenie.',
             prerequisites: {
                 title: 'Zanim się połączysz',
-                installBundle: 'Dla połączeń FFA',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet FFA Expensify (wersja ${version})</a>`,
+                installBundle: 'Zainstaluj pakiet Expensify',
+                installBundlePSAHeader: 'Dla połączeń PSA/SRP:',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet PSA/SRP Expensify (wersja ${version})</a>`,
+                installBundleFFAHeader: 'Dla połączeń FFA:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `Zainstaluj pakiet Expensify w Salesforce, klikając ten link: <a href="${href}">Zainstaluj pakiet Expensify dla FFA (wersja ${version})</a>`,
                 installBundleConfirm: 'Zainstalowałem pakiet',
                 setupContacts: 'Skonfiguruj użytkownika i kontakty',
                 setupContactsBullet1:
@@ -7466,6 +7470,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             agentRules: {
                 title: 'Zasady agenta',
                 subtitle: 'Ustaw zasady dotyczące tego, jak agenci AI obsługują wydatki w tym obszarze roboczym.',
+                enforcedBy: 'Zasady agenta są egzekwowane przez',
+                ruleBotName: 'RuleBot',
                 addRule: 'Dodaj regułę agenta',
                 findRule: 'Znajdź regułę agenta',
                 addRuleTitle: 'Dodaj regułę',
@@ -8521,6 +8527,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',
+        receiptType: 'Typ paragonu',
+        receiptTypeValues: {
+            ereceipt: 'eParagon',
+            itemized: 'Szczegółowy',
+            hotel: 'Hotel',
+        },
         withdrawalType: 'Typ wypłaty',
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',

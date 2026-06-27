@@ -4978,9 +4978,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             noCompaniesFoundDescription: 'Certinia に会社を追加した後に、もう一度接続の同期を行ってください。',
             prerequisites: {
                 title: '接続する前に',
-                installBundle: 'FFA 接続用',
-                installBundleDescription: ({href, version}: {href: string; version: string}) =>
-                    `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">FFA Expensify バンドルをインストール（バージョン ${version}）</a>`,
+                installBundle: 'Expensify バンドルをインストールします',
+                installBundlePSAHeader: 'PSA/SRP 接続の場合：',
+                installBundlePSADescription: ({href, version}: {href: string; version: string}) =>
+                    `このリンクをクリックして Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">PSA/SRP Expensify バンドル（バージョン ${version}）をインストール</a>`,
+                installBundleFFAHeader: 'FFA 接続用:',
+                installBundleFFADescription: ({href, version}: {href: string; version: string}) =>
+                    `このリンクをクリックして、Salesforce に Expensify バンドルをインストールしてください：<a href="${href}">FFA 用 Expensify バンドルをインストール（バージョン ${version}）</a>`,
                 installBundleConfirm: 'バンドルをインストールしました',
                 setupContacts: 'ユーザーと連絡先を設定',
                 setupContactsBullet1:
@@ -7412,6 +7416,8 @@ ${reportName}`,
             agentRules: {
                 title: 'エージェントルール',
                 subtitle: 'このワークスペースで AI エージェントが経費を処理する方法のルールを設定します。',
+                enforcedBy: 'エージェントルールは次によって適用されます',
+                ruleBotName: 'RuleBot',
                 addRule: 'エージェントルールを追加',
                 findRule: 'エージェントルールを検索',
                 addRuleTitle: 'ルールを追加',
@@ -8454,6 +8460,12 @@ ${reportName}`,
         noMerchant: '店舗なし',
         noTag: 'タグなし',
         expenseType: '経費の種類',
+        receiptType: '領収書の種類',
+        receiptTypeValues: {
+            ereceipt: '電子領収書',
+            itemized: '明細',
+            hotel: 'ホテル',
+        },
         withdrawalType: '出金の種類',
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
