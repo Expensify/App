@@ -205,7 +205,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isPerDiemRequest={transaction ? isPerDiemTransaction : false}
             isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
             isUnreportedManagedCardTransaction={transaction ? isUnreportedManagedCardTransaction : false}
-            createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
+            createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction || isUnreportedManagedCardTransaction ? createReport : undefined}
             targetOwnerAccountID={ownerAccountID}
         />
     );
