@@ -5511,9 +5511,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         cardRulesEmptyStateContainer: {
-            width: variables.cardRulesEmptyStateMaxWidth,
-            height: variables.cardRulesEmptyStateMaxHeight,
-            maxWidth: '100%',
+            width: '100%',
+            maxWidth: variables.cardRulesEmptyStateMaxWidth,
             alignItems: 'center',
         },
 
@@ -5523,20 +5522,22 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardRulesEmptyStateWrapper: {
             ...flex.flex1,
-            ...flex.flexShrink0,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...sizing.w100,
+            ...sizing.mw100,
         },
 
         cardRulesEmptyStateIllustration: {
-            width: variables.cardRulesEmptyStateIllustrationWidth,
-            height: variables.cardRulesEmptyStateIllustrationHeight,
+            width: '100%',
+            maxWidth: variables.cardRulesEmptyStateIllustrationWidth,
+            aspectRatio: variables.cardRulesEmptyStateIllustrationWidth / variables.cardRulesEmptyStateIllustrationHeight,
         },
 
         sortingMachineRulesEmptyStateIllustration: {
-            width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
-            height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+            width: '100%',
+            maxWidth: variables.sortingMachineRulesEmptyStateIllustrationWidth,
+            aspectRatio: variables.sortingMachineRulesEmptyStateIllustrationWidth / variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
         emptyStateSamlIllustration: {
@@ -5550,8 +5551,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         expensifyCardEmptyIllustration: {
-            width: variables.expensifyCardEmptyIllustrationWidth,
-            height: variables.expensifyCardEmptyIllustrationHeight,
+            width: '100%',
+            maxWidth: variables.expensifyCardEmptyIllustrationWidth,
+            aspectRatio: variables.expensifyCardEmptyIllustrationWidth / variables.expensifyCardEmptyIllustrationHeight,
         },
 
         errorStateCardIllustration: {

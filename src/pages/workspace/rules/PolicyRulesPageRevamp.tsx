@@ -493,7 +493,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         enableExpensifyCard(policyID, true, true);
     };
 
-    const rulesEmptyStateScrollContentContainerStyle = [styles.flexGrow1, styles.flexShrink0, styles.justifyContentCenter];
+    const rulesEmptyStateScrollContentContainerStyle = [styles.flexGrow1, styles.flexShrink0, styles.justifyContentCenter, styles.mb5];
     const rulesEmptyStateContainerStyles = [styles.cardRulesEmptyStateWrapper];
 
     const cardRulesEmptyState = (
