@@ -317,6 +317,7 @@ export default {
     sortingMachineRulesEmptyStateIllustrationWidth: 229,
     sortingMachineRulesEmptyStateIllustrationHeight: 240,
     cardRulesEmptyStateMaxWidth: 496,
+    cardRulesEmptyStateMaxHeight: 376,
     expensifyCardEmptyIllustrationWidth: 280,
     expensifyCardEmptyIllustrationHeight: 172,
     rulesNewMenuItemMinHeight: 84,

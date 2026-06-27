@@ -493,10 +493,13 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         enableExpensifyCard(policyID, true, true);
     };
 
+    const rulesEmptyStateScrollContentContainerStyle = [styles.flexGrow1, styles.flexShrink0, styles.justifyContentCenter];
+    const rulesEmptyStateContainerStyles = [styles.cardRulesEmptyStateWrapper];
+
     const cardRulesEmptyState = (
         <ScrollView
             style={[styles.flex1, styles.mnh0]}
-            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            contentContainerStyle={rulesEmptyStateScrollContentContainerStyle}
             addBottomSafeAreaPadding
         >
             <GenericEmptyStateComponent
@@ -507,7 +510,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
-                containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                cardStyles={styles.cardRulesEmptyStateContainer}
+                foregroundStyles={styles.cardRulesEmptyStateForeground}
+                containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
                         buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
@@ -523,7 +528,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const requireFieldsEmptyState = (
         <ScrollView
             style={[styles.flex1, styles.mnh0]}
-            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            contentContainerStyle={rulesEmptyStateScrollContentContainerStyle}
             addBottomSafeAreaPadding
         >
             <GenericEmptyStateComponent
@@ -534,7 +539,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitle={translate('workspace.rules.requireFieldsEmptyState.subtitle')}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
-                containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                cardStyles={styles.cardRulesEmptyStateContainer}
+                foregroundStyles={styles.cardRulesEmptyStateForeground}
+                containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
                         buttonText: translate('workspace.rules.requireFieldsEmptyState.cta'),
@@ -550,7 +557,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const flagForReviewEmptyState = (
         <ScrollView
             style={[styles.flex1, styles.mnh0]}
-            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            contentContainerStyle={rulesEmptyStateScrollContentContainerStyle}
             addBottomSafeAreaPadding
         >
             <GenericEmptyStateComponent
@@ -561,7 +568,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitle={translate('workspace.rules.flagForReviewEmptyState.subtitle')}
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
-                containerStyles={[styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)]}
+                cardStyles={styles.cardRulesEmptyStateContainer}
+                foregroundStyles={styles.cardRulesEmptyStateForeground}
+                containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
                         buttonText: translate('workspace.rules.flagForReviewEmptyState.cta'),

@@ -5510,6 +5510,25 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        cardRulesEmptyStateContainer: {
+            width: variables.cardRulesEmptyStateMaxWidth,
+            height: variables.cardRulesEmptyStateMaxHeight,
+            maxWidth: '100%',
+            alignItems: 'center',
+        },
+
+        cardRulesEmptyStateForeground: {
+            margin: 0,
+        },
+
+        cardRulesEmptyStateWrapper: {
+            ...flex.flex1,
+            ...flex.flexShrink0,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...sizing.w100,
+        },
+
         cardRulesEmptyStateIllustration: {
             width: variables.cardRulesEmptyStateIllustrationWidth,
             height: variables.cardRulesEmptyStateIllustrationHeight,
