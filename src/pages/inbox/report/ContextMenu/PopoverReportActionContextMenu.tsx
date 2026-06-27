@@ -60,8 +60,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
     const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions)}`);
-    const originalReportActionsRef = useRef(originalReportActions);
-    originalReportActionsRef.current = originalReportActions;
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
@@ -408,7 +406,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteReportComment(
                     report,
                     reportAction,
-                    originalReportActionsRef.current ?? undefined,
+                    originalReportActions,
                     ancestorsRef.current,
                     isReportArchived,
                     isOriginalReportArchived,
@@ -422,6 +420,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
+        originalReportActions,
         childReport,
         selfDMReport,
         iouReport,
