@@ -25,6 +25,7 @@ function RilletImportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
+    const rilletData = policy?.connections?.rillet?.data;
 
     return (
         <ConnectionLayout
@@ -63,39 +64,19 @@ function RilletImportPage({policy}: WithPolicyProps) {
             <View style={[styles.mv3, styles.mh5]}>
                 <Text>{translate('workspace.rillet.dimensionsImport')}</Text>
             </View>
-            <ToggleSettingOptionRow
-                title={translate('workspace.rillet.fieldMappings.departments')}
-                switchAccessibilityLabel={translate('workspace.rillet.fieldMappings.departments')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={rilletConfig?.coding.fieldMappings.departments !== CONST.RILLET_MAPPING_VALUE.NONE}
-                onToggle={() => null}
-                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.FIELD_MAPPINGS.DEPARTMENTS], rilletConfig?.pendingFields)}
-                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.FIELD_MAPPINGS.DEPARTMENTS)}
-                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.FIELD_MAPPINGS.DEPARTMENTS)}
-            />
-            <ToggleSettingOptionRow
-                title={translate('workspace.rillet.fieldMappings.projects')}
-                switchAccessibilityLabel={translate('workspace.rillet.fieldMappings.projects')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={rilletConfig?.coding.fieldMappings.projects !== CONST.RILLET_MAPPING_VALUE.NONE}
-                onToggle={() => null}
-                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.FIELD_MAPPINGS.PROJECTS], rilletConfig?.pendingFields)}
-                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.FIELD_MAPPINGS.PROJECTS)}
-                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.FIELD_MAPPINGS.PROJECTS)}
-            />
-            <ToggleSettingOptionRow
-                title={translate('workspace.rillet.fieldMappings.classes')}
-                switchAccessibilityLabel={translate('workspace.rillet.fieldMappings.classes')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={rilletConfig?.coding.fieldMappings.classes !== CONST.RILLET_MAPPING_VALUE.NONE}
-                onToggle={() => null}
-                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.FIELD_MAPPINGS.CLASSES], rilletConfig?.pendingFields)}
-                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.FIELD_MAPPINGS.CLASSES)}
-                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.FIELD_MAPPINGS.CLASSES)}
-            />
+            {rilletData?.fields.map((field) => (
+                <ToggleSettingOptionRow
+                    title={field.name}
+                    switchAccessibilityLabel={field.name}
+                    shouldPlaceSubtitleBelowSwitch
+                    wrapperStyle={[styles.mv3, styles.mh5]}
+                    isActive={rilletConfig?.coding.fieldMappings[field.id] === CONST.RILLET_MAPPING_VALUE.TAG}
+                    onToggle={() => null}
+                    pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`], rilletConfig?.pendingFields)}
+                    errors={getLatestErrorField(rilletConfig ?? {}, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
+                    onCloseError={() => policyID && clearRilletErrorField(policyID, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
+                />
+            ))}
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <ToggleSettingOptionRow
                 title={translate('workspace.taxes.taxRates')}

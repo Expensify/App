@@ -3352,11 +3352,7 @@ const CONST = {
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
         SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
         TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
-        FIELD_MAPPINGS: {
-            DEPARTMENTS: 'departments',
-            PROJECTS: 'projects',
-            CLASSES: 'classes',
-        },
+        FIELD_MAPPING_PREFIX: 'fieldMapping_',
     },
 
     RILLET_MAPPING_VALUE: {

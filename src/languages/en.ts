@@ -5557,11 +5557,6 @@ const translations = {
             enableNewAccountsTitle: 'Enable newly imported accounts',
             enableNewAccountsDescription: 'New Rillet accounts will be available as categories.',
             dimensionsImport: 'All Rillet dimensions import as tags',
-            fieldMappings: {
-                [CONST.RILLET_CONFIG.FIELD_MAPPINGS.DEPARTMENTS]: 'Departments',
-                [CONST.RILLET_CONFIG.FIELD_MAPPINGS.PROJECTS]: 'Projects',
-                [CONST.RILLET_CONFIG.FIELD_MAPPINGS.CLASSES]: 'Classes',
-            },
         },
         type: {
             free: 'Free',

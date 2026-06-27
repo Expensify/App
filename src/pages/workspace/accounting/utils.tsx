@@ -404,9 +404,7 @@ function getAccountingIntegrationData(
                 subscribedImportSettings: [
                     CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.RILLET_CONFIG.SYNC_TAX_RATES,
-                    CONST.RILLET_CONFIG.FIELD_MAPPINGS.DEPARTMENTS,
-                    CONST.RILLET_CONFIG.FIELD_MAPPINGS.PROJECTS,
-                    CONST.RILLET_CONFIG.FIELD_MAPPINGS.CLASSES,
+                    // s77rt
                 ],
                 onExportPagePress: () => null,
                 subscribedExportSettings: [

@@ -1735,16 +1735,19 @@ type RilletCoding = {
     /**
      * Mapping of Rillet field IDs to their configured mapping behavior.
      */
-    fieldMappings: Record<ValueOf<typeof CONST.RILLET_CONFIG.FIELD_MAPPINGS>, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
+    fieldMappings: Record<string, ValueOf<typeof CONST.RILLET_MAPPING_VALUE>>;
 
     /** Whether tax rates should be synchronized from Rillet. */
     syncTaxRates: boolean;
 };
 
+/** Offline feedback key for field mapping */
+type RilletCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
 /**
  * Offline feedback keys for `RilletCoding`
  */
-type RilletCodingOfflineFeedbackKeys = keyof Omit<RilletCoding, 'fieldMappings'> | ValueOf<typeof CONST.RILLET_CONFIG.FIELD_MAPPINGS>;
+type RilletCodingOfflineFeedbackKeys = keyof Omit<RilletCoding, 'fieldMappings'> | RilletCodingFieldMappingsOfflineFeedbackKey;
 
 /**
  * Available dates that can be used as the export date.
