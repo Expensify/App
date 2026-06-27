@@ -130,6 +130,10 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID="IOURequestStepParticipants"
+            // The participant list's SelectionList footer (referral banner / Next button) owns the bottom
+            // safe area inset via `addBottomSafeAreaPadding`. Opt into edge-to-edge so the screen container
+            // doesn't also reserve the inset, which would double-pad and leave a blank gap below the banner.
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {!!skipConfirmation && (
                 <FormHelpMessage
