@@ -1553,7 +1553,8 @@ function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | 
 }
 
 function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined) {
-    return getAccountIDsByLogins([getManagerAccountEmail(policy, ownerLogin)]).at(0) ?? -1;
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+    return managerEmail ? getAccountIDsByLogins([managerEmail]).at(0) ?? -1 : -1;
 }
 
 /**
