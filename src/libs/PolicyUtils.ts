@@ -1473,7 +1473,7 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
-function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>) {
+function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined) {
     // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
     // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
     const rulesMap: Record<'category' | 'tag', Record<string, string>> = {category: {}, tag: {}};
@@ -1504,9 +1504,6 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
         return '';
     }
 
-    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginByAccountID(employeeAccountID);
-
     let firstCategoryApprover = '';
     let firstTagApprover = '';
 
@@ -1517,7 +1514,7 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
 
         // Category approvers take strict priority over tag approvers.
         // Break immediately on the first match so we don't keep scanning transactions unnecessarily.
-        if (categoryApprover && categoryApprover !== employeeLogin) {
+        if (categoryApprover && categoryApprover !== ownerLogin) {
             firstCategoryApprover = categoryApprover;
             break;
         }
@@ -1527,7 +1524,7 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
             const tag = getTag(transaction);
             const tagApprover = rulesMap.tag[tag];
 
-            if (tagApprover && tagApprover !== employeeLogin) {
+            if (tagApprover && tagApprover !== ownerLogin) {
                 firstTagApprover = tagApprover;
             }
         }
@@ -1564,7 +1561,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
-        const ruleApprover = getFirstRuleApprover(approvalRules, expenseReport);
+        const ruleApprover = getFirstRuleApprover(approvalRules, expenseReport, ownerLogin);
         if (ruleApprover) {
             return getAccountIDsByLogins([ruleApprover]).at(0) ?? -1;
         }
@@ -1577,7 +1574,7 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
     const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const existingManagerID = expenseReport?.managerID;
     const approvalRules = policy?.rules?.approvalRules;
-    const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport) : '';
+    const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, ownerLogin) : '';
     const submitToAccountID = getSubmitToAccountID(policy, expenseReport, submitterLogin);
     const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
     const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
