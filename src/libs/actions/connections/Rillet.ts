@@ -102,4 +102,18 @@ function updateRilletSubsidiary(policyID: string, subsidiaryID: string, oldSubsi
     write(WRITE_COMMANDS.UPDATE_RILLET_SUBSIDIARY, params, onyxData);
 }
 
-export {connectToRillet, clearRilletErrorField, updateRilletSubsidiary};
+function updateRilletEnableNewCategories(
+    policyID: string,
+    enableNewCategories: Connections['rillet']['config']['enableNewCategories'],
+    oldEnableNewCategories: Connections['rillet']['config']['enableNewCategories'],
+) {
+    const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES, enableNewCategories, oldEnableNewCategories);
+    const parameters: UpdateRilletGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(enableNewCategories),
+        idempotencyKey: CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_ENABLE_NEW_CATEGORIES, parameters, onyxData);
+}
+
+export {connectToRillet, clearRilletErrorField, updateRilletSubsidiary, updateRilletEnableNewCategories};

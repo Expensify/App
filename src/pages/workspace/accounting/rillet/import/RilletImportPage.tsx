@@ -7,7 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletEnableNewCategories} from '@libs/actions/connections/Rillet';
 import {clearSageIntacctErrorField, updateSageIntacctBillable} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,7 +55,7 @@ function RilletImportPage({policy}: WithPolicyProps) {
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={rilletConfig?.enableNewCategories ?? false}
-                onToggle={() => null}
+                onToggle={() => policyID && updateRilletEnableNewCategories(policyID, !rilletConfig?.enableNewCategories, !!rilletConfig?.enableNewCategories)}
                 pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES], rilletConfig?.pendingFields)}
                 errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES)}
                 onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.ENABLE_NEW_CATEGORIES)}

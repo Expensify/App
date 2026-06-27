@@ -36,6 +36,7 @@ export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
 export type {default as SyncPolicyToRilletParams} from './SyncPolicyToRilletParams';
 export type {default as UpdateRilletSubsidiaryParams} from './UpdateRilletSubsidiaryParams';
+export type {default as UpdateRilletGenericTypeParams} from './UpdateRilletGenericTypeParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
 export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as UpdateXeroAccountingMethodParams} from './UpdateXeroAccountingMethodParams';
