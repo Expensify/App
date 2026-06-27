@@ -254,9 +254,10 @@ function getPayMoneyRequestParams({
     }
 
     const reportTransactions = getReportTransactions(iouReport?.reportID);
+    const unheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
     let total = getReimbursableTotal(iouReport);
-    if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!iouReport?.unheldTotal) {
-        total = getUnheldReimbursableTotal(iouReport);
+    if (hasHeldExpensesReportUtils(reportTransactions) && !full && !!unheldReimbursableTotal) {
+        total = unheldReimbursableTotal;
     }
 
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
