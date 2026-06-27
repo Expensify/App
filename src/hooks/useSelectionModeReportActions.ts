@@ -333,6 +333,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                submitterLogin,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -359,7 +360,6 @@ function useSelectionModeReportActions({
         } else {
             approveMoneyRequest({
                 expenseReport: report,
-                policy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 hasViolations,
