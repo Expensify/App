@@ -343,7 +343,6 @@ function useSelectionModeReportActions({
         } else {
             approveMoneyRequest({
                 expenseReport: report,
-                policy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 hasViolations,
