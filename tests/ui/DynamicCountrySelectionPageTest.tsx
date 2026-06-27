@@ -1,11 +1,15 @@
 import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
+import type {ComponentProps} from 'react';
 import SelectionList from '@components/SelectionList';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import DynamicCountrySelectionPage from '@pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage';
 import CONST from '@src/CONST';
+import createMock from '../utils/createMock';
+
+type DynamicCountrySelectionPageProps = ComponentProps<typeof DynamicCountrySelectionPage>;
 
 const mockUseState = React.useState;
 const mockAllCountries = CONST.ALL_COUNTRIES;
@@ -56,8 +60,8 @@ describe('DynamicCountrySelectionPage', () => {
     it('pins the saved country to the top on reopen and wires debounced focus sync', () => {
         render(
             <DynamicCountrySelectionPage
-                route={{params: {country: 'US'}} as never}
-                navigation={jest.fn() as never}
+                route={createMock<DynamicCountrySelectionPageProps['route']>({params: {country: 'US'}})}
+                navigation={createMock<DynamicCountrySelectionPageProps['navigation']>({})}
             />,
         );
 
@@ -76,8 +80,8 @@ describe('DynamicCountrySelectionPage', () => {
     it('keeps natural filtered ordering while search is active', () => {
         render(
             <DynamicCountrySelectionPage
-                route={{params: {country: 'US'}} as never}
-                navigation={jest.fn() as never}
+                route={createMock<DynamicCountrySelectionPageProps['route']>({params: {country: 'US'}})}
+                navigation={createMock<DynamicCountrySelectionPageProps['navigation']>({})}
             />,
         );
 
@@ -106,8 +110,8 @@ describe('DynamicCountrySelectionPage', () => {
     it('renders without crashing when the route has no params', () => {
         render(
             <DynamicCountrySelectionPage
-                route={{} as never}
-                navigation={jest.fn() as never}
+                route={createMock<DynamicCountrySelectionPageProps['route']>({})}
+                navigation={createMock<DynamicCountrySelectionPageProps['navigation']>({})}
             />,
         );
 
