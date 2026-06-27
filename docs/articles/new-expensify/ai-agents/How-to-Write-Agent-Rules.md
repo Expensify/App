@@ -49,6 +49,8 @@ More specific approval rules generally produce more predictable results than bro
 
 > Approve reports that seem reasonable.
 
+---
+
 ## How to write Agent Rules for routing
 
 Routing rules can be used to send reports to different approvers based on report details.
@@ -64,6 +66,8 @@ Agent Rules can ask submitters for additional information when specific conditio
 Example:
 
 > Ask the submitter to justify any meal expense over $75.
+
+---
 
 ## How to write Agent Rules that modify expenses
 
