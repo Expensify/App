@@ -54,7 +54,7 @@ import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismiss
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {findSelfDMReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
@@ -323,14 +323,20 @@ function IOURequestStepConfirmation({
                 setMoneyRequestParticipants(activeTransactionID, participantsList);
                 const firstParticipant = participantsList.at(0);
                 if (iouType !== CONST.IOU.TYPE.SPLIT) {
-                    setTransactionReport(activeTransactionID, {reportID: firstParticipant?.reportID ?? reportID}, true);
+                    // For a brand-new user there is no existing chat, so the participant has no reportID. Falling back to the
+                    // route `reportID` would point the transaction at the auto-assigned Workspace policy-expense chat, causing a
+                    // participant/report mismatch and the backend "previously existing chat" error. Generate a fresh optimistic
+                    // reportID instead, mirroring the participant-step flow (see useParticipantSubmission). We use || so that an
+                    // empty-string reportID also triggers generation.
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    setTransactionReport(activeTransactionID, {reportID: firstParticipant?.reportID || generateReportID()}, true);
                 }
             }
             if (participantsList.length > 0) {
                 closeParticipantPicker();
             }
         },
-        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType, reportID],
+        [activeTransactionID, closeParticipantPicker, currentUserPersonalDetails.accountID, navigation, selfDMReport, iouType],
     );
 
     useEffect(() => {
