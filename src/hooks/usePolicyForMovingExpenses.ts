@@ -93,12 +93,6 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     const session = useSession();
     const login = session?.email ?? '';
 
-    // If this is an employee's card transaction that we manage, then we should report it to their default policy
-    // which we don't know. Sending an empty `policyID` instructs the backend to auto-select the preferred policy.
-    if (isUnreportedManagedCardTransaction) {
-        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
-    }
-
     // Contextual selector — captures login/flags from closure.
     // Returns only IDs + flags (stable output) to prevent re-renders when unrelated policies change.
     const policyQualificationSelector = (policies: OnyxCollection<Policy>) => getPolicyQualificationResult(policies, login, isPerDiemRequest, isTimeRequest, expensePolicyID);
@@ -111,6 +105,12 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     // Per-key lookup for the resolved policy (only fires when that specific policy changes)
     const resolvedPolicyID = validExpensePolicyID ?? singlePolicyID;
     const [resolvedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`);
+
+    // If this is an employee's card transaction that we manage, then we should report it to their default policy
+    // which we don't know. Sending an empty `policyID` instructs the backend to auto-select the preferred policy.
+    if (isUnreportedManagedCardTransaction) {
+        return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false};
+    }
 
     // If an expense policy ID is provided and valid, prefer it over the active policy
     if (validExpensePolicyID) {
