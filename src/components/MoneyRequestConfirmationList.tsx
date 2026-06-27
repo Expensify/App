@@ -565,6 +565,7 @@ function MoneyRequestConfirmationList({
                 }}
                 compactControls={{showMoreFields, setShowMoreFields}}
                 scrollFocusedInputIntoView={scrollFocusedInputIntoView}
+                onSubmitForm={confirm}
             />
         </View>
     );

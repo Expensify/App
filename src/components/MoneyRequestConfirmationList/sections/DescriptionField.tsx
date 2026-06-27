@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import variables from '@styles/variables';
@@ -47,7 +48,7 @@ function DescriptionField({
     reportActionID,
     policy,
 }: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
@@ -77,6 +78,12 @@ function DescriptionField({
     };
 
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
+
+    // This is a multi-line input, so Enter must insert a new line. On touch devices that's the only way to add one,
+    // so we never let Enter submit there (otherwise it's impossible to type a multi-line description — see #94258).
+    // On hardware-keyboard setups Shift+Enter still inserts a new line, so we keep Enter-to-confirm, matching the
+    // dedicated description step page (which gets `blurAndSubmit` from InputWrapper for the same reason).
+    const canUseHardwareKeyboard = !canUseTouchScreen();
 
     const handleDescriptionInputChange = (newDescription: string) => {
         if (!transactionID) {
@@ -110,6 +117,8 @@ function DescriptionField({
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
                                     onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
+                                    submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
+                                    onSubmitEditing={canUseHardwareKeyboard ? onSubmitForm : undefined}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
                                     autoGrowHeight
