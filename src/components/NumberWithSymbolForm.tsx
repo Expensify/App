@@ -465,6 +465,12 @@ function NumberWithSymbolForm({
         // Toggle the minus sign prefix in the value
         const isRemovingSign = currentNumber.startsWith('-');
         const newValue = isRemovingSign ? currentNumber.slice(1) : `-${currentNumber}`;
+        // Guard the manual selection update the same way setNewNumber/setFormattedNumber do: on native the
+        // controlled TextInput can emit onSelectionChange with the stale selection while the value update is
+        // applied, which would write the old cursor position back and undo the shift below. numberRef lets
+        // handleSelectionChange read the updated value length when computing maxSelection.
+        willSelectionBeUpdatedManually.current = true;
+        numberRef.current = newValue;
         setCurrentNumber(newValue);
         // Shift the cursor by the length of the toggled sign so it stays in the same logical position
         // relative to the digits (e.g. on an empty field {0,0} -> {1,1}, placing the cursor after the "-").
