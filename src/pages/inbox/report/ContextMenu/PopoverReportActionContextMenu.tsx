@@ -340,6 +340,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionRef.current?.childReportID}`);
+    const [childReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReport?.reportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const parentReportAction = useParentReportAction(report);
@@ -396,7 +397,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport({
                 report: childReport,
-                reportActions,
+                reportActions: childReportActions,
                 parentReportAction,
                 selfDMReport,
                 currentUserEmailParam: email ?? '',
@@ -425,7 +426,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
-        reportActions,
+        childReportActions,
+        parentReportAction,
         childReport,
         selfDMReport,
         iouReport,
