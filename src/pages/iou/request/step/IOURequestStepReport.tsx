@@ -69,6 +69,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         : selectedReport?.ownerAccountID;
     const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
     const isPerDiemTransaction = isPerDiemRequest(transaction);
+    const isUnreportedManagedCardTransactions = isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
 
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
     // When moving an expense that belongs to another user, or when the selection includes per diem
@@ -79,7 +80,12 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemTransaction, isTimeRequestUtil(transaction), targetExpensePolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(
+        isPerDiemTransaction,
+        isTimeRequestUtil(transaction),
+        targetExpensePolicyID,
+        isUnreportedManagedCardTransactions,
+    );
 
     // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
     const hasViolations = false;
@@ -198,7 +204,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             isPerDiemRequest={transaction ? isPerDiemTransaction : false}
             isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
-            isUnreportedManagedCardTransactions={transaction ? isExpenseUnreported(transaction) && isManagedCardTransaction(transaction) : false}
+            isUnreportedManagedCardTransactions={transaction ? isUnreportedManagedCardTransactions : false}
             createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
             targetOwnerAccountID={ownerAccountID}
         />
