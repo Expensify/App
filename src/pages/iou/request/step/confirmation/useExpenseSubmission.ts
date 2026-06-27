@@ -19,7 +19,7 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import {getExistingTransactionID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
@@ -237,15 +237,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
     const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
 
-    const soleSelectedParticipant = selectedParticipants.length === 1 ? selectedParticipants.at(0) : undefined;
-    const isSelfDMDestination =
-        iouType !== CONST.IOU.TYPE.SPLIT &&
-        iouType !== CONST.IOU.TYPE.INVOICE &&
-        iouType !== CONST.IOU.TYPE.PAY &&
-        !!soleSelectedParticipant &&
-        !soleSelectedParticipant.isSender &&
-        !soleSelectedParticipant.isPolicyExpenseChat &&
-        (soleSelectedParticipant.isSelfDM === true || (!!currentUserPersonalDetails.accountID && soleSelectedParticipant.accountID === currentUserPersonalDetails.accountID));
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
 
     const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
