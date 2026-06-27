@@ -1,21 +1,18 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
-import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
-import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
-import MenuItem from '@components/MenuItem';
-import Modal from '@components/Modal';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import ScrollView from '@components/ScrollView';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
+import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import AnimatedExitRow from '@components/Search/primitives/AnimatedExitRow';
+import HorizontalTableScroll from '@components/Search/primitives/HorizontalTableScroll';
+import SelectionTopBar from '@components/Search/primitives/SelectionTopBar';
+import useRowLongPressMenu from '@components/Search/primitives/useRowLongPressMenu';
+import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
+import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -23,13 +20,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import navigationRef from '@libs/Navigation/navigationRef';
-import {getTableMinWidth, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -58,12 +52,6 @@ import type {
     TransactionYearGroupListItemType,
 } from './ListItem/types';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './ListItem/types';
-import SearchSelectAllMenu from './SearchSelectAllMenu';
-
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
-
-// Keep a ref to the horizontal scroll offset so we can restore it if users change the search query
-let savedHorizontalScrollOffset = 0;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem | typeof ExpenseReportListItem;
@@ -85,12 +73,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
-
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
-
-    /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
-    onAllCheckboxPress: () => void;
 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
@@ -121,21 +103,17 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     newTransactions?: Transaction[];
 
-    /** Selected transactions for determining isSelected state */
-    selectedTransactions: SelectedTransactions;
-
     /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
     nonPersonalAndWorkspaceCards?: CardList;
 
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
-    /** Precomputed boolean: shouldShowAttendees applied to the user's policy-for-moving-expenses.
-     * Drilled instead of the policy object to avoid ref churn on unrelated policy updates. */
-    isAttendeesEnabledForMovingPolicy?: boolean;
-
     /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
     isActionColumnWide?: boolean;
+
+    /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
+    isAttendeesEnabledForMovingPolicy?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -199,10 +177,8 @@ function SearchList({
     ListItem,
     SearchTableHeader,
     onSelectRow,
-    onCheckboxPress,
     canSelectMultiple,
     onScroll = () => {},
-    onAllCheckboxPress,
     contentContainerStyle,
     onEndReachedThreshold,
     onEndReached,
@@ -217,14 +193,14 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     nonPersonalAndWorkspaceCards,
-    selectedTransactions,
     hasLoadedAllTransactions,
-    isAttendeesEnabledForMovingPolicy,
     isActionColumnWide,
+    isAttendeesEnabledForMovingPolicy,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const {toggle, toggleAll} = useSearchRowSelectionActions();
+    const {selectedTransactions} = useSearchSelectionContext();
 
     const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
@@ -282,7 +258,6 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, flattenedItems, emptyReports]);
 
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
@@ -292,9 +267,6 @@ function SearchList({
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
-
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
@@ -391,11 +363,6 @@ function SearchList({
 
     const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
-    const route = useRoute();
-    const {getScrollOffset} = useContext(ScrollOffsetContext);
-
-    const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
-
     const newTransactionIDByItemKey = (() => {
         if (newTransactions.length === 0) {
             return CONST.EMPTY_MAP;
@@ -412,63 +379,24 @@ function SearchList({
         return mappedTransactionIDs;
     })();
 
-    const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns, queryJSON.type, isActionColumnWide);
-    const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
+    const {onLongPressRow, modal} = useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled});
 
-    const horizontalScrollViewRef = useRef<RNScrollView>(null);
-
-    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;
-    }, []);
-
-    // Restore horizontal scroll position synchronously before paint using useLayoutEffect to avoid a visible shift on the table
-    useLayoutEffect(() => {
-        if (!shouldScrollHorizontally || savedHorizontalScrollOffset <= 0) {
-            return;
-        }
-        horizontalScrollViewRef.current?.scrollTo({x: savedHorizontalScrollOffset, animated: false});
-    }, [data, shouldScrollHorizontally]);
-
-    const handleLongPressRowInMobileSelectionMode = (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
-        const currentRoute = navigationRef.current?.getCurrentRoute();
-        if (currentRoute && route.key !== currentRoute.key) {
-            return;
-        }
-
-        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
-
-        onCheckboxPress(item, itemTransactions);
-    };
-
-    const handleLongPressRow = useCallback(
-        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
-            const currentRoute = navigationRef.current?.getCurrentRoute();
-            if (currentRoute && route.key !== currentRoute.key) {
+    // In mobile selection mode a row tap toggles selection. This must live here (not in <Search>) because
+    // <Search> renders SearchWriteActionsProvider as its child, so the `toggle` it reads is the default no-op;
+    // SearchList sits inside the provider and gets the real one.
+    const handleSelectRow = useCallback(
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            if (isMobileSelectionModeEnabled) {
+                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return;
+                }
+                toggle(item);
                 return;
             }
-
-            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
-            }
-
-            setLongPressedItem(item);
-            setLongPressedItemTransactions(itemTransactions);
-            setIsModalVisible(true);
+            onSelectRow(item, transactionPreviewData, event);
         },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth],
+        [isMobileSelectionModeEnabled, toggle, onSelectRow],
     );
-
-    const turnOnSelectionMode = useCallback(() => {
-        turnOnMobileSelectionMode();
-        setIsModalVisible(false);
-
-        if (onCheckboxPress && longPressedItem) {
-            onCheckboxPress?.(longPressedItem, longPressedItemTransactions);
-        }
-    }, [longPressedItem, onCheckboxPress, longPressedItemTransactions]);
 
     /**
      * Scrolls to the desired item index in the FlashList (listData coordinates).
@@ -520,18 +448,7 @@ function SearchList({
         [data, listData, shouldSplitGroups, isEditingCell, wasRecentlyEditingCell],
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            const offset = getScrollOffset(route);
-            requestAnimationFrame(() => {
-                if (!offset || !listRef.current) {
-                    return;
-                }
-
-                listRef.current.scrollToOffset({offset, animated: false});
-            });
-        }, [getScrollOffset, route]),
-    );
+    useScrollRestoration(listRef);
 
     useImperativeHandle(ref, () => ({scrollToIndex: scrollToDataIndex}), [scrollToDataIndex]);
 
@@ -554,9 +471,9 @@ function SearchList({
                         canSelectMultiple={canSelectMultiple}
                         isExpanded={expandedGroups.has(originalKey)}
                         onToggle={() => onToggleGroup(originalKey)}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onSelectRow={handleSelectRow}
+                        onCheckboxPress={toggle}
+                        onLongPressRow={onLongPressRow}
                         onFocus={onFocus}
                         isFocused={isItemFocused}
                         isFirstItem={index === firstVisibleIndex}
@@ -584,9 +501,9 @@ function SearchList({
                         searchType={type}
                         columns={columns}
                         canSelectMultiple={canSelectMultiple}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
+                        onSelectRow={handleSelectRow}
+                        onCheckboxPress={toggle}
+                        onLongPressRow={onLongPressRow}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onUndelete={handleUndelete}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
@@ -605,22 +522,19 @@ function SearchList({
             const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
 
             return (
-                <Animated.View
-                    exiting={shouldApplyAnimation ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
-                    entering={undefined}
-                    style={styles.overflowHidden}
-                    layout={shouldApplyAnimation && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                <AnimatedExitRow
+                    shouldApplyAnimation={!!shouldApplyAnimation}
+                    hasItemsBeingRemoved={!!hasItemsBeingRemoved}
                 >
                     <ListItem
                         showTooltip
                         isFocused={isItemFocused}
-                        onSelectRow={onSelectRow}
-                        onLongPressRow={isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow}
-                        onSelectionButtonPress={onCheckboxPress}
+                        onSelectRow={handleSelectRow}
+                        onLongPressRow={onLongPressRow}
+                        onSelectionButtonPress={toggle}
                         canSelectMultiple={canSelectMultiple}
                         item={item}
                         columns={columns}
-                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
@@ -636,7 +550,7 @@ function SearchList({
                         isFirstItem={index === firstVisibleIndex}
                         isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     />
-                </Animated.View>
+                </AnimatedExitRow>
             );
         },
         [
@@ -645,14 +559,11 @@ function SearchList({
             newTransactionIDByItemKey,
             shouldAnimate,
             listData.length,
-            styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
-            onSelectRow,
-            handleLongPressRow,
-            handleLongPressRowInMobileSelectionMode,
-            isMobileSelectionModeEnabled,
-            onCheckboxPress,
+            handleSelectRow,
+            onLongPressRow,
+            toggle,
             canSelectMultiple,
             columns,
             lastPaymentMethod,
@@ -661,7 +572,6 @@ function SearchList({
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,
             ListFooterComponent,
-            isAttendeesEnabledForMovingPolicy,
             handleUndelete,
             firstVisibleIndex,
             lastVisibleIndex,
@@ -681,31 +591,23 @@ function SearchList({
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View
-                    style={[
-                        styles.searchListHeaderContainerStyle,
-                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
-                        isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
-                    ]}
-                >
-                    {canSelectMultiple && (
-                        <SearchSelectAllMenu
-                            isSelectAllChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
-                            selectedItemsLength={selectedItemsLength}
-                            totalItems={totalItems}
-                            shouldShowTextButton={selectAllButtonVisible}
-                            onAllCheckboxPress={onAllCheckboxPress}
-                        />
-                    )}
-
-                    {SearchTableHeader}
-                </View>
+                <SelectionTopBar
+                    isLargeScreenWidth={isLargeScreenWidth}
+                    shouldSplitGroups={shouldSplitGroups}
+                    canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    selectedItemsLength={selectedItemsLength}
+                    totalItems={totalItems}
+                    hasLoadedAllTransactions={hasLoadedAllTransactions}
+                    selectAllButtonVisible={selectAllButtonVisible}
+                    onAllCheckboxPress={toggleAll}
+                    SearchTableHeader={SearchTableHeader}
+                />
             )}
             <BaseSearchList
                 data={listData}
                 renderItem={renderItem}
-                onSelectRow={onSelectRow}
+                onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
@@ -720,7 +622,6 @@ function SearchList({
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
-                selectedTransactions={selectedTransactions}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={stickyHeaderIndices}
@@ -729,40 +630,21 @@ function SearchList({
                 disabledIndexes={shouldSplitGroups ? childrenContainerIndices : undefined}
                 overrideItemLayout={shouldSplitGroups ? overrideItemLayout : undefined}
             />
-            <Modal
-                isVisible={isModalVisible}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                onClose={() => setIsModalVisible(false)}
-                shouldPreventScrollOnFocus
-            >
-                <MenuItem
-                    title={translate('common.select')}
-                    icon={expensifyIcons.CheckSquare}
-                    onPress={turnOnSelectionMode}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
-                />
-            </Modal>
+            {modal}
         </View>
     );
 
-    if (shouldScrollHorizontally) {
-        return (
-            <ScrollView
-                ref={horizontalScrollViewRef}
-                horizontal
-                showsHorizontalScrollIndicator
-                style={styles.flex1}
-                contentContainerStyle={{width: minTableWidth}}
-                contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
-                onScroll={handleHorizontalScroll}
-                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-            >
-                {content}
-            </ScrollView>
-        );
-    }
-
-    return content;
+    return (
+        <HorizontalTableScroll
+            columns={columns}
+            type={queryJSON.type}
+            isActionColumnWide={isActionColumnWide}
+            isHeaderVisible={!!SearchTableHeader}
+            dataKey={data}
+        >
+            {content}
+        </HorizontalTableScroll>
+    );
 }
 
 export default SearchList;
