@@ -16,6 +16,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -341,6 +342,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionRef.current?.childReportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const parentReportAction = useParentReportAction(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
@@ -394,6 +396,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport({
                 report: childReport,
+                reportActions,
+                parentReportAction,
                 selfDMReport,
                 currentUserEmailParam: email ?? '',
                 currentUserAccountIDParam: currentUserAccountID,
@@ -421,6 +425,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(false);
     }, [
         report,
+        reportActions,
         childReport,
         selfDMReport,
         iouReport,

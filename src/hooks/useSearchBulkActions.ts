@@ -857,6 +857,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                         deleteAppReport({
                             report,
+                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                            parentReportAction: report?.parentReportActionID
+                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                                : undefined,
                             selfDMReport,
                             currentUserEmailParam: currentUserPersonalDetails?.email ?? '',
                             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
@@ -902,6 +906,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                         deleteAppReport({
                             report,
+                            reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
+                            parentReportAction: report?.parentReportActionID
+                                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report?.parentReportActionID]
+                                : undefined,
                             selfDMReport,
                             currentUserEmailParam: currentUserPersonalDetails?.email ?? '',
                             currentUserAccountIDParam: accountID,
