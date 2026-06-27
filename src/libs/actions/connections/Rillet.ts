@@ -93,7 +93,7 @@ function prepareRilletOptimisticData<TSettingName extends keyof Connections['ril
     return {optimisticData, successData, failureData};
 }
 
-function updateRilletSubsidiary(policyID: string, subsidiaryID: string, oldSubsidiaryID: string) {
+function updateRilletSubsidiary(policyID: string, subsidiaryID: Connections['rillet']['config']['subsidiaryID'], oldSubsidiaryID: Connections['rillet']['config']['subsidiaryID']) {
     const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID);
     const params: UpdateRilletSubsidiaryParams = {
         policyID,
