@@ -112,6 +112,24 @@ describe('useViolations', () => {
             expect(result.current.getViolationsForField('tag')).toHaveLength(0);
             expect(result.current.getViolationsForField('receipt')).toHaveLength(0);
         });
+
+        it('should show customUnitRateOutOfDateRange on customUnitRateID when shouldShowOnlyViolations is true', () => {
+            const violations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.WARNING},
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    showInReview: true,
+                    data: {startDate: '2025-01-01', endDate: '2025-12-31'},
+                },
+            ];
+
+            const {result} = renderHook(() => useViolations(violations, true));
+
+            expect(result.current.getViolationsForField('amount')).toHaveLength(0);
+            expect(result.current.getViolationsForField('customUnitRateID')).toHaveLength(1);
+            expect(result.current.getViolationsForField('customUnitRateID').at(0)?.name).toBe(CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE);
+        });
     });
 
     describe('customRules violation field mapping', () => {

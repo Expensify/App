@@ -78,7 +78,9 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
     const violationsByField = useMemo((): ViolationsMap => {
         const filteredViolations = violations.filter((violation) => {
             if (shouldShowOnlyViolations) {
-                return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+                // customUnitRateOutOfDateRange is a WARNING but must still render inline on the Rate row for
+                // tracked distance expenses in self-DM, where the report is not in a group policy.
+                return violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE;
             }
             return true;
         });
