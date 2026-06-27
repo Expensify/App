@@ -1705,7 +1705,6 @@
 "../../tests/unit/BankAccountUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../tests/unit/BaseSelectionListDataDetailsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/unit/BaseSelectionListSectionsTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
-"../../tests/unit/BaseSelectionListTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../tests/unit/BulletListRendererTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/ButtonStyleUtilsTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/CIGitLogicTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5

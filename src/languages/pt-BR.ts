@@ -4492,7 +4492,7 @@ ${amount} para ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mês', yearly: 'ano'},
             budgetTypeForNotificationMessage: {tag: 'etiqueta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
-            travelInvoicing: 'Exportar despesas de faturamento de viagens como',
+            travelInvoicing: 'Exportar despesas consolidadas de faturamento de viagem como',
             travelInvoicingVendor: 'Fornecedor de viagem',
             travelInvoicingPayableAccount: 'Conta a pagar de viagens',
             hr: 'RH',
@@ -5789,8 +5789,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             travel: {
                 title: 'Viagens',
                 subtitle: 'Reserve, gerencie e reconcilie todas as viagens de negócios da sua empresa.',
-                disableTravelTitle: 'Desative primeiro o faturamento de viagens',
-                disableTravelPrompt: 'O faturamento de viagens está ativado para este workspace. Desative-o antes de desativar o Travel.',
+                disableTravelTitle: 'Desative primeiro a Faturação Consolidada de Viagem',
+                disableTravelPrompt: 'A Faturação Consolidada de Viagem está ativada para este workspace. Desative-a antes de desativar o Viagem.',
                 disableTravelButton: 'Ir para as configurações de Viagem',
                 getStarted: {
                     title: 'Comece a usar o Expensify Travel',
@@ -5820,7 +5820,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         manageTravelLabel: 'Gerenciar viagens',
                     },
                     travelInvoicingSection: {
-                        title: 'Faturamento de viagens',
+                        title: 'Faturamento de Viagens Consolidado',
                         subtitle: 'Centralize todos os gastos de viagem em uma fatura mensal em vez de pagar no momento da compra.',
                         learnHow: 'Saiba como.',
                         subsections: {
@@ -5837,16 +5837,16 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             reduceLimitTitle: 'Reduzir o limite de gastos com viagens?',
                             reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
                             provisioningError:
-                                'Não foi possível provisionar alguns dos membros do seu workspace para faturamento de viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
+                                'Não foi possível provisionar alguns membros do seu workspace para o Faturamento Consolidado de Viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                         },
                     },
                     disableModal: {
-                        title: 'Desativar faturamento de viagens?',
+                        title: 'Desativar Faturamento Consolidado de Viagens?',
                         body: 'Próximas reservas de hotel e aluguel de carro podem precisar ser refeitas com um método de pagamento diferente para evitar cancelamento.',
                         confirm: 'Desativar',
                     },
                     outstandingBalanceModal: {
-                        title: 'Não é possível desativar o faturamento de viagens',
+                        title: 'Não é possível desativar a Fatura Consolidada de Viagem',
                         body: 'Você ainda tem um saldo de viagem pendente. Pague esse saldo primeiro.',
                         confirm: 'Entendi',
                     },
@@ -5858,7 +5858,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     exportToCSV: 'Exportar para CSV',
                     selectDateRangeError: 'Selecione um intervalo de datas para exportar',
                     invalidDateRangeError: 'A data de início deve ser anterior à data de término',
-                    enabled: 'Faturamento de Viagem ativado!',
+                    enabled: 'Faturamento de viagem consolidado ativado!',
                     enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
@@ -6687,11 +6687,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 chooseBankAccount: 'Escolha a conta bancária na qual os pagamentos do seu Cartão Expensify serão conciliados.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Certifique-se de que esta conta corresponda à sua <a href="${settlementAccountUrl}">conta de liquidação do Cartão Expensify</a> (terminada em ${lastFourPAN}) para que a Reconciliação Contínua funcione corretamente.`,
-                chooseTravelInvoicingBankAccount: 'Escolha a conta bancária na qual os pagamentos de faturamento de viagem serão conciliados.',
+                chooseTravelInvoicingBankAccount: 'Escolha a conta bancária na qual seus pagamentos de Faturamento de Viagens Consolidado serão conciliados.',
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
-                    `Certifique-se de que esta conta corresponda à sua conta de liquidação de faturamento de viagem (terminada em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
+                    `Tenha certeza de que esta conta corresponde à sua conta de liquidação de Faturamento Consolidado de Viagem (terminando em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
-            syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
+            syncTravelInvoicingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
@@ -7909,29 +7909,29 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 case 'categories':
                     return `${enabled ? 'ativado' : 'desativado'} categorias`;
                 case 'tags':
-                    return `${enabled ? 'ativado' : 'desativado'} etiquetas`;
+                    return `${enabled ? 'ativado' : 'desativado'} tags`;
                 case 'workflows':
-                    return `${enabled ? 'ativado' : 'desativado'} fluxos de trabalho`;
+                    return `Fluxos de trabalho ${enabled ? 'ativado' : 'desativado'}`;
                 case 'distance rates':
-                    return `${enabled ? 'ativado' : 'desativado'} tarifas de distância`;
+                    return `${enabled ? 'ativado' : 'desativado'} taxas de distância`;
                 case 'accounting':
-                    return `Contabilidade ${enabled ? 'ativado' : 'desativado'}`;
+                    return `${enabled ? 'ativado' : 'desativado'} contabilidade`;
                 case 'Expensify Cards':
                     return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
                 case 'travel invoicing':
-                    return `Faturamento de viagens ${enabled ? 'ativado' : 'desativado'}`;
+                    return `${enabled ? 'ativado' : 'desativado'} Faturamento Consolidado de Viagens`;
                 case 'company cards':
                     return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
                 case 'invoicing':
                     return `Faturamento de ${enabled ? 'ativado' : 'desativado'}`;
                 case 'per diem':
-                    return `${enabled ? 'ativado' : 'desativado'} de diária`;
+                    return `${enabled ? 'ativado' : 'desativado'} por dia`;
                 case 'receipt partners':
                     return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
                 case 'rules':
-                    return `Regras ${enabled ? 'ativado' : 'desativado'}`;
+                    return `Regras de ${enabled ? 'ativado' : 'desativado'}`;
                 case 'tax tracking':
-                    return `Rastreamento de impostos ${enabled ? 'ativado' : 'desativado'}`;
+                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
                 default:
                     return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }
@@ -8449,7 +8449,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Todos os ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Todos os cartões CSV importados${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
-                travelInvoicing: 'Faturamento de viagens',
+                travelInvoicing: 'Faturamento de Viagens Consolidado',
             },
             reportField: (name: string, value: string) => `${name} é ${value}`,
             current: 'Atual',
@@ -8483,7 +8483,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Cartão Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento de viagens',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento de Viagens Consolidado',
             },
             is: 'É',
             action: {
@@ -8512,6 +8512,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         noMerchant: 'Sem comerciante',
         noTag: 'Sem tag',
         expenseType: 'Tipo de despesa',
+        receiptType: 'Tipo de recibo',
+        receiptTypeValues: {
+            ereceipt: 'Recibo eletrônico',
+            itemized: 'Detalhado',
+            hotel: 'Hotel',
+        },
         withdrawalType: 'Tipo de saque',
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
@@ -8910,7 +8916,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         personalCard: 'Cartão pessoal',
         companyCard: 'Cartão corporativo',
         expensifyCard: 'Cartão Expensify',
-        travelInvoicing: 'Faturamento de viagens',
+        travelInvoicing: 'Faturamento de Viagens Consolidado',
         travelCard: 'Cartão de viagem',
     },
     distance: {
