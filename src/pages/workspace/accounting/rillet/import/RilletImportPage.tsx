@@ -7,7 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRilletErrorField, updateRilletEnableNewCategories} from '@libs/actions/connections/Rillet';
+import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
 import {clearSageIntacctErrorField, updateSageIntacctBillable} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -86,7 +86,7 @@ function RilletImportPage({policy}: WithPolicyProps) {
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={rilletConfig?.coding.syncTaxRates ?? false}
-                        onToggle={() => null}
+                        onToggle={() => policyID && updateRilletSyncTaxRates(policyID, !rilletConfig?.coding.syncTaxRates, !!rilletConfig?.coding.syncTaxRates)}
                         pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_TAX_RATES], rilletConfig?.pendingFields)}
                         errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
                         onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}

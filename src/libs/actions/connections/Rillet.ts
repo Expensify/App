@@ -93,6 +93,81 @@ function prepareRilletOptimisticData<TSettingName extends keyof Connections['ril
     return {optimisticData, successData, failureData};
 }
 
+function prepareRilletCodingOptimisticData<TSettingName extends keyof Connections['rillet']['config']['coding']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['rillet']['config']['coding'][TSettingName]>,
+    oldSettingValue?: Partial<Connections['rillet']['config']['coding'][TSettingName]> | null,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            coding: {
+                                [settingName]: settingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    rillet: {
+                        config: {
+                            coding: {
+                                [settingName]: oldSettingValue ?? null,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function updateRilletSubsidiary(policyID: string, subsidiaryID: Connections['rillet']['config']['subsidiaryID'], oldSubsidiaryID: Connections['rillet']['config']['subsidiaryID']) {
     const onyxData = prepareRilletOptimisticData(policyID, CONST.RILLET_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID);
     const params: UpdateRilletSubsidiaryParams = {
@@ -116,4 +191,18 @@ function updateRilletEnableNewCategories(
     write(WRITE_COMMANDS.UPDATE_RILLET_ENABLE_NEW_CATEGORIES, parameters, onyxData);
 }
 
-export {connectToRillet, clearRilletErrorField, updateRilletSubsidiary, updateRilletEnableNewCategories};
+function updateRilletSyncTaxRates(
+    policyID: string,
+    syncTaxRates: Connections['rillet']['config']['coding']['syncTaxRates'],
+    oldSyncTaxRates: Connections['rillet']['config']['coding']['syncTaxRates'],
+) {
+    const onyxData = prepareRilletCodingOptimisticData(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES, syncTaxRates, oldSyncTaxRates);
+    const parameters: UpdateRilletGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(syncTaxRates),
+        idempotencyKey: CONST.RILLET_CONFIG.SYNC_TAX_RATES,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_SYNC_TAX_RATES, parameters, onyxData);
+}
+
+export {connectToRillet, clearRilletErrorField, updateRilletSubsidiary, updateRilletEnableNewCategories, updateRilletSyncTaxRates};
