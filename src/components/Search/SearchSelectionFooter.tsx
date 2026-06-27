@@ -54,10 +54,10 @@ function areAllSelectedExpensesConverted(selectedTransactions: SelectedTransacti
     });
 }
 
-// On the Reports search a selection is converted by report, so every selected report needs a cached converted
-// total for the target currency before the selected total can be shown in that currency.
-function areAllSelectedReportsConverted(selectedReportIDs: string[], convertedReports: SearchFooterConversion['reports'], currency: string): boolean {
-    return selectedReportIDs.every((reportID) => convertedReports?.[reportID]?.[currency] !== undefined);
+// Reports and grouped searches convert a selection by aggregate (report or group), so every selected aggregate
+// needs a cached converted total for the target currency before the selected total can be shown in that currency.
+function areAllSelectedAggregatesConverted(selectedAggregateKeys: string[], convertedAggregates: SearchFooterConversion['reports'], currency: string): boolean {
+    return selectedAggregateKeys.every((key) => convertedAggregates?.[key]?.[currency] !== undefined);
 }
 
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
@@ -80,11 +80,14 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const [footerConversion] = useOnyx(ONYXKEYS.SEARCH_FOOTER_CONVERSION);
     const convertedTransactions = footerConversion?.transactions;
     const convertedReports = footerConversion?.reports;
+    const convertedGroups = footerConversion?.groups;
     const convertedSearchTotal = footerConversion?.searchTotals?.[currentSearchHash];
 
-    // On the Reports search the rows are reports, so a selection is converted by report rather than by
-    // transaction (each report's full total, summed from its transactions converted at their own dates).
+    // The rows can be aggregates rather than transactions: reports on the Reports search, or groups in a grouped
+    // view. A selection is then converted by aggregate (each one's full total summed from its transactions
+    // converted at their own dates) rather than by transaction.
     const isReportsSearch = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const isGroupedSearch = !isReportsSearch && !!currentSearchQueryJSON?.groupBy;
 
     const metadata = searchResults?.search;
     const metadataCount = metadata?.count;
@@ -115,15 +118,19 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         () => Array.from(new Set(selectedTransactionsKeys.map((key) => selectedTransactions[key]?.reportID).filter((reportID): reportID is string => !!reportID))),
         [selectedTransactions, selectedTransactionsKeys],
     );
-    // The IDs the current search converts a selection by: reports on the Reports search, transactions elsewhere.
-    const selectedConvertibleIDs = isReportsSearch ? selectedReportIDs : selectedTransactionIDs;
+    const selectedGroupKeys = useMemo(() => selectedTransactionsKeys.filter(isGroupEntry), [selectedTransactionsKeys]);
+    const isAggregateSearch = isReportsSearch || isGroupedSearch;
+    const selectedAggregateKeys = isReportsSearch ? selectedReportIDs : selectedGroupKeys;
+    const convertedAggregates = isReportsSearch ? convertedReports : convertedGroups;
+    // The keys the current search converts a selection by: aggregates (reports or groups) or transactions.
+    const selectedConvertibleIDs = isAggregateSearch ? selectedAggregateKeys : selectedTransactionIDs;
     const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
-    // On the Reports search a selection is converted per report, so use the per-report client path for any explicit
-    // (loaded) report selection — including when every loaded report is selected — rather than the whole-search query
-    // path, which only produces flat per-transaction rows and so can't be reused for reports.
-    const hasExplicitReportSelection = isReportsSearch && !areAllMatchingItemsSelected && selectedReportIDs.length > 0;
-    const shouldUseClientTotal = !metadataCount || hasPartialSelection || hasExplicitReportSelection;
+    // Reports and grouped searches convert a selection by aggregate, so use the client path for any explicit
+    // (loaded) aggregate selection — including when every loaded aggregate is selected — rather than the whole-search
+    // query path, which only produces flat per-transaction rows and so can't be reused for aggregates.
+    const hasExplicitAggregateSelection = isAggregateSearch && !areAllMatchingItemsSelected && selectedConvertibleIDs.length > 0;
+    const shouldUseClientTotal = !metadataCount || hasPartialSelection || hasExplicitAggregateSelection;
     const firstSelectedTransactionKey = selectedTransactionsKeys.at(0);
     const firstSelectedTransaction = firstSelectedTransactionKey ? selectedTransactions[firstSelectedTransactionKey] : undefined;
     const selectedTransactionDefaultCurrency = firstSelectedTransaction?.groupCurrency ?? firstSelectedTransaction?.currency;
@@ -135,22 +142,24 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         if (!hasCustomFooterCurrency || !selectedCurrency) {
             return false;
         }
-        return isReportsSearch
-            ? areAllSelectedReportsConverted(selectedReportIDs, convertedReports, selectedCurrency)
+        return isAggregateSearch
+            ? areAllSelectedAggregatesConverted(selectedConvertibleIDs, convertedAggregates, selectedCurrency)
             : areAllSelectedExpensesConverted(selectedTransactions, convertedTransactions, selectedCurrency);
-    }, [convertedReports, convertedTransactions, hasCustomFooterCurrency, isReportsSearch, selectedCurrency, selectedReportIDs, selectedTransactions]);
+    }, [convertedAggregates, convertedTransactions, hasCustomFooterCurrency, isAggregateSearch, selectedConvertibleIDs, selectedCurrency, selectedTransactions]);
 
     // While a custom currency is chosen but its converted figures have not arrived yet, the footer keeps showing
     // the default-currency total behind a skeleton until the cache fills. A partial selection can only convert once
-    // it has IDs to fetch, so a selection with none to convert stays on the default total instead of a skeleton
-    // that would never resolve.
-    const isFooterTotalConverting =
-        hasCustomFooterCurrency && (shouldUseClientTotal ? selectedConvertibleIDs.length > 0 && !areAllSelectedConverted : !isReportsSearch && !selectedCurrencyConvertedTotal);
+    // it has IDs to fetch, so a selection with none to convert stays on the default total instead of a skeleton that
+    // would never resolve; the whole-search total resolves from the cached grand total every search type returns.
+    const isFooterTotalConverting = hasCustomFooterCurrency && (shouldUseClientTotal ? selectedConvertibleIDs.length > 0 && !areAllSelectedConverted : !selectedCurrencyConvertedTotal);
 
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
-    // A group selection disables the picker, so drop any custom currency chosen before the group was selected.
-    if (hasSelectedGroup && selectedCurrency) {
+    // A grouped search converts its group selections via the groups path, so it keeps the picker. A selected group
+    // anywhere else (e.g. a stray report-view group) can't be converted, so there the picker is disabled and any
+    // custom currency is dropped.
+    const hasUnconvertibleGroupSelection = hasSelectedGroup && !isGroupedSearch;
+    if (hasUnconvertibleGroupSelection && selectedCurrency) {
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: undefined,
@@ -172,21 +181,25 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             }
             if (isReportsSearch) {
                 getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency, reportIDList: selectedConvertibleIDs.join(',')});
+            } else if (isGroupedSearch) {
+                // The command derives the groups from the query's groupBy and returns every group, so no ID list is sent.
+                getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency});
             } else {
                 getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency, transactionIDList: selectedConvertibleIDs.join(',')});
             }
             return;
         }
 
-        // The whole-search query path produces flat per-transaction rows, which the Reports search has no equivalent
-        // of, so skip it there; an explicit report selection is converted via the report path above instead.
-        if (!isReportsSearch && !selectedCurrencyConvertedTotal) {
+        // Nothing selected: fetch the whole-search converted grand total. Every search type returns it keyed by the
+        // search hash — flat via the window total, reports via searchTotalsMetadata, grouped via the summed groups.
+        if (!selectedCurrencyConvertedTotal) {
             getFooterConvertedAmounts({queryJSON: currentSearchQueryJSON, targetCurrency: selectedCurrency});
         }
     }, [
         areAllSelectedConverted,
         currentSearchQueryJSON,
         hasCustomFooterCurrency,
+        isGroupedSearch,
         isReportsSearch,
         selectedCurrency,
         selectedCurrencyConvertedTotal,
@@ -216,18 +229,18 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         if (shouldUseClientTotal) {
             const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !!selectedCurrency;
 
-            // On the Reports search, the converted total sums each selected report's cached converted total; on
-            // other searches it sums each selected transaction's converted amount. Both fall back to the default
-            // per-row amounts when the conversion isn't ready, keeping the footer on the default currency.
+            // On aggregate searches (reports/groups) the converted total sums each selected aggregate's cached
+            // converted total; on other searches it sums each selected transaction's converted amount. Both fall
+            // back to the default per-row amounts when the conversion isn't ready, keeping the footer on the default.
             let total;
-            if (shouldUseConvertedSelectedTotal && isReportsSearch && selectedCurrency) {
-                total = selectedReportIDs.reduce((acc, reportID) => acc - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
+            if (shouldUseConvertedSelectedTotal && isAggregateSearch && selectedCurrency) {
+                total = selectedConvertibleIDs.reduce((acc, key) => acc - (convertedAggregates?.[key]?.[selectedCurrency] ?? 0), 0);
             } else {
                 total = selectedTransactionsKeys.reduce((acc, key) => {
                     const transaction = selectedTransactions[key];
                     const transactionID = transaction.transaction?.transactionID;
                     const convertedAmount =
-                        shouldUseConvertedSelectedTotal && !isReportsSearch && selectedCurrency && transactionID ? convertedTransactions?.[transactionID]?.[selectedCurrency] : undefined;
+                        shouldUseConvertedSelectedTotal && !isAggregateSearch && selectedCurrency && transactionID ? convertedTransactions?.[transactionID]?.[selectedCurrency] : undefined;
                     return acc - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
                 }, 0);
             }
@@ -242,18 +255,18 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return {count: metadataCount, total: metadataTotal, currency: effectiveDefaultCurrency ?? metadataCurrency};
     }, [
         areAllSelectedConverted,
-        convertedReports,
+        convertedAggregates,
         convertedTransactions,
         effectiveDefaultCurrency,
         hasCustomFooterCurrency,
-        isReportsSearch,
+        isAggregateSearch,
         metadataCount,
         metadataCurrency,
         metadataTotal,
         selectedCurrency,
         selectedCurrencyConvertedTotal,
+        selectedConvertibleIDs,
         selectedExpenseCount,
-        selectedReportIDs,
         selectedTransactions,
         selectedTransactionsKeys,
         shouldAllowFooterTotals,
@@ -277,7 +290,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             defaultCurrency={effectiveDefaultCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
-            shouldAllowCurrencyChange={!hasSelectedGroup}
+            shouldAllowCurrencyChange={!hasUnconvertibleGroupSelection}
         />
     );
 }

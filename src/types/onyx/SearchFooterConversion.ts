@@ -21,6 +21,9 @@ type SearchFooterConversion = {
     /** Per-report converted totals, keyed by report ID then by target currency */
     reports?: Record<string, ConvertedAmountByCurrency>;
 
+    /** Per-group converted totals (grouped searches), keyed by group key then by target currency */
+    groups?: Record<string, ConvertedAmountByCurrency>;
+
     /** Whole-search converted totals, keyed by search query hash then by target currency */
     searchTotals?: Record<string, ConvertedTotalByCurrency>;
 };
