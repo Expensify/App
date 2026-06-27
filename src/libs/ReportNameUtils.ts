@@ -832,7 +832,7 @@ function computeReportNameBasedOnReportAction(
         return getRemoveExpensifyCardRuleMessage(translate, parentReportAction);
     }
     if (isPolicyCopyReportAction(parentReportAction)) {
-        return getPolicyChangeLogCopyMessage(translate, parentReportAction);
+        return Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, parentReportAction));
     }
 
     return undefined;

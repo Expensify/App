@@ -1019,7 +1019,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getWorkspaceFeatureEnabledMessage(translate, lastReportAction);
     }
     if (isPolicyCopyReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getPolicyChangeLogCopyMessage(translate, lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report

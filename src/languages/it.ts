@@ -8300,44 +8300,46 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         customUnitRateDateRangeUntilEnd: (date: string) => `fino al ${date}`,
         customUnitRateDateRangeAllDates: () => `per tutte le date`,
         policyCopy: {
-            overview: (sourcePolicyName: string) => `panoramica copiata da ${sourcePolicyName}`,
-            employees: (sourcePolicyName: string) => `ha copiato i membri da ${sourcePolicyName}`,
-            reportFields: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
-                one: `copiato 1 campo del report da ${sourcePolicyName}`,
-                other: (count: number) => `copiati ${count} campi del report da ${sourcePolicyName}`,
+            overview: (sourcePolicyName: string, sourcePolicyURL: string) => `panoramica copiata da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            employees: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato i membri da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            reportFields: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiato 1 campo del report da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiati ${count} campi del report da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             }),
-            accounting: (sourcePolicyName: string) => `impostazioni contabili copiate da ${sourcePolicyName}`,
-            receiptPartners: (sourcePolicyName: string) => `ha copiato le impostazioni del partner di ricevute da ${sourcePolicyName}`,
-            hr: (sourcePolicyName: string) => `impostazioni HR copiate da ${sourcePolicyName}`,
-            categories: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
-                one: `copiata 1 categoria da ${sourcePolicyName}`,
-                other: (count: number) => `copiate ${count} categorie da ${sourcePolicyName}`,
+            accounting: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni contabili copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            receiptPartners: (sourcePolicyName: string, sourcePolicyURL: string) =>
+                `ha copiato le impostazioni del partner di ricevute da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            hr: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni HR copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            categories: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiata 1 categoria da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiate ${count} categorie da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             }),
-            tags: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
-                one: `copiato 1 tag da ${sourcePolicyName}`,
-                other: (count: number) => `copiati ${count} tag da ${sourcePolicyName}`,
+            tags: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiato 1 tag da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiati ${count} tag da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             }),
-            taxes: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
-                one: `copiata 1 aliquota fiscale da ${sourcePolicyName}`,
-                other: (count: number) => `copiate ${count} aliquote fiscali da ${sourcePolicyName}`,
+            taxes: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiata 1 aliquota fiscale da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiate ${count} aliquote fiscali da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             }),
-            timeTracking: (sourcePolicyName: string) => `ha copiato le impostazioni di rilevazione del tempo da ${sourcePolicyName}`,
-            workflows: (sourcePolicyName: string) => `ha copiato i flussi di lavoro da ${sourcePolicyName}`,
-            rules: (sourcePolicyName: string) => `regole copiate da ${sourcePolicyName}`,
-            codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
-                one: `copiata 1 regola esercente da ${sourcePolicyName}`,
-                other: (count: number) => `copiate ${count} regole esercente da ${sourcePolicyName}`,
+            timeTracking: (sourcePolicyName: string, sourcePolicyURL: string) =>
+                `ha copiato le impostazioni di rilevazione del tempo da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            workflows: (sourcePolicyName: string, sourcePolicyURL: string) => `ha copiato i flussi di lavoro da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            rules: (sourcePolicyName: string, sourcePolicyURL: string) => `regole copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            codingRules: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiata 1 regola esercente da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiate ${count} regole esercente da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             }),
-            distanceRates: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
-                one: `copiata 1 tariffa chilometrica da ${sourcePolicyName}`,
-                other: (count: number) => `copiate ${count} tariffe chilometriche da ${sourcePolicyName}`,
+            distanceRates: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiata 1 tariffa chilometrica da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiate ${count} tariffe chilometriche da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             }),
-            perDiem: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
-                one: `copiata 1 indennità giornaliera da ${sourcePolicyName}`,
-                other: (count: number) => `copiati ${count} tassi di diaria da ${sourcePolicyName}`,
+            perDiem: ({sourcePolicyName, sourcePolicyURL}: {sourcePolicyName: string; sourcePolicyURL: string}) => ({
+                one: `copiata 1 indennità giornaliera da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+                other: (count: number) => `copiati ${count} tassi di diaria da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             }),
-            invoices: (sourcePolicyName: string) => `impostazioni fattura copiate da ${sourcePolicyName}`,
-            travel: (sourcePolicyName: string) => `impostazioni di viaggio copiate da ${sourcePolicyName}`,
+            invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni fattura copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
+            travel: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni di viaggio copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
     },
     roomMembersPage: {

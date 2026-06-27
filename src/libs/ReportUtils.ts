@@ -6899,59 +6899,60 @@ function getPolicyChangeLogCopyMessage(translate: LocalizedTranslate, action: Re
     const PolicyChangeLogCopyOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW>) ?? {};
     const {sourcePolicyID, quantity} = PolicyChangeLogCopyOriginalMessage;
     const sourcePolicyName = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`]?.name ?? '';
+    const sourcePolicyURL = sourcePolicyID ? `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(sourcePolicyID)}` : '';
     const count = quantity ?? 0;
     let message = '';
     switch (action.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW:
-            message = translate('workspaceActions.policyCopy.overview', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.overview', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES:
-            message = translate('workspaceActions.policyCopy.employees', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.employees', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS:
-            message = translate('workspaceActions.policyCopy.reportFields', {count, sourcePolicyName});
+            message = translate('workspaceActions.policyCopy.reportFields', {count, sourcePolicyName, sourcePolicyURL});
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING:
-            message = translate('workspaceActions.policyCopy.accounting', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.accounting', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS:
-            message = translate('workspaceActions.policyCopy.receiptPartners', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.receiptPartners', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR:
-            message = translate('workspaceActions.policyCopy.hr', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.hr', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES:
-            message = translate('workspaceActions.policyCopy.categories', {count, sourcePolicyName});
+            message = translate('workspaceActions.policyCopy.categories', {count, sourcePolicyName, sourcePolicyURL});
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS:
-            message = translate('workspaceActions.policyCopy.tags', {count, sourcePolicyName});
+            message = translate('workspaceActions.policyCopy.tags', {count, sourcePolicyName, sourcePolicyURL});
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES:
-            message = translate('workspaceActions.policyCopy.taxes', {count, sourcePolicyName});
+            message = translate('workspaceActions.policyCopy.taxes', {count, sourcePolicyName, sourcePolicyURL});
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING:
-            message = translate('workspaceActions.policyCopy.timeTracking', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.timeTracking', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS:
-            message = translate('workspaceActions.policyCopy.workflows', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.workflows', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES:
-            message = translate('workspaceActions.policyCopy.rules', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.rules', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES:
-            message = translate('workspaceActions.policyCopy.codingRules', {count, sourcePolicyName});
+            message = translate('workspaceActions.policyCopy.codingRules', {count, sourcePolicyName, sourcePolicyURL});
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE:
-            message = translate('workspaceActions.policyCopy.distanceRates', {count, sourcePolicyName});
+            message = translate('workspaceActions.policyCopy.distanceRates', {count, sourcePolicyName, sourcePolicyURL});
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM:
-            message = translate('workspaceActions.policyCopy.perDiem', {count, sourcePolicyName});
+            message = translate('workspaceActions.policyCopy.perDiem', {count, sourcePolicyName, sourcePolicyURL});
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES:
-            message = translate('workspaceActions.policyCopy.invoices', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.invoices', sourcePolicyName, sourcePolicyURL);
             break;
         case CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL:
-            message = translate('workspaceActions.policyCopy.travel', sourcePolicyName);
+            message = translate('workspaceActions.policyCopy.travel', sourcePolicyName, sourcePolicyURL);
             break;
         default:
             break;

@@ -99,7 +99,9 @@ type ResolverFn = (translate: LocaleContextProps['translate'], action: OnyxTypes
 const categoryResolver: ResolverFn = (translate, action, policy) => getWorkspaceCategoryUpdateMessage(translate, action, policy);
 const taxResolver: ResolverFn = (translate, action) => getWorkspaceTaxUpdateMessage(translate, action);
 const tagModificationResolver: ResolverFn = (translate, action) => getCleanedTagName(getWorkspaceTagUpdateMessage(translate, action));
-const copySettingsResolver: ResolverFn = (translate, action) => getPolicyChangeLogCopyMessage(translate, action);
+const copySettingsResolver: ResolverFn = (translate, action) => ({
+    html: `<comment><muted-text>${getPolicyChangeLogCopyMessage(translate, action)}</muted-text></comment>`,
+});
 
 const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     // Simple string translations
