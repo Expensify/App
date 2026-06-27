@@ -2990,9 +2990,6 @@ function deleteReportComment(
     //   - ACTIONABLE_MENTION_WHISPER has ID = parentCommentID + 1
     //   - ACTIONABLE_REPORT_MENTION_WHISPER has ID = parentCommentID + 2, and its originalMessage
     //     also stores the parent's reportActionID so we can verify the match.
-    // We prefer the actions passed directly from the calling component (currentReportActionsParam)
-    // since those come from useOnyx and are guaranteed to be up to date. We fall back to the
-    // module-level allReportActions cache.
     const unresolvedMentionWhisperIDs: string[] = [];
 
     const mentionWhisperID = String(BigInt(reportActionID) + 1n);
