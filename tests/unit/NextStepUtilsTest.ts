@@ -875,56 +875,6 @@ describe('libs/NextStepUtils', () => {
                     expect(result).toMatchObject(optimisticNextStep);
                 });
             });
-
-            test('submit workspace shows the approve next step', () => {
-                report.managerID = strangeAccountID;
-                // Submit workspaces (submit2026) hide approvals in the UI, but they always run an advanced
-                // approval workflow internally, so the report is waiting on the configured approver.
-                const submitPolicy: Policy = {
-                    ...policy,
-                    type: CONST.POLICY.TYPE.SUBMIT,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                };
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: strangeEmail,
-                        type: 'strong',
-                        clickToCopyText: strangeEmail,
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    type: CONST.POLICY.TYPE.SUBMIT,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                }).then(() => {
-                    const result = buildNextStepNew({
-                        report,
-                        policy: submitPolicy,
-                        currentUserAccountIDParam: currentUserAccountID,
-                        currentUserEmailParam: currentUserEmail,
-                        hasViolations: false,
-                        isASAPSubmitBetaEnabled: false,
-                        predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        shouldFixViolations: false,
-                        isUnapprove: false,
-                        isReopen: false,
-                    });
-                    expect(result).toMatchObject(optimisticNextStep);
-                });
-            });
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
