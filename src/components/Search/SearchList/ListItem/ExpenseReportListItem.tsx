@@ -9,12 +9,6 @@ import {View} from 'react-native';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import {
-    ReportSubmitToPopoverRoot,
-    SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
-    useOpenReportSubmitToPopover,
-    useSearchSubmitPopoverGuard,
-} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
@@ -43,6 +37,7 @@ import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTran
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
@@ -53,19 +48,7 @@ import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 /**
  * An expense report row in search results, showing status badge, total, and participants.
  */
-function ExpenseReportListItem<TItem extends ListItem>(props: ExpenseReportListItemProps<TItem>) {
-    const reportID = 'reportID' in props.item && typeof props.item.reportID === 'string' ? props.item.reportID : undefined;
-    return (
-        <ReportSubmitToPopoverRoot
-            reportID={reportID}
-            anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
-        >
-            <ExpenseReportListItemInner {...props} />
-        </ReportSubmitToPopoverRoot>
-    );
-}
-
-function ExpenseReportListItemInner<TItem extends ListItem>({
+function ExpenseReportListItem<TItem extends ListItem>({
     item,
     isLoading,
     isFocused,
@@ -111,6 +94,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
+    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)}, [reportItem.ownerAccountID]);
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
@@ -202,8 +186,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
     const {showHoldMenu} = useHoldMenuModal();
-    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
 
@@ -225,7 +207,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const liveViolationsSelector = transactionViolationsByIDsSelector(snapshotTransactionIDs);
     const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: liveViolationsSelector}, [liveViolationsSelector]);
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed} = useReportPaymentContext({
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail} = useReportPaymentContext({
         reportID: reportItem.reportID,
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -237,6 +219,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
+            submitterLogin,
             policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
@@ -266,9 +249,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             },
             ownerBillingGracePeriodEnd,
             amountOwed,
-            openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
             currentUserAccountID,
             currentUserLogin,
@@ -281,6 +261,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
             chatReportActions,
+            delegateEmail,
         });
     }, [
         currentSearchHash,
@@ -291,6 +272,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         snapshotReport,
         chatReport,
         snapshotPolicy,
+        submitterLogin,
         parentPolicy,
         parentReport,
         lastPaymentMethod,
@@ -303,9 +285,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         liveReportTransactions,
         ownerBillingGracePeriodEnd,
         amountOwed,
-        openReportSubmitToPopover,
-        shouldDisableSearchSubmitPress,
-        consumeIgnoreNextSearchSubmitPress,
         showConfirmModal,
         translate,
         currentUserAccountID,
@@ -317,6 +296,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         chatReportPolicy,
         nextStep,
         chatReportActions,
+        delegateEmail,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
@@ -485,7 +465,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         isHovered={hovered}
                         isFocused={isFocused}
                         isPendingDelete={isPendingDelete}
-                        shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
                         isMarkAsDone={shouldUseMarkAsDoneCopy}
                     />
                     {getDescription}
