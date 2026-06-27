@@ -77,18 +77,22 @@ function RilletImportPage({policy}: WithPolicyProps) {
                     onCloseError={() => policyID && clearRilletErrorField(policyID, `${CONST.RILLET_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
                 />
             ))}
-            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-            <ToggleSettingOptionRow
-                title={translate('workspace.taxes.taxRates')}
-                switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={rilletConfig?.coding.syncTaxRates ?? false}
-                onToggle={() => null}
-                pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_TAX_RATES], rilletConfig?.pendingFields)}
-                errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
-                onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
-            />
+            {!!rilletData?.taxRates.length && (
+                <>
+                    <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.taxes.taxRates')}
+                        switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mv3, styles.mh5]}
+                        isActive={rilletConfig?.coding.syncTaxRates ?? false}
+                        onToggle={() => null}
+                        pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SYNC_TAX_RATES], rilletConfig?.pendingFields)}
+                        errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
+                        onCloseError={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.SYNC_TAX_RATES)}
+                    />
+                </>
+            )}
         </ConnectionLayout>
     );
 }
