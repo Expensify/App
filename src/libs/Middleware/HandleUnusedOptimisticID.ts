@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import {prepareOnyxDataForCleanUpOptimisticParticipants} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import type {Middleware} from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,6 +11,14 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        allPersonalDetails = value;
+    },
+});
 
 // Local cache of reportID to optimistic Onyx data
 const reportOptimisticData = new Map<string, {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined>();
@@ -34,7 +41,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             // We're opening a new report, which can be a new or preexisting report
             // For new report, clean up optimistic data after this request returned successfully
             // For report redirect a preexisting report, clean up optimistic data after the request of preexisting report returned successfully
-            reportOptimisticData.set(currentRequestReportID, prepareOnyxDataForCleanUpOptimisticParticipants(currentRequestReportID, getAllPersonalDetails()));
+            reportOptimisticData.set(currentRequestReportID, prepareOnyxDataForCleanUpOptimisticParticipants(currentRequestReportID, allPersonalDetails));
         }
 
         const responseOnyxData = response?.onyxData ?? [];
