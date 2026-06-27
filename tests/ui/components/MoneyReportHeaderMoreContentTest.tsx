@@ -24,10 +24,18 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
 }
 
 // `useRoute` is only used to detect Search routes; default to a regular report route so `isReportInSearch` is false.
-jest.mock('@react-navigation/native', () => ({
-    __esModule: true,
-    useRoute: jest.fn(() => ({name: 'report'})),
-}));
+// Spread the real module so navigation internals (e.g. createNavigationContainerRef) pulled in by the real
+// PolicyUtils import chain keep working.
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actualNavigation = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actualNavigation,
+        __esModule: true,
+        useRoute: jest.fn(() => ({name: 'report'})),
+    };
+});
 
 // The next-step bar is the element under test; render nothing but track whether it was mounted via the visibility gate.
 jest.mock('@components/MoneyReportHeaderNextStep', () => ({__esModule: true, default: jest.fn(() => null)}));
@@ -35,7 +43,17 @@ jest.mock('@components/MoneyReportHeaderStatusBarSection', () => ({__esModule: t
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportNavigation', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/MoneyReportTransactionThreadContext', () => ({__esModule: true, useMoneyReportTransactionThread: jest.fn(() => ({iouTransactionID: undefined}))}));
 
-jest.mock('@libs/ReportUtils', () => ({__esModule: true, isInvoiceReport: jest.fn(() => false)}));
+// Spread the real module: the live PolicyUtils import chain relies on many other ReportUtils exports.
+jest.mock('@libs/ReportUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actualReportUtils = jest.requireActual('@libs/ReportUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actualReportUtils,
+        __esModule: true,
+        isInvoiceReport: jest.fn(() => false),
+    };
+});
 
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: jest.fn(() => ({}))}));
 jest.mock('@hooks/useResponsiveLayout', () => ({__esModule: true, default: jest.fn(() => ({shouldUseNarrowLayout: false, isMediumScreenWidth: false}))}));
