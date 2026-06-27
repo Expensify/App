@@ -598,7 +598,6 @@ function getApproveActionCallback({
     approveMoneyRequest({
         expenseReport: snapshotReport,
         expenseReportPolicy: reportPolicy,
-        policy: reportPolicy,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserLogin ?? '',
         hasViolations,
