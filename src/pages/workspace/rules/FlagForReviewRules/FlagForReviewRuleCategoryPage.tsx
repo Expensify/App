@@ -1,12 +1,16 @@
 import React from 'react';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -17,6 +21,10 @@ type FlagForReviewRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavig
 function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPageProps) {
     const {policyID, ruleKey} = route.params;
     const isEditing = ruleKey !== ROUTES.NEW;
+    const policy = usePolicy(policyID);
+    const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -47,15 +55,23 @@ function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPagePro
     };
 
     return (
-        <RuleSelectionBase
-            titleKey="common.category"
-            testID="FlagForReviewRuleCategoryPage"
-            selectedItem={selectedCategoryItem}
-            items={categoryItems}
-            onSave={onSave}
-            onBack={() => Navigation.goBack(backToRoute)}
-            backToRoute={backToRoute}
-        />
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
+            shouldBeBlocked={!isRulesRevampEnabled || !canWriteRules}
+        >
+            <RuleSelectionBase
+                titleKey="common.category"
+                testID="FlagForReviewRuleCategoryPage"
+                selectedItem={selectedCategoryItem}
+                items={categoryItems}
+                onSave={onSave}
+                onBack={() => Navigation.goBack(backToRoute)}
+                backToRoute={backToRoute}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 

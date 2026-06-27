@@ -103,6 +103,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal: showMoreFeaturesReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const {isOffline} = useNetwork();
@@ -607,6 +608,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
+            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <WorkspacePageWithSections
                 testID="PolicyRulesPage"
