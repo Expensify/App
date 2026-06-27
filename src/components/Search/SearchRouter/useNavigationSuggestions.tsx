@@ -18,7 +18,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -154,7 +153,6 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
     const {convertToDisplayString} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountMenuItemsData, generalMenuItemsData} = useInitialSettingsPageMenuData(currentUserPersonalDetails);
-    const restoreWorkspacesTab = useRestoreWorkspacesTabOnNavigate();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
@@ -282,7 +280,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
             {
                 text: getGoToText(translate, workspacesText),
                 singleIcon: icons.Buildings,
-                action: restoreWorkspacesTab,
+                action: () => Navigation.navigate(ROUTES.WORKSPACES_LIST.route),
                 keyForList: 'topLevelWorkspaces',
                 matchTerms: [workspacesText],
             },
@@ -294,7 +292,7 @@ function useNavigationSuggestions(query: string): SearchQueryItem[] {
                 matchTerms: [accountText],
             },
         ];
-    }, [icons.Buildings, icons.Gear, icons.Home, icons.Inbox, icons.ReceiptMultiple, restoreWorkspacesTab, spendRoute, translate]);
+    }, [icons.Buildings, icons.Gear, icons.Home, icons.Inbox, icons.ReceiptMultiple, spendRoute, translate]);
 
     const spendItems = useMemo(
         () =>
