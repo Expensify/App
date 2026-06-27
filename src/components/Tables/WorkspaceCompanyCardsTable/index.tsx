@@ -1,6 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {format, parseISO} from 'date-fns';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -36,6 +36,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {WorkspaceCompanyCardsTableHeaderButtonsProps} from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
@@ -44,7 +45,7 @@ import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkel
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
 type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
 
-type WorkspaceCompanyCardsTableHeaderButtonsWithBulkActionsProps = Omit<React.ComponentProps<typeof WorkspaceCompanyCardsTableHeaderButtons>, 'bulkActionsButton'> & {
+type WorkspaceCompanyCardsTableHeaderButtonsWithBulkActionsProps = Omit<WorkspaceCompanyCardsTableHeaderButtonsProps, 'children'> & {
     /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
@@ -60,7 +61,7 @@ type WorkspaceCompanyCardsTableHeaderButtonsWithBulkActionsProps = Omit<React.Co
 
 type WorkspaceCompanyCardsSelectionSearchPrunerProps = {
     /** Clear selected card rows */
-    clearCardSelection: () => void;
+    setSelectedCardKeys: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 const CSV_FORMULA_PREFIX_REGEXP = /^(?:[\t\r\n]|\s*[=+\-@])/;
@@ -73,7 +74,7 @@ function escapeCsvField(value: string): string {
     return safeValue;
 }
 
-function WorkspaceCompanyCardsSelectionSearchPruner({clearCardSelection}: WorkspaceCompanyCardsSelectionSearchPrunerProps) {
+function WorkspaceCompanyCardsSelectionSearchPruner({setSelectedCardKeys}: WorkspaceCompanyCardsSelectionSearchPrunerProps) {
     const {activeSearchString} = useTableContext<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>();
     const previousSearchStringRef = useRef(activeSearchString);
 
@@ -83,8 +84,8 @@ function WorkspaceCompanyCardsSelectionSearchPruner({clearCardSelection}: Worksp
         }
 
         previousSearchStringRef.current = activeSearchString;
-        clearCardSelection();
-    }, [activeSearchString, clearCardSelection]);
+        setSelectedCardKeys([]);
+    }, [activeSearchString, setSelectedCardKeys]);
 
     return null;
 }
@@ -213,7 +214,7 @@ function WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions({
         return options;
     };
 
-    const bulkActionsButton =
+    const selectedCardControls =
         selectedCards.length > 0 ? (
             <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
                 success
@@ -227,12 +228,7 @@ function WorkspaceCompanyCardsTableHeaderButtonsWithBulkActions({
             />
         ) : undefined;
 
-    return (
-        <WorkspaceCompanyCardsTableHeaderButtons
-            {...headerButtonProps}
-            bulkActionsButton={bulkActionsButton}
-        />
-    );
+    return <WorkspaceCompanyCardsTableHeaderButtons {...headerButtonProps}>{selectedCardControls}</WorkspaceCompanyCardsTableHeaderButtons>;
 }
 
 type WorkspaceCompanyCardsTableProps = {
@@ -414,7 +410,7 @@ function WorkspaceCompanyCardsTable({
 
     const validSelectedCardKeys = selectedCardKeysForCurrentData;
 
-    const clearCardSelection = useCallback(() => setSelectedCardKeys([]), []);
+    const clearCardSelection = () => setSelectedCardKeys([]);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData) => item.keyForList;
 
@@ -615,7 +611,7 @@ function WorkspaceCompanyCardsTable({
             ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            <WorkspaceCompanyCardsSelectionSearchPruner clearCardSelection={clearCardSelection} />
+            <WorkspaceCompanyCardsSelectionSearchPruner setSelectedCardKeys={setSelectedCardKeys} />
             {!shouldUseNarrowTableLayout && ListHeader}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (

@@ -73,8 +73,8 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Card feed icon */
     CardFeedIcon: React.ReactNode;
 
-    /** Bulk actions button to show when card rows are selected */
-    bulkActionsButton?: React.ReactNode;
+    /** Controls to show in place of the default table controls */
+    children?: React.ReactNode;
 };
 
 type WorkspaceCompanyCardsPopupProps = {
@@ -311,7 +311,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({
     showTableControls,
     canWriteCompanyCards,
     CardFeedIcon,
-    bulkActionsButton,
+    children,
 }: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
@@ -418,7 +418,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({
                         shouldShowNarrowLayout ? [styles.flexColumn, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
                     ]}
                 >
-                    {bulkActionsButton ?? (
+                    {children ?? (
                         <>
                             <View style={[styles.mnw200, shouldShowNarrowLayout && styles.w100]}>
                                 <Table.SearchBar
@@ -458,4 +458,5 @@ function WorkspaceCompanyCardsTableHeaderButtons({
     );
 }
 
+export type {WorkspaceCompanyCardsTableHeaderButtonsProps};
 export default WorkspaceCompanyCardsTableHeaderButtons;
