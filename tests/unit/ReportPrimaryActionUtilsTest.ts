@@ -2,7 +2,6 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getValidConnectedIntegration, isPreferredExporter} from '@libs/PolicyUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
