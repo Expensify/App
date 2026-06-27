@@ -2978,6 +2978,25 @@ describe('TransactionUtils', () => {
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
+
+            it('should force reimbursable to false and not show the step when one duplicate is a managed card transaction', () => {
+                const cashTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: false,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        reimbursable: false,
+                        managedCard: true,
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(false);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
         });
 
         describe('selectedTransactionID parameter', () => {

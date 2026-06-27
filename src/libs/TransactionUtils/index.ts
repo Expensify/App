@@ -2619,6 +2619,16 @@ function compareDuplicateTransactionFields(
                         keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                     }
                 }
+            } else if (fieldName === 'reimbursable') {
+                // Managed card transactions are always non-reimbursable, so we should never surface the reimbursable
+                // review step when any of the duplicates is a managed card transaction.
+                if (transactions.some(isManagedCardTransaction)) {
+                    keep[fieldName] = false;
+                } else if (areAllFieldsEqualForKey) {
+                    keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
+                } else {
+                    processChanges(fieldName, transactions, keys);
+                }
             } else if (areAllFieldsEqualForKey) {
                 keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
             } else {
