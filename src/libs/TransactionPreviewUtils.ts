@@ -37,7 +37,7 @@ import {
     isScanning,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
-import {filterReceiptViolations} from './Violations/ViolationsUtils';
+import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -154,7 +154,7 @@ function getViolationTranslatePath(
 
     const filteredViolations = receiptFilteredViolations.filter((violation) => {
         if (shouldShowOnlyViolations) {
-            return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+            return isHardViolationOrRateDateWarning(violation);
         }
         return true;
     });

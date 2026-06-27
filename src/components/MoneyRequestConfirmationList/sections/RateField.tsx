@@ -70,6 +70,7 @@ function RateField({
     const {isOffline} = useNetwork();
 
     const isRateOutOfDateRange = DistanceRequestUtils.isCustomUnitRateOutOfDateRange({customUnitRateID, policy, expenseDate});
+    const policyRate = customUnitRateID && policy ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID, policy}) : undefined;
     const rateOutOfDateRangeErrorText = isRateOutOfDateRange
         ? ViolationsUtils.getViolationTranslation({
               violation: {
@@ -77,8 +78,8 @@ function RateField({
                   type: CONST.VIOLATION_TYPES.WARNING,
                   showInReview: true,
                   data: {
-                      startDate: mileageRate.startDate ?? undefined,
-                      endDate: mileageRate.endDate ?? undefined,
+                      startDate: policyRate?.startDate ?? mileageRate.startDate ?? undefined,
+                      endDate: policyRate?.endDate ?? mileageRate.endDate ?? undefined,
                   },
               },
               translate,

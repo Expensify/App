@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -491,6 +491,35 @@ describe('getViolationsOnyxData', () => {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                 }),
             );
+        });
+    });
+
+    describe('isHardViolationOrRateDateWarning', () => {
+        it('returns true for violation type violations', () => {
+            expect(
+                isHardViolationOrRateDateWarning({
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns true for customUnitRateOutOfDateRange warnings', () => {
+            expect(
+                isHardViolationOrRateDateWarning({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false for other warning violations', () => {
+            expect(
+                isHardViolationOrRateDateWarning({
+                    name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                }),
+            ).toBe(false);
         });
     });
 

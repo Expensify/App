@@ -70,6 +70,7 @@ jest.mock('@libs/TransactionUtils', () => {
         );
 
     return {
+        isDistanceRequest: (transaction: Transaction | undefined) => transaction?.iouRequestType === CONST_MOCK.IOU.REQUEST_TYPE.DISTANCE,
         isViolationDismissed: mockIsViolationDismissed,
         shouldShowViolation: mockShouldShowViolation,
         mergeProhibitedViolations,

@@ -377,6 +377,14 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
 }
 
 /**
+ * Returns whether a violation should be shown when filtering to hard violations only.
+ * customUnitRateOutOfDateRange is a WARNING but must still render for date-bound mileage rates.
+ */
+function isHardViolationOrRateDateWarning(violation: TransactionViolation): boolean {
+    return violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE;
+}
+
+/**
  * Syncs the customUnitRateOutOfDateRange violation with the current transaction rate and expense date.
  * Adds, removes, or updates the violation so the rate field reflects the selected rate's date bounds.
  */
@@ -1101,6 +1109,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed, syncCustomUnitRateOutOfDateRangeViolation};
+export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};
