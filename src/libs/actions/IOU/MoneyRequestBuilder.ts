@@ -663,17 +663,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Flag the new tx for useNewTransactions. Cleared by success/failure on resolution, with useNewTransactions' timer as the offline fallback. Skipped for self-DM splits (tx routes to UNREPORTED_REPORT_ID).
+    // Flag the new tx for useNewTransactions. No successData clear — it'd race the report mount; the hook's timer handles success. Skip self-DM splits (tx routes elsewhere).
     if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
             value: {pendingNewTransactionIDs: {[transaction.transactionID]: true}},
-        });
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: {[transaction.transactionID]: null}},
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
