@@ -98,7 +98,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef<View>(null);
     const hasRequestedNewBankAccountRef = useRef(false);
-    const hasNavigatedToValidationRef = useRef(false);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const achData = reimbursementAccount?.achData;
@@ -261,23 +260,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        // If USD bank account is in pending state, we should navigate straight to the validation step and skip the Continue step
+        // If USD bank account is in pending state, we should navigate straight to the validation step and skip Continue step
         if (policyCurrency === CONST.CURRENCY.USD && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION);
-            setShouldShowContinueSetupButton(false);
-            // The validation form lives on a separate route, so we must navigate there explicitly instead of relying on
-            // the entry point render. Guard with a ref so the goToWithdrawalAccountSetupStep merge above (which re-runs this
-            // effect) doesn't keep re-navigating and trap the user when they go back from the validation page.
-            if (!hasNavigatedToValidationRef.current) {
-                hasNavigatedToValidationRef.current = true;
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION, backTo}));
-            }
+            setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID: policyIDParam, page: CONST.BANK_ACCOUNT.PAGE_NAMES.VALIDATION, backTo}));
             return;
         }
-
-        // Reset the validation navigation guard once the account is no longer pending so a future pending state can navigate again.
-        hasNavigatedToValidationRef.current = false;
 
         // Sync USDBankAccountStep state with achData.currentStep when backend data changes.
         // This keeps state updated for legitimate step transitions while preventing flicker during transient re-renders.
