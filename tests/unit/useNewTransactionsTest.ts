@@ -423,6 +423,23 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         });
         expect(result.current).toEqual([]);
     });
+
+    it('falls through to the diff when the rail holds only cleared tombstones', () => {
+        // A {clearedID: null} rail is not "active": a later add (e.g. Pusher/import) without its own flag must still be caught by the diff.
+        const [existingTx] = transactionsAlreadyInReport;
+        const pusherTx = newTransaction;
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null>}>(
+            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
+            {
+                initialProps: {transactions: [existingTx], pendingNewTransactionIDs: {[existingTx.transactionID]: null}},
+            },
+        );
+        expect(result.current).toEqual([]);
+
+        // A new tx arrives with no fresh flag while the rail still carries the tombstone — the diff must surface it.
+        rerender({transactions: [existingTx, pusherTx], pendingNewTransactionIDs: {[existingTx.transactionID]: null}});
+        expect(result.current).toEqual([pusherTx]);
+    });
 });
 
 describe('useNewTransactions with an unfocused report', () => {

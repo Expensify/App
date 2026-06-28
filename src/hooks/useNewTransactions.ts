@@ -2,7 +2,6 @@ import {useEffect, useMemo, useRef} from 'react';
 import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import usePrevious from './usePrevious';
 
 /**
@@ -28,9 +27,11 @@ function useNewTransactions(
 
     const newTransactions = useMemo(() => {
         // Rail-active path: return every still-flagged tx as one continuous set so a later add can't flicker an earlier one out and back in (which re-fires its highlight). isFocused stops unfocused previews consuming it.
-        if (isFocused && reportID && !isEmptyObject(pendingNewTransactionIDs) && transactions?.length) {
-            const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
-            return transactions.filter(({transactionID}) => pendingSet.has(transactionID) && pendingNewTransactionIDs[transactionID]);
+        // Gate on a TRUTHY flag — an all-cleared rail ({id: null} tombstones) must fall through to the diff so a later Pusher/import add still highlights.
+        const activePendingTransactionIDs = pendingNewTransactionIDs ? Object.keys(pendingNewTransactionIDs).filter((id) => pendingNewTransactionIDs[id]) : [];
+        if (isFocused && reportID && activePendingTransactionIDs.length && transactions?.length) {
+            const pendingSet = new Set(activePendingTransactionIDs);
+            return transactions.filter(({transactionID}) => pendingSet.has(transactionID));
         }
 
         // No rail (Pusher adds or unfocused): fall back to the diff. Runs regardless of focus — useAnimatedHighlightStyle latches until didScreenTransitionEnd, so an unfocused table behind an overlay still highlights.
