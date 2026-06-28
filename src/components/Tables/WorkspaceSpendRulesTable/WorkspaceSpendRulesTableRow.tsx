@@ -59,12 +59,14 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
 
     const lockIcon = tableRowItem.isDefault ? (
         <Tooltip text={translate('common.locked')}>
-            <Icon
-                src={Expensicons.Lock}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
-                fill={theme.icon}
-            />
+            <View>
+                <Icon
+                    src={Expensicons.Lock}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    fill={theme.icon}
+                />
+            </View>
         </Tooltip>
     ) : undefined;
 

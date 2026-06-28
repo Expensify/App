@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -283,12 +283,21 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         turnOffMobileSelectionMode();
     };
 
-    const handleTableSelectionChange = (tab: Exclude<RulesTab, typeof RULES_TAB.GENERAL>) => (selectedRowKeys: string[]) => {
-        setSelectedRuleKeysByTab((prev) => ({
-            ...prev,
-            [tab]: updateSelectionKeysIfChanged(prev[tab] ?? [], selectedRowKeys),
-        }));
-    };
+    const updateTabSelectionKeys = useCallback((tab: Exclude<RulesTab, typeof RULES_TAB.GENERAL>, selectedRowKeys: string[]) => {
+        setSelectedRuleKeysByTab((prev) => {
+            const nextKeys = updateSelectionKeysIfChanged(prev[tab] ?? [], selectedRowKeys);
+            if (prev[tab] === nextKeys) {
+                return prev;
+            }
+
+            return {...prev, [tab]: nextKeys};
+        });
+    }, []);
+
+    const handleSpendRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.CARD_RESTRICTIONS, selectedRowKeys), [updateTabSelectionKeys]);
+    const handleExpenseDefaultSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.EXPENSE_DEFAULTS, selectedRowKeys), [updateTabSelectionKeys]);
+    const handleRequireFieldsRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.REQUIRE_FIELDS, selectedRowKeys), [updateTabSelectionKeys]);
+    const handleFlagForReviewRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.FLAG_FOR_REVIEW, selectedRowKeys), [updateTabSelectionKeys]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -652,7 +661,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         rulesData={areCardsEnabled ? spendRulesTableData : []}
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedSpendRuleKeys}
-                                        onRowSelectionChange={handleTableSelectionChange(RULES_TAB.CARD_RESTRICTIONS)}
+                                        onRowSelectionChange={handleSpendRuleSelectionChange}
                                         emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
                                     />
                                 )}
@@ -661,7 +670,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         rulesData={expenseDefaultsTableData}
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedExpenseDefaultKeys}
-                                        onRowSelectionChange={handleTableSelectionChange(RULES_TAB.EXPENSE_DEFAULTS)}
+                                        onRowSelectionChange={handleExpenseDefaultSelectionChange}
                                     />
                                 )}
                                 {activeTab === RULES_TAB.REQUIRE_FIELDS && (
@@ -669,7 +678,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         rulesData={requireFieldsTableData}
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedRequireFieldsRuleKeys}
-                                        onRowSelectionChange={handleTableSelectionChange(RULES_TAB.REQUIRE_FIELDS)}
+                                        onRowSelectionChange={handleRequireFieldsRuleSelectionChange}
                                         emptyStateContent={arePolicyCategoriesLoading ? undefined : requireFieldsEmptyState}
                                     />
                                 )}
@@ -678,7 +687,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         rulesData={flagForReviewTableData}
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedFlagForReviewRuleKeys}
-                                        onRowSelectionChange={handleTableSelectionChange(RULES_TAB.FLAG_FOR_REVIEW)}
+                                        onRowSelectionChange={handleFlagForReviewRuleSelectionChange}
                                         emptyStateContent={arePolicyCategoriesLoading ? undefined : flagForReviewEmptyState}
                                     />
                                 )}

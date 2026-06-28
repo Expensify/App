@@ -63,12 +63,14 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
 
     const lockIcon = tableRowItem.isMerchantType ? (
         <Tooltip text={translate('common.locked')}>
-            <Icon
-                src={Expensicons.Lock}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
-                fill={theme.icon}
-            />
+            <View>
+                <Icon
+                    src={Expensicons.Lock}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    fill={theme.icon}
+                />
+            </View>
         </Tooltip>
     ) : undefined;
 
