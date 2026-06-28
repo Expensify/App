@@ -7394,6 +7394,61 @@ describe('OptionsListUtils', () => {
 
             expect(result.section.data).toHaveLength(0);
         });
+
+        it('should resolve the policy expense report through the getReportByID resolver instead of the module-level Onyx cache', () => {
+            // This report is intentionally NOT merged into Onyx, so it is only reachable through the resolver.
+            // If the function used the module-level Onyx.connect() cache, the report would not be found and
+            // private_isArchived would be undefined.
+            const resolverReportID = 'resolverOnlyReport1';
+            const resolverReport: Report = {
+                reportID: resolverReportID,
+                reportName: 'Resolver Workspace',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: formatTestPolicyID,
+                ownerAccountID: formatOwnerAccountID,
+                participants: {
+                    [formatOwnerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            const getReportByID = (reportID: string | undefined) => (reportID === resolverReportID ? resolverReport : undefined);
+
+            const privateIsArchivedMap: Record<string, boolean> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${resolverReportID}`]: true,
+            };
+
+            const selectedOptions: SearchOptionData[] = [
+                {
+                    reportID: resolverReportID,
+                    keyForList: resolverReportID,
+                    isPolicyExpenseChat: true,
+                    selected: true,
+                    text: 'Resolver Workspace',
+                    alternateText: '',
+                    isSelected: true,
+                },
+            ];
+
+            const result = formatSectionsFromSearchTerm(
+                '',
+                selectedOptions,
+                [],
+                [],
+                privateIsArchivedMap,
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                formatPersonalDetails,
+                true,
+                undefined,
+                undefined,
+                getReportByID,
+            );
+
+            expect(result.section.data).toHaveLength(1);
+
+            const option = result.section.data.at(0);
+            expect(option?.private_isArchived).toBe(true);
+        });
     });
 
     describe('getUserToInviteOption', () => {
