@@ -10,6 +10,7 @@ import {getActivePolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+import {cleanupCrashDiagnostics, initializeCrashDiagnostics} from './crashDiagnostics';
 import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
 /**
@@ -178,4 +179,14 @@ function sendPersonalDetailsCountTag(personalDetailsCount: number) {
     Sentry.setTag(CONST.TELEMETRY.TAGS.PERSONAL_DETAILS_COUNT, personalDetailsCountBucket);
 }
 
-export {initializeMemoryTracking as initializeMemoryTrackingTelemetry, cleanupMemoryTracking as cleanupMemoryTrackingTelemetry};
+function initializeTelemetryTrackers() {
+    initializeMemoryTracking();
+    initializeCrashDiagnostics();
+}
+
+function cleanupTelemetryTrackers() {
+    cleanupMemoryTracking();
+    cleanupCrashDiagnostics();
+}
+
+export {initializeTelemetryTrackers, cleanupTelemetryTrackers};

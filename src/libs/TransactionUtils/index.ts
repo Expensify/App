@@ -283,6 +283,18 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
+function getReceiptTypeTranslationKey(receiptType: ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (receiptType) {
+        case CONST.SEARCH.RECEIPT_TYPE.ERECEIPT:
+            return 'search.receiptTypeValues.ereceipt';
+        case CONST.SEARCH.RECEIPT_TYPE.ITEMIZED:
+            return 'search.receiptTypeValues.itemized';
+        case CONST.SEARCH.RECEIPT_TYPE.HOTEL:
+            return 'search.receiptTypeValues.hotel';
+    }
+}
+
 function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
     const merchant = getMerchant(transaction);
 
@@ -3103,6 +3115,7 @@ export {
     shouldShowExpenseBreakdown,
     isTimeRequest,
     getExpenseTypeTranslationKey,
+    getReceiptTypeTranslationKey,
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
