@@ -512,7 +512,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('shows the inactive-vendor fallback copy when the assigned vendor is missing from the synced vendor list', async () => {
+    it('falls back to the vendor externalID when the assigned vendor is missing from every connection', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -540,11 +540,13 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('violations.inactiveVendor');
+            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
+            expect(vendorTitle).toHaveTextContent('stale-vendor-id');
+            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
         });
     });
 
-    it('does not show the inactive-vendor fallback when the synced vendor list has not loaded yet', async () => {
+    it('falls back to the vendor externalID before the synced vendor list has loaded', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -572,12 +574,12 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
+            expect(vendorTitle).toHaveTextContent('still-valid-vendor-id');
             expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
-            expect(vendorTitle).toHaveTextContent('');
         });
     });
 
-    it('shows the inactive-vendor fallback when only an inactive integration still has the vendor', async () => {
+    it("shows the vendor's name from a secondary connection when the active integration's list dropped it", async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -609,8 +611,8 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('violations.inactiveVendor');
-            expect(vendorTitle).not.toHaveTextContent('Stale Intacct Vendor');
+            expect(vendorTitle).toHaveTextContent('Stale Intacct Vendor');
+            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
         });
     });
 });

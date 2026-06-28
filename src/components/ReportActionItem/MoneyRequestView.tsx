@@ -65,7 +65,7 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
-    getActiveVendorMatchingVendors,
+    findVendorByID,
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
@@ -479,24 +479,12 @@ function MoneyRequestView({
 
     const transactionVendor = transaction?.comment?.vendor;
 
-    // Resolve the active vendor-matching integration's list once, then derive both the matched
-    // vendor and the loaded-state from it. Using `getActiveVendorMatchingVendors` (returns
-    // `undefined` while hydrating, `Vendor[]` once loaded) keeps the lookup scoped to the active
-    // integration — same as the violation check in ViolationsUtils — without the permissive
-    // cross-connection fallback of `findVendorByID`, which in a dual-connected workspace would
-    // resolve a stale ID on the inactive integration and suppress the inactive-vendor copy while
-    // INACTIVE_VENDOR still fires. The field only renders when `hasVendorFeature` is true (a
-    // vendor-matching integration is active), so the historical fallback isn't needed here.
-    const activeVendorList = getActiveVendorMatchingVendors(policy);
-    const matchedVendor = transactionVendor?.externalID ? activeVendorList?.find((vendor) => vendor.id === transactionVendor.externalID) : undefined;
-
-    // When the vendor was previously assigned but is no longer in the synced vendor list (deactivated or
-    // deleted in the connected accounting system), keep the audit trail visible by showing the inactive-vendor
-    // copy. The transaction's `comment.vendor` object is preserved — only the rendered name falls back.
-    // The matching out-of-policy violation (CONST.VIOLATIONS.INACTIVE_VENDOR) fires from ViolationsUtils.
-    // Gated on `activeVendorList !== undefined` so a still-hydrating Onyx state — where the vendor list is
-    // undefined rather than empty — doesn't render every saved vendor as stale before sync arrives.
-    const transactionVendorName = matchedVendor?.name ?? (transactionVendor?.externalID && activeVendorList !== undefined ? translate('violations.inactiveVendor') : '');
+    // The title always shows the assigned vendor's name when we can resolve it from any connection
+    // (preferring the active vendor-matching integration, then falling back to QBO/Intacct). The
+    // INACTIVE_VENDOR violation (from ViolationsUtils, scoped to the active integration) provides
+    // the "Vendor no longer valid" indicator separately — so the title stays informative about what
+    // was set without duplicating the violation text.
+    const transactionVendorName = findVendorByID(policy, transactionVendor?.externalID)?.name ?? transactionVendor?.externalID ?? '';
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
