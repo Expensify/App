@@ -13,6 +13,19 @@ type PDFThumbnailProps = {
     /** Fit policy for the PDF thumbnail */
     fitPolicy?: 0 | 1 | 2;
 
+    /**
+     * When set (web only), render the thumbnail in "oversample" mode for a sharp hover-zoom: the page is
+     * drawn at `zoomScale`× the display size and CSS-scaled back to 1×, and the container adopts the page's
+     * natural aspect ratio. Ignored on native.
+     */
+    zoomScale?: number;
+
+    /**
+     * When set (web zoom mode), the thumbnail container fills the full available height while the PDF's natural
+     * aspect ratio is still unknown (loading or load failure) instead of collapsing inside an auto-height parent.
+     */
+    shouldUseFullHeight?: boolean;
+
     /** Callback to call if PDF is password protected */
     onPassword?: () => void;
 
