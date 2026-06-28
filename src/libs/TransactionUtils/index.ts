@@ -2620,9 +2620,12 @@ function compareDuplicateTransactionFields(
                     }
                 }
             } else if (fieldName === 'reimbursable') {
-                // Managed card transactions are always non-reimbursable, so we should never surface the reimbursable
-                // review step when any of the duplicates is a managed card transaction.
-                if (transactions.some(isManagedCardTransaction)) {
+                // Managed card transactions are always non-reimbursable. Only suppress the reimbursable
+                // review step and force false when the transaction being kept is itself a managed card —
+                // if the user keeps the cash duplicate, the managed card is discarded and the cash
+                // transaction's reimbursable value should be left intact.
+                const selectedTransaction = transactions.find((t) => t?.transactionID === selectedTransactionID) ?? firstTransaction;
+                if (isManagedCardTransaction(selectedTransaction)) {
                     keep[fieldName] = false;
                 } else if (areAllFieldsEqualForKey) {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];

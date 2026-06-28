@@ -2979,23 +2979,61 @@ describe('TransactionUtils', () => {
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
 
-            it('should force reimbursable to false and not show the step when one duplicate is a managed card transaction', () => {
+            it('should force reimbursable to false and suppress the step when the selected transaction is a managed card', () => {
                 const cashTransaction = generateTransaction({
                     reimbursable: true,
                     managedCard: false,
                 });
 
-                const duplicates = [
-                    generateTransaction({
-                        reimbursable: false,
-                        managedCard: true,
-                    }),
-                ];
+                const managedCardTransaction = generateTransaction({
+                    reimbursable: false,
+                    managedCard: true,
+                });
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const duplicates = [managedCardTransaction];
 
-                expect(result.keep.reimbursable).toBe(false);
-                expect(result.change.reimbursable).toBeUndefined();
+                // When the user keeps the managed card transaction, reimbursable must be forced to false.
+                const resultKeepingCard = TransactionUtils.compareDuplicateTransactionFields(
+                    {},
+                    cashTransaction,
+                    duplicates,
+                    mockReport,
+                    managedCardTransaction.transactionID,
+                    mockPolicy,
+                    undefined,
+                );
+
+                expect(resultKeepingCard.keep.reimbursable).toBe(false);
+                expect(resultKeepingCard.change.reimbursable).toBeUndefined();
+            });
+
+            it('should show the reimbursable step when the user keeps the cash duplicate and the managed card is discarded', () => {
+                const cashTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: false,
+                });
+
+                const managedCardTransaction = generateTransaction({
+                    reimbursable: false,
+                    managedCard: true,
+                });
+
+                const duplicates = [managedCardTransaction];
+
+                // When the user keeps the cash expense (discarding the managed card), the cash
+                // transaction's reimbursable value should not be silently overridden.
+                const resultKeepingCash = TransactionUtils.compareDuplicateTransactionFields(
+                    {},
+                    cashTransaction,
+                    duplicates,
+                    mockReport,
+                    cashTransaction.transactionID,
+                    mockPolicy,
+                    undefined,
+                );
+
+                expect(resultKeepingCash.keep.reimbursable).toBeUndefined();
+                expect(resultKeepingCash.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
         });
 
