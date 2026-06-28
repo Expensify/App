@@ -212,54 +212,14 @@ describe('getMoneyRequestInformation', () => {
     });
 
     describe('pendingNewTransactionIDs metadata rail', () => {
-        it('writes the flag in optimisticData under REPORT_METADATA of the new IOU report', () => {
+        // Only the 0→1 negative is testable here (the resolved report has no existing txs); the >= 1 positive path lives in the useNewTransactions consumer tests.
+        it('does NOT flag the first transaction of a report (no stale flag to re-highlight the original on a later add)', () => {
             const result = getMoneyRequestInformation(baseParams);
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
             const newTxID = result.transaction.transactionID;
 
-            expect(result.onyxData.optimisticData).toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        key: expectedKey,
-                        value: expect.objectContaining({
-                            pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true}),
-                        }),
-                    }),
-                ]),
-            );
-        });
-
-        it('clears the flag in failureData when the optimistic write rolls back', () => {
-            const result = getMoneyRequestInformation(baseParams);
-            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
-            const newTxID = result.transaction.transactionID;
-
-            expect(result.onyxData.failureData).toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        key: expectedKey,
-                        value: expect.objectContaining({
-                            pendingNewTransactionIDs: expect.objectContaining({[newTxID]: null}),
-                        }),
-                    }),
-                ]),
-            );
-        });
-
-        it('does NOT clear the flag in successData (the hook timer owns success-path cleanup, so it cannot race the highlight)', () => {
-            const result = getMoneyRequestInformation(baseParams);
-            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
-            const newTxID = result.transaction.transactionID;
-
-            expect(result.onyxData.successData ?? []).not.toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        key: expectedKey,
-                        value: expect.objectContaining({
-                            pendingNewTransactionIDs: expect.objectContaining({[newTxID]: null}),
-                        }),
-                    }),
-                ]),
+            expect(result.onyxData.optimisticData ?? []).not.toEqual(
+                expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
             );
         });
     });

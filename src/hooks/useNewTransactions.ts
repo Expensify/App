@@ -26,22 +26,28 @@ function useNewTransactions(
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
 
     const newTransactions = useMemo(() => {
-        // Rail-active (truthy flags only — an all-cleared rail falls through to the diff): return all flagged txs at once so a later add can't flicker an earlier one's highlight.
+        // Rail-flagged adds survive the remount the diff can't see (a duplicate flips a 1-tx report to the table view). Truthy only — an all-cleared rail leaves just the diff.
         const activePendingTransactionIDs = pendingNewTransactionIDs ? Object.keys(pendingNewTransactionIDs).filter((id) => pendingNewTransactionIDs[id]) : [];
-        if (isFocused && reportID && activePendingTransactionIDs.length && transactions?.length) {
-            const pendingSet = new Set(activePendingTransactionIDs);
-            return transactions.filter(({transactionID}) => pendingSet.has(transactionID));
+        const railSet = new Set(activePendingTransactionIDs);
+        const railTransactions =
+            isFocused && reportID && activePendingTransactionIDs.length && transactions?.length ? transactions.filter(({transactionID}) => railSet.has(transactionID)) : [];
+
+        // Diff-detected adds: render-to-render growth the rail never flagged (e.g. a Pusher add landing inside the rail's cleanup delay). Focus-independent — useAnimatedHighlightStyle latches until didScreenTransitionEnd, so an unfocused table behind an overlay still highlights.
+        let diffTransactions: Transaction[] = [];
+        if (transactions !== undefined && prevTransactions !== undefined && transactions.length > prevTransactions.length) {
+            if (skipFirstTransactionsChange.current) {
+                skipFirstTransactionsChange.current = false;
+            } else {
+                diffTransactions = transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+            }
         }
 
-        // No rail (Pusher adds or unfocused): fall back to the diff. Runs regardless of focus — useAnimatedHighlightStyle latches until didScreenTransitionEnd, so an unfocused table behind an overlay still highlights.
-        if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
-            return CONST.EMPTY_ARRAY as unknown as Transaction[];
+        // Union both so a rail add and a concurrent diff add both highlight; rail first keeps newTransactions[0] (the scroll target) stable across a later add.
+        if (!railTransactions.length) {
+            return diffTransactions.length ? diffTransactions : (CONST.EMPTY_ARRAY as unknown as Transaction[]);
         }
-        if (skipFirstTransactionsChange.current) {
-            skipFirstTransactionsChange.current = false;
-            return CONST.EMPTY_ARRAY as unknown as Transaction[];
-        }
-        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+        const extraDiff = diffTransactions.filter(({transactionID}) => !railSet.has(transactionID));
+        return extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;
 
         // We don't need to recalculate on change of prevTransactions as it will make the value
         // disappear quickly which will break the scroll and highlight on slower devices like mobile app.

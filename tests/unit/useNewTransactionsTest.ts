@@ -379,7 +379,6 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         rerender({transactions: stableTransactions, pendingNewTransactionIDs: undefined});
         expect(result.current).toEqual([]);
 
-        // Metadata-only update — same transactions reference, new pendingNewTransactionIDs
         rerender({transactions: stableTransactions, pendingNewTransactionIDs: {[newTransaction.transactionID]: true}});
         expect(result.current).toEqual([newTransaction]);
     });
@@ -388,7 +387,6 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         const [originalTx] = transactionsAlreadyInReport;
         const duplicateTx = {...newTransaction, pendingAction: 'add' as const};
 
-        // 1. Table view mounts with both txs already in Onyx cache; metadata hasn't propagated yet
         const {rerender, result} = renderHook<
             Transaction[],
             {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, true | null> | undefined; isFocused?: boolean}
@@ -402,7 +400,6 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         });
         expect(result.current).toEqual([]);
 
-        // 2. Still no metadata, diff sees same tx set
         rerender({
             hasOnceLoadedReportActions: true,
             transactions: [originalTx, duplicateTx],
@@ -411,7 +408,6 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         });
         expect(result.current).toEqual([]);
 
-        // 3. pendingNewTransactionIDs propagates from Onyx → highlight fires
         rerender({
             hasOnceLoadedReportActions: true,
             transactions: [originalTx, duplicateTx],
@@ -420,7 +416,6 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         });
         expect(result.current).toEqual([duplicateTx]);
 
-        // 4. Deletion timeout clears the metadata; diff branch returns empty again
         rerender({
             hasOnceLoadedReportActions: true,
             transactions: [originalTx, duplicateTx],
@@ -442,9 +437,27 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         );
         expect(result.current).toEqual([]);
 
-        // A new tx arrives with no fresh flag while the rail still carries the tombstone — the diff must surface it.
         rerender({transactions: [existingTx, pusherTx], pendingNewTransactionIDs: {[existingTx.transactionID]: null}});
         expect(result.current).toEqual([pusherTx]);
+    });
+
+    it('unions a rail-flagged add with a concurrent unflagged diff add (Pusher landing inside the cleanup delay)', () => {
+        // A rail flag (txB) must not make the branch swallow a concurrent unflagged diff add (txC) — both highlight, txB first.
+        const [existingTx] = transactionsAlreadyInReport;
+        const txB = {transactionID: 'B', amount: 100, created: '2023-10-04', currency: 'USD', reportID: 'report1', merchant: ''};
+        const txC = {transactionID: 'C', amount: 100, created: '2023-10-05', currency: 'USD', reportID: 'report1', merchant: ''};
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; pendingNewTransactionIDs: Record<string, true | null>}>(
+            (props) => useNewTransactions(true, props.transactions, props.pendingNewTransactionIDs, 'report1', true),
+            {initialProps: {transactions: [existingTx], pendingNewTransactionIDs: {}}},
+        );
+        expect(result.current).toEqual([]);
+
+        rerender({transactions: [existingTx, txB], pendingNewTransactionIDs: {B: true}});
+        expect(result.current).toEqual([txB]);
+
+        rerender({transactions: [existingTx, txB, txC], pendingNewTransactionIDs: {B: true}});
+        expect(result.current).toEqual([txB, txC]);
+        expect(result.current.at(0)).toBe(txB);
     });
 });
 
@@ -490,15 +503,12 @@ describe('useNewTransactions with an unfocused report', () => {
         );
         expect(result.current).toEqual([]);
 
-        // B is added.
         rerender({transactions: [...transactionsAlreadyInReport, txB], pendingNewTransactionIDs: {B: true}});
         expect(result.current).toEqual([txB]);
 
-        // Stable render while B is still flagged — B stays.
         rerender({transactions: [...transactionsAlreadyInReport, txB], pendingNewTransactionIDs: {B: true}});
         expect(result.current).toEqual([txB]);
 
-        // C is added while B is still flagged — B must remain present (continuous), now alongside C.
         rerender({transactions: [...transactionsAlreadyInReport, txB, txC], pendingNewTransactionIDs: {B: true, C: true}});
         expect(result.current).toEqual(expect.arrayContaining([txB, txC]));
         expect(result.current).toHaveLength(2);
@@ -515,11 +525,9 @@ describe('useNewTransactions with an unfocused report', () => {
             {initialProps: {transactions: transactionsAlreadyInReport, pendingNewTransactionIDs: {D: true}, isFocused: false}},
         );
 
-        // Unfocused: D surfaces via the diff, but no cleanup is scheduled.
         rerender({transactions: [...transactionsAlreadyInReport, txD], pendingNewTransactionIDs: {D: true}, isFocused: false});
         expect(scheduledCleanups()).toBe(0);
 
-        // Focused: the cleanup is now scheduled.
         rerender({transactions: [...transactionsAlreadyInReport, txD], pendingNewTransactionIDs: {D: true}, isFocused: true});
         expect(scheduledCleanups()).toBeGreaterThan(0);
 
