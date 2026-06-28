@@ -47,6 +47,7 @@ function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily,
             });
             const lineFont = typeface && lineFontSize ? Skia.Font(typeface, lineFontSize) : null;
             const {ascent, lineHeight: metricsLineHeight} = getSkiaLineMetrics(lineFont);
+
             const lineWidth = lineFont?.getGlyphWidths(lineFont.getGlyphIDs(line)).reduce((totalWidth, width) => totalWidth + width, 0) ?? 0;
             const customLineHeight = lineLineHeight ? lineLineHeight * (lineFontSize ?? 0) : 0;
             const lineX = x;
