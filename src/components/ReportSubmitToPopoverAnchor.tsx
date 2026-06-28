@@ -23,7 +23,7 @@ const ReportSubmitToPopoverAnchorRefContext = createContext<RefObject<View | nul
 
 type ReportSubmitToPopoverHostContextValue = {
     registerAnchor: (reportID: string | undefined, anchorRef: RefObject<View | null>) => () => void;
-    openReportSubmitToPopover: (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions) => void;
+    openReportSubmitToPopover: (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<View | null>) => void;
 };
 
 const ReportSubmitToPopoverHostContext = createContext<ReportSubmitToPopoverHostContextValue | null>(null);
@@ -89,26 +89,51 @@ type ReportSubmitToPopoverHostProps = {
  * a Modal inside each FlashList cell (iOS only showed the backdrop when the modal lived in a recycled row).
  */
 function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPopoverHostProps) {
-    const anchorRegistryRef = useRef<Map<string, RefObject<View | null>>>(new Map());
+    const anchorRegistryRef = useRef<Map<string, Set<RefObject<View | null>>>>(new Map());
+    const activeAnchorRefRef = useRef<RefObject<View | null> | null>(null);
     const [activeReportID, setActiveReportID] = useState<string | undefined>();
-    const pendingOpenRef = useRef<{reportID: string; options?: ReportSubmitToPopoverOpenOptions} | null>(null);
+    const pendingOpenRef = useRef<{reportID: string; options?: ReportSubmitToPopoverOpenOptions; anchorRef?: RefObject<View | null>} | null>(null);
 
     const registerAnchor = useCallback((reportID: string | undefined, anchorRef: RefObject<View | null>) => {
         if (!reportID) {
             return () => {};
         }
 
-        anchorRegistryRef.current.set(reportID, anchorRef);
+        let anchors = anchorRegistryRef.current.get(reportID);
+        if (!anchors) {
+            anchors = new Set();
+            anchorRegistryRef.current.set(reportID, anchors);
+        }
+        anchors.add(anchorRef);
+
         return () => {
-            anchorRegistryRef.current.delete(reportID);
+            const registeredAnchors = anchorRegistryRef.current.get(reportID);
+            if (!registeredAnchors) {
+                return;
+            }
+
+            registeredAnchors.delete(anchorRef);
+            if (registeredAnchors.size === 0) {
+                anchorRegistryRef.current.delete(reportID);
+            }
         };
     }, []);
 
     const getAnchorRef = useCallback(() => {
+        if (activeAnchorRefRef.current) {
+            return activeAnchorRefRef.current;
+        }
+
         if (!activeReportID) {
             return null;
         }
-        return anchorRegistryRef.current.get(activeReportID) ?? null;
+
+        const anchors = anchorRegistryRef.current.get(activeReportID);
+        if (!anchors?.size) {
+            return null;
+        }
+
+        return anchors.values().next().value ?? null;
     }, [activeReportID]);
 
     const {
@@ -134,17 +159,19 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
     );
 
     const openReportSubmitToPopoverForHost = useCallback(
-        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions) => {
+        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<View | null>) => {
             if (!reportID) {
                 return;
             }
+
+            activeAnchorRefRef.current = anchorRef ?? null;
 
             if (activeReportID === reportID) {
                 openPopoverForActiveReport(options);
                 return;
             }
 
-            pendingOpenRef.current = {reportID, options};
+            pendingOpenRef.current = {reportID, options, anchorRef};
             setActiveReportID(reportID);
         },
         [activeReportID, openPopoverForActiveReport],
@@ -156,6 +183,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
             return;
         }
 
+        activeAnchorRefRef.current = pending.anchorRef ?? null;
         pendingOpenRef.current = null;
         openPopoverForActiveReport(pending.options);
     }, [activeReportID, openPopoverForActiveReport]);
@@ -211,9 +239,9 @@ function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID
 
     const openReportSubmitToPopover = useCallback(
         (options?: ReportSubmitToPopoverOpenOptions) => {
-            host.openReportSubmitToPopover(reportID, options);
+            host.openReportSubmitToPopover(reportID, options, anchorRef);
         },
-        [host, reportID],
+        [host, reportID, anchorRef],
     );
 
     return (

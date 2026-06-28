@@ -36,6 +36,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         menuHeaderText = '',
         customText,
         style,
+        buttonStyle,
         disabledStyle,
         buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
@@ -146,17 +147,14 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             isActive: useKeyboardShortcuts,
         },
     );
-    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
-    let dropdownButtonStyle = splitButtonWrapperStyle;
+    const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : undefined;
+    let dropdownButtonStyle;
     if (isSplitButton) {
         dropdownButtonStyle = [splitButtonWrapperStyle, style];
     } else if (style) {
         dropdownButtonStyle = [styles.w100, style];
     }
-    let nonSplitButtonStyle = {};
-    if (style) {
-        nonSplitButtonStyle = [styles.w100, style];
-    }
+    const nonSplitButtonStyle = buttonStyle ? [styles.w100, buttonStyle] : styles.w100;
     const isTextTooLong = customText && customText?.length > 6;
 
     const handlePress = useCallback(
