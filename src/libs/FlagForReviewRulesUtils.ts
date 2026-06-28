@@ -41,7 +41,7 @@ function getFlagForReviewFormFromCategory(
     const maxExpenseAmount = category?.maxExpenseAmount;
 
     return {
-        [FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY]: category?.name,
+        [FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY]: category?.name ?? '',
         [FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT]: hasExplicitFlagAmount(maxExpenseAmount)
             ? convertToFrontendAmountAsString(maxExpenseAmount, getCurrencyDecimals(policyCurrency))
             : '',
