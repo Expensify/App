@@ -38,7 +38,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {RequireFieldsRuleForm} from '@src/types/form/RequireFieldsRuleForm';
+import type {RequireFieldsRuleForm, RequireFieldsRuleToggleFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategory} from '@src/types/onyx';
 
 type RequireFieldsRulePageBaseProps = {
@@ -47,7 +47,7 @@ type RequireFieldsRulePageBaseProps = {
     testID: string;
 };
 
-type FieldToggleKey = Exclude<keyof RequireFieldsRuleForm, 'category'>;
+const REQUIRE_FIELDS_RULE_FIELDS = CONST.REQUIRE_FIELDS_RULE.FIELDS;
 
 function getValidationError(
     form: RequireFieldsRuleForm | null | undefined,
@@ -55,16 +55,16 @@ function getValidationError(
     policy: Policy | undefined,
     translate: ReturnType<typeof useLocalize>['translate'],
 ): string {
-    if (!form?.category) {
+    if (!form?.[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY]) {
         return translate('workspace.rules.requireFieldsRule.confirmErrorCategory');
     }
 
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
-    const hasDescription = !!effectiveForm.requireDescription;
-    const hasAttendees = isAttendeeFieldApplicable && !!effectiveForm.requireAttendees;
-    const hasReceipt = !!effectiveForm.requireReceipt;
-    const hasItemizedReceipt = !!effectiveForm.requireItemizedReceipt;
+    const hasDescription = !!effectiveForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION];
+    const hasAttendees = isAttendeeFieldApplicable && !!effectiveForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES];
+    const hasReceipt = !!effectiveForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT];
+    const hasItemizedReceipt = !!effectiveForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT];
     const hasNeverReceipt = isNeverReceiptRequired(category?.maxAmountNoReceipt);
     const hasNeverItemizedReceipt = isNeverReceiptRequired(category?.maxAmountNoItemizedReceipt);
     const hasCustomReceipt = hasCustomNonZeroReceiptThreshold(category?.maxAmountNoReceipt);
@@ -99,9 +99,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
-    const selectedCategory = form?.category ? policyCategories?.[form.category] : undefined;
+    const selectedCategoryName = form?.[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY];
+    const selectedCategory = selectedCategoryName ? policyCategories?.[selectedCategoryName] : undefined;
     const effectiveForm = form && selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, form) : form;
-    const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
+    const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
 
     useEffect(() => () => clearDraftRequireFieldsRule(), []);
 
@@ -124,7 +125,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftRequireFieldsRule({
-            category: categoryName,
+            [REQUIRE_FIELDS_RULE_FIELDS.CATEGORY]: categoryName,
             ...getRequireFieldsFormFromCategory(category),
         });
     }, [category, categoryName, isEditing]);
@@ -142,16 +143,16 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         fetchPolicyData();
     }, [fetchPolicyData]);
 
-    const fieldToggles: Array<{key: FieldToggleKey; label: string; isVisible: boolean}> = [
-        {key: 'requireDescription', label: translate('common.description'), isVisible: true},
-        {key: 'requireReceipt', label: translate('common.receipt'), isVisible: true},
-        {key: 'requireItemizedReceipt', label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'), isVisible: true},
-        {key: 'requireAttendees', label: translate('iou.attendees'), isVisible: isAttendeeFieldApplicable},
+    const fieldToggles: Array<{key: RequireFieldsRuleToggleFieldKey; label: string; isVisible: boolean}> = [
+        {key: REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION, label: translate('common.description'), isVisible: true},
+        {key: REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT, label: translate('common.receipt'), isVisible: true},
+        {key: REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT, label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'), isVisible: true},
+        {key: REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES, label: translate('iou.attendees'), isVisible: isAttendeeFieldApplicable},
     ];
 
     const errorMessage = getValidationError(form, selectedCategory, policy, translate);
 
-    const handleToggleField = (fieldKey: FieldToggleKey, value: boolean) => {
+    const handleToggleField = (fieldKey: RequireFieldsRuleToggleFieldKey, value: boolean) => {
         updateDraftRequireFieldsRule({[fieldKey]: value});
     };
 
@@ -184,9 +185,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
         handleSave();
     };
 
-    const renderReceiptField = (fieldKey: 'requireReceipt' | 'requireItemizedReceipt', label: string) => {
-        const categoryAmount = fieldKey === 'requireReceipt' ? selectedCategory?.maxAmountNoReceipt : selectedCategory?.maxAmountNoItemizedReceipt;
-        const ruleType = fieldKey === 'requireReceipt' ? CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER : CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER;
+    const renderReceiptField = (fieldKey: typeof REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT | typeof REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT, label: string) => {
+        const categoryAmount = fieldKey === REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT ? selectedCategory?.maxAmountNoReceipt : selectedCategory?.maxAmountNoItemizedReceipt;
+        const ruleType =
+            fieldKey === REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT ? CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER : CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER;
 
         if (hasCustomNonZeroReceiptThreshold(categoryAmount)) {
             return (
@@ -268,7 +270,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.category ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError && !form?.[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY.getRoute(policyID, ruleKey)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
@@ -284,7 +286,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, testID}: RequireFiel
                     {fieldToggles
                         .filter((field) => field.isVisible)
                         .map((field) => {
-                            if (field.key === 'requireReceipt' || field.key === 'requireItemizedReceipt') {
+                            if (field.key === REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT || field.key === REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT) {
                                 return renderReceiptField(field.key, field.label);
                             }
 

@@ -33,7 +33,7 @@ function FlagForReviewRuleExpenseLimitTypePage({route}: FlagForReviewRuleExpense
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
-    const currentExpenseLimitType = form?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const currentExpenseLimitType = form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, ruleKey) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
@@ -46,7 +46,7 @@ function FlagForReviewRuleExpenseLimitTypePage({route}: FlagForReviewRuleExpense
     }));
 
     const onSelectRow = (item: {value: PolicyCategoryExpenseLimitType}) => {
-        updateDraftFlagForReviewRule({expenseLimitType: item.value});
+        updateDraftFlagForReviewRule({[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.EXPENSE_LIMIT_TYPE]: item.value});
         Navigation.goBack(backToRoute);
     };
 

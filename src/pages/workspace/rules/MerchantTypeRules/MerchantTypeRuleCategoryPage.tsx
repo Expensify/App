@@ -27,7 +27,8 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
-    const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
+    const selectedCategoryName = form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY];
+    const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
         .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
@@ -39,7 +40,7 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
     const backToRoute = ROUTES.RULES_MERCHANT_TYPE_EDIT.getRoute(policyID, groupID);
 
     const onSave = (value?: string) => {
-        updateDraftMerchantTypeRule({category: value});
+        updateDraftMerchantTypeRule({[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]: value});
     };
 
     return (

@@ -29,7 +29,8 @@ function RequireFieldsRuleCategoryPage({route}: RequireFieldsRuleCategoryPagePro
     const [form] = useOnyx(ONYXKEYS.FORMS.REQUIRE_FIELDS_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
-    const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
+    const selectedCategoryName = form?.[CONST.REQUIRE_FIELDS_RULE.FIELDS.CATEGORY];
+    const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
         .filter((category) => {
@@ -54,7 +55,7 @@ function RequireFieldsRuleCategoryPage({route}: RequireFieldsRuleCategoryPagePro
         const selectedCategory = value ? policyCategories?.[value] : undefined;
         const draftForm = {
             ...form,
-            category: value,
+            [CONST.REQUIRE_FIELDS_RULE.FIELDS.CATEGORY]: value,
         };
 
         updateDraftRequireFieldsRule(selectedCategory ? getEffectiveRequireFieldsRuleForm(selectedCategory, draftForm) : draftForm);

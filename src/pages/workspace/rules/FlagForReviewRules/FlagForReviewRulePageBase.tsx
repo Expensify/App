@@ -36,14 +36,16 @@ type FlagForReviewRulePageBaseProps = {
     testID: string;
 };
 
+const FLAG_FOR_REVIEW_RULE_FIELDS = CONST.FLAG_FOR_REVIEW_RULE.FIELDS;
+
 function getValidationError(form: FlagForReviewRuleForm | null | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
-    if (!form?.category) {
+    if (!form?.[FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY]) {
         return translate('workspace.rules.flagForReviewRule.confirmErrorCategory');
     }
 
-    const parsedAmount = Number.parseFloat(form.maxExpenseAmount ?? '');
+    const parsedAmount = Number.parseFloat(form[FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT] ?? '');
 
-    if (!form.maxExpenseAmount?.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    if (!form[FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT]?.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) {
         return translate('workspace.rules.flagForReviewRule.confirmErrorAmount');
     }
 
@@ -70,11 +72,12 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
-    const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
+    const selectedCategoryName = form?.[FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY];
+    const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
 
-    const parsedMaxAmount = Number.parseFloat(form?.maxExpenseAmount ?? '');
+    const parsedMaxAmount = Number.parseFloat(form?.[FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT] ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
-    const expenseLimitType = form?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const expenseLimitType = form?.[FLAG_FOR_REVIEW_RULE_FIELDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
     const expenseLimitTypeTitle = translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`);
 
     useEffect(() => () => clearDraftFlagForReviewRule(), []);
@@ -186,7 +189,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.category ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError && !form?.[FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.getRoute(policyID, ruleKey)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
@@ -202,7 +205,7 @@ function FlagForReviewRulePageBase({policyID, categoryName, testID}: FlagForRevi
                     <MenuItemWithTopDescription
                         description={translate('iou.amount')}
                         title={maxAmountMenuTitle ? translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle}) : undefined}
-                        errorText={canWriteRules && shouldShowError && !form?.maxExpenseAmount?.trim() ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError && !form?.[FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT]?.trim() ? translate('common.error.fieldRequired') : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID, ruleKey)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}

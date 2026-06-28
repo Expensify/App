@@ -4656,6 +4656,28 @@ const CONST = {
             TAX: 'tax',
         },
     },
+    REQUIRE_FIELDS_RULE: {
+        FIELDS: {
+            CATEGORY: 'category',
+            REQUIRE_DESCRIPTION: 'requireDescription',
+            REQUIRE_RECEIPT: 'requireReceipt',
+            REQUIRE_ITEMIZED_RECEIPT: 'requireItemizedReceipt',
+            REQUIRE_ATTENDEES: 'requireAttendees',
+        },
+    },
+    FLAG_FOR_REVIEW_RULE: {
+        FIELDS: {
+            CATEGORY: 'category',
+            MAX_EXPENSE_AMOUNT: 'maxExpenseAmount',
+            EXPENSE_LIMIT_TYPE: 'expenseLimitType',
+        },
+    },
+    MERCHANT_TYPE_RULE: {
+        FIELDS: {
+            GROUP_ID: 'groupID',
+            CATEGORY: 'category',
+        },
+    },
     REQUIRE_FIELDS_RULE_TYPES: {
         REQUIRE_DESCRIPTION: 'requireDescription',
         REQUIRE_ATTENDEES: 'requireAttendees',

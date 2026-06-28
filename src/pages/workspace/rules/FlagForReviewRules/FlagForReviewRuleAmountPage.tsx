@@ -39,7 +39,7 @@ function FlagForReviewRuleAmountPage({route}: FlagForReviewRuleAmountPageProps) 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
-    const defaultValue = form?.maxExpenseAmount ?? '';
+    const defaultValue = form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.MAX_EXPENSE_AMOUNT] ?? '';
 
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, ruleKey) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
@@ -48,7 +48,7 @@ function FlagForReviewRuleAmountPage({route}: FlagForReviewRuleAmountPageProps) 
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM>) => {
-        updateDraftFlagForReviewRule({maxExpenseAmount: values.maxAmount.trim()});
+        updateDraftFlagForReviewRule({[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.MAX_EXPENSE_AMOUNT]: values.maxAmount.trim()});
         goBack();
     };
 

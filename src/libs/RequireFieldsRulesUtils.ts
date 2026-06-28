@@ -5,7 +5,7 @@ import type PolicyData from '@hooks/usePolicyData/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {RequireFieldsRuleForm} from '@src/types/form/RequireFieldsRuleForm';
+import type {RequireFieldsRuleForm, RequireFieldsRuleToggleFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -94,31 +94,33 @@ function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
     );
 }
 
-function isRequireFieldEnabled(category: PolicyCategory | undefined, field: keyof RequireFieldsRuleForm): boolean {
+const REQUIRE_FIELDS_RULE_FIELDS = CONST.REQUIRE_FIELDS_RULE.FIELDS;
+
+function isRequireFieldEnabled(category: PolicyCategory | undefined, field: RequireFieldsRuleToggleFieldKey): boolean {
     if (!category) {
         return false;
     }
 
     switch (field) {
-        case 'requireDescription':
+        case REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION:
             return !!category.areCommentsRequired;
-        case 'requireAttendees':
+        case REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES:
             return !!category.areAttendeesRequired;
-        case 'requireReceipt':
+        case REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT:
             return hasExplicitReceiptThreshold(category.maxAmountNoReceipt);
-        case 'requireItemizedReceipt':
+        case REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT:
             return hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt);
         default:
             return false;
     }
 }
 
-function getRequireFieldsFormFromCategory(category: PolicyCategory | undefined): RequireFieldsRuleForm {
+function getRequireFieldsFormFromCategory(category: PolicyCategory | undefined): Partial<RequireFieldsRuleForm> {
     return {
-        requireDescription: isRequireFieldEnabled(category, 'requireDescription'),
-        requireAttendees: isRequireFieldEnabled(category, 'requireAttendees'),
-        requireReceipt: isRequireFieldEnabled(category, 'requireReceipt'),
-        requireItemizedReceipt: isRequireFieldEnabled(category, 'requireItemizedReceipt'),
+        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION]: isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION),
+        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES]: isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES),
+        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT]: isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT),
+        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT]: isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT),
     };
 }
 
@@ -126,16 +128,16 @@ function getEffectiveRequireFieldsRuleForm(category: PolicyCategory | undefined,
     const categoryForm = getRequireFieldsFormFromCategory(category);
 
     return {
-        category: form.category,
-        requireDescription: form.requireDescription ?? categoryForm.requireDescription,
-        requireAttendees: form.requireAttendees ?? categoryForm.requireAttendees,
-        requireReceipt: form.requireReceipt ?? categoryForm.requireReceipt,
-        requireItemizedReceipt: form.requireItemizedReceipt ?? categoryForm.requireItemizedReceipt,
+        [REQUIRE_FIELDS_RULE_FIELDS.CATEGORY]: form[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY],
+        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION]: form[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION] ?? categoryForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_DESCRIPTION],
+        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES]: form[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES] ?? categoryForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ATTENDEES],
+        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT]: form[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT] ?? categoryForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT],
+        [REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT]: form[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT] ?? categoryForm[REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT],
     };
 }
 
 function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleForm) {
-    const categoryName = form.category;
+    const categoryName = form[REQUIRE_FIELDS_RULE_FIELDS.CATEGORY];
     if (!categoryName || !policyData.policy?.id) {
         return;
     }
@@ -155,8 +157,8 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
 
     const shouldRequireReceipt = !!effectiveForm.requireReceipt;
     const shouldRequireItemizedReceipt = !!effectiveForm.requireItemizedReceipt;
-    const hadReceipt = isRequireFieldEnabled(category, 'requireReceipt');
-    const hadItemizedReceipt = isRequireFieldEnabled(category, 'requireItemizedReceipt');
+    const hadReceipt = isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_RECEIPT);
+    const hadItemizedReceipt = isRequireFieldEnabled(category, REQUIRE_FIELDS_RULE_FIELDS.REQUIRE_ITEMIZED_RECEIPT);
     const hadNeverReceipt = isNeverReceiptRequired(category?.maxAmountNoReceipt);
     const hadNeverItemizedReceipt = isNeverReceiptRequired(category?.maxAmountNoItemizedReceipt);
     const skipReceiptSave = hasCustomNonZeroReceiptThreshold(category?.maxAmountNoReceipt);

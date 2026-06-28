@@ -38,14 +38,14 @@ function getMerchantTypeRuleNavigationRoute(policyID: string, groupID: string): 
 
 function getMerchantTypeRuleFormFromMccGroup(groupID: string, category: string): MerchantTypeRuleForm {
     return {
-        groupID,
-        category,
+        [CONST.MERCHANT_TYPE_RULE.FIELDS.GROUP_ID]: groupID,
+        [CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]: category,
     };
 }
 
 function saveMerchantTypeRule(policyID: string, form: MerchantTypeRuleForm, mccGroup: Policy['mccGroup']) {
-    const groupID = form.groupID;
-    const category = form.category;
+    const groupID = form[CONST.MERCHANT_TYPE_RULE.FIELDS.GROUP_ID];
+    const category = form[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY];
 
     if (!groupID || !category) {
         return;

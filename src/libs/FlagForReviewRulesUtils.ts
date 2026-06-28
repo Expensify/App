@@ -31,6 +31,8 @@ function getFlagForReviewRuleNavigationRoute(policyID: string, categoryName: str
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName);
 }
 
+const FLAG_FOR_REVIEW_RULE_FIELDS = CONST.FLAG_FOR_REVIEW_RULE.FIELDS;
+
 function getFlagForReviewFormFromCategory(
     category: PolicyCategory | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
@@ -39,19 +41,27 @@ function getFlagForReviewFormFromCategory(
     const maxExpenseAmount = category?.maxExpenseAmount;
 
     return {
-        category: category?.name,
-        maxExpenseAmount: hasExplicitFlagAmount(maxExpenseAmount) ? convertToFrontendAmountAsString(maxExpenseAmount, getCurrencyDecimals(policyCurrency)) : '',
-        expenseLimitType: category?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
+        [FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY]: category?.name,
+        [FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT]: hasExplicitFlagAmount(maxExpenseAmount)
+            ? convertToFrontendAmountAsString(maxExpenseAmount, getCurrencyDecimals(policyCurrency))
+            : '',
+        [FLAG_FOR_REVIEW_RULE_FIELDS.EXPENSE_LIMIT_TYPE]: category?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
     };
 }
 
 function saveFlagForReviewRule(policyID: string, policyCategories: PolicyCategories | undefined, form: FlagForReviewRuleForm) {
-    const categoryName = form.category;
+    const categoryName = form[FLAG_FOR_REVIEW_RULE_FIELDS.CATEGORY];
     if (!categoryName) {
         return;
     }
 
-    setPolicyCategoryMaxAmount(policyID, categoryName, form.maxExpenseAmount ?? '', form.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE, policyCategories);
+    setPolicyCategoryMaxAmount(
+        policyID,
+        categoryName,
+        form[FLAG_FOR_REVIEW_RULE_FIELDS.MAX_EXPENSE_AMOUNT] ?? '',
+        form[FLAG_FOR_REVIEW_RULE_FIELDS.EXPENSE_LIMIT_TYPE] ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
+        policyCategories,
+    );
 }
 
 function deleteFlagForReviewRule(policyID: string, categoryName: string, policyCategories: PolicyCategories | undefined) {

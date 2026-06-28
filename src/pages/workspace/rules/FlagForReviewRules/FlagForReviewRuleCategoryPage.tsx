@@ -29,7 +29,8 @@ function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPagePro
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
-    const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
+    const selectedCategoryName = form?.[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.CATEGORY];
+    const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const categoryItems = Object.values(policyCategories ?? {})
         .filter((category) => {
@@ -51,7 +52,7 @@ function FlagForReviewRuleCategoryPage({route}: FlagForReviewRuleCategoryPagePro
     const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, ruleKey) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
-        updateDraftFlagForReviewRule({category: value});
+        updateDraftFlagForReviewRule({[CONST.FLAG_FOR_REVIEW_RULE.FIELDS.CATEGORY]: value});
     };
 
     return (

@@ -34,7 +34,7 @@ type MerchantTypeRulePageBaseProps = {
 };
 
 function getValidationError(form: MerchantTypeRuleForm | null | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
-    if (!form?.category) {
+    if (!form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]) {
         return translate('workspace.rules.merchantTypeRule.confirmErrorCategory');
     }
 
@@ -59,7 +59,9 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
     const mccGroup = policy?.mccGroup;
     const currentCategory = mccGroup?.[groupID]?.category ?? getDefaultMccGroupCategory(groupID);
     const merchantTypeDisplayName = getMerchantTypeDisplayName(groupID);
-    const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
+    const categoryDisplayName = form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY]
+        ? getDecodedCategoryName(form[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY])
+        : undefined;
 
     useEffect(() => () => clearDraftMerchantTypeRule(), []);
 
@@ -96,7 +98,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
             return;
         }
 
-        if (form.category === currentCategory) {
+        if (form[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY] === currentCategory) {
             Navigation.goBack();
             return;
         }
@@ -171,7 +173,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
                         title={categoryDisplayName}
-                        errorText={canWriteRules && shouldShowError && !form?.category ? translate('common.error.fieldRequired') : ''}
+                        errorText={canWriteRules && shouldShowError && !form?.[CONST.MERCHANT_TYPE_RULE.FIELDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
                         onPress={canWriteRules ? () => Navigation.navigate(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(policyID, groupID)) : undefined}
                         shouldShowRightIcon={canWriteRules}
                         interactive={canWriteRules}
