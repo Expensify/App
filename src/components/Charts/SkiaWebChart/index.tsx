@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -23,16 +23,15 @@ type SkiaWebChartProps<TProps> = {
     reasonContext: string;
 };
 
-// TODO: swap the placeholder Monitor icon for the dedicated illustration once design exports it (https://github.com/Expensify/App/pull/92874).
 function ChartUnavailable() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Monitor']);
+    const illustrations = useMemoizedLazyIllustrations(['MonitorSyncNo']);
 
     return (
         <View style={styles.chartWebFallback}>
             <Icon
-                src={icons.Monitor}
+                src={illustrations.MonitorSyncNo}
                 width={variables.iconSizeSuperLarge}
                 height={variables.iconSizeSuperLarge}
             />
