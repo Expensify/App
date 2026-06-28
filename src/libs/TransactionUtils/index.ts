@@ -2620,9 +2620,11 @@ function compareDuplicateTransactionFields(
                     }
                 }
             } else if (fieldName === 'reimbursable') {
-                // Managed card transactions are always non-reimbursable, so we should never surface the reimbursable
-                // review step when any of the duplicates is a managed card transaction.
-                if (transactions.some(isManagedCardTransaction)) {
+                // Managed card transactions are always non-reimbursable. The resolved reimbursable value is applied to
+                // the transaction that is kept (the reviewing transaction), so we only force it to false — and hide the
+                // reimbursable review step — when that kept transaction is itself a managed card. Gating on any duplicate
+                // in the set would wrongly convert a kept cash expense to non-reimbursable.
+                if (isManagedCardTransaction(reviewingTransaction)) {
                     keep[fieldName] = false;
                 } else if (areAllFieldsEqualForKey) {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];

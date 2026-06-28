@@ -2979,7 +2979,26 @@ describe('TransactionUtils', () => {
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
 
-            it('should force reimbursable to false and not show the step when one duplicate is a managed card transaction', () => {
+            it('should force reimbursable to false and not show the step when the reviewing (kept) transaction is a managed card', () => {
+                const managedCardTransaction = generateTransaction({
+                    reimbursable: false,
+                    managedCard: true,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        reimbursable: true,
+                        managedCard: false,
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(false);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should not force reimbursable to false when the reviewing (kept) transaction is a cash expense, even if a duplicate is a managed card', () => {
                 const cashTransaction = generateTransaction({
                     reimbursable: true,
                     managedCard: false,
@@ -2994,8 +3013,10 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
-                expect(result.keep.reimbursable).toBe(false);
-                expect(result.change.reimbursable).toBeUndefined();
+                // The kept cash expense must not be silently converted to non-reimbursable; the differing values are
+                // surfaced as a review step instead.
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
         });
 
