@@ -321,10 +321,6 @@ function getDefaultMccGroup(): Record<string, MccGroup> {
     return buildDefaultMccGroupRecord();
 }
 
-function getDefaultMccGroupIDs(): DefaultMccGroupID[] {
-    return Object.keys(DEFAULT_MCC_GROUP_DEFINITIONS).filter(isDefaultMccGroupID);
-}
-
 function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
     return Object.hasOwn(DEFAULT_MCC_GROUP_DEFINITIONS, groupID);
 }
@@ -1916,7 +1912,6 @@ export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
     getDefaultMccGroup,
-    getDefaultMccGroupIDs,
     isDefaultMccGroupID,
     clearCategoryErrors,
     createPolicyCategory,

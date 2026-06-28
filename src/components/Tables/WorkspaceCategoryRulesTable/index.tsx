@@ -120,4 +120,3 @@ function WorkspaceCategoryRulesTable<TItem extends CategoryRulesTableItem>({
 }
 
 export default WorkspaceCategoryRulesTable;
-export type {CategoryRulesTableItem};
