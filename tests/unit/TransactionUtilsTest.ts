@@ -3018,6 +3018,52 @@ describe('TransactionUtils', () => {
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
+
+            it('should force reimbursable to false when the selected (kept) transaction is a managed card, even though the reviewing transaction is a cash expense', () => {
+                // Reproduces the back-navigation bug: the Review* pages recompute the step list from the thread's cash
+                // transaction (reviewingTransaction) while the kept transaction is the managed card (selectedTransactionID).
+                const managedCardTransactionID = 'managed-card-1';
+                const reviewingCashTransaction = generateTransaction({
+                    transactionID: 'cash-1',
+                    reimbursable: true,
+                    managedCard: false,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        transactionID: managedCardTransactionID,
+                        reimbursable: false,
+                        managedCard: true,
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBe(false);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should surface the reimbursable step when the selected (kept) transaction is a cash expense, even though a duplicate is a managed card', () => {
+                const cashTransactionID = 'cash-1';
+                const reviewingCashTransaction = generateTransaction({
+                    transactionID: cashTransactionID,
+                    reimbursable: true,
+                    managedCard: false,
+                });
+
+                const duplicates = [
+                    generateTransaction({
+                        transactionID: 'managed-card-1',
+                        reimbursable: false,
+                        managedCard: true,
+                    }),
+                ];
+
+                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, cashTransactionID, mockPolicy, undefined);
+
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
         });
 
         describe('selectedTransactionID parameter', () => {
