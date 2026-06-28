@@ -11,6 +11,7 @@ import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -26,7 +27,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/SpendRulesUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -78,6 +79,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -119,7 +121,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
         const cardName = card.nameValuePairs?.cardTitle;
-        const displayName = getDisplayNameOrDefault(cardOwnerPersonalDetails, '', false);
+        const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardOwnerPersonalDetails, defaultValue: '', shouldFallbackToHidden: false, translate});
         return {
             keyForList: String(card.cardID),
             text: displayName !== '' ? displayName : (cardName ?? ''),
@@ -193,7 +195,8 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            shouldBeBlocked={!canWriteCardSpendRules}
         >
             {isCardSettingsLoading ? (
                 <FullScreenLoadingIndicator

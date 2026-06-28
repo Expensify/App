@@ -85,7 +85,7 @@ type OnboardingListItem = ListItem & {
     keyForList: OnboardingAccounting;
 };
 
-function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboardingAccountingProps) {
+function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -115,10 +115,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [error, setError] = useState('');
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-
-    const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
         if (!paidGroupPolicy || onboardingPolicyID) {
@@ -186,7 +182,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         setOnboardingUserReportedIntegration(userReportedIntegration);
 
         // Navigate to the next onboarding step interested features with the selected integration
-        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
+        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
     };
 
     const handleIntegrationSelect = (integrationKey: OnboardingListItem['keyForList']) => {
@@ -230,7 +226,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!isVsb}
+                shouldShowBackButton
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}

@@ -15,11 +15,11 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
+import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -53,6 +53,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
+    const areRulesEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED);
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
     const personalDetails = usePersonalDetails();
@@ -64,7 +65,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
 
     useEffect(() => {
         submitButton.current?.focus();
-        resetValidateActionCodeSent();
         clearIssueNewCardError(policyID);
     }, [policyID]);
 
@@ -151,6 +151,11 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             fields.push(translation);
         }
 
+        if (spendRuleForm?.currencies?.length) {
+            const translation = !fields.length ? translate('workspace.rules.spendRules.currencies') : translate('workspace.rules.spendRules.currencies').toLowerCase();
+            fields.push(translation);
+        }
+
         return fields.join(', ');
     })();
 
@@ -206,7 +211,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                     />
                 )}
-                {isSpendRuleApplied && (
+                {isSpendRuleApplied && areRulesEnabled && (
                     <MenuItemWithTopDescription
                         description={translate('common.restrictions')}
                         title={cardRuleRestrictionsTitle}

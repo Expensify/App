@@ -25,6 +25,10 @@ const mockReportItemWithHold = {
     accountID: 1206,
     action: 'approve',
     allActions: ['approve'],
+    canPay: false,
+    canApprove: true,
+    canSubmit: false,
+    canChangeApprover: false,
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
     submitted: '2024-12-04',
@@ -110,6 +114,10 @@ const mockReportItemWithHold = {
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
+            canPay: false,
+            canApprove: false,
+            canSubmit: false,
+            canChangeApprover: false,
             amount: -1200,
             category: '',
             comment: {
@@ -206,6 +214,10 @@ const mockReportItemWithHold = {
             accountID: 1206,
             action: 'view',
             allActions: ['view'],
+            canPay: false,
+            canApprove: false,
+            canSubmit: false,
+            canChangeApprover: false,
             amount: -12300,
             category: '',
             comment: {
@@ -322,6 +334,7 @@ describe('handleActionButtonPress', () => {
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
@@ -329,6 +342,8 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -341,6 +356,7 @@ describe('handleActionButtonPress', () => {
             goToItem: jest.fn(),
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             userBillingGracePeriodEnds: undefined,
@@ -348,6 +364,8 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             onHoldMenuOpen,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -361,12 +379,15 @@ describe('handleActionButtonPress', () => {
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });

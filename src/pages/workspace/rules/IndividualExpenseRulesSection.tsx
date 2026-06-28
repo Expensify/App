@@ -24,7 +24,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
     canWriteRules: boolean;
-    showReadOnlyModal: () => void;
+    withReadOnlyFallback: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
 };
 
 type IndividualExpenseRulesSectionSubtitleProps = {
@@ -62,7 +62,7 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, environmentUR
     return <SectionSubtitleHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />;
 }
 
-function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyModal}: IndividualExpenseRulesSectionProps) {
+function IndividualExpenseRulesSection({policyID, canWriteRules, withReadOnlyFallback}: IndividualExpenseRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -241,7 +241,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyMod
                     subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     disabled={!canWriteRules || disableRequireCompanyCardToggle}
-                    disabledAction={!canWriteRules ? showReadOnlyModal : undefined}
+                    disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteRules || disableRequireCompanyCardToggle}
                     disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
                     wrapperStyle={[styles.mt3]}
@@ -263,7 +263,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyMod
                     subtitleStyle={styles.pt1}
                     isActive={areEReceiptsEnabled}
                     disabled={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
-                    disabledAction={!canWriteRules ? showReadOnlyModal : undefined}
+                    disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteRules || policyCurrency !== CONST.CURRENCY.USD}
                     onToggle={() => (canWriteRules ? setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts) : undefined)}
                     pendingAction={policy?.pendingFields?.eReceipts}
@@ -278,7 +278,7 @@ function IndividualExpenseRulesSection({policyID, canWriteRules, showReadOnlyMod
                     subtitleStyle={styles.pt1}
                     isActive={isAttendeeTrackingEnabledForPolicy}
                     disabled={!canWriteRules}
-                    disabledAction={!canWriteRules ? showReadOnlyModal : undefined}
+                    disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteRules}
                     onToggle={() => (canWriteRules ? handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy) : undefined)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}

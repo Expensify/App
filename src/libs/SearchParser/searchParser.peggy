@@ -281,6 +281,7 @@ key "key"
       / payer
       / exporter
       / expenseType
+      / receiptType
       / withdrawalType
       / withdrawalStatus
       / withdrawalID

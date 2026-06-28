@@ -15,7 +15,26 @@ import {
 import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtensionUtils';
 import {enhanceStateWithHistory} from './utils';
 
-/** Manages root `state.history` for side-panel + reveal flows; per-branch rationale inline. */
+const CUSTOM_HISTORY_MARKERS: ReadonlySet<string> = new Set([CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR]);
+
+/**
+ * Walks a history array from the end and collects the contiguous run of known
+ * custom-history markers (e.g. `[...routes, SIDE_PANEL, MFA_MODAL_NAVIGATOR]` →
+ * `[SIDE_PANEL, MFA_MODAL_NAVIGATOR]`).
+ *
+ * `enhanceStateWithHistory` regenerates `history` purely from `routes` and drops
+ * any non-route entries; this helper lets the rehydration step re-append the
+ * markers that were on top before rebuild.
+ */
+function extractTrailingCustomMarkers(history: readonly unknown[] | undefined): string[] {
+    if (!history?.length) {
+        return [];
+    }
+    const cutoff = history.findLastIndex((entry) => typeof entry !== 'string' || !CUSTOM_HISTORY_MARKERS.has(entry));
+    return history.slice(cutoff + 1).filter((entry): entry is string => typeof entry === 'string');
+}
+
+/** Manages root `state.history` for side-panel, MFA modal navigator, and reveal flows; per-branch rationale inline. */
 function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>,
 ) {
@@ -35,10 +54,10 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             const state = router.getRehydratedState(partialState, configOptions);
             const stateWithInitialHistory = enhanceStateWithHistory(state);
 
-            // Preserve trailing side-panel sentinel through state rebuilds.
-            if (state.history?.at(-1) === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
-                stateWithInitialHistory.history = [...stateWithInitialHistory.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL];
-                return stateWithInitialHistory;
+            // Preserve trailing custom markers (side-panel, MFA modal navigator) through state rebuilds.
+            const trailingMarkers = extractTrailingCustomMarkers(state.history);
+            if (trailingMarkers.length > 0) {
+                stateWithInitialHistory.history = [...stateWithInitialHistory.history, ...trailingMarkers];
             }
 
             return stateWithInitialHistory;

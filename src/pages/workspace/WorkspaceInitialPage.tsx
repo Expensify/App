@@ -30,7 +30,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {isAnyHRConnected} from '@libs/HRUtils';
+import {isAnyHRConnected, isMergeHRCompleteSetupNeeded} from '@libs/HRUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,6 +41,7 @@ import {
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
+    hasPolicyRulesError,
     isGroupPolicy,
     isPendingDeletePolicy,
     isTimeTrackingEnabled,
@@ -135,6 +136,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Workflows',
         'LuggageWithLines',
         'Clock',
+        'Bolt',
     ]);
 
     const policyName = policy?.name ?? '';
@@ -289,6 +291,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED] && canReadMoreFeatures) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.hr',
+                brickRoadIndicator: isMergeHRCompleteSetupNeeded(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
                 icon: expensifyIcons.Users,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.HR,
@@ -359,10 +362,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.RULES)) {
             workspaceMenuItems.push({
                 translationKey: 'workspace.common.rules',
-                icon: expensifyIcons.Feed,
+                icon: isBetaEnabled(CONST.BETAS.RULES_REVAMP) ? expensifyIcons.Bolt : expensifyIcons.Feed,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.RULES,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RULES,
+                brickRoadIndicator: hasPolicyRulesError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
             });
         }

@@ -16,6 +16,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
 import {getHeaderMessage, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils/types';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 import {searchUserInServer} from '@userActions/Report';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -49,7 +50,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {options: personalDetailOptions} = usePersonalDetailOptions({enabled: didScreenTransitionEnd});

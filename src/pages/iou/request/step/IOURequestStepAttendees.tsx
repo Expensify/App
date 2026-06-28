@@ -3,6 +3,7 @@ import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -52,6 +53,7 @@ function IOURequestStepAttendees({
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {isOffline} = useNetwork();
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -72,6 +74,7 @@ function IOURequestStepAttendees({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    isOffline,
                     delegateAccountID,
                 });
             } else {
@@ -96,6 +99,7 @@ function IOURequestStepAttendees({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        isOffline,
         delegateAccountID,
     ]);
 

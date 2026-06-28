@@ -31,6 +31,7 @@ const lightTheme = {
     buttonHoveredBG: colors.productLight500,
     buttonPressedBG: colors.productLight600,
     buttonSuccessText: colors.productLight100,
+    buttonDangerText: colors.white,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -162,10 +163,6 @@ const lightTheme = {
         [SCREENS.SETTINGS.TROUBLESHOOT]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
-        },
-        [SCREENS.DYNAMIC_REFERRAL_DETAILS]: {
-            backgroundColor: colors.pink800,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,

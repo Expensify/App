@@ -14,22 +14,27 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
+import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import {rand64} from '@libs/NumberUtils';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 import useScanFileReadabilityCheck from '@pages/iou/request/step/IOURequestStepScan/utils/useScanFileReadabilityCheck';
+import {resolveChatTargetForScan} from '@pages/iou/request/step/resolveChatTarget';
 import CONST from '@src/CONST';
-import type {IOUType} from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector, validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type {Report} from '@src/types/onyx';
@@ -42,6 +47,7 @@ import {useMultiScanActions, useMultiScanState} from './MultiScanContext';
 
 type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
     report: OnyxEntry<Report>;
+    action: IOUAction;
     iouType: IOUType;
     reportID: string;
     transactionID: string;
@@ -54,10 +60,11 @@ type ScanSkipConfirmationProps = WithCurrentUserPersonalDetailsProps & {
  * Handles GPS permission flow, split bills, and direct submission.
  * Most complex variant with the most Onyx subscriptions.
  */
-function ScanSkipConfirmation({report, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanSkipConfirmationProps) {
+function ScanSkipConfirmation({report, action, iouType, reportID, transactionID, transaction, backToReport, currentUserPersonalDetails}: ScanSkipConfirmationProps) {
     const policy = usePolicy(report?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isArchived = useReportIsArchived(report?.reportID);
+    const selfDMReport = useSelfDMReport();
     const reportAttributesDerived = useReportAttributes();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -148,6 +155,18 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
     const submitDirectly = (files: ReceiptFile[], locationPermissionGranted: boolean) => {
         cancelShutterSpans();
 
+        const participant = participants.at(0);
+        const {chatReportID, optimisticChatReportID} = resolveChatTargetForScan({
+            iouType,
+            participant,
+            report,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+        });
+        const optimisticTransactionIDs = files.map(() => rand64());
+        const lastOptimisticTransactionID = optimisticTransactionIDs.at(-1) ?? transactionID;
+        const linkedTrackedExpenseReportAction = transaction?.linkedTrackedExpenseReportAction;
+        const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
+
         const firstReceiptFile = files.at(0);
 
         // Split bill flow
@@ -156,7 +175,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
             splitReceipt.source = firstReceiptFile.source;
             splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
 
-            startSplitBill({
+            const splitBaseParams = {
                 participants,
                 currentUserLogin: currentUserPersonalDetails.login ?? '',
                 currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -174,12 +193,39 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 policyRecentlyUsedTags: undefined,
                 participantsPolicyTags,
+            };
+
+            submitWithDismissFirst({
+                executeWrite: (overrides) => {
+                    startSplitBill({
+                        ...splitBaseParams,
+                        shouldHandleNavigation: overrides.shouldHandleNavigation,
+                        shouldDeferForSearch: false,
+                    });
+                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                        report,
+                        action,
+                        draftTransactionIDs,
+                        transactionID: getExistingTransactionID(linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID,
+                        isFromGlobalCreate,
+                        backToReport,
+                        optimisticChatReportID: chatReportID,
+                        linkedTrackedExpenseReportAction,
+                    });
+                },
+                destinationReportID: reportID,
+                telemetryContext: {
+                    scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SPLIT_RECEIPT,
+                    iouType: CONST.IOU.TYPE.SPLIT,
+                    requestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    isFromGlobalCreate: !report?.reportID,
+                    hasReceipt: true,
+                },
             });
             return;
         }
 
         // Single expense flow
-        const participant = participants.at(0);
         if (!participant) {
             return;
         }
@@ -216,28 +262,59 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
             betas,
             personalDetails,
             recentWaypoints,
+            optimisticTransactionIDs,
+            optimisticChatReportID,
+            currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         };
 
-        if (locationPermissionGranted) {
-            getCurrentPosition(
-                (successData) => {
-                    createTransaction({
-                        ...baseParams,
-                        gpsPoint: {
-                            lat: successData.coords.latitude,
-                            long: successData.coords.longitude,
-                        },
+        const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
+        submitWithDismissFirst({
+            executeWrite: (overrides) => {
+                // Cleanup runs after each write (not once up front) so a stalled GPS lookup can't clear the draft before the expense exists.
+                const runCleanup = () =>
+                    cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
+                        report,
+                        action,
+                        draftTransactionIDs,
+                        transactionID: lastOptimisticTransactionID,
+                        isFromGlobalCreate,
+                        backToReport,
+                        optimisticChatReportID: chatReportID,
+                        linkedTrackedExpenseReportAction,
                     });
-                },
-                (errorData) => {
-                    Log.info('[ScanSkipConfirmation] getCurrentPosition failed', false, errorData);
-                    createTransaction(baseParams);
-                },
-            );
-            return;
-        }
-
-        createTransaction(baseParams);
+                if (locationPermissionGranted) {
+                    getCurrentPosition(
+                        (successData) => {
+                            createTransaction({
+                                ...baseParams,
+                                gpsPoint: {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            });
+                            runCleanup();
+                        },
+                        (errorData) => {
+                            Log.info('[ScanSkipConfirmation] getCurrentPosition failed', false, errorData);
+                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                            createTransaction(baseParams);
+                            runCleanup();
+                        },
+                    );
+                    return;
+                }
+                createTransaction(baseParams);
+                runCleanup();
+            },
+            destinationReportID: scanDestinationReportID,
+            telemetryContext: {
+                scenario: iouType === CONST.IOU.TYPE.TRACK ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_SCAN,
+                iouType,
+                requestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                isFromGlobalCreate: !report?.reportID,
+                hasReceipt: true,
+            },
+        });
     };
 
     const submitWithGpsCheck = (files: ReceiptFile[]) => {

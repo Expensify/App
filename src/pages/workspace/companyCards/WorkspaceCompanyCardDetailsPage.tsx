@@ -38,7 +38,7 @@ import {
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -82,7 +82,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const [isUnassigning, setIsUnassigning] = useState(false);
 
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
 
@@ -96,7 +96,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
 
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const displayName = getDisplayNameOrDefault(cardholder);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate});
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -241,6 +241,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <MenuItemWithTopDescription
                                 description={exportMenuItem.description}
                                 title={exportMenuItem.title}
+                                numberOfLinesTitle={2}
                                 shouldShowRightIcon={canWriteCompanyCards}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
                                 interactive={canWriteCompanyCards}

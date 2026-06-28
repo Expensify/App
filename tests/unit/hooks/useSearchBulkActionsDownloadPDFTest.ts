@@ -1,13 +1,19 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
+import {exportReportsToPDF} from '@libs/actions/Export';
 import {exportReportToPDF} from '@libs/actions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
+jest.mock('@libs/actions/Export', () => ({
+    exportReportsToPDF: jest.fn(() => 'mock-export-id'),
+}));
 jest.mock('@libs/actions/Report', () => ({
     exportReportToPDF: jest.fn(),
 }));
@@ -56,6 +62,16 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     })),
 }));
 
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
+
+jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
+    __esModule: true,
+    default: () => ({policyForMovingExpensesID: 'policy1'}),
+}));
+
 // ---- helpers ----
 
 const expenseReportQueryJSON: SearchQueryJSON = {
@@ -74,10 +90,13 @@ const expenseReportQueryJSON: SearchQueryJSON = {
 
 function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
     return {
-        reportID: 'report1',
+        reportID: '1',
         policyID: 'policy1',
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
+        canPay: false,
+        canApprove: false,
+        canSubmit: false,
+        canChangeApprover: false,
         total: 100,
         currency: 'USD',
         chatReportID: undefined,
@@ -93,6 +112,8 @@ function getDownloadPDFOption(options: Array<DropdownOption<SearchHeaderOptionVa
 
 // ---- tests ----
 
+const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
+
 describe('useSearchBulkActions - Download as PDF', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -106,11 +127,11 @@ describe('useSearchBulkActions - Download as PDF', () => {
         mockSelectedReports = [];
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, {
-            reportID: 'report1',
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+            reportID: '1',
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
-            reportName: 'Report report1',
+            reportName: 'Report 1',
         });
     });
 
@@ -131,7 +152,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -139,7 +160,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             const pdfOption = getDownloadPDFOption(result.current.headerButtonsOptions);
@@ -160,7 +181,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -168,7 +189,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -180,7 +201,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
         });
 
         expect(exportReportToPDF).toHaveBeenCalledTimes(1);
-        expect(exportReportToPDF).toHaveBeenCalledWith({reportID: 'report1'});
+        expect(exportReportToPDF).toHaveBeenCalledWith({reportID: '1'});
     });
 
     it('should not call exportReportToPDF when offline', async () => {
@@ -197,7 +218,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -205,7 +226,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
             },
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -219,8 +240,15 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(exportReportToPDF).not.toHaveBeenCalled();
     });
 
-    it('should not show Download as PDF when multiple reports are selected', async () => {
-        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: 'report2'})];
+    it('should show Download as PDF when multiple reports are selected', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+            reportID: '2',
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            reportName: 'Report 2',
+        });
+
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: '2'})];
         mockSelectedTransactions = {
             tx1: {
                 isSelected: true,
@@ -232,7 +260,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report1',
+                reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
                 currency: 'USD',
@@ -248,7 +276,58 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 isHeld: false,
                 canUnhold: false,
                 action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                reportID: 'report2',
+                reportID: '2',
+                policyID: 'policy1',
+                amount: 200,
+                currency: 'USD',
+                isFromOneTransactionReport: false,
+            },
+        };
+
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+    });
+
+    it('should call exportReportsToPDF for multi-select and set activeExportID', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+            reportID: '2',
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            reportName: 'Report 2',
+        });
+
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: '2'})];
+        mockSelectedTransactions = {
+            tx1: {
+                isSelected: true,
+                canReject: false,
+                canHold: false,
+                canSplit: false,
+                hasBeenSplit: false,
+                canChangeReport: false,
+                isHeld: false,
+                canUnhold: false,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                reportID: '1',
+                policyID: 'policy1',
+                amount: 100,
+                currency: 'USD',
+                isFromOneTransactionReport: false,
+            },
+            tx2: {
+                isSelected: true,
+                canReject: false,
+                canHold: false,
+                canSplit: false,
+                hasBeenSplit: false,
+                canChangeReport: false,
+                isHeld: false,
+                canUnhold: false,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                reportID: '2',
                 policyID: 'policy1',
                 amount: 200,
                 currency: 'USD',
@@ -259,9 +338,17 @@ describe('useSearchBulkActions - Download as PDF', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+            expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
         });
 
-        expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeUndefined();
+        const pdfOption = getDownloadPDFOption(result.current.headerButtonsOptions);
+        act(() => {
+            pdfOption?.onSelected?.();
+        });
+
+        expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
+        expect(exportReportsToPDF).toHaveBeenCalledWith(expect.arrayContaining(['1', '2']));
+        expect(exportReportToPDF).not.toHaveBeenCalled();
+        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 });

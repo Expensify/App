@@ -31,7 +31,7 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}),
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const onCurrencySelected = useCallback(

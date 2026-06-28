@@ -18,10 +18,11 @@ type ExpenseReportRulesSectionProps = {
     policyID: string;
     canWriteApprovals: boolean;
     canWritePayments: boolean;
-    showReadOnlyModal: () => void;
+    withApprovalsReadOnlyFallback: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
+    withPaymentsReadOnlyFallback: (disabledAction?: () => void | Promise<void>) => (() => void | Promise<void>) | undefined;
 };
 
-function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayments, showReadOnlyModal}: ExpenseReportRulesSectionProps) {
+function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayments, withApprovalsReadOnlyFallback, withPaymentsReadOnlyFallback}: ExpenseReportRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,7 +50,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval,
             disabled: workflowApprovalsUnavailable || !canWriteApprovals,
-            disabledAction: !canWriteApprovals ? showReadOnlyModal : undefined,
+            disabledAction: withApprovalsReadOnlyFallback(),
             showLockIcon: workflowApprovalsUnavailable || !canWriteApprovals,
             pendingAction: policy?.pendingFields?.preventSelfApproval ?? policy?.pendingAction,
             onToggle: (isEnabled: boolean) => {
@@ -72,7 +73,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
             isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
             disabled: workflowApprovalsUnavailable || !canWriteApprovals,
-            disabledAction: !canWriteApprovals ? showReadOnlyModal : undefined,
+            disabledAction: withApprovalsReadOnlyFallback(),
             showLockIcon: workflowApprovalsUnavailable || !canWriteApprovals,
             pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions ?? policy?.pendingAction,
             onToggle: (isEnabled: boolean) => {
@@ -134,7 +135,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 enablePolicyAutoReimbursementLimit(policyID, isEnabled, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
             },
             disabled: autoPayApprovedReportsUnavailable || !canWritePayments,
-            disabledAction: !canWritePayments ? showReadOnlyModal : undefined,
+            disabledAction: withPaymentsReadOnlyFallback(),
             showLockIcon: autoPayApprovedReportsUnavailable || !canWritePayments,
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoReimbursementLimitOption ?? policy?.pendingAction,

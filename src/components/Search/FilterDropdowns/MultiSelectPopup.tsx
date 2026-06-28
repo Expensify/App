@@ -1,17 +1,9 @@
 import React, {useState} from 'react';
-import type {ReactNode} from 'react';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
+import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BasePopup from './BasePopup';
-
-type MultiSelectItem<T> = {
-    text: string;
-    value: T;
-    icons?: Icon[];
-    leftElement?: ReactNode;
-};
 
 type MultiSelectPopupProps<T> = {
     /** The label to show when in an overlay on mobile */
