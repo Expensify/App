@@ -73,6 +73,10 @@ function isRulesTab(key: string): key is RulesTab {
     return RULES_TAB_VALUES.has(key);
 }
 
+function isTableSelectionTab(tab: RulesTab): tab is Exclude<RulesTab, typeof RULES_TAB.GENERAL> {
+    return tab !== RULES_TAB.GENERAL;
+}
+
 function updateSelectionKeysIfChanged(previousKeys: string[], nextKeys: string[]) {
     if (previousKeys.length === nextKeys.length && previousKeys.every((key, index) => key === nextKeys.at(index))) {
         return previousKeys;
@@ -112,10 +116,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RULES_TAB_TYPE}`);
     const lastSelectedTabStr = lastSelectedTab as string | undefined;
     const activeTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
-    const [selectedSpendRuleKeys, setSelectedSpendRuleKeys] = useState<string[]>([]);
-    const [selectedExpenseDefaultKeys, setSelectedExpenseDefaultKeys] = useState<string[]>([]);
-    const [selectedRequireFieldsRuleKeys, setSelectedRequireFieldsRuleKeys] = useState<string[]>([]);
-    const [selectedFlagForReviewRuleKeys, setSelectedFlagForReviewRuleKeys] = useState<string[]>([]);
+    const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<Exclude<RulesTab, typeof RULES_TAB.GENERAL>, string[]>>>({});
 
     const {showConfirmModal} = useConfirmModal();
     const defaultFundID = useDefaultFundID(policyID);
@@ -233,36 +234,34 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     }, [policy?.areCategoriesEnabled, policyCategoriesOnyx, policyID]);
 
     const clearAllTableSelection = () => {
-        setSelectedSpendRuleKeys((prev) => (prev.length > 0 ? [] : prev));
-        setSelectedExpenseDefaultKeys((prev) => (prev.length > 0 ? [] : prev));
-        setSelectedRequireFieldsRuleKeys((prev) => (prev.length > 0 ? [] : prev));
-        setSelectedFlagForReviewRuleKeys((prev) => (prev.length > 0 ? [] : prev));
+        setSelectedRuleKeysByTab((prev) => (Object.keys(prev).length > 0 ? {} : prev));
         turnOffMobileSelectionMode();
     };
 
     useCleanupSelectedOptions(clearAllTableSelection);
 
-    const validExpenseDefaultKeys = new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled && !rule.isSelectionDisabled).map((rule) => rule.keyForList));
-    const validSpendRuleKeys = new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-    const validRequireFieldsRuleKeys = new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-    const validFlagForReviewRuleKeys = new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList));
-    const filteredSelectedExpenseDefaultKeys = canWriteRules ? selectedExpenseDefaultKeys.filter((key) => validExpenseDefaultKeys.has(key)) : [];
-    const filteredSelectedSpendRuleKeys = canWriteRules ? selectedSpendRuleKeys.filter((key) => validSpendRuleKeys.has(key)) : [];
-    const filteredSelectedRequireFieldsRuleKeys = canWriteRules ? selectedRequireFieldsRuleKeys.filter((key) => validRequireFieldsRuleKeys.has(key)) : [];
-    const filteredSelectedFlagForReviewRuleKeys = canWriteRules ? selectedFlagForReviewRuleKeys.filter((key) => validFlagForReviewRuleKeys.has(key)) : [];
+    const validKeysByTab = {
+        [RULES_TAB.CARD_RESTRICTIONS]: new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList)),
+        [RULES_TAB.EXPENSE_DEFAULTS]: new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled && !rule.isSelectionDisabled).map((rule) => rule.keyForList)),
+        [RULES_TAB.REQUIRE_FIELDS]: new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList)),
+        [RULES_TAB.FLAG_FOR_REVIEW]: new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList)),
+    };
 
-    let selectedRuleKeys: string[];
-    if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
-        selectedRuleKeys = filteredSelectedSpendRuleKeys;
-    } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
-        selectedRuleKeys = filteredSelectedExpenseDefaultKeys;
-    } else if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
-        selectedRuleKeys = filteredSelectedRequireFieldsRuleKeys;
-    } else if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
-        selectedRuleKeys = filteredSelectedFlagForReviewRuleKeys;
-    } else {
-        selectedRuleKeys = [];
-    }
+    const getFilteredSelectedKeys = (tab: Exclude<RulesTab, typeof RULES_TAB.GENERAL>) => {
+        if (!canWriteRules) {
+            return [];
+        }
+
+        const validKeys = validKeysByTab[tab];
+        return (selectedRuleKeysByTab[tab] ?? []).filter((key) => validKeys.has(key));
+    };
+
+    const filteredSelectedSpendRuleKeys = getFilteredSelectedKeys(RULES_TAB.CARD_RESTRICTIONS);
+    const filteredSelectedExpenseDefaultKeys = getFilteredSelectedKeys(RULES_TAB.EXPENSE_DEFAULTS);
+    const filteredSelectedRequireFieldsRuleKeys = getFilteredSelectedKeys(RULES_TAB.REQUIRE_FIELDS);
+    const filteredSelectedFlagForReviewRuleKeys = getFilteredSelectedKeys(RULES_TAB.FLAG_FOR_REVIEW);
+
+    const selectedRuleKeys = isTableSelectionTab(activeTab) ? getFilteredSelectedKeys(activeTab) : [];
     const hasSelectedRules = selectedRuleKeys.length > 0;
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
@@ -270,32 +269,25 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const shouldShowAddRuleButton = activeTab === RULES_TAB.GENERAL || !shouldShowBulkActions;
 
     const clearTableSelection = () => {
-        if (activeTab === RULES_TAB.CARD_RESTRICTIONS) {
-            setSelectedSpendRuleKeys([]);
-        } else if (activeTab === RULES_TAB.EXPENSE_DEFAULTS) {
-            setSelectedExpenseDefaultKeys([]);
-        } else if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
-            setSelectedRequireFieldsRuleKeys([]);
-        } else if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
-            setSelectedFlagForReviewRuleKeys([]);
+        if (!isTableSelectionTab(activeTab)) {
+            return;
         }
+
+        setSelectedRuleKeysByTab((prev) => {
+            if (!prev[activeTab]?.length) {
+                return prev;
+            }
+
+            return {...prev, [activeTab]: []};
+        });
         turnOffMobileSelectionMode();
     };
 
-    const handleSpendRuleSelectionChange = (selectedRowKeys: string[]) => {
-        setSelectedSpendRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
-    };
-
-    const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => {
-        setSelectedExpenseDefaultKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
-    };
-
-    const handleRequireFieldsSelectionChange = (selectedRowKeys: string[]) => {
-        setSelectedRequireFieldsRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
-    };
-
-    const handleFlagForReviewSelectionChange = (selectedRowKeys: string[]) => {
-        setSelectedFlagForReviewRuleKeys((previousKeys) => updateSelectionKeysIfChanged(previousKeys, selectedRowKeys));
+    const handleTableSelectionChange = (tab: Exclude<RulesTab, typeof RULES_TAB.GENERAL>) => (selectedRowKeys: string[]) => {
+        setSelectedRuleKeysByTab((prev) => ({
+            ...prev,
+            [tab]: updateSelectionKeysIfChanged(prev[tab] ?? [], selectedRowKeys),
+        }));
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
@@ -511,7 +503,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
                 cardStyles={styles.cardRulesEmptyStateContainer}
-                foregroundStyles={styles.cardRulesEmptyStateForeground}
                 containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
@@ -540,7 +531,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
                 cardStyles={styles.cardRulesEmptyStateContainer}
-                foregroundStyles={styles.cardRulesEmptyStateForeground}
                 containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
@@ -569,7 +559,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 subtitleStyles={[styles.textLabel, styles.textSupporting]}
                 minModalHeight={0}
                 cardStyles={styles.cardRulesEmptyStateContainer}
-                foregroundStyles={styles.cardRulesEmptyStateForeground}
                 containerStyles={rulesEmptyStateContainerStyles}
                 buttons={[
                     {
@@ -645,10 +634,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         if (!isRulesTab(key)) {
                                             return;
                                         }
-                                        setSelectedSpendRuleKeys([]);
-                                        setSelectedExpenseDefaultKeys([]);
-                                        setSelectedRequireFieldsRuleKeys([]);
-                                        setSelectedFlagForReviewRuleKeys([]);
+                                        setSelectedRuleKeysByTab({});
                                         turnOffMobileSelectionMode();
                                         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
                                     }}
@@ -666,7 +652,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         rulesData={areCardsEnabled ? spendRulesTableData : []}
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedSpendRuleKeys}
-                                        onRowSelectionChange={handleSpendRuleSelectionChange}
+                                        onRowSelectionChange={handleTableSelectionChange(RULES_TAB.CARD_RESTRICTIONS)}
                                         emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
                                     />
                                 )}
@@ -675,7 +661,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         rulesData={expenseDefaultsTableData}
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedExpenseDefaultKeys}
-                                        onRowSelectionChange={handleExpenseDefaultSelectionChange}
+                                        onRowSelectionChange={handleTableSelectionChange(RULES_TAB.EXPENSE_DEFAULTS)}
                                     />
                                 )}
                                 {activeTab === RULES_TAB.REQUIRE_FIELDS && (
@@ -683,7 +669,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         rulesData={requireFieldsTableData}
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedRequireFieldsRuleKeys}
-                                        onRowSelectionChange={handleRequireFieldsSelectionChange}
+                                        onRowSelectionChange={handleTableSelectionChange(RULES_TAB.REQUIRE_FIELDS)}
                                         emptyStateContent={arePolicyCategoriesLoading ? undefined : requireFieldsEmptyState}
                                     />
                                 )}
@@ -692,7 +678,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                                         rulesData={flagForReviewTableData}
                                         selectionEnabled={canWriteRules}
                                         selectedKeys={filteredSelectedFlagForReviewRuleKeys}
-                                        onRowSelectionChange={handleFlagForReviewSelectionChange}
+                                        onRowSelectionChange={handleTableSelectionChange(RULES_TAB.FLAG_FOR_REVIEW)}
                                         emptyStateContent={arePolicyCategoriesLoading ? undefined : flagForReviewEmptyState}
                                     />
                                 )}

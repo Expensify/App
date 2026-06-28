@@ -10,6 +10,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToFrontendAmountAsString} from './CurrencyUtils';
+import {isPendingDeleteOrUpdate} from './PolicyRulesUtils';
 
 type FlagForReviewTableItem = TableData & {
     ruleID: string;
@@ -24,10 +25,6 @@ type FlagForReviewTableItem = TableData & {
 
 function hasExplicitFlagAmount(maxExpenseAmount: number | null | undefined): maxExpenseAmount is number {
     return maxExpenseAmount !== null && maxExpenseAmount !== undefined && maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
-}
-
-function isCategoryFieldPending(pendingAction: PendingAction | undefined): boolean {
-    return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 }
 
 function getFlagForReviewRuleNavigationRoute(policyID: string, categoryName: string): Route {
@@ -110,7 +107,7 @@ function getFlagForReviewTableData({
             ruleDescription,
             searchTokens: [decodedCategoryName, conditionText, ruleDescription, typeLabel],
             pendingAction: pendingFields?.maxExpenseAmount,
-            disabled: isCategoryFieldPending(pendingFields?.maxExpenseAmount),
+            disabled: isPendingDeleteOrUpdate(pendingFields?.maxExpenseAmount),
             action: () => onNavigate(getFlagForReviewRuleNavigationRoute(policyID, categoryName)),
         });
     }

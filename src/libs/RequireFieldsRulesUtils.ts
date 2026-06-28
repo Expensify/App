@@ -19,6 +19,7 @@ import {
     setPolicyCategoryReceiptsRequired,
 } from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
+import {isPendingDeleteOrUpdate} from './PolicyRulesUtils';
 
 type RequireFieldsRuleType = DeepValueOf<typeof CONST.REQUIRE_FIELDS_RULE_TYPES>;
 
@@ -193,10 +194,6 @@ function saveRequireFieldsRule(policyData: PolicyData, form: RequireFieldsRuleFo
     }
 }
 
-function isCategoryFieldPending(pendingAction: PendingAction | undefined): boolean {
-    return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-}
-
 function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
     const parsedRule = parseRequireFieldsRuleKey(ruleKey);
     if (!parsedRule || !policyData.policy?.id) {
@@ -281,6 +278,51 @@ function getRequireFieldsPendingAction(ruleType: RequireFieldsRuleType, pendingF
     }
 }
 
+function createRequireFieldsTableItem({
+    categoryName,
+    ruleType,
+    typeLabel,
+    conditionText,
+    decodedCategoryName,
+    pendingFields,
+    policyID,
+    translate,
+    convertToDisplayString,
+    policyCurrency,
+    amount,
+    onNavigate,
+}: {
+    categoryName: string;
+    ruleType: RequireFieldsRuleType;
+    typeLabel: string;
+    conditionText: string;
+    decodedCategoryName: string;
+    pendingFields: PolicyCategories[string]['pendingFields'];
+    policyID: string;
+    translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    policyCurrency: string;
+    amount?: number;
+    onNavigate: (route: Route) => void;
+}): RequireFieldsTableItem {
+    const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, amount, convertToDisplayString, policyCurrency);
+    const pendingAction = getRequireFieldsPendingAction(ruleType, pendingFields);
+
+    return {
+        keyForList: getRequireFieldsRuleKey(categoryName, ruleType),
+        ruleID: getRequireFieldsRuleKey(categoryName, ruleType),
+        ruleType,
+        categoryName,
+        typeLabel,
+        conditionText,
+        ruleDescription,
+        searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
+        pendingAction,
+        disabled: isPendingDeleteOrUpdate(pendingAction),
+        action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
+    };
+}
+
 function getRequireFieldsTableData({
     policy,
     policyCategories,
@@ -315,75 +357,77 @@ function getRequireFieldsTableData({
         const pendingFields = category.pendingFields;
 
         if (category.areCommentsRequired) {
-            const ruleType = CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION;
-            const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, undefined, convertToDisplayString, policyCurrency);
-            rules.push({
-                keyForList: getRequireFieldsRuleKey(categoryName, ruleType),
-                ruleID: getRequireFieldsRuleKey(categoryName, ruleType),
-                ruleType,
-                categoryName,
-                typeLabel,
-                conditionText,
-                ruleDescription,
-                searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
-                pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
-                disabled: isCategoryFieldPending(pendingFields?.areCommentsRequired),
-                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
-            });
+            rules.push(
+                createRequireFieldsTableItem({
+                    categoryName,
+                    ruleType: CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_DESCRIPTION,
+                    typeLabel,
+                    conditionText,
+                    decodedCategoryName,
+                    pendingFields,
+                    policyID,
+                    translate,
+                    convertToDisplayString,
+                    policyCurrency,
+                    onNavigate,
+                }),
+            );
         }
 
         if (category.areAttendeesRequired) {
-            const ruleType = CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES;
-            const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, undefined, convertToDisplayString, policyCurrency);
-            rules.push({
-                keyForList: getRequireFieldsRuleKey(categoryName, ruleType),
-                ruleID: getRequireFieldsRuleKey(categoryName, ruleType),
-                ruleType,
-                categoryName,
-                typeLabel,
-                conditionText,
-                ruleDescription,
-                searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
-                pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
-                disabled: isCategoryFieldPending(pendingFields?.areAttendeesRequired),
-                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
-            });
+            rules.push(
+                createRequireFieldsTableItem({
+                    categoryName,
+                    ruleType: CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ATTENDEES,
+                    typeLabel,
+                    conditionText,
+                    decodedCategoryName,
+                    pendingFields,
+                    policyID,
+                    translate,
+                    convertToDisplayString,
+                    policyCurrency,
+                    onNavigate,
+                }),
+            );
         }
 
         if (hasCategoryReceiptOverride(category.maxAmountNoReceipt)) {
-            const ruleType = CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER;
-            const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, category.maxAmountNoReceipt ?? undefined, convertToDisplayString, policyCurrency);
-            rules.push({
-                keyForList: getRequireFieldsRuleKey(categoryName, ruleType),
-                ruleID: getRequireFieldsRuleKey(categoryName, ruleType),
-                ruleType,
-                categoryName,
-                typeLabel,
-                conditionText,
-                ruleDescription,
-                searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
-                pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
-                disabled: isCategoryFieldPending(pendingFields?.maxAmountNoReceipt),
-                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
-            });
+            rules.push(
+                createRequireFieldsTableItem({
+                    categoryName,
+                    ruleType: CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_RECEIPTS_OVER,
+                    typeLabel,
+                    conditionText,
+                    decodedCategoryName,
+                    pendingFields,
+                    policyID,
+                    translate,
+                    convertToDisplayString,
+                    policyCurrency,
+                    amount: category.maxAmountNoReceipt ?? undefined,
+                    onNavigate,
+                }),
+            );
         }
 
         if (hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt)) {
-            const ruleType = CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER;
-            const ruleDescription = getRequireFieldsRuleDescription(translate, ruleType, category.maxAmountNoItemizedReceipt ?? undefined, convertToDisplayString, policyCurrency);
-            rules.push({
-                keyForList: getRequireFieldsRuleKey(categoryName, ruleType),
-                ruleID: getRequireFieldsRuleKey(categoryName, ruleType),
-                ruleType,
-                categoryName,
-                typeLabel,
-                conditionText,
-                ruleDescription,
-                searchTokens: [decodedCategoryName, ruleDescription, typeLabel],
-                pendingAction: getRequireFieldsPendingAction(ruleType, pendingFields),
-                disabled: isCategoryFieldPending(pendingFields?.maxAmountNoItemizedReceipt),
-                action: () => onNavigate(getRequireFieldsRuleNavigationRoute(policyID, categoryName)),
-            });
+            rules.push(
+                createRequireFieldsTableItem({
+                    categoryName,
+                    ruleType: CONST.REQUIRE_FIELDS_RULE_TYPES.REQUIRE_ITEMIZED_RECEIPTS_OVER,
+                    typeLabel,
+                    conditionText,
+                    decodedCategoryName,
+                    pendingFields,
+                    policyID,
+                    translate,
+                    convertToDisplayString,
+                    policyCurrency,
+                    amount: category.maxAmountNoItemizedReceipt ?? undefined,
+                    onNavigate,
+                }),
+            );
         }
     }
 

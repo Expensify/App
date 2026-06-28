@@ -5516,10 +5516,6 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        cardRulesEmptyStateForeground: {
-            margin: 0,
-        },
-
         cardRulesEmptyStateWrapper: {
             ...flex.flex1,
             ...flex.alignItemsCenter,

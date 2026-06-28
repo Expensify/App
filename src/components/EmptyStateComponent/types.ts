@@ -30,7 +30,6 @@ type EmptyStateComponentProps = {
     children?: React.ReactNode;
     buttons?: EmptyStateButton[];
     containerStyles?: StyleProp<ViewStyle>;
-    foregroundStyles?: StyleProp<ViewStyle>;
     cardStyles?: StyleProp<ViewStyle>;
     cardContentStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;

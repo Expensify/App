@@ -58,7 +58,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
 
     const mccGroup = policy?.mccGroup;
     const currentCategory = mccGroup?.[groupID]?.category ?? getDefaultMccGroupCategory(groupID);
-    const merchantTypeDisplayName = getMerchantTypeDisplayName(groupID, translate);
+    const merchantTypeDisplayName = getMerchantTypeDisplayName(groupID);
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
 
     useEffect(() => () => clearDraftMerchantTypeRule(), []);

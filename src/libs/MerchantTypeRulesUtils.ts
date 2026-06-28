@@ -5,20 +5,16 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CodingRule} from '@src/types/onyx/Policy';
-import {getDefaultMccGroup, getDefaultMccGroupIDs, isDefaultMccGroupID} from './actions/Policy/Category';
+import {getDefaultMccGroup, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
+import {getMccGroupDisplayName, isPendingDeleteOrUpdate} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
-
-function isPendingDeleteOrUpdate(pendingAction: PendingAction | undefined): boolean {
-    return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-}
 
 function getMerchantTypeRuleKey(groupID: string) {
     return `${MERCHANT_TYPE_RULE_KEY_PREFIX}${groupID}`;
@@ -28,12 +24,8 @@ function isMerchantTypeRuleKey(key: string) {
     return key.startsWith(MERCHANT_TYPE_RULE_KEY_PREFIX);
 }
 
-function getMerchantTypeDisplayName(groupID: string, translate: LocaleContextProps['translate']) {
-    if (isDefaultMccGroupID(groupID)) {
-        return translate(`workspace.rules.expenseDefaultsTable.merchantTypeLabels.${groupID}`);
-    }
-
-    return groupID.charAt(0).toUpperCase() + groupID.slice(1);
+function getMerchantTypeDisplayName(groupID: string) {
+    return getMccGroupDisplayName(groupID);
 }
 
 function getDefaultMccGroupCategory(groupID: string) {
@@ -80,9 +72,9 @@ function getMerchantTypeRulesTableData({
     const typeLabel = translate('workspace.rules.expenseDefaultsTable.update');
     const fieldLabel = translate('common.category').toLowerCase();
 
-    return getDefaultMccGroupIDs().map((groupID) => {
+    return Object.keys(mccGroup).map((groupID) => {
         const category = mccGroup[groupID]?.category ?? getDefaultMccGroupCategory(groupID);
-        const merchantTypeName = getMerchantTypeDisplayName(groupID, translate);
+        const merchantTypeName = getMerchantTypeDisplayName(groupID);
         const decodedCategoryName = category ? getDecodedCategoryName(category) : '';
         const ruleDescription = category ? translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, decodedCategoryName) : '';
         const conditionText = translate('workspace.rules.expenseDefaultsTable.merchantTypeIs', merchantTypeName);

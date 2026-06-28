@@ -58,7 +58,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
                             wrapperStyle={styles.rulesNewMenuItem}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND}
                         />
                         <MenuItem
                             icon={illustrations.Flag}
@@ -70,7 +70,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
                             wrapperStyle={styles.rulesNewMenuItem}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW}
                         />
                         <MenuItem
                             icon={illustrations.CheckboxText}
@@ -82,7 +82,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
                             wrapperStyle={styles.rulesNewMenuItem}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_REQUIRE_FIELDS}
                         />
                         <MenuItem
                             icon={illustrations.ReportReceipt}
@@ -94,7 +94,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                             iconWidth={variables.iconSizeExtraLarge}
                             iconHeight={variables.iconSizeExtraLarge}
                             wrapperStyle={styles.rulesNewMenuItem}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS}
                         />
                     </View>
                 </ScrollView>

@@ -6,6 +6,7 @@ import Table from '@components/Table';
 import type {TableData} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -61,12 +62,14 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
     const showSectionHeader = hasMultipleSections && (rowIndex === 0 || !!prevItem?.isMerchantType !== !!tableRowItem.isMerchantType);
 
     const lockIcon = tableRowItem.isMerchantType ? (
-        <Icon
-            src={Expensicons.Lock}
-            width={variables.iconSizeNormal}
-            height={variables.iconSizeNormal}
-            fill={theme.icon}
-        />
+        <Tooltip text={translate('common.locked')}>
+            <Icon
+                src={Expensicons.Lock}
+                width={variables.iconSizeNormal}
+                height={variables.iconSizeNormal}
+                fill={theme.icon}
+            />
+        </Tooltip>
     ) : undefined;
 
     return (
