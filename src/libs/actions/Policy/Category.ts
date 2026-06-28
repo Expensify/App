@@ -229,75 +229,78 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
     return onyxData;
 }
 
+const DEFAULT_MCC_GROUP_DEFINITIONS = {
+    airlines: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
+        groupID: 'airlines',
+    },
+    commuter: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
+        groupID: 'commuter',
+    },
+    gas: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
+        groupID: 'gas',
+    },
+    goods: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.MATERIALS,
+        groupID: 'goods',
+    },
+    groceries: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
+        groupID: 'groceries',
+    },
+    hotel: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
+        groupID: 'hotel',
+    },
+    mail: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.OFFICE_SUPPLIES,
+        groupID: 'mail',
+    },
+    meals: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
+        groupID: 'meals',
+    },
+    rental: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
+        groupID: 'rental',
+    },
+    services: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.PROFESSIONAL_SERVICES,
+        groupID: 'services',
+    },
+    taxi: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
+        groupID: 'taxi',
+    },
+    uncategorized: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.OTHER,
+        groupID: 'uncategorized',
+    },
+    utilities: {
+        category: CONST.POLICY.DEFAULT_CATEGORIES.UTILITIES,
+        groupID: 'utilities',
+    },
+} as const;
+
+type DefaultMccGroupID = keyof typeof DEFAULT_MCC_GROUP_DEFINITIONS;
+
+function buildDefaultMccGroupRecord(): Record<string, MccGroup> {
+    return Object.fromEntries(
+        Object.entries(DEFAULT_MCC_GROUP_DEFINITIONS).map(([groupID, definition]) => [
+            groupID,
+            {
+                ...definition,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        ]),
+    );
+}
+
 function buildOptimisticMccGroup() {
     const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
-        mccGroup: {
-            airlines: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-                groupID: 'airlines',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            commuter: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
-                groupID: 'commuter',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            gas: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
-                groupID: 'gas',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            goods: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.MATERIALS,
-                groupID: 'goods',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            groceries: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
-                groupID: 'groceries',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            hotel: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-                groupID: 'hotel',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            mail: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.OFFICE_SUPPLIES,
-                groupID: 'mail',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            meals: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
-                groupID: 'meals',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            rental: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-                groupID: 'rental',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            services: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.PROFESSIONAL_SERVICES,
-                groupID: 'services',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            taxi: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
-                groupID: 'taxi',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            uncategorized: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.OTHER,
-                groupID: 'uncategorized',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            utilities: {
-                category: CONST.POLICY.DEFAULT_CATEGORIES.UTILITIES,
-                groupID: 'utilities',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        },
+        mccGroup: buildDefaultMccGroupRecord(),
     };
 
     const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
@@ -312,6 +315,18 @@ function buildOptimisticMccGroup() {
     };
 
     return mccGroupData;
+}
+
+function getDefaultMccGroup(): Record<string, MccGroup> {
+    return buildDefaultMccGroupRecord();
+}
+
+function getDefaultMccGroupIDs(): DefaultMccGroupID[] {
+    return Object.keys(DEFAULT_MCC_GROUP_DEFINITIONS).filter(isDefaultMccGroupID);
+}
+
+function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
+    return Object.hasOwn(DEFAULT_MCC_GROUP_DEFINITIONS, groupID);
 }
 
 function getImportCategoriesFinalModal({added, updated}: {added: number; updated: number}): ImportFinalModal {
@@ -1900,6 +1915,9 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
 export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
+    getDefaultMccGroup,
+    getDefaultMccGroupIDs,
+    isDefaultMccGroupID,
     clearCategoryErrors,
     createPolicyCategory,
     deleteWorkspaceCategories,

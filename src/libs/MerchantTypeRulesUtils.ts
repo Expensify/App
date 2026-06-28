@@ -1,4 +1,3 @@
-import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 import CONST from '@src/CONST';
@@ -8,7 +7,7 @@ import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CodingRule} from '@src/types/onyx/Policy';
-import {buildOptimisticMccGroup} from './actions/Policy/Category';
+import {getDefaultMccGroup, getDefaultMccGroupIDs, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getDecodedCategoryName} from './CategoryUtils';
@@ -16,24 +15,6 @@ import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
-
-const EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS = [
-    'airlines',
-    'commuter',
-    'gas',
-    'goods',
-    'groceries',
-    'hotel',
-    'mail',
-    'meals',
-    'rental',
-    'services',
-    'taxi',
-    'uncategorized',
-    'utilities',
-] as const;
-
-type ExpenseDefaultMerchantTypeGroupID = TupleToUnion<typeof EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS>;
 
 function isPendingDeleteOrUpdate(pendingAction: PendingAction | undefined): boolean {
     return pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
@@ -47,12 +28,8 @@ function isMerchantTypeRuleKey(key: string) {
     return key.startsWith(MERCHANT_TYPE_RULE_KEY_PREFIX);
 }
 
-function isExpenseDefaultMerchantTypeGroupID(groupID: string): groupID is ExpenseDefaultMerchantTypeGroupID {
-    return (EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS as readonly string[]).includes(groupID);
-}
-
 function getMerchantTypeDisplayName(groupID: string, translate: LocaleContextProps['translate']) {
-    if (isExpenseDefaultMerchantTypeGroupID(groupID)) {
+    if (isDefaultMccGroupID(groupID)) {
         return translate(`workspace.rules.expenseDefaultsTable.merchantTypeLabels.${groupID}`);
     }
 
@@ -60,8 +37,7 @@ function getMerchantTypeDisplayName(groupID: string, translate: LocaleContextPro
 }
 
 function getDefaultMccGroupCategory(groupID: string) {
-    const defaultMccGroup = buildOptimisticMccGroup().optimisticData.mccGroup;
-    return defaultMccGroup[groupID]?.category ?? '';
+    return getDefaultMccGroup()[groupID]?.category ?? '';
 }
 
 function getMerchantTypeRuleNavigationRoute(policyID: string, groupID: string): Route {
@@ -100,11 +76,11 @@ function getMerchantTypeRulesTableData({
     }
 
     const policyID = policy.id;
-    const mccGroup = policy.mccGroup ?? buildOptimisticMccGroup().optimisticData.mccGroup;
+    const mccGroup = policy.mccGroup ?? getDefaultMccGroup();
     const typeLabel = translate('workspace.rules.expenseDefaultsTable.update');
     const fieldLabel = translate('common.category').toLowerCase();
 
-    return EXPENSE_DEFAULT_MERCHANT_TYPE_GROUP_IDS.map((groupID) => {
+    return getDefaultMccGroupIDs().map((groupID) => {
         const category = mccGroup[groupID]?.category ?? getDefaultMccGroupCategory(groupID);
         const merchantTypeName = getMerchantTypeDisplayName(groupID, translate);
         const decodedCategoryName = category ? getDecodedCategoryName(category) : '';
@@ -230,7 +206,7 @@ export {
     getExpenseDefaultsTableData,
     getMerchantTypeDisplayName,
     getMerchantTypeRuleFormFromMccGroup,
-    isExpenseDefaultMerchantTypeGroupID,
+    isDefaultMccGroupID,
     isMerchantTypeRuleKey,
     saveMerchantTypeRule,
 };

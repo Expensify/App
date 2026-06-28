@@ -17,13 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {clearDraftMerchantTypeRule, setDraftMerchantTypeRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {
-    getDefaultMccGroupCategory,
-    getMerchantTypeDisplayName,
-    getMerchantTypeRuleFormFromMccGroup,
-    isExpenseDefaultMerchantTypeGroupID,
-    saveMerchantTypeRule,
-} from '@libs/MerchantTypeRulesUtils';
+import {getDefaultMccGroupCategory, getMerchantTypeDisplayName, getMerchantTypeRuleFormFromMccGroup, isDefaultMccGroupID, saveMerchantTypeRule} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -70,7 +64,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
     useEffect(() => () => clearDraftMerchantTypeRule(), []);
 
     useEffect(() => {
-        if (!isExpenseDefaultMerchantTypeGroupID(groupID)) {
+        if (!isDefaultMccGroupID(groupID)) {
             return;
         }
 
@@ -124,7 +118,7 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
         handleSave();
     };
 
-    if (!isExpenseDefaultMerchantTypeGroupID(groupID)) {
+    if (!isDefaultMccGroupID(groupID)) {
         return <NotFoundPage />;
     }
 
