@@ -12,6 +12,10 @@ import type Report from '@src/types/onyx/Report';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+/**
+ * Use this only in non-React contexts (e.g. request middleware) where `useOnyx` is not available;
+ * React code should read the list via `useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST)` and pass it down.
+ */
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
